@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import { V2Routes } from "../lib/types";
 import Breadcrumbs from "./Breadcrumbs";
@@ -22,17 +22,22 @@ const navItems: NavItem[] = [
   {
     label: "Sources",
     link: { value: V2Routes.Sources },
-    styles: { sub: true },
+    styles: { icon: IconType.ErrorIcon },
   },
   {
     label: "Image Automation",
     link: { value: V2Routes.ImageAutomation },
-    styles: { sub: true, groupEnd: true },
+    styles: { icon: IconType.ErrorIcon },
   },
   {
     label: "Flux Runtime",
     link: { value: V2Routes.FluxRuntime },
-    styles: { icon: IconType.FluxIcon, groupEnd: true },
+    styles: { icon: IconType.FluxIcon },
+  },
+  {
+    label: "Notifications",
+    link: { value: V2Routes.Notifications },
+    styles: { icon: IconType.ErrorIcon },
   },
   {
     label: "Docs",
@@ -41,7 +46,7 @@ const navItems: NavItem[] = [
       href: "https://docs.gitops.weave.works/",
       newTab: true,
     },
-    styles: { icon: IconType.DocsIcon, groupEnd: true },
+    styles: { icon: IconType.DocsIcon },
   },
 ];
 
@@ -54,17 +59,8 @@ const AppContainer = styled.div`
   padding: 0;
 `;
 
-const navWidth = "200px";
 //top tool bar height needs to match main padding top
 const topBarHeight = "60px";
-
-const NavContainer = styled.div`
-  width: ${navWidth};
-  min-width: ${navWidth};
-  height: calc(100% - 12px);
-  //topBarHeight
-  transform: translateY(60);
-`;
 
 const ContentContainer = styled.div`
   width: 100%;
@@ -101,17 +97,21 @@ const TopToolBar = styled(Flex)`
 `;
 
 function Layout({ className, children }: Props) {
+  const [collapsed, setCollapsed] = useState<boolean>(false);
+
   return (
     <AppContainer className={className}>
       <TopToolBar start align wide>
-        <Logo />
+        <Logo collapsed={collapsed} />
         <Breadcrumbs />
         <UserSettings />
       </TopToolBar>
       <Main wide tall>
-        <NavContainer>
-          <Nav navItems={navItems} />
-        </NavContainer>
+        <Nav
+          navItems={navItems}
+          collapsed={collapsed}
+          setCollapsed={setCollapsed}
+        />
         <ContentContainer>{children}</ContentContainer>
       </Main>
     </AppContainer>
