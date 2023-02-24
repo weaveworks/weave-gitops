@@ -123,6 +123,14 @@ func (cs *coreServer) GetSessionLogs(ctx context.Context, msg *pb.GetSessionLogs
 		fluxNamespace = "flux-system"
 	}
 
+	logSourceFilter := msg.GetLogSourceFilter()
+	isLoadingGitOpsRunLogs := logSourceFilter == "" || logSourceFilter == logger.SessionLogSource
+	// check if we can get session logs already
+	// if the secret is not created yet, we should not display an error in the browser console
+	if err = isSecretCreated(ctx, cli, constants.GitOpsRunNamespace, constants.RunDevBucketCredentials); err != nil {
+		return &pb.GetSessionLogsResponse{Error: secretNotFound}, nil
+	}
+
 	info, err := getBucketConnectionInfo(ctx, clusterName, fluxNamespace, cli)
 	if err != nil {
 		return &pb.GetSessionLogsResponse{Error: err.Error()}, err
@@ -145,14 +153,7 @@ func (cs *coreServer) GetSessionLogs(ctx context.Context, msg *pb.GetSessionLogs
 		firstToken string
 	)
 
-	logSourceFilter := msg.GetLogSourceFilter()
-	if logSourceFilter == "" || logSourceFilter == logger.SessionLogSource {
-		// check if we can get session logs already
-		// if the secret is not created yet, we should not display an error in the browser console
-		if err = isSecretCreated(ctx, cli, constants.GitOpsRunNamespace, constants.RunDevBucketCredentials); err != nil {
-			return &pb.GetSessionLogsResponse{Error: secretNotFound}, nil
-		}
-
+	if isLoadingGitOpsRunLogs {
 		// get gitops-run logs
 		gitopsRunLogs, token, err := getGitOpsRunLogs(
 			ctx,
