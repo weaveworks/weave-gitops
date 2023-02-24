@@ -13,6 +13,7 @@ import HourglassFullIcon from "@material-ui/icons/HourglassFull";
 import LaunchIcon from "@material-ui/icons/Launch";
 import NavigateBeforeIcon from "@material-ui/icons/NavigateBefore";
 import NavigateNextIcon from "@material-ui/icons/NavigateNext";
+import NotificationsBellIcon from "@material-ui/icons/NotificationsNone";
 import PauseIcon from "@material-ui/icons/Pause";
 import PersonIcon from "@material-ui/icons/Person";
 import PlayIcon from "@material-ui/icons/PlayArrow";
@@ -62,6 +63,7 @@ export enum IconType {
   ApplicationsIcon,
   PlayIcon,
   PauseIcon,
+  NotificationsBell,
 }
 
 type Props = {
@@ -166,6 +168,9 @@ function getIcon(i: IconType) {
 
     case IconType.PauseIcon:
       return PauseIcon;
+
+    case IconType.NotificationsBell:
+      return NotificationsBellIcon;
 
     default:
       break;
