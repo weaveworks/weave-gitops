@@ -3,9 +3,11 @@ package server
 import (
 	"context"
 	"fmt"
+	"sort"
 	"sync"
 
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
+	"github.com/fluxcd/pkg/ssa"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -33,13 +35,9 @@ func (cs *coreServer) GetInventory(ctx context.Context, msg *pb.GetInventoryRequ
 
 	entries := []*pb.InventoryEntry{}
 	for _, o := range objs {
-		bytes, err := o.MarshalJSON()
+		entry, err := unstructuredToInventoryEntry(ctx, client, *o)
 		if err != nil {
 			return nil, err
-		}
-
-		entry := &pb.InventoryEntry{
-			Payload: string(bytes),
 		}
 
 		entries = append(entries, entry)
@@ -48,6 +46,79 @@ func (cs *coreServer) GetInventory(ctx context.Context, msg *pb.GetInventoryRequ
 	return &pb.GetInventoryResponse{
 		Entries: entries,
 	}, nil
+}
+
+func getChildren(ctx context.Context, k8sClient client.Client, parentObj unstructured.Unstructured) ([]*pb.InventoryEntry, error) {
+	listResult := unstructured.UnstructuredList{}
+
+	switch parentObj.GetObjectKind().GroupVersionKind().Kind {
+	case "Deployment", "StatefulSet":
+		listResult.SetGroupVersionKind(schema.GroupVersionKind{
+			Group:   "apps",
+			Version: "v1",
+			Kind:    "ReplicaSet",
+		})
+	case "ReplicaSet":
+		listResult.SetGroupVersionKind(schema.GroupVersionKind{
+			Group:   "",
+			Version: "v1",
+			Kind:    "Pod",
+		})
+	default:
+		return []*pb.InventoryEntry{}, nil
+	}
+
+	if err := k8sClient.List(ctx, &listResult); err != nil {
+		return nil, fmt.Errorf("could not get unstructured object: %s", err)
+	}
+
+	unstructuredChildren := []unstructured.Unstructured{}
+
+	for _, o := range listResult.Items {
+		refs := o.GetOwnerReferences()
+		if len(refs) == 0 {
+			// Ignore items without OwnerReference.
+			// for example: dev-weave-gitops-test-connection
+			continue
+		}
+		for _, ref := range refs {
+			if ref.UID == parentObj.GetUID() {
+				unstructuredChildren = append(unstructuredChildren, o)
+			}
+		}
+	}
+
+	children := []*pb.InventoryEntry{}
+
+	for _, c := range unstructuredChildren {
+		entry, err := unstructuredToInventoryEntry(ctx, k8sClient, c)
+		if err != nil {
+			return nil, err
+		}
+
+		children = append(children, entry)
+	}
+
+	return children, nil
+}
+
+func unstructuredToInventoryEntry(ctx context.Context, k8sClient client.Client, obj unstructured.Unstructured) (*pb.InventoryEntry, error) {
+	bytes, err := obj.MarshalJSON()
+	if err != nil {
+		return nil, err
+	}
+
+	children, err := getChildren(ctx, k8sClient, obj)
+	if err != nil {
+		return nil, err
+	}
+
+	entry := &pb.InventoryEntry{
+		Payload:  string(bytes),
+		Children: children,
+	}
+
+	return entry, nil
 }
 
 func (cs *coreServer) getKustomizationInventory(ctx context.Context, k8sClient client.Client, name string, namespace string) ([]*unstructured.Unstructured, error) {
@@ -95,6 +166,8 @@ func (cs *coreServer) getKustomizationInventory(ctx context.Context, k8sClient c
 	}
 
 	wg.Wait()
+
+	sort.Sort(ssa.SortableUnstructureds(result))
 
 	return result, nil
 }

@@ -897,6 +897,12 @@
       "properties": {
         "payload": {
           "type": "string"
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1InventoryEntry"
+          }
         }
       }
     },

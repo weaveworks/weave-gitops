@@ -66,6 +66,7 @@ export type NamespacedObjectReference = {
 
 export type InventoryEntry = {
   payload?: string
+  children?: InventoryEntry[]
 }
 
 export type Object = {
