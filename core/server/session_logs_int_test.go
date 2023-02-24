@@ -141,10 +141,9 @@ func TestIsSecretCreatedSecretFound(t *testing.T) {
 
 	cli := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(secret).Build()
 
-	created, err := isSecretCreated(context.Background(), cli, constants.GitOpsRunNamespace, constants.RunDevBucketCredentials)
+	err = isSecretCreated(context.Background(), cli, constants.GitOpsRunNamespace, constants.RunDevBucketCredentials)
 
 	g.Expect(err).ShouldNot(HaveOccurred())
-	g.Expect(created).To(BeTrue())
 }
 
 func TestIsSecretCreatedSecretNotFound(t *testing.T) {
@@ -165,8 +164,7 @@ func TestIsSecretCreatedSecretNotFound(t *testing.T) {
 
 	cli := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(secret).Build()
 
-	created, err := isSecretCreated(context.Background(), cli, constants.GitOpsRunNamespace, constants.RunDevBucketCredentials)
+	err = isSecretCreated(context.Background(), cli, constants.GitOpsRunNamespace, constants.RunDevBucketCredentials)
 
 	g.Expect(err).Should(HaveOccurred())
-	g.Expect(created).To(BeFalse())
 }

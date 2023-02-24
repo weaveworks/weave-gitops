@@ -29,7 +29,8 @@ import (
 )
 
 const (
-	secretNotCreated = "secret not created"
+	// identical string can be used in the UI to test for the secret not found condition.
+	secretNotFound = "secret not found"
 )
 
 type s3Reader interface {
@@ -148,9 +149,8 @@ func (cs *coreServer) GetSessionLogs(ctx context.Context, msg *pb.GetSessionLogs
 	if logSourceFilter == "" || logSourceFilter == logger.SessionLogSource {
 		// check if we can get session logs already
 		// if the secret is not created yet, we should not display an error in the browser console
-		_, err = isSecretCreated(ctx, cli, constants.GitOpsRunNamespace, constants.RunDevBucketCredentials)
-		if err != nil {
-			return &pb.GetSessionLogsResponse{Error: secretNotCreated}, nil
+		if err = isSecretCreated(ctx, cli, constants.GitOpsRunNamespace, constants.RunDevBucketCredentials); err != nil {
+			return &pb.GetSessionLogsResponse{Error: secretNotFound}, nil
 		}
 
 		// get gitops-run logs
@@ -196,7 +196,7 @@ func (cs *coreServer) GetSessionLogs(ctx context.Context, msg *pb.GetSessionLogs
 	}, nil
 }
 
-func isSecretCreated(ctx context.Context, cli client.Client, namespace string, name string) (bool, error) {
+func isSecretCreated(ctx context.Context, cli client.Client, namespace string, name string) error {
 	secret := corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -204,11 +204,7 @@ func isSecretCreated(ctx context.Context, cli client.Client, namespace string, n
 		},
 	}
 
-	if err := cli.Get(ctx, client.ObjectKeyFromObject(&secret), &secret); err != nil {
-		return false, err
-	}
-
-	return true, nil
+	return cli.Get(ctx, client.ObjectKeyFromObject(&secret), &secret)
 }
 
 func detectLogLevel(message string) string {
