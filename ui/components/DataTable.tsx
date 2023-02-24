@@ -380,7 +380,7 @@ function UnstyledDataTable({
     );
 
     let query = qs.parse(search);
-    console.log(textFilters.join("_"));
+
     if (textFilters.length) query["search"] = textFilters.join("_") + "_";
     else if (query["search"]) query = _.omit(query, "search");
     history.replace({ ...location, search: qs.stringify(query) });
