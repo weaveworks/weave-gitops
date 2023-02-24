@@ -261,6 +261,12 @@
             "in": "query",
             "required": false,
             "type": "string"
+          },
+          {
+            "name": "withChildren",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
           }
         ],
         "tags": [

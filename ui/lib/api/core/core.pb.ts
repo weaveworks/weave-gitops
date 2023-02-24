@@ -11,6 +11,7 @@ export type GetInventoryRequest = {
   name?: string
   namespace?: string
   clusterName?: string
+  withChildren?: boolean
 }
 
 export type GetInventoryResponse = {

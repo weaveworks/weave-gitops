@@ -176,6 +176,7 @@ message GetInventoryRequest {
     string name = 2;
     string namespace = 3;
     string clusterName = 4;
+    bool withChildren = 5;
 }
 
 message GetInventoryResponse {

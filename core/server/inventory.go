@@ -3,11 +3,9 @@ package server
 import (
 	"context"
 	"fmt"
-	"sort"
 	"sync"
 
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
-	"github.com/fluxcd/pkg/ssa"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -28,19 +26,9 @@ func (cs *coreServer) GetInventory(ctx context.Context, msg *pb.GetInventoryRequ
 		return nil, fmt.Errorf("error getting scoped client for cluster=%s: %w", msg.ClusterName, err)
 	}
 
-	objs, err := cs.getKustomizationInventory(ctx, client, msg.Name, msg.Namespace)
+	entries, err := cs.getKustomizationInventory(ctx, client, msg.Name, msg.Namespace, msg.WithChildren)
 	if err != nil {
 		return nil, fmt.Errorf("failed getting kustomization inventory: %w", err)
-	}
-
-	entries := []*pb.InventoryEntry{}
-	for _, o := range objs {
-		entry, err := unstructuredToInventoryEntry(ctx, client, *o)
-		if err != nil {
-			return nil, err
-		}
-
-		entries = append(entries, entry)
 	}
 
 	return &pb.GetInventoryResponse{
@@ -91,7 +79,7 @@ func getChildren(ctx context.Context, k8sClient client.Client, parentObj unstruc
 	children := []*pb.InventoryEntry{}
 
 	for _, c := range unstructuredChildren {
-		entry, err := unstructuredToInventoryEntry(ctx, k8sClient, c)
+		entry, err := unstructuredToInventoryEntry(ctx, k8sClient, c, true)
 		if err != nil {
 			return nil, err
 		}
@@ -102,15 +90,19 @@ func getChildren(ctx context.Context, k8sClient client.Client, parentObj unstruc
 	return children, nil
 }
 
-func unstructuredToInventoryEntry(ctx context.Context, k8sClient client.Client, obj unstructured.Unstructured) (*pb.InventoryEntry, error) {
+func unstructuredToInventoryEntry(ctx context.Context, k8sClient client.Client, obj unstructured.Unstructured, withChildren bool) (*pb.InventoryEntry, error) {
 	bytes, err := obj.MarshalJSON()
 	if err != nil {
 		return nil, err
 	}
 
-	children, err := getChildren(ctx, k8sClient, obj)
-	if err != nil {
-		return nil, err
+	children := []*pb.InventoryEntry{}
+
+	if withChildren {
+		children, err = getChildren(ctx, k8sClient, obj)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	entry := &pb.InventoryEntry{
@@ -121,7 +113,7 @@ func unstructuredToInventoryEntry(ctx context.Context, k8sClient client.Client, 
 	return entry, nil
 }
 
-func (cs *coreServer) getKustomizationInventory(ctx context.Context, k8sClient client.Client, name string, namespace string) ([]*unstructured.Unstructured, error) {
+func (cs *coreServer) getKustomizationInventory(ctx context.Context, k8sClient client.Client, name string, namespace string, withChildren bool) ([]*pb.InventoryEntry, error) {
 	kust := &kustomizev1.Kustomization{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      name,
@@ -134,10 +126,10 @@ func (cs *coreServer) getKustomizationInventory(ctx context.Context, k8sClient c
 	}
 
 	if kust.Status.Inventory.Entries == nil {
-		return []*unstructured.Unstructured{}, nil
+		return []*pb.InventoryEntry{}, nil
 	}
 
-	result := []*unstructured.Unstructured{}
+	result := []*pb.InventoryEntry{}
 	resultMu := sync.Mutex{}
 
 	wg := sync.WaitGroup{}
@@ -145,40 +137,45 @@ func (cs *coreServer) getKustomizationInventory(ctx context.Context, k8sClient c
 	for _, e := range kust.Status.Inventory.Entries {
 		wg.Add(1)
 
-		go func(entry kustomizev1.ResourceRef) {
+		go func(ref kustomizev1.ResourceRef) {
 			defer wg.Done()
 
-			obj, err := inventoryEntryToUnstructured(entry)
+			obj, err := resourceRefToUnstructured(ref)
 			if err != nil {
-				cs.logger.Error(err, "failed converting inventory entry", "entry", entry)
+				cs.logger.Error(err, "failed converting inventory entry", "entry", ref)
 				return
 			}
 
-			if err := k8sClient.Get(ctx, client.ObjectKeyFromObject(obj), obj); err != nil {
-				cs.logger.Error(err, "failed to get object", "entry", entry)
+			if err := k8sClient.Get(ctx, client.ObjectKeyFromObject(&obj), &obj); err != nil {
+				cs.logger.Error(err, "failed to get object", "entry", ref)
+				return
+			}
+
+			entry, err := unstructuredToInventoryEntry(ctx, k8sClient, obj, withChildren)
+			if err != nil {
+				cs.logger.Error(err, "failed converting inventory entry", "entry", ref)
 				return
 			}
 
 			resultMu.Lock()
-			result = append(result, obj)
+			result = append(result, entry)
 			resultMu.Unlock()
 		}(e)
 	}
 
 	wg.Wait()
 
-	sort.Sort(ssa.SortableUnstructureds(result))
-
 	return result, nil
 }
 
-func inventoryEntryToUnstructured(entry kustomizev1.ResourceRef) (*unstructured.Unstructured, error) {
+func resourceRefToUnstructured(entry kustomizev1.ResourceRef) (unstructured.Unstructured, error) {
+	u := unstructured.Unstructured{}
+
 	objMetadata, err := object.ParseObjMetadata(entry.ID)
 	if err != nil {
-		return nil, err
+		return u, err
 	}
 
-	u := &unstructured.Unstructured{}
 	u.SetGroupVersionKind(schema.GroupVersionKind{
 		Group:   objMetadata.GroupKind.Group,
 		Kind:    objMetadata.GroupKind.Kind,
