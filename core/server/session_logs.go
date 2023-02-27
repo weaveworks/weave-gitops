@@ -130,7 +130,11 @@ func (cs *coreServer) GetSessionLogs(ctx context.Context, msg *pb.GetSessionLogs
 		// check if we can get session logs already
 		// if the secret is not created yet, we should not display an error in the browser console
 		if err = isSecretCreated(ctx, cli, constants.GitOpsRunNamespace, constants.RunDevBucketCredentials); err != nil {
-			return &pb.GetSessionLogsResponse{Error: secretNotFound}, nil
+			return &pb.GetSessionLogsResponse{Error: err.Error()}, nil
+		}
+
+		if err = isSecretCreated(ctx, cli, fluxNamespace, constants.RunDevBucketCredentials); err != nil {
+			return &pb.GetSessionLogsResponse{Error: err.Error()}, nil
 		}
 	}
 
@@ -208,7 +212,11 @@ func isSecretCreated(ctx context.Context, cli client.Client, namespace string, n
 		},
 	}
 
-	return cli.Get(ctx, client.ObjectKeyFromObject(&secret), &secret)
+	if err := cli.Get(ctx, client.ObjectKeyFromObject(&secret), &secret); err != nil {
+		return fmt.Errorf("%s in the namespace %s: %w", secretNotFound, namespace, err)
+	}
+
+	return nil
 }
 
 func detectLogLevel(message string) string {
