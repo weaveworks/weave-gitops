@@ -4,11 +4,16 @@ hide_title: true
 ---
 
 import TierLabel from "./../_components/TierLabel";
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
 
-import CodeBlock from "@theme/CodeBlock";
-import BrowserOnly from "@docusaurus/BrowserOnly";
+import AlphaWarning from "../_components/_alpha_warning.mdx";
+
 
 # Promoting applications through pipeline environments <TierLabel tiers="Enterprise" />
+
+
+<AlphaWarning/>
 
 Pipelines allow you to configure automatic promotions of applications through a consecutive set of environments, e.g. from dev to staging to production. The environments are defined in the `Pipeline` resource itself so that each pipeline governs a single application and all the environments to which it is deployed.
 
@@ -134,6 +139,15 @@ is upgraded in one of the pipeline's environments, a PR is created that updates 
 The dynamic nature of GitOps deployments requires you to assist Weave GitOps a little with information on which repository hosts the manifest files,
 how to authenticate with the repository and the Git provider API, and which file hosts the version definition for each environment.
 
+:::caution
+
+Creating pull requests requires read and write access in your git repo.
+A compromised token could lead to changing the git repository and creation of legitimate looking changes/pull requests.
+
+Ensure you understand and adopt [security recommendations](./#security-recommendations) before using the feature.
+
+:::
+
 ### Supported Git Providers
 The following Git providers are currently support by this promotion strategy:
 
@@ -154,21 +168,26 @@ promotion:
 
 More info in the [spec](../spec/v1alpha1/pipeline/#pipeline)
 
-### Create credentials secret
+### Credentials Secret
 
-In order to authenticate with the Git provider repository hosting the manifests, you need to create a Secret with credentials used for cloning.
-The contents of this Secret are the same you use for [GitRepositories](https://fluxcd.io/flux/components/source/gitrepositories/#secret-reference).
+In the journey of creating a pull request, there are different secrets involved:
 
-The pipelines controller will be creating pull requests against this repository so you will need an API token in addition to the `git` credentials. You may want to create a bot account with clone and pull request permissions for this operation.
+1. Pipeline controller receives events via [webhook from leaf clusters](./#setup-notifications-from-leaf-clusters). Hmac is used for authN/authZ so an hmac key should be provided in this case.
+2. Pipeline controller clones and patches manifests to promote from the pipeline configuration repo. A set of [git credentials](https://fluxcd.io/flux/components/source/gitrepositories/#secret-reference) are required.
+3. Pipeline controller uses git provider api to create the pull request with the promoted manifests. A Personal Access Token (PAT) needs to be created to interact with pipelines git provider API.
 
-To create the secret via `kubectl`:
+Create a Kubernetes secret with the previous data.
+
+<details><summary>Expand to see example</summary>
 
 ```shell
-$ kubectl create secret generic promotion-credentials \ 
+# example to use git over https with basic auth and pat
+$ kubectl create secret generic promotion-credentials \
   --namespace=pipeline-01 \
   --from-literal="username=<bot account name>" \
   --from-literal="password=<token value>" \
-  --from-literal="token=<token value>"
+  --from-literal="token=<token value>" \
+  --from-literal="hmac-key=<hmac-key value>"
 ```
 
 ```yaml
@@ -187,16 +206,105 @@ type: Opaque
 ```
 
 :::tip
-The Git provider token provided in the `token` field needs to be given permission to create pull requests in the pipeline's repository (defined in `.spec.promotion.strategy.pull-request.url`). The `hmac-key` field must match the key used for the Provider resource (.spec.secretRef), if specified in the leaf clusters.
+- The Git provider token provided in the `token` field needs to be given permission to create pull requests in the pipeline's repository (defined in `.spec.promotion.strategy.pull-request.url`).
+- The `hmac-key` field must match the key used for the Provider resource (.spec.secretRef), if specified in the leaf clusters.
 :::
 
-:::caution
-The Secret needs to reside in the same Namespace as the Pipeline resource on the management cluster.
-:::
+</details>
 
 ### Define promotion in pipeline resource
 
-The field `.spec.promotion.strategy.pull-request` defines details about the Git repository used for promoting the given app. Set the `secretRef.name` field to the name of the Secret created in the previous step and the `url` and `branch` fields to the Git repository's URL and optionally a specific branch (if the branch is not set, it defaults to `main`). If using the `generic-hmac` Provider from leaf clusters, also set the `.spec.promotion.strategy.secretRef.name` to the name of the Secret created previously.
+The field `.spec.promotion.strategy.pull-request` defines details about the Git repository used for promoting the given app.
+Set the `secretRef.name` field to the name of the Secret created in the previous step and the `url` and `branch` fields to the
+Git repository's HTTPS URL and optionally a specific branch (if the branch is not set, it defaults to `main`).
+If using the `generic-hmac` Provider from leaf clusters, also set the `.spec.promotion.strategy.secretRef.name` to the name of the Secret created previously.
+
+More info in the [spec](../spec/v1alpha1/pipeline/#pipeline)
+
+### Security Recommendations
+
+:::tip
+
+Adopt as much of the recommendations in this section to reduce the risks associated with the secrets involved in pull requests.
+
+:::
+
+1. **Create a user account for pull request changes**: this user context would be used to do any git provider operation,
+and for security and auditing perspective, you don't want to impersonate a real user for it.
+
+<details><summary>Expand to see example</summary>
+
+![using bot account](img/bot-account.png)
+</details>
+
+2. **Restrict access to the secret**: the promotion credentials needs to reside in the same Namespace as the Pipeline resource on the management cluster. Restrict
+via RBAC that only `pipeline-controller` service account is able to read it.
+
+<details><summary>Expand to see example</summary>
+
+```yaml
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: read-app-promotion-credentials
+  namespace: app
+rules:
+  - apiGroups:
+      - ""
+    resourceNames:
+      - "app-promotion-credentials"
+    resources:
+      - "secrets"
+    verbs:
+      - "get"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pipeline-controller-read-app-promotion-credentials
+  namespace: app
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: read-app-promotion-credentials
+subjects:
+  - kind: ServiceAccount
+    name: pipeline-controller
+    namespace: pipeline-system
+```
+</details>
+
+3. **Do not use long-live tokens**: set an expiration date and rotate them according to your security policy.
+
+<details><summary>Expand to see example</summary>
+
+![create token with expiration](img/create-token-with-expiration.png)
+</details>
+
+4. **Honour the least privilege principle**: avoid having high privilege tokens. Restrict the token to your just your repo and to just the operations required.
+
+<details><summary>Expand to see example</summary>
+
+For example, if the case of GitHub, use [fine-grained tokens](https://github.blog/2022-10-18-introducing-fine-grained-personal-access-tokens-for-github/) to only
+allow access to the single repo that your configuration manifests exist.
+
+![create token least priviledge](img/fine-grained-token.png)
+ </details>
+
+5. **Review active access tokens on a regular basis**: to ensure that only the ones that are required are present at all times.
+
+<details><summary>Expand to see example</summary>
+
+For example, using github and fine-grained tokens you [could do so](https://github.blog/2022-10-18-introducing-fine-grained-personal-access-tokens-for-github/#approving-and-auditing-personal-access-tokens).
+
+![review tokens](img/manage-fine-grained.png)
+</details>
+
+6. **Review git provider recommendations and examples**
+- [GitHub](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token)
+- [GitLab](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html)
+
 
 ### Add markers to app manifests
 
