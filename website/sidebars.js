@@ -282,6 +282,23 @@ module.exports = {
     },
     {
       type: 'category',
+      label: 'Secrets',
+      link: {
+        type: 'doc',
+        id: 'secrets/intro',
+      },
+      items: [
+        'secrets/intro',
+        'secrets/bootstraping-secrets',
+        'secrets/setup-secrets-operator',
+        'secrets/manage-secrets-gui',
+        'secrets/using-secrets',
+        'secrets/troubleshoot',
+        'secrets/self-service',
+      ],
+    },
+    {
+      type: 'category',
       label: 'Templates',
       items: [
         'gitops-templates/templates',
