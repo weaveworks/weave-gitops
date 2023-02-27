@@ -17,6 +17,11 @@ WGE multi tenancy expands on the multi tenancy feature provided by `flux`. In ad
 - Defining tenancy using a single yaml file that serves as a source of truth for the organization
 - Makes use of WGE policy features to enforce non Kubernetes native permissions
 
+## Prerequisite
+
+- [`gitops` command line tool](https://docs.gitops.weave.works/docs/references/cli-reference/gitops/)
+- [Tenancy File](#tenancy-file) (optional)
+- [Policies](/policy/intro.mdx) (optional)
 
 ## How it works
 
@@ -110,12 +115,22 @@ For more control on a specific tenant a tenancy file should be used, the command
 gitops create tenants --name test-tenant --namespace test-ns1 --namespace test-ns2
 ```
 
-The above will create the namespaces and permissions through a `ServiceAccount` with the same name as the tenant in that case `test-tenant` in each required namespace.
-The same can be done through a file as follows:
+<details><summary>Expand to view command output</summary>
 
 ```bash
-gitops create tenants --from-file tenants.yaml
+namespace/test-ns1 created
+test-ns1/serviceaccount/test-tenant created
+test-ns1/rolebinding.rbac.authorization.k8s.io/test-tenant-service-account-cluster-admin created
+namespace/test-ns2 created
+test-ns2/serviceaccount/test-tenant created
+test-ns2/rolebinding.rbac.authorization.k8s.io/test-tenant-service-account-cluster-admin created
+policy.pac.weave.works/weave.policies.tenancy.test-tenant-allowed-application-deploy created
 ```
+
+</details>
+
+The above will create the namespaces and permissions through a `ServiceAccount` with the same name as the tenant in that case `test-tenant` in each required namespace.
+The same can be done through a file as follows:
 
 To apply the same resources, the file should look like this:
 
@@ -127,11 +142,171 @@ tenants:
     - test-ns2
 ```
 
+```bash
+gitops create tenants --from-file tenants.yaml
+```
+
+<details><summary>Expand to view command output</summary>
+
+```bash
+namespace/test-ns1 created
+test-ns1/serviceaccount/test-tenant created
+test-ns1/rolebinding.rbac.authorization.k8s.io/test-tenant-service-account-cluster-admin created
+namespace/test-ns2 created
+test-ns2/serviceaccount/test-tenant created
+test-ns2/rolebinding.rbac.authorization.k8s.io/test-tenant-service-account-cluster-admin created
+policy.pac.weave.works/weave.policies.tenancy.test-tenant-allowed-application-deploy created
+```
+
+</details>
+
 To check the resources that would be deployed first use the `export` flag:
 
 ```bash
 gitops create tenants --from-file tenants.yaml --export
 ```
+
+<details><summary>Expand to view command output</summary>
+
+```bash
+apiVersion: v1
+kind: Namespace
+metadata:
+  creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: test-tenant
+  name: test-ns1
+spec: {}
+status: {}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: test-tenant
+  name: test-tenant
+  namespace: test-ns1
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: test-tenant
+  name: test-tenant-service-account-cluster-admin
+  namespace: test-ns1
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: test-tenant
+  namespace: test-ns1
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: test-tenant
+  name: test-ns2
+spec: {}
+status: {}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: test-tenant
+  name: test-tenant
+  namespace: test-ns2
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: test-tenant
+  name: test-tenant-service-account-cluster-admin
+  namespace: test-ns2
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: test-tenant
+  namespace: test-ns2
+---
+apiVersion: pac.weave.works/v2beta2
+kind: Policy
+metadata:
+  creationTimestamp: null
+  labels:
+    toolkit.fluxcd.io/tenant: test-tenant
+  name: weave.policies.tenancy.test-tenant-allowed-application-deploy
+spec:
+  category: weave.categories.tenancy
+  code: |
+    package weave.tenancy.allowed_application_deploy
+
+    controller_input := input.review.object
+    violation[result] {
+        namespaces := input.parameters.namespaces
+        targetNamespace := controller_input.spec.targetNamespace
+        not contains_array(targetNamespace, namespaces)
+        result = {
+        "issue detected": true,
+        "msg": sprintf("using target namespace %v is not allowed", [targetNamespace]),
+        }
+    }
+    violation[result] {
+        serviceAccountName := controller_input.spec.serviceAccountName
+        serviceAccountName != input.parameters.service_account_name
+        result = {
+        "issue detected": true,
+        "msg": sprintf("using service account name %v is not allowed", [serviceAccountName]),
+        }
+    }
+    contains_array(item, items) {
+        items[_] = item
+    }
+  description: Determines which helm release and kustomization can be used in a tenant
+  how_to_solve: ""
+  id: weave.policies.tenancy.test-tenant-allowed-application-deploy
+  name: test-tenant allowed application deploy
+  parameters:
+  - name: namespaces
+    required: false
+    type: array
+    value:
+    - test-ns1
+    - test-ns2
+  - name: service_account_name
+    required: false
+    type: string
+    value: test-tenant
+  provider: kubernetes
+  severity: high
+  standards: []
+  tags:
+  - tenancy
+  targets:
+    kinds:
+    - HelmRelease
+    - Kustomization
+    labels: []
+    namespaces:
+    - test-ns1
+    - test-ns2
+status: {}
+---
+```
+
+</details>
 
 Applying the resources through the command line is not usually recommended. For WGE the recommended way is to commit the result of the `create tenants` command to source control and let `flux` handle deployment. To achieve that you can save the result of the `export` to a file:
 
