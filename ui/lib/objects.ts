@@ -1,4 +1,5 @@
 import { stringify } from "yaml";
+import _ from "lodash";
 import {
   Condition,
   GitRepositoryRef,
@@ -23,11 +24,16 @@ export interface CrossNamespaceObjectRef extends ObjectRef {
   apiVersion: string;
   matchLabels: { key: string; value: string }[];
 }
+export interface ImgPolicy {
+  type?: string;
+  value?: string;
+}
 export class FluxObject {
   obj: any;
   clusterName: string;
   tenant: string;
   uid: string;
+  info: string;
   children: FluxObject[];
 
   constructor(response: ResponseObject) {
@@ -36,9 +42,11 @@ export class FluxObject {
     } catch {
       this.obj = {};
     }
-    this.clusterName = response?.clusterName;
-    this.tenant = response?.tenant;
-    this.uid = response?.uid;
+    this.clusterName = response?.clusterName || "";
+    this.tenant = response?.tenant || "";
+    this.uid = response?.uid || "";
+    this.info = response?.info || "";
+    this.children = [];
   }
 
   get yaml(): string {
@@ -84,7 +92,7 @@ export class FluxObject {
 
   get conditions(): Condition[] {
     return (
-      this.obj.status?.conditions?.map((condition) => {
+      this.obj.status?.conditions?.map((condition: any) => {
         return {
           type: condition.type,
           status: condition.status,
@@ -101,7 +109,7 @@ export class FluxObject {
       /((?<hours>[0-9]+)h)?((?<minutes>[0-9]+)m)?((?<seconds>[0-9]+)s)?/.exec(
         this.obj.spec?.interval
       );
-    const interval = match.groups;
+    const interval = match?.groups || {};
     return {
       hours: interval.hours || "0",
       minutes: interval.minutes || "0",
@@ -114,13 +122,17 @@ export class FluxObject {
   }
 
   get images(): string[] {
-    const spec = this.obj.spec;
-    if (!spec) return [];
-    if (spec.template) {
-      return spec.template.spec?.containers.map((x) => x.image) || [];
-    }
-    if (spec.containers) return spec.containers.map((x) => x.image);
-    return [];
+    const containerPaths = ["spec.template.spec.containers", "spec.containers"];
+    const images = containerPaths.flatMap((path) => {
+      const containers = _.get(this.obj, path, []);
+      // _.map returns an empty list if containers is not iterable
+      return _.map(containers, (container: unknown) =>
+        _.get(container, "image")
+      );
+    });
+
+    // filter out undefined, null, and other strange objects that might be there
+    return images.filter((image) => _.isString(image));
   }
 }
 
@@ -315,7 +327,33 @@ export class ImageUpdateAutomation extends FluxObject {
     return this.obj?.status?.lastAutomationRunTime || "";
   }
 }
+export class ImagePolicy extends ImageUpdateAutomation {
+  constructor(response: ResponseObject) {
+    super(response);
+  }
+  get imagePolicy(): ImgPolicy {
+    const { policy } = this.obj?.spec;
+    const [type] = Object.keys(policy);
+    if (type) {
+      const [val] = Object.values(policy[type]);
+      return {
+        type,
+        value: (val as string) || "",
+      };
+    }
+    return {
+      type: "",
+      value: "",
+    };
+  }
+  get imageRepositoryRef(): string {
+    return this.obj?.spec?.imageRepositoryRef?.name || "";
+  }
+}
 export class ImageRepository extends ImageUpdateAutomation {
+  constructor(response: ResponseObject) {
+    super(response);
+  }
   get tagCount(): string {
     return this.obj.status?.lastScanResult?.tagCount || "";
   }

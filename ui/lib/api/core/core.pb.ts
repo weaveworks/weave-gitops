@@ -140,15 +140,26 @@ export type ToggleSuspendResourceResponse = {
 }
 
 export type GetSessionLogsRequest = {
+  sessionNamespace?: string
   sessionId?: string
   token?: string
-  clusterName?: string
-  namespace?: string
+  logSourceFilter?: string
+  logLevelFilter?: string
+}
+
+export type LogEntry = {
+  timestamp?: string
+  source?: string
+  level?: string
+  message?: string
+  sortingKey?: string
 }
 
 export type GetSessionLogsResponse = {
-  logs?: string[]
+  logs?: LogEntry[]
   nextToken?: string
+  error?: string
+  logSources?: string[]
 }
 
 export type IsCRDAvailableRequest = {

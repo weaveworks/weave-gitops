@@ -1,10 +1,11 @@
 ---
 title: Weave Policy Configuration
 hide_title: true
-sidebar_position: 6
 ---
 
-# Policy Configuration
+import TierLabel from "../_components/TierLabel";
+
+# Policy Configuration <TierLabel tiers="Enterprise" />
 
 ## Goal
 
@@ -84,7 +85,9 @@ A new `PolicyConfig` CRD allows using policies with multiple configurations by c
 
 ### Example
 
-- We have Kustomization application `app-a` and deployment `deployment-1` part of this application
+We have Kustomization application `app-a` and deployment `deployment-1` part of this application
+
+<details><summary>Expand to see manifests</summary>
 
 ```yaml
 apiVersion: pac.weave.works/v2beta2
@@ -162,14 +165,17 @@ spec:
         replica_count: 6
 ```
 
-**In the previous example when you apply the 5 configurations**
+</details>
+
+**In the above example when you apply the 5 configurations**...
 
 - `app-a` will be affected by `my-config-5`. It will be applied on the policies defined in it, which will affect deployment `deployment-1` in namespace `flux-system` as it matches the kind, name and namespace. 
 
-**Note**: 
-Deploying `deployment-1` in another namespace other than `flux-system` won't be affected by this configuration
+	:::note
+	Deploying `deployment-1` in another namespace other than `flux-system` won't be affected by this configuration
+	:::
 
-  Final config values will be as the following:
+  Final config values will be as follows:
 
     ```yaml
       config:
@@ -178,15 +184,17 @@ Deploying `deployment-1` in another namespace other than `flux-system` won't be 
             replica_count: 6 # from my-config-5
             owner: owner-4   # from my-config-4
     ```
-  - <em>Deployment `deployment-1` in namespace `flux-system` replica_count must be `>= 6`</em>
-  - <em>Also it will be affected by `my-config-4` for `owner` configuration parameter `owner: owner-4`</em>
+  - _Deployment `deployment-1` in namespace `flux-system`, `replica_count` must
+		be `>= 6`_
+  - _Also it will be affected by `my-config-4` for `owner` configuration
+		parameter `owner: owner-4`_
 
 
-**In the previous example when you apply `my-config-1`, `my-config-2`, `my-config-3` and `my-config-4`**
+**In the above example when you apply `my-config-1`, `my-config-2`, `my-config-3` and `my-config-4`**
 
 - `my-config-4` will be applied on the policies defined in it. which will affect deployment `deployment-1` in all namespaces as it matches the kind and name only.
 
-  Final config values will be as the following:
+  Final config values will be as follows:
 
     ```yaml
       config:
@@ -196,17 +204,19 @@ Deploying `deployment-1` in another namespace other than `flux-system` won't be 
             owner: owner-4    # from my-config-4
     ```
 
-  - <em>Deployment `deployment-1` in all namespaces replica_count must be `>= 5`</em>
-  - <em>Also it will be affected by `my-config-4` for `owner` configuration parameter `owner: owner-4`</em>
+  - _Deployment `deployment-1` in all namespaces `replica_count` must be `>= 5`_
+  - _Also it will be affected by `my-config-4` for `owner` configuration
+		parameter `owner: owner-4`_
 
 **In the previous example when you apply `my-config-1`, `my-config-2` and `my-config-3`**
 
 - `my-config-3` will be applied on the policies defined in it. which will affect application `app-a` and all the resources in it in namespace `flux-system` as it matches the kind, name and namespace.
 
-**Note**:
-Deploying `app-a` in another namespace other than `flux-system` won't be affected by this configuration
+	:::note
+	Deploying `app-a` in another namespace other than `flux-system` won't be affected by this configuration
+	:::
 
-  Final config values will be as the following:
+  Final config values will be the follows:
 
     ```yaml
       config:
@@ -216,14 +226,16 @@ Deploying `app-a` in another namespace other than `flux-system` won't be affecte
             owner: owner-1      # from my-config-1
     ```
 
-  - <em>Application `app-a` and all the resources in it in namespaces `flux-system` replica_count must be `>= 4`</em>
-  - <em>Also it will be affected by `my-config-1` for `owner` configuration parameter `owner: owner-1`</em>
+  - _Application `app-a` and all the resources in it in namespaces
+		`flux-system`, `replica_count` must be `>= 4`_
+  - _Also it will be affected by `my-config-1` for `owner` configuration
+		parameter `owner: owner-1`_
 
-**In the previous example when you apply `my-config-1` and `my-config-2`**
+**In the above example when you apply `my-config-1` and `my-config-2`**
 
 - `my-config-2` will be applied on the policies defined in it. which will affect application `app-a` and all the resources in it in all namespaces as it matches the kind and name only.
 
-  Final config values will be as the following:
+  Final config values will be as follows:
 
     ```yaml
       config:
@@ -233,14 +245,16 @@ Deploying `app-a` in another namespace other than `flux-system` won't be affecte
             owner: owner-1     # from my-config-1
     ```
 
-  - <em>Application `app-a` and all the resources in it in all namespaces replica_count must be `>= 3`</em>
-  - <em>Also it will be affected by `my-config-1` for `owner` configuration parameter `owner: owner-1`</em>
+  - _Application `app-a` and all the resources in all namespaces,
+		`replica_count` must be `>= 3`_
+  - _Also it will be affected by `my-config-1` for `owner` configuration
+		parameter `owner: owner-1`_
 
-**In the previous example when you apply `my-config-1`**
+**In the above example when you apply `my-config-1`**
 
 - `my-config-1` will be applied on the policies defined in it. which will affect the namespace `flux-system` with all applications and resources in it as it matches by namespace only.
 
-  Final config values will be as the following:
+  Final config values will be as follows:
 
     ```yaml
       config:
@@ -250,29 +264,36 @@ Deploying `app-a` in another namespace other than `flux-system` won't be affecte
             owner: owner-1    # from my-config-1
     ```
 
-  - <em>Any application or resource in namespace `flux-system` replica_count must be `>= 2`</em>
-  - <em>Also it will be affected by `my-config-1` for `owner` configuration parameter `owner: owner-1`</em>
+  - _Any application or resource in namespace `flux-system`, `replica_count` must
+		be `>= 2`_
+  - _Also it will be affected by `my-config-1` for `owner` configuration
+		parameter `owner: owner-1`_
 
+	:::note
+	You can use one or more policies as the following example:
 
-**Note** 
+	<details><summary>Expand to see policy example</summary>
 
-- You can use one or more policies as the following example
+	```yaml
+	---
+	apiVersion: pac.weave.works/v2beta2
+	kind: PolicyConfig
+	metadata:
+		name: my-app-config
+	spec:
+		match:
+			resources:
+				name: my-deployment
+				kind: Deployment
+		config:
+			weave.policies.policy-1:
+				params:
+					replica_count: 3
+			weave.policies.policy-2:
+				params:
+					run_as_root: true
+	```
 
-  ```yaml
-  apiVersion: pac.weave.works/v2beta2
-  kind: PolicyConfig
-  metadata:
-    name: my-app-config
-  spec:
-    match:
-      resources:
-        name: my-deployment
-        kind: Deployment
-    config:
-      weave.policies.policy-1:
-        params:
-          replica_count: 3
-      weave.policies.policy-2:
-        params:
-          run_as_root: true
-  ```
+	</details>
+
+	:::

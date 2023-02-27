@@ -27,9 +27,19 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
+type DashboardType int32
+
 const (
-	helmChartName     = "weave-gitops"
-	helmRepositoryURL = "oci://ghcr.io/weaveworks/charts"
+	DashboardTypeNone       DashboardType = 0
+	DashboardTypeOSS        DashboardType = 1
+	DashboardTypeEnterprise DashboardType = 2
+)
+
+const (
+	ossDashboardHelmChartName             = "weave-gitops"
+	enterpriseDashboardHelmChartName      = "mccp"
+	enterpriseDashboardHelmRepositoryName = "weave-gitops-enterprise-charts"
+	helmRepositoryURL                     = "oci://ghcr.io/weaveworks/charts"
 )
 
 func ReadPassword(log logger.Logger) (string, error) {
@@ -90,25 +100,41 @@ func InstallDashboard(ctx context.Context, log logger.Logger, manager ResourceMa
 	return nil
 }
 
-// IsDashboardInstalled checks if the GitOps Dashboard is installed.
-func IsDashboardInstalled(ctx context.Context, log logger.Logger, kubeClient client.Client, name string, namespace string) bool {
-	return getDashboardHelmChart(ctx, log, kubeClient, name, namespace) != nil
-}
+// GetInstalledDashboard checks if the GitOps Dashboard is installed.
+func GetInstalledDashboard(ctx context.Context, kubeClient client.Client, namespace string, dashboards map[DashboardType]bool) (DashboardType, string) {
+	helmReleaseList := &helmv2.HelmReleaseList{}
 
-// GetDashboardHelmChart checks if the GitOps Dashboard is installed.
-func getDashboardHelmChart(ctx context.Context, log logger.Logger, kubeClient client.Client, name string, namespace string) *sourcev1.HelmChart {
-	helmChart := sourcev1.HelmChart{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      namespace + "-" + name,
-			Namespace: namespace,
-		},
+	if err := kubeClient.List(ctx, helmReleaseList,
+		client.InNamespace(namespace),
+	); err != nil {
+		return DashboardTypeNone, ""
 	}
 
-	if err := kubeClient.Get(ctx, client.ObjectKeyFromObject(&helmChart), &helmChart); err != nil {
-		return nil
+	shouldDetectOSSDashboard := dashboards[DashboardTypeOSS]
+	shouldDetectEnterpriseDashboard := dashboards[DashboardTypeEnterprise]
+
+	ossDashboardInstalled := false
+	dashboardName := ""
+
+	for _, helmRelease := range helmReleaseList.Items {
+		chartSpec := helmRelease.Spec.Chart.Spec
+
+		if shouldDetectEnterpriseDashboard && chartSpec.Chart == enterpriseDashboardHelmChartName &&
+			chartSpec.SourceRef.Name == enterpriseDashboardHelmRepositoryName {
+			return DashboardTypeEnterprise, helmRelease.Name
+		}
+
+		if shouldDetectOSSDashboard && chartSpec.Chart == ossDashboardHelmChartName {
+			ossDashboardInstalled = true
+			dashboardName = helmRelease.Name
+		}
 	}
 
-	return &helmChart
+	if ossDashboardInstalled {
+		return DashboardTypeOSS, dashboardName
+	}
+
+	return DashboardTypeNone, ""
 }
 
 // ReconcileDashboard reconciles the dashboard.
@@ -259,7 +285,7 @@ func makeHelmRelease(log logger.Logger, name string, namespace string, username 
 			},
 			Chart: helmv2.HelmChartTemplate{
 				Spec: helmv2.HelmChartTemplateSpec{
-					Chart: helmChartName,
+					Chart: ossDashboardHelmChartName,
 					SourceRef: helmv2.CrossNamespaceObjectReference{
 						Kind: sourcev1.HelmRepositoryKind,
 						Name: name,
@@ -286,6 +312,48 @@ func makeHelmRelease(log logger.Logger, name string, namespace string, username 
 	return helmRelease, nil
 }
 
+func parseImageRepository(input string) (repository string, image string, tag string, err error) {
+	lastSlashIndex := strings.LastIndex(input, "/")
+	if lastSlashIndex == -1 {
+		subComponents := strings.Split(input, ":")
+		switch len(subComponents) {
+		case 1:
+			image = subComponents[0]
+			repository = ""
+			tag = ""
+		case 2:
+			image = subComponents[0]
+			tag = subComponents[1]
+			repository = ""
+			if tag == "" || image == "" {
+				err = fmt.Errorf("invalid input format, repo = %s, image = %s, tag = %s", repository, image, tag)
+				return
+			}
+		default:
+			err = fmt.Errorf("invalid input format, input = %s", input)
+			return
+		}
+	} else {
+		repository = input[:lastSlashIndex]
+		imageAndTag := input[lastSlashIndex+1:]
+		subComponents := strings.Split(imageAndTag, ":")
+		if len(subComponents) > 1 {
+			image = subComponents[0]
+			tag = subComponents[1]
+		} else {
+			image = subComponents[0]
+			tag = "latest"
+		}
+	}
+
+	if image == "" {
+		err = fmt.Errorf("invalid input format, repo = %s, image = %s, tag = %s", repository, image, tag)
+		return
+	}
+
+	return
+}
+
 // makeValues creates a values object for installing the GitOps Dashboard.
 func makeValues(username string, passwordHash string, dashboardImage string) ([]byte, error) {
 	valuesMap := make(map[string]interface{})
@@ -305,14 +373,16 @@ func makeValues(username string, passwordHash string, dashboardImage string) ([]
 
 	if dashboardImage != "" {
 		// check : and spit on it
-		split := strings.Split(dashboardImage, ":")
-		if len(split) != 2 {
-			return nil, fmt.Errorf("invalid image format, expected image:tag")
+		// detect the right most colon
+
+		repository, image, tag, err := parseImageRepository(dashboardImage)
+		if err != nil {
+			return nil, err
 		}
 
 		valuesMap["image"] = map[string]interface{}{
-			"repository": split[0],
-			"tag":        split[1],
+			"repository": strings.TrimPrefix(repository+"/"+image, "/"),
+			"tag":        tag,
 		}
 	}
 

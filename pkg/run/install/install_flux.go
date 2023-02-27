@@ -37,8 +37,14 @@ var sourceVerToFluxVer = map[string]string{
 	"v0.26.0": "v0.32.0",
 }
 
+type FluxVersionInfo struct {
+	FluxVersion             string
+	SourceControllerVersion string
+	FluxNamespace           string
+}
+
 // GetFluxVersion returns the Flux version that is used in the cluster.
-func GetFluxVersion(ctx context.Context, log logger.Logger, kubeClient client.Client) (fluxVersion string, guessed bool, err error) {
+func GetFluxVersion(ctx context.Context, log logger.Logger, kubeClient client.Client) (fluxVersionInfo *FluxVersionInfo, guessed bool, err error) {
 	log.Actionf("Getting Flux version ...")
 
 	namespaceList := v1.NamespaceList{}
@@ -50,7 +56,7 @@ func GetFluxVersion(ctx context.Context, log logger.Logger, kubeClient client.Cl
 
 	if err := kubeClient.List(ctx, &namespaceList, listOptions); err != nil {
 		log.Failuref("error getting the list of Flux objects")
-		return "", false, err
+		return nil, false, err
 	} else {
 		for _, item := range namespaceList.Items {
 			if item.GetLabels()[flux.VersionLabelKey] != "" {
@@ -64,20 +70,24 @@ func GetFluxVersion(ctx context.Context, log logger.Logger, kubeClient client.Cl
 		// try hard-coded namespace
 		if err := kubeClient.Get(ctx, client.ObjectKey{Name: "flux-system"}, &foundNamespace); err != nil {
 			log.Failuref("error getting the flux-system namespace")
-			return "", false, err
+			return nil, false, err
 		}
 	}
 
 	if foundNamespace.GetName() != "" {
 		labels := foundNamespace.GetLabels()
 		if labels == nil {
-			return "", false, fmt.Errorf("error getting Flux labels")
+			return nil, false, fmt.Errorf("error getting Flux labels")
 		}
 
 		fluxVersion := labels[flux.VersionLabelKey]
 		if fluxVersion != "" {
 			// ok, we found the version
-			return fluxVersion, false, nil
+			return &FluxVersionInfo{
+				FluxVersion:             fluxVersion,
+				FluxNamespace:           foundNamespace.GetName(),
+				SourceControllerVersion: "",
+			}, false, nil
 		}
 
 		// Try to guess the version
@@ -85,13 +95,13 @@ func GetFluxVersion(ctx context.Context, log logger.Logger, kubeClient client.Cl
 		deployment := appsv1.Deployment{}
 		if err := kubeClient.Get(ctx, client.ObjectKey{Name: "source-controller", Namespace: foundNamespace.GetName()}, &deployment); err != nil {
 			log.Failuref("error getting the source-controller deployment")
-			return "", false, err
+			return nil, false, err
 		}
 
 		// 2. get the source-controller image version
 		image := deployment.Spec.Template.Spec.Containers[0].Image
 		if image == "" {
-			return "", false, fmt.Errorf("error getting the source-controller image")
+			return nil, false, fmt.Errorf("error getting the source-controller image")
 		}
 
 		// 3. get the source-controller version by parsing the image version, split at :
@@ -101,11 +111,15 @@ func GetFluxVersion(ctx context.Context, log logger.Logger, kubeClient client.Cl
 		// 4. get the Flux version by looking up the source-controller version in the map
 		fluxVersion = sourceVerToFluxVer[sourceVersion]
 		if fluxVersion == "" {
-			return "", false, fmt.Errorf("error getting the Flux version")
+			return nil, false, fmt.Errorf("error getting the Flux version")
 		}
 
-		return fluxVersion, true, nil
+		return &FluxVersionInfo{
+			FluxVersion:             fluxVersion,
+			FluxNamespace:           foundNamespace.GetName(),
+			SourceControllerVersion: sourceVersion,
+		}, true, nil
 	}
 
-	return "", false, fmt.Errorf("no flux version found")
+	return nil, false, fmt.Errorf("no flux version found")
 }

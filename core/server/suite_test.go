@@ -158,7 +158,7 @@ func withClientsPoolInterceptor(clustersManager clustersmngr.ClustersManager) gr
 	})
 }
 
-func makeServerConfig(fakeClient client.Client, t *testing.T) server.CoreServerConfig {
+func makeServerConfig(fakeClient client.Client, t *testing.T, clusterName string) server.CoreServerConfig {
 	log := logr.Discard()
 	nsChecker = nsaccessfakes.FakeChecker{}
 	nsChecker.FilterAccessibleNamespacesStub = func(ctx context.Context, t typedauth.AuthorizationV1Interface, n []v1.Namespace) ([]v1.Namespace, error) {
@@ -168,7 +168,12 @@ func makeServerConfig(fakeClient client.Client, t *testing.T) server.CoreServerC
 	clientset := fake.NewSimpleClientset()
 
 	cluster := clusterfakes.FakeCluster{}
-	cluster.GetNameReturns("Default")
+
+	if clusterName == "" {
+		clusterName = "Default"
+	}
+
+	cluster.GetNameReturns(clusterName)
 	cluster.GetUserClientReturns(fakeClient, nil)
 	cluster.GetUserClientsetReturns(clientset, nil)
 	cluster.GetServerClientReturns(fakeClient, nil)

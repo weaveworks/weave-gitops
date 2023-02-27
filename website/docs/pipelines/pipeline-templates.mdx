@@ -1,6 +1,5 @@
 ---
 title: Using GitOpsTemplates for Pipelines
-sidebar_position: 4
 hide_title: true
 ---
 
@@ -9,7 +8,7 @@ import TierLabel from "./../_components/TierLabel";
 import CodeBlock from "@theme/CodeBlock";
 import BrowserOnly from "@docusaurus/BrowserOnly";
 
-# Using GitOpsTemplates for Pipelines <TierLabel tiers="enterprise" />
+# Using GitOpsTemplates for Pipelines <TierLabel tiers="Enterprise" />
 
 To create new Pipelines and their required resources from within Weave GitOps Enterprise, you can leverage [GitOpsTemplates](../../gitops-templates/templates) to help platform teams scale for developer self-service. 
 
@@ -41,13 +40,16 @@ This section provides examples to help you build your own templates for Pipeline
 
 ### Pipeline - Visualization only
 
-:::note Included Sample
+:::tip Included Sample
 This template is shipped by default with Weave GitOps Enterprise to help you get started with Pipelines.
 :::
 
 For flexibility, this allows the user of the template to specify the names of the Clusters where the application is deployed, and to vary the namespace per cluster. This means it would even work in a tenancy model where environments co-exist on the same cluster and use namespaces for isolation. 
 
+<details><summary>Expand to view example template</summary>
+
 ```yaml
+---
 apiVersion: templates.weave.works/v1alpha2
 kind: GitOpsTemplate
 metadata:
@@ -112,11 +114,16 @@ spec:
                   namespace: ${SECOND_CLUSTER_NAMESPACE}
 ```
 
+</details>
+
 ### Pipeline - Multi-cluster promotion
 
 This example extends the above to add a promotion strategy, in this case it will raise a pull request to update the application version in subsequent environments.
 
+<details><summary>Expand to view example template</summary>
+
 ```yaml
+---
 apiVersion: templates.weave.works/v1alpha2
 kind: GitOpsTemplate
 metadata:
@@ -193,6 +200,8 @@ spec:
                   name: ${GIT_CREDENTIALS_SECRET}
 ```
 
+</details>
+
 #### Git credentials
 For guidance on configuring credentials - see instructions in the [Promoting Applications](../promoting-applications#create-credentials-secret) documentation.
 
@@ -221,7 +230,10 @@ For the `Alert`, this template is filtering events to detect when an update has 
 
 For the `Provider`, this template uses authenticated (HMAC) communication to the promotion endpoint, where a secret will need to be present on both the management cluster and leaf cluster(s). For simplicity, a `generic` provider could be used instead - which would not require the secret.
 
+<details><summary>Expand to view example template</summary>
+
 ```yaml
+---
 apiVersion: templates.weave.works/v1alpha2
 kind: GitOpsTemplate
 metadata:
@@ -270,6 +282,8 @@ spec:
             - ".*is.*not.*ready"
             - "^Dependencies.*"
 ```
+
+</details>
 
 ## Summary
 GitOpsTemplates provide a highly flexible way for platform and application teams to work together with Pipelines.

@@ -12,10 +12,12 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { ThemeProvider } from "styled-components";
 import ErrorBoundary from "./components/ErrorBoundary";
+import ImagePolicyDetails from "./components/ImageAutomation/policies/ImagePolicyDetails";
 import ImageAutomationRepoDetails from "./components/ImageAutomation/repositories/ImageAutomationRepoDetails";
 import ImageAutomationUpdatesDetails from "./components/ImageAutomation/updates/ImageAutomationUpdatesDetails";
 import Layout from "./components/Layout";
 import PendoContainer from "./components/PendoContainer";
+import UserInfo from "./pages/v2/UserInfo";
 import AppContextProvider from "./contexts/AppContext";
 import AuthContextProvider, { AuthCheck } from "./contexts/AuthContext";
 import CoreClientContextProvider from "./contexts/CoreClientContext";
@@ -68,8 +70,12 @@ const App = () => (
           component={withSearchParams(ImageAutomationUpdatesDetails)}
         />
         <Route
-          path={V2Routes.ImageAutomationRepositoriesDetails}
+          path={V2Routes.ImageAutomationRepositoryDetails}
           component={withSearchParams(ImageAutomationRepoDetails)}
+        />
+        <Route
+          path={V2Routes.ImagePolicyDetails}
+          component={withSearchParams(ImagePolicyDetails)}
         />
         <Route path={V2Routes.FluxRuntime} component={FluxRuntime} />
         <Route
@@ -104,6 +110,7 @@ const App = () => (
           path={V2Routes.Provider}
           component={withSearchParams(ProviderPage)}
         />
+        <Route path={V2Routes.UserInfo} component={UserInfo} />
 
         <Redirect exact from="/" to={V2Routes.Automations} />
 

@@ -71,6 +71,7 @@ message Object {
     string   tenant                     = 3;
     string   uid                        = 4;
     repeated GroupVersionKind inventory = 5;
+    string   info                       = 6;
 }
 
 message Deployment {

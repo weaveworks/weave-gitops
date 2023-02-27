@@ -1,9 +1,10 @@
 ---
 title: Pipeline
-sidebar_position: 1
 hide_title: true
 ---
-# Pipeline <TierLabel tiers="enterprise" />
+import TierLabel from "../../../_components/TierLabel";
+
+# Pipeline <TierLabel tiers="Enterprise" />
 
 The Pipeline API defines a resource for continuous delivery pipelines.
 
@@ -142,7 +143,7 @@ type PullRequestPromotion struct {
 	// +required
 	// +kubebuilder:validation:Enum=github;gitlab
 	Type GitProviderType `json:"type"`
-	// The git repository URL used to patch the manifests for promotion.
+	// The git repository HTTPS URL used to patch the manifests for promotion.
 	// +required
 	URL string `json:"url"`
 	// The branch to checkout after cloning. Note: This is just the base

@@ -295,15 +295,26 @@ message ToggleSuspendResourceResponse {
 }
 
 message GetSessionLogsRequest {
-    string sessionId   = 1;
-    string token       = 2;
-    string clusterName = 3;
-    string namespace   = 4;
+    string sessionNamespace = 1;
+    string sessionId        = 2;
+    string token            = 3;
+    string logSourceFilter  = 4;
+    string logLevelFilter   = 5;
+}
+
+message LogEntry {
+    string timestamp  = 1;
+    string source     = 2;
+    string level      = 3;
+    string message    = 4;
+    string sortingKey = 5;
 }
 
 message GetSessionLogsResponse {
-    repeated string logs = 1;
-    string nextToken     = 2;
+    repeated LogEntry logs       = 1;
+    string            nextToken  = 2;
+    string            error      = 3;
+    repeated string   logSources = 4;
 }
 
 message IsCRDAvailableRequest {

@@ -17,15 +17,17 @@ import (
 type Session struct {
 	name                    string
 	namespace               string
+	fluxNamespace           string
 	kubeClient              client.Client
 	log                     logger.Logger
 	dashboardHashedPassword string
+	skipDashboardInstall    bool
 	portForwards            []string
 	automationKind          string
 }
 
 func (s *Session) Start() error {
-	if err := installVCluster(s.kubeClient, s.name, s.namespace, s.portForwards, s.automationKind); err != nil {
+	if err := installVCluster(s.kubeClient, s.name, s.namespace, s.fluxNamespace, s.portForwards, s.automationKind); err != nil {
 		return err
 	}
 
@@ -45,9 +47,15 @@ func (s *Session) Connect() error {
 		// we must skip resource cleanup in the sub-process because we are already deleting the vcluster.
 		// it's for optimization purposes.
 		"--skip-resource-cleanup",
-		// we forward dashboard password from host to session too.
-		"--dashboard-hashed-password="+s.dashboardHashedPassword,
 	)
+
+	if s.skipDashboardInstall {
+		// we skip dashboard install in the sub-process.
+		subProcArgs = append(subProcArgs, "--skip-dashboard-install")
+	} else if s.dashboardHashedPassword != "" {
+		// we forward dashboard password from host to session too.
+		subProcArgs = append(subProcArgs, "--dashboard-hashed-password="+s.dashboardHashedPassword)
+	}
 
 	connect := vcluster.ConnectCmd{
 		GlobalFlags: &flags.GlobalFlags{
@@ -104,13 +112,20 @@ func (s *Session) Close() error {
 	return nil
 }
 
-func NewSession(log logger.Logger, kubeClient client.Client, name string, namespace string, portForwards []string, dashboardHashedPassword string, automationKind string) (*Session, error) {
+func NewSession(log logger.Logger,
+	kubeClient client.Client,
+	name string, namespace string,
+	fluxNamespace string, portForwards []string,
+	skipDashboardInstall bool, dashboardHashedPassword string,
+	automationKind string) (*Session, error) {
 	return &Session{
 		name:                    name,
 		namespace:               namespace,
+		fluxNamespace:           fluxNamespace,
 		kubeClient:              kubeClient,
 		log:                     log,
 		portForwards:            portForwards,
+		skipDashboardInstall:    skipDashboardInstall,
 		dashboardHashedPassword: dashboardHashedPassword,
 		automationKind:          automationKind,
 	}, nil

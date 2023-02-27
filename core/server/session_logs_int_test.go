@@ -9,13 +9,18 @@ import (
 
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	"net/http/httptest"
 
 	"github.com/johannesboyne/gofakes3"
 	"github.com/johannesboyne/gofakes3/backend/s3mem"
 	. "github.com/onsi/gomega"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	logger2 "github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/weaveworks/weave-gitops/pkg/run/constants"
 )
 
 func TestGetSessionLogsIntegration(t *testing.T) {
@@ -53,6 +58,7 @@ func TestGetSessionLogsIntegration(t *testing.T) {
 	s3logger.Failuref("test failure")
 	s3logger.Successf("test success")
 	s3logger.Waitingf("test waiting")
+	s3logger.Warningf("test warning")
 
 	minioClient, err := minio.New(
 		strings.TrimPrefix(s.URL, "http://"),
@@ -64,33 +70,101 @@ func TestGetSessionLogsIntegration(t *testing.T) {
 	)
 	g.Expect(err).ShouldNot(HaveOccurred())
 
-	lines, next, err := getLogs(context.Background(),
+	logEntries, next, err := getGitOpsRunLogs(context.Background(),
 		"session-id",
 		"",
 		asS3Reader(minioClient),
-		"gitops-run-logs",
+		logger2.SessionLogBucketName,
+		"",
 	)
 
 	g.Expect(err).ShouldNot(HaveOccurred())
-	g.Expect(lines).Should(HaveLen(4))
-	g.Expect(lines[0]).Should(ContainSubstring("► test action\n"))
-	g.Expect(lines[1]).Should(ContainSubstring("✗ test failure\n"))
-	g.Expect(lines[2]).Should(ContainSubstring("✔ test success\n"))
-	g.Expect(lines[3]).Should(ContainSubstring("◎ test waiting\n"))
+
+	g.Expect(logEntries).Should(HaveLen(5))
+	g.Expect(logEntries[0].Message).Should(Equal("► test action"))
+	g.Expect(logEntries[0].Level).Should(Equal("info"))
+	g.Expect(logEntries[0].Source).Should(Equal(logger2.SessionLogSource))
+
+	g.Expect(logEntries[1].Message).Should(Equal("✗ test failure"))
+	g.Expect(logEntries[1].Level).Should(Equal("error"))
+	g.Expect(logEntries[1].Source).Should(Equal(logger2.SessionLogSource))
+
+	g.Expect(logEntries[2].Message).Should(Equal("✔ test success"))
+	g.Expect(logEntries[2].Level).Should(Equal("info"))
+	g.Expect(logEntries[2].Source).Should(Equal(logger2.SessionLogSource))
+
+	g.Expect(logEntries[3].Message).Should(Equal("◎ test waiting"))
+	g.Expect(logEntries[3].Level).Should(Equal("info"))
+	g.Expect(logEntries[3].Source).Should(Equal(logger2.SessionLogSource))
+
+	g.Expect(logEntries[4].Message).Should(Equal("⚠️ test warning"))
+	g.Expect(logEntries[4].Level).Should(Equal("warning"))
+	g.Expect(logEntries[4].Source).Should(Equal(logger2.SessionLogSource))
 
 	s3logger.Actionf("round 2 - test action")
 	s3logger.Failuref("round 2 - test failure")
 
-	round2, _, err := getLogs(context.Background(),
+	logEntries, _, err = getGitOpsRunLogs(context.Background(),
 		"session-id",
 		next,
 		asS3Reader(minioClient),
-		"gitops-run-logs",
+		logger2.SessionLogBucketName,
+		"",
 	)
 
 	g.Expect(err).ShouldNot(HaveOccurred())
-	g.Expect(round2).Should(HaveLen(2))
 
-	g.Expect(round2[0]).Should(ContainSubstring("► round 2 - test action\n"))
-	g.Expect(round2[1]).Should(ContainSubstring("✗ round 2 - test failure\n"))
+	g.Expect(logEntries[0].Message).Should(Equal("► round 2 - test action"))
+	g.Expect(logEntries[0].Level).Should(Equal("info"))
+	g.Expect(logEntries[0].Source).Should(Equal(logger2.SessionLogSource))
+
+	g.Expect(logEntries[1].Message).Should(Equal("✗ round 2 - test failure"))
+	g.Expect(logEntries[1].Level).Should(Equal("error"))
+	g.Expect(logEntries[1].Source).Should(Equal(logger2.SessionLogSource))
+}
+
+func TestIsSecretCreatedSecretFound(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	scheme, err := kube.CreateScheme()
+	g.Expect(err).ShouldNot(HaveOccurred())
+
+	secret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      constants.RunDevBucketCredentials,
+			Namespace: constants.GitOpsRunNamespace,
+		},
+		Data: map[string][]byte{
+			"key": []byte("value"),
+		},
+	}
+
+	cli := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(secret).Build()
+
+	err = isSecretCreated(context.Background(), cli, constants.GitOpsRunNamespace, constants.RunDevBucketCredentials)
+
+	g.Expect(err).ShouldNot(HaveOccurred())
+}
+
+func TestIsSecretCreatedSecretNotFound(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	scheme, err := kube.CreateScheme()
+	g.Expect(err).ShouldNot(HaveOccurred())
+
+	secret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "test-name",
+			Namespace: "test-namespace",
+		},
+		Data: map[string][]byte{
+			"key": []byte("value"),
+		},
+	}
+
+	cli := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(secret).Build()
+
+	err = isSecretCreated(context.Background(), cli, constants.GitOpsRunNamespace, constants.RunDevBucketCredentials)
+
+	g.Expect(err).Should(HaveOccurred())
 }

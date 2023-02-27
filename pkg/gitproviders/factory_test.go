@@ -41,4 +41,9 @@ var _ = DescribeTable("buildGitProvider", func(input Config, expected expectedGi
 		clientProviderID: "gitlab",
 		hostname:         "https://gitlab.acme.com",
 	}),
+	Entry("bitbucket.acme.com", Config{Provider: "bitbucket-server", Hostname: "bitbucket.acme.com", Token: "abc", Username: "foo"}, expectedGitProvider{
+		clientDomain:     "bitbucket.acme.com",
+		clientProviderID: "stash",
+		hostname:         "https://bitbucket.acme.com",
+	}),
 )

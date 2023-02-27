@@ -755,16 +755,19 @@
     "v1GetSessionLogsRequest": {
       "type": "object",
       "properties": {
+        "sessionNamespace": {
+          "type": "string"
+        },
         "sessionId": {
           "type": "string"
         },
         "token": {
           "type": "string"
         },
-        "clusterName": {
+        "logSourceFilter": {
           "type": "string"
         },
-        "namespace": {
+        "logLevelFilter": {
           "type": "string"
         }
       }
@@ -775,11 +778,20 @@
         "logs": {
           "type": "array",
           "items": {
-            "type": "string"
+            "$ref": "#/definitions/v1LogEntry"
           }
         },
         "nextToken": {
           "type": "string"
+        },
+        "error": {
+          "type": "string"
+        },
+        "logSources": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       }
     },
@@ -939,6 +951,26 @@
         }
       }
     },
+    "v1LogEntry": {
+      "type": "object",
+      "properties": {
+        "timestamp": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "level": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "sortingKey": {
+          "type": "string"
+        }
+      }
+    },
     "v1Namespace": {
       "type": "object",
       "properties": {
@@ -985,6 +1017,9 @@
           "items": {
             "$ref": "#/definitions/v1GroupVersionKind"
           }
+        },
+        "info": {
+          "type": "string"
         }
       }
     },

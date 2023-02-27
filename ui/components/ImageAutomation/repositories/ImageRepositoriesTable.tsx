@@ -26,7 +26,7 @@ const ImageRepositoriesTable = () => {
             label: "Name",
             value: ({ name, namespace, clusterName }) => (
               <Link
-                to={formatURL(V2Routes.ImageAutomationRepositoriesDetails, {
+                to={formatURL(V2Routes.ImageAutomationRepositoryDetails, {
                   name: name,
                   namespace: namespace,
                   clusterName: clusterName,
@@ -36,6 +36,7 @@ const ImageRepositoriesTable = () => {
               </Link>
             ),
             textSearchable: true,
+            sortValue: ({ name }) => name || "",
             maxWidth: 600,
           },
           {

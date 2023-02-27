@@ -11,6 +11,7 @@ import (
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
+	"github.com/weaveworks/weave-gitops/pkg/run/constants"
 	"github.com/weaveworks/weave-gitops/pkg/run/session"
 	appsv1 "k8s.io/api/apps/v1"
 	apiextensions "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -35,7 +36,7 @@ func makeVClusterHelmRepository(namespace string) (*sourcev1.HelmRepository, err
 	return helmRepository, nil
 }
 
-func makeVClusterHelmRelease(name string, namespace string, command string, portForwards []string, automationKind string) (*helmv2.HelmRelease, error) {
+func makeVClusterHelmRelease(name string, namespace string, fluxNamespace string, command string, portForwards []string, automationKind string) (*helmv2.HelmRelease, error) {
 	helmRelease := &helmv2.HelmRelease{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -74,7 +75,19 @@ func makeVClusterHelmRelease(name string, namespace string, command string, port
     "run.weave.works/port-forward": "%s",
     "run.weave.works/command": "%s",
     "run.weave.works/automation-kind": "%s",
-    "run.weave.works/namespace": "%s"
+    "run.weave.works/namespace": "%s",
+    "run.weave.works/flux-namespace": "%s"
+  },
+  "hostpathMapper": {
+    "enabled": true
+  },
+  "mapServices": {
+    "fromVirtual": [
+      {
+        "from": "%s/%s",
+        "to": "%s-bucket"
+      }
+    ]
   }
 }`,
 				version.Version,
@@ -82,6 +95,10 @@ func makeVClusterHelmRelease(name string, namespace string, command string, port
 				command,
 				automationKind,
 				namespace,
+				fluxNamespace,
+				constants.GitOpsRunNamespace,
+				constants.RunDevBucketName,
+				name,
 			))},
 		},
 	}
@@ -89,7 +106,7 @@ func makeVClusterHelmRelease(name string, namespace string, command string, port
 	return helmRelease, nil
 }
 
-func installVCluster(kubeClient client.Client, name string, namespace string, portForwards []string, automationKind string) error {
+func installVCluster(kubeClient client.Client, name string, namespace string, fluxNamespace string, portForwards []string, automationKind string) error {
 	helmRepo, err := makeVClusterHelmRepository(namespace)
 	if err != nil {
 		return err
@@ -106,7 +123,7 @@ func installVCluster(kubeClient client.Client, name string, namespace string, po
 	args := append([]string{filepath.Base(os.Args[0])}, os.Args[1:]...)
 	command := strings.Join(args, " ")
 
-	helmRelease, err := makeVClusterHelmRelease(name, namespace, command, portForwards, automationKind)
+	helmRelease, err := makeVClusterHelmRelease(name, namespace, fluxNamespace, command, portForwards, automationKind)
 	if err != nil {
 		return err
 	}
