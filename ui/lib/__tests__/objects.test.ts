@@ -1,4 +1,5 @@
 import { Kind } from "../api/core/types.pb";
+import { pod, rs } from "../__fixtures__/graph";
 import {
   Bucket,
   FluxObject,
@@ -447,6 +448,51 @@ describe("objects lib", () => {
 
     it("extracts name", () => {
       expect(completelyEmpty.name).toEqual("");
+    });
+  });
+
+  describe("extracting images from an object", () => {
+    it("should extract images from a replicaset", () => {
+      const obj = new FluxObject({
+        payload: JSON.stringify(rs),
+      });
+      expect(obj.images).toEqual([
+        "ghcr.io/fluxcd/notification-controller:v0.29.0",
+      ]);
+    });
+
+    it("should extract images from a pod", () => {
+      const obj = new FluxObject({
+        payload: JSON.stringify(pod),
+      });
+      expect(obj.images).toEqual(["ghcr.io/stefanprodan/podinfo:5.0.0"]);
+    });
+
+    it("should return an empty array if no images are found", () => {
+      const obj = new FluxObject({
+        payload: JSON.stringify({}),
+      });
+      expect(obj.images).toEqual([]);
+    });
+
+    describe.each([
+      [{ template: { spec: { containers: null } } }],
+      [{ template: { spec: { containers: "always" } } }],
+      [{ template: { spec: { containers: [true] } } }],
+      [{ template: { spec: { containers: [{}] } } }],
+      [{ template: { spec: { containers: {} } } }],
+      [{ template: { spec: { containers: { foo: "bar" } } } }],
+      [{ template: { spec: { containers: [{ image: false }] } } }],
+      [{ template: { spec: { containers: [{ image: ["foo"] }] } } }],
+    ])(`should return an empty array for funny inputs`, (spec) => {
+      it(`should return an empty array for ${JSON.stringify(spec)}`, () => {
+        const obj = new FluxObject({
+          payload: JSON.stringify({
+            spec,
+          }),
+        });
+        expect(obj.images).toEqual([]);
+      });
     });
   });
 });

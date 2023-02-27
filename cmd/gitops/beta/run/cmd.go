@@ -826,13 +826,23 @@ func runCommandInnerProcess(cmd *cobra.Command, args []string) error {
 			case <-stopUploadCh:
 				return
 			case event := <-watcher.Events:
+				info, err := os.Stat(event.Name)
+				if err != nil {
+					continue
+				}
 				if event.Op&fsnotify.Create == fsnotify.Create ||
 					event.Op&fsnotify.Remove == fsnotify.Remove ||
 					event.Op&fsnotify.Rename == fsnotify.Rename {
 					// if it's a dir, we need to watch it
-					if info, err := os.Stat(event.Name); err == nil && info.IsDir() {
+					if info.IsDir() {
 						needToRescan = true
 					}
+				}
+
+				// Skip all dotfiles because these are usually created by editors as swap files. A reconciliation
+				// should only be triggered by files that are actually part of the application being run.
+				if !info.IsDir() && strings.HasPrefix(filepath.Base(event.Name), ".") {
+					continue
 				}
 
 				if cancelPortFwd != nil {
