@@ -17,8 +17,8 @@ import Text from "./Text";
 
 export type NavItem = {
   label: string;
-  link: { value: V2Routes | string; href?: string; newTab?: boolean };
-  styles: { icon?: IconType };
+  link?: { value: V2Routes | string; href?: string; newTab?: boolean };
+  icon?: IconType;
 };
 
 type Props = {
@@ -37,16 +37,21 @@ const NavContainer = styled.div<{ collapsed: boolean }>`
   transition: all 0.5s;
 `;
 
-const NavContent = styled.div`
+const NavContent = styled.div<{ collapsed: boolean }>`
   //container
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
   width: 100%;
   height: 100%;
   border-radius: 10px;
   border-bottom-right-radius: 0px;
   background-color: ${(props) => props.theme.colors.neutral00};
-  padding-top: ${(props) => props.theme.spacing.medium};
+  //28px bottom padding is medium + xxs - in the theme these are strings with px at the end so you can't add them together. This lines up with the footer.
+  padding: ${(props) => props.theme.spacing.medium} 0px 28px 0px;
   box-sizing: border-box;
-  //tabs
+
+  //mui tabs
   .MuiTabs-flexContainerVertical {
     //allows both borders of first nav item to be visible on focus
     padding: ${(props) => props.theme.spacing.xxs} 0;
@@ -54,12 +59,22 @@ const NavContent = styled.div`
   .MuiTabs-indicator {
     background-color: ${(props) => props.theme.colors.primary10};
   }
-  .link-flex {
-    display: flex;
-    align-items: center;
+
+  //navItems
+  .link-flex,
+  .header {
     height: 32px;
     padding: 0px 20px;
+    ${Text} {
+      letter-spacing: 1px;
+      //matches MuiIcon
+      transition: color 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+    }
+  }
+  .link-flex {
     margin-bottom: 9px;
+    display: flex;
+    align-items: center;
     //matches .MuiSvgIcon-root
     transition: background-color 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
     &.selected {
@@ -68,11 +83,11 @@ const NavContent = styled.div`
     :hover:not(.selected) {
       background-color: ${(props) => props.theme.colors.neutral10};
     }
-    ${Text} {
-      letter-spacing: 1px;
-      //matches MuiIcon
-      transition: color 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
-    }
+  }
+  .header {
+    margin-top: 9px;
+    opacity: ${(props) => (props.collapsed ? 0 : 1)};
+    transition: opacity 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
   }
 `;
 
@@ -99,8 +114,8 @@ const LinkTabIcon = ({ iconType, color, collapsed, title }) => {
 };
 
 const LinkTab = React.forwardRef((p: any, ref) => {
-  const [hovered, setHovered] = React.useState(false);
-  const item = p.navItem;
+  const [hovered, setHovered] = React.useState<boolean>(false);
+  const item: NavItem = p.navItem;
 
   let className = "link-flex";
   if (p["aria-selected"]) className += " selected";
@@ -112,7 +127,7 @@ const LinkTab = React.forwardRef((p: any, ref) => {
     else color = "primary10";
   }
 
-  let iconType = item.styles.icon;
+  let iconType = item.icon;
   if (iconType === IconType.FluxIcon && (p["aria-selected"] || hovered))
     iconType = IconType.FluxIconHover;
 
@@ -151,20 +166,26 @@ function Nav({ className, navItems, collapsed, setCollapsed }: Props) {
 
   return (
     <NavContainer collapsed={collapsed}>
-      <NavContent className={collapsed ? className + " collapsed" : className}>
+      <NavContent className={className} collapsed={collapsed}>
         <Tabs
           centered={false}
           orientation="vertical"
           value={value === V2Routes.UserInfo ? false : value}
         >
           {_.map(navItems, (n) => {
-            const { label, link } = n;
+            if (!n.icon && !n.link)
+              return (
+                <Text uppercase color="neutral30" semiBold className="header">
+                  {n.label}
+                </Text>
+              );
+
             return (
               <Tab
                 navItem={n}
-                key={label}
-                label={label}
-                value={link.value}
+                key={n.label}
+                label={n.label}
+                value={n.link.value}
                 collapsed={collapsed}
                 component={LinkTab}
               />

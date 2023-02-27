@@ -64,6 +64,8 @@ export enum IconType {
   PlayIcon,
   PauseIcon,
   NotificationsBell,
+  SourcesIcon,
+  ImageAutomationIcon,
 }
 
 type Props = {
@@ -172,6 +174,48 @@ function getIcon(i: IconType) {
     case IconType.NotificationsBell:
       return NotificationsBellIcon;
 
+    case IconType.SourcesIcon:
+      return () => (
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          className="sources"
+        >
+          <path
+            d="M10.7 14.3L8.4 12L10.7 9.7L10 9L7 12L10 15L10.7 14.3ZM13.3 14.3L15.6 12L13.3 9.7L14 9L17 12L14 15L13.3 14.3V14.3Z"
+            fill="#1a1a1a"
+          />
+          <rect
+            x="4.5"
+            y="4.5"
+            width="15"
+            height="15"
+            rx="7.5"
+            stroke="#1A1A1A"
+          />
+        </svg>
+      );
+
+    case IconType.ImageAutomationIcon:
+      return () => (
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M12 9L15 12H12.75V18.75H11.25V12H9L12 9ZM18.75 18.75H14.25V17.2575H18.75V6.735H5.25V17.2575H9.75V18.75H5.25C4.425 18.75 3.75 18.075 3.75 17.25V6.75C3.75 5.925 4.425 5.25 5.25 5.25H18.75C19.575 5.25 20.25 5.925 20.25 6.75V17.25C20.25 18.075 19.575 18.75 18.75 18.75ZM12 9L15 12H12.75V18.75H11.25V12H9L12 9ZM18.75 18.75H14.25V17.2575H18.75V6.735H5.25V17.2575H9.75V18.75H5.25C4.425 18.75 3.75 18.075 3.75 17.25V6.75C3.75 5.925 4.425 5.25 5.25 5.25H18.75C19.575 5.25 20.25 5.925 20.25 6.75V17.25C20.25 18.075 19.575 18.75 18.75 18.75Z"
+            fill="#1A1A1A"
+            className="image-automation"
+          />
+        </svg>
+      );
+
     default:
       break;
   }
@@ -195,6 +239,20 @@ export default styled(Icon)`
     fill: ${(props) => props.theme.colors[props.color as any]} !important;
     height: ${(props) => props.theme.spacing[props.size as any]};
     width: ${(props) => props.theme.spacing[props.size as any]};
+    path {
+      &.image-automation {
+        fill: ${(props) => props.theme.colors[props.color as any]} !important;
+      }
+    }
+    &.sources {
+      fill: none !important;
+      path {
+        fill: ${(props) => props.theme.colors[props.color as any]} !important;
+      }
+      rect {
+        stroke: ${(props) => props.theme.colors[props.color as any]} !important;
+      }
+    }
   }
   &.downward {
     transform: rotate(180deg);

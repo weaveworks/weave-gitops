@@ -17,27 +17,27 @@ const navItems: NavItem[] = [
   {
     label: "Applications",
     link: { value: V2Routes.Automations },
-    styles: { icon: IconType.ApplicationsIcon },
+    icon: IconType.ApplicationsIcon,
   },
   {
     label: "Sources",
     link: { value: V2Routes.Sources },
-    styles: { icon: IconType.ErrorIcon },
+    icon: IconType.SourcesIcon,
   },
   {
     label: "Image Automation",
     link: { value: V2Routes.ImageAutomation },
-    styles: { icon: IconType.ErrorIcon },
+    icon: IconType.ImageAutomationIcon,
   },
   {
     label: "Flux Runtime",
     link: { value: V2Routes.FluxRuntime },
-    styles: { icon: IconType.FluxIcon },
+    icon: IconType.FluxIcon,
   },
   {
     label: "Notifications",
     link: { value: V2Routes.Notifications },
-    styles: { icon: IconType.NotificationsBell },
+    icon: IconType.NotificationsBell,
   },
   {
     label: "Docs",
@@ -46,7 +46,7 @@ const navItems: NavItem[] = [
       href: "https://docs.gitops.weave.works/",
       newTab: true,
     },
-    styles: { icon: IconType.DocsIcon },
+    icon: IconType.DocsIcon,
   },
 ];
 
