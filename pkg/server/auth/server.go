@@ -50,7 +50,6 @@ var DefaultScopes = []string{
 // OIDCConfig is used to configure an AuthServer to interact with
 // an OIDC issuer.
 type OIDCConfig struct {
-	IssuerName    string
 	IssuerURL     string
 	ClientID      string
 	ClientSecret  string
@@ -109,7 +108,6 @@ type UserInfo struct {
 // - customScopes - defaults to "openid","offline_access","email","groups"
 func NewOIDCConfigFromSecret(secret corev1.Secret) OIDCConfig {
 	cfg := OIDCConfig{
-		IssuerName:   string(secret.Data["issuerName"]),
 		IssuerURL:    string(secret.Data["issuerURL"]),
 		ClientID:     string(secret.Data["clientID"]),
 		ClientSecret: string(secret.Data["clientSecret"]),

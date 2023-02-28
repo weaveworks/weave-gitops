@@ -41,9 +41,6 @@ func InitAuthServer(ctx context.Context, log logr.Logger, rawKubernetesClient ct
 			}
 
 			oidcConfig = NewOIDCConfigFromSecret(secret)
-			// Add the name of the OIDC_ISSUER_NAME to the feature flags
-			// so the frontend can use it
-			featureflags.Set("OIDC_ISSUER_NAME", oidcConfig.IssuerName)
 		} else if err != nil {
 			log.V(logger.LogLevelDebug).Info("Could not read OIDC secret", "secretName", oidcSecret, "namespace", namespace, "error", err)
 		}
