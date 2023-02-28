@@ -978,6 +978,7 @@ func TestNewOIDCConfigFromSecret(t *testing.T) {
 		{
 			name: "basic fields",
 			data: map[string][]byte{
+				"issuerName":    []byte("SSO"),
 				"issuerURL":     []byte("https://example.com/test"),
 				"clientID":      []byte("test-client-id"),
 				"clientSecret":  []byte("test-client-secret"),
@@ -985,6 +986,7 @@ func TestNewOIDCConfigFromSecret(t *testing.T) {
 				"tokenDuration": []byte("10m"),
 			},
 			want: auth.OIDCConfig{
+				IssuerName:    "SSO",
 				IssuerURL:     "https://example.com/test",
 				ClientID:      "test-client-id",
 				ClientSecret:  "test-client-secret",
