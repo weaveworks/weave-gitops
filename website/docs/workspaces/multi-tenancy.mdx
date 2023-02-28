@@ -17,7 +17,7 @@ WGE multi tenancy expands on the multi tenancy feature provided by `flux`. In ad
 - Defining tenancy using a single yaml file that serves as a source of truth for the organization
 - Makes use of WGE policy features to enforce non Kubernetes native permissions
 
-## Prerequisite
+## Prerequisites
 
 - [`gitops` command line tool](/references/cli-reference/gitops.md)
 - [Tenancy File](#tenancy-file) (optional)
@@ -129,7 +129,7 @@ policy.pac.weave.works/weave.policies.tenancy.test-tenant-allowed-application-de
 
 </details>
 
-The above will create the namespaces and permissions through a `ServiceAccount` with the same name as the tenant in that case `test-tenant` in each required namespace.
+The above will create the namespaces and permissions through a `ServiceAccount` with the same name as the tenant, `test-tenant` in the case of the above example, in each required namespace.
 The same can be done through a file as follows:
 
 ```yaml
