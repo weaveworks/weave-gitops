@@ -6,39 +6,41 @@ hide_title: true
 import TierLabel from "../_components/TierLabel";
 
 # Why GitOps templates <TierLabel tiers="Enterprise" />
-GitOpsTemplates enables Application Developers to self-service components and services using Weave GitOps. 
-Turning knowledge into a library that can be self-served.
- 
-## What are GitOps templates?
-GitOps templates allows you to template resources in a single definition. Resources in a template can be anything that can be expressed in yaml (K8s, Flux primitives, TF controller, Crossplane, Cluster API). 
 
+GitOpsTemplates enables Application Developers to self-service components and services using Weave GitOps.
+Turning knowledge into a library that can be self-served.
+
+## What are GitOps templates?
+
+GitOps templates allows you to template resources in a single definition. Resources in a template can be anything that can be expressed in yaml (K8s, Flux primitives, TF controller, Crossplane, Cluster API).
 
 **FAQ**
 
 **What are GitOps templates?**
-GitOps templates allow you to template resources in a single definition. Resources in a template can be anything that can be expressed in yaml (K8s, Flux primitives, TF controller, Crossplane, Cluster API). 
-Templates are simple YAML files, that can be enriched with Parameters, Variables, Metadata and conditions. They can be rendered to create the resources they contain. For clusters it can be CAPI objects like MachinePool. It can be as well Kustomization (flux) or a TF controller resource. 
+GitOps templates allow you to template resources in a single definition. Resources in a template can be anything that can be expressed in yaml (K8s, Flux primitives, TF controller, Crossplane, Cluster API).
+Templates are simple YAML files, that can be enriched with Parameters, Variables, Metadata and conditions. They can be rendered to create the resources they contain. For clusters it can be CAPI objects like MachinePool. It can be as well Kustomization (flux) or a TF controller resource.
 
 **Ok, what are the restrictions on GitOps templates?**
 
-Basically, the only restriction is that the template needs to be valid YAML. Besides that a rendered template can create any kind of resource. 
+Basically, the only restriction is that the template needs to be valid YAML. Besides that a rendered template can create any kind of resource.
 
 **How do they fit today into Weave GitOps?**
 
-We have added some metadata markup, which helps us to render the template nicely in the GUI. 
+We have added some metadata markup, which helps us to render the template nicely in the GUI.
 
 The template consumer will be only provided with the required Parameters/Inputs and the guardrails, the template gets rendered and we create a PR. Merging the PR will create all the templated resources.
 
 **How can I use GitOps templates?**
 
-GitOps Templates were originally introduced enabling self-service in the cluster creation flow.  We quickly extended that to terraform, crossplane and Kubernetes resources like RBAC (Roles + Rolebindings).
-You can have for example a template that provides a running Developer Environment, consisting in a EKS cluster, a RDS Database, and a branch + revision of the current application through a single template. 
+GitOps Templates were originally introduced enabling self-service in the cluster creation flow. We quickly extended that to terraform, crossplane and Kubernetes resources like RBAC (Roles + Rolebindings).
+You can have for example a template that provides a running Developer Environment, consisting in a EKS cluster, a RDS Database, and a branch + revision of the current application through a single template.
 
 ## Organizing Templates
 
 Declare the type of a template by using the `weave.works/template-type` label. The value of the label is the name of the template type. The template type is used to group templates in the UI.
 
 Recommended template types:
+
 - `application` - for application templates
 - `cluster` - for cluster templates
 - `terraform` - for Terraform templates
@@ -49,11 +51,13 @@ Recommended template types:
 Enable or disable rendering of certain component sections in a template with the use of annotations. This can be done by using the `templates.weave.works/COMPONENT-enabled` annotation with a boolean value.
 
 Supported components:
+
 - `profiles`
 - `kustomizations`
 - `credentials`
 
 Example:
+
 ```
 annotations:
   templates.weave.works/profiles-enabled: "true"
@@ -78,24 +82,34 @@ spec:
 
 ### Available keys
 
+Keys available in the `spec.charts` section and the template variables available to them.
+
+| **Key**                       | **Description**                              | **Template vars** |
+| ----------------------------- | -------------------------------------------- | ----------------- |
+| `helmRepositoryTemplate.path` | Path the `HelmRepository` will be written to | `params`          |
+| `items`                       | list of charts to configure, see below       |                   |
+
 Keys available in the `spec.charts.items` entries and the template variables available to them.
 
-| __Key__            | __Description__                                   | __Template vars__ |
-| -----------------  | --------------                                    | ----
-| `template.content` | Full or partial `HelmRelease` CR template         | `params` |
-| `chart`            | Shortcut to `HelmRelease.spec.chart.spec.chart`   ||
-| `version`          | Shortcut to `HelmRelease.spec.chart.spec.version` ||
-| `targetNamespace`  | Shortcut to `HelmRelease.spec.targetNamespace`    ||
-| `values`           | Shortcut to `HelmRelease.spec.values`             | `params`
-| `layer`            | Layer to install as                               ||
-| `required`         | (default=false) Allow the user to de-select this profile|
-| `editable`         | (default=false) Allow the user to edit the values.yaml of this profile|
+| **Key**            | **Description**                                                        | **Template vars** |
+| ------------------ | ---------------------------------------------------------------------- | ----------------- |
+| `template.content` | Full or partial `HelmRelease` CR template                              | `params`          |
+| `template.path`    | Path the HelmRelease will be written to                                | `params`          |
+| `chart`            | Shortcut to `HelmRelease.spec.chart.spec.chart`                        |                   |
+| `version`          | Shortcut to `HelmRelease.spec.chart.spec.version`                      |                   |
+| `targetNamespace`  | Shortcut to `HelmRelease.spec.targetNamespace`                         |                   |
+| `values`           | Shortcut to `HelmRelease.spec.values`                                  | `params`          |
+| `layer`            | Layer to install as                                                    |                   |
+| `required`         | (default=false) Allow the user to de-select this profile               |
+| `editable`         | (default=false) Allow the user to edit the values.yaml of this profile |
 
 Here is a more complete example showing all the available keys and the sections that can be templated.
 
 ```yaml
 spec:
   charts:
+    helmRepositoryTemplate:
+      path: clusters/${CLUSTER_NAME}/helm-repositories.yaml
     items:
       - chart: cert-manager
         version: v1.5.3
@@ -106,6 +120,7 @@ spec:
         targetNamespace: cert-manager
         layer: layer-1
         template:
+          path: clusters/${CLUSTER_NAME}/cert-manager.yaml
           content:
             metadata:
               labels:
@@ -125,19 +140,24 @@ Where possible please use the `spec.charts` section to declare profiles.
 You can also use the `capi.weave.works/profile-INDEX` annotation to specify profiles.
 
 The annotation is added as the following:
+
 ```
 annotations:
     capi.weave.works/profile-0: '{"name": "NAME", "version": "VERSION", "editable": EDITABLE, "namespace": "NAMESPACE"}'
 ```
+
 Where
-  - `name` -  is the name of the profile in the default profiles repository
-  - `version` -  (optional) will choose the default version
-  - `namespace` -  (optional) is the default target namespace for the profile
-  - `editable` -  (optional, default=false), allow the user to de-select this profile, making it a default instead of a requirement.
+
+- `name` - is the name of the profile in the default profiles repository
+- `version` - (optional) will choose the default version
+- `namespace` - (optional) is the default target namespace for the profile
+- `editable` - (optional, default=false), allow the user to de-select this profile, making it a default instead of a requirement.
 
 ## Template paths
 
-### Specifying paths
+Templates can be rendered to multiple paths in the repository. This allows for more control over where different resources in the template are rendered.
+
+### Specifying paths for `resourcetemplates`
 
 The `spec.resourcetemplates[].path` field can be used to specify the paths of the rendered template resources.
 This allows more control over where different resources in the template are rendered.
@@ -146,6 +166,7 @@ This allows more control over where different resources in the template are rend
 - The path can be templated using params
 
 Example:
+
 ```yaml
 spec:
   resourcetemplates:
@@ -177,22 +198,44 @@ spec:
           ...
 ```
 
+### Specifying paths for `charts`
+
+The `spec.charts.helmRepositoryTemplate.path` and `spec.charts.items[].template.path` fields can be used to specify the paths of these resources:
+
+Example
+
+```yaml
+spec:
+  charts:
+    helmRepositoryTemplate:
+      // highlight-next-line
+      path: clusters/${CLUSTER_NAME}/workloads/helm-repo.yaml
+    items:
+      - chart: cert-manager
+        version: 0.0.8
+        template:
+          // highlight-next-line
+          path: clusters/${CLUSTER_NAME}/workloads/cert-manager.yaml
+```
+
 ### Default paths
 
 If the `spec.resourcetemplates[].path` is omitted a default path for the rendered template is calculated.
 In this case some some of the submitted params are used. You must provide one of the following parameters:
+
 - `CLUSTER_NAME`
 - `RESOURCE_NAME`
 
 :::info
 
-The **profiles** and **kustomization** features always use a calculated default path.
+The **kustomization** feature and the `add-common-bases` annotation feature always use a calculated default path.
 **If you are using these features** one of `CLUSTER_NAME` or `RESOURCE_NAME` must be provided,
 even if you specify a `path` for all the other resources in the template.
 
 :::
 
 The default path for a template has a few components:
+
 - From the params: `CLUSTER_NAME` or `RESOURCE_NAME`, **required**.
 - From the params: `NAMESPACE`, default: `default`
 - From values.yaml for the Weave GitOps Enterprise `mccp` chart: `values.config.capi.repositoryPath`, default: `clusters/management/clusters`
@@ -208,64 +251,66 @@ Using the default values and supplying `CLUSTER_NAME` as `my-cluster` will resul
 Declare the render type indicating the templating language to be used to render the template by setting `spec.renderType`.
 
 Supported templating languages:
-  - **envsubst (default)**
-    envsubst which is short for environment substitution uses [envsubst](https://github.com/a8m/envsubst) for rendering, where `${CLUSTER_NAME}` style syntax can be used. It is the same templating format that is used by [clusterctl](https://cluster-api.sigs.k8s.io/clusterctl/overview.html).
 
-    #### Supported Functions
+- **envsubst (default)**
+  envsubst which is short for environment substitution uses [envsubst](https://github.com/a8m/envsubst) for rendering, where `${CLUSTER_NAME}` style syntax can be used. It is the same templating format that is used by [clusterctl](https://cluster-api.sigs.k8s.io/clusterctl/overview.html).
 
-    | __Expression__                | __Meaning__                                                     |
-    | -----------------             | --------------                                                  |
-    | `${var}`                      | Value of `$var`
-    | `${#var}`                     | String length of `$var`
-    | `${var^}`                     | Uppercase first character of `$var`
-    | `${var^^}`                    | Uppercase all characters in `$var`
-    | `${var,}`                     | Lowercase first character of `$var`
-    | `${var,,}`                    | Lowercase all characters in `$var`
-    | `${var:n}`                    | Offset `$var` `n` characters from start
-    | `${var:n:len}`                | Offset `$var` `n` characters with max length of `len`
-    | `${var#pattern}`              | Strip shortest `pattern` match from start
-    | `${var##pattern}`             | Strip longest `pattern` match from start
-    | `${var%pattern}`              | Strip shortest `pattern` match from end
-    | `${var%%pattern}`             | Strip longest `pattern` match from end
-    | `${var-default}`               | If `$var` is not set, evaluate expression as `$default`
-    | `${var:-default}`              | If `$var` is not set or is empty, evaluate expression as `$default`
-    | `${var=default}`               | If `$var` is not set, evaluate expression as `$default`
-    | `${var:=default}`              | If `$var` is not set or is empty, evaluate expression as `$default`
-    | `${var/pattern/replacement}`  | Replace as few `pattern` matches as possible with `replacement`
-    | `${var//pattern/replacement}` | Replace as many `pattern` matches as possible with `replacement`
-    | `${var/#pattern/replacement}` | Replace `pattern` match with `replacement` from `$var` start
-    | `${var/%pattern/replacement}` | Replace `pattern` match with `replacement` from `$var` end
+  #### Supported Functions
 
-  - **templating**
+  | **Expression**                | **Meaning**                                                         |
+  | ----------------------------- | ------------------------------------------------------------------- |
+  | `${var}`                      | Value of `$var`                                                     |
+  | `${#var}`                     | String length of `$var`                                             |
+  | `${var^}`                     | Uppercase first character of `$var`                                 |
+  | `${var^^}`                    | Uppercase all characters in `$var`                                  |
+  | `${var,}`                     | Lowercase first character of `$var`                                 |
+  | `${var,,}`                    | Lowercase all characters in `$var`                                  |
+  | `${var:n}`                    | Offset `$var` `n` characters from start                             |
+  | `${var:n:len}`                | Offset `$var` `n` characters with max length of `len`               |
+  | `${var#pattern}`              | Strip shortest `pattern` match from start                           |
+  | `${var##pattern}`             | Strip longest `pattern` match from start                            |
+  | `${var%pattern}`              | Strip shortest `pattern` match from end                             |
+  | `${var%%pattern}`             | Strip longest `pattern` match from end                              |
+  | `${var-default}`              | If `$var` is not set, evaluate expression as `$default`             |
+  | `${var:-default}`             | If `$var` is not set or is empty, evaluate expression as `$default` |
+  | `${var=default}`              | If `$var` is not set, evaluate expression as `$default`             |
+  | `${var:=default}`             | If `$var` is not set or is empty, evaluate expression as `$default` |
+  | `${var/pattern/replacement}`  | Replace as few `pattern` matches as possible with `replacement`     |
+  | `${var//pattern/replacement}` | Replace as many `pattern` matches as possible with `replacement`    |
+  | `${var/#pattern/replacement}` | Replace `pattern` match with `replacement` from `$var` start        |
+  | `${var/%pattern/replacement}` | Replace `pattern` match with `replacement` from `$var` end          |
 
-    templating uses text/templating for rendering, using go-templating style syntax `{{ .params.CLUSTER_NAME }}` where params are provided by the `.params` variable. 
-    Template functions can also be used with the syntax `{{ .params.CLUSTER_NAME | FUNCTION }}`. 
-    
-    #### Supported functions [(from Sprig library)](http://masterminds.github.io/sprig/)
+- **templating**
 
-    | __Function Type__                   | __Functions__                                                     |
-    | -----------------                   | --------------                                                  |
-    | String Functions                    | *trim*, *wrap*, *randAlpha*, *plural*
-    | String List Functions               | *splitList*, *sortAlpha*
-    | Integer Math Functions              | *add*, *max*, *mul*
-    | Integer Slice Functions             | *until*, untilStep
-    | Float Math Functions                | *addf*, *maxf*, *mulf*
-    | Date Functions                      | *now*, *date*
-    | Defaults Functions                  | *default*, *empty*, *coalesce*, *fromJson*, *toJson*, *toPrettyJson*, *toRawJson*, ternary
-    | Encoding Functions                  | *b64enc*, *b64dec*
-    | Lists and List Functions            | *list*, *first*, *uniq*
-    | Dictionaries and Dict Functions     | *get*, *set*, *dict*, *hasKey*, *pluck*, *dig*, *deepCopy*
-    | Type Conversion Functions           | *atoi*, *int64*, *toString*
-    | Flow Control Functions              | *fail*
-    | UUID Functions                      | *uuidv4*
-    | Version Comparison Functions        | *semver*, semverCompare
-    | Reflection                          | *typeOf*, *kindIs*, *typeIsLike*
+  templating uses text/templating for rendering, using go-templating style syntax `{{ .params.CLUSTER_NAME }}` where params are provided by the `.params` variable.
+  Template functions can also be used with the syntax `{{ .params.CLUSTER_NAME | FUNCTION }}`.
+
+  #### Supported functions [(from Sprig library)](http://masterminds.github.io/sprig/)
+
+  | **Function Type**               | **Functions**                                                                              |
+  | ------------------------------- | ------------------------------------------------------------------------------------------ |
+  | String Functions                | _trim_, _wrap_, _randAlpha_, _plural_                                                      |
+  | String List Functions           | _splitList_, _sortAlpha_                                                                   |
+  | Integer Math Functions          | _add_, _max_, _mul_                                                                        |
+  | Integer Slice Functions         | _until_, untilStep                                                                         |
+  | Float Math Functions            | _addf_, _maxf_, _mulf_                                                                     |
+  | Date Functions                  | _now_, _date_                                                                              |
+  | Defaults Functions              | _default_, _empty_, _coalesce_, _fromJson_, _toJson_, _toPrettyJson_, _toRawJson_, ternary |
+  | Encoding Functions              | _b64enc_, _b64dec_                                                                         |
+  | Lists and List Functions        | _list_, _first_, _uniq_                                                                    |
+  | Dictionaries and Dict Functions | _get_, _set_, _dict_, _hasKey_, _pluck_, _dig_, _deepCopy_                                 |
+  | Type Conversion Functions       | _atoi_, _int64_, _toString_                                                                |
+  | Flow Control Functions          | _fail_                                                                                     |
+  | UUID Functions                  | _uuidv4_                                                                                   |
+  | Version Comparison Functions    | _semver_, semverCompare                                                                    |
+  | Reflection                      | _typeOf_, _kindIs_, _typeIsLike_                                                           |
 
 ### Editing templates
 
-When rendering a template, a `templates.weave.works/create-request` annotation is added by default to the first resource in the `resourcetemplates`. It can be added to any other resource by simply adding the annotation in empty form. This annotation  holds information about which template generated the resource and the parameter values used as a json string.
+When rendering a template, a `templates.weave.works/create-request` annotation is added by default to the first resource in the `resourcetemplates`. It can be added to any other resource by simply adding the annotation in empty form. This annotation holds information about which template generated the resource and the parameter values used as a json string.
 
 If the resource type is one of the following and has this annotation, an `Edit resource` button will appear in the UI that allows the editing of the resource and re-rendering it:
+
 - Applications:
   - HelmRelease
   - Kustomization
@@ -276,23 +321,24 @@ If the resource type is one of the following and has this annotation, an `Edit r
   - GitopsCluster
 
 Example:
+
 ```yaml
 spec:
   resourcetemplates:
-  - apiVersion: v1
-    kind: ConfigMap
-    metadata:
-      name: my-configmap
-    data:
-      my-key: my-value
-  - apiVersion: source.toolkit.fluxcd.io/v1beta1
-    kind: HelmRepository
-    metadata:
-      # This annotation will add an `Edit resource` button in the UI for this resource
-      annotations:
-        templates.weave.works/create-request: ''
-      name: nginx
-      namespace: default
+    - apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: my-configmap
+      data:
+        my-key: my-value
+    - apiVersion: source.toolkit.fluxcd.io/v1beta1
+      kind: HelmRepository
+      metadata:
+        # This annotation will add an `Edit resource` button in the UI for this resource
+        annotations:
+          templates.weave.works/create-request: ""
+        name: nginx
+        namespace: default
 ```
 
 ## Custom delimiters for `renderType: templating`
@@ -303,7 +349,7 @@ The default delimiters for `renderType: templating` are `{{` and `}}`. These can
 - `templates.weave.works/delimiters: "${{,}}"`
   - Use `${{` and `}}`, for example `${{ .params.CLUSTER_NAME }}`
   - Useful as `{{` in yaml is invalid syntax and needs to be quoted. If you need to provide a un-quoted number value like `replicas: 3` you should use these delimiters.
-  - :x: `replicas: {{ .params.REPLICAS }}` Invalid yaml 
+  - :x: `replicas: {{ .params.REPLICAS }}` Invalid yaml
   - :x: `replicas: "{{ .params.REPLICAS }}"` Valid yaml, incorrect type. The type is a `string` not a `number` and will fail validation.
   - :white_check_mark: `replicas: ${{ .params.REPLICAS }}` Valid yaml and correct `number` type.
 - `templates.weave.works/delimiters: "<<,>>" `
@@ -325,7 +371,7 @@ The `templates.weave.works/inject-prune-annotation: "true"` annotation can be us
 enable and disable the injection of Flux's `prune` annotation into certain resources.
 
 When enabled we automatically inject a `kustomize.toolkit.fluxcd.io/prune: disabled`
-annotation into every resource in the `spec.resourcetemplates` that is not a 
+annotation into every resource in the `spec.resourcetemplates` that is not a
 `cluster.x-k8s.io.Cluster` and not a `gitops.weave.works.GitopsCluster`.
 
 The intention here is stop flux from explicitly deleting subresources of the `Cluster` like
@@ -337,10 +383,10 @@ This is the pattern recommended in the capi-quickstart guide https://cluster-api
 
 The only difference between `CAPITemplate` and `GitOpsTemplate` is the default value of these two annotations:
 
-| Annotation | default value for `CAPITemplate` | default value for `GitOpsTemplate` |
-| ----------- | ---------------- | ------------------ |
-| `templates.weave.works/add-common-bases`  | `"true"` | `"false"` |
-| `templates.weave.works/inject-prune-annotations` | `"true"` | `"false"` |
+| Annotation                                       | default value for `CAPITemplate` | default value for `GitOpsTemplate` |
+| ------------------------------------------------ | -------------------------------- | ---------------------------------- |
+| `templates.weave.works/add-common-bases`         | `"true"`                         | `"false"`                          |
+| `templates.weave.works/inject-prune-annotations` | `"true"`                         | `"false"`                          |
 
 ## How to: Add a GitOps Template to create a cluster
 
@@ -366,7 +412,6 @@ spec:
         name: "{{ .params.CLUSTER_NAME }}"
 ```
 
-
 ## Parameters
 
 You can provide additional metadata about the parameters to the templates in the `spec.params` section.
@@ -380,10 +425,11 @@ See the [Template Paths](#template-paths) section for info on certain required p
 - `name`: The variable name within the resource templates
 - `description`: Description of the parameter. This will be rendered in the UI and CLI
 - `options`: The list of possible values this parameter can be set to.
-- `required` -  Whether the parameter must contain a non-empty value
-- `default` - Default value of the parameter 
+- `required` - Whether the parameter must contain a non-empty value
+- `default` - Default value of the parameter
 
 Sample:
+
 ```
 spec:
   params:
@@ -396,7 +442,6 @@ spec:
       required: true
       default: DEFAULT_2
 ```
-
 
 ### Loading the template into the cluster
 
@@ -432,12 +477,14 @@ There are now multiple published versions of the template CRD.
 #### `v1alpha1` to `v1alpha2`
 
 When manually migrating a template from v1alpha1 to v1alpha2 (for example in git) you will need to:
+
 1. Update the `apiVersion` to `templates.weave.works/v1alpha2`
 2. Move the `spec.resourcetemplates` field to `spec.resourcetemplates[0].contents`
 3. Either leave the `spec.resourcetemplates[0].path` field empty or give it a sensible value.
 
 If you experience issues with the path not being recognised when flux reconciles the new template versions
 you should try manually applying the new template to the cluster directly with:
+
 1. Run `kubectl apply -f capi-template.yaml`
 2. Run `flux reconcile kustomization --with-source flux-system` **two times**.
 
@@ -456,6 +503,7 @@ When the tempalte is rendered the `spec.resourcetemplates[0].path` field has a d
 This version changes the type of `spec.resourcetemplates` from a list of objects to a list of files with a `path` and `contents`:
 
 Example:
+
 ```yaml
 spec:
   resourcetemplates:
@@ -475,6 +523,7 @@ The original version of the template. This version is deprecated and will be rem
 It uses `spec.resourcetemplates` as a list of resources to render.
 
 Example:
+
 ```yaml
 spec:
   resourcetemplates:
