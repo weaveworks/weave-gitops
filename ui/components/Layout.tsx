@@ -1,6 +1,7 @@
 import { Drawer } from "@material-ui/core";
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import styled from "styled-components";
+import { AppContext } from "../contexts/AppContext";
 import { V2Routes } from "../lib/types";
 import Breadcrumbs from "./Breadcrumbs";
 import DetailModal from "./DetailModal";
@@ -100,6 +101,9 @@ const TopToolBar = styled(Flex)`
 
 function Layout({ className, children }: Props) {
   const [collapsed, setCollapsed] = useState<boolean>(false);
+  const { appState, setDetailModal } = useContext(AppContext);
+
+  const detail = appState.detailModal;
 
   return (
     <AppContainer className={className}>
@@ -116,9 +120,19 @@ function Layout({ className, children }: Props) {
         />
         <ContentContainer>{children}</ContentContainer>
       </Main>
-      <Drawer anchor="right" open={true} ModalProps={{ keepMounted: false }}>
-        <DetailModal />
-        <div>hi</div>
+      <Drawer
+        anchor="right"
+        open={detail ? true : false}
+        onClose={() => setDetailModal(null)}
+        ModalProps={{ keepMounted: false }}
+      >
+        {detail && (
+          <DetailModal
+            component={detail.component}
+            props={detail.props}
+            className={detail.className}
+          />
+        )}
       </Drawer>
     </AppContainer>
   );

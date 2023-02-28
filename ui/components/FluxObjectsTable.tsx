@@ -7,6 +7,7 @@ import { formatURL, objectTypeToRoute } from "../lib/nav";
 import { FluxObject } from "../lib/objects";
 import { makeImageString, statusSortHelper } from "../lib/utils";
 import DataTable from "./DataTable";
+import { DetailOptions, DetailViewProps } from "./DetailModal";
 import ImageLink from "./ImageLink";
 import KubeStatusIndicator, {
   computeMessage,
@@ -19,7 +20,7 @@ import Text from "./Text";
 
 type Props = {
   className?: string;
-  onClick?: (o: FluxObject) => void;
+  onClick?: (o: DetailViewProps) => void;
   objects: FluxObject[];
   initialFilterState?: any;
 };
@@ -59,7 +60,14 @@ function FluxObjectsTable({
 
             return (
               <Text
-                onClick={() => (secret ? null : onClick(u))}
+                onClick={() =>
+                  secret
+                    ? null
+                    : onClick({
+                        component: DetailOptions.YamlView,
+                        props: { object: { ...u, kind: u.type }, yaml: u.yaml },
+                      })
+                }
                 color={secret ? "neutral40" : "primary10"}
                 pointer={!secret}
               >
