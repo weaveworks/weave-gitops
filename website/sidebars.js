@@ -233,12 +233,12 @@ module.exports = {
       },
       items: [
         'secrets/intro',
+        'secrets/getting-started',
         'secrets/bootstraping-secrets',
         'secrets/setup-secrets-operator',
         'secrets/manage-secrets-gui',
-        'secrets/using-secrets',
-        'secrets/troubleshoot',
         'secrets/self-service',
+        'secrets/faq'
       ],
     },
     {
