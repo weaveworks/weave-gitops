@@ -1,7 +1,9 @@
+import { Drawer } from "@material-ui/core";
 import React, { useState } from "react";
 import styled from "styled-components";
 import { V2Routes } from "../lib/types";
 import Breadcrumbs from "./Breadcrumbs";
+import DetailModal from "./DetailModal";
 import Flex from "./Flex";
 import { IconType } from "./Icon";
 import Logo from "./Logo";
@@ -114,6 +116,10 @@ function Layout({ className, children }: Props) {
         />
         <ContentContainer>{children}</ContentContainer>
       </Main>
+      <Drawer anchor="right" open={true} ModalProps={{ keepMounted: false }}>
+        <DetailModal />
+        <div>hi</div>
+      </Drawer>
     </AppContainer>
   );
 }
