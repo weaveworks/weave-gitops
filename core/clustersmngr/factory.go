@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"sort"
 	"sync"
 	"time"
 
@@ -384,7 +383,7 @@ func (cf *clustersManager) updateNamespacesWithClient(ctx context.Context, creat
 		}
 	}
 
-	cf.log.V(logger.LogLevelDebug).Info("Updated namespaces cache", "namespaces", ClusterNamespacesLogValue(cf.clustersNamespaces.namespaces))
+	cf.log.V(logger.LogLevelDebug).Info("Updated namespaces cache", "namespaces", clusterNamespacesLogValue(cf.clustersNamespaces.namespaces))
 
 	opsUpdateNamespaces.Inc()
 
@@ -601,7 +600,7 @@ func (cf *clustersManager) userNsList(ctx context.Context, user *auth.UserPrinci
 
 	userNamespaces = cf.GetUserNamespaces(user)
 
-	cf.log.V(logger.LogLevelDebug).Info("Updated namespace access cache for user", "userNamespaces", ClusterNamespacesLogValue(userNamespaces), "user", user, "ttl", userNamespaceTTL.String())
+	cf.log.V(logger.LogLevelDebug).Info("Updated namespace access cache for user", "userNamespaces", clusterNamespacesLogValue(userNamespaces), "user", user, "ttl", userNamespaceTTL.String())
 
 	return userNamespaces
 }
@@ -645,33 +644,4 @@ func (cf *clustersManager) getOrCreateClient(ctx context.Context, user *auth.Use
 	log.V(logger.LogLevelDebug).Info("Client created and added to cache")
 
 	return client, nil
-}
-
-type NamespacesSlice struct {
-	Namespaces []string
-	TotalCount int
-}
-
-// ClusterNamespacesLogValues formats the namespaces as a map[clusterName][]namespacesNames
-// for logging as a value in a structured log.
-func ClusterNamespacesLogValue(clusterNamespaces map[string][]v1.Namespace) map[string]NamespacesSlice {
-	out := map[string]NamespacesSlice{}
-	for cluster, namespaces := range clusterNamespaces {
-		namespaceNames := []string{}
-		for _, n := range namespaces {
-			namespaceNames = append(namespaceNames, n.Name)
-		}
-		sort.Strings(namespaceNames)
-
-		if len(namespaceNames) > 10 {
-			namespaceNames = namespaceNames[:10]
-		}
-
-		out[cluster] = NamespacesSlice{
-			Namespaces: namespaceNames,
-			TotalCount: len(namespaces),
-		}
-	}
-
-	return out
 }

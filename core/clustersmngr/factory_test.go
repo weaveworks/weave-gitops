@@ -17,7 +17,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"golang.org/x/net/context"
 	v1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
 
@@ -486,41 +485,4 @@ func TestClientCaching(t *testing.T) {
 
 	g.Expect(cluster.GetUserClientCallCount()).To(Equal(1))
 	g.Expect(cluster.GetUserClientArgsForCall(0).ID).To(Equal(userID))
-}
-
-func TestClusterNamespacesLogValue(t *testing.T) {
-	g := NewGomegaWithT(t)
-
-	nss := func(names ...string) []v1.Namespace {
-		var namespaces []v1.Namespace
-		for _, name := range names {
-			namespaces = append(namespaces, v1.Namespace{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: name,
-				},
-			})
-		}
-		return namespaces
-	}
-
-	clusterNamespaces := map[string][]v1.Namespace{
-		"cluster1": nss("ns1", "ns2"),
-		"cluster2": nss("ns3", "ns4"),
-	}
-
-	expected := map[string]clustersmngr.NamespacesSlice{
-		"cluster1": {
-			Namespaces: []string{"ns1", "ns2"},
-			TotalCount: 2,
-		},
-		"cluster2": {
-			Namespaces: []string{"ns3", "ns4"},
-			TotalCount: 2,
-		},
-	}
-
-	result := clustersmngr.ClusterNamespacesLogValue(clusterNamespaces)
-
-	g.Expect(result).To(Equal(expected))
-
 }
