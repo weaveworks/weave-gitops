@@ -7,7 +7,7 @@ import { formatURL, objectTypeToRoute } from "../lib/nav";
 import { FluxObject } from "../lib/objects";
 import { makeImageString, statusSortHelper } from "../lib/utils";
 import DataTable from "./DataTable";
-import { DetailOptions, DetailViewProps } from "./DetailModal";
+import { DetailViewProps } from "./DetailModal";
 import ImageLink from "./ImageLink";
 import KubeStatusIndicator, {
   computeMessage,
@@ -64,16 +64,7 @@ function FluxObjectsTable({
                   secret
                     ? null
                     : onClick({
-                        component: DetailOptions.YamlView,
-                        props: {
-                          object: {
-                            name: u.name,
-                            namespace: u.namespace,
-                            clusterName: u.namespace,
-                            kind: u.type,
-                          },
-                          yaml: u.yaml,
-                        },
+                        object: u,
                       })
                 }
                 color={secret ? "neutral40" : "primary10"}

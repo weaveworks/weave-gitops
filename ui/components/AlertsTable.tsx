@@ -12,7 +12,6 @@ import DataTable, {
   filterByStatusCallback,
   filterConfig,
 } from "./DataTable";
-import { DetailOptions } from "./DetailModal";
 import { filterSeparator } from "./FilterDialog";
 import KubeStatusIndicator from "./KubeStatusIndicator";
 import Link from "./Link";
@@ -58,16 +57,7 @@ function AlertsTable({ className, rows = [] }: Props) {
         <Text
           onClick={() =>
             setDetailModal({
-              component: DetailOptions.YamlView,
-              props: {
-                object: {
-                  name: a.name,
-                  namespace: a.namespace,
-                  clusterName: a.clusterName,
-                  kind: a.type,
-                },
-                yaml: a.yaml,
-              },
+              object: a,
             })
           }
           color="primary10"

@@ -7,7 +7,6 @@ import { Kind } from "../lib/api/core/types.pb";
 import images from "../lib/images";
 import { formatURL, objectTypeToRoute } from "../lib/nav";
 import { FluxObjectNode } from "../lib/objects";
-import { DetailOptions } from "./DetailModal";
 import Flex from "./Flex";
 import { computeReady, ReadyType } from "./KubeStatusIndicator";
 import Link from "./Link";
@@ -131,16 +130,7 @@ function GraphNode({ className, object }: Props) {
                   secret
                     ? null
                     : setDetailModal({
-                        component: DetailOptions.YamlView,
-                        props: {
-                          object: {
-                            name: object.name,
-                            namespace: object.namespace,
-                            clusterName: object.clusterName,
-                            kind: object.type,
-                          },
-                          yaml: object.yaml,
-                        },
+                        object: object,
                       })
                 }
                 color={secret ? "neutral40" : "primary10"}

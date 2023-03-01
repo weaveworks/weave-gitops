@@ -104,7 +104,7 @@ function Layout({ className, children }: Props) {
   const { appState, setDetailModal } = useContext(AppContext);
 
   const detail = appState.detailModal;
-
+  console.log(appState);
   return (
     <AppContainer className={className}>
       <TopToolBar start align wide>
@@ -127,11 +127,7 @@ function Layout({ className, children }: Props) {
         ModalProps={{ keepMounted: false }}
       >
         {detail && (
-          <DetailModal
-            component={detail.component}
-            props={detail.props}
-            className={detail.className}
-          />
+          <DetailModal className={detail.className} object={detail.object} />
         )}
       </Drawer>
     </AppContainer>
