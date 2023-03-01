@@ -83,3 +83,16 @@ kubectl create secret generic oidc-auth \
   --from-literal=claimGroups=groups
 ```
 There are two separate configuration keys, you can override them separately, these should match your `kube-apiserver` configuration.
+
+### Login UI
+
+The label of the OIDC button on the login screen is configurable via a feature flag environment variable.
+This can give your users a more familiar experience when logging in.
+
+Adjust the configuration in the helm `values.yaml` file or the `spec.values` section of the Weave Gitops `HelmRelease` resource:
+
+```yaml
+envVars:
+  - name: WEAVE_GITOPS_FEATURE_OIDC_BUTTON_LABEL
+    value: "Login with ACME"
+```
