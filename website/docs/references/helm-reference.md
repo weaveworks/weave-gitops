@@ -5,7 +5,7 @@ This is a reference of all the configurable values in weave gitops's
 helm chart. This is intended for customizing your installation after
 you've gone through the [getting started](../getting-started/intro.mdx) guide.
 
-This reference was generated for the chart version 4.0.14 which installs weave gitops v0.17.0.
+This reference was generated for the chart version 4.0.15 which installs weave gitops v0.18.0.
 
 ## Values
 
@@ -27,7 +27,7 @@ This reference was generated for the chart version 4.0.14 which installs weave g
 | fullnameOverride | string | `""` |  |
 | image.pullPolicy | string | `"IfNotPresent"` |  |
 | image.repository | string | `"ghcr.io/weaveworks/wego-app"` |  |
-| image.tag | string | `"v0.17.0"` |  |
+| image.tag | string | `"v0.18.0"` |  |
 | imagePullSecrets | list | `[]` |  |
 | ingress.annotations | object | `{}` |  |
 | ingress.className | string | `""` |  |
