@@ -65,7 +65,15 @@ function FluxObjectsTable({
                     ? null
                     : onClick({
                         component: DetailOptions.YamlView,
-                        props: { object: { ...u, kind: u.type }, yaml: u.yaml },
+                        props: {
+                          object: {
+                            name: u.name,
+                            namespace: u.namespace,
+                            clusterName: u.namespace,
+                            kind: u.type,
+                          },
+                          yaml: u.yaml,
+                        },
                       })
                 }
                 color={secret ? "neutral40" : "primary10"}

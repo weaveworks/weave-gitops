@@ -14,7 +14,7 @@ export type DetailViewProps = {
   props: PropOptions;
 };
 
-function DetailModal({ className, props, component }: DetailViewProps) {
+function DetailModal({ props, component }: DetailViewProps) {
   switch (component) {
     case DetailOptions.YamlView:
       return <DialogYamlView {...props} />;

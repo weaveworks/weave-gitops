@@ -59,7 +59,15 @@ function AlertsTable({ className, rows = [] }: Props) {
           onClick={() =>
             setDetailModal({
               component: DetailOptions.YamlView,
-              props: { object: { ...a, kind: a.type }, yaml: a.yaml },
+              props: {
+                object: {
+                  name: a.name,
+                  namespace: a.namespace,
+                  clusterName: a.clusterName,
+                  kind: a.type,
+                },
+                yaml: a.yaml,
+              },
             })
           }
           color="primary10"

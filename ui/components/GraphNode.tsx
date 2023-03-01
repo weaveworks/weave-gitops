@@ -133,7 +133,12 @@ function GraphNode({ className, object }: Props) {
                     : setDetailModal({
                         component: DetailOptions.YamlView,
                         props: {
-                          object: { ...object, kind: object.type },
+                          object: {
+                            name: object.name,
+                            namespace: object.namespace,
+                            clusterName: object.clusterName,
+                            kind: object.type,
+                          },
                           yaml: object.yaml,
                         },
                       })
