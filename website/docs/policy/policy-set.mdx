@@ -7,11 +7,11 @@ import TierLabel from "../_components/TierLabel";
 
 # PolicySet <TierLabel tiers="Enterprise" />
 
-This is an optional resource. It is used to select group of policies to work in specific modes.
+This is an optional custom resource that is used to select a group of policies to work in specific [modes](./weave-policy-profile.mdx#agent-modes).
 
-In each mode, The agent will list all the PolicySets of this mode and check which policies match any of those policysets, Then validate the resources against them.
+In each mode, the agent will list all the PolicySets of this mode and check which policies match any of those policysets, then validate the resources against them.
 
-If there is no policy set found all policies will work on all modes.
+If there are no PolicySets found for a certain mode, all policies will be applied in this mode.
 
 > Note: [Tenant Policies](./policy.mdx#tenant-policy) is always active in the [Admission](#admission) mode, event if it is not selected in the `admission` policysets
 
@@ -34,37 +34,17 @@ spec:
     standards:
       - pci-dss
     tags:
-      - tag-1  
+      - tag-1
 ```
 
-## Modes
-
-### Audit
-
-This mode performs the audit functionality. It triggers per the specified interval (by default every 24 hour) and then lists all the resources in the cluster which the agent has access to read and validates those resources against the audit policies.
-
-> Works with policies of provider `kubernetes`
-
-
-### Admission
-
-This contains the admission module that enforces policies. It uses the `controller-runtime` Kubernetes package to register a callback that will be called when the agent receives an admission request. Once called, the agent will validate the received resource against the admission and tenant policies and k8s will use the result of this validation to either allow or reject the creation/update of said resource.
-
-> Works with policies of provider `kubernetes`
-
-
-### Terraform Admission
-
-This is a webhook used to validate terraform plans. It is mainly used by the [TF-Controller](https://github.com/weaveworks/tf-controller) to enforce policies on terraform plans
-
-> Works with policies of provider `terraform`
+PolicySets can be created for any of the three modes supported by the agent: `admission`, `audit`, and `tfAdmission`.
 
 
 ## Grouping Policies
 
 Policies can be grouped by their ids, categories, severities, standards and tags
 
-The policy will be matched if any of the filters are matched.
+The policy will be applied if any of the filters are matched.
 
 
 ## Migration from v2beta1 to v2beta2
@@ -72,8 +52,7 @@ The policy will be matched if any of the filters are matched.
 ### New fields
 - New required field `spec.mode` is added. PolicySets should be updated to set the mode
 
-Previously the agent was configured with which policysets to use in each mode. Now we removed this argument from the agent's configuration and
-add the mode to the Policyset itself. 
+Previously the agent was configured with which policysets to use in each mode. Now we removed this argument from the agent's configuration and add the mode to the Policyset itself.
 
 #### Example of the agent configuration in versions older than v2.0.0
 

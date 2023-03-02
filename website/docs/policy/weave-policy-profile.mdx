@@ -55,7 +55,13 @@ policySource:
     namespace: Namespace where the source exists
 ```
 ---
-## Admission Controller Setup
+## Agent Modes
+
+### Admission
+
+This contains the admission module that enforces policies. It uses the `controller-runtime` Kubernetes package to register a callback that will be called when the agent receives an admission request. Once called, the agent will validate the received resource against the admission and tenant policies and k8s will use the result of this validation to either allow or reject the creation/update of said resource.
+
+> Works with policies of provider `kubernetes`
 
 To enable admission control:
 
@@ -91,9 +97,10 @@ policy-agent:
   failurePolicy: Ignore
 ```
 
----
-## Audit
+### Audit
 The audit functionality provides a full scan of the cluster(s) and reports back policy violations. This usually is used for policy violations reporting, and compliance posture analysis against known benchmarks like PCI DSS, CIS, .etc.
+
+> Works with policies of provider `kubernetes`
 
 To enable the audit functionality:
 
@@ -106,6 +113,12 @@ policy-agent:
 ```
 
 The audit will be performed when the agent starts and then again periodically at an interval of your choice in hours (default is 24 hours). The results of the audit will be published to the configured [sink(s)](#policy-validation-sinks).
+
+### Terraform Admission
+
+This is a webhook used to validate terraform plans. It is mainly used by the [TF-Controller](https://github.com/weaveworks/tf-controller) to enforce policies on terraform plans
+
+> Works with policies of provider `terraform`
 
 ---
 ## Policy Validation Sinks
