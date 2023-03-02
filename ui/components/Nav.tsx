@@ -18,6 +18,7 @@ export type NavItem = {
   label: string;
   link?: { value: V2Routes | string; href?: string; newTab?: boolean };
   icon?: IconType | JSX.Element;
+  disabled?: boolean;
 };
 
 type Props = {
