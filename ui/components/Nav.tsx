@@ -17,7 +17,7 @@ import Text from "./Text";
 export type NavItem = {
   label: string;
   link?: { value: V2Routes | string; href?: string; newTab?: boolean };
-  icon?: IconType;
+  icon?: IconType | Element;
 };
 
 type Props = {
