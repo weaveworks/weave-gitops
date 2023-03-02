@@ -13,6 +13,7 @@ import HourglassFullIcon from "@material-ui/icons/HourglassFull";
 import LaunchIcon from "@material-ui/icons/Launch";
 import NavigateBeforeIcon from "@material-ui/icons/NavigateBefore";
 import NavigateNextIcon from "@material-ui/icons/NavigateNext";
+import NotificationsBellIcon from "@material-ui/icons/NotificationsNone";
 import PauseIcon from "@material-ui/icons/Pause";
 import PersonIcon from "@material-ui/icons/Person";
 import PlayIcon from "@material-ui/icons/PlayArrow";
@@ -28,6 +29,8 @@ import images from "../lib/images";
 // eslint-disable-next-line
 import { colors, spacing } from "../typedefs/styled";
 import Flex from "./Flex";
+import ImageAutomationIcon from "./ImageAutomationIcon";
+import SourcesIcon from "./SourcesIcon";
 import Text from "./Text";
 
 export enum IconType {
@@ -62,6 +65,9 @@ export enum IconType {
   ApplicationsIcon,
   PlayIcon,
   PauseIcon,
+  NotificationsBell,
+  SourcesIcon,
+  ImageAutomationIcon,
 }
 
 type Props = {
@@ -167,6 +173,15 @@ function getIcon(i: IconType) {
     case IconType.PauseIcon:
       return PauseIcon;
 
+    case IconType.NotificationsBell:
+      return NotificationsBellIcon;
+
+    case IconType.SourcesIcon:
+      return SourcesIcon;
+
+    case IconType.ImageAutomationIcon:
+      return ImageAutomationIcon;
+
     default:
       break;
   }
@@ -190,6 +205,20 @@ export default styled(Icon)`
     fill: ${(props) => props.theme.colors[props.color as any]} !important;
     height: ${(props) => props.theme.spacing[props.size as any]};
     width: ${(props) => props.theme.spacing[props.size as any]};
+    path {
+      &.image-automation {
+        fill: ${(props) => props.theme.colors[props.color as any]} !important;
+      }
+    }
+    &.sources {
+      fill: none !important;
+      path {
+        fill: ${(props) => props.theme.colors[props.color as any]} !important;
+      }
+      rect {
+        stroke: ${(props) => props.theme.colors[props.color as any]} !important;
+      }
+    }
   }
   &.downward {
     transform: rotate(180deg);

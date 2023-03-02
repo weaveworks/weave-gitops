@@ -130,7 +130,8 @@ function SignIn() {
                   handleOIDCSubmit();
                 }}
               >
-                LOGIN WITH OIDC PROVIDER
+                {flags.WEAVE_GITOPS_FEATURE_OIDC_BUTTON_LABEL ||
+                  "LOGIN WITH OIDC PROVIDER"}
               </Button>
             </Flex>
           ) : null}
