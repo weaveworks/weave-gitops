@@ -9,6 +9,42 @@ import TierLabel from "./_components/TierLabel";
 :::info
 This page details the changes for Weave GitOps Enterprise and its associated components. For Weave GitOps OSS - please see the release notes on [GitHub](https://github.com/weaveworks/weave-gitops/releases).
 :::
+
+## v0.18.0
+2023-03-02
+### Highlights
+
+#### UI
+
+- See the logged in user's OIDC groups in the UI via the new User Profile page
+- Image Automation pages now show cluster information
+- See details about the configured promotion strategy for a pipeline
+- Log filtering by source and level for GitOps Run
+- See all Policy Configs listed in the UI
+
+#### GitopsSets
+
+- New `cluster` generator allows you to respond to GitopsClusters that are added/removed from the cluster dynamically
+- `gitRepository` generator can now list files with the new `directory` option
+- New `apiClient` generator allows you to create resource from polling any api endpoint
+- Reconcilation metrics are now reported to the `/metrics` endpoint ready to be collected 
+
+### Dependency versions
+
+- weave-gitops v0.18.0
+- cluster-controller v1.4.1
+- cluster-bootstrap-controller v0.3.0
+- templates-controller v0.1.3
+- (optional) pipeline-controller v0.20.0
+- (optional) policy-agent v2.3.0
+- (optional) gitopssets-controller v0.5.0
+
+## v0.17.0
+2023-02-16
+### Highlights
+
+This release contains dependency upgrades and bug fixes. For a larger list of updates, check out the [Weave GitOps v0.17.0](https://github.com/weaveworks/weave-gitops/releases/tag/v0.17.0) release.
+
 ## v0.16.0
 2023-02-02
 ### Highlights
