@@ -21,6 +21,7 @@ import HelmChartDetail from "./components/HelmChartDetail";
 import HelmReleaseDetail from "./components/HelmReleaseDetail";
 import HelmRepositoryDetail from "./components/HelmRepositoryDetail";
 import Icon, { IconType } from "./components/Icon";
+import ImageAutomationIcon from "./components/ImageAutomationIcon";
 import InfoList, { InfoField } from "./components/InfoList";
 import Input, { InputProps } from "./components/Input";
 import Interval from "./components/Interval";
@@ -42,6 +43,7 @@ import ReconciledObjectsTable from "./components/ReconciledObjectsTable";
 import ReconciliationGraph from "./components/ReconciliationGraph";
 import RequestStateHandler from "./components/RequestStateHandler";
 import SourceLink from "./components/SourceLink";
+import SourcesIcon from "./components/SourcesIcon";
 import SourcesTable from "./components/SourcesTable";
 import Spacer from "./components/Spacer";
 import SubRouterTabs, { RouterTab } from "./components/SubRouterTabs";
@@ -150,6 +152,7 @@ export {
   Input,
   InputProps,
   isAllowedLink,
+  ImageAutomationIcon,
   ImagePolicy,
   ImageRepository,
   ImageUpdateAutomation,
@@ -182,6 +185,7 @@ export {
   RequestStateHandler,
   RouterTab,
   SignIn,
+  SourcesIcon,
   SourceLink,
   SourcesTable,
   statusSortHelper,

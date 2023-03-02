@@ -2,18 +2,18 @@ import * as React from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import images from "../lib/images";
-import { V2Routes } from "../lib/types";
 import Flex from "./Flex";
 
 type Props = {
   className?: string;
   collapsed: boolean;
+  link?: string;
 };
 
-function Logo({ className }: Props) {
+function Logo({ className, link }: Props) {
   return (
     <Flex className={className} wide>
-      <Link to={V2Routes.Automations}>
+      <Link to={link}>
         <img src={images.weaveG} />
       </Link>
       <img src={images.logotype} />

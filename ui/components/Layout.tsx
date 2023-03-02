@@ -113,7 +113,7 @@ function Layout({ className, children }: Props) {
   return (
     <AppContainer className={className}>
       <TopToolBar start align wide>
-        <Logo collapsed={collapsed} />
+        <Logo collapsed={collapsed} link={V2Routes.Automations} />
         <Breadcrumbs />
         <UserSettings />
       </TopToolBar>
