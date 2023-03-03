@@ -78,7 +78,7 @@ type Props = {
   size: keyof typeof spacing;
 };
 
-function getIcon(i: IconType) {
+function getIcon(i: IconType): React.ComponentType<any> {
   switch (i) {
     case IconType.CheckMark:
       return CheckCircleIcon;
@@ -191,7 +191,7 @@ function Icon(props: Props) {
   const { className, type, text, color } = props;
   return (
     <Flex align className={className}>
-      {React.createElement<any>(getIcon(type) || "span", props)}
+      {React.createElement<Props>(getIcon(type) || "span", props)}
       {text && (
         <Text color={color} bold>
           {text}
