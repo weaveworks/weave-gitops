@@ -5,12 +5,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/weaveworks/weave-gitops/pkg/logger"
-
-	vcluster "github.com/loft-sh/vcluster/cmd/vclusterctl/cmd"
-	"github.com/loft-sh/vcluster/cmd/vclusterctl/flags"
-	"github.com/loft-sh/vcluster/cmd/vclusterctl/log"
 	"github.com/mitchellh/go-ps"
+	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/weaveworks/weave-gitops/pkg/run/session/connect"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -57,14 +54,11 @@ func (s *Session) Connect() error {
 		subProcArgs = append(subProcArgs, "--dashboard-hashed-password="+s.dashboardHashedPassword)
 	}
 
-	connect := vcluster.ConnectCmd{
-		GlobalFlags: &flags.GlobalFlags{
-			// connect to the vcluster silently
-			Silent:    true,
-			Namespace: s.namespace,
-		},
-		Log: log.GetInstance(),
-		// must be false to avoid creating the docker container
+	// we support statefulset pod only for now.
+	conn := &connect.Connection{
+		PodName:               s.name + "-0",
+		Log:                   s.log,
+		Namespace:             s.namespace,
 		BackgroundProxy:       false,
 		KubeConfigContextName: s.name,
 	}
@@ -99,7 +93,7 @@ func (s *Session) Connect() error {
 		}
 	}()
 
-	err := connect.Connect(s.name, subProcArgs)
+	err := conn.Connect(s.name, subProcArgs)
 
 	return err
 }
