@@ -133,6 +133,7 @@ module.exports = {
         'cluster-management/profiles',
         'cluster-management/add-applications',
         'cluster-management/gitrepo-selection',
+        'cluster-management/disable-capi',
       ],
     },
     {
