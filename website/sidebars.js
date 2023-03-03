@@ -247,7 +247,11 @@ module.exports = {
     }
   ],
   ref: [
-    'references/helm-reference',
+    {
+      type: 'doc',
+      label: 'OSS Helm Reference',
+      id: 'references/helm-reference',
+    },
     {
       type: 'category',
       label: 'CLI Reference',
