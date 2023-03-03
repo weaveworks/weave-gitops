@@ -53,6 +53,7 @@ spec:
       pull-request:
         type: github
         url: https://github.com/my-org/my-app-repo
+		baseBranch: main
         secretRef:
           name: github-credentials
 ```
@@ -147,11 +148,11 @@ type PullRequestPromotion struct {
 	// +required
 	URL string `json:"url"`
 	// The branch to checkout after cloning. Note: This is just the base
-	// branch and does not denote the branch used to create a PR from. The
-	// latter is generated automatically and cannot be provided. If not specified
-	// the default "main" is used.
-	// +optional
-	Branch string `json:"branch"`
+	// branch that will eventually receive the PR changes upon merge and does
+	// not denote the branch used to create a PR from. The latter is generated
+	// automatically and cannot be provided.
+	// +required
+	BaseBranch string `json:"baseBranch"`
 	// SecretRef specifies the Secret containing authentication credentials for
 	// the git repository and for the Git provider API.
 	// For HTTPS repositories the Secret must contain 'username' and 'password'

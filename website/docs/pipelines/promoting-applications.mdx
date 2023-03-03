@@ -152,8 +152,8 @@ Ensure you understand and adopt [security recommendations](./#security-recommend
 ### Supported Git Providers
 The following Git providers are currently support by this promotion strategy:
 
-- [Github](https://github.com/)
-- [Gitlab](https://gitlab.com/)
+- [GitHub](https://github.com/)
+- [GitLab](https://gitlab.com/)
 
 Select your Git provider via `.spec.promotion.strategy.pull-request.type`. For example, for `gitlab` it would look similar to:
 
@@ -163,6 +163,7 @@ promotion:
     pull-request:
       type: "gitlab"
       url: "https://gitlab.com/weaveworks/<my-awesome-project.git>"
+      baseBranch: main
       secretRef:
         name: "gitlab-promotion-credentials"
 ```
