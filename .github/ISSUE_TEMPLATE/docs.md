@@ -1,5 +1,5 @@
 ---
-name: Docs improvement 📖
+name: Documentation improvement 📖
 about: Let us know about mistakes or missing information
 title: ""
 labels: "documentation"
@@ -30,10 +30,10 @@ gitops.
 eg 0.17.0
 -->
 
-**Which pages have you read?**
+**Which pages are affected?**
 
 <!--
-A bulleted list of all the pages you have been following. (or have tried to
+A bulleted list of links to the page(s) you have been following. (or have tried to
 follow.)
 -->
 
