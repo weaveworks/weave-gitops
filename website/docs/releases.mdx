@@ -25,7 +25,7 @@ This page details the changes for Weave GitOps Enterprise and its associated com
 #### GitopsSets
 
 - New `cluster` generator allows you to interact with the Weave GitOps Cluster inventory. GitOps Clusters that are added and removed to the inventory are reflected by the generator. That can be used to target for example to manage applications across a fleet of clusters. 
-- Enhanced `gitRepository` generator can now list files with the new `directory` option, which enables you to create for example dynamically Flux Kustomizations , based on your repository. 
+- Enhanced `gitRepository` generator can now scan directories trees with the new `directory` option, which enables you to create for example dynamically Flux Kustomizations , based on your repository. 
 - New `apiClient` generator allows you to query and endpoint, and provide data for your template. 
 - Reconciliation metrics are now reported to the `/metrics` endpoint ready to be collected
 
