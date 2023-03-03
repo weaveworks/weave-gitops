@@ -8,6 +8,7 @@ import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 
 import AlphaWarning from "../_components/_alpha_warning.mdx";
+import ManualPromotionUI from "./img/manual-promotion-ui.png";
 
 
 # Promoting applications through pipeline environments <TierLabel tiers="Enterprise" />
@@ -151,8 +152,8 @@ Ensure you understand and adopt [security recommendations](./#security-recommend
 ### Supported Git Providers
 The following Git providers are currently support by this promotion strategy:
 
-- [Github](https://github.com/)
-- [Gitlab](https://gitlab.com/)
+- [GitHub](https://github.com/)
+- [GitLab](https://gitlab.com/)
 
 Select your Git provider via `.spec.promotion.strategy.pull-request.type`. For example, for `gitlab` it would look similar to:
 
@@ -162,6 +163,7 @@ promotion:
     pull-request:
       type: "gitlab"
       url: "https://gitlab.com/weaveworks/<my-awesome-project.git>"
+      baseBranch: main
       secretRef:
         name: "gitlab-promotion-credentials"
 ```
@@ -398,6 +400,41 @@ spec:
 ```
 
 Promotion notifications from leaf clusters should now be forwarded via the notification controller running on the management cluster and should include information about the version of the application being promoted.
+
+## Manual promotion
+
+The supported strategies mentioned above, do not require any user interaction when handling promotions. However, there is often a need for a human operator to manually approve a promotion to the next environment. To achieve that, set the `spec.promotion.manual` key to `true`.
+
+<details><summary>Expand to see example</summary>
+
+```yaml {8}
+apiVersion: pipelines.weave.works/v1alpha1
+kind: Pipeline
+metadata:
+  name: my-app
+  namespace: my-app-ns
+spec:
+  promotion:
+    manual: true
+    strategy:
+      pull-request:
+        type: github
+        url: https://github.com/my-org/my-app-repo
+        baseBranch: main
+        secretRef:
+          name: promotion-credentials              
+```
+
+</details>
+
+When this key is set and a promotion is detected, Weave GitOps will prompt the user to manually promote the application to the next environment, via the use of a button shown under the next environment.
+
+<figure>
+
+<img src={ManualPromotionUI} style={{width: "70%", height: "70%"}} />
+
+<figcaption>Manual promotion of an application</figcaption>
+</figure>
 
 ## Configuration
 
