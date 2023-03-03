@@ -187,10 +187,11 @@ function getIcon(i: IconType) {
   }
 }
 
-function Icon({ className, type, text, color }: Props) {
+function Icon(props: Props) {
+  const { className, type, text, color } = props;
   return (
     <Flex align className={className}>
-      {React.createElement(getIcon(type) || "span")}
+      {React.createElement<any>(getIcon(type) || "span", props)}
       {text && (
         <Text color={color} bold>
           {text}
@@ -202,23 +203,9 @@ function Icon({ className, type, text, color }: Props) {
 
 export default styled(Icon)`
   svg {
-    fill: ${(props) => props.theme.colors[props.color as any]} !important;
+    fill: ${(props) => props.theme.colors[props.color as any]};
     height: ${(props) => props.theme.spacing[props.size as any]};
     width: ${(props) => props.theme.spacing[props.size as any]};
-    path {
-      &.image-automation {
-        fill: ${(props) => props.theme.colors[props.color as any]} !important;
-      }
-    }
-    &.sources {
-      fill: none !important;
-      path {
-        fill: ${(props) => props.theme.colors[props.color as any]} !important;
-      }
-      rect {
-        stroke: ${(props) => props.theme.colors[props.color as any]} !important;
-      }
-    }
   }
   &.downward {
     transform: rotate(180deg);
