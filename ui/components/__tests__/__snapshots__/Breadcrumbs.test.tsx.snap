@@ -87,6 +87,22 @@ exports[`Breadcrumbs snapshots renders child route 1`] = `
   width: 32px;
 }
 
+.c4 svg path.image-automation {
+  fill: #1a1a1a !important;
+}
+
+.c4 svg.sources {
+  fill: none !important;
+}
+
+.c4 svg.sources path {
+  fill: #1a1a1a !important;
+}
+
+.c4 svg.sources rect {
+  stroke: #1a1a1a !important;
+}
+
 .c4.downward {
   -webkit-transform: rotate(180deg);
   -ms-transform: rotate(180deg);

@@ -144,6 +144,22 @@ exports[`DataTable snapshots renders 1`] = `
   width: 16px;
 }
 
+.c10 svg path.image-automation {
+  fill: !important;
+}
+
+.c10 svg.sources {
+  fill: none !important;
+}
+
+.c10 svg.sources path {
+  fill: !important;
+}
+
+.c10 svg.sources rect {
+  stroke: !important;
+}
+
 .c10.downward {
   -webkit-transform: rotate(180deg);
   -ms-transform: rotate(180deg);

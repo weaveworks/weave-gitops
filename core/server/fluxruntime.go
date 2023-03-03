@@ -162,8 +162,13 @@ func (cs *coreServer) ListFluxCrds(ctx context.Context, msg *pb.ListFluxCrdsRequ
 			for _, d := range list.Items {
 				version := ""
 
-				if len(d.Spec.Versions) > 0 {
-					version = d.Spec.Versions[0].Name
+				for _, v := range d.Spec.Versions {
+					// This is the "active" version of the CRD in etcd, and a CRD
+					// can only have one version marked as such.
+					if v.Storage {
+						version = v.Name
+						break
+					}
 				}
 
 				r := &pb.Crd{
