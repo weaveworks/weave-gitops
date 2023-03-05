@@ -12,40 +12,42 @@ Weave GitOps Enterprise enables developers and operators to check policy violati
 
 Weave GitOps Enterprise offer a policy engine image that can be used to perform commit/build time checks.The image can be found on Docker Hub under the name: `weaveworks/weave-iac-validator:v1.1`.
 
-<details><summary>Expand for view of the usage options</summary>
+<details><summary>Expand to view of the usage options</summary>
 
-	```bash
-USAGE:
-   app [global options] command [command options] [arguments...]
+   ```bash
+  USAGE:
+    app [global options] command [command options] [arguments...]
 
-VERSION:
-   0.0.1
+  VERSION:
+    0.0.1
 
-COMMANDS:
-   help, h  Shows a list of commands or help for one command
+  COMMANDS:
+    help, h  Shows a list of commands or help for one command
 
-GLOBAL OPTIONS:
-   --path value                       path to scan resources from
-   --helm-values-file value           path to resources helm values file
-   --policies-path value              path to policies kustomization directory
-   --policies-helm-values-file value  path to policies helm values file
-   --git-repo-provider value          git repository provider [$WEAVE_REPO_PROVIDER]
-   --git-repo-host value              git repository host [$WEAVE_REPO_HOST]
-   --git-repo-url value               git repository url [$WEAVE_REPO_URL]
-   --git-repo-branch value            git repository branch [$WEAVE_REPO_BRANCH]
-   --git-repo-sha value               git repository commit sha [$WEAVE_REPO_SHA]
-   --git-repo-token value             git repository token [$WEAVE_REPO_TOKEN]
-   --azure-project value              azure project name [$AZURE_PROJECT]
-   --sast value                       save result as gitlab sast format
-   --sarif value                      save result as sarif format
-   --json value                       save result as json format
-   --generate-git-report              generate git report if supported (default: false) [$WEAVE_GENERATE_GIT_PROVIDER_REPORT]
-   --remediate                        auto remediate resources if possible (default: false)
-   --no-exit-error                    exit with no error (default: false)
-   --help, -h                         show help (default: false)
-   --version, -v                      print the version (default: false)
-	```
-	</details>
+  GLOBAL OPTIONS:
+    --path value                       path to scan resources from
+    --helm-values-file value           path to resources helm values file
+    --policies-path value              path to policies kustomization directory
+    --policies-helm-values-file value  path to policies helm values file
+    --git-repo-provider value          git repository provider
+    --git-repo-host value              git repository host
+    --git-repo-url value               git repository url
+    --git-repo-branch value            git repository branch
+    --git-repo-sha value               git repository commit sha
+    --git-repo-token value             git repository toke
+    --azure-project value              azure project name
+    --sast value                       save result as gitlab sast format
+    --sarif value                      save result as sarif format
+    --json value                       save result as json format
+    --generate-git-report              generate git report if supported (default: false)
+    --remediate                        auto remediate resources if possible (default: false)
+    --no-exit-error                    exit with no error (default: false)
+    --help, -h                         show help (default: false)
+    --version, -v                      print the version (default: false)
+   ```
+
+</details>
+
 ---
 ## Setup policies
 Policies can be a helm chart, kustomize directory or just plain kubernetes yaml files.
