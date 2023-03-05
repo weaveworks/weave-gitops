@@ -215,6 +215,7 @@ module.exports = {
       },
       items: [
         'policy/getting-started',
+        'policy/policy',
         'policy/weave-policy-profile',
         'policy/policy-set',
         'policy/policy-configuration',
