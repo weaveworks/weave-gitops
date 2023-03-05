@@ -3,7 +3,14 @@ title: Weave Policy
 hide_title: true
 ---
 
-# Policy CRD
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
+import TierLabel from "../_components/TierLabel";
+
+# Weave policy <TierLabel tiers="Enterprise" />
+
+## Policy CRD
 The Policy CRD is used to define policies which are then consumed and used by the agent to validate entities.
 
 It uses [OPA Rego Language](https://www.openpolicyagent.org/docs/latest/policy-language) to evaluate the entities.
@@ -41,7 +48,7 @@ result = {
 ```
 
 
-# Policy Validation
+## Policy Validation
 
 The policy validation object is the result of validating an entity against a policy. It contains all the necessary information to give the user a clear idea on what caused this violation or compliance.
 
@@ -53,7 +60,7 @@ policy: object # contains related policy data
 entity: object # contains related resource data
 status: string # Violation or Compliance
 message: string # message that summarizes the policy validation
-type: string # Admission or Audit
+type: string # the mode that produced this object. one of: Admission, Audit, TFAdmission
 trigger: string # what triggered the validation, create request or initial audit,..
 created_at: string # time that the validation occurred in
 ```

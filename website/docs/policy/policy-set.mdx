@@ -11,7 +11,7 @@ This is an optional custom resource that is used to select a group of policies t
 
 In each mode, the agent will list all the PolicySets of this mode and check which policies match any of those policysets, then validate the resources against them.
 
-If there are no PolicySets found for a certain mode, all policies will be applied in this mode.
+If there are no PolicySets found for a certain mode, all policies will be applied during this mode.
 
 > Note: [Tenant Policies](./policy.mdx#tenant-policy) is always active in the [Admission](#admission) mode, event if it is not selected in the `admission` policysets
 
