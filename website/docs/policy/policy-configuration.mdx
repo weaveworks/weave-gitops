@@ -17,6 +17,7 @@ The `PolicyConfig` CRD allows us to do that without duplicating policies by over
 The PolicyConfig CRD consists of two sections 1) `match` used to specify the target of this PolicyConfig and 2) `config` used to specify the policy parameters that will override the orginal policy parameters.
 
 <details><summary>Expand to see a PolicyConfig example</summary>
+
   ```yaml
   apiVersion: pac.weave.works/v2beta2
   kind: PolicyConfig      # policy config resource kind
@@ -32,29 +33,31 @@ The PolicyConfig CRD consists of two sections 1) `match` used to specify the tar
         parameters:
           replica_count: 3
   ```
+
 </details>
 
 Each PolicyConfig CR can target either workspaces, namespaces, applications or resources. Targeting the same target excplicitly in multiple PolicyConfigs is not allowed ie: you cant use the same namespace in several PolicyConfigs that target namespaces.
 
-<details><summary>Expand for an example of targeting workspaces</summary>
+To target workspaces:
+
   ```yaml
     match:
       workspaces:
       - team-a
       - team-b
   ```
-</details>
 
-<details><summary>Expand for an example of targeting namespaces</summary>
+To target namespaces:
+
   ```yaml
     match:
       namespaces:
       - dev
       - prod
   ```
-</details>
 
-<details><summary>Expand for an example of targeting applications</summary>
+To target applications:
+
   ```yaml
     match:
       apps:            # add one or more apps [HelmRelease, Kustomization]
@@ -62,9 +65,9 @@ Each PolicyConfig CR can target either workspaces, namespaces, applications or r
         name: my-app            # app name
         namespace: flux-system  # app namespace [if empty will match in any namespace]
   ```
-</details>
 
-<details><summary>Expand for an example of targeting resources</summary>
+To target resources:
+
   ```yaml
     match:
       resources:       # add one or more resources [Deployment, ReplicaSet, ..]
@@ -72,11 +75,10 @@ Each PolicyConfig CR can target either workspaces, namespaces, applications or r
         name: my-deployment     # resource name
         namespace: default      # resource namespace [if empty will match in any namespace]
   ```
-</details>
 
-Each PolicyConfig can override the parameters of one or more policies.
 
-<details><summary>Expand for an example of overriding policy parameters</summary>
+Each PolicyConfig can override the parameters of one or more policies:
+
   ```yaml
     config:               # config for policies [one or more]
       weave.policies.containers-minimum-replica-count: # the id of the policy
@@ -87,8 +89,6 @@ Each PolicyConfig can override the parameters of one or more policies.
         parameters:
           privilege: true
   ```
-</details>
-
 
 ## Overlapping Targets
 

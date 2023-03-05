@@ -31,11 +31,13 @@ resources:
 Enterprise customers should have access to fork policy library repo into their local repositories.
 :::
 
-## Install the policy agent on the management cluster
+## Install the policy agent
+
+### Management cluster
 
 The agent comes packaged with the WGE chart. To install it you need to set `values.policy-agent.enabled` to `true`.
 
-## Install the policy agent on a leaf cluster
+### Leaf cluster
 
 To install the policy agent on a leaf cluster, you should select the `weave-policy-agent` from the profiles dropdown in the `Create Cluster` page.
 
