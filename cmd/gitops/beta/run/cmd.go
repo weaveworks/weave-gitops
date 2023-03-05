@@ -334,15 +334,19 @@ func fluxStep(log logger.Logger, kubeClient *kube.KubeHTTP) (fluxVersion *instal
 	return fluxVersion, false, nil
 }
 
-func fluentBitStep(ctx context.Context, log logger.Logger, kubeClient *kube.KubeHTTP, devBucketHTTPPort int32) error {
+// fluentBitStep installs Fluent Bit on the cluster and returns a CleanupFunc to remove it again. The function
+// ascertains that Fluent Bit is ready before returning.
+func fluentBitStep(ctx context.Context, log logger.Logger, kubeClient *kube.KubeHTTP, devBucketHTTPPort int32) (CleanupFunc, error) {
 	err := install.InstallFluentBit(ctx, log, kubeClient, flags.Namespace, constants.GitOpsRunNamespace, install.FluentBitHRName, logger.PodLogBucketName, devBucketHTTPPort)
 
 	if err != nil {
 		log.Failuref("Fluent Bit installation failed: %v", err.Error())
-		return err
+		return nil, err
 	}
 
-	return nil
+	return func(ctx context.Context) error {
+		return install.UninstallFluentBit(ctx, log, kubeClient, flags.Namespace, install.FluentBitHRName)
+	}, nil
 }
 
 func dashboardStep(ctx context.Context, log logger.Logger, kubeClient *kube.KubeHTTP, generateManifestsOnly bool, dashboardHashedPassword string) (install.DashboardType, []byte, string, error) {
@@ -637,6 +641,8 @@ func runCommandInnerProcess(cmd *cobra.Command, args []string) error {
 	// the outer process traps SIGTERM and SIGINT and sends SIGUSR1 to the inner process.
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1)
 
+	cleanupFns := CleanupFuncs{}
+
 	go func() {
 		select {
 		case <-ctx.Done():
@@ -725,10 +731,12 @@ func runCommandInnerProcess(cmd *cobra.Command, args []string) error {
 	}
 
 	// ====================== Fluent-Bit =====================
-	if err := fluentBitStep(ctx, log, kubeClient, devBucketHTTPPort); err != nil {
+	fbCleanupFn, err := fluentBitStep(ctx, log, kubeClient, devBucketHTTPPort)
+	if err != nil {
 		cancel()
 		return err
 	}
+	cleanupFns.Push(fbCleanupFn)
 
 	// ====================== Dashboard ======================
 	var (
@@ -826,13 +834,23 @@ func runCommandInnerProcess(cmd *cobra.Command, args []string) error {
 			case <-stopUploadCh:
 				return
 			case event := <-watcher.Events:
+				info, err := os.Stat(event.Name)
+				if err != nil {
+					continue
+				}
 				if event.Op&fsnotify.Create == fsnotify.Create ||
 					event.Op&fsnotify.Remove == fsnotify.Remove ||
 					event.Op&fsnotify.Rename == fsnotify.Rename {
 					// if it's a dir, we need to watch it
-					if info, err := os.Stat(event.Name); err == nil && info.IsDir() {
+					if info.IsDir() {
 						needToRescan = true
 					}
+				}
+
+				// Skip all dotfiles because these are usually created by editors as swap files. A reconciliation
+				// should only be triggered by files that are actually part of the application being run.
+				if !info.IsDir() && strings.HasPrefix(filepath.Base(event.Name), ".") {
+					continue
 				}
 
 				if cancelPortFwd != nil {
@@ -1021,10 +1039,14 @@ func runCommandInnerProcess(cmd *cobra.Command, args []string) error {
 
 	<-ctx.Done()
 
-	close(stopUploadCh)
-	cancel()
-	// create new context that isn't cancelled, for bootstrapping
+	// create new context that isn't cancelled, for cleanup and bootstrapping
 	ctx = context.Background()
+
+	if err := CleanupCluster(ctx, log0, cleanupFns); err != nil {
+		return fmt.Errorf("failed cleaning up: %w", err)
+	}
+
+	close(stopUploadCh)
 
 	if err := watcher.Close(); err != nil {
 		log.Warningf("Error closing watcher: %v", err.Error())
