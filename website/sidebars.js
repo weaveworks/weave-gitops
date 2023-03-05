@@ -133,6 +133,7 @@ module.exports = {
         'cluster-management/profiles',
         'cluster-management/add-applications',
         'cluster-management/gitrepo-selection',
+        'cluster-management/disable-capi',
       ],
     },
     {
@@ -246,7 +247,11 @@ module.exports = {
     }
   ],
   ref: [
-    'references/helm-reference',
+    {
+      type: 'doc',
+      label: 'OSS Helm Reference',
+      id: 'references/helm-reference',
+    },
     {
       type: 'category',
       label: 'CLI Reference',
