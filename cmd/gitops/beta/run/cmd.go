@@ -479,7 +479,7 @@ func runCommandOuterProcess(cmd *cobra.Command, args []string) (retErr error) {
 		return fmt.Errorf("failed to detect or install Flux on the host cluster: %v", err)
 	}
 
-	_, dashboardManifests, dashboardHashedPassword, err := dashboardStep(context.Background(), log, kubeClient, true, flags.DashboardHashedPassword)
+	dashboardType, dashboardManifests, dashboardHashedPassword, err := dashboardStep(context.Background(), log, kubeClient, true, flags.DashboardHashedPassword)
 	if err != nil {
 		return fmt.Errorf("failed to generate dashboard manifests: %v", err)
 	}
@@ -488,7 +488,10 @@ func runCommandOuterProcess(cmd *cobra.Command, args []string) (retErr error) {
 
 	sessionLog.Println("\nYou may see Flux installation logs again, as it is being installed inside the session.\n")
 
-	portForwardsForSession := []string{flags.DashboardPort}
+	portForwardsForSession := []string{}
+	if dashboardType == install.DashboardTypeOSS {
+		portForwardsForSession = append(portForwardsForSession, flags.DashboardPort)
+	}
 
 	if flags.PortForward != "" {
 		spec, err := watch.ParsePortForwardSpec(flags.PortForward)
