@@ -91,8 +91,18 @@ This can give your users a more familiar experience when logging in.
 
 Adjust the configuration in the helm `values.yaml` file or the `spec.values` section of the Weave Gitops `HelmRelease` resource:
 
+#### Weave Gitops
+
 ```yaml
 envVars:
+  - name: WEAVE_GITOPS_FEATURE_OIDC_BUTTON_LABEL
+    value: "Login with ACME"
+```
+
+#### Weave Gitops Enterprise
+
+```yaml
+extraEnvVars:
   - name: WEAVE_GITOPS_FEATURE_OIDC_BUTTON_LABEL
     value: "Login with ACME"
 ```
