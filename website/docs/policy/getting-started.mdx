@@ -35,7 +35,11 @@ Enterprise customers should have access to fork policy library repo into their l
 
 ### Management cluster
 
-The agent comes packaged with the WGE chart. To install it you need to set `values.policy-agent.enabled` to `true`.
+The agent comes packaged with the WGE chart. To install it you need to set the following values:
+
+- `values.policy-agent.enabled`: set to true to install the agent with WGE
+- `values.policy-agent.accountId`: organization name, used as identifier
+- `values.policy-agent.clusterId`: unique identifier for the cluster
 
 ### Leaf cluster
 
