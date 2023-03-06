@@ -1,23 +1,24 @@
 ---
-title: Quickstart templates
+title: Quickstart
 hide_title: true
 ---
 
+import Link from "@docusaurus/Link";
 import TierLabel from "../_components/TierLabel";
 
-# Quickstart Gitops Templates
+# Quickstart GitOps Templates <TierLabel tiers="Enterprise" />
 
-`Quickstart` templates are [gitops templates](https://docs.gitops.weave.works/docs/gitops-templates/templates/)
-that you could use to get started with Weave Gitops Enterprise. It aims to provide a basic experience to simplify
-the first time you step up with us.
+`Quickstart` templates are [`GitOpsTemplate`s](https://docs.gitops.weave.works/docs/gitops-templates/templates/)
+that you could use when getting started with <Link to='../../intro-ee' target="_blank">Weave Gitops Enterprise</Link>
+It aims to provide a simplified basic experience.
 
 ## Getting Started
 
-The templates exist as helm chart in [weave-gitops-quickstart](https://github.com/weaveworks/weave-gitops-quickstart)
+The templates exist as a Helm Chart in the [weave-gitops-quickstart](https://github.com/weaveworks/weave-gitops-quickstart)
 github repo.
 
-To get started, just check the helm release in your weave gitops enterprise configuration repo for your management
-cluster to deploy.
+To get started, add the following `HelmRelease` object to your Weave GitOps Enterprise
+configuration repo for your management cluster.
 
 <details><summary>Expand to view</summary>
 
@@ -53,35 +54,54 @@ spec:
 
 </details>
 
-Once the helm release has been successfully deployed:
+Commit and merge the above file. Once the `HelmRelease` has been successfully
+deployed to your cluster, navigate to your Weave GitOps UI Dashboard. You will
+see that the `templates` Chart is now deployed to your cluster.
 
 ![quickstart templates deployed](imgs/quickstart-templates-deployed.png)
 
-Go to Templates to see them listed:
+If you click on the `Templates` tab in the sidebar, you will see the Quickstart
+templates are now available for use:
 
 ![quickstart templates view](imgs/quickstart-templates-view.png)
 
 ## Available Templates
 
-- [Pipeline](../pipelines/pipeline-templates.mdx): a set of gitops template to get you started with continuous delivery pipelines.
+The following [pipeline](../pipelines/pipeline-templates.mdx) templates have
+been made available on your Weave GitOps Enterprise instance:
 
-## FAQ
+- `pipeline-view`: A template to create a sample pipeline to visualize a
+	`HelmRelease` application delivered to dev, test and prod environments.
+- `pipeline-promotion-resources`: A template to create the Flux Notification
+	Controller resources required for promoting applications via pipelines.
+- `pipeline-view-promote-by-cluster`: A template to create pipelines for hard
+	tenancy when applications are isolated by cluster.
+- `pipeline-view-promote-by-namespace`: A template to create pipelines for soft
+	tenancy when applications are isolated by namespace.
 
-### How can I contribute?
+## Using `GitOpsTemplate`s as a Platform Engineer
 
-They are maintained by Weave Gitops team, just head to the [repo](https://github.com/weaveworks/weave-gitops-quickstart)
-and contribute!
+The above Quickstart templates are designed to provide a practical getting started
+experience. We encourage Platform Operators to start off with these templates
+within their team to ramp up on using Weave GitOps.
 
-### I am a platform engineer, how do I use them ?
+If the need arises later, operators can always expand on these templates to
+develop their own set of self-service capabilities.
 
-Quick start templates are expected to provide a getting started experience so you could use distribute
-them within your engineering community to ramp up in the product.
+## Using `GitOpsTemplate`s as an Application Developer
 
-It is likely that you would like to provide self-service capabilities or workflows with your own context. In that
-sense, you could use them as an starting point to inspire you but it is likely that would be need to create your own
-set of templates.
+As a developer using Weave GitOps Enterprise, use the templates to explore
+GitOps's capabilities. For example, to create a pipeline for your application:
+use the above template provided by your Operations team to create required
+resources. Once they have been added to your GitOps repository, you can adapt
+the rendered resources to meet your needs.
 
-### I am a developer, how do I use them ?
+:::tip Want to contribute?
 
-As a developer using weave gitops, use the templates to get started with weave gitops capabilities, for example
-to create a pipeline for your application. Create the resource from the template, check them in git and adapt it to meet your needs.
+The Quickstart templates are maintained by the Weave Gitops team. If you would
+like to make alterations, suggest fixes, or even contribute a new template which
+you find cool, just head to the [repo](https://github.com/weaveworks/weave-gitops-quickstart)
+and open a new issue or PR!
+
+:::
+

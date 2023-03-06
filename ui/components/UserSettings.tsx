@@ -78,9 +78,6 @@ function UserSettings({ className }: { className?: string }) {
         <MenuItem onClick={() => history.push(V2Routes.UserInfo)}>
           Hello, {userInfo?.email}
         </MenuItem>
-        <MenuItem onClick={() => history.push(V2Routes.Notifications)}>
-          Notifications
-        </MenuItem>
         <MenuItem className="logout" onClick={() => logOut()}>
           <ListItemIcon>
             <Icon type={IconType.LogoutIcon} size="base" />

@@ -1,0 +1,54 @@
+
+:::caution
+
+**To run this example you will need extra RBAC**
+
+This particular example creates kustomizations, so you will need to add the below RBAC
+to the `gitopssets-controller-manager` service account to allow it to create kustomizations.
+
+Check out the [Security](./intro.mdx#security) section for more information.
+
+**However this will change in the next release with impersonation. Instead you can choose a service account
+for each `GitOpsSet` that has the required permissions for creating the rendered resources in the
+`templates` section.**
+
+Additional RBAC for the `gitopssets-controller-manager` service account:
+
+<details><summary>Expand to see SA resources</summary>
+
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: demo-role
+rules:
+- apiGroups:
+  - kustomize.toolkit.fluxcd.io
+  resources:
+  - kustomizations
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: demo-role-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: demo-role
+subjects:
+- kind: ServiceAccount
+  name: gitopssets-controller-manager
+  namespace: flux-system
+```
+
+</details>
+
+:::

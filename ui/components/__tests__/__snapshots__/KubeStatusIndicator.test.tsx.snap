@@ -48,6 +48,22 @@ exports[`KubeStatusIndicator snapshots renders error 1`] = `
   width: 16px;
 }
 
+.c4 svg path.image-automation {
+  fill: #BC3B1D !important;
+}
+
+.c4 svg.sources {
+  fill: none !important;
+}
+
+.c4 svg.sources path {
+  fill: #BC3B1D !important;
+}
+
+.c4 svg.sources rect {
+  stroke: #BC3B1D !important;
+}
+
 .c4.downward {
   -webkit-transform: rotate(180deg);
   -ms-transform: rotate(180deg);
@@ -147,6 +163,22 @@ exports[`KubeStatusIndicator snapshots renders success 1`] = `
   fill: #27AE60 !important;
   height: 16px;
   width: 16px;
+}
+
+.c4 svg path.image-automation {
+  fill: #27AE60 !important;
+}
+
+.c4 svg.sources {
+  fill: none !important;
+}
+
+.c4 svg.sources path {
+  fill: #27AE60 !important;
+}
+
+.c4 svg.sources rect {
+  stroke: #27AE60 !important;
 }
 
 .c4.downward {

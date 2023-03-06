@@ -133,6 +133,7 @@ module.exports = {
         'cluster-management/profiles',
         'cluster-management/add-applications',
         'cluster-management/gitrepo-selection',
+        'cluster-management/disable-capi',
       ],
     },
     {
@@ -226,10 +227,31 @@ module.exports = {
     {
       type: 'category',
       label: 'Templates',
+      link: {
+        type: 'doc',
+        id: 'gitops-templates/intro',
+      },
       items: [
-        'gitops-templates/templates',
         'gitops-templates/quickstart-templates',
+        {
+          type: 'category',
+          label: 'Creating Templates',
+          link: {
+            type: 'doc',
+            id: 'gitops-templates/creating-templates',
+          },
+          items: [
+            'gitops-templates/repo-rendered-paths',
+            'gitops-templates/profiles',
+            'gitops-templates/annotations',
+            'gitops-templates/params',
+            'gitops-templates/supported-langs',
+            'gitops-templates/create-cluster-example',
+            'gitops-templates/capd-example',
+          ],
+        },
         'gitops-templates/cli',
+        'gitops-templates/versions',
       ],
     },
     {
@@ -246,7 +268,11 @@ module.exports = {
     }
   ],
   ref: [
-    'references/helm-reference',
+    {
+      type: 'doc',
+      label: 'OSS Helm Reference',
+      id: 'references/helm-reference',
+    },
     {
       type: 'category',
       label: 'CLI Reference',

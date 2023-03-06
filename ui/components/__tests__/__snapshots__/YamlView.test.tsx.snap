@@ -21,6 +21,22 @@ exports[`YamlView snapshots renders 1`] = `
   width: 12px;
 }
 
+.c5 svg path.image-automation {
+  fill: !important;
+}
+
+.c5 svg.sources {
+  fill: none !important;
+}
+
+.c5 svg.sources path {
+  fill: !important;
+}
+
+.c5 svg.sources rect {
+  stroke: !important;
+}
+
 .c5.downward {
   -webkit-transform: rotate(180deg);
   -ms-transform: rotate(180deg);
