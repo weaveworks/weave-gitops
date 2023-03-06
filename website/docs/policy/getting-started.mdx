@@ -59,9 +59,40 @@ Now you have a provisioned cluster with these policies enforced by the policy ag
 > By default, the policy profile is set up to enforce policies at deployment time using admission controller, which results in blocking any deployment that violates the enforced policies.
 
 ## Prevent Violating Changes
-Now let's try to deploy a Kubernetes deployment that violates one of the enforced policies. Let's deploy a deployment that has `spec.securityContext.allowPrivilegeEscalation` as `true`. This violates the `Allow Privilege Escalation` policy.
+Now let's try to deploy a Kubernetes deployment that violates the `Container Image Pull Policy` which is one of the enforced policies.
+This policy is violated when the container's `imagePullPolicy` is not set to `Always`.
 
-Once you apply it, the policy agent will deny this request and show a violation message.
+<details><summary>Expand for an example of a violating deployment</summary>
+
+  ```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  labels:
+    app: nginx
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.14.2
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80
+  ```
+
+</details>
+
+
+Once you apply it, the policy agent will deny this request and show a violation message, and accordingly the deployment will not be created.
 
 ## Violations Logs in UI
 You can view all the violation log in Weave GitOps UI to view all connected clusters policy violations, and where you can dive into the details of each violation.
