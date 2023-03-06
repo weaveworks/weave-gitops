@@ -148,7 +148,11 @@ No breaking changes
 ### Highlights
 
 #### GitOps Templates Path feature
-- GitOps templates now provide the capability to write resources to multiple paths in the Git repository. This feature allows complex scenarios, like for example creating a self-service for an application that requires an RDS database. We’ve provided [documentation](./gitops-templates/templates.mdx#template-paths) which has a example.
+- GitOps templates now provide the capability to write resources to multiple
+	paths in the Git repository. This feature allows complex scenarios, like for
+	example creating a self-service for an application that requires an RDS
+	database. We’ve provided
+	[documentation](./gitops-templates/repo-rendered-paths.mdx) which has a example.
 
 ```yaml
 spec:
@@ -213,7 +217,8 @@ No breaking changes
 
 #### GitOps Templates
 
-- Support to specify Helm charts inside the CRD, instead of annotations. We’ve provided [documentation](./gitops-templates/templates.mdx) which has a example.
+- Support to specify Helm charts inside the CRD, instead of annotations. We’ve
+	provided [documentation](./gitops-templates/profiles.mdx) which has a example.
 
 ```yaml
 spec:
@@ -287,7 +292,10 @@ cluster-bootstrap-controller v0.3.0
 #### GitOpsTemplates
 - We are working towards unifying CAPI and GitOps Templates under a single umbrella. For those already using CAPITemplates, we will ensure a smooth transition is possible by making use of a conversion hooks. There are some breaking changes for GitOpsTemplates as part of this transitionary period, so be sure to check the guidance under [Breaking Changes](#breaking-changes).
 - We now retain the ordering of parameters in the template instead of sorting them alphabetically. Providing to the author control in what sequence the parameters are rendered in the form and thus present a more logically grouped set of parameters to the end consumer.
-- You can control what [delimiters](./gitops-templates/templates.mdx#custom-delimiters-for-rendertype-templating) you want to use in a template. This provides flexibility for if you want to use the syntax for dynamic functions like the [helper functions](./gitops-templates/templates.mdx#supported-functions-from-sprig-library) we support.
+- You can control what
+	[delimiters](./gitops-templates/supported-langs.mdx#custom-delimiters) you
+	want to use in a template. This provides flexibility for if you want to use
+	the syntax for dynamic functions like the [helper functions](./gitops-templates/supported-langs.mdx#supported-functions-1) we support.
 
 #### Pipelines
 - This [feature](pipelines/intro.mdx) is now enabled by default when you install the Weave GitOps Enterprise Helm Chart. You can toggle this with the `enablePipelines` flag.

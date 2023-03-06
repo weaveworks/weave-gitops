@@ -73,6 +73,8 @@ import WegoAdmin from "!!raw-loader!./assets/rbac/wego-admin.yaml";
   )}
 </BrowserOnly>
 
+<details><summary>Expand to see full template yaml</summary>
+
 <CodeBlock
   title="clusters/bases/rbac/wego-admin.yaml"
   className="language-yaml"
@@ -80,9 +82,11 @@ import WegoAdmin from "!!raw-loader!./assets/rbac/wego-admin.yaml";
   {WegoAdmin}
 </CodeBlock>
 
+</details>
+
 ### Add a template
 
-See [CAPI Templates](../gitops-templates/templates.mdx) page for more details on this topic. Once we load a template we can use it in the UI to create clusters!
+See [CAPI Templates](../gitops-templates/intro.mdx) page for more details on this topic. Once we load a template we can use it in the UI to create clusters!
 
 import CapdTemplate from "!!raw-loader!../assets/templates/capd-template.yaml";
 
@@ -98,12 +102,16 @@ Download the template below to your config repository path, then commit and push
   )}
 </BrowserOnly>
 
+<details><summary>Expand to see full template yaml</summary>
+
 <CodeBlock
   title="clusters/management/capi/templates/capd-template.yaml"
   className="language-yaml"
 >
   {CapdTemplate}
 </CodeBlock>
+
+</details>
 
 ## Automatically install a CNI with `ClusterResourceSet`s
 
@@ -203,12 +211,16 @@ Download the config with
 
 Then update the `GITOPS_REPO` variable to point to your cluster
 
+<details><summary>Expand to see full yaml</summary>
+
 <CodeBlock
   title="clusters/management/capi/boostrap/capi-gitops-cluster-bootstrap-config.yaml"
   className="language-yaml"
 >
   {CapiGitopsCDC}
 </CodeBlock>
+
+</details>
 
 #### Add Monitoring Dashboards to your cluster
 
