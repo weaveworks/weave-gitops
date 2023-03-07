@@ -53,26 +53,6 @@ const navItems: NavItem[] = [
     },
     icon: IconType.DocsIcon,
   },
-  {
-    label: "Delivery",
-    link: { value: V2Routes.FluxRuntime },
-    icon: IconType.DeliveryIcon,
-  },
-  {
-    label: "GitOpsRun",
-    link: { value: V2Routes.FluxRuntime },
-    icon: IconType.GitOpsRunIcon,
-  },
-  {
-    label: "Pipelines",
-    link: { value: V2Routes.FluxRuntime },
-    icon: IconType.PipelinesIcon,
-  },
-  {
-    label: "Terraform",
-    link: { value: V2Routes.FluxRuntime },
-    icon: IconType.TerraformIcon,
-  },
 ];
 
 const AppContainer = styled.div`
