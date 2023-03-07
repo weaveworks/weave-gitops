@@ -1,5 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
+// eslint-disable-next-line
 import { colors } from "../../typedefs/styled";
 
 type Props = {
