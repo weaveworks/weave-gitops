@@ -37,6 +37,18 @@ func makeVClusterHelmRepository(namespace string) (*sourcev1.HelmRepository, err
 }
 
 func makeVClusterHelmRelease(name string, namespace string, fluxNamespace string, command string, portForwards []string, automationKind string) (*helmv2.HelmRelease, error) {
+	annotations := []string{
+		`"run.weave.works/cli-version": "` + version.Version + `"`,
+		`"run.weave.works/command": "` + command + `"`,
+		`"run.weave.works/automation-kind": "` + automationKind + `"`,
+		`"run.weave.works/namespace": "` + namespace + `"`,
+		`"run.weave.works/flux-namespace": "` + fluxNamespace + `"`,
+	}
+
+	if len(portForwards) > 0 {
+		annotations = append(annotations, `"run.weave.works/port-forward":"`+strings.Join(portForwards, ",")+`"`)
+	}
+
 	helmRelease := &helmv2.HelmRelease{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -71,12 +83,7 @@ func makeVClusterHelmRelease(name string, namespace string, fluxNamespace string
     "app.kubernetes.io/part-of": "gitops-run"
   },
   "annotations": {
-    "run.weave.works/cli-version": "%s",
-    "run.weave.works/port-forward": "%s",
-    "run.weave.works/command": "%s",
-    "run.weave.works/automation-kind": "%s",
-    "run.weave.works/namespace": "%s",
-    "run.weave.works/flux-namespace": "%s"
+    %s
   },
   "hostpathMapper": {
     "enabled": true
@@ -90,12 +97,7 @@ func makeVClusterHelmRelease(name string, namespace string, fluxNamespace string
     ]
   }
 }`,
-				version.Version,
-				strings.Join(portForwards, ","),
-				command,
-				automationKind,
-				namespace,
-				fluxNamespace,
+				strings.Join(annotations, ", \n    "),
 				constants.GitOpsRunNamespace,
 				constants.RunDevBucketName,
 				name,
