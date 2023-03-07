@@ -107,7 +107,11 @@ const LinkTabIcon = ({ iconType, color, collapsed, title }) => {
     return (
       <Tooltip arrow placement="right" title={collapsed ? title : ""}>
         <div>
-          <Icon type={iconType} size="medium" color={color} />
+          {IconType[iconType] ? (
+            <Icon type={iconType} size="medium" color={color} />
+          ) : (
+            React.createElement(iconType, { color })
+          )}
         </div>
       </Tooltip>
     );
