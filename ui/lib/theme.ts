@@ -170,5 +170,11 @@ export const muiTheme = createTheme({
         overflowX: "hidden",
       },
     },
+    MuiDrawer: {
+      paper: {
+        width: "60%",
+        minWidth: 600,
+      },
+    },
   },
 });
