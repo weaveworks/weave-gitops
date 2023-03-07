@@ -95,7 +95,9 @@ spec:
 Once you apply it, the policy agent will deny this request and show a violation message, and accordingly the deployment will not be created.
 
 ## Violations Logs in UI
-You can view all the violation log in Weave GitOps UI to view all connected clusters policy violations, and where you can dive into the details of each violation.
+You can go to the `Violations Log` in Weave GitOps UI to view the policy violations of all the connected clusters, and dive into the details of each violation.
+
+This view shows only the violations resulting from the [admission](./weave-policy-profile.mdx#admission) mode by configuring the [events sink](weave-policy-profile.mdx#policy-validation-sinks).
 
 <strong>Violations Log</strong>
 
