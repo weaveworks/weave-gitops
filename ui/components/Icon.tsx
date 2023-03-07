@@ -29,8 +29,12 @@ import images from "../lib/images";
 // eslint-disable-next-line
 import { colors, spacing } from "../typedefs/styled";
 import Flex from "./Flex";
-import ImageAutomationIcon from "./ImageAutomationIcon";
-import SourcesIcon from "./SourcesIcon";
+import DeliveryIcon from "./IconComponents/DeliveryIcon";
+import GitOpsRunIcon from "./IconComponents/GitOpsRunIcon";
+import ImageAutomationIcon from "./IconComponents/ImageAutomationIcon";
+import PipelinesIcon from "./IconComponents/PipelinesIcon";
+import SourcesIcon from "./IconComponents/SourcesIcon";
+import TerraformIcon from "./IconComponents/TerraformIcon";
 import Text from "./Text";
 
 export enum IconType {
@@ -68,6 +72,10 @@ export enum IconType {
   NotificationsBell,
   SourcesIcon,
   ImageAutomationIcon,
+  DeliveryIcon,
+  GitOpsRunIcon,
+  PipelinesIcon,
+  TerraformIcon,
 }
 
 type Props = {
@@ -78,7 +86,7 @@ type Props = {
   size: keyof typeof spacing;
 };
 
-function getIcon(i: IconType) {
+function getIcon(i: IconType): React.ComponentType<any> {
   switch (i) {
     case IconType.CheckMark:
       return CheckCircleIcon;
@@ -182,15 +190,28 @@ function getIcon(i: IconType) {
     case IconType.ImageAutomationIcon:
       return ImageAutomationIcon;
 
+    case IconType.DeliveryIcon:
+      return DeliveryIcon;
+
+    case IconType.GitOpsRunIcon:
+      return GitOpsRunIcon;
+
+    case IconType.PipelinesIcon:
+      return PipelinesIcon;
+
+    case IconType.TerraformIcon:
+      return TerraformIcon;
+
     default:
       break;
   }
 }
 
-function Icon({ className, type, text, color }: Props) {
+function Icon(props: Props) {
+  const { className, type, text, color } = props;
   return (
     <Flex align className={className}>
-      {React.createElement(getIcon(type) || "span")}
+      {React.createElement<Props>(getIcon(type) || "span", props)}
       {text && (
         <Text color={color} bold>
           {text}
@@ -202,23 +223,13 @@ function Icon({ className, type, text, color }: Props) {
 
 export default styled(Icon)`
   svg {
-    fill: ${(props) => props.theme.colors[props.color as any]} !important;
+    fill: ${(props) => props.theme.colors[props.color as any]};
     height: ${(props) => props.theme.spacing[props.size as any]};
     width: ${(props) => props.theme.spacing[props.size as any]};
-    path {
-      &.image-automation {
-        fill: ${(props) => props.theme.colors[props.color as any]} !important;
-      }
-    }
-    &.sources {
-      fill: none !important;
-      path {
-        fill: ${(props) => props.theme.colors[props.color as any]} !important;
-      }
-      rect {
-        stroke: ${(props) => props.theme.colors[props.color as any]} !important;
-      }
-    }
+  }
+  path {
+    //for custom icons to match mui icon transition
+    transition: fill 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
   }
   &.downward {
     transform: rotate(180deg);
