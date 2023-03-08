@@ -13,8 +13,11 @@ import (
 
 type RepositoryURLProtocol string
 
-const RepositoryURLProtocolHTTPS RepositoryURLProtocol = "https"
-const RepositoryURLProtocolSSH RepositoryURLProtocol = "ssh"
+const (
+	RepositoryURLProtocolHTTPS RepositoryURLProtocol = "https"
+	RepositoryURLProtocolSSH   RepositoryURLProtocol = "ssh"
+	AzureDevOpsDefaultDomain                         = "dev.azure.com"
+)
 
 type RepoURL struct {
 	repoName   string
@@ -91,6 +94,11 @@ func getOwnerFromURL(url url.URL, providerName GitProviderName) (string, error) 
 	if len(parts) < 2 {
 		return "", fmt.Errorf("could not get owner from url %v", url.String())
 	}
+
+	if providerName == GitProviderAzureDevOps {
+		return strings.Join(parts[:2], "/"), nil
+	}
+
 	return strings.Join(parts[:len(parts)-1], "/"), nil
 }
 
@@ -102,9 +110,10 @@ func detectGitProviderFromURL(raw string, gitHostTypes map[string]string) (GitPr
 		return "", fmt.Errorf("could not parse git repo url %q: %w", raw, err)
 	}
 
-	// defaults for github and gitlab
+	// defaults for github, gitlab and azure devops
 	gitHostTypes[github.DefaultDomain] = string(GitProviderGitHub)
 	gitHostTypes[gitlab.DefaultDomain] = string(GitProviderGitLab)
+	gitHostTypes[AzureDevOpsDefaultDomain] = string(GitProviderAzureDevOps)
 
 	provider := gitHostTypes[u.Host]
 	if provider == "" {
