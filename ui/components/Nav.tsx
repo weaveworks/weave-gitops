@@ -17,7 +17,7 @@ import Text from "./Text";
 export type NavItem = {
   label: string;
   link?: { value: V2Routes | string; href?: string; newTab?: boolean };
-  icon?: IconType | JSX.Element;
+  icon?: IconType;
   disabled?: boolean;
 };
 
@@ -107,11 +107,7 @@ const LinkTabIcon = ({ iconType, color, collapsed, title }) => {
     return (
       <Tooltip arrow placement="right" title={collapsed ? title : ""}>
         <div>
-          {IconType[iconType] ? (
-            <Icon type={iconType} size="medium" color={color} />
-          ) : (
-            React.createElement(iconType, { color })
-          )}
+          <Icon type={iconType} size="medium" color={color} />
         </div>
       </Tooltip>
     );

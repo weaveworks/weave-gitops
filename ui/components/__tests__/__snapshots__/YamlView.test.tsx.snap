@@ -16,25 +16,29 @@ exports[`YamlView snapshots renders 1`] = `
 }
 
 .c5 svg {
-  fill: !important;
   height: 12px;
   width: 12px;
 }
 
-.c5 svg path.image-automation {
+.c5 svg path.image-automation,
+.c5 svg path.sources,
+.c5 svg path.delivery,
+.c5 svg path.pipelines,
+.c5 svg path.run-icon,
+.c5 svg path.terraform-icon {
   fill: !important;
+  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c5 svg.sources {
   fill: none !important;
 }
 
-.c5 svg.sources path {
-  fill: !important;
-}
-
 .c5 svg.sources rect {
   stroke: !important;
+  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c5.downward {

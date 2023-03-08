@@ -82,25 +82,30 @@ exports[`Breadcrumbs snapshots renders child route 1`] = `
 }
 
 .c4 svg {
-  fill: #1a1a1a !important;
+  fill: #1a1a1a;
   height: 32px;
   width: 32px;
 }
 
-.c4 svg path.image-automation {
+.c4 svg path.image-automation,
+.c4 svg path.sources,
+.c4 svg path.delivery,
+.c4 svg path.pipelines,
+.c4 svg path.run-icon,
+.c4 svg path.terraform-icon {
   fill: #1a1a1a !important;
+  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c4 svg.sources {
   fill: none !important;
 }
 
-.c4 svg.sources path {
-  fill: #1a1a1a !important;
-}
-
 .c4 svg.sources rect {
   stroke: #1a1a1a !important;
+  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c4.downward {

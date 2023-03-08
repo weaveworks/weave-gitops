@@ -1,3 +1,11 @@
+import {
+  DashboardOutlined,
+  DnsOutlined,
+  PolicyOutlined,
+  TabOutlined,
+  VerifiedUserOutlined,
+  VpnKeyOutlined,
+} from "@material-ui/icons";
 import AddIcon from "@material-ui/icons/Add";
 import ArrowDropDownIcon from "@material-ui/icons/ArrowDropDown";
 import ArrowUpwardIcon from "@material-ui/icons/ArrowUpward";
@@ -28,13 +36,13 @@ import styled from "styled-components";
 import images from "../lib/images";
 // eslint-disable-next-line
 import { colors, spacing } from "../typedefs/styled";
+import DeliveryIcon from "./DeliveryIcon";
 import Flex from "./Flex";
-import DeliveryIcon from "./IconComponents/DeliveryIcon";
-import GitOpsRunIcon from "./IconComponents/GitOpsRunIcon";
-import ImageAutomationIcon from "./IconComponents/ImageAutomationIcon";
-import PipelinesIcon from "./IconComponents/PipelinesIcon";
-import SourcesIcon from "./IconComponents/SourcesIcon";
-import TerraformIcon from "./IconComponents/TerraformIcon";
+import GitOpsRunIcon from "./GitOpsRunIcon";
+import ImageAutomationIcon from "./ImageAutomationIcon";
+import PipelinesIcon from "./PipelinesIcon";
+import SourcesIcon from "./SourcesIcon";
+import TerraformIcon from "./TerraformIcon";
 import Text from "./Text";
 
 export enum IconType {
@@ -76,6 +84,12 @@ export enum IconType {
   GitOpsRunIcon,
   PipelinesIcon,
   TerraformIcon,
+  DashboardOutlined,
+  DnsOutlined,
+  PolicyOutlined,
+  TabOutlined,
+  VerifiedUserOutlined,
+  VpnKeyOutlined,
 }
 
 type Props = {
@@ -86,7 +100,7 @@ type Props = {
   size: keyof typeof spacing;
 };
 
-function getIcon(i: IconType): React.ComponentType<any> {
+function getIcon(i: IconType) {
   switch (i) {
     case IconType.CheckMark:
       return CheckCircleIcon;
@@ -202,16 +216,33 @@ function getIcon(i: IconType): React.ComponentType<any> {
     case IconType.TerraformIcon:
       return TerraformIcon;
 
+    case IconType.DashboardOutlined:
+      return DashboardOutlined;
+
+    case IconType.DnsOutlined:
+      return DnsOutlined;
+
+    case IconType.PolicyOutlined:
+      return PolicyOutlined;
+
+    case IconType.TabOutlined:
+      return TabOutlined;
+
+    case IconType.VerifiedUserOutlined:
+      return VerifiedUserOutlined;
+
+    case IconType.VpnKeyOutlined:
+      return VpnKeyOutlined;
+
     default:
       break;
   }
 }
 
-function Icon(props: Props) {
-  const { className, type, text, color } = props;
+function Icon({ className, type, text, color }: Props) {
   return (
     <Flex align className={className}>
-      {React.createElement<Props>(getIcon(type) || "span", props)}
+      {React.createElement(getIcon(type) || "span")}
       {text && (
         <Text color={color} bold>
           {text}
@@ -226,10 +257,25 @@ export default styled(Icon)`
     fill: ${(props) => props.theme.colors[props.color as any]};
     height: ${(props) => props.theme.spacing[props.size as any]};
     width: ${(props) => props.theme.spacing[props.size as any]};
-  }
-  path {
-    //for custom icons to match mui icon transition
-    transition: fill 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+
+    path {
+      &.image-automation,
+      &.sources,
+      &.delivery,
+      &.pipelines,
+      &.run-icon,
+      &.terraform-icon {
+        fill: ${(props) => props.theme.colors[props.color as any]} !important;
+        transition: fill 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+      }
+    }
+    &.sources {
+      fill: none !important;
+      rect {
+        stroke: ${(props) => props.theme.colors[props.color as any]} !important;
+        transition: stroke 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+      }
+    }
   }
   &.downward {
     transform: rotate(180deg);

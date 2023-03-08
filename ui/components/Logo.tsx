@@ -2,6 +2,7 @@ import * as React from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import images from "../lib/images";
+import { V2Routes } from "../lib/types";
 import Flex from "./Flex";
 
 type Props = {
@@ -13,7 +14,7 @@ type Props = {
 function Logo({ className, link }: Props) {
   return (
     <Flex className={className} wide>
-      <Link to={link}>
+      <Link to={link || V2Routes.Automations}>
         <img src={images.weaveG} />
       </Link>
       <img src={images.logotype} />
