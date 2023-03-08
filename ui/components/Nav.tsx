@@ -107,7 +107,7 @@ const LinkTabIcon = ({ iconType, color, collapsed, title }) => {
     return (
       <Tooltip arrow placement="right" title={collapsed ? title : ""}>
         <div>
-          <Icon type={iconType} size="medium" color={color} />
+          <Icon type={iconType} size="base" color={color} />
         </div>
       </Tooltip>
     );
