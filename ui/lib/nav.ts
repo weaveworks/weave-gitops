@@ -1,14 +1,12 @@
 import _ from "lodash";
 import qs from "query-string";
 import { Kind } from "./api/core/types.pb";
-import { NoNamespace, PageRoute, V2Routes } from "./types";
+import { NoNamespace, V2Routes } from "./types";
 
 // getParentNavValue returns the parent for a child page.
 // This keeps the nav element highlighted if we are on a child page.
 // Example: /sources and /git_repo will both show the "Sources" nav as selected.
-export const getParentNavValue = (
-  path: string
-): PageRoute | V2Routes | boolean => {
+export const getParentNavValue = (path: string): V2Routes | boolean => {
   const [, currentPage] = _.split(path, "/");
   switch (`/${currentPage}`) {
     case V2Routes.Automations:
@@ -52,9 +50,7 @@ export const getParentNavValue = (
   }
 };
 
-export const getParentNavRouteValue = (
-  path: string
-): PageRoute | V2Routes | boolean => {
+export const getParentNavRouteValue = (path: string): V2Routes | boolean => {
   const [, currentPage] = _.split(path, "/");
   switch (`/${currentPage}`) {
     case V2Routes.Automations:
