@@ -11,7 +11,6 @@ import Flex from "./Flex";
 import { computeReady, ReadyType } from "./KubeStatusIndicator";
 import Link from "./Link";
 import Text from "./Text";
-
 type Props = {
   className?: string;
   object?: FluxObjectNode;
@@ -85,7 +84,7 @@ function getStatusIcon(status: ReadyType, suspended: boolean) {
 }
 
 function GraphNode({ className, object }: Props) {
-  const { setNodeYaml } = React.useContext(AppContext);
+  const { setDetailModal } = React.useContext(AppContext);
   const status = computeReady(object.conditions);
   const secret = object.type === "Secret";
 
@@ -127,7 +126,13 @@ function GraphNode({ className, object }: Props) {
             ) : (
               <Text
                 size="huge"
-                onClick={() => (secret ? null : setNodeYaml(object))}
+                onClick={() =>
+                  secret
+                    ? null
+                    : setDetailModal({
+                        object: object,
+                      })
+                }
                 color={secret ? "neutral40" : "primary10"}
                 pointer={!secret}
                 semiBold={object.isCurrentNode}

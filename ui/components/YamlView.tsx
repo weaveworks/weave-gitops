@@ -2,7 +2,8 @@ import * as React from "react";
 import styled from "styled-components";
 import { ObjectRef } from "../lib/api/core/types.pb";
 import CopyToClipboard from "./CopyToCliboard";
-type Props = {
+
+export type YamlViewProps = {
   className?: string;
   yaml: string;
   object?: ObjectRef;
@@ -17,7 +18,7 @@ const YamlHeader = styled.div`
   text-overflow: ellipsis;
 `;
 
-function UnstyledYamlView({ yaml, object, className }: Props) {
+function UnstyledYamlView({ yaml, object, className }: YamlViewProps) {
   const headerText = `kubectl get ${object.kind.toLowerCase()} ${
     object.name
   } -n ${object.namespace} -o yaml `;
