@@ -53,11 +53,6 @@ const navItems: NavItem[] = [
     },
     icon: IconType.DocsIcon,
   },
-  {
-    label: "help",
-    link: { value: "" },
-    icon: IconType.GitOpsRunIcon,
-  },
 ];
 
 const AppContainer = styled.div`
