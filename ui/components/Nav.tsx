@@ -64,7 +64,7 @@ const NavContent = styled.div<{ collapsed: boolean }>`
   //navItems
   .link-flex,
   .header {
-    height: 32px;
+    height: 28px;
     padding: 0px 20px;
     ${Text} {
       letter-spacing: 1px;
@@ -73,7 +73,7 @@ const NavContent = styled.div<{ collapsed: boolean }>`
     }
   }
   .link-flex {
-    margin-bottom: 9px;
+    margin-bottom: ${(props) => props.theme.spacing.xxs};
     display: flex;
     align-items: center;
     //matches .MuiSvgIcon-root
@@ -107,7 +107,7 @@ const LinkTabIcon = ({ iconType, color, collapsed, title }) => {
     return (
       <Tooltip arrow placement="right" title={collapsed ? title : ""}>
         <div>
-          <Icon type={iconType} size="base" color={color} />
+          <Icon type={iconType} size="medium" color={color} />
         </div>
       </Tooltip>
     );
