@@ -77,7 +77,7 @@ import { useListSources } from "./hooks/sources";
 import { Core as coreClient } from "./lib/api/core/core.pb";
 import { Kind } from "./lib/api/core/types.pb";
 import { PARENT_CHILD_LOOKUP } from "./lib/graph";
-import { formatURL } from "./lib/nav";
+import { formatURL, getParentNavRouteValue } from "./lib/nav";
 import {
   Alert,
   Automation,
@@ -136,6 +136,7 @@ export {
   Footer,
   formatLogTimestamp,
   formatURL,
+  getParentNavRouteValue,
   GitRepository,
   GitRepositoryDetail,
   HelmChart,
