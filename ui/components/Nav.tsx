@@ -90,6 +90,9 @@ const NavContent = styled.div<{ collapsed: boolean }>`
     opacity: ${(props) => (props.collapsed ? 0 : 1)};
     transition: opacity 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
   }
+  .header:not(first-child) {
+    margin-top: 0;
+  }
 `;
 
 const CollapseFlex = styled(Flex)`
