@@ -10,7 +10,8 @@ import BrowserOnly from "@docusaurus/BrowserOnly";
 
 # Using GitOpsTemplates for Pipelines <TierLabel tiers="Enterprise" />
 
-To create new Pipelines and their required resources from within Weave GitOps Enterprise, you can leverage [GitOpsTemplates](../../gitops-templates/templates) to help platform teams scale for developer self-service. 
+To create new Pipelines and their required resources from within Weave GitOps
+Enterprise, you can leverage [GitOpsTemplates](../../gitops-templates/intro) to help platform teams scale for developer self-service. 
 
 This document will provide example configuration which could be adapted for use within your own organization, based on your [tenancy model](https://kubernetes.io/blog/2021/04/15/three-tenancy-models-for-kubernetes/) of choice.
 
@@ -195,7 +196,7 @@ spec:
           promotion:
             pull-request:
                 url: ${APPLICATION_REPO_URL}
-                branch: ${APPLICATION_REPO_BRANCH}
+                baseBranch: ${APPLICATION_REPO_BRANCH}
                 secretRef:
                   name: ${GIT_CREDENTIALS_SECRET}
 ```
@@ -292,7 +293,8 @@ You can hard-code values, offer a range of accepted values, or leave open to the
 
 Templates are subject to RBAC as with any Kubernetes resource, enabling you to easily control which tenants have access to which templates.
 
-For full details on GitOpsTemplates, be sure to read our [documentation](../../gitops-templates/templates).
+For full details on GitOpsTemplates, be sure to read our
+[documentation](../../gitops-templates/intro).
 
 
 

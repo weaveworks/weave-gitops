@@ -8,3 +8,7 @@ const (
 	RunDevBucketCredentials = RunDevBucketName + "-credentials"
 	RunDevKsDecryption      = RunDevKsName + "-decryption"
 )
+
+const (
+	PausedAnnotation = "loft.sh/paused"
+)

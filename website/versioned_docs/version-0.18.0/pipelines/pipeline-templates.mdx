@@ -195,7 +195,7 @@ spec:
           promotion:
             pull-request:
                 url: ${APPLICATION_REPO_URL}
-                branch: ${APPLICATION_REPO_BRANCH}
+                baseBranch: ${APPLICATION_REPO_BRANCH}
                 secretRef:
                   name: ${GIT_CREDENTIALS_SECRET}
 ```

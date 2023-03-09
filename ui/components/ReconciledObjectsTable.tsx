@@ -23,14 +23,14 @@ function ReconciledObjectsTable({
     ...filterConfig(objects, "status", filterByStatusCallback),
   };
 
-  const { setNodeYaml } = React.useContext(AppContext);
+  const { setDetailModal } = React.useContext(AppContext);
 
   return (
     <RequestStateHandler loading={isLoading} error={error}>
       <FluxObjectsTable
         className={className}
         objects={objects}
-        onClick={setNodeYaml}
+        onClick={setDetailModal}
         initialFilterState={initialFilterState}
       />
     </RequestStateHandler>

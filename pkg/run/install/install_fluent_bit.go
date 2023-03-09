@@ -182,6 +182,45 @@ func makeFluentBitHelmRelease(name string, fluxNamespace string, targetNamespace
 	return &obj, nil
 }
 
+func UninstallFluentBit(ctx context.Context, log logger.Logger, kubeClient client.Client, hrNamespace string, hrName string) error {
+	hr := &helmv2.HelmRelease{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      hrName,
+			Namespace: hrNamespace,
+		},
+	}
+
+	log.Actionf("Removing Fluent Bit HelmRelease %s/%s ...", hr.Namespace, hr.Name)
+
+	if err := kubeClient.Delete(ctx, hr); err != nil {
+		return fmt.Errorf("failed to delete HelmRelease: %w", err)
+	}
+
+	log.Actionf("Waiting for HelmRelease %s/%s to be deleted...", hr.Namespace, hr.Name)
+
+	if err := wait.ExponentialBackoff(wait.Backoff{
+		Duration: 1 * time.Second,
+		Factor:   2,
+		Jitter:   1,
+		Steps:    10,
+	}, func() (done bool, err error) {
+		if err := kubeClient.Get(ctx, client.ObjectKeyFromObject(hr), hr); err != nil {
+			if apierrors.IsNotFound(err) {
+				return true, nil
+			} else {
+				return false, fmt.Errorf("failed retrieving HelmRelease: %w", err)
+			}
+		}
+		return false, nil
+	}); err != nil {
+		return fmt.Errorf("failed waiting for HelmRelease %s/%s to be deleted: %w", hr.Namespace, hr.Name, err)
+	}
+
+	log.Successf("HelmRelease %s/%s deleted", hr.Namespace, hr.Name)
+
+	return nil
+}
+
 func InstallFluentBit(ctx context.Context, log logger.Logger, kubeClient client.Client, fluxNamespace string, targetNamespace string, name string, bucketName string, bucketServerPort int32) error {
 	helmRepo, err := makeFluentBitHelmRepository(fluxNamespace)
 	if err != nil {

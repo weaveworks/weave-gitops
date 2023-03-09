@@ -9,6 +9,43 @@ import TierLabel from "./_components/TierLabel";
 :::info
 This page details the changes for Weave GitOps Enterprise and its associated components. For Weave GitOps OSS - please see the release notes on [GitHub](https://github.com/weaveworks/weave-gitops/releases).
 :::
+
+## v0.18.0
+2023-03-02
+### Highlights
+
+#### UI
+
+- See the logged in user's OIDC groups in the UI via the new User Profile page
+- Image Automation pages now show cluster information
+- See details about the configured promotion strategy for a pipeline
+- Log filtering by source and level for GitOps Run
+- See all Policy Configs listed in the UI
+
+#### GitopsSets
+
+- New `cluster` generator allows you to interact with the Weave GitOps Cluster inventory. GitOps Clusters that are added and removed to the inventory are reflected by the generator. That can be used to target for example to manage applications across a fleet of clusters. 
+- Enhanced `gitRepository` generator can now scan directories and paths with the new `directory` option, which enables you to create for example dynamically Flux Kustomizations , based on your repository. 
+- New `apiClient` generator allows you to query and endpoint, and provide data for your template. 
+- Reconciliation metrics are now reported to the `/metrics` endpoint ready to be collected
+
+
+### Dependency versions
+
+- weave-gitops v0.18.0
+- cluster-controller v1.4.1
+- cluster-bootstrap-controller v0.3.0
+- templates-controller v0.1.3
+- (optional) pipeline-controller v0.20.0
+- (optional) policy-agent v2.3.0
+- (optional) gitopssets-controller v0.5.0
+
+## v0.17.0
+2023-02-16
+### Highlights
+
+This release contains dependency upgrades and bug fixes. For a larger list of updates, check out the [Weave GitOps v0.17.0](https://github.com/weaveworks/weave-gitops/releases/tag/v0.17.0) release.
+
 ## v0.16.0
 2023-02-02
 ### Highlights
@@ -111,7 +148,11 @@ No breaking changes
 ### Highlights
 
 #### GitOps Templates Path feature
-- GitOps templates now provide the capability to write resources to multiple paths in the Git repository. This feature allows complex scenarios, like for example creating a self-service for an application that requires an RDS database. We’ve provided [documentation](./gitops-templates/templates.mdx#template-paths) which has a example.
+- GitOps templates now provide the capability to write resources to multiple
+	paths in the Git repository. This feature allows complex scenarios, like for
+	example creating a self-service for an application that requires an RDS
+	database. We’ve provided
+	[documentation](./gitops-templates/repo-rendered-paths.mdx) which has a example.
 
 ```yaml
 spec:
@@ -176,7 +217,8 @@ No breaking changes
 
 #### GitOps Templates
 
-- Support to specify Helm charts inside the CRD, instead of annotations. We’ve provided [documentation](./gitops-templates/templates.mdx) which has a example.
+- Support to specify Helm charts inside the CRD, instead of annotations. We’ve
+	provided [documentation](./gitops-templates/profiles.mdx) which has a example.
 
 ```yaml
 spec:
@@ -250,7 +292,10 @@ cluster-bootstrap-controller v0.3.0
 #### GitOpsTemplates
 - We are working towards unifying CAPI and GitOps Templates under a single umbrella. For those already using CAPITemplates, we will ensure a smooth transition is possible by making use of a conversion hooks. There are some breaking changes for GitOpsTemplates as part of this transitionary period, so be sure to check the guidance under [Breaking Changes](#breaking-changes).
 - We now retain the ordering of parameters in the template instead of sorting them alphabetically. Providing to the author control in what sequence the parameters are rendered in the form and thus present a more logically grouped set of parameters to the end consumer.
-- You can control what [delimiters](./gitops-templates/templates.mdx#custom-delimiters-for-rendertype-templating) you want to use in a template. This provides flexibility for if you want to use the syntax for dynamic functions like the [helper functions](./gitops-templates/templates.mdx#supported-functions-from-sprig-library) we support.
+- You can control what
+	[delimiters](./gitops-templates/supported-langs.mdx#custom-delimiters) you
+	want to use in a template. This provides flexibility for if you want to use
+	the syntax for dynamic functions like the [helper functions](./gitops-templates/supported-langs.mdx#supported-functions-1) we support.
 
 #### Pipelines
 - This [feature](pipelines/intro.mdx) is now enabled by default when you install the Weave GitOps Enterprise Helm Chart. You can toggle this with the `enablePipelines` flag.
