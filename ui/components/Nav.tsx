@@ -177,6 +177,7 @@ function Nav({
           value={currentPage === V2Routes.UserInfo ? false : currentPage}
         >
           {_.map(navItems, (n) => {
+            if (n.disabled) return;
             if (!n.icon && !n.link)
               return (
                 <Text uppercase color="neutral30" semiBold className="header">
