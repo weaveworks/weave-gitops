@@ -68,7 +68,30 @@ func IsLocalCluster(kubeClient *kube.KubeHTTP) bool {
 	}
 }
 
-func GetPodFromResourceDescription(ctx context.Context, namespacedName types.NamespacedName, kind string, kubeClient client.Client) (*corev1.Pod, error) {
+func GetPodFromResourceDescription(ctx context.Context, kubeClient client.Client, namespacedName types.NamespacedName, kind string, podLabels map[string]string) (*corev1.Pod, error) {
+	if namespacedName.Name == "" {
+		if len(podLabels) == 0 {
+			return nil, fmt.Errorf("no pod name or labels provided")
+		}
+
+		// list all pods in the provided namespace and return the first pod with matching labels
+		podList := &corev1.PodList{}
+		if err := kubeClient.List(ctx, podList,
+			client.MatchingLabelsSelector{
+				Selector: labels.Set(podLabels).AsSelector(),
+			},
+			client.InNamespace(namespacedName.Namespace),
+		); err != nil {
+			return nil, err
+		}
+
+		if len(podList.Items) == 0 {
+			return nil, fmt.Errorf("no pods with labels: %v found in the namespace: %s", podLabels, namespacedName.Namespace)
+		}
+
+		return &podList.Items[0], nil
+	}
+
 	switch kind {
 	case "pod":
 		pod := &corev1.Pod{}
@@ -133,7 +156,7 @@ func GetPodFromResourceDescription(ctx context.Context, namespacedName types.Nam
 		}
 
 		return nil, ErrNoRunningPodsForDeployment
+	default:
+		return nil, errors.New("unsupported spec kind")
 	}
-
-	return nil, errors.New("unsupported spec kind")
 }
