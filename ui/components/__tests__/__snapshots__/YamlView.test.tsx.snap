@@ -20,12 +20,7 @@ exports[`YamlView snapshots renders 1`] = `
   width: 12px;
 }
 
-.c5 svg path.image-automation,
-.c5 svg path.sources,
-.c5 svg path.delivery,
-.c5 svg path.pipelines,
-.c5 svg path.run-icon,
-.c5 svg path.terraform-icon {
+.c5 svg path.path-fill {
   fill: !important;
   -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;

@@ -259,12 +259,7 @@ export default styled(Icon)`
     width: ${(props) => props.theme.spacing[props.size as any]};
 
     path {
-      &.image-automation,
-      &.sources,
-      &.delivery,
-      &.pipelines,
-      &.run-icon,
-      &.terraform-icon {
+      &.path-fill {
         fill: ${(props) => props.theme.colors[props.color as any]} !important;
         transition: fill 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
       }

@@ -143,12 +143,7 @@ exports[`DataTable snapshots renders 1`] = `
   width: 16px;
 }
 
-.c10 svg path.image-automation,
-.c10 svg path.sources,
-.c10 svg path.delivery,
-.c10 svg path.pipelines,
-.c10 svg path.run-icon,
-.c10 svg path.terraform-icon {
+.c10 svg path.path-fill {
   fill: !important;
   -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;

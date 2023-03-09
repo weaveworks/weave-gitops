@@ -48,12 +48,7 @@ exports[`KubeStatusIndicator snapshots renders error 1`] = `
   width: 16px;
 }
 
-.c4 svg path.image-automation,
-.c4 svg path.sources,
-.c4 svg path.delivery,
-.c4 svg path.pipelines,
-.c4 svg path.run-icon,
-.c4 svg path.terraform-icon {
+.c4 svg path.path-fill {
   fill: #BC3B1D !important;
   -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
@@ -170,12 +165,7 @@ exports[`KubeStatusIndicator snapshots renders success 1`] = `
   width: 16px;
 }
 
-.c4 svg path.image-automation,
-.c4 svg path.sources,
-.c4 svg path.delivery,
-.c4 svg path.pipelines,
-.c4 svg path.run-icon,
-.c4 svg path.terraform-icon {
+.c4 svg path.path-fill {
   fill: #27AE60 !important;
   -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
