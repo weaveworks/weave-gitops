@@ -3,9 +3,8 @@ import { ArrowLeft, ArrowRight } from "@material-ui/icons";
 import _ from "lodash";
 import React, { Dispatch, SetStateAction } from "react";
 import styled from "styled-components";
-import useNavigation from "../hooks/navigation";
-import { formatURL, getParentNavRouteValue } from "../lib/nav";
-import { V2Routes } from "../lib/types";
+import { formatURL } from "../lib/nav";
+import { PageRoute, V2Routes } from "../lib/types";
 // eslint-disable-next-line
 import { colors } from "../typedefs/styled";
 
@@ -19,6 +18,7 @@ export type NavItem = {
   label: string;
   link?: { value: V2Routes | string; href?: string; newTab?: boolean };
   icon?: IconType;
+  disabled?: boolean;
 };
 
 type Props = {
@@ -26,6 +26,7 @@ type Props = {
   navItems: NavItem[];
   collapsed: boolean;
   setCollapsed: Dispatch<SetStateAction<boolean>>;
+  currentPage: V2Routes | PageRoute | string | boolean;
 };
 
 const fullWidth = "200px";
@@ -72,7 +73,7 @@ const NavContent = styled.div<{ collapsed: boolean }>`
     }
   }
   .link-flex {
-    margin-bottom: 9px;
+    margin-bottom: ${(props) => props.theme.spacing.xxs};
     display: flex;
     align-items: center;
     //matches .MuiSvgIcon-root
@@ -88,6 +89,9 @@ const NavContent = styled.div<{ collapsed: boolean }>`
     margin-top: 9px;
     opacity: ${(props) => (props.collapsed ? 0 : 1)};
     transition: opacity 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+  }
+  .header:not(first-child) {
+    margin-top: 0;
   }
 `;
 
@@ -160,19 +164,23 @@ const LinkTab = React.forwardRef((p: any, ref) => {
   );
 });
 
-function Nav({ className, navItems, collapsed, setCollapsed }: Props) {
-  const { currentPage } = useNavigation();
-  const value = getParentNavRouteValue(currentPage);
-
+function Nav({
+  className,
+  navItems,
+  collapsed,
+  setCollapsed,
+  currentPage,
+}: Props) {
   return (
     <NavContainer collapsed={collapsed}>
       <NavContent className={className} collapsed={collapsed}>
         <Tabs
           centered={false}
           orientation="vertical"
-          value={value === V2Routes.UserInfo ? false : value}
+          value={currentPage === V2Routes.UserInfo ? false : currentPage}
         >
           {_.map(navItems, (n) => {
+            if (n.disabled) return;
             if (!n.icon && !n.link)
               return (
                 <Text uppercase color="neutral30" semiBold className="header">

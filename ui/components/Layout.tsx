@@ -2,6 +2,8 @@ import { Drawer } from "@material-ui/core";
 import React, { useContext, useState } from "react";
 import styled from "styled-components";
 import { AppContext } from "../contexts/AppContext";
+import useNavigation from "../hooks/navigation";
+import { getParentNavRouteValue } from "../lib/nav";
 import { V2Routes } from "../lib/types";
 import Breadcrumbs from "./Breadcrumbs";
 import DetailModal from "./DetailModal";
@@ -101,14 +103,17 @@ const TopToolBar = styled(Flex)`
 
 function Layout({ className, children }: Props) {
   const [collapsed, setCollapsed] = useState<boolean>(false);
-  const { appState, setDetailModal } = useContext(AppContext);
 
+  const { appState, setDetailModal } = useContext(AppContext);
   const detail = appState.detailModal;
+
+  const { currentPage } = useNavigation();
+  const value = getParentNavRouteValue(currentPage);
 
   return (
     <AppContainer className={className}>
       <TopToolBar start align wide>
-        <Logo collapsed={collapsed} />
+        <Logo collapsed={collapsed} link={V2Routes.Automations} />
         <Breadcrumbs />
         <UserSettings />
       </TopToolBar>
@@ -117,6 +122,7 @@ function Layout({ className, children }: Props) {
           navItems={navItems}
           collapsed={collapsed}
           setCollapsed={setCollapsed}
+          currentPage={value}
         />
         <ContentContainer>{children}</ContentContainer>
       </Main>

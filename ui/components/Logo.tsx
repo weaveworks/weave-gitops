@@ -8,12 +8,13 @@ import Flex from "./Flex";
 type Props = {
   className?: string;
   collapsed: boolean;
+  link?: string;
 };
 
-function Logo({ className }: Props) {
+function Logo({ className, link }: Props) {
   return (
     <Flex className={className} wide>
-      <Link to={V2Routes.Automations}>
+      <Link to={link || V2Routes.Automations}>
         <img src={images.weaveG} />
       </Link>
       <img src={images.logotype} />
