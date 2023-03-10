@@ -5,6 +5,7 @@ import React, { Dispatch, SetStateAction } from "react";
 import styled from "styled-components";
 import { formatURL } from "../lib/nav";
 import { PageRoute, V2Routes } from "../lib/types";
+import { Fade } from "../lib/utils";
 // eslint-disable-next-line
 import { colors } from "../typedefs/styled";
 
@@ -95,13 +96,9 @@ const NavContent = styled.div<{ collapsed: boolean }>`
   }
 `;
 
-const CollapseFlex = styled(Flex)`
-  .MuiButtonBase-root {
+const CollapseButton = styled(IconButton)`
+  &.MuiIconButton-root {
     margin: 0 18px 0 4px;
-  }
-  ${Text} {
-    opacity: ${(props) => (props.collapsed ? 0 : 1)};
-    transition: opacity 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
   }
 `;
 
@@ -200,14 +197,23 @@ function Nav({
             );
           })}
         </Tabs>
-        <CollapseFlex wide align end collapsed={collapsed}>
-          <Text uppercase semiBold color="neutral30" size="small">
-            collapse
-          </Text>
-          <IconButton size="small" onClick={() => setCollapsed(!collapsed)}>
+        <Flex wide align end>
+          <Fade center fade={collapsed}>
+            <Text
+              uppercase
+              semiBold
+              color="neutral30"
+              size="small"
+              onClick={() => setCollapsed(!collapsed)}
+              pointer={!collapsed}
+            >
+              collapse
+            </Text>
+          </Fade>
+          <CollapseButton size="small" onClick={() => setCollapsed(!collapsed)}>
             {collapsed ? <ArrowRight /> : <ArrowLeft />}
-          </IconButton>
-        </CollapseFlex>
+          </CollapseButton>
+        </Flex>
       </NavContent>
     </NavContainer>
   );
