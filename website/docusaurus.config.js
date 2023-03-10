@@ -1,4 +1,5 @@
 const versions = require("./versions.json");
+const eeVersions = require("./enterprise_versions.json");
 /** @type {import('@docusaurus/types').DocusaurusConfig} */
 module.exports = {
   title: "Weave GitOps",
@@ -32,6 +33,22 @@ module.exports = {
         };
       },
     }),
+    [
+      "@docusaurus/plugin-content-docs",
+      {
+        id: 'enterprise',
+        path: 'enterprise',
+        routeBasePath: 'enterprise',
+        editUrl: "https://github.com/weaveworks/weave-gitops/edit/main/website",
+        sidebarPath: require.resolve("./sidebarsEE.js"),
+        lastVersion: eeVersions[0],
+        versions: {
+          current: {
+            label: "main",
+          },
+        },
+      },
+    ],
   ],
   themeConfig: {
     navbar: {
@@ -42,16 +59,14 @@ module.exports = {
       },
       items: [
         {
-          type: "doc",
-          docId: "intro",
           position: "left",
-          label: "Docs",
+          label: "OSS Docs",
+          to: "docs/intro",
         },
         {
-          type: 'docSidebar',
           position: 'left',
-          label: 'Reference',
-          sidebarId: 'ref',
+          label: 'Enterprise Docs',
+          to: '/enterprise/intro-ee',
         },
         {
           to: 'help-and-support',
@@ -72,6 +87,13 @@ module.exports = {
           type: "docsVersionDropdown",
           position: "right",
           dropdownActiveClassDisabled: true,
+          docsPluginId: "default",
+        },
+        {
+          type: "docsVersionDropdown",
+          position: "right",
+          dropdownActiveClassDisabled: true,
+          docsPluginId: "enterprise",
         },
         {
           href: "https://github.com/weaveworks/weave-gitops",
@@ -160,8 +182,8 @@ module.exports = {
       "@docusaurus/preset-classic",
       {
         docs: {
+          routeBasePath: 'docs',
           sidebarPath: require.resolve("./sidebars.js"),
-          // Please change this to your repo.
           editUrl: "https://github.com/weaveworks/weave-gitops/edit/main/website",
           lastVersion: versions[0],
           versions: {
@@ -172,7 +194,6 @@ module.exports = {
         },
         blog: {
           showReadingTime: true,
-          // Please change this to your repo.
           editUrl:
             "https://github.com/weaveworks/weave-gitops/edit/main/website/blog",
         },
