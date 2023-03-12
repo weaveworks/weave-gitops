@@ -43,25 +43,25 @@ exports[`KubeStatusIndicator snapshots renders error 1`] = `
 }
 
 .c4 svg {
-  fill: #BC3B1D !important;
+  fill: #BC3B1D;
   height: 16px;
   width: 16px;
 }
 
-.c4 svg path.image-automation {
+.c4 svg path.path-fill {
   fill: #BC3B1D !important;
+  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c4 svg.sources {
   fill: none !important;
 }
 
-.c4 svg.sources path {
-  fill: #BC3B1D !important;
-}
-
 .c4 svg.sources rect {
   stroke: #BC3B1D !important;
+  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c4.downward {
@@ -160,25 +160,25 @@ exports[`KubeStatusIndicator snapshots renders success 1`] = `
 }
 
 .c4 svg {
-  fill: #27AE60 !important;
+  fill: #27AE60;
   height: 16px;
   width: 16px;
 }
 
-.c4 svg path.image-automation {
+.c4 svg path.path-fill {
   fill: #27AE60 !important;
+  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c4 svg.sources {
   fill: none !important;
 }
 
-.c4 svg.sources path {
-  fill: #27AE60 !important;
-}
-
 .c4 svg.sources rect {
   stroke: #27AE60 !important;
+  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c4.downward {

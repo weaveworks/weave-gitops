@@ -3,20 +3,26 @@ import { Link } from "react-router-dom";
 import styled from "styled-components";
 import images from "../lib/images";
 import { V2Routes } from "../lib/types";
+import { Fade } from "../lib/utils";
 import Flex from "./Flex";
 
 type Props = {
   className?: string;
   collapsed: boolean;
+  link?: string;
 };
 
-function Logo({ className }: Props) {
+function Logo({ className, link, collapsed }: Props) {
   return (
     <Flex className={className} wide>
-      <Link to={V2Routes.Automations}>
+      <Link to={link || V2Routes.Automations}>
         <img src={images.weaveG} />
       </Link>
-      <img src={images.logotype} />
+      <Fade fade={collapsed}>
+        <Link to={link || V2Routes.Automations}>
+          <img src={images.logotype} />
+        </Link>
+      </Fade>
     </Flex>
   );
 }
@@ -28,10 +34,6 @@ export default styled(Logo)`
   }
   img:first-child {
     margin-right: ${(props) => props.theme.spacing.xs};
-  }
-  img:nth-child(2) {
-    opacity: ${(props) => (props.collapsed ? 0 : 1)};
-    transition: opacity 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
   }
   img {
     width: auto;

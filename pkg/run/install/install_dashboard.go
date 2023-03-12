@@ -10,6 +10,7 @@ import (
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	loglevels "github.com/weaveworks/weave-gitops/core/logger"
+	coretypes "github.com/weaveworks/weave-gitops/core/server/types"
 	"github.com/weaveworks/weave-gitops/pkg/config"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/run"
@@ -137,11 +138,11 @@ func GetInstalledDashboard(ctx context.Context, kubeClient client.Client, namesp
 	return DashboardTypeNone, ""
 }
 
-// ReconcileDashboard reconciles the dashboard.
-func ReconcileDashboard(ctx context.Context, kubeClient client.Client, name string, namespace string, podName string, timeout time.Duration) error {
+// ReconcileDashboard reconciles the dashboard. If podName is an empty string, it will get the dashboard pod by labels instead of pod name.
+func ReconcileDashboard(ctx context.Context, kubeClient client.Client, dashboardName string, namespace string, podName string, timeout time.Duration) error {
 	const interval = 3 * time.Second / 2
 
-	helmChartName := namespace + "-" + name
+	helmChartName := namespace + "-" + dashboardName
 
 	// reconcile dashboard
 	namespacedName := types.NamespacedName{
@@ -185,7 +186,16 @@ func ReconcileDashboard(ctx context.Context, kubeClient client.Client, name stri
 	if err := wait.Poll(interval, timeout, func() (bool, error) {
 		namespacedName := types.NamespacedName{Namespace: namespace, Name: podName}
 
-		dashboard, _ := run.GetPodFromResourceDescription(ctx, namespacedName, "deployment", kubeClient)
+		var labels map[string]string = nil
+
+		if podName == "" {
+			labels = map[string]string{
+				coretypes.InstanceLabel: dashboardName,
+				coretypes.NameLabel:     ossDashboardHelmChartName,
+			}
+		}
+
+		dashboard, _ := run.GetPodFromResourceDescription(ctx, kubeClient, namespacedName, "deployment", labels)
 		if dashboard == nil {
 			return false, nil
 		}
