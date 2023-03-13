@@ -7,7 +7,6 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 	"sync"
@@ -230,7 +229,6 @@ func (a *authenticatedMiddleware) ServeHTTP(rw http.ResponseWriter, r *http.Requ
 			return
 		}
 		defer func() {
-			log.Println("unlocking the lock!")
 			a.refreshMutex.Unlock()
 		}()
 
