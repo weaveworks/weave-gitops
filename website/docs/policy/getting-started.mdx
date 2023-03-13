@@ -8,9 +8,17 @@ import CodeBlock from "@theme/CodeBlock";
 import BrowserOnly from "@docusaurus/BrowserOnly";
 
 # Getting Started <TierLabel tiers="Enterprise" />
-Enabling the Weave Policy Engine features in Weave GitOps is done by running the policy agent on the cluster. This section gives an overview of the steps required for installing and running the policy agent on the management and leaf clusters.
+Enabling the Weave Policy Engine features in Weave GitOps is done by running the policy agent on the cluster. This section gives an overview of the policy ecosystem and the steps required for installing and running the policy agent on leaf clusters.
 
-## Pre-requisites
+## The Policy Ecosystem
+
+The policy ecosystem consists of several moving parts. The two primary components are the [Policy Agent](./weave-policy-profile.mdx#policy-agent-configuration) and the [Policy CRs](./policy.mdx). The agent runs in several [modes](./weave-policy-profile.mdx#agent-modes), and uses the Policy CRs to perform validations on different resources. The results of those validations can be written to different [sinks](./weave-policy-profile.mdx#policy-validation-sinks).
+
+There are two other optional components: the [PolicySet](./policy-set.mdx), and the [PolicyConfig](./policy-configuration.mdx). The PolicySet can be used to filter policies for a specific mode, while the PolicyConfig can be used to override policy parameters during the validation of a certain resource.
+
+![Policy Ecosystem](./img/policy-ecosystem.png)
+
+## Installation Pre-requisites
 
 ### Weave GitOps
 You need to have a running instance of Weave GitOps with at least one CAPI provider installed to provision Kubernetes clusters. See [Weave GitOps Installation](https://docs.gitops.weave.works/docs/installation/) page for more details about installing Weave GitOps.
@@ -26,7 +34,7 @@ To install the policy agent on a leaf cluster, you should select the `weave-poli
 
 You should then configure the `values.yaml` to pull the policies from your repo into the cluster. This is done by configuring the `policySource` section. If your policy library repo is private, you will also need to reference the `Secret` that contains the repo credentials. This is usually the [secret](../cluster-management/getting-started.mdx#add-a-cluster-bootstrap-config) you created while bootstrapping flux on the management cluster and is copied to your leaf cluster during creation.
 
-<details><summary>Expand to see an example that creates a new GitSource</summary>
+<details><summary>Expand to see an example that creates a new git source</summary>
 
 ```yaml
 policySource:
@@ -38,7 +46,7 @@ policySource:
 ```
 </details>
 
-<details><summary>Expand to see an example that uses an existing GitSource</summary>
+<details><summary>Expand to see an example that uses an existing git source</summary>
 
 ```yaml
 policySource:
@@ -103,9 +111,7 @@ You can go to the `Violations Log` in Weave GitOps UI to view the policy violati
 This view shows only the violations resulting from the [admission](./weave-policy-profile.mdx#admission) mode by configuring the [events sink](weave-policy-profile.mdx#policy-validation-sinks).
 
 <strong>Violations Log</strong>
-
 ![Violations Logs](./img/violations-logs.png)
 
 <strong>Violations Log Details</strong>
-
 ![Violation Log Details](./img/violations-log-detail.png)
