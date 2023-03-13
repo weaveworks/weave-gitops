@@ -1,5 +1,5 @@
-import { stringify } from "yaml";
 import _ from "lodash";
+import { stringify } from "yaml";
 import {
   Condition,
   GitRepositoryRef,
@@ -368,6 +368,40 @@ export class Alert extends FluxObject {
   get eventSources(): CrossNamespaceObjectRef[] {
     return this.obj.spec?.eventSources || [];
   }
+}
+
+//for pods
+export type Toleration = {
+  key: string;
+  operator: string;
+  value: string;
+  effect: string;
+  tolerationSeconds: number;
+};
+
+export class Pod extends FluxObject {
+  //Controlled By:
+  //Node: scheduling.nodeSelector, scheduling.nodeName?
+  get podIP(): string {
+    return this.obj.status?.podIP || "";
+  }
+  get podIPs(): string[] {
+    return this.obj.status?.podIPs || [];
+  }
+  get priorityClass(): string {
+    return this.obj.spec?.scheduling?.priorityClassName || "";
+  }
+  get qosClass(): string {
+    return this.obj.status?.qosClass || "";
+  }
+  get tolerations(): Toleration[] {
+    return this.obj.spec?.scheduling?.tolerations || [];
+  }
+  //get secrets: containers.imagePullSecrets?
+  // get containers(): Container[] {
+  // return this.obj.spec?.containers?.containers - what about initContainers or ephemeralContainers
+  // }
+  //VOLUME
 }
 
 export function makeObjectId(namespace?: string, name?: string) {
