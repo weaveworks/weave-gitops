@@ -394,6 +394,10 @@ func dashboardStep(ctx context.Context, log logger.Logger, kubeClient *kube.Kube
 					return install.DashboardTypeNone, nil, "", err
 				}
 
+				if password == "" {
+					return install.DashboardTypeNone, nil, "", fmt.Errorf("dashboard password is an empty string")
+				}
+
 				passwordHash, err = install.GeneratePasswordHash(log, password)
 				if err != nil {
 					return install.DashboardTypeNone, nil, "", err
