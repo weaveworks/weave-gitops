@@ -16,38 +16,41 @@ Enabling the Weave Policy Engine features in Weave GitOps is done by running the
 You need to have a running instance of Weave GitOps with at least one CAPI provider installed to provision Kubernetes clusters. See [Weave GitOps Installation](https://docs.gitops.weave.works/docs/installation/) page for more details about installing Weave GitOps.
 
 ### Policy Library
-For the policy agent to work, it will need a source for the policies that it will enforce in the cluster. You should have a policy library repo set up which includes your policies resources as CRDs. You can also add a `kustomization.yaml` file selecting the policies you want to install on that specific cluster that will be provisioned by Weave Gitops:
-
-```
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-resources:
-- policies/<policy1.yaml>
-- policies/<policy2.yaml>
-- policies/<policy3.yaml>
-```
-
-:::info
-Enterprise customers should have access to fork policy library repo into their local repositories.
-:::
+For the policy agent to work, it will need a source for the [policies](./policy.mdx) that it will enforce in the cluster. Enterprise customers should request access to fork our policy library into their local repositories. Our policy library includes an extensive list of policy CRs that cover a multitude of security and compliance benchmarks.
 
 ## Install the policy agent
-
-### Management cluster
-
-The agent comes packaged with the WGE chart. To install it you need to set the following values:
-
-- `values.policy-agent.enabled`: set to true to install the agent with WGE
-- `values.policy-agent.accountId`: organization name, used as identifier
-- `values.policy-agent.clusterId`: unique identifier for the cluster
-
-### Leaf cluster
 
 To install the policy agent on a leaf cluster, you should select the `weave-policy-agent` from the profiles dropdown in the `Create Cluster` page.
 
 ![Policy Profile](./img/weave-policy-profile.png)
 
-You should then configure the `values.yaml`. You can find more about the policy profile configurations [here](../weave-policy-profile/).
+You should then configure the `values.yaml` to pull the policies from your repo into the cluster. This is done by configuring the `policySource` section. If your policy library repo is private, you will also need to reference the `Secret` that contains the repo credentials. This is usually the [secret](../cluster-management/getting-started.mdx#add-a-cluster-bootstrap-config) you created while bootstrapping flux on the management cluster and is copied to your leaf cluster during creation.
+
+<details><summary>Expand to see an example that creates a new GitSource</summary>
+
+```yaml
+policySource:
+  enabled: true
+  url: ssh://git@github.com/weaveworks/policy-library # This should be the url of the forked repo
+  tag: v1.0.0
+  path: ./  # Could be a path to the policies dir or a kustomization.yaml file
+  secretRef: my-pat # the name of the secret containing the repo credentials
+```
+</details>
+
+<details><summary>Expand to see an example that uses an existing GitSource</summary>
+
+```yaml
+policySource:
+  enabled: true
+  sourceRef: # Specify the name for an existing GitSource reference
+    kind: GitRepository
+    name: policy-library
+    namespace: flux-system
+```
+</details>
+
+You can find more about other policy profile configurations [here](../weave-policy-profile/).
 
 ## Policies in UI
 After the leaf cluster is provisioned and the profile is installed, you should now see the policies listed in the Policies tab in Weave GitOps UI.
