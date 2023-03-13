@@ -16,7 +16,10 @@ type RepositoryURLProtocol string
 const (
 	RepositoryURLProtocolHTTPS RepositoryURLProtocol = "https"
 	RepositoryURLProtocolSSH   RepositoryURLProtocol = "ssh"
-	AzureDevOpsDefaultDomain                         = "dev.azure.com"
+	// AzureDevOpsHTTPDefaultDomain is used for HTTP clone URLs
+	AzureDevOpsHTTPDefaultDomain = "dev.azure.com"
+	// AzureDevOpsSSHDefaultDomain is used for SSH clone URLs
+	AzureDevOpsSSHDefaultDomain = "ssh.dev.azure.com"
 )
 
 type RepoURL struct {
@@ -95,8 +98,15 @@ func getOwnerFromURL(url url.URL, providerName GitProviderName) (string, error) 
 		return "", fmt.Errorf("could not get owner from url %v", url.String())
 	}
 
+	// Examples of Azure DevOps URLs:
+	// 	- https://weaveworks@dev.azure.com/weaveworks/weave-gitops-integration/_git/config
+	// 	- git@ssh.dev.azure.com:v3/weaveworks/weave-gitops-integration/config
 	if providerName == GitProviderAzureDevOps {
-		return strings.Join(parts[:2], "/"), nil
+		if parts[len(parts)-2] == "_git" {
+			return strings.Join(parts[:2], "/"), nil
+		} else {
+			return strings.Join(parts[1:3], "/"), nil
+		}
 	}
 
 	return strings.Join(parts[:len(parts)-1], "/"), nil
@@ -113,7 +123,8 @@ func detectGitProviderFromURL(raw string, gitHostTypes map[string]string) (GitPr
 	// defaults for github, gitlab and azure devops
 	gitHostTypes[github.DefaultDomain] = string(GitProviderGitHub)
 	gitHostTypes[gitlab.DefaultDomain] = string(GitProviderGitLab)
-	gitHostTypes[AzureDevOpsDefaultDomain] = string(GitProviderAzureDevOps)
+	gitHostTypes[AzureDevOpsHTTPDefaultDomain] = string(GitProviderAzureDevOps)
+	gitHostTypes[AzureDevOpsSSHDefaultDomain] = string(GitProviderAzureDevOps)
 
 	provider := gitHostTypes[u.Host]
 	if provider == "" {
