@@ -24,6 +24,8 @@ envVars:
     value: "true"
   - name: WEAVE_GITOPS_FEATURE_CLUSTER
     value: "false"
+  - name: WEAVE_GITOPS_FEATURE_OIDC_BUTTON_LABEL
+    value: "Login with ACME"
 # -- Annotations to add to the deployment
 annotations: {}
 # Should the 'oidc-auth' secret be created. For a detailed

@@ -1,0 +1,465 @@
+Source API reference
+====================
+
+Packages:
+
+*   [templates.weave.works/v1alpha1](#templates.weave.works%2fv1alpha1)
+
+templates.weave.works/v1alpha1
+------------------------------
+
+Package v1alpha1 contains API Schema definitions for the gitopssets v1alpha1 API group
+
+Resource Types:
+
+### APIClientGenerator
+
+(_Appears on:_ [GitOpsSetGenerator](#templates.weave.works/v1alpha1.GitOpsSetGenerator), [GitOpsSetNestedGenerator](#templates.weave.works/v1alpha1.GitOpsSetNestedGenerator))
+
+APIClientGenerator defines a generator that queries an API endpoint and uses that to generate data.
+
+Field
+
+Description
+
+`interval`  
+_[Kubernetes meta/v1.Duration](https://godoc.org/k8s.io/apimachinery/pkg/apis/meta/v1#Duration)_
+
+The interval at which to poll the API endpoint.
+
+`endpoint`  
+_string_
+
+_(Optional)_
+
+This is the API endpoint to use.
+
+`method`  
+_string_
+
+Method defines the HTTP method to use to talk to the endpoint.
+
+`jsonPath`  
+_string_
+
+JSONPath is string that is used to modify the result of the API call.
+
+This can be used to extract a repeating element from a response. [https://kubernetes.io/docs/reference/kubectl/jsonpath/](https://kubernetes.io/docs/reference/kubectl/jsonpath/)
+
+`headersRef`  
+_[HeadersReference](#templates.weave.works/v1alpha1.HeadersReference)_
+
+_(Optional)_
+
+HeadersRef allows optional configuration of a Secret or ConfigMap to add additional headers to an outgoing request.
+
+For example, a Secret with a key Authorization: Bearer abc123 could be used to configure an authorization header.
+
+`body`  
+_k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1.JSON_
+
+_(Optional)_
+
+Body is set as the body in a POST request.
+
+If set, this will configure the Method to be POST automatically.
+
+### ClusterGenerator
+
+(_Appears on:_ [GitOpsSetGenerator](#templates.weave.works/v1alpha1.GitOpsSetGenerator), [GitOpsSetNestedGenerator](#templates.weave.works/v1alpha1.GitOpsSetNestedGenerator))
+
+ClusterGenerator defines a generator that queries the cluster API for relevant clusters.
+
+Field
+
+Description
+
+`selector`  
+_[Kubernetes meta/v1.LabelSelector](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#labelselector-v1-meta)_
+
+_(Optional)_
+
+Selector is used to filter the clusters that you want to target.
+
+If no selector is provided, no clusters will be matched.
+
+### GitOpsSet
+
+GitOpsSet is the Schema for the gitopssets API
+
+Field
+
+Description
+
+`metadata`  
+_[Kubernetes meta/v1.ObjectMeta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#objectmeta-v1-meta)_
+
+Refer to the Kubernetes API documentation for the fields of the `metadata` field.
+
+`spec`  
+_[GitOpsSetSpec](#templates.weave.works/v1alpha1.GitOpsSetSpec)_
+
+  
+  
+
+`suspend`  
+_bool_
+
+_(Optional)_
+
+Suspend tells the controller to suspend the reconciliation of this GitOpsSet.
+
+`generators`  
+_[\[\]GitOpsSetGenerator](#templates.weave.works/v1alpha1.GitOpsSetGenerator)_
+
+Generators generate the data to be inserted into the provided templates.
+
+`templates`  
+_[\[\]GitOpsSetTemplate](#templates.weave.works/v1alpha1.GitOpsSetTemplate)_
+
+Templates are a set of YAML templates that are rendered into resources from the data supplied by the generators.
+
+`serviceAccountName`  
+_string_
+
+_(Optional)_
+
+The name of the Kubernetes service account to impersonate when reconciling this Kustomization.
+
+`status`  
+_[GitOpsSetStatus](#templates.weave.works/v1alpha1.GitOpsSetStatus)_
+
+### GitOpsSetGenerator
+
+(_Appears on:_ [GitOpsSetSpec](#templates.weave.works/v1alpha1.GitOpsSetSpec))
+
+GitOpsSetGenerator is the top-level set of generators for this GitOpsSet.
+
+Field
+
+Description
+
+`list`  
+_[ListGenerator](#templates.weave.works/v1alpha1.ListGenerator)_
+
+`pullRequests`  
+_[PullRequestGenerator](#templates.weave.works/v1alpha1.PullRequestGenerator)_
+
+`gitRepository`  
+_[GitRepositoryGenerator](#templates.weave.works/v1alpha1.GitRepositoryGenerator)_
+
+`matrix`  
+_[MatrixGenerator](#templates.weave.works/v1alpha1.MatrixGenerator)_
+
+`cluster`  
+_[ClusterGenerator](#templates.weave.works/v1alpha1.ClusterGenerator)_
+
+`apiClient`  
+_[APIClientGenerator](#templates.weave.works/v1alpha1.APIClientGenerator)_
+
+### GitOpsSetNestedGenerator
+
+(_Appears on:_ [MatrixGenerator](#templates.weave.works/v1alpha1.MatrixGenerator))
+
+GitOpsSetNestedGenerator describes the generators usable by the MatrixGenerator. This is a subset of the generators allowed by the GitOpsSetGenerator because the CRD format doesn’t support recursive declarations.
+
+Field
+
+Description
+
+`list`  
+_[ListGenerator](#templates.weave.works/v1alpha1.ListGenerator)_
+
+`gitRepository`  
+_[GitRepositoryGenerator](#templates.weave.works/v1alpha1.GitRepositoryGenerator)_
+
+`pullRequests`  
+_[PullRequestGenerator](#templates.weave.works/v1alpha1.PullRequestGenerator)_
+
+`cluster`  
+_[ClusterGenerator](#templates.weave.works/v1alpha1.ClusterGenerator)_
+
+`apiClient`  
+_[APIClientGenerator](#templates.weave.works/v1alpha1.APIClientGenerator)_
+
+### GitOpsSetSpec
+
+(_Appears on:_ [GitOpsSet](#templates.weave.works/v1alpha1.GitOpsSet))
+
+GitOpsSetSpec defines the desired state of GitOpsSet
+
+Field
+
+Description
+
+`suspend`  
+_bool_
+
+_(Optional)_
+
+Suspend tells the controller to suspend the reconciliation of this GitOpsSet.
+
+`generators`  
+_[\[\]GitOpsSetGenerator](#templates.weave.works/v1alpha1.GitOpsSetGenerator)_
+
+Generators generate the data to be inserted into the provided templates.
+
+`templates`  
+_[\[\]GitOpsSetTemplate](#templates.weave.works/v1alpha1.GitOpsSetTemplate)_
+
+Templates are a set of YAML templates that are rendered into resources from the data supplied by the generators.
+
+`serviceAccountName`  
+_string_
+
+_(Optional)_
+
+The name of the Kubernetes service account to impersonate when reconciling this Kustomization.
+
+### GitOpsSetStatus
+
+(_Appears on:_ [GitOpsSet](#templates.weave.works/v1alpha1.GitOpsSet))
+
+GitOpsSetStatus defines the observed state of GitOpsSet
+
+Field
+
+Description
+
+`ReconcileRequestStatus`  
+_github.com/fluxcd/pkg/apis/meta.ReconcileRequestStatus_
+
+(Members of `ReconcileRequestStatus` are embedded into this type.)
+
+`observedGeneration`  
+_int64_
+
+_(Optional)_
+
+ObservedGeneration is the last observed generation of the HelmRepository object.
+
+`conditions`  
+_[\[\]Kubernetes meta/v1.Condition](https://godoc.org/k8s.io/apimachinery/pkg/apis/meta/v1#Condition)_
+
+_(Optional)_
+
+Conditions holds the conditions for the GitOpsSet
+
+`inventory`  
+_[ResourceInventory](#templates.weave.works/v1alpha1.ResourceInventory)_
+
+_(Optional)_
+
+Inventory contains the list of Kubernetes resource object references that have been successfully applied
+
+### GitOpsSetTemplate
+
+(_Appears on:_ [GitOpsSetSpec](#templates.weave.works/v1alpha1.GitOpsSetSpec))
+
+GitOpsSetTemplate describes a resource to create
+
+Field
+
+Description
+
+`repeat`  
+_string_
+
+Repeat is a JSONPath string defining that the template content should be repeated for each of the matching elements in the JSONPath expression. [https://kubernetes.io/docs/reference/kubectl/jsonpath/](https://kubernetes.io/docs/reference/kubectl/jsonpath/)
+
+`content`  
+_k8s.io/apimachinery/pkg/runtime.RawExtension_
+
+Content is the YAML to be templated and generated.
+
+### GitRepositoryGenerator
+
+(_Appears on:_ [GitOpsSetGenerator](#templates.weave.works/v1alpha1.GitOpsSetGenerator), [GitOpsSetNestedGenerator](#templates.weave.works/v1alpha1.GitOpsSetNestedGenerator))
+
+GitRepositoryGenerator generates from files in a Flux GitRepository resource.
+
+Field
+
+Description
+
+`repositoryRef`  
+_string_
+
+RepositoryRef is the name of a GitRepository resource to be generated from.
+
+`files`  
+_[\[\]GitRepositoryGeneratorFileItem](#templates.weave.works/v1alpha1.GitRepositoryGeneratorFileItem)_
+
+Files is a set of rules for identifying files to be parsed.
+
+`directories`  
+_[\[\]GitRepositoryGeneratorDirectoryItem](#templates.weave.works/v1alpha1.GitRepositoryGeneratorDirectoryItem)_
+
+Directories is a set of rules for identifying directories to be generated.
+
+### GitRepositoryGeneratorDirectoryItem
+
+(_Appears on:_ [GitRepositoryGenerator](#templates.weave.works/v1alpha1.GitRepositoryGenerator))
+
+GitRepositoryGeneratorDirectoryItem stores the information about a specific directory to be generated from.
+
+Field
+
+Description
+
+`path`  
+_string_
+
+`exclude`  
+_bool_
+
+### GitRepositoryGeneratorFileItem
+
+(_Appears on:_ [GitRepositoryGenerator](#templates.weave.works/v1alpha1.GitRepositoryGenerator))
+
+GitRepositoryGeneratorFileItem defines a path to a file to be parsed when generating.
+
+Field
+
+Description
+
+`path`  
+_string_
+
+Path is the name of a file to read and generate from can be JSON or YAML.
+
+### HeadersReference
+
+(_Appears on:_ [APIClientGenerator](#templates.weave.works/v1alpha1.APIClientGenerator))
+
+HeadersReference references either a Secret or ConfigMap to be used for additional request headers.
+
+Field
+
+Description
+
+`kind`  
+_string_
+
+The resource kind to get headers from.
+
+`name`  
+_string_
+
+Name of the resource in the same namespace to apply headers from.
+
+### ListGenerator
+
+(_Appears on:_ [GitOpsSetGenerator](#templates.weave.works/v1alpha1.GitOpsSetGenerator), [GitOpsSetNestedGenerator](#templates.weave.works/v1alpha1.GitOpsSetNestedGenerator))
+
+ListGenerator generates from a hard-coded list.
+
+Field
+
+Description
+
+`elements`  
+_\[\]k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1.JSON_
+
+### MatrixGenerator
+
+(_Appears on:_ [GitOpsSetGenerator](#templates.weave.works/v1alpha1.GitOpsSetGenerator))
+
+MatrixGenerator defines a matrix that combines generators. The matrix is a cartesian product of the generators.
+
+Field
+
+Description
+
+`generators`  
+_[\[\]GitOpsSetNestedGenerator](#templates.weave.works/v1alpha1.GitOpsSetNestedGenerator)_
+
+Generators is a list of generators to be combined.
+
+### PullRequestGenerator
+
+(_Appears on:_ [GitOpsSetGenerator](#templates.weave.works/v1alpha1.GitOpsSetGenerator), [GitOpsSetNestedGenerator](#templates.weave.works/v1alpha1.GitOpsSetNestedGenerator))
+
+PullRequestGenerator defines a generator that queries a Git hosting service for relevant PRs.
+
+Field
+
+Description
+
+`interval`  
+_[Kubernetes meta/v1.Duration](https://godoc.org/k8s.io/apimachinery/pkg/apis/meta/v1#Duration)_
+
+The interval at which to check for repository updates.
+
+`driver`  
+_string_
+
+Determines which git-api protocol to use.
+
+`serverURL`  
+_string_
+
+_(Optional)_
+
+This is the API endpoint to use.
+
+`repo`  
+_string_
+
+This should be the Repo you want to query. e.g. my-org/my-repo
+
+`secretRef`  
+_[Kubernetes core/v1.LocalObjectReference](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#localobjectreference-v1-core)_
+
+Reference to Secret in same namespace with a field “password” which is an auth token that can query the Git Provider API.
+
+`labels`  
+_\[\]string_
+
+_(Optional)_
+
+Labels is used to filter the PRs that you want to target. This may be applied on the server.
+
+`forks`  
+_bool_
+
+_(Optional)_
+
+Fork is used to filter out forks from the target PRs if false, or to include forks if true
+
+### ResourceInventory
+
+(_Appears on:_ [GitOpsSetStatus](#templates.weave.works/v1alpha1.GitOpsSetStatus))
+
+ResourceInventory contains a list of Kubernetes resource object references that have been applied by a Kustomization.
+
+Field
+
+Description
+
+`entries`  
+_[\[\]ResourceRef](#templates.weave.works/v1alpha1.ResourceRef)_
+
+Entries of Kubernetes resource object references.
+
+### ResourceRef
+
+(_Appears on:_ [ResourceInventory](#templates.weave.works/v1alpha1.ResourceInventory))
+
+ResourceRef contains the information necessary to locate a resource within a cluster.
+
+Field
+
+Description
+
+`id`  
+_string_
+
+ID is the string representation of the Kubernetes resource object’s metadata, in the format ‘\_’.
+
+`v`  
+_string_
+
+Version is the API version of the Kubernetes resource object’s kind.
+
+This page was automatically generated with `gen-crd-api-reference-docs`
