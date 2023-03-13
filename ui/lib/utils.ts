@@ -1,6 +1,8 @@
 import _ from "lodash";
 import { DateTime } from "luxon";
 import { toast } from "react-toastify";
+import styled from "styled-components";
+import Flex from "../components/Flex";
 import { computeReady, ReadyType } from "../components/KubeStatusIndicator";
 import { AppVersion, repoUrl } from "../components/Version";
 import { GetVersionResponse } from "../lib/api/core/core.pb";
@@ -201,3 +203,11 @@ export function formatLogTimestamp(timestamp?: string, zone?: string): string {
 
   return formattedTimestamp;
 }
+
+export const Fade = styled(Flex)<{
+  fade: boolean;
+}>`
+  opacity: ${({ fade }) => (fade ? 0 : 1)};
+  transition: opacity 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+  ${({ fade }) => fade && "pointer-events: none"};
+`;

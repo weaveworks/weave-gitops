@@ -1000,7 +1000,7 @@ func runCommandInnerProcess(cmd *cobra.Command, args []string) error {
 						)
 
 						if pollErr := wait.PollImmediate(2*time.Second, flags.Timeout, func() (bool, error) {
-							pod, podErr = run.GetPodFromResourceDescription(thisCtx, namespacedName, specMap.Kind, kubeClient)
+							pod, podErr = run.GetPodFromResourceDescription(thisCtx, kubeClient, namespacedName, specMap.Kind, nil)
 							if pod != nil && podErr == nil {
 								return true, nil
 							}
