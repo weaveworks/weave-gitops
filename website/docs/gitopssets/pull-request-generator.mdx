@@ -51,7 +51,7 @@ spec:
             kind: GitRepository
             name: "pr-{{ .Element.Number }}-gitrepository"
 ```
-This example will poll "github.com/bigkevmcd/go-demo" for open pull requests and trigger the deployment of these by creating a Flux `GitRepository` and `Kustomization` to deploy.
+This example will poll "github.com/bigkevmcd/go-demo" for open pull requests and trigger the deployment of these by creating a Flux `GitRepository` and a `Kustomization` to deploy.
 
 As the generator only queries open pull requests, when a PR is closed, the generated resources will be removed.
 
