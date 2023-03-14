@@ -261,7 +261,6 @@ func InstallFluentBit(ctx context.Context, log logger.Logger, kubeClient client.
 				Name:      name,
 				Namespace: targetNamespace,
 			}, &instance); err != nil {
-
 			if apierrors.IsNotFound(err) {
 				return false, nil
 			} else {

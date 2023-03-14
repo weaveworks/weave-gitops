@@ -8,7 +8,6 @@ import (
 )
 
 func TestMakeVClusterHelmReleaseAnnotations(t *testing.T) {
-
 	tests := []struct {
 		name                  string
 		portForwards          []string
@@ -58,5 +57,4 @@ func TestMakeVClusterHelmReleaseAnnotations(t *testing.T) {
 			}
 		})
 	}
-
 }

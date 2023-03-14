@@ -140,7 +140,6 @@ func installVCluster(kubeClient client.Client, name string, namespace string, fl
 				Name:      name,
 				Namespace: namespace,
 			}, &instance); err != nil {
-
 			if apierrors.IsNotFound(err) {
 				return false, nil
 			} else {

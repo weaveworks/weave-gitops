@@ -102,7 +102,6 @@ func TestSuspend_Suspend(t *testing.T) {
 	})
 
 	t.Run("will error", func(t *testing.T) {
-
 		md := metadata.Pairs(MetadataUserKey, "anne", MetadataGroupsKey, "system:masters")
 		outgoingCtx := metadata.NewOutgoingContext(ctx, md)
 		_, err = c.ToggleSuspendResource(outgoingCtx, &api.ToggleSuspendResourceRequest{
