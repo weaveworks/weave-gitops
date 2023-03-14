@@ -7,55 +7,58 @@ import TierLabel from "../_components/TierLabel";
 import CodeBlock from "@theme/CodeBlock";
 import BrowserOnly from "@docusaurus/BrowserOnly";
 
-# Getting started <TierLabel tiers="Enterprise" />
+# Getting Started <TierLabel tiers="Enterprise" />
+Enabling the Weave Policy Engine features in Weave GitOps is done by running the policy agent on the cluster. This section gives an overview of the policy ecosystem and the steps required for installing and running the policy agent on leaf clusters.
 
-This section introduces you to the Policy Profile and details the steps required to install it in Weave GitOps.
+## The Policy Ecosystem
 
-## Pre-requisites
+The policy ecosystem consists of several moving parts. The two primary components are the [Policy Agent](./weave-policy-profile.mdx#policy-agent-configuration) and the [Policy CRs](./policy.mdx). The agent runs in several [modes](./weave-policy-profile.mdx#agent-modes), and uses the Policy CRs to perform validations on different resources. The results of those validations can be written to different [sinks](./weave-policy-profile.mdx#policy-validation-sinks).
+
+There are two other optional components: the [PolicySet](./policy-set.mdx), and the [PolicyConfig](./policy-configuration.mdx). The PolicySet can be used to filter policies for a specific mode, while the PolicyConfig can be used to override policy parameters during the validation of a certain resource.
+
+![Policy Ecosystem](./img/policy-ecosystem.png)
+
+## Installation Pre-requisites
 
 ### Weave GitOps
 You need to have a running instance of Weave GitOps with at least one CAPI provider installed to provision Kubernetes clusters. See [Weave GitOps Installation](https://docs.gitops.weave.works/docs/installation/) page for more details about installing Weave GitOps.
 
 ### Policy Library
-For the policy agent to work, it will need a source for the policies that it will enforce in the cluster. You should have a policy library repo set up which includes your policies resources as CRDs. You can also add a `kustomization.yaml` file selecting the policies you want to install on that specific cluster that will be provisioned by Weave Gitops:
+For the policy agent to work, it will need a source for the [policies](./policy.mdx) that it will enforce in the cluster. Enterprise customers should request access to fork our policy library into their local repositories. Our policy library includes an extensive list of policy CRs that cover a multitude of security and compliance benchmarks.
 
-```
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-resources:
-- policies/<policy1.yaml>
-- policies/<policy2.yaml>
-- policies/<policy3.yaml>
-```
+## Install the Policy Agent
 
-:::info
-Enterprise customers should have access to fork policy library repo into their local repositories. 
-:::
-
-## Install agent on management cluster
-
-The agent comes packaged with the WGE chart. To install it you need to set the following values:
-
-- `values.policy-agent.enabled`: set to true to install the agent with WGE
-- `values.policy-agent.accountId`: organization name, used as identifier
-- `values.policy-agent.clusterId`: unique identifier for the cluster
-
-## Install Policy Profile
-To install the policy profile on a cluster, you should select the `weave-policy-agent` from the profiles dropdown in the `Create Cluster` page. 
+To install the policy agent on a leaf cluster, you should select the `weave-policy-agent` from the profiles dropdown in the `Create Cluster` page.
 
 ![Policy Profile](./img/weave-policy-profile.png)
 
-You should then configure the `values.yaml`. You can find more about the policy profile configurations [here](../weave-policy-profile/).
+You should then configure the `values.yaml` to pull the policies from your repo into the cluster. This is done by configuring the `policySource` section. If your policy library repo is private, you will also need to reference the `Secret` that contains the repo credentials. This is usually the [secret](../cluster-management/getting-started.mdx#add-a-cluster-bootstrap-config) you created while bootstrapping flux on the management cluster and is copied to your leaf cluster during creation.
 
-<em><strong>Add or link to profile config</strong></em>
+<details><summary>Expand to see an example that creates a new git source</summary>
 
-```
+```yaml
 policySource:
-  url: URL of the repo where your policies exist
-  tag: tag name on the policies repo
-  path: Path to the policies dir - or a kustomization.yaml that selects some policies - in the repo
-  secretRef (if the repo is private): Name of the K8s secret with private repo credentials (leave empty if the repo is public)
+  enabled: true
+  url: ssh://git@github.com/weaveworks/policy-library # This should be the url of the forked repo
+  tag: v1.0.0
+  path: ./  # Could be a path to the policies dir or a kustomization.yaml file
+  secretRef: my-pat # the name of the secret containing the repo credentials
 ```
+</details>
+
+<details><summary>Expand to see an example that uses an existing git source</summary>
+
+```yaml
+policySource:
+  enabled: true
+  sourceRef: # Specify the name for an existing GitSource reference
+    kind: GitRepository
+    name: policy-library
+    namespace: flux-system
+```
+</details>
+
+You can find more about other policy profile configurations [here](../weave-policy-profile/).
 
 ## Policies in UI
 After the leaf cluster is provisioned and the profile is installed, you should now see the policies listed in the Policies tab in Weave GitOps UI.
@@ -67,12 +70,45 @@ Now you have a provisioned cluster with these policies enforced by the policy ag
 > By default, the policy profile is set up to enforce policies at deployment time using admission controller, which results in blocking any deployment that violates the enforced policies.
 
 ## Prevent Violating Changes
-Now let's try to deploy a Kubernetes deployment that violates one of the enforced policies. Let's deploy a deployment that has `spec.securityContext.allowPrivilegeEscalation` as `true`. This violates the `Allow Privilege Escalation` policy.
+Now let's try to deploy a Kubernetes deployment that violates the `Container Image Pull Policy` which is one of the enforced policies.
+This policy is violated when the container's `imagePullPolicy` is not set to `Always`.
 
-Once you apply it, the policy agent will deny this request and show a violation message.
+<details><summary>Expand for an example of a violating deployment</summary>
+
+  ```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  labels:
+    app: nginx
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.14.2
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80
+  ```
+
+</details>
+
+
+Once you apply it, the policy agent will deny this request and show a violation message, and accordingly the deployment will not be created.
 
 ## Violations Logs in UI
-You can view all the violation log in Weave GitOps UI to view all connected clusters policy violations, and where you can dive into the details of each violation. 
+You can go to the `Violations Log` in Weave GitOps UI to view the policy violations of all the connected clusters, and dive into the details of each violation.
+
+This view shows only the violations resulting from the [admission](./weave-policy-profile.mdx#admission) mode by configuring the [events sink](weave-policy-profile.mdx#policy-validation-sinks).
 
 <strong>Violations Log</strong>
 
