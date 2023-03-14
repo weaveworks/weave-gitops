@@ -5,47 +5,52 @@ hide_title: true
 
 import TierLabel from "../_components/TierLabel";
 
-# Commit/Build time checks  <TierLabel tiers="Enterprise" />
+# Commit/Build Time Checks  <TierLabel tiers="Enterprise" />
 
 ## Overview
-Weave GitOps Enterprise enable developers and operators to check policy violations early in their software development life cycle, specifically at commit and build time. Developers and operators can have Weave Policy Validator integrated in their CI tools to validate whether their code changes are violating any policies or not. 
+Weave GitOps Enterprise enables developers and operators to check policy violations early in their software development life cycle, specifically at commit and build time. Developers and operators can have Weave Policy Validator integrated in their CI tools to validate whether their code changes are violating any policies or not.
 
-Weave GitOps Enterprise offer a policy engine image that can be used to perform commit/build time checks.The image can be found on Docker Hub under the name: `weaveworks/weave-iac-validator:v1.1`. 
+Weave GitOps Enterprise offer a policy engine image that can be used to perform commit/build time checks.The image can be found on Docker Hub under the name: `weaveworks/weave-iac-validator:v1.1`.
 
----
-## Usage
-```bash
-USAGE:
-   main [global options] command [command options] [arguments...]
+<details><summary>Expand to view of the usage options</summary>
 
-VERSION:
-   0.0.1
+   ```bash
+  USAGE:
+    app [global options] command [command options] [arguments...]
 
-COMMANDS:
-   help, h  Shows a list of commands or help for one command
+  VERSION:
+    0.0.1
 
-GLOBAL OPTIONS:
-   --path value                       path to resources kustomization directory
-   --helm-values-file value           path to resources helm values file
-   --policies-path value              path to policies kustomization directory
-   --policies-helm-values-file value  path to policies helm values file
-   --git-repo-provider value          git repository provider [$WEAVE_REPO_PROVIDER]
-   --git-repo-url value               git repository url [$WEAVE_REPO_URL]
-   --git-repo-branch value            git repository branch [$WEAVE_REPO_BRANCH]
-   --git-repo-sha value               git repository commit sha [$WEAVE_REPO_SHA]
-   --git-repo-token value             git repository token [$WEAVE_REPO_TOKEN]
-   --sast value                       save result as gitlab sast format
-   --sarif value                      save result as sarif format
-   --json value                       save result as json format
-   --generate-git-report              generate git report if supported (default: false) [$WEAVE_GENERATE_GIT_PROVIDER_REPORT]
-   --remediate                        auto remediate resources if possible (default: false)
-   --no-exit-error                    exit with no error (default: false)
-   --help, -h                         show help (default: false)
-   --version, -v                      print the version (default: false)
-```
+  COMMANDS:
+    help, h  Shows a list of commands or help for one command
+
+  GLOBAL OPTIONS:
+    --path value                       path to scan resources from
+    --helm-values-file value           path to resources helm values file
+    --policies-path value              path to policies kustomization directory
+    --policies-helm-values-file value  path to policies helm values file
+    --git-repo-provider value          git repository provider
+    --git-repo-host value              git repository host
+    --git-repo-url value               git repository url
+    --git-repo-branch value            git repository branch
+    --git-repo-sha value               git repository commit sha
+    --git-repo-token value             git repository toke
+    --azure-project value              azure project name
+    --sast value                       save result as gitlab sast format
+    --sarif value                      save result as sarif format
+    --json value                       save result as json format
+    --generate-git-report              generate git report if supported (default: false)
+    --remediate                        auto remediate resources if possible (default: false)
+    --no-exit-error                    exit with no error (default: false)
+    --help, -h                         show help (default: false)
+    --version, -v                      print the version (default: false)
+   ```
+
+</details>
+
 ---
 ## Setup policies
-Policies can be helm chart, kustomize directory or just plain kubernetes yaml files.
+Policies can be a helm chart, kustomize directory or just plain kubernetes yaml files.
 
 Example of policies kustomize directory
 ```bash
@@ -65,7 +70,14 @@ resources:
 - privilege-escalation.yaml
 - privileged-mode.yaml
 ```
-
+---
+## Supported CI/CD
+- [x] [Github](#github)
+- [x] [Github Enterprise](#github)
+- [x] [Gitlab](#gitlab)
+- [x] [Bitbucket](#bitbucket)
+- [x] [Circle CI](#circle-ci)
+- [x] [Azure Devops](#azure-devops)
 ---
 ## Auto-Remediation
 Weave validator supports auto-remediation functionality which creates a pull request with suggested fixes to remediate the reported violations.
@@ -77,14 +89,14 @@ Supported in:
 
 To enable it you need to provide ```--remediate``` flag and ```--git-repo-token```.
 
->  The token must have the permission to create pull request
+>  The token must have the permission to create a pull request.
 
 ---
-## UseCase: Github 
+## UseCase: Github
 See how to setup the [Github Action](https://github.com/weaveworks/weave-action)
 
 ---
-## UseCase: Gitlab 
+## UseCase: Gitlab
 
 ```yaml
 weave:
@@ -123,13 +135,13 @@ upload_sast:
   stage: sast
   when: always
   script:
-  - echo "creating sast report" 
+  - echo "creating sast report"
   artifacts:
     reports:
       sast: sast.json
 ```
 ---
-## UseCase: Bitbucket 
+## UseCase: Bitbucket
 
 ```yaml
 pipelines:
@@ -155,7 +167,7 @@ pipelines:
 ```
 
 ---
-## UseCase: CircleCI 
+## UseCase: CircleCI
 
 ```yaml
 jobs:
