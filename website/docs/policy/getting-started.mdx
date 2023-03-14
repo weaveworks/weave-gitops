@@ -26,7 +26,7 @@ You need to have a running instance of Weave GitOps with at least one CAPI provi
 ### Policy Library
 For the policy agent to work, it will need a source for the [policies](./policy.mdx) that it will enforce in the cluster. Enterprise customers should request access to fork our policy library into their local repositories. Our policy library includes an extensive list of policy CRs that cover a multitude of security and compliance benchmarks.
 
-## Install the policy agent
+## Install the Policy Agent
 
 To install the policy agent on a leaf cluster, you should select the `weave-policy-agent` from the profiles dropdown in the `Create Cluster` page.
 
@@ -111,7 +111,9 @@ You can go to the `Violations Log` in Weave GitOps UI to view the policy violati
 This view shows only the violations resulting from the [admission](./weave-policy-profile.mdx#admission) mode by configuring the [events sink](weave-policy-profile.mdx#policy-validation-sinks).
 
 <strong>Violations Log</strong>
+
 ![Violations Logs](./img/violations-logs.png)
 
 <strong>Violations Log Details</strong>
+
 ![Violation Log Details](./img/violations-log-detail.png)
