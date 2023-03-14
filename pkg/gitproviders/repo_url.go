@@ -155,7 +155,7 @@ func normalizeRepoURLString(url string) (string, error) {
 	url = strings.TrimSuffix(url, "/")
 
 	if !strings.HasSuffix(url, ".git") {
-		url = url + ".git"
+		url += ".git"
 	}
 
 	u, err := parseGitURL(url)

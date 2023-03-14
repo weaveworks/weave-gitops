@@ -160,10 +160,10 @@ func openConfigFile(configPath string, shouldCreate bool) (*os.File, error) {
 
 	if shouldCreate {
 		flag = os.O_RDWR | os.O_CREATE
-		perm = 0666
+		perm = 0o666
 	} else {
 		flag = os.O_RDONLY
-		perm = 0444
+		perm = 0o444
 	}
 
 	configFile, err = os.OpenFile(configPath, flag, perm)

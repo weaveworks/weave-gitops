@@ -69,7 +69,7 @@ func findGitRepoDir() (string, error) {
 	return gitDir, nil
 }
 
-func GetRelativePathToRootDir(rootDir string, path string) (string, error) {
+func GetRelativePathToRootDir(rootDir, path string) (string, error) {
 	absGitDir, err := filepath.Abs(rootDir)
 
 	if err != nil { // not in a git repo
@@ -79,7 +79,7 @@ func GetRelativePathToRootDir(rootDir string, path string) (string, error) {
 	return filepath.Rel(absGitDir, path)
 }
 
-func NewPaths(specifiedTargetDir string, specifiedRootDir string) (*Paths, error) {
+func NewPaths(specifiedTargetDir, specifiedRootDir string) (*Paths, error) {
 	paths := Paths{}
 
 	gitRepoRoot, err := findGitRepoDir()

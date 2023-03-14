@@ -36,7 +36,7 @@ func makeVClusterHelmRepository(namespace string) *sourcev1.HelmRepository {
 	return helmRepository
 }
 
-func makeVClusterHelmRelease(name string, namespace string, fluxNamespace string, command string, portForwards []string, automationKind string) *helmv2.HelmRelease {
+func makeVClusterHelmRelease(name, namespace, fluxNamespace, command string, portForwards []string, automationKind string) *helmv2.HelmRelease {
 	annotations := []string{
 		`"run.weave.works/cli-version": "` + version.Version + `"`,
 		`"run.weave.works/command": "` + command + `"`,
@@ -108,7 +108,7 @@ func makeVClusterHelmRelease(name string, namespace string, fluxNamespace string
 	return helmRelease
 }
 
-func installVCluster(kubeClient client.Client, name string, namespace string, fluxNamespace string, portForwards []string, automationKind string) error {
+func installVCluster(kubeClient client.Client, name, namespace, fluxNamespace string, portForwards []string, automationKind string) error {
 	helmRepo := makeVClusterHelmRepository(namespace)
 
 	if err := kubeClient.Create(context.Background(), helmRepo); err != nil {
@@ -159,7 +159,7 @@ func installVCluster(kubeClient client.Client, name string, namespace string, fl
 	return nil
 }
 
-func uninstallVcluster(kubeClient client.Client, name string, namespace string) error {
+func uninstallVcluster(kubeClient client.Client, name, namespace string) error {
 	// clean up the session resources using functions from the session package
 	internalSession, err := session.Get(kubeClient, name, namespace)
 	if err != nil {

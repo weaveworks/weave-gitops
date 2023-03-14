@@ -98,15 +98,15 @@ func ListVClusters(context, name, namespace string) ([]VCluster, error) {
 	return vclusters, nil
 }
 
-func VClusterContextName(vClusterName string, vClusterNamespace string, currentContext string) string {
+func VClusterContextName(vClusterName, vClusterNamespace, currentContext string) string {
 	return "vcluster_" + vClusterName + "_" + vClusterNamespace + "_" + currentContext
 }
 
-func VClusterConnectBackgroundProxyName(vClusterName string, vClusterNamespace string, currentContext string) string {
+func VClusterConnectBackgroundProxyName(vClusterName, vClusterNamespace, currentContext string) string {
 	return VClusterContextName(vClusterName, vClusterNamespace, currentContext) + "_background_proxy"
 }
 
-func VClusterFromContext(originalContext string) (name string, namespace string, context string) {
+func VClusterFromContext(originalContext string) (name, namespace, context string) {
 	if !strings.HasPrefix(originalContext, "vcluster_") {
 		return "", "", ""
 	}
@@ -324,7 +324,7 @@ func GetPodStatus(pod *corev1.Pod) string {
 			continue
 		case container.State.Terminated != nil:
 			// initialization is failed
-			if len(container.State.Terminated.Reason) == 0 {
+			if container.State.Terminated.Reason == "" {
 				if container.State.Terminated.Signal != 0 {
 					reason = fmt.Sprintf("Init:Signal:%d", container.State.Terminated.Signal)
 				} else {
