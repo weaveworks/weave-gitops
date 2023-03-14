@@ -1056,7 +1056,7 @@ string
 </td>
 <td>
 <p>ID is the string representation of the Kubernetes resource object&rsquo;s metadata,
-in the format namespace_name_group_kind.</p>
+in the format &lsquo;namespace_name_group_kind&rsquo;.</p>
 </td>
 </tr>
 <tr>
