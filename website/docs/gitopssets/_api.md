@@ -32,7 +32,7 @@ that to generate data.</p>
 <td>
 <code>interval</code><br />
 <em>
-<a href="https://godoc.org/k8s.io/apimachinery/pkg/apis/meta/v1#Duration">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#duration-v1-meta">
 Kubernetes meta/v1.Duration
 </a>
 </em>
@@ -99,7 +99,9 @@ used to configure an authorization header.</p>
 <td>
 <code>body</code><br />
 <em>
-k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1.JSON
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#json-v1-apiextensions">
+Kubernetes pkg/apis/apiextensions/v1.JSON
+</a>
 </em>
 </td>
 <td>
@@ -532,7 +534,9 @@ when reconciling this Kustomization.</p>
 <td>
 <code>ReconcileRequestStatus</code><br />
 <em>
+<a href="https://godoc.org/github.com/fluxcd/pkg/apis/meta#ReconcileRequestStatus">
 github.com/fluxcd/pkg/apis/meta.ReconcileRequestStatus
+</a>
 </em>
 </td>
 <td>
@@ -558,7 +562,7 @@ object.</p>
 <td>
 <code>conditions</code><br />
 <em>
-<a href="https://godoc.org/k8s.io/apimachinery/pkg/apis/meta/v1#Condition">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#condition-v1-meta">
 []Kubernetes meta/v1.Condition
 </a>
 </em>
@@ -621,7 +625,9 @@ repeated for each of the matching elements in the JSONPath expression.
 <td>
 <code>content</code><br />
 <em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#rawextension-runtime-pkg">
 k8s.io/apimachinery/pkg/runtime.RawExtension
+</a>
 </em>
 </td>
 <td>
@@ -832,7 +838,9 @@ string
 <td>
 <code>elements</code><br />
 <em>
-[]k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1.JSON
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#json-v1-apiextensions">
+[]Kubernetes pkg/apis/apiextensions/v1.JSON
+</a>
 </em>
 </td>
 <td>
@@ -900,7 +908,7 @@ for relevant PRs.</p>
 <td>
 <code>interval</code><br />
 <em>
-<a href="https://godoc.org/k8s.io/apimachinery/pkg/apis/meta/v1#Duration">
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#duration-v1-meta">
 Kubernetes meta/v1.Duration
 </a>
 </em>
@@ -1048,7 +1056,7 @@ string
 </td>
 <td>
 <p>ID is the string representation of the Kubernetes resource object&rsquo;s metadata,
-in the format &lsquo;<namespace /><em><name /></em><group/>_<kind />&rsquo;.</p>
+in the format namespace_name_group_kind.</p>
 </td>
 </tr>
 <tr>
