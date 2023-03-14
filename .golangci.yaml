@@ -34,7 +34,7 @@ linters:
     #- tparallel
     - typecheck
     #- unconvert
-    #- unparam
+    - unparam
     - unused
     - varcheck
     #- whitespace

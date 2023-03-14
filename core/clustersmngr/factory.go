@@ -425,7 +425,7 @@ func (cf *clustersManager) getUserClientWithNamespaces(ctx context.Context, user
 		go func(cluster cluster.Cluster, pool ClientsPool, errChan chan error) {
 			defer wg.Done()
 
-			client, err := cf.getOrCreateClient(ctx, user, cluster)
+			client, err := cf.getOrCreateClient(user, cluster)
 			if err != nil {
 				errChan <- &ClientError{ClusterName: cluster.GetName(), Err: fmt.Errorf("failed creating user client to pool: %w", err)}
 				return
@@ -475,7 +475,7 @@ func (cf *clustersManager) GetImpersonatedClientForCluster(ctx context.Context, 
 		return nil, fmt.Errorf("cluster not found: %s", clusterName)
 	}
 
-	client, err := cf.getOrCreateClient(ctx, user, cl)
+	client, err := cf.getOrCreateClient(user, cl)
 	if err != nil {
 		return nil, fmt.Errorf("failed creating cluster client: %w", err)
 	}
@@ -520,7 +520,7 @@ func (cf *clustersManager) GetServerClient(ctx context.Context) (Client, error) 
 		go func(cluster cluster.Cluster, pool ClientsPool, errChan chan error) {
 			defer wg.Done()
 
-			client, err := cf.getOrCreateClient(ctx, nil, cluster)
+			client, err := cf.getOrCreateClient(nil, cluster)
 			if err != nil {
 				errChan <- &ClientError{ClusterName: cluster.GetName(), Err: fmt.Errorf("failed creating server client to pool: %w", err)}
 				return
@@ -598,7 +598,7 @@ func (cf *clustersManager) userNsList(ctx context.Context, user *auth.UserPrinci
 	return cf.GetUserNamespaces(user)
 }
 
-func (cf *clustersManager) getOrCreateClient(ctx context.Context, user *auth.UserPrincipal, cluster cluster.Cluster) (client.Client, error) {
+func (cf *clustersManager) getOrCreateClient(user *auth.UserPrincipal, cluster cluster.Cluster) (client.Client, error) {
 	isServer := false
 
 	if user == nil {

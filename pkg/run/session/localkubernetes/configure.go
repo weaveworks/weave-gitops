@@ -149,7 +149,7 @@ func CleanupBackgroundProxy(proxyName string, log log.Logger) error {
 	return nil
 }
 
-func cleanupProxy(vClusterName, vClusterNamespace string, rawConfig *clientcmdapi.Config, log log.Logger) error {
+func cleanupProxy(vClusterName, vClusterNamespace string, rawConfig *clientcmdapi.Config, log log.Logger) {
 	// construct proxy name
 	proxyName := find.VClusterContextName(vClusterName, vClusterNamespace, rawConfig.CurrentContext)
 
@@ -161,7 +161,6 @@ func cleanupProxy(vClusterName, vClusterNamespace string, rawConfig *clientcmdap
 	)
 	log.Actionf("Stopping docker proxy...")
 	_, _ = cmd.Output()
-	return nil
 }
 
 func kindProxy(vClusterName, vClusterNamespace string, rawConfig *clientcmdapi.Config, vRawConfig *clientcmdapi.Config, service *corev1.Service, localPort int, timeout time.Duration, log log.Logger) (string, error) {
@@ -387,10 +386,7 @@ func getServerFromExistingProxyContainer(vClusterName, vClusterNamespace string,
 	}
 
 	if containerExists(proxyName) {
-		err := cleanupProxy(vClusterName, vClusterNamespace, rawConfig, log)
-		if err != nil {
-			return "", err
-		}
+		cleanupProxy(vClusterName, vClusterNamespace, rawConfig, log)
 	}
 
 	return "", nil

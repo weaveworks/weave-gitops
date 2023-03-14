@@ -259,7 +259,7 @@ func (cs *coreServer) GetReconciledObjects(ctx context.Context, msg *pb.GetRecon
 						Version: gvk.Version,
 					})
 
-					if err := clustersClient.List(ctx, msg.ClusterName, &listResult, opts, client.InNamespace(namespace)); err != nil {
+					if err := clustersClient.List(ctx, clusterName, &listResult, opts, client.InNamespace(namespace)); err != nil {
 						if k8serrors.IsForbidden(err) {
 							cs.logger.V(logger.LogLevelDebug).Info(
 								"forbidden list request",
