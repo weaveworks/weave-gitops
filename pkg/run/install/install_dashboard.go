@@ -50,7 +50,7 @@ func ReadPassword(log logger.Logger) (string, error) {
 		return "", err
 	}
 
-	return password, nil
+	return strings.TrimSpace(password), nil
 }
 
 func GeneratePasswordHash(log logger.Logger, password string) (string, error) {
