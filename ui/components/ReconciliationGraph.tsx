@@ -2,7 +2,8 @@ import { Slider } from "@material-ui/core";
 import * as d3 from "d3";
 import * as React from "react";
 import styled from "styled-components";
-import { ReconciledObjectsAutomation } from "./AutomationDetail";
+import { useGetInventory } from "../hooks/imageautomation";
+import { Condition, ObjectRef } from "../lib/api/core/types.pb";
 import DirectedGraph from "./DirectedGraph";
 import Flex from "./Flex";
 import RequestStateHandler from "./RequestStateHandler";
@@ -10,7 +11,14 @@ import Spacer from "./Spacer";
 
 interface Props {
   className?: string;
-  reconciledObjectsAutomation: ReconciledObjectsAutomation;
+  kind?: string;
+  name?: string;
+  namespace?: string;
+  clusterName?: string;
+  withChildren?: boolean;
+  source?: ObjectRef;
+  suspended?: boolean;
+  conditions: Condition[];
 }
 
 const SliderFlex = styled(Flex)`
@@ -34,20 +42,23 @@ const GraphDiv = styled.div`
 
 function ReconciliationGraph({
   className,
-  reconciledObjectsAutomation,
+  kind,
+  name,
+  namespace,
+  clusterName,
+  source,
+  suspended,
+  conditions,
 }: Props) {
-  const {
+  const { data, isLoading, error } = useGetInventory(
+    kind,
     name,
-    namespace,
-    suspended,
-    conditions,
-    type,
     clusterName,
-    objects,
-    isLoading,
-    error,
-    source,
-  } = reconciledObjectsAutomation;
+    namespace,
+    true,
+    {}
+  );
+console.log(data?.objects);
 
   //add extra nodes
   const secondNode = {
@@ -55,9 +66,9 @@ function ReconciliationGraph({
     namespace,
     suspended,
     conditions,
-    type,
+    kind,
     clusterName,
-    children: objects,
+    children: data?.objects,
     isCurrentNode: true,
   };
 
@@ -75,7 +86,7 @@ function ReconciliationGraph({
     horizontalSeparation: 100,
   };
   //use d3 to create tree structure
-  const root = d3.hierarchy(rootNode, (d) => d.children);
+  const root = d3.hierarchy(data?.objects, (d) => d?.children);
   const makeTree = d3
     .tree()
     .nodeSize([

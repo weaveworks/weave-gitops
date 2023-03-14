@@ -4,7 +4,7 @@ import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
 import { AppContext } from "../contexts/AppContext";
 import { useSyncFluxObject } from "../hooks/automations";
-import { useGetReconciledTree, useToggleSuspend } from "../hooks/flux";
+import { useToggleSuspend } from "../hooks/flux";
 import { Condition, Kind, ObjectRef } from "../lib/api/core/types.pb";
 import { Automation, FluxObject } from "../lib/objects";
 import { RequestError } from "../lib/types";
@@ -80,36 +80,6 @@ function AutomationDetail({
     automation.type === Kind.HelmRelease ? "helmrelease" : "kustomizations"
   );
 
-  //grab data
-  const {
-    data: objects,
-    error,
-    isLoading,
-  } = automation
-    ? useGetReconciledTree(
-        automation.name,
-        automation.namespace,
-        Kind[automation.type],
-        automation.inventory,
-        automation.clusterName
-      )
-    : { data: [], error: null, isLoading: false };
-  //add extra nodes
-
-  const reconciledObjectsAutomation: ReconciledObjectsAutomation = {
-    objects,
-    error,
-    isLoading,
-    source: automation.sourceRef,
-    name: automation.name,
-    namespace: automation.namespace,
-    suspended: automation.suspended,
-    conditions: automation.conditions,
-    type: automation.type,
-    clusterName: automation.clusterName,
-  };
-
-  // default routes
   const defaultTabs: Array<routeTab> = [
     {
       name: "Details",
@@ -124,7 +94,10 @@ function AutomationDetail({
             />
             <ReconciledObjectsTable
               className={className}
-              reconciledObjectsAutomation={reconciledObjectsAutomation}
+              name={automation.name}
+              namespace={automation.namespace}
+              clusterName={automation.clusterName}
+              kind={Kind[automation.type]}
             />
           </>
         );
@@ -156,7 +129,13 @@ function AutomationDetail({
         return (
           <ReconciliationGraph
             className={className}
-            reconciledObjectsAutomation={reconciledObjectsAutomation}
+            name={automation.name}
+            namespace={automation.namespace}
+            clusterName={automation.clusterName}
+            kind={Kind[automation.type]}
+            source={automation.sourceRef}
+            suspended={automation.suspended}
+            conditions={automation.conditions}
           />
         );
       },

@@ -1,26 +1,41 @@
 import * as React from "react";
 import styled from "styled-components";
 import { AppContext } from "../contexts/AppContext";
-import { ReconciledObjectsAutomation } from "./AutomationDetail";
+import { useGetInventory } from "../hooks/imageautomation";
+import { FluxObject } from "../lib/objects";
 import { filterByStatusCallback, filterConfig } from "./DataTable";
 import FluxObjectsTable from "./FluxObjectsTable";
 import RequestStateHandler from "./RequestStateHandler";
 
 interface Props {
   className?: string;
-  reconciledObjectsAutomation: ReconciledObjectsAutomation;
+  kind?: string;
+  name?: string;
+  namespace?: string;
+  clusterName?: string;
+  withChildren?: boolean;
 }
 
 function ReconciledObjectsTable({
   className,
-  reconciledObjectsAutomation,
+  kind,
+  name,
+  namespace,
+  clusterName,
 }: Props) {
-  const { objects, isLoading, error } = reconciledObjectsAutomation;
+  const { data, isLoading, error } = useGetInventory(
+    kind,
+    name,
+    clusterName,
+    namespace,
+    false,
+    {}
+  );
 
   const initialFilterState = {
-    ...filterConfig(objects, "type"),
-    ...filterConfig(objects, "namespace"),
-    ...filterConfig(objects, "status", filterByStatusCallback),
+    ...filterConfig(data?.objects, "type"),
+    ...filterConfig(data?.objects, "namespace"),
+    ...filterConfig(data?.objects, "status", filterByStatusCallback),
   };
 
   const { setNodeYaml } = React.useContext(AppContext);
@@ -29,7 +44,7 @@ function ReconciledObjectsTable({
     <RequestStateHandler loading={isLoading} error={error}>
       <FluxObjectsTable
         className={className}
-        objects={objects}
+        objects={data?.objects as FluxObject[]}
         onClick={setNodeYaml}
         initialFilterState={initialFilterState}
       />
