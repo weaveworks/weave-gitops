@@ -1,0 +1,104 @@
+---
+title: Matrix generator
+hide_title: true
+---
+
+import TierLabel from "../_components/TierLabel";
+
+# Matrix generator <TierLabel tiers="enterprise" />
+
+### Example
+
+The `matrix` generator doesn't generate resources by itself. It combines the results of
+generation from other generators e.g.:
+
+```yaml
+apiVersion: templates.weave.works/v1alpha1
+kind: GitOpsSet
+metadata:
+  name: matrix-sample
+spec:
+  generators:
+    - matrix:
+        generators:
+          - gitRepository:
+              repositoryRef: go-demo-repo
+              files:
+                - path: examples/generation/dev.yaml
+                - path: examples/generation/production.yaml
+                - path: examples/generation/staging.yaml
+          - list:
+              elements:
+                - cluster: dev-cluster
+                  version: 1.0.0
+```
+
+Given the files mentioned all have the following structure:
+
+```yaml title=examples/generation/dev.yaml
+env: dev
+team: developers
+```
+
+This will result in three sets of generated parameters, which are a combination of the maps in the files in the gitRepository, and the elements in the list generator, this can result in a combinatorial explosion of resources being created in your cluster.
+
+```yaml
+- env: dev
+  team: developers
+  cluster: dev-cluster
+  version: 1.0.0
+- env: staging
+  team: staging-team
+  cluster: dev-cluster
+  version: 1.0.0
+- env: production
+  team: production-team
+  cluster: dev-cluster
+  version: 1.0.0
+```
+
+These can be referenced in the templates, note that all keys in the merged generators from the Matrix are contained in the `element` scope.
+
+```yaml
+apiVersion: templates.weave.works/v1alpha1
+kind: GitOpsSet
+metadata:
+  name: matrix-sample
+spec:
+  generators:
+    - matrix:
+        generators:
+          - gitRepository:
+              repositoryRef: go-demo-repo
+              files:
+                - path: examples/generation/dev.yaml
+                - path: examples/generation/production.yaml
+                - path: examples/generation/staging.yaml
+          - list:
+              elements:
+                - cluster: dev-cluster
+                  version: 1.0.0
+  templates:
+    - content:
+        kind: Kustomization
+        apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+        metadata:
+          name: "{{ .Element.env }}-demo"
+          labels:
+            app.kubernetes.io/name: go-demo
+            app.kubernetes.io/instance: "{{ .Element.env }}"
+            com.example/team: "{{ .Element.team }}"
+            com.example/cluster: "{{ .Element.cluster }}"
+            com.example/version: "{{ .Element.version }}"
+        spec:
+          interval: 5m
+          path: "./examples/kustomize/environments/{{ .Element.env }}"
+          prune: true
+          sourceRef:
+            kind: GitRepository
+            name: go-demo-repo
+```
+
+import RBACWarning from './_rbac_warning.mdx';
+
+<RBACWarning />
