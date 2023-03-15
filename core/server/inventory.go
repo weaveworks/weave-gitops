@@ -36,7 +36,7 @@ func (cs *coreServer) GetInventory(ctx context.Context, msg *pb.GetInventoryRequ
 	}, nil
 }
 
-func getChildren(ctx context.Context, k8sClient client.Client, parentObj unstructured.Unstructured) ([]*pb.InventoryEntry, error) {
+func getChildren(ctx context.Context, k8sClient client.Client, parentObj unstructured.Unstructured, ns string) ([]*pb.InventoryEntry, error) {
 	listResult := unstructured.UnstructuredList{}
 
 	switch parentObj.GetObjectKind().GroupVersionKind().Kind {
@@ -56,7 +56,7 @@ func getChildren(ctx context.Context, k8sClient client.Client, parentObj unstruc
 		return []*pb.InventoryEntry{}, nil
 	}
 
-	if err := k8sClient.List(ctx, &listResult); err != nil {
+	if err := k8sClient.List(ctx, &listResult, client.InNamespace(ns)); err != nil {
 		return nil, fmt.Errorf("could not get unstructured object: %s", err)
 	}
 
@@ -79,7 +79,7 @@ func getChildren(ctx context.Context, k8sClient client.Client, parentObj unstruc
 	children := []*pb.InventoryEntry{}
 
 	for _, c := range unstructuredChildren {
-		entry, err := unstructuredToInventoryEntry(ctx, k8sClient, c, true)
+		entry, err := unstructuredToInventoryEntry(ctx, k8sClient, c, ns, true)
 		if err != nil {
 			return nil, err
 		}
@@ -90,7 +90,7 @@ func getChildren(ctx context.Context, k8sClient client.Client, parentObj unstruc
 	return children, nil
 }
 
-func unstructuredToInventoryEntry(ctx context.Context, k8sClient client.Client, obj unstructured.Unstructured, withChildren bool) (*pb.InventoryEntry, error) {
+func unstructuredToInventoryEntry(ctx context.Context, k8sClient client.Client, obj unstructured.Unstructured, ns string, withChildren bool) (*pb.InventoryEntry, error) {
 	bytes, err := obj.MarshalJSON()
 	if err != nil {
 		return nil, err
@@ -99,7 +99,7 @@ func unstructuredToInventoryEntry(ctx context.Context, k8sClient client.Client, 
 	children := []*pb.InventoryEntry{}
 
 	if withChildren {
-		children, err = getChildren(ctx, k8sClient, obj)
+		children, err = getChildren(ctx, k8sClient, obj, ns)
 		if err != nil {
 			return nil, err
 		}
@@ -151,7 +151,7 @@ func (cs *coreServer) getKustomizationInventory(ctx context.Context, k8sClient c
 				return
 			}
 
-			entry, err := unstructuredToInventoryEntry(ctx, k8sClient, obj, withChildren)
+			entry, err := unstructuredToInventoryEntry(ctx, k8sClient, obj, namespace, withChildren)
 			if err != nil {
 				cs.logger.Error(err, "failed converting inventory entry", "entry", ref)
 				return
