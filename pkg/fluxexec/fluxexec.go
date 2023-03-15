@@ -17,7 +17,7 @@ type Flux struct {
 	logger logr.Logger
 }
 
-func NewFlux(workingDir string, execPath string) (*Flux, error) {
+func NewFlux(workingDir, execPath string) (*Flux, error) {
 	if workingDir == "" {
 		return nil, fmt.Errorf("flux cannot be initialised with empty workdir")
 	}

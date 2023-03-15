@@ -164,7 +164,7 @@ var _ = Describe("Read", func() {
 		_, err = gitClient.Init(dir, "https://github.com/github/gitignore", "master")
 		filePath := "/test.txt"
 		content := []byte("testing")
-		err := os.WriteFile(dir+filePath, content, 0644)
+		err := os.WriteFile(dir+filePath, content, 0o644)
 		Expect(err).ShouldNot(HaveOccurred())
 		fileContent, err := gitClient.Read(filePath)
 		Expect(err).ShouldNot(HaveOccurred())
@@ -175,7 +175,7 @@ var _ = Describe("Read", func() {
 		_, err = gitClient.Init(dir, "https://github.com/github/gitignore", "master")
 		filePath := "/test.txt"
 		_, err := gitClient.Read(filePath)
-		Expect(fmt.Sprint(err)).To(MatchRegexp("failed to open file /test.txt"))
+		Expect(err.Error()).To(MatchRegexp("failed to open file /test.txt"))
 	})
 
 	It("fails when the repository has not been initialized", func() {

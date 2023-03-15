@@ -85,7 +85,6 @@ func TestClientConfigWithUser(t *testing.T) {
 			if tt.expectedErr != nil {
 				g.Expect(err).To(Equal(tt.expectedErr))
 				g.Expect(res).To(BeNil())
-
 			} else {
 				g.Expect(err).To(BeNil())
 
@@ -93,7 +92,6 @@ func TestClientConfigWithUser(t *testing.T) {
 					g.Expect(res.Impersonate.UserName).To(Equal(tt.expectedImpersonation.UserName))
 					g.Expect(res.Impersonate.Groups).To(Equal(tt.expectedImpersonation.Groups))
 					g.Expect(res.BearerToken).To(Equal(k8sEnv.Rest.BearerToken))
-
 				} else if tt.expectedToken != "" {
 					g.Expect(res.BearerToken).To(Equal(tt.expectedToken))
 					g.Expect(rest.ImpersonationConfig{}).To(Equal(res.Impersonate))

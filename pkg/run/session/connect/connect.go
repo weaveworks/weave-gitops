@@ -153,7 +153,7 @@ func (conn *Connection) Connect(vclusterName string, command []string) error {
 			return err
 		}
 	} else {
-		err = os.WriteFile(conn.KubeConfig, out, 0666)
+		err = os.WriteFile(conn.KubeConfig, out, 0o666)
 		if err != nil {
 			return errors.Wrap(err, "write kube config")
 		}
@@ -242,7 +242,7 @@ func (conn *Connection) executeCommand(vKubeConfig api.Config, command []string)
 	case err := <-commandErrChan:
 		if exitError, ok := err.(*exec.ExitError); ok {
 			conn.Log.Failuref("Error executing command: %v", err)
-			os.Exit(exitError.ExitCode())
+			os.Exit(exitError.ExitCode()) //nolint:gocritic
 		}
 
 		return err

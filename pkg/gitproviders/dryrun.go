@@ -50,7 +50,7 @@ func (p *dryrunProvider) CreatePullRequest(_ context.Context, repoURL RepoURL, p
 	return nil, nil
 }
 
-func (p *dryrunProvider) GetCommits(_ context.Context, repoURL RepoURL, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error) {
+func (p *dryrunProvider) GetCommits(_ context.Context, repoURL RepoURL, targetBranch string, pageSize, pageToken int) ([]gitprovider.Commit, error) {
 	return []gitprovider.Commit{}, nil
 }
 

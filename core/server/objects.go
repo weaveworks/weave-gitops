@@ -187,7 +187,7 @@ func parseSessionInfo(unstructuredObj unstructured.Unstructured) (string, string
 	return clusterName, kind, nil
 }
 
-func (cs *coreServer) sessionObjectsCreated(ctx context.Context, clusterName string, objectNamespace string, automationKind string) (bool, error) {
+func (cs *coreServer) sessionObjectsCreated(ctx context.Context, clusterName, objectNamespace, automationKind string) (bool, error) {
 	automationName := constants.RunDevHelmName
 
 	if automationKind == kustomizev1.KustomizationKind {

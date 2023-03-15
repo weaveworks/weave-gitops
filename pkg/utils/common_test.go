@@ -103,7 +103,7 @@ error occurred some error, retrying in 1s
 			Expect(err).NotTo(HaveOccurred())
 
 			path := filepath.Join(dir, "ingress.yaml")
-			Expect(os.WriteFile(path, configFile, 0666)).To(Succeed())
+			Expect(os.WriteFile(path, configFile, 0o666)).To(Succeed())
 
 			Expect(FindCoreConfig(dir)).To(Equal(WalkResult{Status: Missing, Path: ""}))
 		})
@@ -115,7 +115,7 @@ error occurred some error, retrying in 1s
 			// Add an extraneous entry
 			configFile = append(configFile, []byte("---\napiVersion: v1\nkind: Namespace\nmetadata:\n  name: my-ns\n")...)
 			path := filepath.Join(dir, "config.yaml")
-			Expect(os.WriteFile(path, configFile, 0666)).To(Succeed())
+			Expect(os.WriteFile(path, configFile, 0o666)).To(Succeed())
 
 			Expect(FindCoreConfig(dir)).To(Equal(WalkResult{Status: Embedded, Path: path}))
 		})
@@ -125,7 +125,7 @@ error occurred some error, retrying in 1s
 			Expect(err).NotTo(HaveOccurred())
 
 			path := filepath.Join(dir, "config.yaml")
-			Expect(os.WriteFile(path, partialConfigFile, 0666)).To(Succeed())
+			Expect(os.WriteFile(path, partialConfigFile, 0o666)).To(Succeed())
 
 			Expect(FindCoreConfig(dir)).To(Equal(WalkResult{Status: Embedded, Path: path}))
 		})
@@ -134,9 +134,9 @@ error occurred some error, retrying in 1s
 			testConfigFile, err := os.ReadFile("testdata/config.yaml")
 			Expect(err).NotTo(HaveOccurred())
 
-			Expect(os.MkdirAll(filepath.Join(dir, "nested"), 0700)).Should(Succeed())
+			Expect(os.MkdirAll(filepath.Join(dir, "nested"), 0o700)).Should(Succeed())
 			renamedConfigFile := filepath.Join(dir, "nested", "sprug.yaml")
-			Expect(os.WriteFile(renamedConfigFile, testConfigFile, 0666)).To(Succeed())
+			Expect(os.WriteFile(renamedConfigFile, testConfigFile, 0o666)).To(Succeed())
 
 			Expect(FindCoreConfig(dir)).To(Equal(WalkResult{Status: Valid, Path: renamedConfigFile}))
 		})

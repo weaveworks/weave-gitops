@@ -85,7 +85,7 @@ type MockProductHTTPClient struct {
 }
 
 func (m *MockProductHTTPClient) Get(url string) (resp *http.Response, err error) {
-	var archivePattern = regexp.MustCompile(`https://github.com/fluxcd/flux2/releases/download/v0.32.0/flux_0.32.0_(linux|darwin)_(amd64|arm64).tar.gz`)
+	var archivePattern = regexp.MustCompile(`https://github\.com/fluxcd/flux2/releases/download/v0.32.0/flux_0.32.0_(linux|darwin)_(amd64|arm64).tar.gz`)
 	if archivePattern.MatchString(url) {
 		body, err := createMockFluxArchive([]byte("flux"))
 

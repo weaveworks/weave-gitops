@@ -112,7 +112,7 @@ func makeFluentBitHelmRepository(namespace string) *sourcev1.HelmRepository {
 	return helmRepository
 }
 
-func makeFluentBitHelmRelease(name string, fluxNamespace string, targetNamespace string, bucketName string, bucketServerPort int32) (*helmv2.HelmRelease, error) {
+func makeFluentBitHelmRelease(name, fluxNamespace, targetNamespace, bucketName string, bucketServerPort int32) (*helmv2.HelmRelease, error) {
 	configOutputs, err := makeConfigOutputs(bucketName, bucketServerPort)
 	if err != nil {
 		return nil, err
@@ -182,7 +182,7 @@ func makeFluentBitHelmRelease(name string, fluxNamespace string, targetNamespace
 	return &obj, nil
 }
 
-func UninstallFluentBit(ctx context.Context, log logger.Logger, kubeClient client.Client, hrNamespace string, hrName string) error {
+func UninstallFluentBit(ctx context.Context, log logger.Logger, kubeClient client.Client, hrNamespace, hrName string) error {
 	hr := &helmv2.HelmRelease{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      hrName,
@@ -221,7 +221,7 @@ func UninstallFluentBit(ctx context.Context, log logger.Logger, kubeClient clien
 	return nil
 }
 
-func InstallFluentBit(ctx context.Context, log logger.Logger, kubeClient client.Client, fluxNamespace string, targetNamespace string, name string, bucketName string, bucketServerPort int32) error {
+func InstallFluentBit(ctx context.Context, log logger.Logger, kubeClient client.Client, fluxNamespace, targetNamespace, name, bucketName string, bucketServerPort int32) error {
 	helmRepo := makeFluentBitHelmRepository(fluxNamespace)
 
 	log.Actionf("creating HelmRepository %s/%s", helmRepo.Namespace, helmRepo.Name)
@@ -261,7 +261,6 @@ func InstallFluentBit(ctx context.Context, log logger.Logger, kubeClient client.
 				Name:      name,
 				Namespace: targetNamespace,
 			}, &instance); err != nil {
-
 			if apierrors.IsNotFound(err) {
 				return false, nil
 			} else {

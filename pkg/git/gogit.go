@@ -88,7 +88,7 @@ func (g *GoGit) Init(path, url, branch string) (bool, error) {
 
 	branchRef := plumbing.NewBranchReferenceName(branch)
 
-	if err = r.CreateBranch(&config.Branch{
+	if err := r.CreateBranch(&config.Branch{
 		Name:   branch,
 		Remote: gogit.DefaultRemoteName,
 		Merge:  branchRef,
@@ -99,7 +99,7 @@ func (g *GoGit) Init(path, url, branch string) (bool, error) {
 	// overwrite this by setting the reference of the Storer to a new
 	// symbolic reference (as there are no commits yet) that points
 	// the HEAD to our new branch.
-	if err = r.Storer.SetReference(plumbing.NewSymbolicReference(plumbing.HEAD, branchRef)); err != nil {
+	if err := r.Storer.SetReference(plumbing.NewSymbolicReference(plumbing.HEAD, branchRef)); err != nil {
 		return false, err
 	}
 
@@ -344,7 +344,7 @@ func (g *GoGit) Head() (string, error) {
 }
 
 // GetRemoteURL returns the url of the first listed remote server
-func (g *GoGit) GetRemoteURL(dir string, remoteName string) (string, error) {
+func (g *GoGit) GetRemoteURL(dir, remoteName string) (string, error) {
 	repo, err := g.Open(dir)
 	if err != nil {
 		return "", fmt.Errorf("failed to open repository: %s: %w", dir, err)
@@ -363,7 +363,7 @@ func (g *GoGit) GetRemoteURL(dir string, remoteName string) (string, error) {
 	return urls[0], nil
 }
 
-func (g *GoGit) ValidateAccess(ctx context.Context, url string, branch string) error {
+func (g *GoGit) ValidateAccess(ctx context.Context, url, branch string) error {
 	path, err := os.MkdirTemp("", "temp-src")
 	if err != nil {
 		return fmt.Errorf("error creating temporary folder %w", err)
