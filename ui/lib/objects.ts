@@ -379,29 +379,47 @@ export type Toleration = {
   tolerationSeconds: number;
 };
 
+export type Container = {
+  name: string;
+  image: string;
+  args: string[];
+  ports: any[];
+  enVar: string[];
+  //status?
+};
+
 export class Pod extends FluxObject {
-  //Controlled By:
-  //Node: scheduling.nodeSelector, scheduling.nodeName?
   get podIP(): string {
-    return this.obj.status?.podIP || "";
+    return this.obj.status?.podIP || "-";
   }
   get podIPs(): string[] {
-    return this.obj.status?.podIPs || [];
+    return this.obj.status?.podIPs || ["-"];
   }
   get priorityClass(): string {
-    return this.obj.spec?.scheduling?.priorityClassName || "";
+    return this.obj.spec?.priorityClassName || "-";
   }
   get qosClass(): string {
-    return this.obj.status?.qosClass || "";
+    return this.obj.status?.qosClass || "-";
   }
   get tolerations(): Toleration[] {
-    return this.obj.spec?.scheduling?.tolerations || [];
+    return this.obj.spec?.tolerations || [];
   }
-  //get secrets: containers.imagePullSecrets?
-  // get containers(): Container[] {
-  // return this.obj.spec?.containers?.containers - what about initContainers or ephemeralContainers
-  // }
-  //VOLUME
+  get containers(): Container[] {
+    return this.obj.spec?.containers || [];
+  }
+  get volumes(): { name: string; type: string }[] {
+    let volumeObjs = [];
+    const volumes = this.obj.spec?.volumes || [];
+    volumes.forEach((volume) => {
+      const name = volume.name || "-";
+      let type = "-";
+      Object.keys(volume).forEach((key) => {
+        if (key !== "name" && key !== "emptyDir") type = key;
+      });
+      volumeObjs.push({ name, type });
+    });
+    return volumeObjs;
+  }
 }
 
 export function makeObjectId(namespace?: string, name?: string) {
