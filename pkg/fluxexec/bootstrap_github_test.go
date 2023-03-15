@@ -2,6 +2,7 @@ package fluxexec
 
 import (
 	"context"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -12,8 +13,7 @@ var _ = Describe("bootstrapGitHubCmd", func() {
 			flux, err := NewFlux(".", "/path/to/flux")
 			Expect(err).To(BeNil())
 
-			initCmd, err := flux.bootstrapGitHubCmd(context.TODO())
-			Expect(err).To(BeNil())
+			initCmd := flux.bootstrapGitHubCmd(context.TODO())
 			Expect(initCmd.Args[1:]).To(Equal([]string{
 				"bootstrap",
 				"github",
@@ -24,12 +24,11 @@ var _ = Describe("bootstrapGitHubCmd", func() {
 			flux, err := NewFlux(".", "/path/to/flux")
 			Expect(err).To(BeNil())
 
-			initCmd, err := flux.bootstrapGitHubCmd(context.TODO(),
+			initCmd := flux.bootstrapGitHubCmd(context.TODO(),
 				WithBootstrapOptions(
 					TokenAuth(true),
 					NetworkPolicy(false)),
 				Private(false))
-			Expect(err).To(BeNil())
 			Expect(initCmd.Args[1:]).To(Equal([]string{
 				"bootstrap",
 				"github",
@@ -43,7 +42,7 @@ var _ = Describe("bootstrapGitHubCmd", func() {
 			flux, err := NewFlux(".", "/path/to/flux")
 			Expect(err).To(BeNil())
 
-			initCmd, err := flux.bootstrapGitHubCmd(context.TODO(),
+			initCmd := flux.bootstrapGitHubCmd(context.TODO(),
 				WithGlobalOptions(
 					Namespace("weave-gitops-system"),
 				),
@@ -52,7 +51,6 @@ var _ = Describe("bootstrapGitHubCmd", func() {
 					SecretName("weave-gitops-system"),
 				),
 				Private(false))
-			Expect(err).To(BeNil())
 			Expect(initCmd.Args[1:]).To(Equal([]string{
 				"bootstrap",
 				"github",

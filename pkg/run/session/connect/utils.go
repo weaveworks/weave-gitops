@@ -43,7 +43,7 @@ var SortPodsByNewest = func(pods []corev1.Pod, i, j int) bool {
 // can be eventually removed in the future.
 //
 // This is retried until the kube config is successfully retrieve, or until 10 minute timeout is reached.
-func GetKubeConfig(ctx context.Context, kubeClient *kubernetes.Clientset, vclusterName string, namespace string, log log.Logger) (*api.Config, error) {
+func GetKubeConfig(ctx context.Context, kubeClient *kubernetes.Clientset, vclusterName, namespace string, log log.Logger) (*api.Config, error) {
 	var kubeConfig *api.Config
 
 	printedWaiting := false

@@ -10,7 +10,7 @@ import (
 	"github.com/onsi/gomega/types"
 )
 
-func MatchGRPCError(code interface{}, err interface{}) types.GomegaMatcher {
+func MatchGRPCError(code, err interface{}) types.GomegaMatcher {
 	return &grpcErrorMatcher{
 		codeExpected: code,
 		errExpected:  err,

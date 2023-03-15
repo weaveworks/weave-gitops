@@ -32,7 +32,7 @@ func (p orgGitProvider) RepositoryExists(ctx context.Context, repoURL RepoURL) (
 }
 
 func (p orgGitProvider) DeployKeyExists(ctx context.Context, repoURL RepoURL) (bool, error) {
-	orgRepo, err := p.getOrgRepo(ctx, repoURL)
+	orgRepo, err := p.getOrgRepo(repoURL)
 	if err != nil {
 		return false, fmt.Errorf("error getting org repo reference for owner %s, repo %s, %s", repoURL.Owner(), repoURL.RepositoryName(), err)
 	}
@@ -41,7 +41,7 @@ func (p orgGitProvider) DeployKeyExists(ctx context.Context, repoURL RepoURL) (b
 }
 
 func (p orgGitProvider) UploadDeployKey(ctx context.Context, repoURL RepoURL, deployKey []byte) error {
-	orgRepo, err := p.getOrgRepo(ctx, repoURL)
+	orgRepo, err := p.getOrgRepo(repoURL)
 	if err != nil {
 		return fmt.Errorf("error getting org repo reference for owner %s, repo %s, %w", repoURL.Owner(), repoURL.RepositoryName(), err)
 	}
@@ -56,7 +56,7 @@ func (p orgGitProvider) UploadDeployKey(ctx context.Context, repoURL RepoURL, de
 }
 
 func (p orgGitProvider) GetDefaultBranch(ctx context.Context, repoURL RepoURL) (string, error) {
-	repoInfoRef, err := p.getRepoInfoFromURL(ctx, repoURL)
+	repoInfoRef, err := p.getRepoInfoFromURL(repoURL)
 	if err != nil {
 		return "main", err
 	}
@@ -65,7 +65,7 @@ func (p orgGitProvider) GetDefaultBranch(ctx context.Context, repoURL RepoURL) (
 }
 
 func (p orgGitProvider) GetRepoVisibility(ctx context.Context, repoURL RepoURL) (*gitprovider.RepositoryVisibility, error) {
-	repoInfoRef, err := p.getRepoInfoFromURL(ctx, repoURL)
+	repoInfoRef, err := p.getRepoInfoFromURL(repoURL)
 	if err != nil {
 		return nil, err
 	}
@@ -73,8 +73,8 @@ func (p orgGitProvider) GetRepoVisibility(ctx context.Context, repoURL RepoURL) 
 	return repoInfoRef.Visibility, nil
 }
 
-func (p orgGitProvider) getRepoInfoFromURL(ctx context.Context, repoURL RepoURL) (*gitprovider.RepositoryInfo, error) {
-	repoInfo, err := p.getRepoInfo(ctx, repoURL)
+func (p orgGitProvider) getRepoInfoFromURL(repoURL RepoURL) (*gitprovider.RepositoryInfo, error) {
+	repoInfo, err := p.getRepoInfo(repoURL)
 	if err != nil {
 		return nil, err
 	}
@@ -82,8 +82,8 @@ func (p orgGitProvider) getRepoInfoFromURL(ctx context.Context, repoURL RepoURL)
 	return repoInfo, nil
 }
 
-func (p orgGitProvider) getRepoInfo(ctx context.Context, repoURL RepoURL) (*gitprovider.RepositoryInfo, error) {
-	repo, err := p.getOrgRepo(ctx, repoURL)
+func (p orgGitProvider) getRepoInfo(repoURL RepoURL) (*gitprovider.RepositoryInfo, error) {
+	repo, err := p.getOrgRepo(repoURL)
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +93,7 @@ func (p orgGitProvider) getRepoInfo(ctx context.Context, repoURL RepoURL) (*gitp
 	return &info, nil
 }
 
-func (p orgGitProvider) getOrgRepo(ctx context.Context, repoURL RepoURL) (gitprovider.OrgRepository, error) {
+func (p orgGitProvider) getOrgRepo(repoURL RepoURL) (gitprovider.OrgRepository, error) {
 	orgRepoRef := NewOrgRepositoryRef(p.domain, repoURL.Owner(), repoURL.RepositoryName())
 
 	repo, err := p.provider.OrgRepositories().Get(context.Background(), orgRepoRef)
@@ -105,7 +105,7 @@ func (p orgGitProvider) getOrgRepo(ctx context.Context, repoURL RepoURL) (gitpro
 }
 
 func (p orgGitProvider) CreatePullRequest(ctx context.Context, repoURL RepoURL, prInfo PullRequestInfo) (gitprovider.PullRequest, error) {
-	orgRepo, err := p.getOrgRepo(ctx, repoURL)
+	orgRepo, err := p.getOrgRepo(repoURL)
 	if err != nil {
 		return nil, fmt.Errorf("error getting org repo for owner %s, repo %s, %w", repoURL.Owner(), repoURL.RepositoryName(), err)
 	}
@@ -113,8 +113,8 @@ func (p orgGitProvider) CreatePullRequest(ctx context.Context, repoURL RepoURL, 
 	return createPullRequest(ctx, orgRepo, prInfo)
 }
 
-func (p orgGitProvider) GetCommits(ctx context.Context, repoURL RepoURL, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error) {
-	orgRepo, err := p.getOrgRepo(ctx, repoURL)
+func (p orgGitProvider) GetCommits(ctx context.Context, repoURL RepoURL, targetBranch string, pageSize, pageToken int) ([]gitprovider.Commit, error) {
+	orgRepo, err := p.getOrgRepo(repoURL)
 	if err != nil {
 		return nil, fmt.Errorf("error getting repo for owner %s, repo %s, %w", repoURL.Owner(), repoURL.RepositoryName(), err)
 	}
@@ -129,7 +129,7 @@ func (p orgGitProvider) GetProviderDomain() string {
 // GetRepoDirFiles returns the files found in the subdirectory of a repository.
 // Note that the current implementation only gets an end subdirectory. It does not get multiple directories recursively. See https://github.com/fluxcd/go-git-providers/issues/143.
 func (p orgGitProvider) GetRepoDirFiles(ctx context.Context, repoURL RepoURL, dirPath, targetBranch string) ([]*gitprovider.CommitFile, error) {
-	repo, err := p.getOrgRepo(ctx, repoURL)
+	repo, err := p.getOrgRepo(repoURL)
 	if err != nil {
 		return nil, err
 	}
@@ -144,7 +144,7 @@ func (p orgGitProvider) GetRepoDirFiles(ctx context.Context, repoURL RepoURL, di
 
 // MergePullRequest merges a pull request given the repository's URL and the PR's number with a commit message.
 func (p orgGitProvider) MergePullRequest(ctx context.Context, repoURL RepoURL, pullRequestNumber int, commitMesage string) error {
-	repo, err := p.getOrgRepo(ctx, repoURL)
+	repo, err := p.getOrgRepo(repoURL)
 	if err != nil {
 		return err
 	}

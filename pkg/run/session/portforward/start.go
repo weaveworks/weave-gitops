@@ -3,19 +3,20 @@ package portforward
 import (
 	"context"
 	"fmt"
-	log "github.com/weaveworks/weave-gitops/pkg/logger"
 	"io"
+	"net/http"
+	"time"
+
+	log "github.com/weaveworks/weave-gitops/pkg/logger"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/transport/spdy"
-	"net/http"
-	"time"
 )
 
-func StartPortForwardingWithRestart(config *rest.Config, address, pod, namespace string, localPort, remotePort string, interrupt chan struct{}, stdout io.Writer, stderr io.Writer, log log.Logger) error {
+func StartPortForwardingWithRestart(config *rest.Config, address, pod, namespace, localPort, remotePort string, interrupt chan struct{}, stdout, stderr io.Writer, log log.Logger) error {
 	kubeClient, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		return err
@@ -65,7 +66,7 @@ func StartPortForwardingWithRestart(config *rest.Config, address, pod, namespace
 	}
 }
 
-func StartPortForwarding(config *rest.Config, client kubernetes.Interface, address, pod, namespace, localPort, remotePort string, stdout io.Writer, stderr io.Writer, log log.Logger) (chan struct{}, error) {
+func StartPortForwarding(config *rest.Config, client kubernetes.Interface, address, pod, namespace, localPort, remotePort string, stdout, stderr io.Writer, log log.Logger) (chan struct{}, error) {
 	execRequest := client.CoreV1().RESTClient().Post().
 		Resource("pods").
 		Name(pod).
