@@ -1,4 +1,3 @@
-<h1>Source API reference</h1>
 <p>Packages:</p>
 <ul class="simple">
 <li>
@@ -8,7 +7,138 @@
 <h2 id="templates.weave.works/v1alpha1">templates.weave.works/v1alpha1</h2>
 <p>Package v1alpha1 contains API Schema definitions for the gitopssets v1alpha1 API group</p>
 Resource Types:
-<ul class="simple"></ul>
+<ul class="simple"><li>
+<a href="#templates.weave.works/v1alpha1.GitOpsSet">GitOpsSet</a>
+</li></ul>
+<h3 id="templates.weave.works/v1alpha1.GitOpsSet">GitOpsSet
+</h3>
+<p>GitOpsSet is the Schema for the gitopssets API</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>apiVersion</code><br />
+string</td>
+<td>
+<code>templates.weave.works/v1alpha1</code>
+</td>
+</tr>
+<tr>
+<td>
+<code>kind</code><br />
+string
+</td>
+<td>
+<code>GitOpsSet</code>
+</td>
+</tr>
+<tr>
+<td>
+<code>metadata</code><br />
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#objectmeta-v1-meta">
+Kubernetes meta/v1.ObjectMeta
+</a>
+</em>
+</td>
+<td>
+Refer to the Kubernetes API documentation for the fields of the
+<code>metadata</code> field.
+</td>
+</tr>
+<tr>
+<td>
+<code>spec</code><br />
+<em>
+<a href="#templates.weave.works/v1alpha1.GitOpsSetSpec">
+GitOpsSetSpec
+</a>
+</em>
+</td>
+<td>
+<br/>
+<br/>
+<table>
+<tr>
+<td>
+<code>suspend</code><br />
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Suspend tells the controller to suspend the reconciliation of this
+GitOpsSet.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>generators</code><br />
+<em>
+<a href="#templates.weave.works/v1alpha1.GitOpsSetGenerator">
+[]GitOpsSetGenerator
+</a>
+</em>
+</td>
+<td>
+<p>Generators generate the data to be inserted into the provided templates.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>templates</code><br />
+<em>
+<a href="#templates.weave.works/v1alpha1.GitOpsSetTemplate">
+[]GitOpsSetTemplate
+</a>
+</em>
+</td>
+<td>
+<p>Templates are a set of YAML templates that are rendered into resources
+from the data supplied by the generators.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>serviceAccountName</code><br />
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>The name of the Kubernetes service account to impersonate
+when reconciling this Kustomization.</p>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td>
+<code>status</code><br />
+<em>
+<a href="#templates.weave.works/v1alpha1.GitOpsSetStatus">
+GitOpsSetStatus
+</a>
+</em>
+</td>
+<td>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <h3 id="templates.weave.works/v1alpha1.APIClientGenerator">APIClientGenerator
 </h3>
 <p>
@@ -146,118 +276,6 @@ Kubernetes meta/v1.LabelSelector
 <em>(Optional)</em>
 <p>Selector is used to filter the clusters that you want to target.</p>
 <p>If no selector is provided, no clusters will be matched.</p>
-</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-<h3 id="templates.weave.works/v1alpha1.GitOpsSet">GitOpsSet
-</h3>
-<p>GitOpsSet is the Schema for the gitopssets API</p>
-<div class="md-typeset__scrollwrap">
-<div class="md-typeset__table">
-<table>
-<thead>
-<tr>
-<th>Field</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<code>metadata</code><br />
-<em>
-<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#objectmeta-v1-meta">
-Kubernetes meta/v1.ObjectMeta
-</a>
-</em>
-</td>
-<td>
-Refer to the Kubernetes API documentation for the fields of the
-<code>metadata</code> field.
-</td>
-</tr>
-<tr>
-<td>
-<code>spec</code><br />
-<em>
-<a href="#templates.weave.works/v1alpha1.GitOpsSetSpec">
-GitOpsSetSpec
-</a>
-</em>
-</td>
-<td>
-<br/>
-<br/>
-<table>
-<tr>
-<td>
-<code>suspend</code><br />
-<em>
-bool
-</em>
-</td>
-<td>
-<em>(Optional)</em>
-<p>Suspend tells the controller to suspend the reconciliation of this
-GitOpsSet.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>generators</code><br />
-<em>
-<a href="#templates.weave.works/v1alpha1.GitOpsSetGenerator">
-[]GitOpsSetGenerator
-</a>
-</em>
-</td>
-<td>
-<p>Generators generate the data to be inserted into the provided templates.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>templates</code><br />
-<em>
-<a href="#templates.weave.works/v1alpha1.GitOpsSetTemplate">
-[]GitOpsSetTemplate
-</a>
-</em>
-</td>
-<td>
-<p>Templates are a set of YAML templates that are rendered into resources
-from the data supplied by the generators.</p>
-</td>
-</tr>
-<tr>
-<td>
-<code>serviceAccountName</code><br />
-<em>
-string
-</em>
-</td>
-<td>
-<em>(Optional)</em>
-<p>The name of the Kubernetes service account to impersonate
-when reconciling this Kustomization.</p>
-</td>
-</tr>
-</table>
-</td>
-</tr>
-<tr>
-<td>
-<code>status</code><br />
-<em>
-<a href="#templates.weave.works/v1alpha1.GitOpsSetStatus">
-GitOpsSetStatus
-</a>
-</em>
-</td>
-<td>
 </td>
 </tr>
 </tbody>
