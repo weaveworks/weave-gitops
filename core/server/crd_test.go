@@ -15,7 +15,7 @@ import (
 
 func TestIsAvailable(t *testing.T) {
 	g := NewGomegaWithT(t)
-	c, _ := makeGRPCServer(k8sEnv.Rest, t)
+	c := makeGRPCServer(k8sEnv.Rest, t)
 
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).NotTo(HaveOccurred())
@@ -62,7 +62,7 @@ func newCRD(
 	g *GomegaWithT,
 	k client.Client,
 	info CRDInfo,
-) extv1.CustomResourceDefinition {
+) {
 	resource := extv1.CustomResourceDefinition{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: fmt.Sprintf("%s.%s", info.Plural, info.Group),
@@ -96,6 +96,4 @@ func newCRD(
 	if !info.NoTest {
 		g.Expect(err).NotTo(HaveOccurred())
 	}
-
-	return resource
 }

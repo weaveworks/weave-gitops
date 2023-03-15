@@ -34,13 +34,12 @@ func TestMakeVClusterHelmReleaseAnnotations(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			g := NewGomegaWithT(t)
-			hl, err := makeVClusterHelmRelease(
+			hl := makeVClusterHelmRelease(
 				"name",
 				"namespace",
 				"flux-system",
 				"command", tt.portForwards,
 				"automationKind")
-			g.Expect(err).ToNot(HaveOccurred())
 
 			g.Expect(hl.Name).To(Equal("name"))
 			g.Expect(hl.Namespace).To(Equal("namespace"))

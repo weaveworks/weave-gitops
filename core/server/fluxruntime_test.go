@@ -29,7 +29,7 @@ func TestGetReconciledObjects(t *testing.T) {
 
 	ctx := context.Background()
 
-	c, _ := makeGRPCServer(k8sEnv.Rest, t)
+	c := makeGRPCServer(k8sEnv.Rest, t)
 
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
@@ -195,7 +195,7 @@ func TestGetReconciledObjectsWithSecret(t *testing.T) {
 
 	ctx := context.Background()
 
-	c, _ := makeGRPCServer(k8sEnv.Rest, t)
+	c := makeGRPCServer(k8sEnv.Rest, t)
 
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())

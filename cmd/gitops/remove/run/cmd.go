@@ -2,6 +2,8 @@ package run
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
@@ -11,7 +13,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/run/session"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/client-go/rest"
-	"os"
 )
 
 type RunCommandFlags struct {
@@ -63,7 +64,7 @@ gitops remove run -n dev --all-sessions
 	return cmd
 }
 
-func getKubeClient(cmd *cobra.Command, args []string) (*kube.KubeHTTP, *rest.Config, error) {
+func getKubeClient(cmd *cobra.Command) (*kube.KubeHTTP, *rest.Config, error) {
 	var err error
 
 	log := logger.NewCLILogger(os.Stdout)
@@ -133,7 +134,7 @@ func removeRunPreRunE(opts *config.Options) func(cmd *cobra.Command, args []stri
 
 func removeRunRunE(opts *config.Options) func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		kubeClient, _, err := getKubeClient(cmd, args)
+		kubeClient, _, err := getKubeClient(cmd)
 		if err != nil {
 			return err
 		}

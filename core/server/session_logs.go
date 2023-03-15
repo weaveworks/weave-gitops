@@ -204,7 +204,7 @@ func (cs *coreServer) GetSessionLogs(ctx context.Context, msg *pb.GetSessionLogs
 	}, nil
 }
 
-func isSecretCreated(ctx context.Context, cli client.Client, namespace string, name string) error {
+func isSecretCreated(ctx context.Context, cli client.Client, namespace string, name string) error { //nolint:unparam
 	secret := corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,

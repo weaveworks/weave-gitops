@@ -21,7 +21,7 @@ const (
 
 func TestGetVersion(t *testing.T) {
 	g := NewGomegaWithT(t)
-	c, _ := makeGRPCServer(k8sEnv.Rest, t)
+	c := makeGRPCServer(k8sEnv.Rest, t)
 
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())

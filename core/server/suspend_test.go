@@ -28,7 +28,7 @@ func TestSuspend_Suspend(t *testing.T) {
 	})
 	g.Expect(err).NotTo(HaveOccurred())
 
-	c, _ := makeGRPCServer(k8sEnv.Rest, t)
+	c := makeGRPCServer(k8sEnv.Rest, t)
 
 	ns := newNamespace(ctx, k, g)
 

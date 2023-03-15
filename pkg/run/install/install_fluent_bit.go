@@ -98,7 +98,7 @@ func mapToJSON(m map[string]interface{}) (*v1.JSON, error) {
 	return result, nil
 }
 
-func makeFluentBitHelmRepository(namespace string) (*sourcev1.HelmRepository, error) {
+func makeFluentBitHelmRepository(namespace string) *sourcev1.HelmRepository {
 	helmRepository := &sourcev1.HelmRepository{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "fluent",
@@ -109,7 +109,7 @@ func makeFluentBitHelmRepository(namespace string) (*sourcev1.HelmRepository, er
 		},
 	}
 
-	return helmRepository, nil
+	return helmRepository
 }
 
 func makeFluentBitHelmRelease(name string, fluxNamespace string, targetNamespace string, bucketName string, bucketServerPort int32) (*helmv2.HelmRelease, error) {
@@ -222,10 +222,7 @@ func UninstallFluentBit(ctx context.Context, log logger.Logger, kubeClient clien
 }
 
 func InstallFluentBit(ctx context.Context, log logger.Logger, kubeClient client.Client, fluxNamespace string, targetNamespace string, name string, bucketName string, bucketServerPort int32) error {
-	helmRepo, err := makeFluentBitHelmRepository(fluxNamespace)
-	if err != nil {
-		return err
-	}
+	helmRepo := makeFluentBitHelmRepository(fluxNamespace)
 
 	log.Actionf("creating HelmRepository %s/%s", helmRepo.Namespace, helmRepo.Name)
 
