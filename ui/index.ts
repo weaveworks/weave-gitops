@@ -2,6 +2,7 @@ import { ReconciledObjectsAutomation } from "./components/AutomationDetail";
 import AutomationsTable from "./components/AutomationsTable";
 import BucketDetail from "./components/BucketDetail";
 import Button from "./components/Button";
+import ChipGroup from "./components/ChipGroup";
 import CopyToClipboard from "./components/CopyToCliboard";
 import CustomActions from "./components/CustomActions";
 import DagGraph from "./components/DagGraph";
@@ -117,6 +118,7 @@ export {
   Bucket,
   BucketDetail,
   Button,
+  ChipGroup,
   coreClient,
   CoreClientContextProvider,
   CoreClientContext,
