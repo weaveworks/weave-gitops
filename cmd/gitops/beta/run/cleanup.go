@@ -52,7 +52,6 @@ func CleanupCluster(ctx context.Context, log logger.Logger, fns CleanupFuncs) er
 		if err := fn(ctx); err != nil {
 			log.Failuref("failed cleaning up: %s", err)
 		}
-
 	}
 
 	return nil

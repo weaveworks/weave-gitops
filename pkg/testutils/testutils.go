@@ -195,7 +195,7 @@ func MakeJWToken(t *testing.T, key *rsa.PrivateKey, email string, opts ...func(m
 		Audience:  jwt.Audience{"test-service"},
 		NotBefore: jwt.NewNumericDate(notBefore),
 		IssuedAt:  jwt.NewNumericDate(notBefore),
-		Expiry:    jwt.NewNumericDate(notBefore.Add(time.Duration(maxAgeSecondsAuthCookie))),
+		Expiry:    jwt.NewNumericDate(notBefore.Add(maxAgeSecondsAuthCookie)),
 	}
 	extraClaims := map[string]any{
 		"groups":             []string{"testing"},

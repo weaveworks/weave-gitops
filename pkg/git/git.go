@@ -70,7 +70,7 @@ func GetUserPath(clusterName string) string {
 }
 
 // GetSystemQualifiedPath returns the path of the relativePath joined with the cluster's system directory
-func GetSystemQualifiedPath(clusterName string, relativePath string) string {
+func GetSystemQualifiedPath(clusterName, relativePath string) string {
 	return filepath.Join(GetSystemPath(clusterName), relativePath)
 }
 
@@ -96,6 +96,6 @@ type Git interface {
 	Push(ctx context.Context) error
 	Status() (bool, error)
 	Head() (string, error)
-	GetRemoteURL(dir string, remoteName string) (string, error)
-	ValidateAccess(ctx context.Context, url string, branch string) error
+	GetRemoteURL(dir, remoteName string) (string, error)
+	ValidateAccess(ctx context.Context, url, branch string) error
 }

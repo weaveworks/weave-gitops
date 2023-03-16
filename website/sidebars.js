@@ -9,7 +9,7 @@
  Create as many sidebars as you want.
  */
 
-module.exports = {
+ module.exports = {
   docs: [
     {
       type: 'category',
@@ -265,6 +265,7 @@ module.exports = {
         'gitopssets/git-generator',
         'gitopssets/matrix-generator',
         'gitopssets/pull-request-generator',
+        'gitopssets/api-reference'
       ],
     }
   ],

@@ -19,7 +19,6 @@ package portforward
 import (
 	"errors"
 	"fmt"
-	"go.uber.org/atomic"
 	"io"
 	"net"
 	"net/http"
@@ -27,6 +26,8 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+
+	"go.uber.org/atomic"
 
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/httpstream"
@@ -155,7 +156,7 @@ func parseAddresses(addressesToParse []string) ([]listenAddress, error) {
 }
 
 // NewOnAddresses creates a new PortForwarder with custom listen addresses.
-func NewOnAddresses(dialer httpstream.Dialer, addresses []string, ports []string, stopChan <-chan struct{}, readyChan chan struct{}, errChan chan<- error, out, errOut io.Writer) (*PortForwarder, error) {
+func NewOnAddresses(dialer httpstream.Dialer, addresses, ports []string, stopChan <-chan struct{}, readyChan chan struct{}, errChan chan<- error, out, errOut io.Writer) (*PortForwarder, error) {
 	if len(addresses) == 0 {
 		return nil, errors.New("you must specify at least 1 address")
 	}
@@ -273,7 +274,7 @@ func (pf *PortForwarder) listenOnPort(port *ForwardedPort) error {
 
 // listenOnPortAndAddress delegates listener creation and waits for new connections
 // in the background f
-func (pf *PortForwarder) listenOnPortAndAddress(port *ForwardedPort, protocol string, address string) error {
+func (pf *PortForwarder) listenOnPortAndAddress(port *ForwardedPort, protocol, address string) error {
 	listener, err := pf.getListener(protocol, address, port)
 	if err != nil {
 		return err
@@ -285,7 +286,7 @@ func (pf *PortForwarder) listenOnPortAndAddress(port *ForwardedPort, protocol st
 
 // getListener creates a listener on the interface targeted by the given hostname on the given port with
 // the given protocol. protocol is in net.Listen style which basically admits values like tcp, tcp4, tcp6
-func (pf *PortForwarder) getListener(protocol string, hostname string, port *ForwardedPort) (net.Listener, error) {
+func (pf *PortForwarder) getListener(protocol, hostname string, port *ForwardedPort) (net.Listener, error) {
 	listener, err := net.Listen(protocol, net.JoinHostPort(hostname, strconv.Itoa(int(port.Local))))
 	if err != nil {
 		return nil, fmt.Errorf("unable to create listener: Error %s", err)
@@ -422,10 +423,8 @@ func (pf *PortForwarder) handleConnection(conn net.Conn, port ForwardedPort) {
 		// Fail for errors like container not running or No such container
 		if strings.Contains(err.Error(), "container") {
 			pf.raiseError(err)
-		} else {
-			if pf.errOut != nil {
-				_, _ = fmt.Fprintf(pf.errOut, "%v\n", err)
-			}
+		} else if pf.errOut != nil {
+			_, _ = fmt.Fprintf(pf.errOut, "%v\n", err)
 		}
 	}
 }
