@@ -51,7 +51,7 @@ func TestCallbackAllowsGet(t *testing.T) {
 	for _, m := range methods {
 		req := httptest.NewRequest(m, "https://example.com/callback", nil)
 		w := httptest.NewRecorder()
-		s.Callback().ServeHTTP(w, req)
+		s.Callback(w, req)
 
 		resp := w.Result()
 		g.Expect(resp.StatusCode).To(Equal(http.StatusMethodNotAllowed))
@@ -66,7 +66,7 @@ func TestCallbackErrorFromOIDC(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodGet, "https://example.com/callback?error=invalid_request&error_description=Unsupported%20response_type%20value", nil)
 	w := httptest.NewRecorder()
-	s.Callback().ServeHTTP(w, req)
+	s.Callback(w, req)
 
 	g.Expect(w.Result().StatusCode).To(Equal(http.StatusBadRequest))
 }
@@ -78,7 +78,7 @@ func TestCallbackCodeIsEmpty(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodGet, "https://example.com/callback", nil)
 	w := httptest.NewRecorder()
-	s.Callback().ServeHTTP(w, req)
+	s.Callback(w, req)
 
 	g.Expect(w.Result().StatusCode).To(Equal(http.StatusBadRequest))
 }
@@ -90,7 +90,7 @@ func TestCallbackStateCookieNotSet(t *testing.T) {
 
 	req := httptest.NewRequest(http.MethodGet, "https://example.com/callback?code=123", nil)
 	w := httptest.NewRecorder()
-	s.Callback().ServeHTTP(w, req)
+	s.Callback(w, req)
 
 	g.Expect(w.Result().StatusCode).To(Equal(http.StatusBadRequest))
 }
@@ -107,7 +107,7 @@ func TestCallbackStateCookieNotValid(t *testing.T) {
 	})
 
 	w := httptest.NewRecorder()
-	s.Callback().ServeHTTP(w, req)
+	s.Callback(w, req)
 
 	g.Expect(w.Result().StatusCode).To(Equal(http.StatusBadRequest))
 }
@@ -124,7 +124,7 @@ func TestCallbackStateCookieNotBase64Encoded(t *testing.T) {
 	})
 
 	w := httptest.NewRecorder()
-	s.Callback().ServeHTTP(w, req)
+	s.Callback(w, req)
 
 	g.Expect(w.Result().StatusCode).To(Equal(http.StatusBadRequest))
 }
@@ -143,7 +143,7 @@ func TestCallbackStateCookieNotJSONPayload(t *testing.T) {
 	})
 
 	w := httptest.NewRecorder()
-	s.Callback().ServeHTTP(w, req)
+	s.Callback(w, req)
 
 	g.Expect(w.Result().StatusCode).To(Equal(http.StatusBadRequest))
 }
@@ -166,7 +166,7 @@ func TestCallbackCodeExchangeError(t *testing.T) {
 	})
 
 	w := httptest.NewRecorder()
-	s.Callback().ServeHTTP(w, req)
+	s.Callback(w, req)
 
 	g.Expect(w.Result().StatusCode).To(Equal(http.StatusInternalServerError))
 }
@@ -770,6 +770,10 @@ func TestRefresh(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	_, err = m.Keypair.VerifyJWT(cookies[auth.RefreshTokenCookieName].Value)
 	g.Expect(err).NotTo(HaveOccurred())
+
+	idTokenExpires := cookies[auth.IDTokenCookieName].Expires
+	refreshTokenExpires := cookies[auth.RefreshTokenCookieName].Expires
+	g.Expect(refreshTokenExpires).To(Equal(idTokenExpires.Add(time.Hour)))
 }
 
 func TestRefreshNoToken(t *testing.T) {
