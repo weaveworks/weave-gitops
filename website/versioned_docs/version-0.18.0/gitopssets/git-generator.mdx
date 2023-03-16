@@ -42,14 +42,14 @@ spec:
         kind: Kustomization
         apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
         metadata:
-          name: "{{ .element.env }}-demo"
+          name: "{{ .Element.env }}-demo"
           labels:
             app.kubernetes.io/name: go-demo
-            app.kubernetes.io/instance: "{{ .element.env }}"
-            com.example/team: "{{ .element.team }}"
+            app.kubernetes.io/instance: "{{ .Element.env }}"
+            com.example/team: "{{ .Element.team }}"
         spec:
           interval: 5m
-          path: "./examples/kustomize/environments/{{ .element.env }}"
+          path: "./examples/kustomize/environments/{{ .Element.env }}"
           prune: true
           sourceRef:
             kind: GitRepository
@@ -57,7 +57,7 @@ spec:
 
 ```
 
-In this example, a [Flux `GitRepository`](https://fluxcd.io/flux/components/source/gitrepositories/) called `go-demo-repo` in the same namespace as the `GitOpsSet` will be tracked, and `Kustomization` resources are generated from the three files listed.
+In this example, a [Flux `GitRepository`](https://fluxcd.io/flux/components/source/gitrepositories/) called `go-demo-repo` in the same namespace as the `GitOpsSet` will be tracked, and `Kustomization` resources will be generated from the three files listed.
 
 These files can be JSON or YAML.
 
