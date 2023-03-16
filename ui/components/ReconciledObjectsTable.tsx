@@ -37,9 +37,7 @@ function ReconciledObjectsTable({
     ...filterConfig(data?.objects, "namespace"),
     ...filterConfig(data?.objects, "status", filterByStatusCallback),
   };
-
   const { setNodeYaml } = React.useContext(AppContext);
-
   return (
     <RequestStateHandler loading={isLoading} error={error}>
       <FluxObjectsTable

@@ -58,7 +58,7 @@ function ReconciliationGraph({
     true,
     {}
   );
-console.log(data?.objects);
+
 
   //add extra nodes
   const secondNode = {
@@ -86,7 +86,7 @@ console.log(data?.objects);
     horizontalSeparation: 100,
   };
   //use d3 to create tree structure
-  const root = d3.hierarchy(data?.objects, (d) => d?.children);
+  const root = d3.hierarchy(data?.objects||[], (d) => d?.children);
   const makeTree = d3
     .tree()
     .nodeSize([
@@ -96,7 +96,10 @@ console.log(data?.objects);
     .separation(() => 1);
   const tree = makeTree(root);
   const descendants = tree.descendants();
+  console.log(descendants);
+
   const links = tree.links();
+  console.log(links);
 
   //zoom
   const defaultZoomPercent = 85;
@@ -118,6 +121,7 @@ console.log(data?.objects);
 
   return (
     <RequestStateHandler loading={isLoading} error={error}>
+      {data?.objects && 
       <Flex className={className} wide tall>
         <GraphDiv
           onMouseDown={handleMouseDown}
@@ -145,7 +149,8 @@ console.log(data?.objects);
           <Spacer padding="xs" />
           <PercentFlex>{zoomPercent}%</PercentFlex>
         </SliderFlex>
-      </Flex>
+        </Flex>
+      }
     </RequestStateHandler>
   );
 }

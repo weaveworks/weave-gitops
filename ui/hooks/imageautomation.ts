@@ -81,9 +81,12 @@ function convertEntries(entries: InventoryEntry[]) {
   return entries.map((obj) => {
     const parsedObj = new FluxObject(obj);
     const children = obj.children.length ? convertEntries(obj.children) : [];
-    return {
-      obj: parsedObj,
-      children,
-    };
+
+    return children.length === 0
+      ? parsedObj
+      : {
+          ...parsedObj,
+          children,
+        };
   });
 }
