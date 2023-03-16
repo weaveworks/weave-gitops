@@ -59,7 +59,6 @@ const ArrayToList = ({ array, display }: ListProps) => {
 };
 
 const Detail = ({ pod }) => {
-  pod.containers.push({ name: "name", image: "image", ports: null });
   return (
     <Flex wide column>
       <InfoList
