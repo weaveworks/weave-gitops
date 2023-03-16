@@ -9,7 +9,7 @@
  Create as many sidebars as you want.
  */
 
-module.exports = {
+ module.exports = {
   docs: [
     {
       type: 'category',
@@ -216,8 +216,9 @@ module.exports = {
       },
       items: [
         'policy/getting-started',
+        'policy/authorization',
+        'policy/policy',
         'policy/weave-policy-profile',
-        'policy/configuration',
         'policy/policy-set',
         'policy/policy-configuration',
         'policy/releases',
@@ -264,6 +265,7 @@ module.exports = {
         'gitopssets/git-generator',
         'gitopssets/matrix-generator',
         'gitopssets/pull-request-generator',
+        'gitopssets/api-reference'
       ],
     }
   ],

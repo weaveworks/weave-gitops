@@ -29,7 +29,7 @@ func (c ClusterType) LocalKubernetes() bool {
 		c == ClusterTypeK3D
 }
 
-func ExposeLocal(vClusterName, vClusterNamespace string, rawConfig *clientcmdapi.Config, vRawConfig *clientcmdapi.Config, service *corev1.Service, localPort int, log log.Logger) (string, error) {
+func ExposeLocal(vClusterName, vClusterNamespace string, rawConfig, vRawConfig *clientcmdapi.Config, service *corev1.Service, localPort int, log log.Logger) (string, error) {
 	// Timeout to wait for connection before falling back to port-forwarding
 	timeout := time.Second * 30
 	clusterType := DetectClusterType(rawConfig)
@@ -49,7 +49,7 @@ func ExposeLocal(vClusterName, vClusterNamespace string, rawConfig *clientcmdapi
 	return "", nil
 }
 
-func k3dProxy(vClusterName, vClusterNamespace string, rawConfig *clientcmdapi.Config, vRawConfig *clientcmdapi.Config, service *corev1.Service, localPort int, timeout time.Duration, log log.Logger) (string, error) {
+func k3dProxy(vClusterName, vClusterNamespace string, rawConfig, vRawConfig *clientcmdapi.Config, service *corev1.Service, localPort int, timeout time.Duration, log log.Logger) (string, error) {
 	if len(service.Spec.Ports) != 1 {
 		return "", fmt.Errorf("service has %d ports (expected 1 port)", len(service.Spec.Ports))
 	}
@@ -66,7 +66,7 @@ func k3dProxy(vClusterName, vClusterNamespace string, rawConfig *clientcmdapi.Co
 	return createProxyContainer(vClusterName, vClusterNamespace, rawConfig, vRawConfig, service, localPort, timeout, "k3d-"+k3dName+"-server-0", "k3d-"+k3dName, log)
 }
 
-func minikubeProxy(vClusterName, vClusterNamespace string, rawConfig *clientcmdapi.Config, vRawConfig *clientcmdapi.Config, service *corev1.Service, localPort int, timeout time.Duration, log log.Logger) (string, error) {
+func minikubeProxy(vClusterName, vClusterNamespace string, rawConfig, vRawConfig *clientcmdapi.Config, service *corev1.Service, localPort int, timeout time.Duration, log log.Logger) (string, error) {
 	if len(service.Spec.Ports) != 1 {
 		return "", fmt.Errorf("service has %d ports (expected 1 port)", len(service.Spec.Ports))
 	}
@@ -149,7 +149,7 @@ func CleanupBackgroundProxy(proxyName string, log log.Logger) error {
 	return nil
 }
 
-func cleanupProxy(vClusterName, vClusterNamespace string, rawConfig *clientcmdapi.Config, log log.Logger) error {
+func cleanupProxy(vClusterName, vClusterNamespace string, rawConfig *clientcmdapi.Config, log log.Logger) {
 	// construct proxy name
 	proxyName := find.VClusterContextName(vClusterName, vClusterNamespace, rawConfig.CurrentContext)
 
@@ -161,10 +161,9 @@ func cleanupProxy(vClusterName, vClusterNamespace string, rawConfig *clientcmdap
 	)
 	log.Actionf("Stopping docker proxy...")
 	_, _ = cmd.Output()
-	return nil
 }
 
-func kindProxy(vClusterName, vClusterNamespace string, rawConfig *clientcmdapi.Config, vRawConfig *clientcmdapi.Config, service *corev1.Service, localPort int, timeout time.Duration, log log.Logger) (string, error) {
+func kindProxy(vClusterName, vClusterNamespace string, rawConfig, vRawConfig *clientcmdapi.Config, service *corev1.Service, localPort int, timeout time.Duration, log log.Logger) (string, error) {
 	if len(service.Spec.Ports) != 1 {
 		return "", fmt.Errorf("service has %d ports (expected 1 port)", len(service.Spec.Ports))
 	}
@@ -204,7 +203,7 @@ func directConnection(vRawConfig *clientcmdapi.Config, service *corev1.Service, 
 	return server, nil
 }
 
-func createProxyContainer(vClusterName, vClusterNamespace string, rawConfig *clientcmdapi.Config, vRawConfig *clientcmdapi.Config, service *corev1.Service, localPort int, timeout time.Duration, backendHost, network string, log log.Logger) (string, error) {
+func createProxyContainer(vClusterName, vClusterNamespace string, rawConfig, vRawConfig *clientcmdapi.Config, service *corev1.Service, localPort int, timeout time.Duration, backendHost, network string, log log.Logger) (string, error) {
 	// construct proxy name
 	proxyName := find.VClusterContextName(vClusterName, vClusterNamespace, rawConfig.CurrentContext)
 
@@ -350,7 +349,7 @@ func testConnectionWithServer(vRawConfig *clientcmdapi.Config, server string) er
 	return nil
 }
 
-func getServerFromExistingProxyContainer(vClusterName, vClusterNamespace string, rawConfig *clientcmdapi.Config, vRawConfig *clientcmdapi.Config, service *corev1.Service, log log.Logger) (string, error) {
+func getServerFromExistingProxyContainer(vClusterName, vClusterNamespace string, rawConfig, vRawConfig *clientcmdapi.Config, service *corev1.Service, log log.Logger) (string, error) {
 	// construct proxy name
 	proxyName := find.VClusterContextName(vClusterName, vClusterNamespace, rawConfig.CurrentContext)
 
@@ -387,10 +386,7 @@ func getServerFromExistingProxyContainer(vClusterName, vClusterNamespace string,
 	}
 
 	if containerExists(proxyName) {
-		err := cleanupProxy(vClusterName, vClusterNamespace, rawConfig, log)
-		if err != nil {
-			return "", err
-		}
+		cleanupProxy(vClusterName, vClusterNamespace, rawConfig, log)
 	}
 
 	return "", nil

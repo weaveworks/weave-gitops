@@ -135,7 +135,6 @@ func TestFilterAccessibleNamespaces(t *testing.T) {
 		g.Expect(err).NotTo(HaveOccurred())
 
 		g.Expect(filtered).To(HaveLen(0))
-
 	})
 	t.Run("filters out namespaces that do not have the right verbs", func(t *testing.T) {
 		g := NewGomegaWithT(t)

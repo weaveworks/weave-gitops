@@ -538,7 +538,7 @@ func TestUserInfoAdminFlowBadCookie(t *testing.T) {
 	g.Expect(info.Email).To(Equal(""))
 }
 
-func getVerifyTokens(t *testing.T, s *auth.AuthServer, m *mockoidc.MockOIDC) map[string]interface{} {
+func getVerifyTokens(t *testing.T, m *mockoidc.MockOIDC) map[string]interface{} {
 	const (
 		state = "abcdef"
 		nonce = "ghijkl"
@@ -609,7 +609,7 @@ func TestUserInfoOIDCFlow(t *testing.T) {
 
 	s, m := makeAuthServer(t, nil, tokenSignerVerifier, []auth.AuthMethod{auth.OIDC})
 
-	tokens := getVerifyTokens(t, s, m)
+	tokens := getVerifyTokens(t, m)
 
 	_, err = m.Keypair.VerifyJWT(tokens["access_token"].(string))
 	g.Expect(err).NotTo(HaveOccurred())
@@ -733,7 +733,7 @@ func TestRefresh(t *testing.T) {
 
 	s, m := makeAuthServer(t, nil, tokenSignerVerifier, []auth.AuthMethod{auth.OIDC})
 
-	tokens := getVerifyTokens(t, s, m)
+	tokens := getVerifyTokens(t, m)
 
 	tf := tokens["refresh_token"].(string)
 

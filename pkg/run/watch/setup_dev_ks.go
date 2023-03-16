@@ -142,7 +142,7 @@ func setupDecryption(ctx context.Context, params SetupRunObjectParams, kubeClien
 }
 
 // SyncDir recursively uploads all files in a directory to an S3 bucket with minio library
-func SyncDir(ctx context.Context, log logger.Logger, dir string, bucket string, client *minio.Client, ignorer *ignore.GitIgnore) error {
+func SyncDir(ctx context.Context, log logger.Logger, dir, bucket string, client *minio.Client, ignorer *ignore.GitIgnore) error {
 	log.Actionf("Refreshing bucket %s ...", bucket)
 
 	if err := client.RemoveBucketWithOptions(ctx, bucket, minio.RemoveBucketOptions{
@@ -199,7 +199,7 @@ func SyncDir(ctx context.Context, log logger.Logger, dir string, bucket string, 
 			log.Failuref("Couldn't upload %v: %v", path, err)
 			return nil
 		}
-		uploadCount = uploadCount + 1
+		uploadCount++
 		if uploadCount%10 == 0 {
 			fmt.Print(".")
 		}
@@ -337,7 +337,7 @@ func InitializeTargetDir(targetPath string) error {
 	if err != nil && !errors.Is(err, os.ErrNotExist) {
 		return err
 	} else if err != nil {
-		err := os.MkdirAll(targetPath, 0755)
+		err := os.MkdirAll(targetPath, 0o755)
 		if err != nil {
 			return err
 		}

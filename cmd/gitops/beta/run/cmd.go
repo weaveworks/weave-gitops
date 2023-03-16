@@ -206,7 +206,7 @@ func betaRunCommandPreRunE(endpoint *string) func(*cobra.Command, []string) erro
 	}
 }
 
-func getKubeClient(cmd *cobra.Command, args []string) (*kube.KubeHTTP, *rest.Config, error) {
+func getKubeClient(cmd *cobra.Command) (*kube.KubeHTTP, *rest.Config, error) {
 	var err error
 
 	log := logger.NewCLILogger(os.Stdout)
@@ -394,6 +394,10 @@ func dashboardStep(ctx context.Context, log logger.Logger, kubeClient *kube.Kube
 					return install.DashboardTypeNone, nil, "", err
 				}
 
+				if password == "" {
+					return install.DashboardTypeNone, nil, "", fmt.Errorf("dashboard password is an empty string")
+				}
+
 				passwordHash, err = install.GeneratePasswordHash(log, password)
 				if err != nil {
 					return install.DashboardTypeNone, nil, "", err
@@ -452,7 +456,7 @@ func runCommandOuterProcess(cmd *cobra.Command, args []string) (retErr error) {
 		return err
 	}
 
-	kubeClient, _, err := getKubeClient(cmd, args)
+	kubeClient, _, err := getKubeClient(cmd)
 	if err != nil {
 		return err
 	}
@@ -601,7 +605,7 @@ func runCommandInnerProcess(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	kubeClient, cfg, err := getKubeClient(cmd, args)
+	kubeClient, cfg, err := getKubeClient(cmd)
 	if err != nil {
 		return err
 	}
@@ -880,7 +884,7 @@ func runCommandInnerProcess(cmd *cobra.Command, args []string) error {
 	ticker := time.NewTicker(680 * time.Millisecond)
 
 	go func() {
-		for { // nolint:gosimple
+		for { //nolint:gosimple
 			select {
 			case <-stopUploadCh:
 				return

@@ -2,6 +2,7 @@ package fluxexec
 
 import (
 	"context"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -12,8 +13,7 @@ var _ = Describe("installCmd", func() {
 			flux, err := NewFlux(".", "/mock/path/to/flux")
 			Expect(err).To(BeNil())
 
-			initCmd, err := flux.installCmd(context.TODO())
-			Expect(err).To(BeNil())
+			initCmd := flux.installCmd(context.TODO())
 			Expect(initCmd.Args[1:]).To(Equal([]string{
 				"install",
 			}))
@@ -23,8 +23,7 @@ var _ = Describe("installCmd", func() {
 			flux, err := NewFlux(".", "/mock/path/to/flux")
 			Expect(err).To(BeNil())
 
-			initCmd, err := flux.installCmd(context.TODO(), NetworkPolicy(false))
-			Expect(err).To(BeNil())
+			initCmd := flux.installCmd(context.TODO(), NetworkPolicy(false))
 			Expect(initCmd.Args[1:]).To(Equal([]string{
 				"install",
 				"--network-policy", "false",
@@ -34,8 +33,7 @@ var _ = Describe("installCmd", func() {
 			flux, err := NewFlux(".", "/mock/path/to/flux")
 			Expect(err).To(BeNil())
 
-			initCmd, err := flux.installCmd(context.TODO(), Components(ComponentSourceController, ComponentHelmController))
-			Expect(err).To(BeNil())
+			initCmd := flux.installCmd(context.TODO(), Components(ComponentSourceController, ComponentHelmController))
 			Expect(initCmd.Args[1:]).To(Equal([]string{
 				"install",
 				"--components", "source-controller,helm-controller",
@@ -46,8 +44,7 @@ var _ = Describe("installCmd", func() {
 			flux, err := NewFlux(".", "/mock/path/to/flux")
 			Expect(err).To(BeNil())
 
-			initCmd, err := flux.installCmd(context.TODO(), ComponentsExtra(ComponentImageReflectorController, ComponentImageAutomationController))
-			Expect(err).To(BeNil())
+			initCmd := flux.installCmd(context.TODO(), ComponentsExtra(ComponentImageReflectorController, ComponentImageAutomationController))
 			Expect(initCmd.Args[1:]).To(Equal([]string{
 				"install",
 				"--components-extra",

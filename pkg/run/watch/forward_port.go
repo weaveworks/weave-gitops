@@ -90,7 +90,7 @@ func generalizeKind(kind string) string {
 	}
 }
 
-func ForwardPort(log logr.Logger, pod *corev1.Pod, cfg *rest.Config, specMap *PortForwardSpec, waitFwd chan struct{}, readyChannel chan struct{}) error {
+func ForwardPort(log logr.Logger, pod *corev1.Pod, cfg *rest.Config, specMap *PortForwardSpec, waitFwd, readyChannel chan struct{}) error {
 	reqURL, err := url.Parse(
 		fmt.Sprintf("%s/api/v1/namespaces/%s/pods/%s/portforward",
 			cfg.Host,

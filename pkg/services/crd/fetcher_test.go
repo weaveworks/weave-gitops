@@ -17,7 +17,7 @@ func TestFetcher_IsAvailable(t *testing.T) {
 
 	defer cancelFn()
 
-	service, err := newService(ctx, k8sEnv)
+	service, err := newService(k8sEnv)
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
 	k, err := client.New(k8sEnv.Rest, client.Options{
@@ -60,7 +60,7 @@ func TestFetcher_IsAvailableOnClusters(t *testing.T) {
 
 	defer cancelFn()
 
-	service, err := newService(ctx, k8sEnv)
+	service, err := newService(k8sEnv)
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
 	k, err := client.New(k8sEnv.Rest, client.Options{

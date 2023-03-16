@@ -66,7 +66,7 @@ func NewCoreConfig(log logr.Logger, cfg *rest.Config, clusterName string, cluste
 
 func NewCoreServer(cfg CoreServerConfig) (pb.CoreServer, error) {
 	if cfg.CRDService == nil {
-		cfg.CRDService = crd.NewFetcher(context.Background(), cfg.log, cfg.ClustersManager)
+		cfg.CRDService = crd.NewFetcher(cfg.log, cfg.ClustersManager)
 	}
 
 	return &coreServer{

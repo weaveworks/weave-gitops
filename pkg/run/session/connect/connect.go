@@ -153,7 +153,7 @@ func (conn *Connection) Connect(vclusterName string, command []string) error {
 			return err
 		}
 	} else {
-		err = os.WriteFile(conn.KubeConfig, out, 0666)
+		err = os.WriteFile(conn.KubeConfig, out, 0o666)
 		if err != nil {
 			return errors.Wrap(err, "write kube config")
 		}
@@ -242,7 +242,7 @@ func (conn *Connection) executeCommand(vKubeConfig api.Config, command []string)
 	case err := <-commandErrChan:
 		if exitError, ok := err.(*exec.ExitError); ok {
 			conn.Log.Failuref("Error executing command: %v", err)
-			os.Exit(exitError.ExitCode())
+			os.Exit(exitError.ExitCode()) //nolint:gocritic
 		}
 
 		return err
@@ -377,10 +377,7 @@ func (conn *Connection) getVClusterKubeConfig(vclusterName string, command []str
 	}
 
 	// exchange context name in virtual kube config
-	err = conn.exchangeContextName(kubeConfig, vclusterName)
-	if err != nil {
-		return nil, err
-	}
+	conn.exchangeContextName(kubeConfig, vclusterName)
 
 	// check if the vcluster is exposed and set server
 	if vclusterName != "" && conn.Server == "" && len(command) == 0 {
@@ -509,7 +506,7 @@ func (conn *Connection) setServerIfExposed(vClusterName string, vClusterConfig *
 	return nil
 }
 
-func (conn *Connection) exchangeContextName(kubeConfig *api.Config, vclusterName string) error {
+func (conn *Connection) exchangeContextName(kubeConfig *api.Config, vclusterName string) {
 	if conn.KubeConfigContextName == "" {
 		if vclusterName != "" {
 			conn.KubeConfigContextName = find.VClusterContextName(vclusterName, conn.Namespace, conn.rawConfig.CurrentContext)
@@ -544,7 +541,6 @@ func (conn *Connection) exchangeContextName(kubeConfig *api.Config, vclusterName
 
 	// update current-context
 	kubeConfig.CurrentContext = conn.KubeConfigContextName
-	return nil
 }
 
 func (conn *Connection) getLocalVClusterConfig(vKubeConfig api.Config) api.Config {

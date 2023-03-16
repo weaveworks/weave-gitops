@@ -299,9 +299,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 
-	defer func() {
-		cancel()
-	}()
+	defer cancel()
 
 	if err := srv.Shutdown(ctx); err != nil {
 		return fmt.Errorf("server shutdown failed: %w", err)

@@ -138,7 +138,7 @@ func (dc delegatingCache) Get(ctx context.Context, key client.ObjectKey, obj cli
 		return err
 	}
 
-	bypass := dc.shouldBypassCheck(obj, gvk)
+	bypass := dc.shouldBypassCheck(gvk)
 	if !bypass {
 		partial := &metav1.PartialObjectMetadata{}
 		partial.SetGroupVersionKind(gvk)
@@ -159,7 +159,7 @@ func (dc delegatingCache) List(ctx context.Context, list client.ObjectList, opts
 		return err
 	}
 
-	bypass := dc.shouldBypassCheck(list, gvk)
+	bypass := dc.shouldBypassCheck(gvk)
 	if !bypass {
 		partial := &metav1.PartialObjectMetadataList{}
 		partial.SetGroupVersionKind(gvk)
@@ -174,7 +174,7 @@ func (dc delegatingCache) List(ctx context.Context, list client.ObjectList, opts
 	return dc.Cache.List(ctx, list, opts...)
 }
 
-func (dc *delegatingCache) shouldBypassCheck(obj runtime.Object, gvk schema.GroupVersionKind) bool {
+func (dc *delegatingCache) shouldBypassCheck(gvk schema.GroupVersionKind) bool {
 	dc.checkedGVKsMu.Lock()
 	defer dc.checkedGVKsMu.Unlock()
 
