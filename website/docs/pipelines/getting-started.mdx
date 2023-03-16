@@ -6,17 +6,17 @@ hide_title: true
 import TierLabel from "./../_components/TierLabel";
 import AlphaWarning from "../_components/_alpha_warning.mdx";
 
-# Getting started with pipelines <TierLabel tiers="Enterprise" />
+# Getting started with Pipelines <TierLabel tiers="Enterprise" />
 
 <AlphaWarning/>
 
-## Requirements
-:::tip Feature toggle
-The Pipelines feature can be enabled or disabled by setting the `enablePipelines` 
-flag in the values for the Weave GitOps Enterprise Helm Chart.
-:::
-
-- You have configured Weave GitOps Enterprise [RBAC for pipelines](../authorization)
+## Prerequisites
+Before using Pipelines, please ensure that:
+- You have Weave GitOps Enterprise installed on a cluster.
+- You have configured Weave GitOps Enterprise [RBAC for Pipelines](../authorization).
+- The Pipelines feature flag `enablePipelines` has been enabled. This flag is part of the Weave GitOps Enterprise Helm chart values and is enabled by default.
+- Any leaf clusters that are running workloads that you need to visualise using Pipelines, have been added to Weave GitOps Enterprise.
+- You have [exposed the promotion webhook ](../promoting-applications/#expose-the-promotion-webhook) on the management cluster and leaf clusters can reach that webhook endpoint over the network.
 
 ## Define a pipeline
 
@@ -37,7 +37,7 @@ apiVersion: pipelines.weave.works/v1alpha1
 kind: Pipeline
 metadata:
   name: podinfo-02
-  namespace: default
+  namespace: flux-system
 spec:
   appRef:
     apiVersion: helm.toolkit.fluxcd.io/v2beta1
@@ -74,14 +74,19 @@ spec:
 
 </details>
 
-In the previous example, `podinfo` application is delivered to a traditional pipeline composed by `dev`, `qa`, `perf` and `production` environments.
-Each environment is backed by a `GitopsCluster` [deployment target](../../cluster-management/managing-existing-clusters/).
+In the example above, the `podinfo` application is delivered to a traditional pipeline composed of `dev`, `test` and `prod` environments. 
+An environment is used to describe the different stages of a pipeline and is composed of one or more deployment targets. A deployment 
+target is a combination of a namespace and a [`GitopsCluster` reference](../../cluster-management/managing-existing-clusters/) and is 
+used to specify where the application is running in our fleet. In this case, the `test` environment is composed of two deployment targets, 
+`qa` and `perf`, to indicate that although both targets are part of the same stage (testing), they can evolve separately and may run 
+different versions of the application. Note, that there are two clusters being used for the environments, `dev` and `prod`, both of which 
+are defined in the `flux-system` namespace.
 
-For more details about the spec of a pipeline [see here](spec/v1alpha1/pipeline.mdx)
+For more details about the spec of a pipeline [see here](spec/v1alpha1/pipeline.mdx).
 
 ## View the list of pipelines
 
-Once flux has created your pipeline you can navigate to the pipelines view to see it.
+Once flux has reconciled your pipeline you can navigate to the pipelines view to see it.
 
 ![view pipelines](img/view-pipelines.png)
 

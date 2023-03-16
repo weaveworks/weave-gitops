@@ -15,7 +15,7 @@ apiVersion: pipelines.weave.works/v1alpha1
 kind: Pipeline
 metadata:
   name: podinfo-02
-  namespace: default
+  namespace: flux-system
 spec:
   appRef:
     apiVersion: helm.toolkit.fluxcd.io/v2beta1
@@ -97,6 +97,9 @@ type Environment struct {
 	// at least one target.
 	// +required
 	Targets []Target `json:"targets"`
+	// Promotion defines details about how the promotion is done on this environment.
+	// +optional
+	Promotion *Promotion `json:"promotion,omitempty"`
 }
 
 type Target struct {
@@ -135,14 +138,15 @@ type Strategy struct {
 type GitProviderType string
 
 const (
-	Github GitProviderType = "github"
-	Gitlab GitProviderType = "gitlab"
+	Github          GitProviderType = "github"
+	Gitlab          GitProviderType = "gitlab"
+	BitBucketServer GitProviderType = "bitbucket-server"
 )
 
 type PullRequestPromotion struct {
 	// Indicates the git provider type to manage pull requests.
 	// +required
-	// +kubebuilder:validation:Enum=github;gitlab
+	// +kubebuilder:validation:Enum=github;gitlab;bitbucket-server
 	Type GitProviderType `json:"type"`
 	// The git repository HTTPS URL used to patch the manifests for promotion.
 	// +required
@@ -157,8 +161,6 @@ type PullRequestPromotion struct {
 	// the git repository and for the Git provider API.
 	// For HTTPS repositories the Secret must contain 'username' and 'password'
 	// fields.
-	// For SSH repositories the Secret must contain 'identity'
-	// and 'known_hosts' fields.
 	// For Git Provider API to manage pull requests, it must contain a 'token' field.
 	// +required
 	SecretRef meta.LocalObjectReference `json:"secretRef"`
