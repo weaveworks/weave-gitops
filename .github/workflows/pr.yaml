@@ -70,7 +70,10 @@ jobs:
         uses: actions/setup-go@v2
         with:
           go-version: ${{ matrix.go-version }}
-      - run: curl -s https://fluxcd.io/install.sh | sudo bash
+      - name: Setup Flux CLI
+        uses: fluxcd/flux2/action@main
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
       - run: make unit-tests
       # - run: make lib-test
 
