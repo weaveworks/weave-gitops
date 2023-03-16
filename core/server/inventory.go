@@ -20,6 +20,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/cli-utils/pkg/object"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -234,19 +235,28 @@ func getHelmReleaseObjects(ctx context.Context, k8sClient client.Client, helmRel
 	return objects, nil
 }
 
-func unstructuredToInventoryEntry(ctx context.Context, k8sClient client.Client, obj unstructured.Unstructured, ns string, withChildren bool) (*pb.InventoryEntry, error) {
-	bytes, err := obj.MarshalJSON()
-	if err != nil {
-		return nil, err
+func unstructuredToInventoryEntry(ctx context.Context, k8sClient client.Client, unstructuredObj unstructured.Unstructured, ns string, withChildren bool) (*pb.InventoryEntry, error) {
+	var err error
+
+	if unstructuredObj.GetKind() == "Secret" {
+		unstructuredObj, err = sanitizeUnstructuredSecret(unstructuredObj)
+		if err != nil {
+			return nil, fmt.Errorf("error sanitizing secrets: %w", err)
+		}
 	}
 
 	children := []*pb.InventoryEntry{}
 
 	if withChildren {
-		children, err = getChildren(ctx, k8sClient, obj, ns)
+		children, err = getChildren(ctx, k8sClient, unstructuredObj, ns)
 		if err != nil {
 			return nil, err
 		}
+	}
+
+	bytes, err := unstructuredObj.MarshalJSON()
+	if err != nil {
+		return nil, err
 	}
 
 	entry := &pb.InventoryEntry{
@@ -328,4 +338,25 @@ func resourceRefToUnstructured(entry kustomizev1.ResourceRef) (unstructured.Unst
 	u.SetNamespace(objMetadata.Namespace)
 
 	return u, nil
+}
+
+func sanitizeUnstructuredSecret(obj unstructured.Unstructured) (unstructured.Unstructured, error) {
+	redactedUnstructured := unstructured.Unstructured{}
+	s := &v1.Secret{}
+
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(obj.UnstructuredContent(), s)
+	if err != nil {
+		return redactedUnstructured, fmt.Errorf("converting unstructured to helmrelease: %w", err)
+	}
+
+	s.Data = map[string][]byte{"redacted": []byte(nil)}
+
+	redactedObj, err := runtime.DefaultUnstructuredConverter.ToUnstructured(s)
+	if err != nil {
+		return redactedUnstructured, fmt.Errorf("converting unstructured to helmrelease: %w", err)
+	}
+
+	redactedUnstructured.SetUnstructuredContent(redactedObj)
+
+	return redactedUnstructured, nil
 }
