@@ -1,7 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
 import { AppContext } from "../contexts/AppContext";
-import { useGetInventory } from "../hooks/imageautomation";
+import { useGetInventory } from "../hooks/inventory";
 import { FluxObject } from "../lib/objects";
 import { filterByStatusCallback, filterConfig } from "./DataTable";
 import FluxObjectsTable from "./FluxObjectsTable";

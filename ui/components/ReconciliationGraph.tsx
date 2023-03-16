@@ -2,7 +2,7 @@ import { Slider } from "@material-ui/core";
 import * as d3 from "d3";
 import * as React from "react";
 import styled from "styled-components";
-import { useGetInventory } from "../hooks/imageautomation";
+import { useGetInventory } from "../hooks/inventory";
 import { Condition, ObjectRef } from "../lib/api/core/types.pb";
 import DirectedGraph from "./DirectedGraph";
 import Flex from "./Flex";
