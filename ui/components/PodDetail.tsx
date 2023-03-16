@@ -29,6 +29,19 @@ const PodDetailHeader = styled(Text)`
   color: ${(props) => props.theme.colors.neutral30};
 `;
 
+const NoDialogDataTable = styled(DataTable)`
+  width: 100%;
+  overflow-x: auto;
+`;
+
+const ContainerContainer = styled(Flex)`
+  width: 100%;
+  border: 1px solid ${(props) => props.theme.colors.neutral30};
+  border-radius: 10px;
+  padding: ${(props) => props.theme.spacing.xs};
+  margin-bottom: ${(props) => props.theme.spacing.xs};
+`;
+
 type ListProps = {
   array: any[];
   display: (any) => string;
@@ -46,8 +59,9 @@ const ArrayToList = ({ array, display }: ListProps) => {
 };
 
 const Detail = ({ pod }) => {
+  pod.containers.push({ name: "name", image: "image", ports: null });
   return (
-    <Flex column>
+    <Flex wide column>
       <InfoList
         items={[
           ["Namespace", pod.namespace],
@@ -60,7 +74,7 @@ const Detail = ({ pod }) => {
       <PodDetailHeader bold size="large">
         Tolerations
       </PodDetailHeader>
-      <DataTable
+      <NoDialogDataTable
         hideSearchAndFilters
         fields={[
           { label: "Key", value: "key" },
@@ -76,30 +90,33 @@ const Detail = ({ pod }) => {
       </PodDetailHeader>
       {pod.containers.map((container: Container, i: number) => {
         return (
-          <InfoList
-            key={i}
-            items={[
-              ["Name", container.name],
-              ["Image", container.image],
-              [
-                "Ports",
-                <ArrayToList
-                  array={container.ports}
-                  display={(port) =>
-                    `${port.name}:${port.containerPort}/${port.protocol}`
-                  }
-                />,
-              ],
-              [
-                "Env Vars",
-                <ArrayToList array={container.enVar} display={(v) => v} />,
-              ],
-              [
-                "Arguments",
-                <ArrayToList array={container.args} display={(arg) => arg} />,
-              ],
-            ]}
-          />
+          <ContainerContainer>
+            <InfoList
+              key={i}
+              className={i !== pod.containers.length - 1 && "border-bottom"}
+              items={[
+                ["Name", container.name],
+                ["Image", container.image],
+                [
+                  "Ports",
+                  <ArrayToList
+                    array={container.ports}
+                    display={(port) =>
+                      `${port.name}:${port.containerPort}/${port.protocol}`
+                    }
+                  />,
+                ],
+                [
+                  "Env Vars",
+                  <ArrayToList array={container.enVar} display={(v) => v} />,
+                ],
+                [
+                  "Arguments",
+                  <ArrayToList array={container.args} display={(arg) => arg} />,
+                ],
+              ]}
+            />
+          </ContainerContainer>
         );
       })}
       <PodDetailHeader bold size="large">
@@ -155,9 +172,14 @@ function PodDetail({ className, pod }: Props) {
           onClick={() => setTabValue(1)}
         />
       </Tabs>
+
       {tabs(tabValue)}
     </Flex>
   );
 }
 
-export default styled(PodDetail).attrs({ className: PodDetail.name })``;
+export default styled(PodDetail).attrs({ className: PodDetail.name })`
+  ${PageStatus} {
+    margin-bottom: ${(props) => props.theme.spacing.small};
+  }
+`;

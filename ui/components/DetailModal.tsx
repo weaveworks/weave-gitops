@@ -45,7 +45,7 @@ function DetailModal({ object, className }: DetailViewProps) {
   const { setDetailModal } = useContext(AppContext);
   return (
     <div className={className}>
-      <HeaderFlex between align>
+      <HeaderFlex wide between align>
         <Text size="large" bold color="neutral30" titleHeight>
           {object.name}
         </Text>
@@ -59,5 +59,6 @@ function DetailModal({ object, className }: DetailViewProps) {
 }
 
 export default styled(DetailModal).attrs({ className: DetailModal.name })`
-  padding: ${(props) => props.theme.spacing.small};
+  padding: ${(props) =>
+    props.theme.spacing.small + " " + props.theme.spacing.medium};
 `;

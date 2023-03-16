@@ -15,7 +15,8 @@ type StatusProps = {
 };
 
 function PageStatus({ conditions, suspended, className }: StatusProps) {
-  const msg = suspended ? "Suspended" : computeMessage(conditions);
+  let msg = suspended ? "Suspended" : computeMessage(conditions);
+  if (!msg) msg = "Message not found";
 
   let iconType: IconType;
   let iconColor: keyof typeof colors;
@@ -39,7 +40,6 @@ function PageStatus({ conditions, suspended, className }: StatusProps) {
         break;
     }
   }
-
   return (
     <Flex align className={className}>
       <Icon type={iconType} color={iconColor} size="medium" />

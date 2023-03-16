@@ -16,9 +16,9 @@ function PodPage({ className, object }: Props) {
     object.name,
     object.namespace,
     Kind.Pod,
-    object.clusterName
+    object.clusterName,
+    { refetchInterval: false }
   );
-
   return (
     <RequestStateHandler loading={isLoading} error={error}>
       {data && <PodDetail pod={data} />}
@@ -26,4 +26,6 @@ function PodPage({ className, object }: Props) {
   );
 }
 
-export default styled(PodPage).attrs({ className: PodPage.name })``;
+export default styled(PodPage).attrs({ className: PodPage.name })`
+  width: 100%;
+`;

@@ -586,12 +586,14 @@ function UnstyledDataTable({
             </TableBody>
           </Table>
         </TableContainer>
-        <FilterDialog
-          onFilterSelect={handleFilterSelect}
-          filterList={filters}
-          formState={filterState.formState}
-          open={filterDialogOpen}
-        />
+        {!hideSearchAndFilters && (
+          <FilterDialog
+            onFilterSelect={handleFilterSelect}
+            filterList={filters}
+            formState={filterState.formState}
+            open={filterDialogOpen}
+          />
+        )}
       </Flex>
     </Flex>
   );
