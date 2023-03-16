@@ -105,7 +105,7 @@ function GraphNode({ className, object }: Props) {
           {getStatusIcon(computeReady(object.conditions), object.suspended)}
           <div style={{ padding: 4 }} />
           <Tooltip
-            title={object.name.length > 23 ? object.name : ""}
+            title={object.name?.length > 23 ? object.name : ""}
             placement="top"
           >
             {Kind[object.type] || resolved ? (

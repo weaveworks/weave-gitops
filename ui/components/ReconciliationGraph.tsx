@@ -58,23 +58,21 @@ function ReconciliationGraph({
     true,
     {}
   );
-  console.log(data?.objects);
 
   return (
     <RequestStateHandler loading={isLoading} error={error}>
       {data?.objects && (
-        <p>conditions</p>
-        // <Graph
-        //   className={className}
-        //   kind={kind}
-        //   name={name}
-        //   namespace={namespace}
-        //   clusterName={clusterName}
-        //   source={source}
-        //   suspended={suspended}
-        //   conditions={conditions}
-        //   objects={data.objects}
-        // />
+        <Graph
+          className={className}
+          kind={kind}
+          name={name}
+          namespace={namespace}
+          clusterName={clusterName}
+          source={source}
+          suspended={suspended}
+          conditions={conditions}
+          objects={data.objects}
+        />
       )}
     </RequestStateHandler>
   );
@@ -102,13 +100,13 @@ const Graph = ({
     children: objects,
     isCurrentNode: true,
   };
-
   const rootNode = {
     ...source,
     type: source?.kind,
     clusterName,
     children: [secondNode],
   };
+
   //graph numbers
   const nodeSize = {
     width: 800,
@@ -116,8 +114,9 @@ const Graph = ({
     verticalSeparation: 150,
     horizontalSeparation: 100,
   };
+
   //use d3 to create tree structure
-  const root = d3.hierarchy(rootNode, (d) => d?.children);
+  const root = d3.hierarchy(rootNode, (d) => d.children);
   const makeTree = d3
     .tree()
     .nodeSize([
@@ -163,7 +162,7 @@ const Graph = ({
           zoomPercent={zoomPercent}
           pan={pan}
         />
-      </GraphDiv>
+      </GraphDiv> 
       <SliderFlex tall column align>
         <Slider
           onChange={(_, value: number) => setZoomPercent(value)}
