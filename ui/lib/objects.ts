@@ -408,7 +408,7 @@ export class Pod extends FluxObject {
     return this.obj.spec?.containers || [];
   }
   get volumes(): { name: string; type: string }[] {
-    let volumeObjs = [];
+    const volumeObjs = [];
     const volumes = this.obj.spec?.volumes || [];
     volumes.forEach((volume) => {
       const name = volume.name || "-";

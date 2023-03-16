@@ -80,8 +80,6 @@ function SubRouterTabs({ className, children, rootPath, clearQuery }: Props) {
         className="horizontal-tabs"
       >
         {_.map(routes, (route, i) => {
-          const bold = window.location.pathname.includes(route.path);
-
           return (
             <MuiTab
               component={ForwardedLink as typeof Link}

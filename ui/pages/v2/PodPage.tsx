@@ -20,7 +20,11 @@ function PodPage({ className, object }: Props) {
     { refetchInterval: false }
   );
   return (
-    <RequestStateHandler loading={isLoading} error={error}>
+    <RequestStateHandler
+      loading={isLoading}
+      error={error}
+      className={className}
+    >
       {data && <PodDetail pod={data} />}
     </RequestStateHandler>
   );
