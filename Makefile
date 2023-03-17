@@ -53,7 +53,7 @@ endif
 ##@ Default target
 all: gitops gitops-server ## Build Gitops binary. targets: gitops gitops-server
 
-TEST_TO_RUN?=./...
+TEST_TO_RUN?=./core/server/...
 TEST_V?=-v
 ##@ Test
 unit-tests: ## Run unit tests

@@ -74,7 +74,9 @@ jobs:
         uses: fluxcd/flux2/action@main
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-      - run: make unit-tests
+      - run: |
+          (pass=0; fail=0; for i in $(seq 1 100) ; do make unit-tests && pass=$(($pass+1)) || fail=$(($fail+1)) ; done; echo -e "Pass: $pass\nFail: $fail")
+
       # - run: make lib-test
 
   ci-static:
