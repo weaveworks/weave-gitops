@@ -75,7 +75,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
       - run: |
-          (pass=0; fail=0; for i in $(seq 1 100) ; do make unit-tests && pass=$(($pass+1)) || fail=$(($fail+1)) ; done; echo -e "Pass: $pass\nFail: $fail")
+          (pass=0; fail=0; for i in $(seq 1 500) ; do make unit-tests && pass=$(($pass+1)) || fail=$(($fail+1)) ; done; echo -e "Pass: $pass\nFail: $fail")
 
       # - run: make lib-test
 
