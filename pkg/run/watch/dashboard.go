@@ -2,6 +2,7 @@ package watch
 
 import (
 	"context"
+	"sync"
 
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/run"
@@ -31,8 +32,11 @@ func EnablePortForwardingForDashboard(ctx context.Context, log logger.Logger, ku
 	if pod != nil {
 		waitFwd := make(chan struct{}, 1)
 		readyChannel := make(chan struct{})
+		once := sync.Once{}
 		cancelPortFwd := func() {
-			close(waitFwd)
+			once.Do(func() {
+				close(waitFwd)
+			})
 		}
 
 		log.Actionf("Port forwarding to pod %s/%s ...", pod.Namespace, pod.Name)
