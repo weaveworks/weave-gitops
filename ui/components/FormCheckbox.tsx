@@ -18,8 +18,4 @@ function FormCheckbox(props: Props) {
   );
 }
 
-export default styled(FormCheckbox).attrs({ className: FormCheckbox.name })`
-  ${FormInput} {
-    min-width: 0;
-  }
-`;
+export default styled(FormCheckbox).attrs({ className: FormCheckbox.name })``;
