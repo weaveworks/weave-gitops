@@ -3,6 +3,7 @@ package watch
 import (
 	"context"
 	"fmt"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"strconv"
 	"time"
 
@@ -15,6 +16,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/rest"
@@ -303,48 +305,195 @@ func InstallDevBucketServer(
 	return nil, nil, fmt.Errorf("pod not found")
 }
 
-// UninstallDevBucketServer deletes the dev-bucket namespace.
-func UninstallDevBucketServer(ctx context.Context, log logger.Logger, kubeClient client.Client) error {
-	// create namespace
+type resourceToDelete struct {
+	key types.NamespacedName
+	gvk schema.GroupVersionKind
+}
+
+func devBucketCleanUpFunc(ctx context.Context, log logger.Logger, kubeClient client.Client) ([]resourceToDelete, error) {
+	// Rsources to delete:
+	// Service: constants.RunDevBucketName in the namespace constants.GitOpsRunNamespace
+	// Deployment: constants.RunDevBucketName in the namespace constants.GitOpsRunNamespace
+	// Secret: dev-bucket-server-certs in the namespace constants.GitOpsRunNamespace
+	// Secret: constants.RunDevBucketCredentials in the namespace constants.GitOpsRunNamespace
+	// Namespace: constants.GitOpsRunNamespace
+
+	var allResources []resourceToDelete
+
+	// delete deployment
+	devBucketDeployment := appsv1.Deployment{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Deployment",
+			APIVersion: "apps/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      constants.RunDevBucketName,
+			Namespace: constants.GitOpsRunNamespace,
+		},
+	}
+	log.Actionf("Deleting deployment %s/%s ...", constants.GitOpsRunNamespace, constants.RunDevBucketName)
+
+	if err := kubeClient.Delete(ctx, &devBucketDeployment); err != nil {
+		if !apierrors.IsNotFound(err) {
+			log.Failuref("Error deleting deployment %s/%s: %v", constants.GitOpsRunNamespace, constants.RunDevBucketName, err.Error())
+			return nil, err
+		}
+	}
+	allResources = append(allResources, resourceToDelete{
+		key: client.ObjectKeyFromObject(&devBucketDeployment),
+		gvk: devBucketDeployment.GroupVersionKind(),
+	})
+
+	// delete service
+	devBucketService := corev1.Service{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Service",
+			APIVersion: "v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      constants.RunDevBucketName,
+			Namespace: constants.GitOpsRunNamespace,
+		},
+	}
+	log.Actionf("Deleting service %s/%s ...", constants.GitOpsRunNamespace, constants.RunDevBucketName)
+
+	if err := kubeClient.Delete(ctx, &devBucketService); err != nil {
+		if !apierrors.IsNotFound(err) {
+			log.Failuref("Error deleting service %s/%s: %v", constants.GitOpsRunNamespace, constants.RunDevBucketName, err.Error())
+			return nil, err
+		}
+	}
+	allResources = append(allResources, resourceToDelete{
+		key: client.ObjectKeyFromObject(&devBucketService),
+		gvk: devBucketService.GroupVersionKind(),
+	})
+
+	// delete secret
+	devBucketSecret := corev1.Secret{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Secret",
+			APIVersion: "v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      constants.RunDevBucketCredentials,
+			Namespace: constants.GitOpsRunNamespace,
+		},
+	}
+	log.Actionf("Deleting secret %s/%s ...", constants.GitOpsRunNamespace, constants.RunDevBucketCredentials)
+
+	if err := kubeClient.Delete(ctx, &devBucketSecret); err != nil {
+		if !apierrors.IsNotFound(err) {
+			log.Failuref("Error deleting secret %s/%s: %v", constants.GitOpsRunNamespace, constants.RunDevBucketCredentials, err.Error())
+			return nil, err
+		}
+	}
+	allResources = append(allResources, resourceToDelete{
+		key: client.ObjectKeyFromObject(&devBucketSecret),
+		gvk: devBucketSecret.GroupVersionKind(),
+	})
+
+	// delete secret
+	devBucketServerCerts := corev1.Secret{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Secret",
+			APIVersion: "v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "dev-bucket-server-certs",
+			Namespace: constants.GitOpsRunNamespace,
+		},
+	}
+	log.Actionf("Deleting secret %s/%s ...", constants.GitOpsRunNamespace, "dev-bucket-server-certs")
+
+	if err := kubeClient.Delete(ctx, &devBucketServerCerts); err != nil {
+		if !apierrors.IsNotFound(err) {
+			log.Failuref("Error deleting secret %s/%s: %v", constants.GitOpsRunNamespace, "dev-bucket-server-certs", err.Error())
+			return nil, err
+		}
+	}
+	allResources = append(allResources, resourceToDelete{
+		key: client.ObjectKeyFromObject(&devBucketServerCerts),
+		gvk: devBucketServerCerts.GroupVersionKind(),
+	})
+
+	// delete namespace
 	devBucketNamespace := corev1.Namespace{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Namespace",
+			APIVersion: "v1",
+		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name: constants.GitOpsRunNamespace,
 		},
 	}
-
-	log.Actionf("Removing namespace %s ...", constants.GitOpsRunNamespace)
+	log.Actionf("Deleting namespace %s ...", constants.GitOpsRunNamespace)
 
 	if err := kubeClient.Delete(ctx, &devBucketNamespace); err != nil {
 		if !apierrors.IsNotFound(err) {
-			log.Failuref("Cannot remove namespace %s", constants.GitOpsRunNamespace)
-			return err
-		} else {
-			return nil
+			log.Failuref("Error deleting namespace %s: %v", constants.GitOpsRunNamespace, err.Error())
+			return nil, err
 		}
 	}
 
-	log.Actionf("Waiting for namespace %s to be terminated ...", constants.GitOpsRunNamespace)
+	allResources = append(allResources, resourceToDelete{
+		key: client.ObjectKeyFromObject(&devBucketNamespace),
+		gvk: devBucketNamespace.GroupVersionKind(),
+	})
 
+	return allResources, nil
+}
+
+// UninstallDevBucketServer deletes the dev-bucket namespace.
+func UninstallDevBucketServer(ctx context.Context, log logger.Logger, kubeClient client.Client) error {
+	resources, err := devBucketCleanUpFunc(ctx, log, kubeClient)
+	if err != nil {
+		return err
+	}
+
+	log.Actionf("Waiting for resources to be terminated ...")
+
+	// The purpose of this code is to wait for a list of Kubernetes resources to be deleted from a namespace,
+	// using an exponential backoff strategy to avoid overloading the Kubernetes API server with requests.
+	//
+	// The wait.ExponentialBackoff function is called with a wait.Backoff struct, defining the exponential backoff settings.
+	// The function provided as the second argument to wait.ExponentialBackoff checks the status of the Kubernetes resources in the resources slice.
+	// For each resource in the resources slice, the code attempts to retrieve the resource using kubeClient.Get.
+	// - If the resource is not found (i.e., apierrors.IsNotFound(err) returns true), the loop continues checking the next resource.
+	// - If the resource is found (i.e., there is no error), the function returns false, nil, indicating that the operation is not yet done.
+	//   The wait.ExponentialBackoff function will retry the operation based on the backoff settings.
+	// - If an error other than "not found" occurs, the function returns false, err.
+	//   The wait.ExponentialBackoff function stops retrying immediately and returns the error.
+	// - If all resources are checked and not found, the function returns true, nil,
+	//   indicating that the operation is done, and no errors occurred.
+	// - If the maximum number of retries (backoff.Steps) is reached or the backoff duration is capped,
+	//   and the resources are not yet deleted, the wait.ExponentialBackoff function returns ErrWaitTimeout.
+	//   In this case, the log message "Max retry exceeded waiting for resources to be deleted" will be printed.
 	if err := wait.ExponentialBackoff(wait.Backoff{
 		Duration: 1 * time.Second,
 		Factor:   2,
 		Jitter:   1,
 		Steps:    10,
 	}, func() (done bool, err error) {
-		ns := devBucketNamespace.DeepCopy()
-		if err := kubeClient.Get(ctx, client.ObjectKeyFromObject(ns), ns); err != nil {
-			if apierrors.IsNotFound(err) {
-				return true, nil
-			} else {
-				return false, err
+		for _, resource := range resources {
+			u := &unstructured.Unstructured{}
+			// u.SetGroupVersionKind(resource.gvk)
+			u.SetKind(resource.gvk.Kind)
+			u.SetAPIVersion(resource.gvk.GroupVersion().String())
+			if err := kubeClient.Get(ctx, resource.key, u); err != nil {
+				if apierrors.IsNotFound(err) {
+					continue
+				} else {
+					return false, err
+				}
 			}
+			return false, nil
 		}
-		return false, nil
+		return true, nil
 	}); err != nil {
-		log.Failuref("Max retry exceeded waiting for namespace to be deleted")
+		log.Failuref("Max retry exceeded waiting for resources to be deleted: %v", err.Error())
 	}
 
-	log.Successf("Namespace %s terminated", constants.GitOpsRunNamespace)
+	log.Successf("Resources terminated")
 
 	return nil
 }
