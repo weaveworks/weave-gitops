@@ -9,7 +9,7 @@ function FormCheckbox(props: Props) {
   return (
     <FormInput
       {...props}
-      //   Covert to bool to satisfy mui Checkbox props
+      //   Convert to bool to satisfy mui Checkbox props
       component={(p) => (
         <Checkbox {...p} checked={p.checked === "true" || Boolean(p.checked)} />
       )}
@@ -18,4 +18,8 @@ function FormCheckbox(props: Props) {
   );
 }
 
-export default styled(FormCheckbox).attrs({ className: FormCheckbox.name })``;
+export default styled(FormCheckbox).attrs({ className: FormCheckbox.name })`
+  ${FormInput} {
+    min-width: 0;
+  }
+`;

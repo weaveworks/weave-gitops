@@ -204,6 +204,18 @@ export function formatLogTimestamp(timestamp?: string, zone?: string): string {
   return formattedTimestamp;
 }
 
+export const createYamlCommand = (
+  kind: string,
+  name: string,
+  namespace: string
+): string => {
+  if (kind && name) {
+    const namespaceString = namespace ? ` -n ${namespace}` : "";
+    return `kubectl get ${kind.toLowerCase()} ${name}${namespaceString} -o yaml`;
+  }
+  return null;
+};
+
 export const Fade = styled(Flex)<{
   fade: boolean;
 }>`

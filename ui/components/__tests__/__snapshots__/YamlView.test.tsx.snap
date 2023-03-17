@@ -130,7 +130,7 @@ exports[`YamlView snapshots renders 1`] = `
   <div
     className="c1"
   >
-    kubectl get kustomization podinfo -n flux-system -o yaml 
+    kubectl get kustomization podinfo -n flux-system -o yaml
     <button
       className="MuiButtonBase-root MuiButton-root MuiButton-outlined c2 c3 yaml-copy MuiButton-outlinedPrimary MuiButton-disableElevation"
       disabled={false}
