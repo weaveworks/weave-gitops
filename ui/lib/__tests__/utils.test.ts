@@ -390,7 +390,7 @@ describe("utils lib", () => {
   });
 });
 
-describe.only("createYamlCommand", () => {
+describe("createYamlCommand", () => {
   it("creates kubectl get yaml string for objects with namespaces", () => {
     expect(
       createYamlCommand(Kind.Kustomization, "test", "flux-system")
