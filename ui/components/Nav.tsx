@@ -180,7 +180,13 @@ function Nav({
             if (n.disabled) return;
             if (!n.icon && !n.link)
               return (
-                <Text uppercase color="neutral30" semiBold className="header">
+                <Text
+                  uppercase
+                  color="neutral30"
+                  semiBold
+                  className="header"
+                  key={n.label}
+                >
                   {n.label}
                 </Text>
               );
