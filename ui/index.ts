@@ -11,6 +11,7 @@ import DataTable, {
   filterConfig,
 } from "./components/DataTable";
 import DependenciesView from "./components/DependenciesView";
+import DetailModal from "./components/DetailModal";
 import DirectedGraph from "./components/DirectedGraph";
 import EventsTable from "./components/EventsTable";
 import Flex from "./components/Flex";
@@ -126,6 +127,7 @@ export {
   DataTable,
   DagGraph,
   DependenciesView,
+  DetailModal,
   DialogYamlView,
   DirectedGraph,
   EventsTable,
