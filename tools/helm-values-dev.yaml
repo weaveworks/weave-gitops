@@ -25,5 +25,7 @@ envVars:
     value: "false"
   - name: WEAVE_GITOPS_FEATURE_TELEMETRY
     value: "false"
+  - name: WEAVE_GITOPS_FEATURE_OIDC_BUTTON_LABEL
+    value: "Login with SSO"
   - name: WEAVE_GITOPS_FEATURE_DEV_MODE
     value: "true"

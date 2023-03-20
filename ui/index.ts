@@ -1,14 +1,21 @@
+import { ReconciledObjectsAutomation } from "./components/AutomationDetail";
 import AutomationsTable from "./components/AutomationsTable";
 import BucketDetail from "./components/BucketDetail";
 import Button from "./components/Button";
+import ChipGroup from "./components/ChipGroup";
+import CopyToClipboard from "./components/CopyToCliboard";
+import CustomActions from "./components/CustomActions";
 import DagGraph from "./components/DagGraph";
 import DataTable, {
   filterByStatusCallback,
   filterConfig,
 } from "./components/DataTable";
 import DependenciesView from "./components/DependenciesView";
+import DetailModal from "./components/DetailModal";
+import DirectedGraph from "./components/DirectedGraph";
 import EventsTable from "./components/EventsTable";
 import Flex from "./components/Flex";
+import FluxObjectsTable from "./components/FluxObjectsTable";
 import FluxRuntime from "./components/FluxRuntime";
 import Footer from "./components/Footer";
 import GitRepositoryDetail from "./components/GitRepositoryDetail";
@@ -16,24 +23,35 @@ import HelmChartDetail from "./components/HelmChartDetail";
 import HelmReleaseDetail from "./components/HelmReleaseDetail";
 import HelmRepositoryDetail from "./components/HelmRepositoryDetail";
 import Icon, { IconType } from "./components/Icon";
+import ImageAutomationIcon from "./components/ImageAutomationIcon";
 import InfoList, { InfoField } from "./components/InfoList";
+import Input, { InputProps } from "./components/Input";
 import Interval from "./components/Interval";
 import KubeStatusIndicator from "./components/KubeStatusIndicator";
 import KustomizationDetail from "./components/KustomizationDetail";
 import Link from "./components/Link";
 import LoadingPage from "./components/LoadingPage";
+import Logo from "./components/Logo";
 import MessageBox from "./components/MessageBox";
 import Metadata from "./components/Metadata";
+import Nav, { NavItem } from "./components/Nav";
 import NotificationsTable from "./components/NotificationsTable";
 import OCIRepositoryDetail from "./components/OCIRepositoryDetail";
 import Page from "./components/Page";
+import PageStatus from "./components/PageStatus";
 import Pendo from "./components/Pendo";
 import ProviderDetail from "./components/ProviderDetail";
 import ReconciledObjectsTable from "./components/ReconciledObjectsTable";
+import ReconciliationGraph from "./components/ReconciliationGraph";
+import RequestStateHandler from "./components/RequestStateHandler";
 import SourceLink from "./components/SourceLink";
+import SourcesIcon from "./components/SourcesIcon";
 import SourcesTable from "./components/SourcesTable";
+import Spacer from "./components/Spacer";
 import SubRouterTabs, { RouterTab } from "./components/SubRouterTabs";
+import SyncButton from "./components/SyncButton";
 import Timestamp from "./components/Timestamp";
+import UserGroupsTable from "./components/UserGroupsTable";
 import UserSettings from "./components/UserSettings";
 import YamlView, { DialogYamlView } from "./components/YamlView";
 import AppContextProvider, { AppContext } from "./contexts/AppContext";
@@ -54,12 +72,14 @@ import {
   useListFluxRuntimeObjects,
   useToggleSuspend,
 } from "./hooks/flux";
+import { useCheckCRDInstalled } from "./hooks/imageautomation";
 import { useListAlerts, useListProviders } from "./hooks/notifications";
 import { useGetObject, useListObjects } from "./hooks/objects";
 import { useListSources } from "./hooks/sources";
 import { Core as coreClient } from "./lib/api/core/core.pb";
 import { Kind } from "./lib/api/core/types.pb";
-import { formatURL } from "./lib/nav";
+import { PARENT_CHILD_LOOKUP } from "./lib/graph";
+import { formatURL, getParentNavRouteValue } from "./lib/nav";
 import {
   Alert,
   Automation,
@@ -69,37 +89,24 @@ import {
   HelmChart,
   HelmRelease,
   HelmRepository,
-  Kustomization,
-  OCIRepository,
-  Provider,
   ImagePolicy,
   ImageRepository,
   ImageUpdateAutomation,
+  Kustomization,
+  OCIRepository,
+  Provider,
 } from "./lib/objects";
 import { muiTheme, theme } from "./lib/theme";
+import { showInterval } from "./lib/time";
 import { V2Routes } from "./lib/types";
 import {
+  createYamlCommand,
   formatLogTimestamp,
   isAllowedLink,
   poller,
   statusSortHelper,
 } from "./lib/utils";
 import SignIn from "./pages/SignIn";
-import CopyToClipboard from "./components/CopyToCliboard";
-import UserGroupsTable from "./components/UserGroupsTable";
-import Input, { InputProps } from "./components/Input";
-import PageStatus from "./components/PageStatus";
-import SyncButton from "./components/SyncButton";
-import Spacer from "./components/Spacer";
-import CustomActions from "./components/CustomActions";
-import RequestStateHandler from "./components/RequestStateHandler";
-import { PARENT_CHILD_LOOKUP } from "./lib/graph";
-import DirectedGraph from "./components/DirectedGraph";
-import FluxObjectsTable from "./components/FluxObjectsTable";
-import ReconciliationGraph from "./components/ReconciliationGraph";
-import { ReconciledObjectsAutomation } from "./components/AutomationDetail";
-import { useCheckCRDInstalled } from "./hooks/imageautomation";
-import { showInterval } from "./lib/time";
 
 export {
   AppContext,
@@ -113,13 +120,16 @@ export {
   Bucket,
   BucketDetail,
   Button,
+  ChipGroup,
   coreClient,
   CoreClientContextProvider,
   CoreClientContext,
+  createYamlCommand,
   CustomActions,
   DataTable,
   DagGraph,
   DependenciesView,
+  DetailModal,
   DialogYamlView,
   DirectedGraph,
   EventsTable,
@@ -132,6 +142,7 @@ export {
   Footer,
   formatLogTimestamp,
   formatURL,
+  getParentNavRouteValue,
   GitRepository,
   GitRepositoryDetail,
   HelmChart,
@@ -148,6 +159,7 @@ export {
   Input,
   InputProps,
   isAllowedLink,
+  ImageAutomationIcon,
   ImagePolicy,
   ImageRepository,
   ImageUpdateAutomation,
@@ -158,9 +170,12 @@ export {
   Link,
   LinkResolverProvider,
   LoadingPage,
+  Logo,
   MessageBox,
   Metadata,
   muiTheme,
+  Nav,
+  NavItem,
   NotificationsTable,
   OCIRepository,
   OCIRepositoryDetail,
@@ -177,6 +192,7 @@ export {
   RequestStateHandler,
   RouterTab,
   SignIn,
+  SourcesIcon,
   SourceLink,
   SourcesTable,
   statusSortHelper,

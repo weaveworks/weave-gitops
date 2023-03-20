@@ -1,0 +1,1097 @@
+<p>Packages:</p>
+<ul class="simple">
+<li>
+<a href="#templates.weave.works%2fv1alpha1">templates.weave.works/v1alpha1</a>
+</li>
+</ul>
+<h2 id="templates.weave.works/v1alpha1">templates.weave.works/v1alpha1</h2>
+<p>Package v1alpha1 contains API Schema definitions for the gitopssets v1alpha1 API group</p>
+Resource Types:
+<ul class="simple"><li>
+<a href="#templates.weave.works/v1alpha1.GitOpsSet">GitOpsSet</a>
+</li></ul>
+<h3 id="templates.weave.works/v1alpha1.GitOpsSet">GitOpsSet
+</h3>
+<p>GitOpsSet is the Schema for the gitopssets API</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>apiVersion</code><br />
+string</td>
+<td>
+<code>templates.weave.works/v1alpha1</code>
+</td>
+</tr>
+<tr>
+<td>
+<code>kind</code><br />
+string
+</td>
+<td>
+<code>GitOpsSet</code>
+</td>
+</tr>
+<tr>
+<td>
+<code>metadata</code><br />
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#objectmeta-v1-meta">
+Kubernetes meta/v1.ObjectMeta
+</a>
+</em>
+</td>
+<td>
+Refer to the Kubernetes API documentation for the fields of the
+<code>metadata</code> field.
+</td>
+</tr>
+<tr>
+<td>
+<code>spec</code><br />
+<em>
+<a href="#templates.weave.works/v1alpha1.GitOpsSetSpec">
+GitOpsSetSpec
+</a>
+</em>
+</td>
+<td>
+<br/>
+<br/>
+<table>
+<tr>
+<td>
+<code>suspend</code><br />
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Suspend tells the controller to suspend the reconciliation of this
+GitOpsSet.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>generators</code><br />
+<em>
+<a href="#templates.weave.works/v1alpha1.GitOpsSetGenerator">
+[]GitOpsSetGenerator
+</a>
+</em>
+</td>
+<td>
+<p>Generators generate the data to be inserted into the provided templates.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>templates</code><br />
+<em>
+<a href="#templates.weave.works/v1alpha1.GitOpsSetTemplate">
+[]GitOpsSetTemplate
+</a>
+</em>
+</td>
+<td>
+<p>Templates are a set of YAML templates that are rendered into resources
+from the data supplied by the generators.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>serviceAccountName</code><br />
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>The name of the Kubernetes service account to impersonate
+when reconciling this Kustomization.</p>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+<tr>
+<td>
+<code>status</code><br />
+<em>
+<a href="#templates.weave.works/v1alpha1.GitOpsSetStatus">
+GitOpsSetStatus
+</a>
+</em>
+</td>
+<td>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<h3 id="templates.weave.works/v1alpha1.APIClientGenerator">APIClientGenerator
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#templates.weave.works/v1alpha1.GitOpsSetGenerator">GitOpsSetGenerator</a>, 
+<a href="#templates.weave.works/v1alpha1.GitOpsSetNestedGenerator">GitOpsSetNestedGenerator</a>)
+</p>
+<p>APIClientGenerator defines a generator that queries an API endpoint and uses
+that to generate data.</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>interval</code><br />
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#duration-v1-meta">
+Kubernetes meta/v1.Duration
+</a>
+</em>
+</td>
+<td>
+<p>The interval at which to poll the API endpoint.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>endpoint</code><br />
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>This is the API endpoint to use.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>method</code><br />
+<em>
+string
+</em>
+</td>
+<td>
+<p>Method defines the HTTP method to use to talk to the endpoint.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>jsonPath</code><br />
+<em>
+string
+</em>
+</td>
+<td>
+<p>JSONPath is string that is used to modify the result of the API
+call.</p>
+<p>This can be used to extract a repeating element from a response.
+<a href="https://kubernetes.io/docs/reference/kubectl/jsonpath/">https://kubernetes.io/docs/reference/kubectl/jsonpath/</a></p>
+</td>
+</tr>
+<tr>
+<td>
+<code>headersRef</code><br />
+<em>
+<a href="#templates.weave.works/v1alpha1.HeadersReference">
+HeadersReference
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>HeadersRef allows optional configuration of a Secret or ConfigMap to add
+additional headers to an outgoing request.</p>
+<p>For example, a Secret with a key Authorization: Bearer abc123 could be
+used to configure an authorization header.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>body</code><br />
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#json-v1-apiextensions">
+Kubernetes pkg/apis/apiextensions/v1.JSON
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Body is set as the body in a POST request.</p>
+<p>If set, this will configure the Method to be POST automatically.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<h3 id="templates.weave.works/v1alpha1.ClusterGenerator">ClusterGenerator
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#templates.weave.works/v1alpha1.GitOpsSetGenerator">GitOpsSetGenerator</a>, 
+<a href="#templates.weave.works/v1alpha1.GitOpsSetNestedGenerator">GitOpsSetNestedGenerator</a>)
+</p>
+<p>ClusterGenerator defines a generator that queries the cluster API for
+relevant clusters.</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>selector</code><br />
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#labelselector-v1-meta">
+Kubernetes meta/v1.LabelSelector
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Selector is used to filter the clusters that you want to target.</p>
+<p>If no selector is provided, no clusters will be matched.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<h3 id="templates.weave.works/v1alpha1.GitOpsSetGenerator">GitOpsSetGenerator
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#templates.weave.works/v1alpha1.GitOpsSetSpec">GitOpsSetSpec</a>)
+</p>
+<p>GitOpsSetGenerator is the top-level set of generators for this GitOpsSet.</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>list</code><br />
+<em>
+<a href="#templates.weave.works/v1alpha1.ListGenerator">
+ListGenerator
+</a>
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>pullRequests</code><br />
+<em>
+<a href="#templates.weave.works/v1alpha1.PullRequestGenerator">
+PullRequestGenerator
+</a>
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>gitRepository</code><br />
+<em>
+<a href="#templates.weave.works/v1alpha1.GitRepositoryGenerator">
+GitRepositoryGenerator
+</a>
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>matrix</code><br />
+<em>
+<a href="#templates.weave.works/v1alpha1.MatrixGenerator">
+MatrixGenerator
+</a>
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>cluster</code><br />
+<em>
+<a href="#templates.weave.works/v1alpha1.ClusterGenerator">
+ClusterGenerator
+</a>
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>apiClient</code><br />
+<em>
+<a href="#templates.weave.works/v1alpha1.APIClientGenerator">
+APIClientGenerator
+</a>
+</em>
+</td>
+<td>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<h3 id="templates.weave.works/v1alpha1.GitOpsSetNestedGenerator">GitOpsSetNestedGenerator
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#templates.weave.works/v1alpha1.MatrixGenerator">MatrixGenerator</a>)
+</p>
+<p>GitOpsSetNestedGenerator describes the generators usable by the MatrixGenerator.
+This is a subset of the generators allowed by the GitOpsSetGenerator because the CRD format doesn&rsquo;t support recursive declarations.</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>list</code><br />
+<em>
+<a href="#templates.weave.works/v1alpha1.ListGenerator">
+ListGenerator
+</a>
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>gitRepository</code><br />
+<em>
+<a href="#templates.weave.works/v1alpha1.GitRepositoryGenerator">
+GitRepositoryGenerator
+</a>
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>pullRequests</code><br />
+<em>
+<a href="#templates.weave.works/v1alpha1.PullRequestGenerator">
+PullRequestGenerator
+</a>
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>cluster</code><br />
+<em>
+<a href="#templates.weave.works/v1alpha1.ClusterGenerator">
+ClusterGenerator
+</a>
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>apiClient</code><br />
+<em>
+<a href="#templates.weave.works/v1alpha1.APIClientGenerator">
+APIClientGenerator
+</a>
+</em>
+</td>
+<td>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<h3 id="templates.weave.works/v1alpha1.GitOpsSetSpec">GitOpsSetSpec
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#templates.weave.works/v1alpha1.GitOpsSet">GitOpsSet</a>)
+</p>
+<p>GitOpsSetSpec defines the desired state of GitOpsSet</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>suspend</code><br />
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Suspend tells the controller to suspend the reconciliation of this
+GitOpsSet.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>generators</code><br />
+<em>
+<a href="#templates.weave.works/v1alpha1.GitOpsSetGenerator">
+[]GitOpsSetGenerator
+</a>
+</em>
+</td>
+<td>
+<p>Generators generate the data to be inserted into the provided templates.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>templates</code><br />
+<em>
+<a href="#templates.weave.works/v1alpha1.GitOpsSetTemplate">
+[]GitOpsSetTemplate
+</a>
+</em>
+</td>
+<td>
+<p>Templates are a set of YAML templates that are rendered into resources
+from the data supplied by the generators.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>serviceAccountName</code><br />
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>The name of the Kubernetes service account to impersonate
+when reconciling this Kustomization.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<h3 id="templates.weave.works/v1alpha1.GitOpsSetStatus">GitOpsSetStatus
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#templates.weave.works/v1alpha1.GitOpsSet">GitOpsSet</a>)
+</p>
+<p>GitOpsSetStatus defines the observed state of GitOpsSet</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>ReconcileRequestStatus</code><br />
+<em>
+<a href="https://godoc.org/github.com/fluxcd/pkg/apis/meta#ReconcileRequestStatus">
+github.com/fluxcd/pkg/apis/meta.ReconcileRequestStatus
+</a>
+</em>
+</td>
+<td>
+<p>
+(Members of <code>ReconcileRequestStatus</code> are embedded into this type.)
+</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>observedGeneration</code><br />
+<em>
+int64
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>ObservedGeneration is the last observed generation of the HelmRepository
+object.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>conditions</code><br />
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#condition-v1-meta">
+[]Kubernetes meta/v1.Condition
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Conditions holds the conditions for the GitOpsSet</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>inventory</code><br />
+<em>
+<a href="#templates.weave.works/v1alpha1.ResourceInventory">
+ResourceInventory
+</a>
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Inventory contains the list of Kubernetes resource object references that
+have been successfully applied</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<h3 id="templates.weave.works/v1alpha1.GitOpsSetTemplate">GitOpsSetTemplate
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#templates.weave.works/v1alpha1.GitOpsSetSpec">GitOpsSetSpec</a>)
+</p>
+<p>GitOpsSetTemplate describes a resource to create</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>repeat</code><br />
+<em>
+string
+</em>
+</td>
+<td>
+<p>Repeat is a JSONPath string defining that the template content should be
+repeated for each of the matching elements in the JSONPath expression.
+<a href="https://kubernetes.io/docs/reference/kubectl/jsonpath/">https://kubernetes.io/docs/reference/kubectl/jsonpath/</a></p>
+</td>
+</tr>
+<tr>
+<td>
+<code>content</code><br />
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#rawextension-runtime-pkg">
+k8s.io/apimachinery/pkg/runtime.RawExtension
+</a>
+</em>
+</td>
+<td>
+<p>Content is the YAML to be templated and generated.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<h3 id="templates.weave.works/v1alpha1.GitRepositoryGenerator">GitRepositoryGenerator
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#templates.weave.works/v1alpha1.GitOpsSetGenerator">GitOpsSetGenerator</a>, 
+<a href="#templates.weave.works/v1alpha1.GitOpsSetNestedGenerator">GitOpsSetNestedGenerator</a>)
+</p>
+<p>GitRepositoryGenerator generates from files in a Flux GitRepository resource.</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>repositoryRef</code><br />
+<em>
+string
+</em>
+</td>
+<td>
+<p>RepositoryRef is the name of a GitRepository resource to be generated from.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>files</code><br />
+<em>
+<a href="#templates.weave.works/v1alpha1.GitRepositoryGeneratorFileItem">
+[]GitRepositoryGeneratorFileItem
+</a>
+</em>
+</td>
+<td>
+<p>Files is a set of rules for identifying files to be parsed.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>directories</code><br />
+<em>
+<a href="#templates.weave.works/v1alpha1.GitRepositoryGeneratorDirectoryItem">
+[]GitRepositoryGeneratorDirectoryItem
+</a>
+</em>
+</td>
+<td>
+<p>Directories is a set of rules for identifying directories to be
+generated.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<h3 id="templates.weave.works/v1alpha1.GitRepositoryGeneratorDirectoryItem">GitRepositoryGeneratorDirectoryItem
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#templates.weave.works/v1alpha1.GitRepositoryGenerator">GitRepositoryGenerator</a>)
+</p>
+<p>GitRepositoryGeneratorDirectoryItem stores the information about a specific
+directory to be generated from.</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>path</code><br />
+<em>
+string
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>exclude</code><br />
+<em>
+bool
+</em>
+</td>
+<td>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<h3 id="templates.weave.works/v1alpha1.GitRepositoryGeneratorFileItem">GitRepositoryGeneratorFileItem
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#templates.weave.works/v1alpha1.GitRepositoryGenerator">GitRepositoryGenerator</a>)
+</p>
+<p>GitRepositoryGeneratorFileItem defines a path to a file to be parsed when generating.</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>path</code><br />
+<em>
+string
+</em>
+</td>
+<td>
+<p>Path is the name of a file to read and generate from can be JSON or YAML.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<h3 id="templates.weave.works/v1alpha1.HeadersReference">HeadersReference
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#templates.weave.works/v1alpha1.APIClientGenerator">APIClientGenerator</a>)
+</p>
+<p>HeadersReference references either a Secret or ConfigMap to be used for
+additional request headers.</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>kind</code><br />
+<em>
+string
+</em>
+</td>
+<td>
+<p>The resource kind to get headers from.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>name</code><br />
+<em>
+string
+</em>
+</td>
+<td>
+<p>Name of the resource in the same namespace to apply headers from.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<h3 id="templates.weave.works/v1alpha1.ListGenerator">ListGenerator
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#templates.weave.works/v1alpha1.GitOpsSetGenerator">GitOpsSetGenerator</a>, 
+<a href="#templates.weave.works/v1alpha1.GitOpsSetNestedGenerator">GitOpsSetNestedGenerator</a>)
+</p>
+<p>ListGenerator generates from a hard-coded list.</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>elements</code><br />
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#json-v1-apiextensions">
+[]Kubernetes pkg/apis/apiextensions/v1.JSON
+</a>
+</em>
+</td>
+<td>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<h3 id="templates.weave.works/v1alpha1.MatrixGenerator">MatrixGenerator
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#templates.weave.works/v1alpha1.GitOpsSetGenerator">GitOpsSetGenerator</a>)
+</p>
+<p>MatrixGenerator defines a matrix that combines generators.
+The matrix is a cartesian product of the generators.</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>generators</code><br />
+<em>
+<a href="#templates.weave.works/v1alpha1.GitOpsSetNestedGenerator">
+[]GitOpsSetNestedGenerator
+</a>
+</em>
+</td>
+<td>
+<p>Generators is a list of generators to be combined.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<h3 id="templates.weave.works/v1alpha1.PullRequestGenerator">PullRequestGenerator
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#templates.weave.works/v1alpha1.GitOpsSetGenerator">GitOpsSetGenerator</a>, 
+<a href="#templates.weave.works/v1alpha1.GitOpsSetNestedGenerator">GitOpsSetNestedGenerator</a>)
+</p>
+<p>PullRequestGenerator defines a generator that queries a Git hosting service
+for relevant PRs.</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>interval</code><br />
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#duration-v1-meta">
+Kubernetes meta/v1.Duration
+</a>
+</em>
+</td>
+<td>
+<p>The interval at which to check for repository updates.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>driver</code><br />
+<em>
+string
+</em>
+</td>
+<td>
+<p>Determines which git-api protocol to use.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>serverURL</code><br />
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>This is the API endpoint to use.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>repo</code><br />
+<em>
+string
+</em>
+</td>
+<td>
+<p>This should be the Repo you want to query.
+e.g. my-org/my-repo</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>secretRef</code><br />
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#localobjectreference-v1-core">
+Kubernetes core/v1.LocalObjectReference
+</a>
+</em>
+</td>
+<td>
+<p>Reference to Secret in same namespace with a field &ldquo;password&rdquo; which is an
+auth token that can query the Git Provider API.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>labels</code><br />
+<em>
+[]string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Labels is used to filter the PRs that you want to target.
+This may be applied on the server.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>forks</code><br />
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Fork is used to filter out forks from the target PRs if false,
+or to include forks if  true</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<h3 id="templates.weave.works/v1alpha1.ResourceInventory">ResourceInventory
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#templates.weave.works/v1alpha1.GitOpsSetStatus">GitOpsSetStatus</a>)
+</p>
+<p>ResourceInventory contains a list of Kubernetes resource object references that have been applied by a Kustomization.</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>entries</code><br />
+<em>
+<a href="#templates.weave.works/v1alpha1.ResourceRef">
+[]ResourceRef
+</a>
+</em>
+</td>
+<td>
+<p>Entries of Kubernetes resource object references.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<h3 id="templates.weave.works/v1alpha1.ResourceRef">ResourceRef
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#templates.weave.works/v1alpha1.ResourceInventory">ResourceInventory</a>)
+</p>
+<p>ResourceRef contains the information necessary to locate a resource within a cluster.</p>
+<div class="md-typeset__scrollwrap">
+<div class="md-typeset__table">
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>id</code><br />
+<em>
+string
+</em>
+</td>
+<td>
+<p>ID is the string representation of the Kubernetes resource object&rsquo;s metadata,
+in the format &lsquo;namespace_name_group_kind&rsquo;.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>v</code><br />
+<em>
+string
+</em>
+</td>
+<td>
+<p>Version is the API version of the Kubernetes resource object&rsquo;s kind.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="admonition note">
+<p class="last">This page was automatically generated with <code>gen-crd-api-reference-docs</code></p>
+</div>

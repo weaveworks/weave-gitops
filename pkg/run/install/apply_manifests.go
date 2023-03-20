@@ -69,7 +69,7 @@ func apply(ctx context.Context, log logger.Logger, manager ResourceManagerForApp
 	}
 
 	if len(stageOne) > 0 {
-		cs, err := applySet(ctx, log, manager, stageOne)
+		cs, err := applySet(ctx, manager, stageOne)
 		if err != nil {
 			log.Failuref("Error applying stage one objects")
 			return "", err
@@ -77,14 +77,14 @@ func apply(ctx context.Context, log logger.Logger, manager ResourceManagerForApp
 
 		changeSet.Append(cs.Entries)
 
-		if err := waitForSet(ctx, log, manager, changeSet); err != nil {
+		if err := waitForSet(manager, changeSet); err != nil {
 			log.Failuref("Error waiting for set")
 			return "", err
 		}
 	}
 
 	if len(stageTwo) > 0 {
-		cs, err := applySet(ctx, log, manager, stageTwo)
+		cs, err := applySet(ctx, manager, stageTwo)
 		if err != nil {
 			log.Failuref("Error applying stage two objects")
 			return "", err
@@ -96,10 +96,10 @@ func apply(ctx context.Context, log logger.Logger, manager ResourceManagerForApp
 	return changeSet.String(), nil
 }
 
-func applySet(ctx context.Context, log logger.Logger, manager ResourceManagerForApply, objects []*unstructured.Unstructured) (*ssa.ChangeSet, error) {
+func applySet(ctx context.Context, manager ResourceManagerForApply, objects []*unstructured.Unstructured) (*ssa.ChangeSet, error) {
 	return manager.ApplyAll(ctx, objects, ssa.DefaultApplyOptions())
 }
 
-func waitForSet(ctx context.Context, log logger.Logger, manager ResourceManagerForApply, changeSet *ssa.ChangeSet) error {
+func waitForSet(manager ResourceManagerForApply, changeSet *ssa.ChangeSet) error {
 	return manager.WaitForSet(changeSet.ToObjMetadataSet(), ssa.WaitOptions{Interval: 2 * time.Second, Timeout: time.Minute})
 }

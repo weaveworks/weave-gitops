@@ -6,9 +6,15 @@ import Logo from "../Logo";
 
 describe("Logo", () => {
   describe("snapshots", () => {
-    it("renders", () => {
+    it("renders open view", () => {
       const tree = renderer
-        .create(withTheme(withContext(<Logo />, "", {})))
+        .create(withTheme(withContext(<Logo collapsed={false} />, "", {})))
+        .toJSON();
+      expect(tree).toMatchSnapshot();
+    });
+    it("renders collapsed view", () => {
+      const tree = renderer
+        .create(withTheme(withContext(<Logo collapsed={true} />, "", {})))
         .toJSON();
       expect(tree).toMatchSnapshot();
     });

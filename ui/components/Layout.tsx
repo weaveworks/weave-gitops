@@ -1,7 +1,12 @@
-import React from "react";
+import { Drawer } from "@material-ui/core";
+import React, { useContext, useState } from "react";
 import styled from "styled-components";
+import { AppContext } from "../contexts/AppContext";
+import useNavigation from "../hooks/navigation";
+import { getParentNavRouteValue } from "../lib/nav";
 import { V2Routes } from "../lib/types";
 import Breadcrumbs from "./Breadcrumbs";
+import DetailModal from "./DetailModal";
 import Flex from "./Flex";
 import { IconType } from "./Icon";
 import Logo from "./Logo";
@@ -17,22 +22,27 @@ const navItems: NavItem[] = [
   {
     label: "Applications",
     link: { value: V2Routes.Automations },
-    styles: { icon: IconType.ApplicationsIcon },
+    icon: IconType.ApplicationsIcon,
   },
   {
     label: "Sources",
     link: { value: V2Routes.Sources },
-    styles: { sub: true },
+    icon: IconType.SourcesIcon,
   },
   {
     label: "Image Automation",
     link: { value: V2Routes.ImageAutomation },
-    styles: { sub: true, groupEnd: true },
+    icon: IconType.ImageAutomationIcon,
   },
   {
     label: "Flux Runtime",
     link: { value: V2Routes.FluxRuntime },
-    styles: { icon: IconType.FluxIcon, groupEnd: true },
+    icon: IconType.FluxIcon,
+  },
+  {
+    label: "Notifications",
+    link: { value: V2Routes.Notifications },
+    icon: IconType.NotificationsBell,
   },
   {
     label: "Docs",
@@ -41,7 +51,7 @@ const navItems: NavItem[] = [
       href: "https://docs.gitops.weave.works/",
       newTab: true,
     },
-    styles: { icon: IconType.DocsIcon, groupEnd: true },
+    icon: IconType.DocsIcon,
   },
 ];
 
@@ -54,17 +64,8 @@ const AppContainer = styled.div`
   padding: 0;
 `;
 
-const navWidth = "200px";
 //top tool bar height needs to match main padding top
 const topBarHeight = "60px";
-
-const NavContainer = styled.div`
-  width: ${navWidth};
-  min-width: ${navWidth};
-  height: calc(100% - 12px);
-  //topBarHeight
-  transform: translateY(60);
-`;
 
 const ContentContainer = styled.div`
   width: 100%;
@@ -101,19 +102,40 @@ const TopToolBar = styled(Flex)`
 `;
 
 function Layout({ className, children }: Props) {
+  const [collapsed, setCollapsed] = useState<boolean>(false);
+
+  const { appState, setDetailModal } = useContext(AppContext);
+  const detail = appState.detailModal;
+
+  const { currentPage } = useNavigation();
+  const value = getParentNavRouteValue(currentPage);
+
   return (
     <AppContainer className={className}>
       <TopToolBar start align wide>
-        <Logo />
+        <Logo collapsed={collapsed} link={V2Routes.Automations} />
         <Breadcrumbs />
         <UserSettings />
       </TopToolBar>
       <Main wide tall>
-        <NavContainer>
-          <Nav navItems={navItems} />
-        </NavContainer>
+        <Nav
+          navItems={navItems}
+          collapsed={collapsed}
+          setCollapsed={setCollapsed}
+          currentPage={value}
+        />
         <ContentContainer>{children}</ContentContainer>
       </Main>
+      <Drawer
+        anchor="right"
+        open={detail ? true : false}
+        onClose={() => setDetailModal(null)}
+        ModalProps={{ keepMounted: false }}
+      >
+        {detail && (
+          <DetailModal className={detail.className} object={detail.object} />
+        )}
+      </Drawer>
     </AppContainer>
   );
 }

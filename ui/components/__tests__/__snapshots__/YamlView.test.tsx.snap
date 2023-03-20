@@ -16,9 +16,24 @@ exports[`YamlView snapshots renders 1`] = `
 }
 
 .c5 svg {
-  fill: !important;
   height: 12px;
   width: 12px;
+}
+
+.c5 svg path.path-fill {
+  fill: !important;
+  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
+.c5 svg.sources {
+  fill: none !important;
+}
+
+.c5 svg.sources rect {
+  stroke: !important;
+  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c5.downward {
@@ -115,7 +130,7 @@ exports[`YamlView snapshots renders 1`] = `
   <div
     className="c1"
   >
-    kubectl get kustomization podinfo -n flux-system -o yaml 
+    kubectl get kustomization podinfo -n flux-system -o yaml
     <button
       className="MuiButtonBase-root MuiButton-root MuiButton-outlined c2 c3 yaml-copy MuiButton-outlinedPrimary MuiButton-disableElevation"
       disabled={false}

@@ -45,12 +45,12 @@ module.exports = {
           type: "doc",
           docId: "intro",
           position: "left",
-          label: "Getting Started",
+          label: "Docs",
         },
         {
           type: 'docSidebar',
           position: 'left',
-          label: 'Helm Chart & CLI',
+          label: 'Reference',
           sidebarId: 'ref',
         },
         {

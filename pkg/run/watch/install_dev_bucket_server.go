@@ -273,7 +273,7 @@ func InstallDevBucketServer(
 	// get pod from specMap
 	namespacedName := types.NamespacedName{Namespace: specMap.Namespace, Name: specMap.Name}
 
-	pod, err := run.GetPodFromResourceDescription(ctx, namespacedName, specMap.Kind, kubeClient)
+	pod, err := run.GetPodFromResourceDescription(ctx, kubeClient, namespacedName, specMap.Kind, nil)
 	if err != nil {
 		log.Failuref("Error getting pod from specMap: %v", err)
 	}

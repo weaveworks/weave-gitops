@@ -29,7 +29,7 @@ func TestGetReconciledObjects(t *testing.T) {
 
 	ctx := context.Background()
 
-	c, _ := makeGRPCServer(k8sEnv.Rest, t)
+	c := makeGRPCServer(k8sEnv.Rest, t)
 
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
@@ -195,7 +195,7 @@ func TestGetReconciledObjectsWithSecret(t *testing.T) {
 
 	ctx := context.Background()
 
-	c, _ := makeGRPCServer(k8sEnv.Rest, t)
+	c := makeGRPCServer(k8sEnv.Rest, t)
 
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
@@ -436,8 +436,12 @@ func TestListFluxCrds(t *testing.T) {
 		Name:   "crd2",
 		Labels: map[string]string{stypes.PartOfLabel: "flux"},
 	}, Spec: apiextensions.CustomResourceDefinitionSpec{
-		Group:    "group",
-		Versions: []apiextensions.CustomResourceDefinitionVersion{{Name: "0"}},
+		Group: "group",
+		Versions: []apiextensions.CustomResourceDefinitionVersion{
+			{Name: "0"},
+			// "Active" version in etcd, use this one.
+			{Name: "1", Storage: true},
+		},
 	}}
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
@@ -457,5 +461,5 @@ func TestListFluxCrds(t *testing.T) {
 	g.Expect(first.Name.Group).To(Equal("group"))
 	g.Expect(first.Kind).To(Equal("kind"))
 	g.Expect(first.ClusterName).To(Equal(cluster.DefaultCluster))
-	g.Expect(res.Crds[1].Version).To(Equal("0"))
+	g.Expect(res.Crds[1].Version).To(Equal("1"))
 }

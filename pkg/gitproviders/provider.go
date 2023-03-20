@@ -37,7 +37,7 @@ type GitProvider interface {
 	GetRepoVisibility(ctx context.Context, repoURL RepoURL) (*gitprovider.RepositoryVisibility, error)
 	UploadDeployKey(ctx context.Context, repoURL RepoURL, deployKey []byte) error
 	CreatePullRequest(ctx context.Context, repoURL RepoURL, prInfo PullRequestInfo) (gitprovider.PullRequest, error)
-	GetCommits(ctx context.Context, repoURL RepoURL, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error)
+	GetCommits(ctx context.Context, repoURL RepoURL, targetBranch string, pageSize, pageToken int) ([]gitprovider.Commit, error)
 	GetProviderDomain() string
 	GetRepoDirFiles(ctx context.Context, repoURL RepoURL, dirPath, targetBranch string) ([]*gitprovider.CommitFile, error)
 	MergePullRequest(ctx context.Context, repoURL RepoURL, pullRequestNumber int, commitMesage string) error
@@ -53,7 +53,7 @@ type PullRequestInfo struct {
 	Files                     []gitprovider.CommitFile
 }
 
-type AccountTypeGetter func(provider gitprovider.Client, domain string, owner string) (ProviderAccountType, error)
+type AccountTypeGetter func(provider gitprovider.Client, domain, owner string) (ProviderAccountType, error)
 
 func New(config Config, owner string, getAccountType AccountTypeGetter) (GitProvider, error) {
 	provider, domain, err := buildGitProvider(config)
@@ -155,7 +155,7 @@ func createPullRequest(ctx context.Context, repo gitprovider.UserRepository, prI
 	return pr, nil
 }
 
-func getCommits(ctx context.Context, repo gitprovider.UserRepository, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error) {
+func getCommits(ctx context.Context, repo gitprovider.UserRepository, targetBranch string, pageSize, pageToken int) ([]gitprovider.Commit, error) {
 	// currently locking the commit list at 10. May discuss pagination options later.
 	commits, err := repo.Commits().ListPage(ctx, targetBranch, pageSize, pageToken)
 	if err != nil {
@@ -173,7 +173,7 @@ func getProviderDomain(providerID gitprovider.ProviderID) string {
 	return string(GitProviderName(providerID)) + ".com"
 }
 
-func GetAccountType(provider gitprovider.Client, domain string, owner string) (ProviderAccountType, error) {
+func GetAccountType(provider gitprovider.Client, domain, owner string) (ProviderAccountType, error) {
 	_, err := provider.Organizations().Get(context.Background(), gitprovider.OrganizationRef{
 		Domain:       domain,
 		Organization: owner,

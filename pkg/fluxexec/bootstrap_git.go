@@ -58,10 +58,7 @@ func (opt *UsernameOption) configureBootstrapGit(conf *bootstrapGitConfig) {
 }
 
 func (flux *Flux) BootstrapGit(ctx context.Context, opts ...BootstrapGitOption) error {
-	bootstrapGitCmd, err := flux.bootstrapGitCmd(ctx, opts...)
-	if err != nil {
-		return err
-	}
+	bootstrapGitCmd := flux.bootstrapGitCmd(ctx, opts...)
 
 	if err := flux.runFluxCmd(ctx, bootstrapGitCmd); err != nil {
 		return err
@@ -70,7 +67,7 @@ func (flux *Flux) BootstrapGit(ctx context.Context, opts ...BootstrapGitOption) 
 	return nil
 }
 
-func (flux *Flux) bootstrapGitCmd(ctx context.Context, opts ...BootstrapGitOption) (*exec.Cmd, error) {
+func (flux *Flux) bootstrapGitCmd(ctx context.Context, opts ...BootstrapGitOption) *exec.Cmd {
 	c := defaultBootstrapGitOptions
 	for _, o := range opts {
 		o.configureBootstrapGit(&c)
@@ -114,5 +111,5 @@ func (flux *Flux) bootstrapGitCmd(ctx context.Context, opts ...BootstrapGitOptio
 		args = append(args, "--username", c.username)
 	}
 
-	return flux.buildFluxCmd(ctx, nil, args...), nil
+	return flux.buildFluxCmd(ctx, nil, args...)
 }

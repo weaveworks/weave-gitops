@@ -330,7 +330,7 @@ type PaginationInfo struct {
 	ContinueTokens map[string]map[string]string
 }
 
-func (pi *PaginationInfo) Set(cluster string, namespace string, token string) {
+func (pi *PaginationInfo) Set(cluster, namespace, token string) {
 	pi.Lock()
 	defer pi.Unlock()
 
@@ -345,7 +345,7 @@ func (pi *PaginationInfo) Set(cluster string, namespace string, token string) {
 	pi.ContinueTokens[cluster][namespace] = token
 }
 
-func (pi *PaginationInfo) Get(cluster string, namespace string) string {
+func (pi *PaginationInfo) Get(cluster, namespace string) string {
 	pi.Lock()
 	defer pi.Unlock()
 

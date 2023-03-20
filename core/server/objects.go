@@ -125,12 +125,12 @@ func (cs *coreServer) ListObjects(ctx context.Context, msg *pb.ListObjectsReques
 						cs.logger.V(logger.LogLevelDebug).Info("Couldn't grab inventory for helm release", "error", err)
 					}
 				case "StatefulSet":
-					name, clusterName, kind, err := parseSessionInfo(unstructuredObj)
+					clusterName, kind, err := parseSessionInfo(unstructuredObj)
 					if err != nil {
 						break
 					}
 
-					created, _ := cs.sessionObjectsCreated(ctx, name, clusterName, "flux-system", kind)
+					created, _ := cs.sessionObjectsCreated(ctx, clusterName, "flux-system", kind)
 
 					if created {
 						info = sessionObjectsInfo
@@ -154,18 +154,18 @@ func (cs *coreServer) ListObjects(ctx context.Context, msg *pb.ListObjectsReques
 	}, nil
 }
 
-func parseSessionInfo(unstructuredObj unstructured.Unstructured) (string, string, string, error) {
+func parseSessionInfo(unstructuredObj unstructured.Unstructured) (string, string, error) {
 	var set v1.StatefulSet
 
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(unstructuredObj.UnstructuredContent(), &set)
 	if err != nil {
-		return "", "", "", fmt.Errorf("converting unstructured to statefulset: %w", err)
+		return "", "", fmt.Errorf("converting unstructured to statefulset: %w", err)
 	}
 
 	labels := set.GetLabels()
 
 	if labels["app"] != "vcluster" || labels["app.kubernetes.io/part-of"] != "gitops-run" {
-		return "", "", "", fmt.Errorf("unexpected format of labels")
+		return "", "", fmt.Errorf("unexpected format of labels")
 	}
 
 	annotations := set.GetAnnotations()
@@ -179,17 +179,15 @@ func parseSessionInfo(unstructuredObj unstructured.Unstructured) (string, string
 
 	ns := annotations["run.weave.works/namespace"]
 	if ns == "" {
-		return "", "", "", fmt.Errorf("empty session namespace")
+		return "", "", fmt.Errorf("empty session namespace")
 	}
 
-	name := set.GetName()
+	clusterName := ns + "/" + set.GetName()
 
-	clusterName := ns + "/" + name
-
-	return name, clusterName, kind, nil
+	return clusterName, kind, nil
 }
 
-func (cs *coreServer) sessionObjectsCreated(ctx context.Context, sessionName string, clusterName string, objectNamespace string, automationKind string) (bool, error) {
+func (cs *coreServer) sessionObjectsCreated(ctx context.Context, clusterName, objectNamespace, automationKind string) (bool, error) {
 	automationName := constants.RunDevHelmName
 
 	if automationKind == kustomizev1.KustomizationKind {
