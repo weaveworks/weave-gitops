@@ -28,8 +28,7 @@ function ReconciledObjectsTable({
     name,
     clusterName,
     namespace,
-    false,
-    {}
+    false
   );
 
   const initialFilterState = {
