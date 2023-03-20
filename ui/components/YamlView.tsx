@@ -1,6 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
 import { ObjectRef } from "../lib/api/core/types.pb";
+import { createYamlCommand } from "../lib/utils";
 import CopyToClipboard from "./CopyToCliboard";
 
 export type YamlViewProps = {
@@ -19,19 +20,23 @@ const YamlHeader = styled.div`
 `;
 
 function UnstyledYamlView({ yaml, object, className }: YamlViewProps) {
-  const headerText = `kubectl get ${object.kind.toLowerCase()} ${
-    object.name
-  } -n ${object.namespace} -o yaml `;
+  const headerText = createYamlCommand(
+    object.kind,
+    object.name,
+    object.namespace
+  );
 
   return (
     <div className={className}>
       <YamlHeader>
         {headerText}
-        <CopyToClipboard
-          value={headerText}
-          className="yaml-copy"
-          size="small"
-        ></CopyToClipboard>
+        {headerText && (
+          <CopyToClipboard
+            value={headerText}
+            className="yaml-copy"
+            size="small"
+          />
+        )}
       </YamlHeader>
       <pre>
         {yaml.split("\n").map((yaml, index) => (

@@ -100,6 +100,7 @@ import { muiTheme, theme } from "./lib/theme";
 import { showInterval } from "./lib/time";
 import { V2Routes } from "./lib/types";
 import {
+  createYamlCommand,
   formatLogTimestamp,
   isAllowedLink,
   poller,
@@ -123,6 +124,7 @@ export {
   coreClient,
   CoreClientContextProvider,
   CoreClientContext,
+  createYamlCommand,
   CustomActions,
   DataTable,
   DagGraph,

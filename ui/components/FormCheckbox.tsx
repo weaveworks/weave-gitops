@@ -9,7 +9,7 @@ function FormCheckbox(props: Props) {
   return (
     <FormInput
       {...props}
-      //   Covert to bool to satisfy mui Checkbox props
+      //   Convert to bool to satisfy mui Checkbox props
       component={(p) => (
         <Checkbox {...p} checked={p.checked === "true" || Boolean(p.checked)} />
       )}
