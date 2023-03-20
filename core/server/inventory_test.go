@@ -2,13 +2,17 @@ package server_test
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"testing"
 
+	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
+	"github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	appsv1 "k8s.io/api/apps/v1"
@@ -17,7 +21,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
-func TestGetInventory(t *testing.T) {
+func TestGetInventoryKustomization(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	ctx := context.Background()
@@ -118,4 +122,79 @@ func TestGetInventory(t *testing.T) {
 	g.Expect(res.Entries).To(HaveLen(1))
 
 	g.Expect(res.Entries[0].Children).To(HaveLen(1))
+}
+
+func TestGetInventoryHelmRelease(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	scheme, err := kube.CreateScheme()
+	g.Expect(err).NotTo(HaveOccurred())
+
+	ctx := context.Background()
+
+	ns := &corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "test-namespace",
+		},
+	}
+	helm1 := &helmv2.HelmRelease{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "first-helm-name",
+			Namespace: ns.Name,
+		},
+		Spec: helmv2.HelmReleaseSpec{},
+		Status: helmv2.HelmReleaseStatus{
+			LastReleaseRevision: 1,
+		},
+	}
+
+	cm := &corev1.ConfigMap{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "ConfigMap",
+			APIVersion: "v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "config-map",
+			Namespace: ns.Name,
+		},
+		Data: map[string]string{
+			"key": "value",
+		},
+	}
+
+	cmData, err := json.Marshal(cm)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	// Create helm storage.
+	storage := types.HelmReleaseStorage{
+		Name:     "",
+		Manifest: string(cmData),
+	}
+
+	storageData, _ := json.Marshal(storage)
+
+	secret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "sh.helm.release.v1.first-helm-name.v1",
+			Namespace: ns.Name,
+		},
+		Data: map[string][]byte{
+			"release": []byte(base64.StdEncoding.EncodeToString(storageData)),
+		},
+	}
+
+	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ns, helm1, secret, cm).Build()
+	cfg := makeServerConfig(client, t, "")
+	c := makeServer(cfg, t)
+
+	res, err := c.GetInventory(ctx, &pb.GetInventoryRequest{
+		Namespace:    ns.Name,
+		ClusterName:  cluster.DefaultCluster,
+		Kind:         "HelmRelease",
+		Name:         helm1.Name,
+		WithChildren: true,
+	})
+
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(res.Entries).To(HaveLen(1))
 }
