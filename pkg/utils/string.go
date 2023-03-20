@@ -33,6 +33,6 @@ func GenerateRandomString(min, max int) (string, error) {
 	return string(value), nil
 }
 
-func randInt(min int, max int) int {
+func randInt(min, max int) int {
 	return min + mrand.Intn(max-min)
 }

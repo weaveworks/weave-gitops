@@ -23,14 +23,14 @@ type Fetcher interface {
 //
 // With NewFetcher, it will automatically start a background go routine to watch
 // CRDs.
-func NewFetcher(ctx context.Context, logger logr.Logger, clustersManager clustersmngr.ClustersManager) Fetcher {
+func NewFetcher(logger logr.Logger, clustersManager clustersmngr.ClustersManager) Fetcher {
 	fetcher := &defaultFetcher{
 		logger:          logger,
 		clustersManager: clustersManager,
 		crds:            map[string][]v1.CustomResourceDefinition{},
 	}
 
-	go fetcher.watchCRDs(ctx)
+	go fetcher.watchCRDs()
 
 	return fetcher
 }
@@ -42,7 +42,7 @@ type defaultFetcher struct {
 	crds            map[string][]v1.CustomResourceDefinition
 }
 
-func (s *defaultFetcher) watchCRDs(ctx context.Context) {
+func (s *defaultFetcher) watchCRDs() {
 	_ = wait.PollImmediateInfinite(watchCRDsFrequency, func() (bool, error) {
 		s.UpdateCRDList()
 

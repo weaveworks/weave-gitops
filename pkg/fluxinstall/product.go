@@ -53,7 +53,7 @@ func (p *Product) Install(ctx context.Context) (string, error) {
 
 	// check if the dir not found
 	if _, err := os.Stat(gitopsCacheFluxDir); os.IsNotExist(err) {
-		if err := os.MkdirAll(gitopsCacheFluxDir, 0755); err != nil {
+		if err := os.MkdirAll(gitopsCacheFluxDir, 0o755); err != nil {
 			return "", err
 		}
 	}
@@ -89,7 +89,7 @@ func (p *Product) Install(ctx context.Context) (string, error) {
 	}
 
 	binaryPath := filepath.Join(gitopsCacheFluxDir, "flux")
-	if err := os.WriteFile(binaryPath, binary, 0744); err != nil {
+	if err := os.WriteFile(binaryPath, binary, 0o744); err != nil {
 		return "", err
 	}
 
@@ -119,7 +119,7 @@ func (p *Product) Find(ctx context.Context) (string, error) {
 	return fluxPath, nil
 }
 
-func (p *Product) verifyChecksum(filename string, sum string) error {
+func (p *Product) verifyChecksum(filename, sum string) error {
 	checkSumURL := fmt.Sprintf("https://github.com/fluxcd/flux2/releases/download/v%s/flux_%s_checksums.txt", p.Version, p.Version)
 	client := p.cli
 	resp, err := client.Get(checkSumURL)

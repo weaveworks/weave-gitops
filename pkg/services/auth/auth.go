@@ -222,12 +222,12 @@ func extractSecretPart(secret *corev1.Secret, key string) []byte {
 
 	var ok bool
 
-	data, ok = secret.Data[string(key)]
+	data, ok = secret.Data[key]
 	if !ok {
 		// StringData is a write-only field, flux generates secrets on disk with StringData
 		// Once they get applied on the cluster, Kubernetes populates Data and removes StringData.
 		// Handle this case here to be able to extract data no matter the "state" of the object.
-		data = []byte(secret.StringData[string(key)])
+		data = []byte(secret.StringData[key])
 	}
 
 	return data

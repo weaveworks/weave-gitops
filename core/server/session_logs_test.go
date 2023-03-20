@@ -4,11 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"io"
 	"strings"
 	"testing"
 	"time"
+
+	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 
 	. "github.com/onsi/gomega"
 
@@ -98,7 +99,6 @@ func TestGetBucketConnectionInfo(t *testing.T) {
 }
 
 type mockS3Reader struct {
-	s3Reader
 }
 
 var _ = s3Reader(&mockS3Reader{})

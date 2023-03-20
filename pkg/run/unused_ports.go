@@ -15,7 +15,7 @@ func GetUnusedPorts(count int) (ports []int32, retErr error) {
 			return nil, err
 		}
 
-		defer func(l *net.TCPListener) {
+		defer func(l *net.TCPListener) { //nolint:gocritic
 			err := l.Close()
 			if err != nil {
 				retErr = err

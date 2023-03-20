@@ -28,7 +28,7 @@ func TestSuspend_Suspend(t *testing.T) {
 	})
 	g.Expect(err).NotTo(HaveOccurred())
 
-	c, _ := makeGRPCServer(k8sEnv.Rest, t)
+	c := makeGRPCServer(k8sEnv.Rest, t)
 
 	ns := newNamespace(ctx, k, g)
 
@@ -102,7 +102,6 @@ func TestSuspend_Suspend(t *testing.T) {
 	})
 
 	t.Run("will error", func(t *testing.T) {
-
 		md := metadata.Pairs(MetadataUserKey, "anne", MetadataGroupsKey, "system:masters")
 		outgoingCtx := metadata.NewOutgoingContext(ctx, md)
 		_, err = c.ToggleSuspendResource(outgoingCtx, &api.ToggleSuspendResourceRequest{

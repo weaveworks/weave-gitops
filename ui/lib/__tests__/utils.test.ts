@@ -1,8 +1,10 @@
-import { Automation, HelmRelease, Kustomization } from "../objects";
 import { GetVersionResponse } from "../api/core/core.pb";
+import { Kind } from "../api/core/types.pb";
+import { Automation, HelmRelease, Kustomization } from "../objects";
 import {
   convertGitURLToGitProvider,
   convertImage,
+  createYamlCommand,
   formatLogTimestamp,
   formatMetadataKey,
   getAppVersion,
@@ -385,5 +387,23 @@ describe("utils lib", () => {
     it("should return a hyphen for empty string", () => {
       expect(formatLogTimestamp("")).toEqual("-");
     });
+  });
+});
+
+describe("createYamlCommand", () => {
+  it("creates kubectl get yaml string for objects with namespaces", () => {
+    expect(
+      createYamlCommand(Kind.Kustomization, "test", "flux-system")
+    ).toEqual(`kubectl get kustomization test -n flux-system -o yaml`);
+  });
+  it("creates kubectl get yaml string for objects without namespaces", () => {
+    expect(createYamlCommand(Kind.Kustomization, "test", undefined)).toEqual(
+      `kubectl get kustomization test -o yaml`
+    );
+  });
+  it("returns null if name or kind are false values", () => {
+    expect(createYamlCommand(undefined, undefined, "flux-system")).toEqual(
+      null
+    );
   });
 });

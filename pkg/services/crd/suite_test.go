@@ -43,7 +43,7 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func newService(ctx context.Context, k8sEnv *testutils.K8sTestEnv) (crd.Fetcher, error) {
+func newService(k8sEnv *testutils.K8sTestEnv) (crd.Fetcher, error) {
 	_, clustersManager, err := createClient(k8sEnv)
 	if err != nil {
 		return nil, err
@@ -51,7 +51,7 @@ func newService(ctx context.Context, k8sEnv *testutils.K8sTestEnv) (crd.Fetcher,
 
 	log := logr.Discard()
 
-	return crd.NewFetcher(ctx, log, clustersManager), nil
+	return crd.NewFetcher(log, clustersManager), nil
 }
 
 func createClient(k8sEnv *testutils.K8sTestEnv) (clustersmngr.Client, clustersmngr.ClustersManager, error) {
@@ -97,7 +97,7 @@ func newCRD(
 	g *gomega.GomegaWithT,
 	k client.Client,
 	info CRDInfo,
-) v1.CustomResourceDefinition {
+) {
 	resource := v1.CustomResourceDefinition{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: fmt.Sprintf("%s.%s", info.Plural, info.Group),
@@ -131,6 +131,4 @@ func newCRD(
 	if !info.NoTest {
 		g.Expect(err).ToNot(gomega.HaveOccurred(), "should be able to create crd: %s", resource.GetName())
 	}
-
-	return resource
 }

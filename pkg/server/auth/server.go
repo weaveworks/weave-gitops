@@ -274,98 +274,99 @@ func (s *AuthServer) OAuth2Flow() http.HandlerFunc {
 	}
 }
 
-func (s *AuthServer) Callback() http.HandlerFunc {
-	return func(rw http.ResponseWriter, r *http.Request) {
-		var (
-			token *oauth2.Token
-			state SessionState
-		)
+func (s *AuthServer) Callback(rw http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		rw.Header().Add("Allow", "GET")
+		rw.WriteHeader(http.StatusMethodNotAllowed)
 
-		if r.Method != http.MethodGet {
-			rw.Header().Add("Allow", "GET")
-			rw.WriteHeader(http.StatusMethodNotAllowed)
-
-			return
-		}
-
-		ctx := oidc.ClientContext(r.Context(), s.client)
-
-		// Authorization redirect callback from OAuth2 auth flow.
-		if errorCode := r.FormValue("error"); errorCode != "" {
-			s.Log.Info("authz redirect callback failed", "error", errorCode, "error_description", r.FormValue("error_description"))
-			rw.WriteHeader(http.StatusBadRequest)
-
-			return
-		}
-
-		code := r.FormValue("code")
-		if code == "" {
-			s.Log.Info("code value was empty")
-			rw.WriteHeader(http.StatusBadRequest)
-
-			return
-		}
-
-		cookie, err := r.Cookie(StateCookieName)
-		if err != nil {
-			s.Log.Error(err, "cookie was not found in the request", "cookie", StateCookieName)
-			rw.WriteHeader(http.StatusBadRequest)
-
-			return
-		}
-
-		if state := r.FormValue("state"); state != cookie.Value {
-			s.Log.Info("cookie value does not match state form value")
-			rw.WriteHeader(http.StatusBadRequest)
-
-			return
-		}
-
-		b, err := base64.StdEncoding.DecodeString(cookie.Value)
-		if err != nil {
-			s.Log.Error(err, "cannot base64 decode cookie", "cookie", StateCookieName, "cookie_value", cookie.Value)
-			rw.WriteHeader(http.StatusBadRequest)
-
-			return
-		}
-
-		if err := json.Unmarshal(b, &state); err != nil {
-			s.Log.Error(err, "failed to unmarshal state to JSON", "state", string(b))
-			rw.WriteHeader(http.StatusBadRequest)
-
-			return
-		}
-
-		token, err = s.oauth2Config(nil).Exchange(ctx, code)
-		if err != nil {
-			s.Log.Error(err, "failed to exchange auth code for token", "code", code)
-			rw.WriteHeader(http.StatusInternalServerError)
-
-			return
-		}
-
-		rawIDToken, ok := token.Extra("id_token").(string)
-		if !ok {
-			JSONError(s.Log, rw, "no id_token in token response", http.StatusInternalServerError)
-			return
-		}
-
-		_, err = s.verifier().Verify(r.Context(), rawIDToken)
-		if err != nil {
-			JSONError(s.Log, rw, fmt.Sprintf("failed to verify ID token: %v", err), http.StatusInternalServerError)
-			return
-		}
-
-		// Issue ID token cookie
-		http.SetCookie(rw, s.createCookie(IDTokenCookieName, rawIDToken))
-		http.SetCookie(rw, s.createCookie(AccessTokenCookieName, token.AccessToken))
-		http.SetCookie(rw, s.createCookie(RefreshTokenCookieName, token.RefreshToken))
-
-		// Clear state cookie
-		http.SetCookie(rw, s.clearCookie(StateCookieName))
-
-		http.Redirect(rw, r, state.ReturnURL, http.StatusSeeOther)
+		return
 	}
+
+	ctx := oidc.ClientContext(r.Context(), s.client)
+
+	// Authorization redirect callback from OAuth2 auth flow.
+	if errorCode := r.FormValue("error"); errorCode != "" {
+		s.Log.Info("authz redirect callback failed", "error", errorCode, "error_description", r.FormValue("error_description"))
+		rw.WriteHeader(http.StatusBadRequest)
+
+		return
+	}
+
+	code := r.FormValue("code")
+	if code == "" {
+		s.Log.Info("code value was empty")
+		rw.WriteHeader(http.StatusBadRequest)
+
+		return
+	}
+
+	cookie, err := r.Cookie(StateCookieName)
+	if err != nil {
+		s.Log.Error(err, "cookie was not found in the request", "cookie", StateCookieName)
+		rw.WriteHeader(http.StatusBadRequest)
+
+		return
+	}
+
+	if state := r.FormValue("state"); state != cookie.Value {
+		s.Log.Info("cookie value does not match state form value")
+		rw.WriteHeader(http.StatusBadRequest)
+
+		return
+	}
+
+	b, err := base64.StdEncoding.DecodeString(cookie.Value)
+	if err != nil {
+		s.Log.Error(err, "cannot base64 decode cookie", "cookie", StateCookieName, "cookie_value", cookie.Value)
+		rw.WriteHeader(http.StatusBadRequest)
+
+		return
+	}
+
+	var state SessionState
+	if err := json.Unmarshal(b, &state); err != nil {
+		s.Log.Error(err, "failed to unmarshal state to JSON", "state", string(b))
+		rw.WriteHeader(http.StatusBadRequest)
+
+		return
+	}
+
+	token, err := s.oauth2Config(nil).Exchange(ctx, code)
+	if err != nil {
+		s.Log.Error(err, "failed to exchange auth code for token", "code", code)
+		rw.WriteHeader(http.StatusInternalServerError)
+
+		return
+	}
+
+	rawIDToken, ok := token.Extra("id_token").(string)
+	if !ok {
+		JSONError(s.Log, rw, "no id_token in token response", http.StatusInternalServerError)
+		return
+	}
+
+	_, err = s.verifier().Verify(r.Context(), rawIDToken)
+	if err != nil {
+		JSONError(s.Log, rw, fmt.Sprintf("failed to verify ID token: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	s.setCookies(rw, rawIDToken, token.AccessToken, token.RefreshToken)
+	// Clear state cookie
+	http.SetCookie(rw, s.clearCookie(StateCookieName))
+
+	http.Redirect(rw, r, state.ReturnURL, http.StatusSeeOther)
+}
+
+func (s *AuthServer) setCookies(rw http.ResponseWriter, idToken, accessToken, refreshToken string) {
+	// Issue ID token cookie
+	baseExpiry := s.cookieExpiryTime()
+	http.SetCookie(rw, s.createCookie(IDTokenCookieName, idToken, baseExpiry))
+	http.SetCookie(rw, s.createCookie(AccessTokenCookieName, accessToken, baseExpiry))
+	// Make the Refresh token expire after the ID token so that we have a
+	// token we can refresh with.
+
+	http.SetCookie(rw, s.createCookie(RefreshTokenCookieName, refreshToken, baseExpiry.Add(time.Hour)))
 }
 
 func (s *AuthServer) SignIn() http.HandlerFunc {
@@ -421,9 +422,13 @@ func (s *AuthServer) SignIn() http.HandlerFunc {
 			return
 		}
 
-		http.SetCookie(rw, s.createCookie(IDTokenCookieName, signed))
+		http.SetCookie(rw, s.createCookie(IDTokenCookieName, signed, s.cookieExpiryTime()))
 		rw.WriteHeader(http.StatusOK)
 	}
+}
+
+func (s *AuthServer) cookieExpiryTime() time.Time {
+	return time.Now().UTC().Add(s.OIDCConfig.TokenDuration)
 }
 
 // UserInfo inspects the cookie and attempts to verify it as an admin token. If successful,
@@ -513,9 +518,7 @@ func (s *AuthServer) Refresh(rw http.ResponseWriter, r *http.Request) (*UserPrin
 		return nil, errors.New("no id_token in token response")
 	}
 
-	http.SetCookie(rw, s.createCookie(IDTokenCookieName, rawIDToken))
-	http.SetCookie(rw, s.createCookie(AccessTokenCookieName, token.AccessToken))
-	http.SetCookie(rw, s.createCookie(RefreshTokenCookieName, token.RefreshToken))
+	s.setCookies(rw, rawIDToken, token.AccessToken, token.RefreshToken)
 
 	return parseJWTToken(ctx, s.verifier(), rawIDToken, s.OIDCConfig.ClaimsConfig)
 }
@@ -560,7 +563,7 @@ func (s *AuthServer) startAuthFlow(rw http.ResponseWriter, r *http.Request) {
 	authCodeURL := s.oauth2Config(s.OIDCConfig.Scopes).AuthCodeURL(state)
 
 	// Issue state cookie
-	http.SetCookie(rw, s.createCookie(StateCookieName, state))
+	http.SetCookie(rw, s.createCookie(StateCookieName, state, s.cookieExpiryTime()))
 
 	http.Redirect(rw, r, authCodeURL, http.StatusSeeOther)
 }
@@ -580,12 +583,12 @@ func (s *AuthServer) Logout() http.HandlerFunc {
 	}
 }
 
-func (s *AuthServer) createCookie(name, value string) *http.Cookie {
+func (s *AuthServer) createCookie(name, value string, expires time.Time) *http.Cookie {
 	cookie := &http.Cookie{
 		Name:     name,
 		Value:    value,
 		Path:     "/",
-		Expires:  time.Now().UTC().Add(s.OIDCConfig.TokenDuration),
+		Expires:  expires,
 		HttpOnly: true,
 		Secure:   false,
 	}

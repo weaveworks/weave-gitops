@@ -9,13 +9,18 @@ import (
 
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	"net/http/httptest"
 
 	"github.com/johannesboyne/gofakes3"
 	"github.com/johannesboyne/gofakes3/backend/s3mem"
 	. "github.com/onsi/gomega"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	logger2 "github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/weaveworks/weave-gitops/pkg/run/constants"
 )
 
 func TestGetSessionLogsIntegration(t *testing.T) {
@@ -116,4 +121,50 @@ func TestGetSessionLogsIntegration(t *testing.T) {
 	g.Expect(logEntries[1].Message).Should(Equal("✗ round 2 - test failure"))
 	g.Expect(logEntries[1].Level).Should(Equal("error"))
 	g.Expect(logEntries[1].Source).Should(Equal(logger2.SessionLogSource))
+}
+
+func TestIsSecretCreatedSecretFound(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	scheme, err := kube.CreateScheme()
+	g.Expect(err).ShouldNot(HaveOccurred())
+
+	secret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      constants.RunDevBucketCredentials,
+			Namespace: constants.GitOpsRunNamespace,
+		},
+		Data: map[string][]byte{
+			"key": []byte("value"),
+		},
+	}
+
+	cli := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(secret).Build()
+
+	err = isSecretCreated(context.Background(), cli, constants.GitOpsRunNamespace, constants.RunDevBucketCredentials)
+
+	g.Expect(err).ShouldNot(HaveOccurred())
+}
+
+func TestIsSecretCreatedSecretNotFound(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	scheme, err := kube.CreateScheme()
+	g.Expect(err).ShouldNot(HaveOccurred())
+
+	secret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "test-name",
+			Namespace: "test-namespace",
+		},
+		Data: map[string][]byte{
+			"key": []byte("value"),
+		},
+	}
+
+	cli := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(secret).Build()
+
+	err = isSecretCreated(context.Background(), cli, constants.GitOpsRunNamespace, constants.RunDevBucketCredentials)
+
+	g.Expect(err).Should(HaveOccurred())
 }

@@ -1,0 +1,34 @@
+---
+title: Annotations
+hide_title: true
+---
+
+import TierLabel from "../_components/TierLabel";
+
+# Annotations <TierLabel tiers="Enterprise" />
+
+## The `add-common-bases` annotation
+
+The `templates.weave.works/add-common-bases: "true"` annotation can be used to
+enable and disable the addition of a "common bases" `Kustomization` to the
+list of rendered files.
+This kustomization will sync a path that is common to all clusters (`clusters/bases`).
+
+An example usecase would be to ensure that certain RBAC or policies are applied
+to all clusters using this template.
+
+## The `inject-prune-annotation` annotation
+
+The `templates.weave.works/inject-prune-annotation: "true"` annotation can be used to
+enable and disable the injection of Flux's `prune` annotation into certain resources.
+
+When enabled, GitOps automatically injects a `kustomize.toolkit.fluxcd.io/prune: disabled`
+annotation into every resource in the `spec.resourcetemplates` that is **not** a
+`cluster.x-k8s.io.Cluster` and **not** a `gitops.weave.works.GitopsCluster`.
+
+The intention here is stop Flux from explicitly deleting subresources of the `Cluster` like
+`AWSCluster`, `KubeadmControlPlane`, `AWSMachineTemplate` etc and let the CAPI
+controllers handle their removal.
+
+This is the pattern recommended in the capi-quickstart guide https://cluster-api.sigs.k8s.io/user/quick-start.html#clean-up.
+

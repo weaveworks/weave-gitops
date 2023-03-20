@@ -10,7 +10,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func Get(kubeClient client.Client, name string, namespace string) (*InternalSession, error) {
+func Get(kubeClient client.Client, name, namespace string) (*InternalSession, error) {
 	var result *InternalSession
 
 	statefulSet := appsv1.StatefulSet{}

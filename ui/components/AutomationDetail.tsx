@@ -1,8 +1,6 @@
-import { Dialog } from "@material-ui/core";
 import * as React from "react";
 import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
-import { AppContext } from "../contexts/AppContext";
 import { useSyncFluxObject } from "../hooks/automations";
 import { useToggleSuspend } from "../hooks/flux";
 import { Condition, Kind, ObjectRef } from "../lib/api/core/types.pb";
@@ -23,7 +21,7 @@ import Spacer from "./Spacer";
 import SubRouterTabs, { RouterTab } from "./SubRouterTabs";
 import SyncButton from "./SyncButton";
 import Text from "./Text";
-import YamlView, { DialogYamlView } from "./YamlView";
+import YamlView from "./YamlView";
 
 type Props = {
   automation: Automation;
@@ -54,8 +52,6 @@ function AutomationDetail({
   customActions,
 }: Props) {
   const { path } = useRouteMatch();
-  const { setNodeYaml, appState } = React.useContext(AppContext);
-  const nodeYaml = appState.nodeYaml;
   const sync = useSyncFluxObject([
     {
       name: automation.name,
@@ -213,23 +209,6 @@ function AutomationDetail({
             )
         )}
       </SubRouterTabs>
-      {nodeYaml && (
-        <Dialog
-          open={!!nodeYaml}
-          onClose={() => setNodeYaml(null)}
-          maxWidth="md"
-          fullWidth
-        >
-          <DialogYamlView
-            object={{
-              name: nodeYaml.name,
-              namespace: nodeYaml.namespace,
-              kind: nodeYaml.type,
-            }}
-            yaml={nodeYaml.yaml}
-          />
-        </Dialog>
-      )}
     </Flex>
   );
 }

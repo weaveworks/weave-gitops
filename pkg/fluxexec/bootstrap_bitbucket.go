@@ -80,10 +80,7 @@ func (opt *UsernameOption) configureBootstrapBitbucketServer(conf *bootstrapBitb
 }
 
 func (flux *Flux) BootstrapBitbucketServer(ctx context.Context, opts ...BootstrapBitbucketServerOption) error {
-	bootstrapBitbucketServerCmd, err := flux.bootstrapBitbucketServerCmd(ctx, opts...)
-	if err != nil {
-		return err
-	}
+	bootstrapBitbucketServerCmd := flux.bootstrapBitbucketServerCmd(ctx, opts...)
 
 	if err := flux.runFluxCmd(ctx, bootstrapBitbucketServerCmd); err != nil {
 		return err
@@ -92,7 +89,7 @@ func (flux *Flux) BootstrapBitbucketServer(ctx context.Context, opts ...Bootstra
 	return nil
 }
 
-func (flux *Flux) bootstrapBitbucketServerCmd(ctx context.Context, opts ...BootstrapBitbucketServerOption) (*exec.Cmd, error) {
+func (flux *Flux) bootstrapBitbucketServerCmd(ctx context.Context, opts ...BootstrapBitbucketServerOption) *exec.Cmd {
 	c := defaultBootstrapBitbucketServerOptions
 	for _, opt := range opts {
 		opt.configureBootstrapBitbucketServer(&c)
@@ -152,5 +149,5 @@ func (flux *Flux) bootstrapBitbucketServerCmd(ctx context.Context, opts ...Boots
 		args = append(args, "--username", c.username)
 	}
 
-	return flux.buildFluxCmd(ctx, flux.env, args...), nil
+	return flux.buildFluxCmd(ctx, flux.env, args...)
 }
