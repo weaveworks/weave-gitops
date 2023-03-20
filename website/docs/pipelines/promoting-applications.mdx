@@ -108,6 +108,7 @@ Weave GitOps Enterprise can then parse the incoming URL path to identify the pip
 
 An example Alert might look like this:
 
+
 ```yaml
 ---
 apiVersion: notification.toolkit.fluxcd.io/v1beta1
@@ -240,7 +241,9 @@ and for security and auditing perspective, you don't want to impersonate a real 
 ![using bot account](img/bot-account.png)
 </details>
 
-2. **Restrict access to the secret**: the promotion credentials needs to reside in the same Namespace as the Pipeline resource on the management cluster. Restrict
+2. **Restrict access to the secret**
+
+The promotion credentials needs to reside in the same Namespace as the Pipeline resource on the management cluster. Restrict
 via RBAC that only `pipeline-controller` service account is able to read it.
 
 <details><summary>Expand to see example</summary>
@@ -276,6 +279,66 @@ subjects:
     name: pipeline-controller
     namespace: pipeline-system
 ```
+</details>
+
+At this stage, pipeline controller can read the promotion secrets, however given there are no deny semantics in [RBAC](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#role-and-clusterrole):
+
+>An RBAC Role or ClusterRole contains rules that represent a set of permissions. Permissions are purely additive (there are no "deny" rules).
+
+You would need to ensure that no other `rolebindings` or `clusterrolebndings` would allow read the promotion secret at any time.
+
+This could be achieved in various ways. For example, by leveraging [policy capabilities](../../policy/intro/)
+to detect existing and future creation of roles that would grant read secrets permissions.
+
+<details><summary>Expand to see example</summary>
+
+Once enabled [policy and policy library](../../policy/weave-policy-profile/) you have a set of available policies to
+leverage. The one we are interested here is called `Rbac Prohibit Verbs On Resources` to restrict
+the creation of roles that would allow access to the promotion credentials.
+
+```yaml
+apiVersion: pac.weave.works/v2beta2
+kind: Policy
+metadata:
+    name: weave.templates.rbac-prohibit-verbs-on-resources
+spec:
+    id: weave.templates.rbac-prohibit-verbs-on-resources
+    name: Rbac Prohibit Verbs On Resources
+```
+that we could provide values with
+```yaml
+parameters:
+ - name: resource
+   type: string
+   required: true
+   value: "secrets"
+ - name: verb
+   type: string
+   required: true
+   value: "get" # do the same for list and watch
+```
+
+Once applied and tried to create the following role
+
+```yaml
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: try-get-secrets
+  namespace: app
+rules:
+  - apiGroups:
+     - ""
+    resources:
+     - secrets
+    verbs:
+     - get
+```
+
+Policy agent will block the creation during admission
+
+![](img/policy-violate-role-secret.png)
+
 </details>
 
 3. **Do not use long-live tokens**: set an expiration date and rotate them according to your security policy.
