@@ -53,6 +53,12 @@ spec:
             - "--enable-metrics"
             - "--metrics-address=:{{ .Values.metrics.service.port }}"
             {{- end }}
+            {{- if .Values.adminUser.secretName }}
+            - "--admin-secret={{ .Values.adminUser.secretName }}"
+            {{- end }}
+            {{- if and .Values.adminUser.create .Values.adminUser.createSecret }}
+            - "--admin-secret={{ include "chart.fullname" . }}-user-auth"
+            {{- end }}
           {{- with .Values.additionalArgs }}
             {{- range . }}
             - {{ . | quote }}
