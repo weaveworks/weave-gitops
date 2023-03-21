@@ -4,12 +4,12 @@ Depending on your area of focus we're providing guidance of each kind of develop
 
 Step one, you **must** have the following things installed:
 
-* [go](https://go.dev) v1.19 -- Primary development language.
-* [docker](https://www.docker.com/) -- Used for generating containers & testing kubernetes set-ups.
-* [helm](https://helm.sh/docs/intro/install/) v3. -- Package manager for kubernetes
-* [kind](https://kind.sigs.k8s.io/docs/user/quick-start#installation) -- Run kubernetes clusters in docker for testing.
-* [flux](https://fluxcd.io/docs/get-started/) -- Continuous delivery system for kubernetes that weave-gitops enriches.
-* [tilt](https://tilt.dev/) -- Automatically build and deploy to a local cluster.
+- [go](https://go.dev) v1.20 -- Primary development language.
+- [docker](https://www.docker.com/) -- Used for generating containers & testing kubernetes set-ups.
+- [helm](https://helm.sh/docs/intro/install/) v3. -- Package manager for kubernetes
+- [kind](https://kind.sigs.k8s.io/docs/user/quick-start#installation) -- Run kubernetes clusters in docker for testing.
+- [flux](https://fluxcd.io/docs/get-started/) -- Continuous delivery system for kubernetes that weave-gitops enriches.
+- [tilt](https://tilt.dev/) -- Automatically build and deploy to a local cluster.
 
 Now you have those things installed, lets go!
 
@@ -38,7 +38,6 @@ When you make changes in the code with this setup, you have to wait for k8s to r
 Woop! It's working. It'll be empty cos you haven't created any flux objects. You can jump to [
 quickly add a sample workload to UI](#quickly-add-a-sample-workload-to-ui).
 
-
 ## Frontend optimised development setup
 
 Help me I just want super fast frontend development!
@@ -47,7 +46,7 @@ Step one, make sure you've installed the tools listed at the very top of this fi
 
 Step two, now you **must** **ALSO** have the following installed.
 
-* [node](https://nodejs.org/en/) v16 - Install Node.js
+- [node](https://nodejs.org/en/) v16 - Install Node.js
 
 Now you have those things installed, lets go!
 
@@ -79,7 +78,6 @@ Goto login with username: dev, password:dev at http://localhost:4567/sign_in
 Running this setup is what enables JavaScript hot reloading, it does websocket pushing of your code, so you don't even need to refresh!
 
 Woop! It's working. It'll be empty cos you haven't created any flux objects. You can jump to [quickly add a sample workload to UI](#quickly-add-a-sample-workload-to-ui).
-
 
 ## Quickly add a sample workload to UI
 
@@ -117,7 +115,6 @@ Update CSS snapshots with `npm run test -- -u`
 
 Check dependency vulnerabilities with `make ui-audit`
 
-
 ## Running tests
 
 You can, at the moment, run two kinds of tests.
@@ -133,8 +130,8 @@ Our frontend tests:
 We're re-working our integration tests. Coming back soon.
 
 ## Contributing to Weave GitOps documentation
-See [here](../website/README.md) for more details.
 
+See [here](../website/README.md) for more details.
 
 ## Other optimisations for development setup
 
