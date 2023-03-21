@@ -1,7 +1,9 @@
 import { useContext } from "react";
 import { useQuery } from "react-query";
 import { CoreClientContext } from "../contexts/CoreClientContext";
-import { ListObjectsResponse } from "../lib/api/core/core.pb";
+import {
+  ListObjectsResponse
+} from "../lib/api/core/core.pb";
 import { NoNamespace, ReactQueryOptions, RequestError } from "../lib/types";
 import { convertResponse } from "./objects";
 
@@ -44,3 +46,4 @@ export function useCheckCRDInstalled(
     opts
   );
 }
+
