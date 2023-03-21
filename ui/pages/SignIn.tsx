@@ -7,6 +7,7 @@ import Button from "../components/Button";
 import Flex from "../components/Flex";
 import LoadingPage from "../components/LoadingPage";
 import { Auth } from "../contexts/AuthContext";
+import { CoreClientContext } from "../contexts/CoreClientContext";
 import { useFeatureFlags } from "../hooks/featureflags";
 import images from "../lib/images";
 import { theme } from "../lib/theme";
@@ -60,6 +61,7 @@ const DocsWrapper = styled(Flex)`
 `;
 
 function SignIn() {
+  const { featureFlags: flags } = React.useContext(CoreClientContext);
   const { isFlagEnabled } = useFeatureFlags();
 
   const formRef = React.useRef<HTMLFormElement>();
@@ -129,8 +131,9 @@ function SignIn() {
                   handleOIDCSubmit();
                 }}
               >
-                {isFlagEnabled("WEAVE_GITOPS_FEATURE_OIDC_BUTTON_LABEL") ||
-                  "LOGIN WITH OIDC PROVIDER"}
+                {isFlagEnabled("WEAVE_GITOPS_FEATURE_OIDC_BUTTON_LABEL")
+                  ? flags?.WEAVE_GITOPS_FEATURE_OIDC_BUTTON_LABEL
+                  : "LOGIN WITH OIDC PROVIDER"}
               </Button>
             </Flex>
           ) : null}
