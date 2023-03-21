@@ -81,6 +81,8 @@ function SignIn() {
 
   const handleUserPassSubmit = () => signIn({ username, password });
 
+  console.log(isFlagEnabled("WEAVE_GITOPS_FEATURE_OIDC_BUTTON_LABEL"));
+
   return (
     <Flex
       tall

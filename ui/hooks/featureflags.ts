@@ -6,7 +6,9 @@ export type FeatureFlags = { [key: string]: string };
 export function useFeatureFlags() {
   const { featureFlags } = useContext(CoreClientContext);
 
-  const isFlagEnabled = (flag: string) => featureFlags?.[flag] === "true";
+  const isFlagEnabled = (flag: string) =>
+    featureFlags?.["WEAVE_GITOPS_FEATURE_OIDC_BUTTON_LABEL"] ||
+    featureFlags?.[flag] === "true";
 
   return { isFlagEnabled };
 }
