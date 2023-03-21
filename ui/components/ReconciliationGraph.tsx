@@ -55,7 +55,7 @@ function ReconciliationGraph({
     name,
     clusterName,
     namespace,
-    true,
+    true
   );
 
   return (
@@ -161,7 +161,7 @@ const Graph = ({
           zoomPercent={zoomPercent}
           pan={pan}
         />
-      </GraphDiv> 
+      </GraphDiv>
       <SliderFlex tall column align>
         <Slider
           onChange={(_, value: number) => setZoomPercent(value)}
