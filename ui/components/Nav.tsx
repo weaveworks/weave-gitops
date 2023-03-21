@@ -87,7 +87,7 @@ const NavContent = styled.div<{ collapsed: boolean }>`
     }
   }
   .header {
-    margin-top: 9px;
+    margin: ${(props) => props.theme.spacing.xs} 0;
     opacity: ${(props) => (props.collapsed ? 0 : 1)};
     transition: opacity 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
   }
@@ -175,6 +175,8 @@ function Nav({
           centered={false}
           orientation="vertical"
           value={currentPage === V2Routes.UserInfo ? false : currentPage}
+          variant="scrollable"
+          scrollButtons="off"
         >
           {_.map(navItems, (n) => {
             if (n.disabled) return;
