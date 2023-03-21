@@ -16,23 +16,16 @@ type Props = {
 };
 
 function BucketDetail({ className, bucket, customActions }: Props) {
-  const { data } = useFeatureFlags();
-  const flags = data.flags;
+  const { isFlagEnabled } = useFeatureFlags();
 
   const tenancyInfo: InfoField[] =
-    flags.WEAVE_GITOPS_FEATURE_TENANCY === "true" && bucket.tenant
+    isFlagEnabled("WEAVE_GITOPS_FEATURE_TENANCY") && bucket.tenant
       ? [["Tenant", bucket.tenant]]
       : [];
 
-  const clusterInfo: InfoField[] =
-    flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true"
-      ? [
-          [
-            "Cluster",
-            <ClusterDashboardLink clusterName={bucket?.clusterName} />,
-          ],
-        ]
-      : [];
+  const clusterInfo: InfoField[] = isFlagEnabled("WEAVE_GITOPS_FEATURE_CLUSTER")
+    ? [["Cluster", <ClusterDashboardLink clusterName={bucket?.clusterName} />]]
+    : [];
 
   return (
     <SourceDetail
