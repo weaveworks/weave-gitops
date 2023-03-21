@@ -121,7 +121,7 @@ function SignIn() {
           <Logo wide center>
             <img src={images.weaveLogo} />
           </Logo>
-          {flags.OIDC_AUTH ? (
+          {flags.OIDC_AUTH === "true" ? (
             <Flex wide center>
               <Button
                 type="submit"
@@ -135,10 +135,10 @@ function SignIn() {
               </Button>
             </Flex>
           ) : null}
-          {flags.OIDC_AUTH && flags.CLUSTER_USER_AUTH ? (
+          {flags.OIDC_AUTH === "true" && flags.CLUSTER_USER_AUTH === "true" ? (
             <Divider variant="middle" style={{ margin: theme.spacing.base }} />
           ) : null}
-          {flags.CLUSTER_USER_AUTH ? (
+          {flags.CLUSTER_USER_AUTH === "true" ? (
             <form
               ref={formRef}
               onSubmit={(e) => {
