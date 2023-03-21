@@ -59,7 +59,7 @@ func (cs *coreServer) GetInventory(ctx context.Context, msg *pb.GetInventoryRequ
 	}, nil
 }
 
-func (cs *coreServer) getKustomizationInventory(ctx context.Context, k8sClient client.Client, name string, namespace string, withChildren bool) ([]*pb.InventoryEntry, error) {
+func (cs *coreServer) getKustomizationInventory(ctx context.Context, k8sClient client.Client, name, namespace string, withChildren bool) ([]*pb.InventoryEntry, error) {
 	kust := &kustomizev1.Kustomization{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -114,7 +114,7 @@ func (cs *coreServer) getKustomizationInventory(ctx context.Context, k8sClient c
 	return result, nil
 }
 
-func (cs *coreServer) getHelmReleaseInventory(ctx context.Context, k8sClient client.Client, name string, namespace string, withChildren bool) ([]*pb.InventoryEntry, error) {
+func (cs *coreServer) getHelmReleaseInventory(ctx context.Context, k8sClient client.Client, name, namespace string, withChildren bool) ([]*pb.InventoryEntry, error) {
 	release := &helmv2.HelmRelease{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
