@@ -94,14 +94,14 @@ const IconFlex = styled(Flex)`
   position: relative;
   padding: 0 ${(props) => props.theme.spacing.small};
 `;
+
 //funcs
 export const filterByStatusCallback = (v) => {
-  if (v.suspended) return "Suspended";
-  else if (computeReady(v["conditions"]) === ReadyType.Reconciling)
-    return ReadyType.Reconciling;
-  else if (computeReady(v["conditions"]) === ReadyType.Ready)
-    return ReadyType.Ready;
-  else return ReadyType.NotReady;
+  if (v.suspended) return ReadyType.Suspended;
+  const ready = computeReady(v["conditions"]);
+  if (ready === ReadyType.Reconciling) return ReadyType.Reconciling;
+  if (ready === ReadyType.Ready) return ReadyType.Ready;
+  return ReadyType.NotReady;
 };
 
 export function filterConfig(

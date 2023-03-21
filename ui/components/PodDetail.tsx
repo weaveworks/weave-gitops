@@ -29,17 +29,19 @@ const PodDetailHeader = styled(Text)`
   color: ${(props) => props.theme.colors.neutral30};
 `;
 
-const NoDialogDataTable = styled(DataTable)`
+export const NoDialogDataTable = styled(DataTable)`
   width: 100%;
   overflow-x: auto;
 `;
 
-const ContainerContainer = styled(Flex)`
+const ContainerDivider = styled(Flex)`
+  padding-bottom: ${(props) => props.theme.spacing.small};
+  margin-bottom: ${(props) => props.theme.spacing.small};
   width: 100%;
-  border: 1px solid ${(props) => props.theme.colors.neutral30};
-  border-radius: 10px;
-  padding: ${(props) => props.theme.spacing.xs};
-  margin-bottom: ${(props) => props.theme.spacing.xs};
+  border-bottom: 3px solid;
+  border-image-slice: 1;
+  border-image-source: ${(props) =>
+    `linear-gradient(to right, ${props.theme.colors.neutral30} 0%, ${props.theme.colors.white} 100%)`};
 `;
 
 type ListProps = {
@@ -57,8 +59,8 @@ const ArrayToList = ({ array, display }: ListProps) => {
     </InfoListUl>
   );
 };
-
 const Detail = ({ pod }) => {
+  pod.containers.push({ name: "name" });
   return (
     <Flex wide column>
       <InfoList
@@ -89,10 +91,9 @@ const Detail = ({ pod }) => {
       </PodDetailHeader>
       {pod.containers.map((container: Container, i: number) => {
         return (
-          <ContainerContainer>
+          <>
             <InfoList
-              key={i}
-              className={i !== pod.containers.length - 1 && "border-bottom"}
+              key={container.name}
               items={[
                 ["Name", container.name],
                 ["Image", container.image],
@@ -115,7 +116,8 @@ const Detail = ({ pod }) => {
                 ],
               ]}
             />
-          </ContainerContainer>
+            {i < pod.containers.length - 1 && <ContainerDivider key={i} />}
+          </>
         );
       })}
       <PodDetailHeader bold size="large">
@@ -152,7 +154,11 @@ function PodDetail({ className, pod }: Props) {
   };
   return (
     <Flex wide tall column className={className}>
-      <PageStatus conditions={pod.conditions} suspended={pod.suspended} />
+      <PageStatus
+        conditions={pod.conditions}
+        suspended={pod.suspended}
+        showAll
+      />
       <Tabs
         value={tabValue}
         indicatorColor="primary"
@@ -178,7 +184,10 @@ function PodDetail({ className, pod }: Props) {
 }
 
 export default styled(PodDetail).attrs({ className: PodDetail.name })`
-  ${PageStatus} {
+  ${PageStatus}, ${NoDialogDataTable} {
     margin-bottom: ${(props) => props.theme.spacing.small};
   }
+  transition-property: height;
+  transition-duration: 0.2s;
+  transition-timing-function: ease-in-out;
 `;
