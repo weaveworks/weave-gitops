@@ -8,5 +8,5 @@ export function useFeatureFlags() {
 
   const isFlagEnabled = (flag: string) => featureFlags?.[flag] === "true";
 
-  return { isFlagEnabled, flags: featureFlags };
+  return { isFlagEnabled, flags: featureFlags || {} };
 }
