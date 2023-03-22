@@ -7,7 +7,6 @@ import Button from "../components/Button";
 import Flex from "../components/Flex";
 import LoadingPage from "../components/LoadingPage";
 import { Auth } from "../contexts/AuthContext";
-import { CoreClientContext } from "../contexts/CoreClientContext";
 import { useFeatureFlags } from "../hooks/featureflags";
 import images from "../lib/images";
 import { theme } from "../lib/theme";
