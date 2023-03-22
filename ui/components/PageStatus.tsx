@@ -1,13 +1,23 @@
 import * as React from "react";
 import styled from "styled-components";
 import { Condition } from "../lib/api/core/types.pb";
+import Button from "./Button";
 import Flex from "./Flex";
-import Icon, { IconType } from "./Icon";
+import Icon from "./Icon";
 import { computeMessage, getIndicatorInfo } from "./KubeStatusIndicator";
 import { NoDialogDataTable } from "./PodDetail";
 import Spacer from "./Spacer";
-import { ArrowDropDown, DropDown } from "./SyncButton";
 import Text from "./Text";
+
+const SlideFlex = styled(Flex)<{ open: boolean }>`
+  padding-top: ${(props) => props.theme.spacing.medium};
+  max-height: ${(props) => (props.open ? "400px" : "0px")};
+  transition-property: max-height;
+  transition-duration: 0.5s;
+  transition-timing-function: ease-in-out;
+  overflow: hidden;
+  overflow-x: auto;
+`;
 
 type StatusProps = {
   conditions: Condition[];
@@ -27,20 +37,20 @@ function PageStatus({
   const [open, setOpen] = React.useState(false);
 
   return (
-    <Flex column>
+    <Flex column wide>
       <Flex align className={className}>
         <Icon type={icon} color={color} size="medium" />
         <Spacer padding="xs" />
-        <Text color="neutral30">{msg}</Text>
+        <Text color="neutral30">{msg}goose</Text>
         {showAll && (
-          <ArrowDropDown variant="outlined" onClick={() => setOpen(!open)}>
-            <Icon type={IconType.ArrowDropDownIcon} size="base" />
-          </ArrowDropDown>
+          <Button variant="text" onClick={() => setOpen(!open)}>
+            show conditions
+          </Button>
         )}
       </Flex>
       {showAll && (
-        <DropDown open={open}>
-          <Flex column>
+        <SlideFlex open={open} wide>
+          <Flex column wide>
             <Text bold size="large" color="neutral30">
               Conditions:
             </Text>
@@ -55,11 +65,14 @@ function PageStatus({
               rows={conditions}
             />
           </Flex>
-        </DropDown>
+        </SlideFlex>
       )}
     </Flex>
   );
 }
 export default styled(PageStatus).attrs({ className: PageStatus.name })`
+  transition-property: max-height;
+  transition-duration: 0.5s;
+  transition-timing-function: ease-in-out;
   color: ${(props) => props.theme.colors.neutral30};
 `;

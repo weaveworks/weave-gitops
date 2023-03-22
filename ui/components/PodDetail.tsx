@@ -30,7 +30,7 @@ const PodDetailHeader = styled(Text)`
 `;
 
 export const NoDialogDataTable = styled(DataTable)`
-  width: 100%;
+  max-width: 100%;
   overflow-x: auto;
 `;
 
@@ -184,10 +184,8 @@ function PodDetail({ className, pod }: Props) {
 }
 
 export default styled(PodDetail).attrs({ className: PodDetail.name })`
+  height: 100%;
   ${PageStatus}, ${NoDialogDataTable} {
     margin-bottom: ${(props) => props.theme.spacing.small};
   }
-  transition-property: height;
-  transition-duration: 0.2s;
-  transition-timing-function: ease-in-out;
 `;
