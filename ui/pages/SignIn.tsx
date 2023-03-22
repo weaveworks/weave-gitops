@@ -61,8 +61,7 @@ const DocsWrapper = styled(Flex)`
 `;
 
 function SignIn() {
-  const { featureFlags: flags } = React.useContext(CoreClientContext);
-  const { isFlagEnabled } = useFeatureFlags();
+  const { isFlagEnabled, flags } = useFeatureFlags();
 
   const formRef = React.useRef<HTMLFormElement>();
   const {
@@ -131,9 +130,8 @@ function SignIn() {
                   handleOIDCSubmit();
                 }}
               >
-                {isFlagEnabled("WEAVE_GITOPS_FEATURE_OIDC_BUTTON_LABEL")
-                  ? flags?.WEAVE_GITOPS_FEATURE_OIDC_BUTTON_LABEL
-                  : "LOGIN WITH OIDC PROVIDER"}
+                {flags.WEAVE_GITOPS_FEATURE_OIDC_BUTTON_LABEL ||
+                  "LOGIN WITH OIDC PROVIDER"}
               </Button>
             </Flex>
           ) : null}
