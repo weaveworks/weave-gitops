@@ -20,10 +20,11 @@ func generateRandomBody(method string) io.Reader {
 		return nil
 	}
 
-	rand.Seed(time.Now().UnixNano())
-	size := rand.Intn(2000) + 2000
+	srand := rand.New(rand.NewSource(time.Now().UnixNano()))
+
+	size := srand.Intn(2000) + 2000
 	buf := make([]byte, size)
-	rand.Read(buf)
+	srand.Read(buf)
 
 	return bytes.NewReader(buf)
 }
