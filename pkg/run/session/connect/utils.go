@@ -131,9 +131,10 @@ func updateKubeConfig(contextName string, cluster *api.Cluster, authInfo *api.Au
 }
 
 func randomPort() int {
-	rand.Seed(time.Now().UnixNano())
+	srand := rand.New(rand.NewSource(time.Now().UnixNano()))
+
 	for i := 0; i < 10; i++ {
-		port := 10000 + rand.Intn(3000)
+		port := 10000 + srand.Intn(3000)
 		s, err := checkPort(port)
 		if s && err == nil {
 			return port
@@ -141,7 +142,7 @@ func randomPort() int {
 	}
 
 	// just try another port
-	return 10000 + rand.Intn(3000)
+	return 10000 + srand.Intn(3000)
 }
 
 func checkPort(port int) (status bool, err error) {
