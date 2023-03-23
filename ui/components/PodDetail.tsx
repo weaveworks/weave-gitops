@@ -60,7 +60,6 @@ const ArrayToList = ({ array, display }: ListProps) => {
   );
 };
 const Detail = ({ pod }) => {
-  pod.containers.push({ name: "name" });
   return (
     <Flex wide column>
       <InfoList
@@ -177,7 +176,6 @@ function PodDetail({ className, pod }: Props) {
           onClick={() => setTabValue(1)}
         />
       </Tabs>
-
       {tabs(tabValue)}
     </Flex>
   );

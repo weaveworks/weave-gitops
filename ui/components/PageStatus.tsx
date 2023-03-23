@@ -41,7 +41,7 @@ function PageStatus({
       <Flex align className={className}>
         <Icon type={icon} color={color} size="medium" />
         <Spacer padding="xs" />
-        <Text color="neutral30">{msg}goose</Text>
+        <Text color="neutral30">{msg}</Text>
         {showAll && (
           <Button variant="text" onClick={() => setOpen(!open)}>
             show conditions
