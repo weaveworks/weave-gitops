@@ -46,6 +46,7 @@ function convertEntries(entries: InventoryEntry[]) {
       uid,
       tenant,
       conditions,
+      yaml,
     } = parsedObj;
 
     return {
@@ -59,6 +60,7 @@ function convertEntries(entries: InventoryEntry[]) {
       type,
       uid,
       tenant,
+      yaml,
     };
   });
 }
