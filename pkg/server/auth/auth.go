@@ -99,7 +99,7 @@ func (p *UserPrincipal) SetToken(t string) {
 
 // String returns the Principal ID and Groups as a string.
 func (p *UserPrincipal) String() string {
-	return fmt.Sprintf("id=%q groups=%v", p.ID, p.Groups)
+	return fmt.Sprintf("id=%q groups=%v tokenLength=%v", p.ID, p.Groups, len(p.Token()))
 }
 
 // Hash returns a unique string using user id,token and groups.

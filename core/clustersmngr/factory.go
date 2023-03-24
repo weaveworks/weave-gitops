@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
+	"github.com/weaveworks/weave-gitops/core/logger"
 	"github.com/weaveworks/weave-gitops/core/nsaccess"
 	"github.com/weaveworks/weave-gitops/pkg/featureflags"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
@@ -382,6 +383,8 @@ func (cf *clustersManager) updateNamespacesWithClient(ctx context.Context, creat
 		}
 	}
 
+	cf.log.V(logger.LogLevelDebug).Info("Updated namespaces cache", "namespaces", clusterNamespacesLogValue(cf.clustersNamespaces.namespaces))
+
 	opsUpdateNamespaces.Inc()
 
 	return result.ErrorOrNil()
@@ -589,13 +592,17 @@ func (cf *clustersManager) userNsList(ctx context.Context, user *auth.UserPrinci
 		if err != nil {
 			// This may not completely fail the request, e.g. if some of the clusters
 			// are able to respond with their namespaces. So log the error and continue.
-			cf.log.Error(err, "failed updating namespaces from user client")
+			cf.log.Error(err, "Error updating namespaces from user client", "user", user)
 		}
 	}
 
 	cf.UpdateUserNamespaces(ctx, user)
 
-	return cf.GetUserNamespaces(user)
+	userNamespaces = cf.GetUserNamespaces(user)
+
+	cf.log.V(logger.LogLevelDebug).Info("Updated namespace access cache for user", "userNamespaces", clusterNamespacesLogValue(userNamespaces), "user", user, "ttl", userNamespaceTTL.String())
+
+	return userNamespaces
 }
 
 func (cf *clustersManager) getOrCreateClient(user *auth.UserPrincipal, cluster cluster.Cluster) (client.Client, error) {
@@ -608,7 +615,10 @@ func (cf *clustersManager) getOrCreateClient(user *auth.UserPrincipal, cluster c
 		isServer = true
 	}
 
+	log := cf.log.WithValues("cluster", cluster.GetName(), "user", user, "isServer", isServer, "ttl", usersClientsTTL.String())
+
 	if client, found := cf.usersClients.Get(user, cluster.GetName()); found {
+		log.V(logger.LogLevelDebug).Info("Client found in cache")
 		return client, nil
 	}
 
@@ -630,6 +640,8 @@ func (cf *clustersManager) getOrCreateClient(user *auth.UserPrincipal, cluster c
 	}
 
 	cf.usersClients.Set(user, cluster.GetName(), client)
+
+	log.V(logger.LogLevelDebug).Info("Client created and added to cache")
 
 	return client, nil
 }
