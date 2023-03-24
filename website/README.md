@@ -149,3 +149,9 @@ Do not attempt to deploy the docs manually.
 
 Deployment happens automatically (once the tests pass) upon merging to the
 `main` branch: see [.github/workflows/docs.yaml](.github/workflows/docs.yaml) for config.
+
+## Terminology
+
+This section lists commonly used terms in the docs in an effort to promote consistency.
+
+- `Leaf clusters`: used in Weave GitOps Enterprise to describe any CAPI or non-CAPI clusters that appear in the `Clusters` section of the UI. Typically, these clusters are running application workloads.
