@@ -28,7 +28,8 @@ func TestInitAuthServer(t *testing.T) {
 	initTests := []struct {
 		name            string
 		authMethods     []string
-		secrets         []*corev1.Secret
+		oidcSecret      *corev1.Secret
+		adminSecret     *corev1.Secret
 		cliOIDCConfig   auth.OIDCConfig
 		oidcSecretName  string
 		expectErr       bool
@@ -36,12 +37,10 @@ func TestInitAuthServer(t *testing.T) {
 		oidcEnabledFlag string
 	}{
 		{
-			name:        "basic test",
-			authMethods: []string{"user-account", "oidc"},
-			secrets: []*corev1.Secret{
-				makeOIDCSecret(m.Config(), auth.DefaultOIDCAuthSecretName),
-				makeClusterUserSecret("my-secret-password", auth.ClusterUserAuthSecretName),
-			},
+			name:            "basic test",
+			authMethods:     []string{"user-account", "oidc"},
+			oidcSecret:      makeOIDCSecret(m.Config(), auth.DefaultOIDCAuthSecretName),
+			adminSecret:     makeClusterUserSecret("my-secret-password", "admin-credentials"),
 			cliOIDCConfig:   auth.OIDCConfig{},
 			oidcSecretName:  auth.DefaultOIDCAuthSecretName,
 			expectErr:       false,
@@ -49,11 +48,9 @@ func TestInitAuthServer(t *testing.T) {
 			oidcEnabledFlag: "true",
 		},
 		{
-			name:        "OIDC Only",
-			authMethods: []string{"oidc"},
-			secrets: []*corev1.Secret{
-				makeOIDCSecret(m.Config(), auth.DefaultOIDCAuthSecretName),
-			},
+			name:            "OIDC Only",
+			authMethods:     []string{"oidc"},
+			oidcSecret:      makeOIDCSecret(m.Config(), auth.DefaultOIDCAuthSecretName),
 			cliOIDCConfig:   auth.OIDCConfig{},
 			oidcSecretName:  auth.DefaultOIDCAuthSecretName,
 			expectErr:       false,
@@ -61,11 +58,9 @@ func TestInitAuthServer(t *testing.T) {
 			oidcEnabledFlag: "true",
 		},
 		{
-			name:        "OIDC alt-secret",
-			authMethods: []string{"oidc"},
-			secrets: []*corev1.Secret{
-				makeOIDCSecret(m.Config(), "alternate-oidc-secret"),
-			},
+			name:            "OIDC alt-secret",
+			authMethods:     []string{"oidc"},
+			oidcSecret:      makeOIDCSecret(m.Config(), "alternate-oidc-secret"),
 			cliOIDCConfig:   auth.OIDCConfig{},
 			oidcSecretName:  "alternate-oidc-secret",
 			expectErr:       false,
@@ -75,7 +70,6 @@ func TestInitAuthServer(t *testing.T) {
 		{
 			name:        "OIDC via CLI",
 			authMethods: []string{"oidc"},
-			secrets:     []*corev1.Secret{},
 			cliOIDCConfig: auth.OIDCConfig{
 				IssuerURL:    m.Config().Issuer,
 				ClientID:     m.Config().ClientID,
@@ -88,11 +82,9 @@ func TestInitAuthServer(t *testing.T) {
 			oidcEnabledFlag: "true",
 		},
 		{
-			name:        "User only",
-			authMethods: []string{"user-account"},
-			secrets: []*corev1.Secret{
-				makeClusterUserSecret("my-secret-password", auth.ClusterUserAuthSecretName),
-			},
+			name:            "User only",
+			authMethods:     []string{"user-account"},
+			adminSecret:     makeClusterUserSecret("my-secret-password", "admin-credentials"),
 			cliOIDCConfig:   auth.OIDCConfig{},
 			oidcSecretName:  auth.DefaultOIDCAuthSecretName,
 			expectErr:       false,
@@ -102,7 +94,6 @@ func TestInitAuthServer(t *testing.T) {
 		{
 			name:            "No auth methods",
 			authMethods:     []string{},
-			secrets:         []*corev1.Secret{},
 			cliOIDCConfig:   auth.OIDCConfig{},
 			oidcSecretName:  "",
 			expectErr:       true,
@@ -119,14 +110,20 @@ func TestInitAuthServer(t *testing.T) {
 
 			partialKubernetesClient := ctrlclient.NewClientBuilder()
 
-			// This is because I can't (be bothered to) figure out how to []*secret -> []*client.Object
-			for _, obj := range tt.secrets {
-				partialKubernetesClient.WithObjects(obj)
+			if tt.oidcSecret != nil {
+				partialKubernetesClient.WithObjects(tt.oidcSecret)
+			}
+			if tt.adminSecret != nil {
+				partialKubernetesClient.WithObjects(tt.adminSecret)
 			}
 
 			fakeKubernetesClient := partialKubernetesClient.Build()
 
-			srv, err := auth.InitAuthServer(context.Background(), logr.Discard(), fakeKubernetesClient, tt.cliOIDCConfig, tt.oidcSecretName, "test-namespace", tt.authMethods)
+			adminSecret := ""
+			if tt.adminSecret != nil {
+				adminSecret = tt.adminSecret.Name
+			}
+			srv, err := auth.InitAuthServer(context.Background(), logr.Discard(), fakeKubernetesClient, tt.cliOIDCConfig, adminSecret, tt.oidcSecretName, "test-namespace", tt.authMethods)
 
 			if tt.expectErr {
 				g.Expect(err).To(gomega.HaveOccurred())
