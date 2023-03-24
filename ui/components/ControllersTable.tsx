@@ -13,14 +13,13 @@ type Props = {
 };
 
 function ControllersTable({ className, controllers = [] }: Props) {
-  const { data } = useFeatureFlags();
-  const flags = data.flags;
+  const { isFlagEnabled } = useFeatureFlags();
 
   let initialFilterState = {
     ...filterConfig(controllers, "status", filterByStatusCallback),
   };
 
-  if (flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true") {
+  if (isFlagEnabled("WEAVE_GITOPS_FEATURE_CLUSTER")) {
     initialFilterState = {
       ...initialFilterState,
       ...filterConfig(controllers, "clusterName"),
@@ -51,7 +50,7 @@ function ControllersTable({ className, controllers = [] }: Props) {
             ) : null,
           sortValue: statusSortHelper,
         },
-        ...(flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true"
+        ...(isFlagEnabled("WEAVE_GITOPS_FEATURE_CLUSTER")
           ? [{ label: "Cluster", value: "clusterName" }]
           : []),
         {

@@ -72,8 +72,10 @@ func (c *Clusters) Get() []cluster.Cluster {
 }
 
 func (c *Clusters) Hash() string {
-	names := []string{}
+	c.RLock()
+	defer c.RUnlock()
 
+	names := []string{}
 	for _, cluster := range c.clusters {
 		names = append(names, cluster.GetName())
 	}

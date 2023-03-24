@@ -11,20 +11,18 @@ import (
 )
 
 func deterministicRandInt(seed int64, err error) RandIntFunc {
-	seeded := false
+	var srand *rand.Rand
 
 	return func(_ io.Reader, max *big.Int) (*big.Int, error) {
 		if err != nil {
 			return nil, err
 		}
 
-		if !seeded {
-			rand.Seed(seed)
-
-			seeded = true
+		if srand == nil {
+			srand = rand.New(rand.NewSource(seed))
 		}
 
-		return big.NewInt(int64(rand.Intn(int(max.Int64())))), nil
+		return big.NewInt(int64(srand.Intn(int(max.Int64())))), nil
 	}
 }
 

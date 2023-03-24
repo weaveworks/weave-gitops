@@ -10,15 +10,14 @@ type Props = {
 };
 
 function CrdsTable({ className, crds = [] }: Props) {
-  const { data } = useFeatureFlags();
-  const flags = data.flags;
+  const { isFlagEnabled } = useFeatureFlags();
 
   let initialFilterState = {
     ...filterConfig(crds, "version"),
     ...filterConfig(crds, "kind"),
   };
 
-  if (flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true") {
+  if (isFlagEnabled("WEAVE_GITOPS_FEATURE_CLUSTER")) {
     initialFilterState = {
       ...initialFilterState,
       ...filterConfig(crds, "clusterName"),
@@ -45,7 +44,7 @@ function CrdsTable({ className, crds = [] }: Props) {
           label: "Version",
           value: "version",
         },
-        ...(flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true"
+        ...(isFlagEnabled("WEAVE_GITOPS_FEATURE_CLUSTER")
           ? [{ label: "Cluster", value: "clusterName" }]
           : []),
       ]}
