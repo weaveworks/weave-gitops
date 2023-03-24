@@ -4,7 +4,6 @@ import React, { useContext } from "react";
 import styled from "styled-components";
 import { AppContext } from "../contexts/AppContext";
 import { FluxObject, FluxObjectNode } from "../lib/objects";
-import PodPage from "../pages/v2/PodPage";
 import Flex from "./Flex";
 import Text from "./Text";
 import { DialogYamlView } from "./YamlView";
@@ -24,8 +23,9 @@ export enum AltKinds {
 
 const content = (object) => {
   switch (object.type) {
-    case AltKinds.Pod:
-      return <PodPage object={object} />;
+    // PodDetail Page - turned off for now
+    // case AltKinds.Pod:
+    //   return <PodPage object={object} />;
     default:
       return (
         <DialogYamlView

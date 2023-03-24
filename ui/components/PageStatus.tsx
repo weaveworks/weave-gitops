@@ -32,7 +32,7 @@ function PageStatus({
   className,
   showAll,
 }: StatusProps) {
-  let msg = suspended ? "Suspended" : computeMessage(conditions);
+  const msg = suspended ? "Suspended" : computeMessage(conditions);
   const { icon, color } = getIndicatorInfo(suspended, conditions);
   const [open, setOpen] = React.useState(false);
 
