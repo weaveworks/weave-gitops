@@ -64,6 +64,11 @@ export type NamespacedObjectReference = {
   namespace?: string
 }
 
+export type InventoryEntry = {
+  payload?: string
+  children?: InventoryEntry[]
+}
+
 export type Object = {
   payload?: string
   clusterName?: string
