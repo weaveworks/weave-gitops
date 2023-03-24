@@ -132,6 +132,7 @@ const Detail = ({ pod }) => {
 
 function PodDetail({ className, pod }: Props) {
   const [tabValue, setTabValue] = React.useState(0);
+  const tabKeys = ["detail", "yaml"];
 
   const tabs = (value: number) => {
     switch (value) {
@@ -163,18 +164,16 @@ function PodDetail({ className, pod }: Props) {
         indicatorColor="primary"
         className="horizontal-tabs"
       >
-        <MuiTab
-          key={0}
-          text="detail"
-          active={tabValue === 0}
-          onClick={() => setTabValue(0)}
-        />
-        <MuiTab
-          key={1}
-          text="yaml"
-          active={tabValue === 1}
-          onClick={() => setTabValue(1)}
-        />
+        {tabKeys.map((key, i) => {
+          return (
+            <MuiTab
+              key={i}
+              text={key}
+              active={tabValue === i}
+              onClick={() => setTabValue(i)}
+            />
+          );
+        })}
       </Tabs>
       {tabs(tabValue)}
     </Flex>
