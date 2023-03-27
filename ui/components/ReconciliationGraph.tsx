@@ -79,31 +79,19 @@ function ReconciliationGraph({
 
 const Graph = ({
   className,
-  kind,
-  name,
-  namespace,
   clusterName,
   source,
   suspended,
   conditions,
   objects,
 }: any) => {
-  //add extra nodes
-  const secondNode = {
-    name,
-    namespace,
-    suspended,
-    conditions,
-    kind,
-    clusterName,
-    children: objects,
-    isCurrentNode: true,
-  };
   const rootNode = {
     ...source,
     type: source?.kind,
+    suspended,
+    conditions,
     clusterName,
-    children: [secondNode],
+    children: objects,
   };
 
   //graph numbers
