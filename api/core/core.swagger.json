@@ -904,6 +904,9 @@
         "payload": {
           "type": "string"
         },
+        "tenant": {
+          "type": "string"
+        },
         "children": {
           "type": "array",
           "items": {
