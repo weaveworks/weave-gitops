@@ -21,22 +21,20 @@ function HelmRepositoryDetail({
   helmRepository,
   customActions,
 }: Props) {
-  const { data } = useFeatureFlags();
-  const flags = data.flags;
+  const { isFlagEnabled } = useFeatureFlags();
 
   const tenancyInfo: InfoField[] =
-    flags.WEAVE_GITOPS_FEATURE_TENANCY === "true" && helmRepository.tenant
+    isFlagEnabled("WEAVE_GITOPS_FEATURE_TENANCY") && helmRepository.tenant
       ? [["Tenant", helmRepository.tenant]]
       : [];
-  const clusterInfo: InfoField[] =
-    flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true"
-      ? [
-          [
-            "Cluster",
-            <ClusterDashboardLink clusterName={helmRepository?.clusterName} />,
-          ],
-        ]
-      : [];
+  const clusterInfo: InfoField[] = isFlagEnabled("WEAVE_GITOPS_FEATURE_CLUSTER")
+    ? [
+        [
+          "Cluster",
+          <ClusterDashboardLink clusterName={helmRepository?.clusterName} />,
+        ],
+      ]
+    : [];
 
   return (
     <SourceDetail

@@ -33,15 +33,15 @@ export const makeEventSourceLink = (obj: CrossNamespaceObjectRef) => {
 };
 
 function AlertsTable({ className, rows = [] }: Props) {
-  const { data: flagData } = useFeatureFlags();
-  const flags = flagData.flags;
+  const { isFlagEnabled } = useFeatureFlags();
+
   let initialFilterState = {
     ...filterConfig(rows, "name"),
     ...filterConfig(rows, "namespace"),
     ...filterConfig(rows, "severity"),
     ...filterConfig(rows, "status", filterByStatusCallback),
   };
-  if (flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true") {
+  if (isFlagEnabled("WEAVE_GITOPS_FEATURE_CLUSTER")) {
     initialFilterState = {
       ...initialFilterState,
       ...filterConfig(rows, "clusterName"),
@@ -113,7 +113,7 @@ function AlertsTable({ className, rows = [] }: Props) {
         ) : null,
       sortValue: statusSortHelper,
     },
-    ...(flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true"
+    ...(isFlagEnabled("WEAVE_GITOPS_FEATURE_CLUSTER")
       ? [{ label: "Cluster", value: (obj) => obj.clusterName }]
       : []),
   ];
