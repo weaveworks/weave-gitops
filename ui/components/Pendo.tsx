@@ -86,9 +86,7 @@ export default function Pendo({
       ...(shouldAddVersion && { latestVersion: version }),
     };
 
-    const accountId = Mnemonic.fromHex(isFlagEnabled("ACCOUNT_ID"))
-      .toWords()
-      .join("-");
+    const accountId = Mnemonic.fromHex(flags.ACCOUNT_ID).toWords().join("-");
 
     const account = {
       id: accountId,
