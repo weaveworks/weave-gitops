@@ -34,6 +34,7 @@ import LoadingPage from "./components/LoadingPage";
 import Logo from "./components/Logo";
 import MessageBox from "./components/MessageBox";
 import Metadata from "./components/Metadata";
+import Modal from "./components/Modal";
 import Nav, { NavItem } from "./components/Nav";
 import NotificationsTable from "./components/NotificationsTable";
 import OCIRepositoryDetail from "./components/OCIRepositoryDetail";
@@ -171,6 +172,7 @@ export {
   LinkResolverProvider,
   LoadingPage,
   Logo,
+  Modal,
   MessageBox,
   Metadata,
   muiTheme,
