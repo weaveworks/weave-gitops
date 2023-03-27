@@ -28,7 +28,6 @@ import PlayIcon from "@material-ui/icons/PlayArrow";
 import RemoveCircleIcon from "@material-ui/icons/RemoveCircle";
 import SaveAltIcon from "@material-ui/icons/SaveAlt";
 import SearchIcon from "@material-ui/icons/Search";
-import ApplicationsIcon from "@material-ui/icons/SettingsApplicationsOutlined";
 import SkipNextIcon from "@material-ui/icons/SkipNext";
 import SkipPreviousIcon from "@material-ui/icons/SkipPrevious";
 import * as React from "react";
@@ -41,6 +40,7 @@ import Flex from "./Flex";
 import GitOpsRunIcon from "./GitOpsRunIcon";
 import ImageAutomationIcon from "./ImageAutomationIcon";
 import PipelinesIcon from "./PipelinesIcon";
+import RemoteSVGIcon from "./RemoteSVGIcon";
 import SourcesIcon from "./SourcesIcon";
 import TerraformIcon from "./TerraformIcon";
 import Text from "./Text";
@@ -178,7 +178,7 @@ function getIcon(i: IconType) {
       return FileCopyIcon;
 
     case IconType.ApplicationsIcon:
-      return ApplicationsIcon;
+      return RemoteSVGIcon;
 
     case IconType.DocsIcon:
       return DocsIcon;

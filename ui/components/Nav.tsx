@@ -8,7 +8,6 @@ import { PageRoute, V2Routes } from "../lib/types";
 import { Fade } from "../lib/utils";
 // eslint-disable-next-line
 import { colors } from "../typedefs/styled";
-
 import Flex from "./Flex";
 import Icon, { IconType } from "./Icon";
 import Link from "./Link";
@@ -151,8 +150,8 @@ const LinkTab = React.forwardRef((p: any, ref) => {
           title={item.label}
         />
       }
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      // onMouseEnter={() => setHovered(true)}
+      // onMouseLeave={() => setHovered(false)}
     >
       {...p.children}
     </Link>
@@ -225,4 +224,12 @@ function Nav({
   );
 }
 
-export default styled(Nav).attrs({ className: Nav.name })``;
+export default styled(Nav).attrs({ className: Nav.name })`
+  .link-flex {
+    &:hover {
+      svg path {
+        fill: red;
+      }
+    }
+  }
+`;
