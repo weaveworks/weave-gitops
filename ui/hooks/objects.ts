@@ -16,6 +16,7 @@ import {
   ImageUpdateAutomation,
   Kustomization,
   OCIRepository,
+  Pod,
   Provider,
 } from "../lib/objects";
 import { ReactQueryOptions, RequestError } from "../lib/types";
@@ -49,6 +50,8 @@ export function convertResponse(
       return new ImageUpdateAutomation(response);
     case Kind.ImagePolicy:
       return new ImagePolicy(response);
+    case Kind.Pod:
+      return new Pod(response);
 
     default:
       return new FluxObject(response);

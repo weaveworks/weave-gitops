@@ -87,12 +87,10 @@ const NavContent = styled.div<{ collapsed: boolean }>`
     }
   }
   .header {
-    margin: ${(props) => props.theme.spacing.xs} 0;
     opacity: ${(props) => (props.collapsed ? 0 : 1)};
     transition: opacity 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
-  }
-  .header:not(first-child) {
-    margin-top: 0;
+    //must match height to center text
+    line-height: 32px;
   }
 `;
 
