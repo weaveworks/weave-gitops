@@ -2,12 +2,15 @@ package auth
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 
@@ -166,7 +169,7 @@ func claimsConfigFromSecret(secret corev1.Secret) *ClaimsConfig {
 	return nil
 }
 
-func NewAuthServerConfig(log logr.Logger, oidcCfg OIDCConfig, kubernetesClient ctrlclient.Client, tsv TokenSignerVerifier, namespace string, authMethods map[AuthMethod]bool) (AuthConfig, error) {
+func NewAuthServerConfig(log logr.Logger, oidcCfg OIDCConfig, kubernetesClient ctrlclient.Client, tsv TokenSignerVerifier, namespace string, authMethods map[AuthMethod]bool, tlsRootCA string) (AuthConfig, error) {
 	if authMethods[OIDC] {
 		if _, err := url.Parse(oidcCfg.IssuerURL); err != nil {
 			return AuthConfig{}, fmt.Errorf("invalid issuer URL: %w", err)
@@ -177,9 +180,18 @@ func NewAuthServerConfig(log logr.Logger, oidcCfg OIDCConfig, kubernetesClient c
 		}
 	}
 
+	httpClient := http.DefaultClient
+	if tlsRootCA != "" {
+		var err error
+		httpClient, err = appendCACert(tlsRootCA)
+		if err != nil {
+			return AuthConfig{}, err
+		}
+	}
+
 	return AuthConfig{
 		Log:                 log.WithName("auth-server"),
-		client:              http.DefaultClient,
+		client:              httpClient,
 		kubernetesClient:    kubernetesClient,
 		tokenSignerVerifier: tsv,
 		OIDCConfig:          oidcCfg,
@@ -213,7 +225,8 @@ func NewAuthServer(ctx context.Context, cfg AuthConfig) (*AuthServer, error) {
 	} else if cfg.authMethods[OIDC] {
 		var err error
 
-		provider, err = oidc.NewProvider(ctx, cfg.OIDCConfig.IssuerURL)
+		clientCtx := oidc.ClientContext(ctx, cfg.client)
+		provider, err = oidc.NewProvider(clientCtx, cfg.OIDCConfig.IssuerURL)
 		if err != nil {
 			return nil, fmt.Errorf("could not create provider: %w", err)
 		}
@@ -647,4 +660,29 @@ func JSONError(log logr.Logger, w http.ResponseWriter, errStr string, code int) 
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		log.Error(err, "failed encoding error message", "message", errStr)
 	}
+}
+
+func appendCACert(caCertPath string) (*http.Client, error) {
+	pool, err := x509.SystemCertPool()
+	if err != nil {
+		return nil, err
+	}
+	if pool == nil {
+		pool = x509.NewCertPool()
+	}
+
+	caCert, err := os.ReadFile(caCertPath)
+	if err != nil {
+		return nil, err
+	}
+
+	pool.AppendCertsFromPEM(caCert)
+
+	return &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				RootCAs: pool,
+			},
+		},
+	}, nil
 }
