@@ -39,7 +39,7 @@ function UnstyledYamlView({ yaml, object, className }: YamlViewProps) {
         )}
       </YamlHeader>
       <pre>
-        {yaml.split("\n").map((yaml, index) => (
+        {yaml?.split("\n").map((yaml, index) => (
           <code key={index}>{yaml}</code>
         ))}
       </pre>
