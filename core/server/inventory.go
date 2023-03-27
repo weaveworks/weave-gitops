@@ -263,9 +263,10 @@ func (cs *coreServer) unstructuredToInventoryEntry(ctx context.Context, clusterN
 	tenant := GetTenant(unstructuredObj.GetNamespace(), clusterName, clusterUserNss)
 
 	entry := &pb.InventoryEntry{
-		Payload:  string(bytes),
-		Tenant:   tenant,
-		Children: children,
+		Payload:     string(bytes),
+		Tenant:      tenant,
+		ClusterName: clusterName,
+		Children:    children,
 	}
 
 	return entry, nil

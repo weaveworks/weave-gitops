@@ -907,6 +907,9 @@
         "tenant": {
           "type": "string"
         },
+        "clusterName": {
+          "type": "string"
+        },
         "children": {
           "type": "array",
           "items": {

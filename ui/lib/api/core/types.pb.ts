@@ -68,6 +68,7 @@ export type NamespacedObjectReference = {
 export type InventoryEntry = {
   payload?: string
   tenant?: string
+  clusterName?: string
   children?: InventoryEntry[]
 }
 
