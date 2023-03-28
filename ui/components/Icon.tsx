@@ -1,15 +1,6 @@
-import {
-  DashboardOutlined,
-  DnsOutlined,
-  PolicyOutlined,
-  TabOutlined,
-  VerifiedUserOutlined,
-  VpnKeyOutlined,
-} from "@material-ui/icons";
 import AddIcon from "@material-ui/icons/Add";
 import ArrowDropDownIcon from "@material-ui/icons/ArrowDropDown";
 import ArrowUpwardIcon from "@material-ui/icons/ArrowUpward";
-import DocsIcon from "@material-ui/icons/AssignmentOutlined";
 import CheckCircleIcon from "@material-ui/icons/CheckCircle";
 import ClearIcon from "@material-ui/icons/Clear";
 import DeleteIcon from "@material-ui/icons/Delete";
@@ -21,28 +12,36 @@ import HourglassFullIcon from "@material-ui/icons/HourglassFull";
 import LaunchIcon from "@material-ui/icons/Launch";
 import NavigateBeforeIcon from "@material-ui/icons/NavigateBefore";
 import NavigateNextIcon from "@material-ui/icons/NavigateNext";
-import NotificationsBellIcon from "@material-ui/icons/NotificationsNone";
 import PauseIcon from "@material-ui/icons/Pause";
 import PersonIcon from "@material-ui/icons/Person";
 import PlayIcon from "@material-ui/icons/PlayArrow";
 import RemoveCircleIcon from "@material-ui/icons/RemoveCircle";
 import SaveAltIcon from "@material-ui/icons/SaveAlt";
 import SearchIcon from "@material-ui/icons/Search";
-import ApplicationsIcon from "@material-ui/icons/SettingsApplicationsOutlined";
 import SkipNextIcon from "@material-ui/icons/SkipNext";
 import SkipPreviousIcon from "@material-ui/icons/SkipPrevious";
 import * as React from "react";
 import styled from "styled-components";
 import images from "../lib/images";
+import DocsIcon from "./NavIcons/DocsIcon";
 // eslint-disable-next-line
 import { colors, spacing } from "../typedefs/styled";
-import DeliveryIcon from "./DeliveryIcon";
 import Flex from "./Flex";
-import GitOpsRunIcon from "./GitOpsRunIcon";
-import ImageAutomationIcon from "./ImageAutomationIcon";
-import PipelinesIcon from "./PipelinesIcon";
-import SourcesIcon from "./SourcesIcon";
-import TerraformIcon from "./TerraformIcon";
+import ApplicationsIcon from "./NavIcons/ApplicationsIcon";
+import DeliveryIcon from "./NavIcons/DeliveryIcon";
+import FluxIcon from "./NavIcons/FluxIcon";
+import GitOpsRunIcon from "./NavIcons/GitOpsRunIcon";
+import GitOpsSetsIcon from "./NavIcons/GitOpsSetsIcon";
+import ImageAutomationIcon from "./NavIcons/ImageAutomationIcon";
+import NotificationsIcon from "./NavIcons/NotificationsIcon";
+import PipelinesIcon from "./NavIcons/PipelinesIcon";
+import PoliciesIcon from "./NavIcons/PoliciesIcon";
+import PolicyConfigsIcon from "./NavIcons/PolicyConfigsIcon";
+import SecretsIcon from "./NavIcons/SecretsIcon";
+import SourcesIcon from "./NavIcons/SourcesIcon";
+import TemplatesIcon from "./NavIcons/TemplatesIcon";
+import TerraformIcon from "./NavIcons/TerraformIcon";
+import WorkspacesIcon from "./NavIcons/WorkspacesIcon";
 import Text from "./Text";
 
 export enum IconType {
@@ -77,19 +76,19 @@ export enum IconType {
   ApplicationsIcon,
   PlayIcon,
   PauseIcon,
-  NotificationsBell,
+  NotificationsIcon,
   SourcesIcon,
   ImageAutomationIcon,
   DeliveryIcon,
   GitOpsRunIcon,
   PipelinesIcon,
   TerraformIcon,
-  DashboardOutlined,
-  DnsOutlined,
-  PolicyOutlined,
-  TabOutlined,
-  VerifiedUserOutlined,
-  VpnKeyOutlined,
+  GitOpsSetsIcon,
+  PoliciesIcon,
+  PolicyConfigsIcon,
+  WorkspacesIcon,
+  SecretsIcon,
+  TemplatesIcon,
 }
 
 type Props = {
@@ -177,26 +176,14 @@ function getIcon(i: IconType) {
     case IconType.FileCopyIcon:
       return FileCopyIcon;
 
-    case IconType.ApplicationsIcon:
-      return ApplicationsIcon;
-
-    case IconType.DocsIcon:
-      return DocsIcon;
-
-    case IconType.FluxIcon:
-      return () => <img src={images.fluxIconSrc} />;
-
-    case IconType.FluxIconHover:
-      return () => <img src={images.fluxIconHoverSrc} />;
-
     case IconType.PlayIcon:
       return PlayIcon;
 
     case IconType.PauseIcon:
       return PauseIcon;
 
-    case IconType.NotificationsBell:
-      return NotificationsBellIcon;
+    case IconType.NotificationsIcon:
+      return NotificationsIcon;
 
     case IconType.SourcesIcon:
       return SourcesIcon;
@@ -216,23 +203,35 @@ function getIcon(i: IconType) {
     case IconType.TerraformIcon:
       return TerraformIcon;
 
-    case IconType.DashboardOutlined:
-      return DashboardOutlined;
+    case IconType.ApplicationsIcon:
+      return ApplicationsIcon;
 
-    case IconType.DnsOutlined:
-      return DnsOutlined;
+    case IconType.DocsIcon:
+      return DocsIcon;
 
-    case IconType.PolicyOutlined:
-      return PolicyOutlined;
+    case IconType.FluxIcon:
+      return FluxIcon;
 
-    case IconType.TabOutlined:
-      return TabOutlined;
+    case IconType.GitOpsSetsIcon:
+      return GitOpsSetsIcon;
 
-    case IconType.VerifiedUserOutlined:
-      return VerifiedUserOutlined;
+    case IconType.NotificationsIcon:
+      return NotificationsIcon;
 
-    case IconType.VpnKeyOutlined:
-      return VpnKeyOutlined;
+    case IconType.PoliciesIcon:
+      return PoliciesIcon;
+
+    case IconType.PolicyConfigsIcon:
+      return PolicyConfigsIcon;
+
+    case IconType.SecretsIcon:
+      return SecretsIcon;
+
+    case IconType.TemplatesIcon:
+      return TemplatesIcon;
+
+    case IconType.WorkspacesIcon:
+      return WorkspacesIcon;
 
     default:
       break;
@@ -257,19 +256,24 @@ export default styled(Icon)`
     fill: ${(props) => props.theme.colors[props.color as any]};
     height: ${(props) => props.theme.spacing[props.size as any]};
     width: ${(props) => props.theme.spacing[props.size as any]};
-
     path {
       &.path-fill {
         fill: ${(props) => props.theme.colors[props.color as any]} !important;
         transition: fill 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
       }
     }
-    &.sources {
-      fill: none !important;
-      rect {
-        stroke: ${(props) => props.theme.colors[props.color as any]} !important;
+    rect {
+      &.rect-height {
+        height: ${(props) => props.theme.spacing[props.size as any]};
+        width: ${(props) => props.theme.spacing[props.size as any]};
+      }
+      &.rect-stroke {
+        stroke: ${(props) => props.theme.colors[props.color as any]};
         transition: stroke 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
       }
+    }
+    &.sources {
+      fill: none !important;
     }
   }
   &.downward {

@@ -42,7 +42,7 @@ const navItems: NavItem[] = [
   {
     label: "Notifications",
     link: { value: V2Routes.Notifications },
-    icon: IconType.NotificationsBell,
+    icon: IconType.NotificationsIcon,
   },
   {
     label: "Docs",
