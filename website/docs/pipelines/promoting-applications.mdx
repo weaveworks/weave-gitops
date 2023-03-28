@@ -154,6 +154,7 @@ The following Git providers are currently support by this promotion strategy:
 
 - [GitHub](https://github.com/)
 - [GitLab](https://gitlab.com/)
+- [BitBucket Server / DataCenter](https://www.atlassian.com/software/bitbucket/enterprise)
 
 Select your Git provider via `.spec.promotion.strategy.pull-request.type`. For example, for `gitlab` it would look similar to:
 
@@ -161,14 +162,14 @@ Select your Git provider via `.spec.promotion.strategy.pull-request.type`. For e
 promotion:
   strategy:
     pull-request:
-      type: "gitlab"
+      type: gitlab
       url: "https://gitlab.com/weaveworks/<my-awesome-project.git>"
       baseBranch: main
       secretRef:
-        name: "gitlab-promotion-credentials"
+        name: gitlab-promotion-credentials
 ```
 
-More info in the [spec](../spec/v1alpha1/pipeline/#pipeline)
+More info in the [spec](../spec/v1alpha1/pipeline/#pipeline).
 
 ### Credentials Secret
 

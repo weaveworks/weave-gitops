@@ -28,8 +28,7 @@ type Props = {
 };
 
 function SourcesTable({ className, sources }: Props) {
-  const { data } = useFeatureFlags();
-  const flags = data.flags;
+  const { isFlagEnabled } = useFeatureFlags();
 
   let initialFilterState = {
     ...filterConfig(sources, "type"),
@@ -37,14 +36,14 @@ function SourcesTable({ className, sources }: Props) {
     ...filterConfig(sources, "status", filterByStatusCallback),
   };
 
-  if (flags.WEAVE_GITOPS_FEATURE_TENANCY === "true") {
+  if (isFlagEnabled("WEAVE_GITOPS_FEATURE_TENANCY")) {
     initialFilterState = {
       ...initialFilterState,
       ...filterConfig(sources, "tenant"),
     };
   }
 
-  if (flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true") {
+  if (isFlagEnabled("WEAVE_GITOPS_FEATURE_CLUSTER")) {
     initialFilterState = {
       ...initialFilterState,
       ...filterConfig(sources, "clusterName"),
@@ -71,10 +70,10 @@ function SourcesTable({ className, sources }: Props) {
     },
     { label: "Kind", value: "type" },
     { label: "Namespace", value: "namespace" },
-    ...(flags.WEAVE_GITOPS_FEATURE_TENANCY === "true"
+    ...(isFlagEnabled("WEAVE_GITOPS_FEATURE_TENANCY")
       ? [{ label: "Tenant", value: "tenant" }]
       : []),
-    ...(flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true"
+    ...(isFlagEnabled("WEAVE_GITOPS_FEATURE_CLUSTER")
       ? [{ label: "Cluster", value: (s: Source) => s.clusterName }]
       : []),
     {

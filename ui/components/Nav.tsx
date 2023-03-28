@@ -87,12 +87,10 @@ const NavContent = styled.div<{ collapsed: boolean }>`
     }
   }
   .header {
-    margin-top: 9px;
     opacity: ${(props) => (props.collapsed ? 0 : 1)};
     transition: opacity 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
-  }
-  .header:not(first-child) {
-    margin-top: 0;
+    //must match height to center text
+    line-height: 32px;
   }
 `;
 
@@ -175,12 +173,20 @@ function Nav({
           centered={false}
           orientation="vertical"
           value={currentPage === V2Routes.UserInfo ? false : currentPage}
+          variant="scrollable"
+          scrollButtons="off"
         >
           {_.map(navItems, (n) => {
             if (n.disabled) return;
             if (!n.icon && !n.link)
               return (
-                <Text uppercase color="neutral30" semiBold className="header">
+                <Text
+                  uppercase
+                  color="neutral30"
+                  semiBold
+                  className="header"
+                  key={n.label}
+                >
                   {n.label}
                 </Text>
               );

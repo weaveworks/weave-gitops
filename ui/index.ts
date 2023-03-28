@@ -11,6 +11,7 @@ import DataTable, {
   filterConfig,
 } from "./components/DataTable";
 import DependenciesView from "./components/DependenciesView";
+import DetailModal from "./components/DetailModal";
 import DirectedGraph from "./components/DirectedGraph";
 import EventsTable from "./components/EventsTable";
 import Flex from "./components/Flex";
@@ -33,6 +34,7 @@ import LoadingPage from "./components/LoadingPage";
 import Logo from "./components/Logo";
 import MessageBox from "./components/MessageBox";
 import Metadata from "./components/Metadata";
+import Modal from "./components/Modal";
 import Nav, { NavItem } from "./components/Nav";
 import NotificationsTable from "./components/NotificationsTable";
 import OCIRepositoryDetail from "./components/OCIRepositoryDetail";
@@ -99,6 +101,7 @@ import { muiTheme, theme } from "./lib/theme";
 import { showInterval } from "./lib/time";
 import { V2Routes } from "./lib/types";
 import {
+  createYamlCommand,
   formatLogTimestamp,
   isAllowedLink,
   poller,
@@ -122,10 +125,12 @@ export {
   coreClient,
   CoreClientContextProvider,
   CoreClientContext,
+  createYamlCommand,
   CustomActions,
   DataTable,
   DagGraph,
   DependenciesView,
+  DetailModal,
   DialogYamlView,
   DirectedGraph,
   EventsTable,
@@ -167,6 +172,7 @@ export {
   LinkResolverProvider,
   LoadingPage,
   Logo,
+  Modal,
   MessageBox,
   Metadata,
   muiTheme,

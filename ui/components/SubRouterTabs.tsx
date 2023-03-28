@@ -1,4 +1,4 @@
-import { Tab, Tabs } from "@material-ui/core";
+import { Tabs } from "@material-ui/core";
 import _ from "lodash";
 import qs from "query-string";
 import * as React from "react";
@@ -7,8 +7,8 @@ import styled from "styled-components";
 import { formatURL } from "../lib/nav";
 import Flex from "./Flex";
 import Link from "./Link";
+import MuiTab from "./MuiTab";
 import Spacer from "./Spacer";
-import Text from "./Text";
 
 type Props = {
   className?: string;
@@ -77,28 +77,16 @@ function SubRouterTabs({ className, children, rootPath, clearQuery }: Props) {
       <Tabs
         indicatorColor="primary"
         value={routesToIndex(routes, window.location.pathname)}
+        className="horizontal-tabs"
       >
         {_.map(routes, (route, i) => {
-          const bold = window.location.pathname.includes(route.path);
           return (
-            <Tab
+            <MuiTab
               component={ForwardedLink as typeof Link}
               key={i}
               to={formatURL(`${route.path}`, clearQuery ? "" : query)}
-              className={`${
-                window.location.pathname.includes(route.path) && "active-tab"
-              }`}
-              label={
-                <Text
-                  size="small"
-                  uppercase
-                  bold={bold}
-                  semiBold={!bold}
-                  color={bold ? "primary10" : "neutral30"}
-                >
-                  {route.name}
-                </Text>
-              }
+              active={window.location.pathname.includes(route.path)}
+              text={route.name}
             />
           );
         })}
@@ -112,29 +100,4 @@ function SubRouterTabs({ className, children, rootPath, clearQuery }: Props) {
   );
 }
 
-export default styled(SubRouterTabs).attrs({ className: SubRouterTabs.name })`
-  .active-tab {
-    background: ${(props) => props.theme.colors.primary}19;
-  }
-  .MuiTab-root {
-    line-height: 1;
-    letter-spacing: 1px;
-    height: 32px;
-    min-height: 32px;
-    width: fit-content;
-    @media (min-width: 600px) {
-      min-width: 132px;
-    }
-  }
-  //trust me there's both tab and tabS
-  .MuiTabs-root {
-    min-height: 32px;
-  }
-  .MuiTabs-fixed {
-    height: 32px;
-  }
-  .MuiTabs-indicator {
-    height: 3px;
-    background-color: ${(props) => props.theme.colors.primary};
-  }
-`;
+export default styled(SubRouterTabs).attrs({ className: SubRouterTabs.name })``;
