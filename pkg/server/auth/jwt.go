@@ -74,7 +74,7 @@ func NewJWTAuthorizationHeaderPrincipalGetter(log logr.Logger, verifier tokenVer
 }
 
 func (pg *JWTAuthorizationHeaderPrincipalGetter) Principal(r *http.Request) (*UserPrincipal, error) {
-	pg.log.Info("attempt to read token from auth header")
+	pg.log.V(logger.LogLevelDebug).Info("attempt to read token from auth header")
 
 	header := r.Header.Get("Authorization")
 	if header == "" {
