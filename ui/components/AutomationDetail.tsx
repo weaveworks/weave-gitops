@@ -4,8 +4,7 @@ import styled from "styled-components";
 import { useSyncFluxObject } from "../hooks/automations";
 import { useToggleSuspend } from "../hooks/flux";
 import { Condition, Kind, ObjectRef } from "../lib/api/core/types.pb";
-import { Automation, FluxObject } from "../lib/objects";
-import { RequestError } from "../lib/types";
+import { Automation } from "../lib/objects";
 import Button from "./Button";
 import CustomActions from "./CustomActions";
 import DependenciesView from "./DependenciesView";
@@ -32,9 +31,6 @@ type Props = {
 };
 
 export type ReconciledObjectsAutomation = {
-  objects: FluxObject[] | undefined[];
-  error?: RequestError;
-  isLoading?: boolean;
   source: ObjectRef;
   name: string;
   namespace: string;
@@ -52,12 +48,21 @@ function AutomationDetail({
   customActions,
 }: Props) {
   const { path } = useRouteMatch();
+  const {
+    name,
+    namespace,
+    clusterName,
+    type,
+    suspended,
+    conditions,
+    sourceRef,
+  } = automation;
   const sync = useSyncFluxObject([
     {
-      name: automation.name,
-      namespace: automation.namespace,
-      clusterName: automation.clusterName,
-      kind: Kind[automation.type],
+      name,
+      namespace,
+      clusterName,
+      kind: Kind[type],
     },
   ]);
 
@@ -76,6 +81,15 @@ function AutomationDetail({
     automation.type === Kind.HelmRelease ? "helmrelease" : "kustomizations"
   );
 
+  const reconciledObjectsAutomation: ReconciledObjectsAutomation = {
+    name,
+    namespace,
+    clusterName,
+    type: Kind[type],
+    suspended,
+    conditions,
+    source: sourceRef,
+  };
   const defaultTabs: Array<routeTab> = [
     {
       name: "Details",
@@ -90,10 +104,7 @@ function AutomationDetail({
             />
             <ReconciledObjectsTable
               className={className}
-              name={automation.name}
-              namespace={automation.namespace}
-              clusterName={automation.clusterName}
-              kind={Kind[automation.type]}
+              reconciledObjectsAutomation={reconciledObjectsAutomation}
             />
           </>
         );
@@ -125,13 +136,7 @@ function AutomationDetail({
         return (
           <ReconciliationGraph
             className={className}
-            name={automation.name}
-            namespace={automation.namespace}
-            clusterName={automation.clusterName}
-            kind={Kind[automation.type]}
-            source={automation.sourceRef}
-            suspended={automation.suspended}
-            conditions={automation.conditions}
+            reconciledObjectsAutomation={reconciledObjectsAutomation}
           />
         );
       },

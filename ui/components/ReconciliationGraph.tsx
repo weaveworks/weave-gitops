@@ -3,7 +3,8 @@ import * as d3 from "d3";
 import * as React from "react";
 import styled from "styled-components";
 import { useGetInventory } from "../hooks/inventory";
-import { Condition, ObjectRef } from "../lib/api/core/types.pb";
+import { FluxObject } from "../lib/objects";
+import { ReconciledObjectsAutomation } from "./AutomationDetail";
 import DirectedGraph from "./DirectedGraph";
 import Flex from "./Flex";
 import RequestStateHandler from "./RequestStateHandler";
@@ -11,14 +12,7 @@ import Spacer from "./Spacer";
 
 interface Props {
   className?: string;
-  kind?: string;
-  name?: string;
-  namespace?: string;
-  clusterName?: string;
-  withChildren?: boolean;
-  source?: ObjectRef;
-  suspended?: boolean;
-  conditions: Condition[];
+  reconciledObjectsAutomation: ReconciledObjectsAutomation;
 }
 
 const SliderFlex = styled(Flex)`
@@ -42,16 +36,11 @@ const GraphDiv = styled.div`
 
 function ReconciliationGraph({
   className,
-  kind,
-  name,
-  namespace,
-  clusterName,
-  source,
-  suspended,
-  conditions,
+  reconciledObjectsAutomation,
 }: Props) {
+  const { type, name, clusterName, namespace } = reconciledObjectsAutomation;
   const { data, isLoading, error } = useGetInventory(
-    kind,
+    type,
     name,
     clusterName,
     namespace,
@@ -63,38 +52,33 @@ function ReconciliationGraph({
       {data?.objects && (
         <Graph
           className={className}
-          kind={kind}
-          name={name}
-          namespace={namespace}
-          clusterName={clusterName}
-          source={source}
-          suspended={suspended}
-          conditions={conditions}
+          reconciledObjectsAutomation={reconciledObjectsAutomation}
           objects={data.objects}
         />
       )}
     </RequestStateHandler>
   );
 }
-
+interface GraphProps {
+  className?: string;
+  reconciledObjectsAutomation: ReconciledObjectsAutomation;
+  objects: FluxObject[];
+}
 const Graph = ({
   className,
-  kind,
-  name,
-  namespace,
-  clusterName,
-  source,
-  suspended,
-  conditions,
+  reconciledObjectsAutomation,
   objects,
-}: any) => {
+}: GraphProps) => {
+  const { type, name, clusterName, namespace, suspended, conditions, source } =
+    reconciledObjectsAutomation;
+
   //add extra nodes
   const secondNode = {
     name,
     namespace,
     suspended,
     conditions,
-    type: kind,
+    type,
     clusterName,
     children: objects,
     isCurrentNode: true,

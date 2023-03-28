@@ -1,10 +1,15 @@
 import { useContext } from "react";
 import { useQuery } from "react-query";
 import { CoreClientContext } from "../contexts/CoreClientContext";
-import { ListObjectsResponse } from "../lib/api/core/core.pb";
+import { ListError } from "../lib/api/core/core.pb";
 import { InventoryEntry } from "../lib/api/core/types.pb";
 import { FluxObject } from "../lib/objects";
 import { NoNamespace, ReactQueryOptions, RequestError } from "../lib/types";
+
+interface GetInventoryResponse {
+  objects?: FluxObject[];
+  errors?: ListError[];
+}
 
 export function useGetInventory(
   kind: string,
@@ -12,14 +17,14 @@ export function useGetInventory(
   clusterName: string,
   namespace: string = NoNamespace,
   withChildren?: boolean,
-  opts: ReactQueryOptions<ListObjectsResponse, RequestError> = {
+  opts: ReactQueryOptions<GetInventoryResponse, RequestError> = {
     retry: false,
     refetchInterval: 5000,
   }
 ) {
   const { api } = useContext(CoreClientContext);
 
-  return useQuery<ListObjectsResponse, RequestError>(
+  return useQuery<GetInventoryResponse, RequestError>(
     ["get_inventory", namespace, kind, withChildren],
     () =>
       api
