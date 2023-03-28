@@ -2,29 +2,23 @@ import * as React from "react";
 import styled from "styled-components";
 import { AppContext } from "../contexts/AppContext";
 import { useGetInventory } from "../hooks/inventory";
-import { FluxObject } from "../lib/objects";
+import { ReconciledObjectsAutomation } from "./AutomationDetail";
 import { filterByStatusCallback, filterConfig } from "./DataTable";
 import FluxObjectsTable from "./FluxObjectsTable";
 import RequestStateHandler from "./RequestStateHandler";
 
 interface Props {
   className?: string;
-  kind?: string;
-  name?: string;
-  namespace?: string;
-  clusterName?: string;
-  withChildren?: boolean;
+  reconciledObjectsAutomation: ReconciledObjectsAutomation;
 }
 
 function ReconciledObjectsTable({
   className,
-  kind,
-  name,
-  namespace,
-  clusterName,
+  reconciledObjectsAutomation,
 }: Props) {
+  const { type, name, clusterName, namespace } = reconciledObjectsAutomation;
   const { data, isLoading, error } = useGetInventory(
-    kind,
+    type,
     name,
     clusterName,
     namespace,
@@ -43,7 +37,7 @@ function ReconciledObjectsTable({
     <RequestStateHandler loading={isLoading} error={error}>
       <FluxObjectsTable
         className={className}
-        objects={data?.objects as FluxObject[]}
+        objects={data?.objects}
         onClick={setDetailModal}
         initialFilterState={initialFilterState}
       />
