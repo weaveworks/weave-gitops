@@ -41,12 +41,12 @@ func (cs *coreServer) GetInventory(ctx context.Context, msg *pb.GetInventoryRequ
 
 	switch msg.Kind {
 	case kustomizev1.KustomizationKind:
-		entries, err = cs.getKustomizationInventory(ctx, client, msg.Name, msg.Namespace, msg.WithChildren)
+		entries, err = cs.getKustomizationInventory(ctx, msg.ClusterName, client, msg.Name, msg.Namespace, msg.WithChildren)
 		if err != nil {
 			return nil, fmt.Errorf("failed getting kustomization inventory: %w", err)
 		}
 	case helmv2.HelmReleaseKind:
-		entries, err = cs.getHelmReleaseInventory(ctx, client, msg.Name, msg.Namespace, msg.WithChildren)
+		entries, err = cs.getHelmReleaseInventory(ctx, msg.ClusterName, client, msg.Name, msg.Namespace, msg.WithChildren)
 		if err != nil {
 			return nil, fmt.Errorf("failed getting helm Release inventory: %w", err)
 		}
@@ -59,7 +59,7 @@ func (cs *coreServer) GetInventory(ctx context.Context, msg *pb.GetInventoryRequ
 	}, nil
 }
 
-func (cs *coreServer) getKustomizationInventory(ctx context.Context, k8sClient client.Client, name, namespace string, withChildren bool) ([]*pb.InventoryEntry, error) {
+func (cs *coreServer) getKustomizationInventory(ctx context.Context, clusterName string, k8sClient client.Client, name, namespace string, withChildren bool) ([]*pb.InventoryEntry, error) {
 	kust := &kustomizev1.Kustomization{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -97,7 +97,7 @@ func (cs *coreServer) getKustomizationInventory(ctx context.Context, k8sClient c
 				return
 			}
 
-			entry, err := unstructuredToInventoryEntry(ctx, k8sClient, obj, namespace, withChildren)
+			entry, err := cs.unstructuredToInventoryEntry(ctx, clusterName, k8sClient, obj, namespace, withChildren)
 			if err != nil {
 				cs.logger.Error(err, "failed converting inventory entry", "entry", ref)
 				return
@@ -114,7 +114,7 @@ func (cs *coreServer) getKustomizationInventory(ctx context.Context, k8sClient c
 	return result, nil
 }
 
-func (cs *coreServer) getHelmReleaseInventory(ctx context.Context, k8sClient client.Client, name, namespace string, withChildren bool) ([]*pb.InventoryEntry, error) {
+func (cs *coreServer) getHelmReleaseInventory(ctx context.Context, clusterName string, k8sClient client.Client, name, namespace string, withChildren bool) ([]*pb.InventoryEntry, error) {
 	release := &helmv2.HelmRelease{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -155,7 +155,7 @@ func (cs *coreServer) getHelmReleaseInventory(ctx context.Context, k8sClient cli
 				return
 			}
 
-			entry, err := unstructuredToInventoryEntry(ctx, k8sClient, obj, namespace, withChildren)
+			entry, err := cs.unstructuredToInventoryEntry(ctx, clusterName, k8sClient, obj, namespace, withChildren)
 			if err != nil {
 				cs.logger.Error(err, "failed converting inventory entry", "entry", obj)
 				return
@@ -235,7 +235,7 @@ func getHelmReleaseObjects(ctx context.Context, k8sClient client.Client, helmRel
 	return objects, nil
 }
 
-func unstructuredToInventoryEntry(ctx context.Context, k8sClient client.Client, unstructuredObj unstructured.Unstructured, ns string, withChildren bool) (*pb.InventoryEntry, error) {
+func (cs *coreServer) unstructuredToInventoryEntry(ctx context.Context, clusterName string, k8sClient client.Client, unstructuredObj unstructured.Unstructured, ns string, withChildren bool) (*pb.InventoryEntry, error) {
 	var err error
 
 	if unstructuredObj.GetKind() == "Secret" {
@@ -248,7 +248,7 @@ func unstructuredToInventoryEntry(ctx context.Context, k8sClient client.Client, 
 	children := []*pb.InventoryEntry{}
 
 	if withChildren {
-		children, err = getChildren(ctx, k8sClient, unstructuredObj, ns)
+		children, err = cs.getChildren(ctx, clusterName, k8sClient, unstructuredObj, ns)
 		if err != nil {
 			return nil, err
 		}
@@ -259,15 +259,20 @@ func unstructuredToInventoryEntry(ctx context.Context, k8sClient client.Client, 
 		return nil, err
 	}
 
+	clusterUserNss := cs.clustersManager.GetUserNamespaces(auth.Principal(ctx))
+	tenant := GetTenant(unstructuredObj.GetNamespace(), clusterName, clusterUserNss)
+
 	entry := &pb.InventoryEntry{
-		Payload:  string(bytes),
-		Children: children,
+		Payload:     string(bytes),
+		Tenant:      tenant,
+		ClusterName: clusterName,
+		Children:    children,
 	}
 
 	return entry, nil
 }
 
-func getChildren(ctx context.Context, k8sClient client.Client, parentObj unstructured.Unstructured, ns string) ([]*pb.InventoryEntry, error) {
+func (cs *coreServer) getChildren(ctx context.Context, clusterName string, k8sClient client.Client, parentObj unstructured.Unstructured, ns string) ([]*pb.InventoryEntry, error) {
 	listResult := unstructured.UnstructuredList{}
 
 	switch parentObj.GetObjectKind().GroupVersionKind().Kind {
@@ -310,7 +315,7 @@ func getChildren(ctx context.Context, k8sClient client.Client, parentObj unstruc
 	children := []*pb.InventoryEntry{}
 
 	for _, c := range unstructuredChildren {
-		entry, err := unstructuredToInventoryEntry(ctx, k8sClient, c, ns, true)
+		entry, err := cs.unstructuredToInventoryEntry(ctx, clusterName, k8sClient, c, ns, true)
 		if err != nil {
 			return nil, err
 		}

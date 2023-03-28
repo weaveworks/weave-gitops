@@ -68,7 +68,9 @@ message NamespacedObjectReference {
 
 message InventoryEntry {
     string payload = 1;
-    repeated InventoryEntry children = 2;
+    string tenant = 2;
+    string clusterName = 3;
+    repeated InventoryEntry children = 4;
 }
 
 message Object {

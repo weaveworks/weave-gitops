@@ -37,30 +37,7 @@ function convertEntries(entries: InventoryEntry[]) {
   return entries.map((obj) => {
     const parsedObj = new FluxObject(obj);
     const children = obj.children.length ? convertEntries(obj.children) : [];
-    const {
-      name,
-      namespace,
-      suspended,
-      clusterName,
-      type,
-      uid,
-      tenant,
-      conditions,
-      yaml,
-    } = parsedObj;
-
-    return {
-      ...parsedObj,
-      children: children,
-      conditions: conditions,
-      name,
-      namespace,
-      suspended,
-      clusterName,
-      type,
-      uid,
-      tenant,
-      yaml,
-    };
+    parsedObj.children = children;
+    return parsedObj;
   });
 }

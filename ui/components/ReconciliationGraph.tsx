@@ -94,7 +94,7 @@ const Graph = ({
     namespace,
     suspended,
     conditions,
-    kind,
+    type: kind,
     clusterName,
     children: objects,
     isCurrentNode: true,

@@ -904,6 +904,12 @@
         "payload": {
           "type": "string"
         },
+        "tenant": {
+          "type": "string"
+        },
+        "clusterName": {
+          "type": "string"
+        },
         "children": {
           "type": "array",
           "items": {

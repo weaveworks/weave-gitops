@@ -31,6 +31,9 @@ func TestGetInventoryKustomization(t *testing.T) {
 	ns := corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: "test-namespace",
+			Labels: map[string]string{
+				"toolkit.fluxcd.io/tenant": "tenant",
+			},
 		},
 	}
 
@@ -122,6 +125,7 @@ func TestGetInventoryKustomization(t *testing.T) {
 	g.Expect(res.Entries).To(HaveLen(1))
 
 	g.Expect(res.Entries[0].Children).To(HaveLen(1))
+	g.Expect(res.Entries[0].Tenant).To(Equal("tenant"))
 }
 
 func TestGetInventoryHelmRelease(t *testing.T) {
