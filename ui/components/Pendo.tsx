@@ -42,7 +42,7 @@ export default function Pendo({
 
   React.useEffect(() => {
     const telemetryFlag =
-      flags.WEAVE_GITOPS_FEATURE_TELEMETRY || defaultTelemetryFlag;
+      flags?.WEAVE_GITOPS_FEATURE_TELEMETRY || defaultTelemetryFlag;
 
     const shouldInitPendo =
       !!flags &&
