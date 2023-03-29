@@ -70,7 +70,7 @@ exports[`DataTable snapshots renders 1`] = `
   justify-content: flex-start;
 }
 
-.c9 {
+.c8 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -84,7 +84,7 @@ exports[`DataTable snapshots renders 1`] = `
   align-items: center;
 }
 
-.c15 {
+.c14 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -102,7 +102,7 @@ exports[`DataTable snapshots renders 1`] = `
   justify-content: flex-start;
 }
 
-.c17 {
+.c16 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -121,7 +121,7 @@ exports[`DataTable snapshots renders 1`] = `
   justify-content: flex-start;
 }
 
-.c12 {
+.c11 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 400;
@@ -129,7 +129,7 @@ exports[`DataTable snapshots renders 1`] = `
   font-style: normal;
 }
 
-.c18 {
+.c17 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 20px;
   font-weight: 400;
@@ -138,69 +138,52 @@ exports[`DataTable snapshots renders 1`] = `
   color: #737373;
 }
 
-.c10 svg {
+.c9 svg {
   height: 16px;
   width: 16px;
 }
 
-.c10 svg path.path-fill {
+.c9 svg path.path-fill {
   fill: !important;
   -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
-.c10 svg.sources {
+.c9 svg.sources {
   fill: none !important;
 }
 
-.c10 svg.sources rect {
+.c9 svg.sources rect {
   stroke: !important;
   -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
-.c10.downward {
+.c9.downward {
   -webkit-transform: rotate(180deg);
   -ms-transform: rotate(180deg);
   transform: rotate(180deg);
 }
 
-.c10.upward {
+.c9.upward {
   -webkit-transform: initial;
   -ms-transform: initial;
   transform: initial;
 }
 
-.c10 .c11 {
+.c9 .c10 {
   margin-left: 4px;
 }
 
-.c10 img {
+.c9 img {
   width: 16px;
 }
 
-.c8 {
+.c7 {
   padding: 4px;
 }
 
-.c6.MuiButton-root {
-  height: 32px;
-  font-size: 12px;
-  -webkit-letter-spacing: 1px;
-  -moz-letter-spacing: 1px;
-  -ms-letter-spacing: 1px;
-  letter-spacing: 1px;
-  line-height: 1;
-  border-radius: 2px;
-  font-weight: 600;
-}
-
-.c6.MuiButton-outlined {
-  padding: 8px 12px;
-  border-color: #d8d8d8;
-}
-
-.c13 {
+.c12 {
   position: relative;
   height: 100%;
   width: 0px;
@@ -213,12 +196,12 @@ exports[`DataTable snapshots renders 1`] = `
   transition-timing-function: ease-in-out;
 }
 
-.c13.open {
+.c12.open {
   left: 0px;
   width: 350px;
 }
 
-.c14 {
+.c13 {
   background: rbga(255,255,255,0.75);
   height: 100%;
   width: 100%;
@@ -227,19 +210,19 @@ exports[`DataTable snapshots renders 1`] = `
   padding-left: 32px;
 }
 
-.c16 .MuiListItem-gutters {
+.c15 .MuiListItem-gutters {
   padding-left: 0px;
 }
 
-.c16 .MuiCheckbox-root {
+.c15 .MuiCheckbox-root {
   padding: 0px;
 }
 
-.c16 .MuiCheckbox-colorSecondary.Mui-checked {
+.c15 .MuiCheckbox-colorSecondary.Mui-checked {
   color: #00b3ec;
 }
 
-.c7.MuiButton-root {
+.c6.MuiButton-root {
   margin: 0;
   text-transform: none;
   -webkit-letter-spacing: 0;
@@ -248,15 +231,15 @@ exports[`DataTable snapshots renders 1`] = `
   letter-spacing: 0;
 }
 
-.c7.MuiButton-text {
+.c6.MuiButton-text {
   min-width: 0px;
 }
 
-.c7.MuiButton-text .selected {
+.c6.MuiButton-text .selected {
   color: #1a1a1a;
 }
 
-.c7.arrow {
+.c6.arrow {
   min-width: 0px;
 }
 
@@ -357,7 +340,7 @@ exports[`DataTable snapshots renders 1`] = `
                 className="c5"
               >
                 <button
-                  className="MuiButtonBase-root MuiButton-root MuiButton-text c6 c7 MuiButton-colorInherit MuiButton-disableElevation"
+                  className="MuiButtonBase-root MuiButton-root MuiButton-text c6 MuiButton-colorInherit"
                   disabled={false}
                   onBlur={[Function]}
                   onClick={[Function]}
@@ -385,10 +368,10 @@ exports[`DataTable snapshots renders 1`] = `
                   </span>
                 </button>
                 <div
-                  className="c8"
+                  className="c7"
                 />
                 <div
-                  className="c9 c10 downward"
+                  className="c8 c9 downward"
                 >
                   <svg
                     aria-hidden={true}
@@ -412,7 +395,7 @@ exports[`DataTable snapshots renders 1`] = `
                 className="c5"
               >
                 <button
-                  className="MuiButtonBase-root MuiButton-root MuiButton-text c6 c7 MuiButton-colorInherit MuiButton-disableElevation"
+                  className="MuiButtonBase-root MuiButton-root MuiButton-text c6 MuiButton-colorInherit"
                   disabled={false}
                   onBlur={[Function]}
                   onClick={[Function]}
@@ -440,7 +423,7 @@ exports[`DataTable snapshots renders 1`] = `
                   </span>
                 </button>
                 <div
-                  className="c8"
+                  className="c7"
                 />
                 <div
                   style={
@@ -460,7 +443,7 @@ exports[`DataTable snapshots renders 1`] = `
                 className="c5"
               >
                 <button
-                  className="MuiButtonBase-root MuiButton-root MuiButton-text c6 c7 MuiButton-colorInherit MuiButton-disableElevation"
+                  className="MuiButtonBase-root MuiButton-root MuiButton-text c6 MuiButton-colorInherit"
                   disabled={false}
                   onBlur={[Function]}
                   onClick={[Function]}
@@ -488,7 +471,7 @@ exports[`DataTable snapshots renders 1`] = `
                   </span>
                 </button>
                 <div
-                  className="c8"
+                  className="c7"
                 />
                 <div
                   style={
@@ -508,7 +491,7 @@ exports[`DataTable snapshots renders 1`] = `
                 className="c5"
               >
                 <button
-                  className="MuiButtonBase-root MuiButton-root MuiButton-text c6 c7 MuiButton-colorInherit MuiButton-disableElevation"
+                  className="MuiButtonBase-root MuiButton-root MuiButton-text c6 MuiButton-colorInherit"
                   disabled={false}
                   onBlur={[Function]}
                   onClick={[Function]}
@@ -536,7 +519,7 @@ exports[`DataTable snapshots renders 1`] = `
                   </span>
                 </button>
                 <div
-                  className="c8"
+                  className="c7"
                 />
                 <div
                   style={
@@ -562,7 +545,7 @@ exports[`DataTable snapshots renders 1`] = `
               className="MuiTableCell-root MuiTableCell-body"
             >
               <span
-                className="c11 c12"
+                className="c10 c11"
                 size="medium"
               >
                 <a
@@ -577,7 +560,7 @@ exports[`DataTable snapshots renders 1`] = `
               className="MuiTableCell-root MuiTableCell-body"
             >
               <span
-                className="c11 c12"
+                className="c10 c11"
                 size="medium"
               >
                 Ready
@@ -588,7 +571,7 @@ exports[`DataTable snapshots renders 1`] = `
               className="MuiTableCell-root MuiTableCell-body"
             >
               <span
-                className="c11 c12"
+                className="c10 c11"
                 size="medium"
               >
                 2004-01-02T15:04:05-0700
@@ -599,7 +582,7 @@ exports[`DataTable snapshots renders 1`] = `
               className="MuiTableCell-root MuiTableCell-body"
             >
               <span
-                className="c11 c12"
+                className="c10 c11"
                 size="medium"
               >
                 3000
@@ -615,7 +598,7 @@ exports[`DataTable snapshots renders 1`] = `
               className="MuiTableCell-root MuiTableCell-body"
             >
               <span
-                className="c11 c12"
+                className="c10 c11"
                 size="medium"
               >
                 <a
@@ -630,7 +613,7 @@ exports[`DataTable snapshots renders 1`] = `
               className="MuiTableCell-root MuiTableCell-body"
             >
               <span
-                className="c11 c12"
+                className="c10 c11"
                 size="medium"
               >
                 -
@@ -641,7 +624,7 @@ exports[`DataTable snapshots renders 1`] = `
               className="MuiTableCell-root MuiTableCell-body"
             >
               <span
-                className="c11 c12"
+                className="c10 c11"
                 size="medium"
               >
                 2006-01-02T15:04:05-0700
@@ -652,7 +635,7 @@ exports[`DataTable snapshots renders 1`] = `
               className="MuiTableCell-root MuiTableCell-body"
             >
               <span
-                className="c11 c12"
+                className="c10 c11"
                 size="medium"
               >
                 2000
@@ -668,7 +651,7 @@ exports[`DataTable snapshots renders 1`] = `
               className="MuiTableCell-root MuiTableCell-body"
             >
               <span
-                className="c11 c12"
+                className="c10 c11"
                 size="medium"
               >
                 <a
@@ -683,7 +666,7 @@ exports[`DataTable snapshots renders 1`] = `
               className="MuiTableCell-root MuiTableCell-body"
             >
               <span
-                className="c11 c12"
+                className="c10 c11"
                 size="medium"
               />
             </td>
@@ -692,7 +675,7 @@ exports[`DataTable snapshots renders 1`] = `
               className="MuiTableCell-root MuiTableCell-body"
             >
               <span
-                className="c11 c12"
+                className="c10 c11"
                 size="medium"
               >
                 2005-01-02T15:04:05-0700
@@ -703,7 +686,7 @@ exports[`DataTable snapshots renders 1`] = `
               className="MuiTableCell-root MuiTableCell-body"
             >
               <span
-                className="c11 c12"
+                className="c10 c11"
                 size="medium"
               >
                 1000
@@ -714,20 +697,20 @@ exports[`DataTable snapshots renders 1`] = `
       </table>
     </div>
     <div
-      className="c13"
+      className="c12"
       data-testid="container"
     >
       <div
-        className="c14"
+        className="c13"
       >
         <div
-          className="c15 c16"
+          className="c14 c15"
         >
           <div
-            className="c17"
+            className="c16"
           >
             <span
-              className="c11 c18"
+              className="c10 c17"
               color="neutral30"
               size="large"
             >

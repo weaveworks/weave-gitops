@@ -12,41 +12,30 @@ import qs from "query-string";
 import * as React from "react";
 import { useHistory, useLocation } from "react-router-dom";
 import styled from "styled-components";
-import Button, { IconButton } from "./Button";
-import CheckboxActions from "./CheckboxActions";
-import ChipGroup from "./ChipGroup";
+import { IconButton } from "../Button";
+import CheckboxActions from "../CheckboxActions";
+import ChipGroup from "../ChipGroup";
 import FilterDialog, {
   FilterConfig,
   FilterSelections,
-  filterSeparator,
   selectionsToFilters,
-} from "./FilterDialog";
-import Flex from "./Flex";
-import Icon, { IconType } from "./Icon";
-import { computeReady, ReadyType } from "./KubeStatusIndicator";
-import SearchField from "./SearchField";
-import Spacer from "./Spacer";
-import Text from "./Text";
-
-export type Field = {
-  label: string | number;
-  labelRenderer?: string | ((k: any) => string | JSX.Element);
-  value: string | ((k: any) => string | JSX.Element | null);
-  sortValue?: (k: any) => any;
-  textSearchable?: boolean;
-  minWidth?: number;
-  maxWidth?: number;
-  /** boolean for field to initially sort against. */
-  defaultSort?: boolean;
-  /** boolean for field to implement secondary sort against. */
-  secondarySort?: boolean;
-};
-
-type FilterState = {
-  filters: FilterConfig;
-  formState: FilterSelections;
-  textFilters: string[];
-};
+} from "../FilterDialog";
+import Flex from "../Flex";
+import Icon, { IconType } from "../Icon";
+import SearchField from "../SearchField";
+import Spacer from "../Spacer";
+import Text from "../Text";
+import {
+  filterRows,
+  filterSelectionsToQueryString,
+  filterText,
+  initialFormState,
+  parseFilterStateFromURL,
+  sortByField,
+  toPairs,
+} from "./helpers";
+import SortableLabel from "./SortableLabel";
+import { Field, FilterState } from "./types";
 
 /** DataTable Properties  */
 export interface Props {
@@ -69,23 +58,6 @@ const EmptyRow = styled(TableRow)<{ colSpan: number }>`
   }
 `;
 
-const TableButton = styled(Button)`
-  &.MuiButton-root {
-    margin: 0;
-    text-transform: none;
-    letter-spacing: 0;
-  }
-  &.MuiButton-text {
-    min-width: 0px;
-    .selected {
-      color: ${(props) => props.theme.colors.neutral40};
-    }
-  }
-  &.arrow {
-    min-width: 0px;
-  }
-`;
-
 const TopBar = styled(Flex)`
   max-width: 100%;
 `;
@@ -94,235 +66,6 @@ const IconFlex = styled(Flex)`
   position: relative;
   padding: 0 ${(props) => props.theme.spacing.small};
 `;
-
-//funcs
-export const filterByStatusCallback = (v) => {
-  if (v.suspended) return ReadyType.Suspended;
-  const ready = computeReady(v["conditions"]);
-  if (ready === ReadyType.Reconciling) return ReadyType.Reconciling;
-  if (ready === ReadyType.Ready) return ReadyType.Ready;
-  return ReadyType.NotReady;
-};
-
-export function filterConfig(
-  rows,
-  key: string,
-  computeValue?: (k: any) => any
-): FilterConfig {
-  const config = _.reduce(
-    rows,
-    (r, v) => {
-      const t = computeValue ? computeValue(v) : v[key];
-      if (!_.includes(r, t)) {
-        r.push(t);
-      }
-
-      return r;
-    },
-    []
-  );
-
-  return { [key]: { options: config, transformFunc: computeValue } };
-}
-
-export function filterRows<T>(rows: T[], filters: FilterConfig) {
-  if (_.keys(filters).length === 0) {
-    return rows;
-  }
-
-  return _.filter(rows, (row) => {
-    let ok = true;
-
-    _.each(filters, (vals, category) => {
-      let value;
-
-      if (vals.transformFunc) value = vals.transformFunc(row);
-      // strings
-      else value = row[category];
-
-      if (!_.includes(vals.options, value)) {
-        ok = false;
-        return ok;
-      }
-    });
-
-    return ok;
-  });
-}
-
-function filterText(
-  rows,
-  fields: Field[],
-  textFilters: FilterState["textFilters"]
-) {
-  if (textFilters.length === 0) {
-    return rows;
-  }
-
-  return _.filter(rows, (row) => {
-    let matches = false;
-
-    fields.forEach((field) => {
-      if (!field.textSearchable) return matches;
-
-      let value;
-      if (field.sortValue) {
-        value = field.sortValue(row);
-      } else {
-        value =
-          typeof field.value === "function"
-            ? field.value(row)
-            : row[field.value];
-      }
-
-      for (let i = 0; i < textFilters.length; i++) {
-        matches = value.includes(textFilters[i]);
-        if (!matches) {
-          break;
-        }
-      }
-    });
-
-    return matches;
-  });
-}
-
-export function initialFormState(cfg: FilterConfig, initialSelections?) {
-  if (!initialSelections) {
-    return {};
-  }
-  const allFilters = _.reduce(
-    cfg,
-    (r, vals, k) => {
-      _.each(vals.options, (v) => {
-        const key = `${k}${filterSeparator}${v}`;
-        const selection = _.get(initialSelections, key);
-        if (selection) {
-          r[key] = selection;
-        } else {
-          r[key] = false;
-        }
-      });
-
-      return r;
-    },
-    {}
-  );
-  return allFilters;
-}
-
-function toPairs(state: FilterState): string[] {
-  const result = _.map(state.formState, (val, key) => (val ? key : null));
-  const out = _.compact(result);
-  return _.concat(out, state.textFilters);
-}
-
-export function parseFilterStateFromURL(search: string) {
-  const query = qs.parse(search) as any;
-  const state = { initialSelections: {}, textFilters: [] };
-  if (query.filters) {
-    const split = query.filters.split("_");
-    const next = {};
-    _.each(split, (filterString) => {
-      if (filterString) next[filterString] = true;
-    });
-    state.initialSelections = next;
-  }
-  if (query.search) {
-    state.textFilters = query.search.split("_").filter((item) => item);
-  }
-  return state;
-}
-
-export function filterSelectionsToQueryString(sel: FilterSelections) {
-  let url = "";
-  _.each(sel, (value, key) => {
-    if (value) {
-      url += `${key}_`;
-    }
-  });
-  //this is an object with all the different queries as keys
-  let query = qs.parse(location.search);
-  //if there are any filters, reassign/create filter query key
-  if (url) query["filters"] = url;
-  //if the update leaves no filters, remove the filter query key from the object
-  else if (query["filters"]) query = _.omit(query, "filters");
-  //this turns a parsed search into a legit query string
-  return qs.stringify(query);
-}
-
-export const sortByField = (
-  rows: any[],
-  reverseSort: boolean,
-  sortFields: Field[],
-  useSecondarySort?: boolean
-) => {
-  const orderFields = [sortFields[0]];
-  if (useSecondarySort && sortFields.length > 1)
-    orderFields.push(sortFields[1]);
-
-  return _.orderBy(
-    rows,
-    sortFields.map((s) => {
-      return s.sortValue || s.value;
-    }),
-    orderFields.map((_, index) => {
-      // Always sort secondary sort values in the ascending order.
-      const sortOrders =
-        reverseSort && (!useSecondarySort || index != 1) ? "desc" : "asc";
-
-      return sortOrders;
-    })
-  );
-};
-//components
-type labelProps = {
-  fields: Field[];
-  fieldIndex: number;
-  sortFieldIndex: number;
-  reverseSort: boolean;
-  setSortFieldIndex: (index: number) => void;
-  setReverseSort: (b: boolean) => void;
-};
-
-function SortableLabel({
-  fields,
-  fieldIndex,
-  sortFieldIndex,
-  reverseSort,
-  setSortFieldIndex,
-  setReverseSort,
-}: labelProps) {
-  const field = fields[fieldIndex];
-  const sort = fields[sortFieldIndex];
-
-  return (
-    <Flex align start>
-      <TableButton
-        color="inherit"
-        variant="text"
-        onClick={() => {
-          setReverseSort(sortFieldIndex === fieldIndex ? !reverseSort : false);
-          setSortFieldIndex(fieldIndex);
-        }}
-      >
-        <h2 className={sort.label === field.label ? "selected" : ""}>
-          {field.label}
-        </h2>
-      </TableButton>
-      <Spacer padding="xxs" />
-      {sort.label === field.label ? (
-        <Icon
-          type={IconType.ArrowUpwardIcon}
-          size="base"
-          className={reverseSort ? "upward" : "downward"}
-        />
-      ) : (
-        <div style={{ width: "16px" }} />
-      )}
-    </Flex>
-  );
-}
 
 /** Form DataTable */
 function UnstyledDataTable({

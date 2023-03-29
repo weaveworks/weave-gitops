@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import "jest-styled-components";
 import React from "react";
 import renderer from "react-test-renderer";
-import { withContext, withTheme } from "../../lib/test-utils";
+import { withContext, withTheme } from "../../../lib/test-utils";
 import DataTable from "../DataTable";
 
 describe("DataTable", () => {
