@@ -50,6 +50,8 @@ export interface Props {
   hasCheckboxes?: boolean;
   hideSearchAndFilters?: boolean;
   emptyMessagePlaceholder?: React.ReactNode;
+  onColumnHeaderClick?: (field: Field) => void;
+  disableSort?: boolean;
 }
 //styled components
 const EmptyRow = styled(TableRow)<{ colSpan: number }>`
@@ -77,6 +79,8 @@ function UnstyledDataTable({
   dialogOpen,
   hideSearchAndFilters,
   emptyMessagePlaceholder,
+  onColumnHeaderClick,
+  disableSort,
 }: Props) {
   //URL info
   const history = useHistory();
@@ -199,7 +203,8 @@ function UnstyledDataTable({
     filtered,
     reverseSort,
     sortFields,
-    useSecondarySort
+    useSecondarySort,
+    disableSort
   );
 
   const [checked, setChecked] = React.useState([]);
@@ -296,10 +301,20 @@ function UnstyledDataTable({
                         fieldIndex={index}
                         sortFieldIndex={sortFieldIndex}
                         reverseSort={reverseSort}
-                        setSortFieldIndex={setSortFieldIndex}
-                        setReverseSort={(isReverse) =>
-                          setReverseSort(isReverse)
-                        }
+                        setSortFieldIndex={(...args) => {
+                          if (onColumnHeaderClick) {
+                            onColumnHeaderClick(f);
+                          }
+
+                          setSortFieldIndex(...args);
+                        }}
+                        setReverseSort={(isReverse) => {
+                          if (onColumnHeaderClick) {
+                            onColumnHeaderClick(f);
+                          }
+
+                          setReverseSort(isReverse);
+                        }}
                       />
                     )}
                   </TableCell>
