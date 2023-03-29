@@ -2,7 +2,7 @@ import * as React from "react";
 
 function TerraformIcon() {
   return (
-    <svg fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg fill="none" viewBox="0 0 16 18" xmlns="http://www.w3.org/2000/svg">
       <g clipPath="url(#clip0_14886_118982)">
         <path
           d="M4.93915 2.83179L9.09974 5.28723V10.1783L4.93915 7.72288V2.83179Z"
@@ -27,7 +27,7 @@ function TerraformIcon() {
       </g>
       <defs>
         <clipPath id="clip0_14886_118982">
-          <rect fill="white" className="rect-height" />
+          <rect fill="white" width="16" height="18" />
         </clipPath>
       </defs>
     </svg>

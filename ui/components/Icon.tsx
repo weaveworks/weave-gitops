@@ -28,6 +28,7 @@ import DocsIcon from "./NavIcons/DocsIcon";
 import { colors, spacing } from "../typedefs/styled";
 import Flex from "./Flex";
 import ApplicationsIcon from "./NavIcons/ApplicationsIcon";
+import ClustersIcon from "./NavIcons/ClustersIcon";
 import DeliveryIcon from "./NavIcons/DeliveryIcon";
 import FluxIcon from "./NavIcons/FluxIcon";
 import GitOpsRunIcon from "./NavIcons/GitOpsRunIcon";
@@ -89,6 +90,7 @@ export enum IconType {
   WorkspacesIcon,
   SecretsIcon,
   TemplatesIcon,
+  ClustersIcon,
 }
 
 type Props = {
@@ -233,6 +235,9 @@ function getIcon(i: IconType) {
     case IconType.WorkspacesIcon:
       return WorkspacesIcon;
 
+    case IconType.ClustersIcon:
+      return ClustersIcon;
+
     default:
       break;
   }
@@ -272,7 +277,7 @@ export default styled(Icon)`
         transition: stroke 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
       }
     }
-    &.sources {
+    &.no-fill {
       fill: none !important;
     }
   }

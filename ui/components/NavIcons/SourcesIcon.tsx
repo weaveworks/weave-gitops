@@ -6,7 +6,7 @@ function SourcesIcon() {
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className="sources"
+      className="no-fill"
     >
       <path
         d="M10.7 14.3L8.4 12L10.7 9.7L10 9L7 12L10 15L10.7 14.3ZM13.3 14.3L15.6 12L13.3 9.7L14 9L17 12L14 15L13.3 14.3V14.3Z"
