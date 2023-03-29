@@ -155,6 +155,42 @@ describe("DataTable", () => {
       firstRow = screen.getAllByRole("row")[1];
       expect(firstRow.innerHTML).toMatch(/c/);
     });
+    it("disables sorting", () => {
+      const rows = [
+        {
+          name: "b",
+        },
+        {
+          name: "c",
+        },
+        {
+          name: "a",
+        },
+      ];
+
+      const fields = [
+        {
+          label: "Name",
+          value: "name",
+        },
+      ];
+
+      render(
+        withTheme(
+          withContext(
+            <DataTable disableSort fields={fields} rows={rows} />,
+            "/applications",
+            {}
+          )
+        )
+      );
+
+      const nameButton = screen.getByText("Name");
+      fireEvent.click(nameButton);
+
+      const firstRow = screen.getAllByRole("row")[1];
+      expect(firstRow.innerHTML).toMatch(/b/);
+    });
   });
 
   describe("snapshots", () => {

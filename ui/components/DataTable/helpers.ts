@@ -168,8 +168,13 @@ export const sortByField = (
   rows: any[],
   reverseSort: boolean,
   sortFields: Field[],
-  useSecondarySort?: boolean
+  useSecondarySort?: boolean,
+  disableSort?: boolean
 ) => {
+  if (disableSort) {
+    return rows;
+  }
+
   const orderFields = [sortFields[0]];
   if (useSecondarySort && sortFields.length > 1)
     orderFields.push(sortFields[1]);
