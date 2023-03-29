@@ -184,9 +184,6 @@ function getIcon(i: IconType) {
     case IconType.PauseIcon:
       return PauseIcon;
 
-    case IconType.NotificationsIcon:
-      return NotificationsIcon;
-
     case IconType.SourcesIcon:
       return SourcesIcon;
 
