@@ -64,7 +64,7 @@ interface GraphProps {
   reconciledObjectsAutomation: ReconciledObjectsAutomation;
   objects: FluxObject[];
 }
-const Graph = ({
+export const Graph = ({
   className,
   reconciledObjectsAutomation,
   objects,

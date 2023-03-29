@@ -43,7 +43,7 @@ import PageStatus from "./components/PageStatus";
 import Pendo from "./components/Pendo";
 import ProviderDetail from "./components/ProviderDetail";
 import ReconciledObjectsTable from "./components/ReconciledObjectsTable";
-import ReconciliationGraph from "./components/ReconciliationGraph";
+import ReconciliationGraph, { Graph } from "./components/ReconciliationGraph";
 import RequestStateHandler from "./components/RequestStateHandler";
 import SourceLink from "./components/SourceLink";
 import SourcesIcon from "./components/SourcesIcon";
@@ -146,6 +146,7 @@ export {
   getParentNavRouteValue,
   GitRepository,
   GitRepositoryDetail,
+  Graph,
   HelmChart,
   HelmRepository,
   HelmRelease,
