@@ -110,8 +110,6 @@ function Layout({ className, children }: Props) {
   const { currentPage } = useNavigation();
   const value = getParentNavRouteValue(currentPage);
 
-  console.log(navItems);
-
   return (
     <AppContainer className={className}>
       <TopToolBar start align wide>
