@@ -53,61 +53,6 @@ const navItems: NavItem[] = [
     },
     icon: IconType.DocsIcon,
   },
-  {
-    label: "Notifications",
-    link: { value: V2Routes.Notifications },
-    icon: IconType.ClustersIcon,
-  },
-  {
-    label: "Notifications",
-    link: { value: V2Routes.Notifications },
-    icon: IconType.DeliveryIcon,
-  },
-  {
-    label: "Notifications",
-    link: { value: V2Routes.Notifications },
-    icon: IconType.GitOpsRunIcon,
-  },
-  {
-    label: "Notifications",
-    link: { value: V2Routes.Notifications },
-    icon: IconType.GitOpsSetsIcon,
-  },
-  {
-    label: "Notifications",
-    link: { value: V2Routes.Notifications },
-    icon: IconType.PipelinesIcon,
-  },
-  {
-    label: "Notifications",
-    link: { value: V2Routes.Notifications },
-    icon: IconType.PoliciesIcon,
-  },
-  {
-    label: "Notifications",
-    link: { value: V2Routes.Notifications },
-    icon: IconType.PolicyConfigsIcon,
-  },
-  {
-    label: "Notifications",
-    link: { value: V2Routes.Notifications },
-    icon: IconType.SecretsIcon,
-  },
-  {
-    label: "Notifications",
-    link: { value: V2Routes.Notifications },
-    icon: IconType.TemplatesIcon,
-  },
-  {
-    label: "Notifications",
-    link: { value: V2Routes.Notifications },
-    icon: IconType.TerraformIcon,
-  },
-  {
-    label: "Notifications",
-    link: { value: V2Routes.Notifications },
-    icon: IconType.WorkspacesIcon,
-  },
 ];
 
 const AppContainer = styled.div`
