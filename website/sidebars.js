@@ -238,7 +238,19 @@ module.exports = {
         'secrets/setup-secrets-operator',
         'secrets/manage-secrets-gui',
         'secrets/self-service',
-        'secrets/faq'
+        {
+          type: 'category',
+          label: 'Reference',
+          items: [
+            {
+              type: 'category',
+              label: 'v1alpha1',
+              items: [
+                'secrets/spec/v1alpha1/secretSync',
+              ],
+            },
+          ],
+        },
       ],
     },
     {
