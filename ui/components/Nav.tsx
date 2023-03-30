@@ -126,10 +126,6 @@ const LinkTab = React.forwardRef((p: any, ref) => {
     else color = "primary10";
   }
 
-  let iconType = item.icon;
-  if (iconType === IconType.FluxIcon && (p["aria-selected"] || hovered))
-    iconType = IconType.FluxIconHover;
-
   return (
     <Link
       className={className}
@@ -145,7 +141,7 @@ const LinkTab = React.forwardRef((p: any, ref) => {
       }}
       icon={
         <LinkTabIcon
-          iconType={iconType}
+          iconType={item.icon}
           color={p["aria-selected"] || hovered ? "primary10" : "neutral40"}
           collapsed={p.collapsed}
           title={item.label}

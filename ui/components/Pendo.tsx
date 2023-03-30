@@ -1,9 +1,9 @@
-import React, { useContext } from "react";
 import { shake128 } from "js-sha3";
 import Mnemonic from "mnemonic-browser";
+import React, { useContext } from "react";
+import { noVersion } from "../components/Version";
 import { Auth } from "../contexts/AuthContext";
 import { CoreClientContext } from "../contexts/CoreClientContext";
-import { noVersion } from "../components/Version";
 import { useFeatureFlags } from "../hooks/featureflags";
 
 declare global {
