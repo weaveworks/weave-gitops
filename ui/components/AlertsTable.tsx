@@ -1,7 +1,7 @@
-import { Dialog } from "@material-ui/core";
 import qs from "query-string";
 import * as React from "react";
 import styled from "styled-components";
+import { AppContext } from "../contexts/AppContext";
 import { useFeatureFlags } from "../hooks/featureflags";
 import { Kind } from "../lib/api/core/types.pb";
 import { Alert, CrossNamespaceObjectRef } from "../lib/objects";
@@ -16,7 +16,6 @@ import { filterSeparator } from "./FilterDialog";
 import KubeStatusIndicator from "./KubeStatusIndicator";
 import Link from "./Link";
 import Text from "./Text";
-import { DialogYamlView } from "./YamlView";
 type Props = {
   className?: string;
   rows?: Alert[];
@@ -34,28 +33,36 @@ export const makeEventSourceLink = (obj: CrossNamespaceObjectRef) => {
 };
 
 function AlertsTable({ className, rows = [] }: Props) {
-  const { data: flagData } = useFeatureFlags();
-  const flags = flagData.flags;
+  const { isFlagEnabled } = useFeatureFlags();
+
   let initialFilterState = {
     ...filterConfig(rows, "name"),
     ...filterConfig(rows, "namespace"),
     ...filterConfig(rows, "severity"),
     ...filterConfig(rows, "status", filterByStatusCallback),
   };
-  if (flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true") {
+  if (isFlagEnabled("WEAVE_GITOPS_FEATURE_CLUSTER")) {
     initialFilterState = {
       ...initialFilterState,
       ...filterConfig(rows, "clusterName"),
     };
   }
 
-  const [yamlView, setYamlView] = React.useState<Alert>(null);
+  const { setDetailModal } = React.useContext(AppContext);
 
   const alertFields: Field[] = [
     {
       label: "Name",
-      value: (a) => (
-        <Text onClick={() => setYamlView(a)} color="primary10" pointer>
+      value: (a: Alert) => (
+        <Text
+          onClick={() =>
+            setDetailModal({
+              object: a,
+            })
+          }
+          color="primary10"
+          pointer
+        >
           {a.name}
         </Text>
       ),
@@ -106,37 +113,18 @@ function AlertsTable({ className, rows = [] }: Props) {
         ) : null,
       sortValue: statusSortHelper,
     },
-    ...(flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true"
+    ...(isFlagEnabled("WEAVE_GITOPS_FEATURE_CLUSTER")
       ? [{ label: "Cluster", value: (obj) => obj.clusterName }]
       : []),
   ];
 
   return (
-    <>
-      <DataTable
-        className={className}
-        fields={alertFields}
-        rows={rows}
-        filters={initialFilterState}
-      />
-      <Dialog
-        open={yamlView !== null}
-        onClose={() => setYamlView(null)}
-        maxWidth="md"
-        fullWidth
-      >
-        {yamlView && (
-          <DialogYamlView
-            object={{
-              name: yamlView.name,
-              namespace: yamlView.namespace,
-              kind: yamlView.type,
-            }}
-            yaml={yamlView.yaml}
-          />
-        )}
-      </Dialog>
-    </>
+    <DataTable
+      className={className}
+      fields={alertFields}
+      rows={rows}
+      filters={initialFilterState}
+    />
   );
 }
 

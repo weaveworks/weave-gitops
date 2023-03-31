@@ -10,6 +10,7 @@ import (
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	loglevels "github.com/weaveworks/weave-gitops/core/logger"
+	coretypes "github.com/weaveworks/weave-gitops/core/server/types"
 	"github.com/weaveworks/weave-gitops/pkg/config"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/run"
@@ -49,7 +50,7 @@ func ReadPassword(log logger.Logger) (string, error) {
 		return "", err
 	}
 
-	return password, nil
+	return strings.TrimSpace(password), nil
 }
 
 func GeneratePasswordHash(log logger.Logger, password string) (string, error) {
@@ -63,7 +64,7 @@ func GeneratePasswordHash(log logger.Logger, password string) (string, error) {
 }
 
 // CreateDashboardObjects creates HelmRepository and HelmRelease objects for the GitOps Dashboard installation.
-func CreateDashboardObjects(log logger.Logger, name string, namespace string, username string, passwordHash string, chartVersion string, dashboardImage string) ([]byte, error) {
+func CreateDashboardObjects(log logger.Logger, name, namespace, username, passwordHash, chartVersion, dashboardImage string) ([]byte, error) {
 	log.Actionf("Creating GitOps Dashboard objects ...")
 
 	helmRepository := makeHelmRepository(name, namespace)
@@ -137,11 +138,11 @@ func GetInstalledDashboard(ctx context.Context, kubeClient client.Client, namesp
 	return DashboardTypeNone, ""
 }
 
-// ReconcileDashboard reconciles the dashboard.
-func ReconcileDashboard(ctx context.Context, kubeClient client.Client, name string, namespace string, podName string, timeout time.Duration) error {
+// ReconcileDashboard reconciles the dashboard. If podName is an empty string, it will get the dashboard pod by labels instead of pod name.
+func ReconcileDashboard(ctx context.Context, kubeClient client.Client, dashboardName, namespace, podName string, timeout time.Duration) error {
 	const interval = 3 * time.Second / 2
 
-	helmChartName := namespace + "-" + name
+	helmChartName := namespace + "-" + dashboardName
 
 	// reconcile dashboard
 	namespacedName := types.NamespacedName{
@@ -185,7 +186,16 @@ func ReconcileDashboard(ctx context.Context, kubeClient client.Client, name stri
 	if err := wait.Poll(interval, timeout, func() (bool, error) {
 		namespacedName := types.NamespacedName{Namespace: namespace, Name: podName}
 
-		dashboard, _ := run.GetPodFromResourceDescription(ctx, namespacedName, "deployment", kubeClient)
+		var labels map[string]string = nil
+
+		if podName == "" {
+			labels = map[string]string{
+				coretypes.InstanceLabel: dashboardName,
+				coretypes.NameLabel:     ossDashboardHelmChartName,
+			}
+		}
+
+		dashboard, _ := run.GetPodFromResourceDescription(ctx, kubeClient, namespacedName, "deployment", labels)
 		if dashboard == nil {
 			return false, nil
 		}
@@ -234,7 +244,7 @@ func generateManifestsForDashboard(log logger.Logger, helmRepository *sourcev1.H
 }
 
 // makeHelmRepository creates a HelmRepository object for installing the GitOps Dashboard.
-func makeHelmRepository(name string, namespace string) *sourcev1.HelmRepository {
+func makeHelmRepository(name, namespace string) *sourcev1.HelmRepository {
 	helmRepository := &sourcev1.HelmRepository{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       sourcev1.HelmRepositoryKind,
@@ -266,7 +276,7 @@ func makeHelmRepository(name string, namespace string) *sourcev1.HelmRepository 
 }
 
 // makeHelmRelease creates a HelmRelease object for installing the GitOps Dashboard.
-func makeHelmRelease(log logger.Logger, name string, namespace string, username string, passwordHash string, chartVersion string, dashboardImage string) (*helmv2.HelmRelease, error) {
+func makeHelmRelease(log logger.Logger, name, namespace, username, passwordHash, chartVersion, dashboardImage string) (*helmv2.HelmRelease, error) {
 	helmRelease := &helmv2.HelmRelease{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       helmv2.HelmReleaseKind,
@@ -312,7 +322,7 @@ func makeHelmRelease(log logger.Logger, name string, namespace string, username 
 	return helmRelease, nil
 }
 
-func parseImageRepository(input string) (repository string, image string, tag string, err error) {
+func parseImageRepository(input string) (repository, image, tag string, err error) {
 	lastSlashIndex := strings.LastIndex(input, "/")
 	if lastSlashIndex == -1 {
 		subComponents := strings.Split(input, ":")
@@ -355,7 +365,7 @@ func parseImageRepository(input string) (repository string, image string, tag st
 }
 
 // makeValues creates a values object for installing the GitOps Dashboard.
-func makeValues(username string, passwordHash string, dashboardImage string) ([]byte, error) {
+func makeValues(username, passwordHash, dashboardImage string) ([]byte, error) {
 	valuesMap := make(map[string]interface{})
 	if username != "" && passwordHash != "" {
 		valuesMap["adminUser"] =

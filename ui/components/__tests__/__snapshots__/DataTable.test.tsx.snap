@@ -139,25 +139,28 @@ exports[`DataTable snapshots renders 1`] = `
 }
 
 .c10 svg {
-  fill: !important;
   height: 16px;
   width: 16px;
 }
 
-.c10 svg path.image-automation {
+.c10 svg path.path-fill {
   fill: !important;
+  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
-.c10 svg.sources {
+.c10 svg rect.rect-height {
+  height: 16px;
+  width: 16px;
+}
+
+.c10 svg rect.rect-stroke {
+  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
+.c10 svg.no-fill {
   fill: none !important;
-}
-
-.c10 svg.sources path {
-  fill: !important;
-}
-
-.c10 svg.sources rect {
-  stroke: !important;
 }
 
 .c10.downward {

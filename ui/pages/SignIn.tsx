@@ -60,8 +60,7 @@ const DocsWrapper = styled(Flex)`
 `;
 
 function SignIn() {
-  const { data } = useFeatureFlags();
-  const flags = data.flags;
+  const { isFlagEnabled, flags } = useFeatureFlags();
 
   const formRef = React.useRef<HTMLFormElement>();
   const {
@@ -121,7 +120,7 @@ function SignIn() {
           <Logo wide center>
             <img src={images.weaveLogo} />
           </Logo>
-          {flags.OIDC_AUTH ? (
+          {isFlagEnabled("OIDC_AUTH") ? (
             <Flex wide center>
               <Button
                 type="submit"
@@ -135,10 +134,10 @@ function SignIn() {
               </Button>
             </Flex>
           ) : null}
-          {flags.OIDC_AUTH && flags.CLUSTER_USER_AUTH ? (
+          {isFlagEnabled("OIDC_AUTH") && isFlagEnabled("CLUSTER_USER_AUTH") ? (
             <Divider variant="middle" style={{ margin: theme.spacing.base }} />
           ) : null}
-          {flags.CLUSTER_USER_AUTH ? (
+          {isFlagEnabled("CLUSTER_USER_AUTH") ? (
             <form
               ref={formRef}
               onSubmit={(e) => {

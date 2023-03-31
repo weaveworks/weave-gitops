@@ -21,22 +21,20 @@ function GitRepositoryDetail({
   gitRepository,
   customActions,
 }: Props) {
-  const { data } = useFeatureFlags();
-  const flags = data.flags;
+  const { isFlagEnabled } = useFeatureFlags();
 
   const tenancyInfo: InfoField[] =
-    flags.WEAVE_GITOPS_FEATURE_TENANCY === "true" && gitRepository.tenant
+    isFlagEnabled("WEAVE_GITOPS_FEATURE_TENANCY") && gitRepository.tenant
       ? [["Tenant", gitRepository.tenant]]
       : [];
-  const clusterInfo: InfoField[] =
-    flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true"
-      ? [
-          [
-            "Cluster",
-            <ClusterDashboardLink clusterName={gitRepository?.clusterName} />,
-          ],
-        ]
-      : [];
+  const clusterInfo: InfoField[] = isFlagEnabled("WEAVE_GITOPS_FEATURE_CLUSTER")
+    ? [
+        [
+          "Cluster",
+          <ClusterDashboardLink clusterName={gitRepository?.clusterName} />,
+        ],
+      ]
+    : [];
 
   return (
     <SourceDetail

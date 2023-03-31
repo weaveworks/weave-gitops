@@ -2,11 +2,12 @@ package logger
 
 import (
 	"fmt"
+	"io"
+
 	"github.com/go-logr/logr"
 	"github.com/go-logr/zapr"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"io"
 )
 
 type Logger interface {
@@ -68,20 +69,20 @@ func (l *CliLogger) Warningf(format string, a ...interface{}) {
 }
 
 func defaultLogr(w io.Writer) logr.Logger {
-	//jsonEncoder := zapcore.NewJSONEncoder(zap.NewProductionEncoderConfig())
+	// jsonEncoder := zapcore.NewJSONEncoder(zap.NewProductionEncoderConfig())
 	consoleEncoder := zapcore.NewConsoleEncoder(zapcore.EncoderConfig{
 		MessageKey: "msg",
 	})
 	consoleOut := zapcore.Lock(zapcore.AddSync(w))
 
 	// Should point into the cluster
-	//clusterOut := zapcore.Lock(os.Stderr)
+	// clusterOut := zapcore.Lock(os.Stderr)
 
 	level := zap.NewAtomicLevelAt(zapcore.InfoLevel)
 
 	core := zapcore.NewTee(
 		zapcore.NewCore(consoleEncoder, consoleOut, level),
-		//zapcore.NewCore(jsonEncoder, clusterOut, level),
+		// zapcore.NewCore(jsonEncoder, clusterOut, level),
 	)
 
 	logger := zap.New(core)

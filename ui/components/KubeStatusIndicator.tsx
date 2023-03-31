@@ -18,6 +18,7 @@ export enum ReadyType {
   Ready = "Ready",
   NotReady = "Not Ready",
   Reconciling = "Reconciling",
+  Suspended = "Suspended",
 }
 
 export enum ReadyStatusValue {
@@ -79,6 +80,42 @@ export function computeMessage(conditions: Condition[]) {
   return conditions[0].message;
 }
 
+type IndicatorInfo = {
+  icon: IconType;
+  color: keyof typeof colors;
+  type: ReadyType;
+};
+
+export const getIndicatorInfo = (
+  suspended: boolean,
+  conditions: Condition[]
+): IndicatorInfo => {
+  if (suspended)
+    return {
+      icon: IconType.SuspendedIcon,
+      color: "feedbackOriginal",
+      type: ReadyType.Suspended,
+    };
+  const ready = computeReady(conditions);
+  if (ready === ReadyType.Reconciling)
+    return {
+      type: ReadyType.Reconciling,
+      icon: IconType.ReconcileIcon,
+      color: "primary",
+    };
+  if (ready === ReadyType.Ready)
+    return {
+      type: ReadyType.Ready,
+      icon: IconType.CheckCircleIcon,
+      color: "successOriginal",
+    };
+  return {
+    type: ReadyType.NotReady,
+    icon: IconType.FailedIcon,
+    color: "alertOriginal",
+  };
+};
+
 export type SpecialObject = "DaemonSet";
 
 interface DaemonSetStatus {
@@ -136,35 +173,14 @@ function KubeStatusIndicator({
   short,
   suspended,
 }: Props) {
-  let readyText;
-  let icon;
-  let iconColor: keyof typeof colors;
-  if (suspended) {
-    readyText = "Suspended";
-    icon = IconType.SuspendedIcon;
-  } else {
-    const ready = computeReady(conditions);
-    if (ready === ReadyType.Reconciling) {
-      readyText = ReadyType.Reconciling;
-      icon = IconType.ReconcileIcon;
-      iconColor = "primary";
-    } else if (ready === ReadyType.Ready) {
-      readyText = ReadyType.Ready;
-      icon = IconType.CheckCircleIcon;
-      iconColor = "successOriginal";
-    } else {
-      readyText = ReadyType.NotReady;
-      icon = IconType.FailedIcon;
-      iconColor = "alertOriginal";
-    }
-  }
+  const { type, color, icon } = getIndicatorInfo(suspended, conditions);
 
   let text = computeMessage(conditions);
-  if (short || suspended) text = readyText;
+  if (short || suspended) text = type;
 
   return (
     <Flex start className={className} align>
-      <Icon size="base" type={icon} color={iconColor} text={text} />
+      <Icon size="base" type={icon} color={color} text={text} />
     </Flex>
   );
 }

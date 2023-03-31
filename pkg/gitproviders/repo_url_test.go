@@ -136,4 +136,18 @@ var _ = DescribeTable("NewRepoURL", func(input, gitProviderEnv string, expected 
 			provider: "gitlab",
 			protocol: RepositoryURLProtocolSSH,
 		}),
+	Entry("azure ssh clone", "git@ssh.dev.azure.com:v3/weaveworks/weave-gitops-integration/config", "", expectedRepoURL{
+		s:        "ssh://git@ssh.dev.azure.com/v3/weaveworks/weave-gitops-integration/config.git",
+		owner:    "weaveworks/weave-gitops-integration",
+		name:     "config",
+		provider: GitProviderAzureDevOps,
+		protocol: RepositoryURLProtocolSSH,
+	}),
+	Entry("azure https clone", "https://weaveworks@dev.azure.com/weaveworks/weave-gitops-integration/_git/config", "", expectedRepoURL{
+		s:        "ssh://git@dev.azure.com/weaveworks/weave-gitops-integration/_git/config.git",
+		owner:    "weaveworks/weave-gitops-integration",
+		name:     "config",
+		provider: GitProviderAzureDevOps,
+		protocol: RepositoryURLProtocolSSH,
+	}),
 )

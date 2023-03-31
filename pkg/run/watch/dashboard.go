@@ -12,7 +12,7 @@ import (
 )
 
 // EnablePortForwardingForDashboard enables port forwarding for the GitOps Dashboard.
-func EnablePortForwardingForDashboard(ctx context.Context, log logger.Logger, kubeClient client.Client, config *rest.Config, namespace string, podName string, dashboardPort string) (func(), error) {
+func EnablePortForwardingForDashboard(ctx context.Context, log logger.Logger, kubeClient client.Client, config *rest.Config, namespace, podName, dashboardPort string) (func(), error) {
 	specMap := &PortForwardSpec{
 		Namespace:     namespace,
 		Name:          podName,
@@ -23,7 +23,7 @@ func EnablePortForwardingForDashboard(ctx context.Context, log logger.Logger, ku
 	// get pod from specMap
 	namespacedName := types.NamespacedName{Namespace: specMap.Namespace, Name: specMap.Name}
 
-	pod, err := run.GetPodFromResourceDescription(ctx, namespacedName, specMap.Kind, kubeClient)
+	pod, err := run.GetPodFromResourceDescription(ctx, kubeClient, namespacedName, specMap.Kind, nil)
 	if err != nil {
 		log.Failuref("Error getting pod from specMap: %v", err)
 	}

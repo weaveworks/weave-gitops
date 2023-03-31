@@ -35,9 +35,9 @@ func (c CodeVerifier) CodeChallenge() (string, error) {
 	}
 
 	encodedValue := base64.StdEncoding.EncodeToString(h.Sum(nil))
-	encodedValue = strings.Replace(encodedValue, "+", "-", -1)
-	encodedValue = strings.Replace(encodedValue, "/", "_", -1)
-	encodedValue = strings.Replace(encodedValue, "=", "", -1)
+	encodedValue = strings.ReplaceAll(encodedValue, "+", "-")
+	encodedValue = strings.ReplaceAll(encodedValue, "/", "_")
+	encodedValue = strings.ReplaceAll(encodedValue, "=", "")
 
 	return encodedValue, nil
 }

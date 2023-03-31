@@ -20,7 +20,6 @@ import (
 )
 
 const (
-	helmChartName        = "weave-gitops"
 	defaultAdminUsername = "admin"
 )
 
@@ -233,9 +232,7 @@ func createDashboardCommandRunE(opts *config.Options) func(*cobra.Command, []str
 
 		log.Waitingf("Waiting for GitOps Dashboard reconciliation")
 
-		dashboardPodName := dashboardName + "-" + helmChartName
-
-		if err := install.ReconcileDashboard(ctx, kubeClient, dashboardName, flags.Namespace, dashboardPodName, flags.Timeout); err != nil {
+		if err := install.ReconcileDashboard(ctx, kubeClient, dashboardName, flags.Namespace, "", flags.Timeout); err != nil {
 			log.Failuref("Error requesting reconciliation of dashboard: %v", err.Error())
 		} else {
 			log.Successf("GitOps Dashboard %s is ready", dashboardName)

@@ -98,7 +98,7 @@ func mapToJSON(m map[string]interface{}) (*v1.JSON, error) {
 	return result, nil
 }
 
-func makeFluentBitHelmRepository(namespace string) (*sourcev1.HelmRepository, error) {
+func makeFluentBitHelmRepository(namespace string) *sourcev1.HelmRepository {
 	helmRepository := &sourcev1.HelmRepository{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "fluent",
@@ -109,10 +109,10 @@ func makeFluentBitHelmRepository(namespace string) (*sourcev1.HelmRepository, er
 		},
 	}
 
-	return helmRepository, nil
+	return helmRepository
 }
 
-func makeFluentBitHelmRelease(name string, fluxNamespace string, targetNamespace string, bucketName string, bucketServerPort int32) (*helmv2.HelmRelease, error) {
+func makeFluentBitHelmRelease(name, fluxNamespace, targetNamespace, bucketName string, bucketServerPort int32) (*helmv2.HelmRelease, error) {
 	configOutputs, err := makeConfigOutputs(bucketName, bucketServerPort)
 	if err != nil {
 		return nil, err
@@ -182,11 +182,47 @@ func makeFluentBitHelmRelease(name string, fluxNamespace string, targetNamespace
 	return &obj, nil
 }
 
-func InstallFluentBit(ctx context.Context, log logger.Logger, kubeClient client.Client, fluxNamespace string, targetNamespace string, name string, bucketName string, bucketServerPort int32) error {
-	helmRepo, err := makeFluentBitHelmRepository(fluxNamespace)
-	if err != nil {
-		return err
+func UninstallFluentBit(ctx context.Context, log logger.Logger, kubeClient client.Client, hrNamespace, hrName string) error {
+	hr := &helmv2.HelmRelease{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      hrName,
+			Namespace: hrNamespace,
+		},
 	}
+
+	log.Actionf("Removing Fluent Bit HelmRelease %s/%s ...", hr.Namespace, hr.Name)
+
+	if err := kubeClient.Delete(ctx, hr); err != nil {
+		return fmt.Errorf("failed to delete HelmRelease: %w", err)
+	}
+
+	log.Actionf("Waiting for HelmRelease %s/%s to be deleted...", hr.Namespace, hr.Name)
+
+	if err := wait.ExponentialBackoff(wait.Backoff{
+		Duration: 1 * time.Second,
+		Factor:   2,
+		Jitter:   1,
+		Steps:    10,
+	}, func() (done bool, err error) {
+		if err := kubeClient.Get(ctx, client.ObjectKeyFromObject(hr), hr); err != nil {
+			if apierrors.IsNotFound(err) {
+				return true, nil
+			} else {
+				return false, fmt.Errorf("failed retrieving HelmRelease: %w", err)
+			}
+		}
+		return false, nil
+	}); err != nil {
+		return fmt.Errorf("failed waiting for HelmRelease %s/%s to be deleted: %w", hr.Namespace, hr.Name, err)
+	}
+
+	log.Successf("HelmRelease %s/%s deleted", hr.Namespace, hr.Name)
+
+	return nil
+}
+
+func InstallFluentBit(ctx context.Context, log logger.Logger, kubeClient client.Client, fluxNamespace, targetNamespace, name, bucketName string, bucketServerPort int32) error {
+	helmRepo := makeFluentBitHelmRepository(fluxNamespace)
 
 	log.Actionf("creating HelmRepository %s/%s", helmRepo.Namespace, helmRepo.Name)
 
@@ -225,7 +261,6 @@ func InstallFluentBit(ctx context.Context, log logger.Logger, kubeClient client.
 				Name:      name,
 				Namespace: targetNamespace,
 			}, &instance); err != nil {
-
 			if apierrors.IsNotFound(err) {
 				return false, nil
 			} else {

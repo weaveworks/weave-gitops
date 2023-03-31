@@ -40,5 +40,5 @@ var _ = AfterSuite(func() {
 })
 
 func init() {
-	rand.Seed(time.Now().UnixNano())
+	rand.New(rand.NewSource(time.Now().UnixNano()))
 }

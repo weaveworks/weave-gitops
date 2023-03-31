@@ -1,5 +1,5 @@
 # Go build
-FROM golang:1.19 AS go-build
+FROM golang:1.20 AS go-build
 
 # Add known_hosts entries for GitHub and GitLab
 RUN mkdir ~/.ssh

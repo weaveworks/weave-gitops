@@ -160,10 +160,10 @@ func openConfigFile(configPath string, shouldCreate bool) (*os.File, error) {
 
 	if shouldCreate {
 		flag = os.O_RDWR | os.O_CREATE
-		perm = 0666
+		perm = 0o666
 	} else {
 		flag = os.O_RDONLY
-		perm = 0444
+		perm = 0o444
 	}
 
 	configFile, err = os.OpenFile(configPath, flag, perm)
@@ -196,11 +196,11 @@ func parseConfig(data []byte, config *GitopsCLIConfig) error {
 
 // GenerateUserID generates a string of specified length made of random characters and encodes it in base64 format
 func GenerateUserID(numChars int, seed int64) string {
-	rand.Seed(seed)
+	srand := rand.New(rand.NewSource(seed))
 
 	b := make([]byte, numChars)
 	for i := range b {
-		b[i] = letters[rand.Intn(len(letters))]
+		b[i] = letters[srand.Intn(len(letters))]
 	}
 
 	return string(b)

@@ -8,7 +8,7 @@ import { NoNamespace, PageRoute, V2Routes } from "./types";
 // Example: /sources and /git_repo will both show the "Sources" nav as selected.
 export const getParentNavValue = (
   path: string
-): PageRoute | V2Routes | boolean => {
+): V2Routes | PageRoute | boolean => {
   const [, currentPage] = _.split(path, "/");
   switch (`/${currentPage}`) {
     case V2Routes.Automations:
@@ -54,7 +54,7 @@ export const getParentNavValue = (
 
 export const getParentNavRouteValue = (
   path: string
-): PageRoute | V2Routes | boolean => {
+): V2Routes | PageRoute | boolean => {
   const [, currentPage] = _.split(path, "/");
   switch (`/${currentPage}`) {
     case V2Routes.Automations:

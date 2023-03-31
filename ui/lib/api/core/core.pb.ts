@@ -6,6 +6,18 @@
 
 import * as fm from "../../fetch.pb"
 import * as Gitops_coreV1Types from "./types.pb"
+export type GetInventoryRequest = {
+  kind?: string
+  name?: string
+  namespace?: string
+  clusterName?: string
+  withChildren?: boolean
+}
+
+export type GetInventoryResponse = {
+  entries?: Gitops_coreV1Types.InventoryEntry[]
+}
+
 export type Pagination = {
   pageSize?: number
   pageToken?: string
@@ -215,5 +227,8 @@ export class Core {
   }
   static IsCRDAvailable(req: IsCRDAvailableRequest, initReq?: fm.InitReq): Promise<IsCRDAvailableResponse> {
     return fm.fetchReq<IsCRDAvailableRequest, IsCRDAvailableResponse>(`/v1/crd/is_available?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static GetInventory(req: GetInventoryRequest, initReq?: fm.InitReq): Promise<GetInventoryResponse> {
+    return fm.fetchReq<GetInventoryRequest, GetInventoryResponse>(`/v1/inventory?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
 }

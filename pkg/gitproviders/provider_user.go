@@ -102,7 +102,7 @@ func (p userGitProvider) CreatePullRequest(ctx context.Context, repoURL RepoURL,
 	return createPullRequest(ctx, userRepo, prInfo)
 }
 
-func (p userGitProvider) GetCommits(ctx context.Context, repoURL RepoURL, targetBranch string, pageSize int, pageToken int) ([]gitprovider.Commit, error) {
+func (p userGitProvider) GetCommits(ctx context.Context, repoURL RepoURL, targetBranch string, pageSize, pageToken int) ([]gitprovider.Commit, error) {
 	userRepo, err := p.getUserRepo(ctx, repoURL)
 	if err != nil {
 		return nil, fmt.Errorf("error getting repo for owner %s, repo %s, %w", repoURL.Owner(), repoURL.RepositoryName(), err)

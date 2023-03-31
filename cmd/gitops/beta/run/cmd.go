@@ -206,7 +206,7 @@ func betaRunCommandPreRunE(endpoint *string) func(*cobra.Command, []string) erro
 	}
 }
 
-func getKubeClient(cmd *cobra.Command, args []string) (*kube.KubeHTTP, *rest.Config, error) {
+func getKubeClient(cmd *cobra.Command) (*kube.KubeHTTP, *rest.Config, error) {
 	var err error
 
 	log := logger.NewCLILogger(os.Stdout)
@@ -334,15 +334,19 @@ func fluxStep(log logger.Logger, kubeClient *kube.KubeHTTP) (fluxVersion *instal
 	return fluxVersion, false, nil
 }
 
-func fluentBitStep(ctx context.Context, log logger.Logger, kubeClient *kube.KubeHTTP, devBucketHTTPPort int32) error {
+// fluentBitStep installs Fluent Bit on the cluster and returns a CleanupFunc to remove it again. The function
+// ascertains that Fluent Bit is ready before returning.
+func fluentBitStep(ctx context.Context, log logger.Logger, kubeClient *kube.KubeHTTP, devBucketHTTPPort int32) (CleanupFunc, error) {
 	err := install.InstallFluentBit(ctx, log, kubeClient, flags.Namespace, constants.GitOpsRunNamespace, install.FluentBitHRName, logger.PodLogBucketName, devBucketHTTPPort)
 
 	if err != nil {
 		log.Failuref("Fluent Bit installation failed: %v", err.Error())
-		return err
+		return nil, err
 	}
 
-	return nil
+	return func(ctx context.Context) error {
+		return install.UninstallFluentBit(ctx, log, kubeClient, flags.Namespace, install.FluentBitHRName)
+	}, nil
 }
 
 func dashboardStep(ctx context.Context, log logger.Logger, kubeClient *kube.KubeHTTP, generateManifestsOnly bool, dashboardHashedPassword string) (install.DashboardType, []byte, string, error) {
@@ -388,6 +392,10 @@ func dashboardStep(ctx context.Context, log logger.Logger, kubeClient *kube.Kube
 				password, err := install.ReadPassword(log)
 				if err != nil {
 					return install.DashboardTypeNone, nil, "", err
+				}
+
+				if password == "" {
+					return install.DashboardTypeNone, nil, "", fmt.Errorf("dashboard password is an empty string")
 				}
 
 				passwordHash, err = install.GeneratePasswordHash(log, password)
@@ -448,7 +456,7 @@ func runCommandOuterProcess(cmd *cobra.Command, args []string) (retErr error) {
 		return err
 	}
 
-	kubeClient, _, err := getKubeClient(cmd, args)
+	kubeClient, _, err := getKubeClient(cmd)
 	if err != nil {
 		return err
 	}
@@ -475,7 +483,7 @@ func runCommandOuterProcess(cmd *cobra.Command, args []string) (retErr error) {
 		return fmt.Errorf("failed to detect or install Flux on the host cluster: %v", err)
 	}
 
-	_, dashboardManifests, dashboardHashedPassword, err := dashboardStep(context.Background(), log, kubeClient, true, flags.DashboardHashedPassword)
+	dashboardType, dashboardManifests, dashboardHashedPassword, err := dashboardStep(context.Background(), log, kubeClient, true, flags.DashboardHashedPassword)
 	if err != nil {
 		return fmt.Errorf("failed to generate dashboard manifests: %v", err)
 	}
@@ -484,7 +492,10 @@ func runCommandOuterProcess(cmd *cobra.Command, args []string) (retErr error) {
 
 	sessionLog.Println("\nYou may see Flux installation logs again, as it is being installed inside the session.\n")
 
-	portForwardsForSession := []string{flags.DashboardPort}
+	portForwardsForSession := []string{}
+	if dashboardType == install.DashboardTypeOSS {
+		portForwardsForSession = append(portForwardsForSession, flags.DashboardPort)
+	}
 
 	if flags.PortForward != "" {
 		spec, err := watch.ParsePortForwardSpec(flags.PortForward)
@@ -594,7 +605,7 @@ func runCommandInnerProcess(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	kubeClient, cfg, err := getKubeClient(cmd, args)
+	kubeClient, cfg, err := getKubeClient(cmd)
 	if err != nil {
 		return err
 	}
@@ -636,6 +647,8 @@ func runCommandInnerProcess(cmd *cobra.Command, args []string) error {
 	// Subscribe to SIGUSR1 in addition to the usual signals because in session mode
 	// the outer process traps SIGTERM and SIGINT and sends SIGUSR1 to the inner process.
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1)
+
+	cleanupFns := CleanupFuncs{}
 
 	go func() {
 		select {
@@ -725,10 +738,12 @@ func runCommandInnerProcess(cmd *cobra.Command, args []string) error {
 	}
 
 	// ====================== Fluent-Bit =====================
-	if err := fluentBitStep(ctx, log, kubeClient, devBucketHTTPPort); err != nil {
+	fbCleanupFn, err := fluentBitStep(ctx, log, kubeClient, devBucketHTTPPort)
+	if err != nil {
 		cancel()
 		return err
 	}
+	cleanupFns.Push(fbCleanupFn)
 
 	// ====================== Dashboard ======================
 	var (
@@ -869,7 +884,7 @@ func runCommandInnerProcess(cmd *cobra.Command, args []string) error {
 	ticker := time.NewTicker(680 * time.Millisecond)
 
 	go func() {
-		for { // nolint:gosimple
+		for { //nolint:gosimple
 			select {
 			case <-stopUploadCh:
 				return
@@ -989,7 +1004,7 @@ func runCommandInnerProcess(cmd *cobra.Command, args []string) error {
 						)
 
 						if pollErr := wait.PollImmediate(2*time.Second, flags.Timeout, func() (bool, error) {
-							pod, podErr = run.GetPodFromResourceDescription(thisCtx, namespacedName, specMap.Kind, kubeClient)
+							pod, podErr = run.GetPodFromResourceDescription(thisCtx, kubeClient, namespacedName, specMap.Kind, nil)
 							if pod != nil && podErr == nil {
 								return true, nil
 							}
@@ -1031,10 +1046,14 @@ func runCommandInnerProcess(cmd *cobra.Command, args []string) error {
 
 	<-ctx.Done()
 
-	close(stopUploadCh)
-	cancel()
-	// create new context that isn't cancelled, for bootstrapping
+	// create new context that isn't cancelled, for cleanup and bootstrapping
 	ctx = context.Background()
+
+	if err := CleanupCluster(ctx, log0, cleanupFns); err != nil {
+		return fmt.Errorf("failed cleaning up: %w", err)
+	}
+
+	close(stopUploadCh)
 
 	if err := watcher.Close(); err != nil {
 		log.Warningf("Error closing watcher: %v", err.Error())
