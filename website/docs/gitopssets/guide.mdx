@@ -3,22 +3,20 @@ title: Guide
 hide_title: true
 ---
 
-import TierLabel from "../_components/TierLabel";
+# Guide
 
-# Features <TierLabel tiers="enterprise" />
-
-## Guide
+## Basics
 
 Currently rendering templates operates in two phases:
 
 - Generate all template parameters from the configured generators
 - Render all the templates for each set of template parameters
 
-Please read the [security information](../intro#security) below before using this.
+Please read the [security information](#security) below before using this.
 
 ## Generation
 
-The simplest generator is the `list` generator.
+The simplest generator is the `List` generator.
 
 ```yaml
 apiVersion: templates.weave.works/v1alpha1
@@ -41,7 +39,7 @@ The elements in there are a set JSON of objects[^yaml], there are three in this 
 
 Other generators provide different sets of keys and values.
 
-The generators documentation below provides more information on what the other generators output.
+The [generators](#generators) documentation below provides more information on what the other generators output.
 
 ## Rendering templates
 
@@ -83,13 +81,11 @@ spec:
             name: go-demo-repo
 ```
 
-The generated elements are provided to the template in the `element` scope, so
+The generated elements are provided to the template in the `Element` scope, so
 `.Element.dev` refers to the `dev` field from the List element.
 
-:::info
-The output from all generators is exposed in the `element` scope, not just List
+The output from all generators is exposed in the `Element` scope, not just List
 generators.
-:::
 
 ## Repeating templates
 
@@ -137,75 +133,34 @@ Templates that use `repeat` will have two separate scopes for the template param
 
 In this case, six different `ConfigMaps` are generated, three for the "dev-team" and three for the "staging-team".
 
-# List generator <TierLabel tiers="enterprise" />
+## Generators
 
-The `list` generator is a simple generator that generates a list of params from a list of elements.
+We currently provide these generators:
+
+- [list](#list-generator)
+- [pullRequests](#pullrequests-generator)
+- [gitRepository](#gitrepository-generator)
+- [matrix](#matrix-generator)
+- [apiClient](#apiclient-generator)
+
+### List generator
 
 This is the simplest generator, which is a hard-coded array of JSON objects, described as YAML mappings.
 
-### Example
+### GitRepository generator
 
-```yaml
-apiVersion: templates.weave.works/v1alpha1
-kind: GitOpsSet
-metadata:
-  labels:
-    app.kubernetes.io/name: gitopsset
-    app.kubernetes.io/instance: gitopsset-sample
-    app.kubernetes.io/part-of: gitopssets-controller
-    app.kubernetes.io/managed-by: kustomize
-    app.kubernetes.io/created-by: gitopssets-controller
-  name: gitopsset-sample
-spec:
-  generators:
-    - list:
-        elements:
-          - env: dev
-            team: dev-team
-          - env: production
-            team: ops-team
-          - env: staging
-            team: ops-team
-  templates:
-    - content:
-        kind: Kustomization
-        apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
-        metadata:
-          name: "{{ .Element.env }}-demo"
-          labels:
-            app.kubernetes.io/name: go-demo
-            app.kubernetes.io/instance: "{{ .Element.env }}"
-            com.example/team: "{{ .Element.team }}"
-        spec:
-          interval: 5m
-          path: "./examples/kustomize/environments/{{ .Element.env }}"
-          prune: true
-          sourceRef:
-            kind: GitRepository
-            name: go-demo-repo
-```
+The `GitRepository` generator operates on [Flux GitRepositories](https://fluxcd.io/flux/components/source/gitrepositories/).
 
-# GitRepository generator <TierLabel tiers="enterprise" />
+When a `GitRepository` is updated, this will trigger a regeneration of templates.
 
-## Generation from files
-
-The `gitRepository` generator allows you to generate resources from the contents of files in a Git repository.
-It operates on Flux GitRepositories.
-When a GitRepository is updated, this will trigger a regeneration of templates.
 The generator operates in two different ways, you can parse files (YAML or JSON) into Elements, or you can scan directories for subdirectories.
 
-### Example
+#### Generation from files
 
 ```yaml
 apiVersion: templates.weave.works/v1alpha1
 kind: GitOpsSet
 metadata:
-  labels:
-    app.kubernetes.io/name: gitopsset
-    app.kubernetes.io/instance: gitopsset-sample
-    app.kubernetes.io/part-of: gitopssets-controller
-    app.kubernetes.io/managed-by: kustomize
-    app.kubernetes.io/created-by: gitopssets-controller
   name: repository-sample
 spec:
   generators:
@@ -240,16 +195,16 @@ These files can be JSON or YAML.
 
 In this example we expect to find the following structure in the files:
 
-```yaml title=examples/generation/dev.yaml
+```yaml
 env: dev
 team: developers
 ```
 
 Changes pushed to the `GitRepository` will result in rereconciliation of the templates into the cluster.
 
-## Generation from directories
+For security reasons, you need to explicitly list out the files that the generator should parse.
 
-### Example
+#### Generation from directories
 
 ```yaml
 apiVersion: templates.weave.works/v1alpha1
@@ -287,9 +242,9 @@ spec:
             name: go-demo-repo
 ```
 
-In this example, a Flux GitRepository called go-demo-repo in the same namespace as the GitOpsSet will be tracked, and Kustomization resources are generated from paths within the examples/kustomize/environments/\* directory within the repository.
+In this example, a [Flux `GitRepository`](https://fluxcd.io/flux/components/source/gitrepositories/) called `go-demo-repo` in the same namespace as the `GitOpsSet` will be tracked, and `Kustomization` resources are generated from paths within the `examples/kustomize/environments/*` directory within the repository.
 
-Each generated element has two keys, .Element.Directory which will be a repo-relative path and .Element.Base which contains the last element of the path, for example, for a directory ./examples/kustomize/environments/production this will be production.
+Each generated element has two keys, `.Element.Directory` which will be a repo-relative path and `.Element.Base` which contains the last element of the path, for example, for a directory `./examples/kustomize/environments/production` this will be `production`.
 
 It is also possible to exclude paths from the generated list, for example, if you do not want to generate for a directory you can exclude it with:
 
@@ -310,19 +265,19 @@ spec:
     - content:
 ```
 
-In this case, all directories that are subdirectories of examples/kustomize/environments will be generated, but not examples/kustomize/environments/production.
+In this case, all directories that are subdirectories of `examples/kustomize/environments` will be generated, **but** not `examples/kustomize/environments/production`.
 
-Note: The directory tree detection is restricted to the same directory as the path, no recursion is done.
+**Note**: The directory tree detection is restricted to the same directory as the path, no recursion is done.
 
-In fact the path is treated as a Glob.
+In fact the path is treated as a [Glob](https://pkg.go.dev/path/filepath#Glob).
 
-For security reasons, you need to explicitly list out the files that the generator should parse.
+### PullRequests generator
 
-# PullRequests generator <TierLabel tiers="enterprise" />
+This will require to make authenticated requests to your Git hosting provider e.g. GitHub, GitLab, Bitbucket etc.
 
-The `pullRequests` generator will query a repository for open pull requests and emit a set of parameters for each pull request.
+It does only require read-only access, but all API tokens should be guarded as carefully as possible, what is a "read-only" token today, might become a token with higher-privilege in the future.
 
-### Example
+_There have been many security compromises using API access tokens, do not let this happen to you!_
 
 ```yaml
 apiVersion: templates.weave.works/v1alpha1
@@ -373,6 +328,8 @@ For non-public installations, you can configure the `serverURL` field and point 
 
 The `driver` field can be `github` or `gitlab` or `bitbucketserver`, other options can be supported from [go-scm](https://github.com/jenkins-x/go-scm/blob/main/scm/factory/factory.go).
 
+The `forks` flag field can be used to indicate whether to include forks in the target pull requests or not. If set to `true` any pull request from a fork repository will be included, otherwise if `false` or not indicated the pull requests from fork repositories are discarded.
+
 Additionally labels can be provided for querying pull requests with matching labels e.g.
 
 ```yaml
@@ -382,32 +339,30 @@ Additionally labels can be provided for querying pull requests with matching lab
     repo: bigkevmcd/go-demo
     secretRef:
       name: github-secret
+    forks: false
     labels:
       - deploy
 ```
 
 The fields emitted by the pull-request are as follows:
 
-- `number` this is generated as a string representation
-- `branch` this is the source branch
-- `head_sha` this is the SHA of the commit in the merge branch
-- `clone_url` this is the HTTPS clone URL for this repository
-- `clone_ssh_url` this is the SSH clone URL for this repository
+- `Number` this is generated as a string representation
+- `Branch` this is the source branch
+- `HeadSHA` this is the SHA of the commit in the merge branch
+- `CloneURL` this is the HTTPS clone URL for this repository
+- `CloneSSHURL` this is the SSH clone URL for this repository
+- `Fork` this indicates whether the pull request is from a fork (true) or not (false)
 
-You will need an API key that can query the GitHub API.
+Create a read-only token that can list Pull Requests, and store it in a secret:
 
 ```shell
 $ kubectl create secret generic github-secret \
   --from-literal password=<insert access token here>
 ```
 
-You can limit the scope of this token to read only access to your repositories.
+### Matrix generator
 
-# Matrix generator <TierLabel tiers="enterprise" />
-
-### Example
-
-The `matrix` generator doesn't generate resources by itself. It combines the results of
+The matrix generator doesn't generate resources by itself. It combines the results of
 generation from other generators e.g.:
 
 ```yaml
@@ -433,7 +388,7 @@ spec:
 
 Given the files mentioned all have the following structure:
 
-```yaml title=examples/generation/dev.yaml
+```yaml
 env: dev
 team: developers
 ```
@@ -455,7 +410,7 @@ This will result in three sets of generated parameters, which are a combination 
   version: 1.0.0
 ```
 
-These can be referenced in the templates, note that all keys in the merged generators from the Matrix are contained in the `element` scope.
+These can be referenced in the templates, note that all keys in the merged generators from the Matrix are contained in the `Element` scope.
 
 ```yaml
 apiVersion: templates.weave.works/v1alpha1
@@ -497,4 +452,320 @@ spec:
             name: go-demo-repo
 ```
 
+### apiClient generator
+
+This generator is configured to poll an HTTP endpoint and parse the result as the generated values.
+
+This will poll an endpoint on the interval, instead of using the simpler to use PullRequest generator, you can access GitHub's API with the APIClient generator.
+
+The PullRequest generator is simpler to use, and works across multiple different git-providers.
+
+The GitHub [documentation](https://docs.github.com/en/rest/pulls/pulls?apiVersion=2022-11-28#list-pull-requests) for the API endpoint shows:
+
+```shell
+curl \
+  -H "Accept: application/vnd.github+json" \
+  -H "Authorization: Bearer <YOUR-TOKEN>"\
+  -H "X-GitHub-Api-Version: 2022-11-28" \
+  https://api.github.com/repos/OWNER/REPO/pulls
+```
+
+This can be translated into...
+
+```yaml
+apiVersion: templates.weave.works/v1alpha1
+kind: GitOpsSet
+metadata:
+  labels:
+    app.kubernetes.io/name: gitopsset
+    app.kubernetes.io/instance: gitopsset-sample
+    app.kubernetes.io/part-of: gitopssets-controller
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: gitopssets-controller
+  name: api-client-sample
+spec:
+  generators:
+    - apiClient:
+        interval: 5m
+        endpoint: https://api.github.com/repos/bigkevmcd/go-demo/pulls
+        headersRef:
+          name: github-secret
+          kind: Secret
+  templates:
+    - content:
+        apiVersion: source.toolkit.fluxcd.io/v1beta2
+        kind: GitRepository
+        metadata:
+          name: "pr-{{ .Element.id | toJson}}-gitrepository"
+          namespace: default
+        spec:
+          interval: 5m0s
+          url: "{{ .Element.head.repo.clone_url }}"
+          ref:
+            branch: "{{ .Element.head.ref }}"
+    - content:
+        apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+        kind: Kustomization
+        metadata:
+          name: "pr-{{ .Element.id | toJson }}-demo"
+          namespace: default
+        spec:
+          interval: 5m
+          path: "./examples/kustomize/environments/dev"
+          prune: true
+          targetNamespace: "{{ .Element.head.ref }}-ns"
+          sourceRef:
+            kind: GitRepository
+            name: "pr-{{ .Element.id | toJson }}-gitrepository"
+```
+
+As with the [Pull Request generator](#pullrequests-generator), this also requires a secret token to be able to access the API
+
+We need to pass this as an HTTP header.
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: github-secret
+  namespace: default
+type: Opaque
+stringData:
+  Accept: application/vnd.github+json
+  Authorization: Bearer ghp_<redacted>
+  X-GitHub-Api-Version: "2022-11-28"
+```
+
+The keys in the secret match the command-line example using curl.
+
+Unlike the Pull Request generator, you need to figure out the paths to the elements yourself.
+
+#### APIClient JSONPath
+
+Not all APIs return an array of JSON objects, sometimes it's nested within a result type structure e.g.
+
+```json
+{
+  "things": [
+    {
+      "env": "dev",
+      "team": "dev-team"
+    },
+    {
+      "env": "production",
+      "team": "opts-team"
+    },
+    {
+      "env": "staging",
+      "team": "opts-team"
+    }
+  ]
+}
+```
+
+You can use JSONPath to extract the fields from this data...
+
+```yaml
+apiVersion: templates.weave.works/v1alpha1
+kind: GitOpsSet
+metadata:
+  labels:
+    app.kubernetes.io/name: gitopsset
+    app.kubernetes.io/instance: gitopsset-sample
+    app.kubernetes.io/part-of: gitopssets-controller
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: gitopssets-controller
+  name: api-client-sample
+spec:
+  generators:
+    - apiClient:
+        interval: 5m
+        endpoint: https://api.example.com/demo
+        jsonPath: "{ $.things }"
+```
+
+This will generate three maps for templates, with just the _env_ and _team_ keys.
+
+#### APIClient POST body
+
+Another piece of functionality in the APIClient generator is the ability to POST
+JSON to the API.
+
+```yaml
+apiVersion: templates.weave.works/v1alpha1
+kind: GitOpsSet
+metadata:
+  labels:
+    app.kubernetes.io/name: gitopsset
+    app.kubernetes.io/instance: gitopsset-sample
+    app.kubernetes.io/part-of: gitopssets-controller
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: gitopssets-controller
+  name: api-client-sample
+spec:
+  generators:
+    - apiClient:
+        interval: 5m
+        endpoint: https://api.example.com/demo
+        body:
+          name: "testing"
+          value: "testing2"
+```
+
+This will send a request body as JSON (Content-Type "application/json") to the
+server and interpret the result.
+
+The JSON body sent will look like this:
+
+```json
+{ "name": "testing", "value": "testing2" }
+```
+
+#### APIClient simple results
+
+Instead of using the JSONPath to extract from a complex structure, you can configure the result to be a single element.
+
+```yaml
+apiVersion: templates.weave.works/v1alpha1
+kind: GitOpsSet
+metadata:
+  labels:
+    app.kubernetes.io/name: gitopsset
+    app.kubernetes.io/instance: gitopsset-sample
+    app.kubernetes.io/part-of: gitopssets-controller
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: gitopssets-controller
+  name: api-client-sample
+spec:
+  generators:
+    - apiClient:
+        singleElement: true
+        interval: 5m
+        endpoint: https://api.example.com/demo
+```
+
+Whatever result is parsed from the API endpoint will be returned as a map in a single element.
+
+For generation, you might need to use the `repeat` mechanism to generate repeating results.
+
+## Templating functions
+
+Currently, the [Sprig](http://masterminds.github.io/sprig/) functions are available in the templating, with some functions removed[^sprig] for security reasons.
+
+In addition, we also provide two additional functions:
+
+- sanitize - sanitises strings to be compatible with [Kubernetes DNS](https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#dns-subdomain-names) name requirements
+- getordefault - gets a key from the `.Element` or defaults to another value.
+
+The examples below assume an element that looks like this:
+
+```json
+{
+  "team": "engineering dev"
+}
+```
+
+### sanitize template function
+
+And a template that looks like this:
+
+```yaml
+kind: Service
+metadata:
+  name: {{ sanitize .Element.team }}-demo
+```
+
+This would output:
+
+```yaml
+kind: Service
+metadata:
+  name: engineeringdev-demo
+```
+
+### getordefault
+
+For template that looks like this:
+
+```yaml
+kind: Service
+metadata:
+  name: {{ getordefault .Element "name" "defaulted" }}-demo
+```
+
+This would output:
+
+```yaml
+kind: Service
+metadata:
+  name: defaulted-demo
+```
+
+If the _key_ to get does exist in the `.Element` it will be inserted, the "default" is only inserted if it doesn't exist.
+
+## Security
+
+**WARNING** generating resources and applying them directly into your cluster can be dangerous to the health of your cluster.
+
+This is especially true for the `GitRepository` generator, where it may not be obvious to the author of the files, or the author of the template the consequences of the template rendering.
+
+The default `ServiceAccount` that is used by the gitopssets-controller is extremely limited, and can not create resources, you will need to explicitly grant permissions to create any of the resources you declare in the template, missing permissions will appear in the controller logs.
+
+It is not recommended that you create a role with blanket permissions, under the right circumstances, someone could accidentally _or_ maliciously overwrite the cluster control-plane, which could be very dangerous.
+
+## Limiting via service-accounts
+
+You can configure the service-account that is used to create resources.
+
+```yaml
+apiVersion: templates.weave.works/v1alpha1
+kind: GitOpsSet
+metadata:
+  name: matrix-sample
+spec:
+  # the controller will impersonate this service account
+  serviceAccountName: test-sa
+  generators:
+    - list:
+        elements:
+          - env: dev
+            team: dev-team
+          - env: production
+            team: ops-team
+          - env: staging
+            team: ops-team
+  templates:
+    - content:
+        kind: Kustomization
+        apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+        metadata:
+          name: "{{ .Element.env }}-demo"
+          labels:
+            app.kubernetes.io/name: go-demo
+            app.kubernetes.io/instance: "{{ .Element.env }}"
+            com.example/team: "{{ .Element.team }}"
+        spec:
+          interval: 5m
+          path: "./examples/kustomize/environments/{{ .Element.env }}"
+          prune: true
+          sourceRef:
+            kind: GitRepository
+            name: go-demo-repo
+```
+
+## gitopsset-controller configuration
+
+The enabled generators can be configured via the `--enabled-generators` flag, which takes a comma separated list of generators to enable.
+
+The default is to enable all generators.
+
+For example to enable only the `List` and `GitRepository` generators:
+
+```yaml
+--enabled-generators=List,GitRepository
+```
+
+When a GitOpsSet that uses disabled generators is created, the disabled generators will be silently ignored.
+
 [^yaml]: These are written as YAML mappings
+[^sprig]: The following functions are removed "env", "expandenv", "getHostByName", "genPrivateKey", "derivePassword", "sha256sum", "base", "dir", "ext", "clean", "isAbs", "osBase", "osDir", "osExt", "osClean", "osIsAbs"
