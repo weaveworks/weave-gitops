@@ -13,6 +13,7 @@ type Props = {
   shadow?: boolean;
   onMouseEnter?: React.ReactEventHandler;
   onMouseLeave?: React.ReactEventHandler;
+  testId?: string;
 };
 
 const Styled = (component) => styled(component)`
@@ -31,9 +32,11 @@ const Styled = (component) => styled(component)`
 
 class Flex extends React.PureComponent<Props> {
   render() {
-    const { className, children, onMouseEnter, onMouseLeave } = this.props;
+    const { className, children, onMouseEnter, onMouseLeave, testId } =
+      this.props;
     return (
       <div
+        data-testId={testId}
         className={className}
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
