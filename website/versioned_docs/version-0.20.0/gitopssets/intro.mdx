@@ -28,24 +28,15 @@ GitOpsSets will create out of the single resource all the objects and Flux primi
 
 **The initial generators that are coming with the preview release are:**
 
-- [List Generator](./list-generator.mdx): The simplest generator. Provide a list of Key/Value pairs that you want to feed the template with.
-- [Git Generator](./git-generator.mdx): Enable to extract a set of files (environment-specific configurations) from a Flux GitRepository, and make the contents of these available to the templates, this would let you have config in *app-dev.json*, *app-staging.json* and *app-production.json* for example, and the contents of these would be available to the templates.
-- [Matrix Generator](./matrix-generator.mdx): Combine slices of generators into the desired compounded input.
-- [Pull request Generator](./pull-request-generator.mdx): Automatically discover open pull requests within a repository to generate a new deployment.
+- [List Generator](./guide.mdx#list-generator): The simplest generator. Provide a list of Key/Value pairs that you want to feed the template with.
+- [Git Generator](./guide.mdx#gitrepository-generator): Enable to extract a set of files (environment-specific configurations) from a Flux GitRepository, and make the contents of these available to the templates, this would let you have config in *app-dev.json*, *app-staging.json* and *app-production.json* for example, and the contents of these would be available to the templates.
+- [Matrix Generator](./guide.mdx#matrix-generator): Combine slices of generators into the desired compounded input.
+- [Pull request Generator](./guide.mdx#pullrequests-generator): Automatically discover open pull requests within a repository to generate a new deployment.
+- [API Client Generator](./guide.mdx#apiclient-generator): Poll an HTTP endpoint and parse the result as the generated values.
+
 
 ## Use cases
 
 - Single application definition for different environments (EU-West, North America, Germany)
 - Deployment of a single definition across fleet of clusters matching any cluster based on a label (Production) 
 - Separation of concerns between teams (Teams managing different artifacts flowing into a single definition via generators)
-
-## Security
-
-**WARNING** generating resources and applying them directly into your cluster can be dangerous to the health of your cluster.
-
-This is especially true for the `GitRepository` generator, where the consequences of the template rendering may not be obvious to the author of the files or the author of the template.
-
-The default `ServiceAccount` that is used by the gitopssets-controller is extremely limited and can not create resources. You will need to explicitly grant permissions to create any of the resources you declare in the template. Missing permissions will appear in the controller logs.
-
-It is not recommended that you create a role with blanket permissions. Under the right circumstances, someone could accidentally _or_ maliciously overwrite the cluster control-plane, which could be very dangerous.
-
