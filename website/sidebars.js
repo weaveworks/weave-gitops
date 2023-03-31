@@ -260,11 +260,7 @@
       label: 'GitOpsSets',
       items: [
         'gitopssets/intro',
-        'gitopssets/features',
-        'gitopssets/list-generator',
-        'gitopssets/git-generator',
-        'gitopssets/matrix-generator',
-        'gitopssets/pull-request-generator',
+        'gitopssets/guide',
         'gitopssets/api-reference'
       ],
     }
