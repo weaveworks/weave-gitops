@@ -36,7 +36,7 @@ class Flex extends React.PureComponent<Props> {
       this.props;
     return (
       <div
-        data-testId={testId}
+        data-testid={testId}
         className={className}
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
