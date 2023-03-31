@@ -898,6 +898,17 @@
       },
       "title": "GroupVersionKind represents an objects Kubernetes API type data"
     },
+    "v1HealthStatus": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
     "v1InventoryEntry": {
       "type": "object",
       "properties": {
@@ -909,6 +920,9 @@
         },
         "clusterName": {
           "type": "string"
+        },
+        "health": {
+          "$ref": "#/definitions/v1HealthStatus"
         },
         "children": {
           "type": "array",

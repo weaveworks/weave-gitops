@@ -65,10 +65,16 @@ export type NamespacedObjectReference = {
   namespace?: string
 }
 
+export type HealthStatus = {
+  status?: string
+  message?: string
+}
+
 export type InventoryEntry = {
   payload?: string
   tenant?: string
   clusterName?: string
+  health?: HealthStatus
   children?: InventoryEntry[]
 }
 
