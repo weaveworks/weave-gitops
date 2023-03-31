@@ -1,5 +1,5 @@
 <p>Packages:</p>
-<ul class="simple">
+<ul>
 <li>
 <a href="#templates.weave.works%2fv1alpha1">templates.weave.works/v1alpha1</a>
 </li>
@@ -7,14 +7,12 @@
 <h2 id="templates.weave.works/v1alpha1">templates.weave.works/v1alpha1</h2>
 <p>Package v1alpha1 contains API Schema definitions for the gitopssets v1alpha1 API group</p>
 Resource Types:
-<ul class="simple"><li>
+<ul><li>
 <a href="#templates.weave.works/v1alpha1.GitOpsSet">GitOpsSet</a>
 </li></ul>
 <h3 id="templates.weave.works/v1alpha1.GitOpsSet">GitOpsSet
 </h3>
 <p>GitOpsSet is the Schema for the gitopssets API</p>
-<div class="md-typeset__scrollwrap">
-<div class="md-typeset__table">
 <table>
 <thead>
 <tr>
@@ -67,6 +65,7 @@ GitOpsSetSpec
 <br/>
 <br/>
 <table>
+<tbody>
 <tr>
 <td>
 <code>suspend</code><br />
@@ -120,6 +119,7 @@ string
 when reconciling this Kustomization.</p>
 </td>
 </tr>
+</tbody>
 </table>
 </td>
 </tr>
@@ -137,8 +137,6 @@ GitOpsSetStatus
 </tr>
 </tbody>
 </table>
-</div>
-</div>
 <h3 id="templates.weave.works/v1alpha1.APIClientGenerator">APIClientGenerator
 </h3>
 <p>
@@ -148,8 +146,6 @@ GitOpsSetStatus
 </p>
 <p>APIClientGenerator defines a generator that queries an API endpoint and uses
 that to generate data.</p>
-<div class="md-typeset__scrollwrap">
-<div class="md-typeset__table">
 <table>
 <thead>
 <tr>
@@ -240,10 +236,24 @@ Kubernetes pkg/apis/apiextensions/v1.JSON
 <p>If set, this will configure the Method to be POST automatically.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>singleElement</code><br />
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>SingleElement means generate a single element with the result of the API
+call.</p>
+<p>When true, the response must be a JSON object and will be returned as a
+single element, i.e. only one element will be generated containing the
+entire object.</p>
+</td>
+</tr>
 </tbody>
 </table>
-</div>
-</div>
 <h3 id="templates.weave.works/v1alpha1.ClusterGenerator">ClusterGenerator
 </h3>
 <p>
@@ -253,8 +263,6 @@ Kubernetes pkg/apis/apiextensions/v1.JSON
 </p>
 <p>ClusterGenerator defines a generator that queries the cluster API for
 relevant clusters.</p>
-<div class="md-typeset__scrollwrap">
-<div class="md-typeset__table">
 <table>
 <thead>
 <tr>
@@ -280,8 +288,6 @@ Kubernetes meta/v1.LabelSelector
 </tr>
 </tbody>
 </table>
-</div>
-</div>
 <h3 id="templates.weave.works/v1alpha1.GitOpsSetGenerator">GitOpsSetGenerator
 </h3>
 <p>
@@ -289,8 +295,6 @@ Kubernetes meta/v1.LabelSelector
 <a href="#templates.weave.works/v1alpha1.GitOpsSetSpec">GitOpsSetSpec</a>)
 </p>
 <p>GitOpsSetGenerator is the top-level set of generators for this GitOpsSet.</p>
-<div class="md-typeset__scrollwrap">
-<div class="md-typeset__table">
 <table>
 <thead>
 <tr>
@@ -373,8 +377,6 @@ APIClientGenerator
 </tr>
 </tbody>
 </table>
-</div>
-</div>
 <h3 id="templates.weave.works/v1alpha1.GitOpsSetNestedGenerator">GitOpsSetNestedGenerator
 </h3>
 <p>
@@ -383,8 +385,6 @@ APIClientGenerator
 </p>
 <p>GitOpsSetNestedGenerator describes the generators usable by the MatrixGenerator.
 This is a subset of the generators allowed by the GitOpsSetGenerator because the CRD format doesn&rsquo;t support recursive declarations.</p>
-<div class="md-typeset__scrollwrap">
-<div class="md-typeset__table">
 <table>
 <thead>
 <tr>
@@ -455,8 +455,6 @@ APIClientGenerator
 </tr>
 </tbody>
 </table>
-</div>
-</div>
 <h3 id="templates.weave.works/v1alpha1.GitOpsSetSpec">GitOpsSetSpec
 </h3>
 <p>
@@ -464,8 +462,6 @@ APIClientGenerator
 <a href="#templates.weave.works/v1alpha1.GitOpsSet">GitOpsSet</a>)
 </p>
 <p>GitOpsSetSpec defines the desired state of GitOpsSet</p>
-<div class="md-typeset__scrollwrap">
-<div class="md-typeset__table">
 <table>
 <thead>
 <tr>
@@ -529,8 +525,6 @@ when reconciling this Kustomization.</p>
 </tr>
 </tbody>
 </table>
-</div>
-</div>
 <h3 id="templates.weave.works/v1alpha1.GitOpsSetStatus">GitOpsSetStatus
 </h3>
 <p>
@@ -538,8 +532,6 @@ when reconciling this Kustomization.</p>
 <a href="#templates.weave.works/v1alpha1.GitOpsSet">GitOpsSet</a>)
 </p>
 <p>GitOpsSetStatus defines the observed state of GitOpsSet</p>
-<div class="md-typeset__scrollwrap">
-<div class="md-typeset__table">
 <table>
 <thead>
 <tr>
@@ -607,8 +599,6 @@ have been successfully applied</p>
 </tr>
 </tbody>
 </table>
-</div>
-</div>
 <h3 id="templates.weave.works/v1alpha1.GitOpsSetTemplate">GitOpsSetTemplate
 </h3>
 <p>
@@ -616,8 +606,6 @@ have been successfully applied</p>
 <a href="#templates.weave.works/v1alpha1.GitOpsSetSpec">GitOpsSetSpec</a>)
 </p>
 <p>GitOpsSetTemplate describes a resource to create</p>
-<div class="md-typeset__scrollwrap">
-<div class="md-typeset__table">
 <table>
 <thead>
 <tr>
@@ -654,8 +642,6 @@ k8s.io/apimachinery/pkg/runtime.RawExtension
 </tr>
 </tbody>
 </table>
-</div>
-</div>
 <h3 id="templates.weave.works/v1alpha1.GitRepositoryGenerator">GitRepositoryGenerator
 </h3>
 <p>
@@ -664,8 +650,6 @@ k8s.io/apimachinery/pkg/runtime.RawExtension
 <a href="#templates.weave.works/v1alpha1.GitOpsSetNestedGenerator">GitOpsSetNestedGenerator</a>)
 </p>
 <p>GitRepositoryGenerator generates from files in a Flux GitRepository resource.</p>
-<div class="md-typeset__scrollwrap">
-<div class="md-typeset__table">
 <table>
 <thead>
 <tr>
@@ -714,8 +698,6 @@ generated.</p>
 </tr>
 </tbody>
 </table>
-</div>
-</div>
 <h3 id="templates.weave.works/v1alpha1.GitRepositoryGeneratorDirectoryItem">GitRepositoryGeneratorDirectoryItem
 </h3>
 <p>
@@ -724,8 +706,6 @@ generated.</p>
 </p>
 <p>GitRepositoryGeneratorDirectoryItem stores the information about a specific
 directory to be generated from.</p>
-<div class="md-typeset__scrollwrap">
-<div class="md-typeset__table">
 <table>
 <thead>
 <tr>
@@ -756,8 +736,6 @@ bool
 </tr>
 </tbody>
 </table>
-</div>
-</div>
 <h3 id="templates.weave.works/v1alpha1.GitRepositoryGeneratorFileItem">GitRepositoryGeneratorFileItem
 </h3>
 <p>
@@ -765,8 +743,6 @@ bool
 <a href="#templates.weave.works/v1alpha1.GitRepositoryGenerator">GitRepositoryGenerator</a>)
 </p>
 <p>GitRepositoryGeneratorFileItem defines a path to a file to be parsed when generating.</p>
-<div class="md-typeset__scrollwrap">
-<div class="md-typeset__table">
 <table>
 <thead>
 <tr>
@@ -788,8 +764,6 @@ string
 </tr>
 </tbody>
 </table>
-</div>
-</div>
 <h3 id="templates.weave.works/v1alpha1.HeadersReference">HeadersReference
 </h3>
 <p>
@@ -798,8 +772,6 @@ string
 </p>
 <p>HeadersReference references either a Secret or ConfigMap to be used for
 additional request headers.</p>
-<div class="md-typeset__scrollwrap">
-<div class="md-typeset__table">
 <table>
 <thead>
 <tr>
@@ -832,8 +804,6 @@ string
 </tr>
 </tbody>
 </table>
-</div>
-</div>
 <h3 id="templates.weave.works/v1alpha1.ListGenerator">ListGenerator
 </h3>
 <p>
@@ -842,8 +812,6 @@ string
 <a href="#templates.weave.works/v1alpha1.GitOpsSetNestedGenerator">GitOpsSetNestedGenerator</a>)
 </p>
 <p>ListGenerator generates from a hard-coded list.</p>
-<div class="md-typeset__scrollwrap">
-<div class="md-typeset__table">
 <table>
 <thead>
 <tr>
@@ -866,8 +834,6 @@ string
 </tr>
 </tbody>
 </table>
-</div>
-</div>
 <h3 id="templates.weave.works/v1alpha1.MatrixGenerator">MatrixGenerator
 </h3>
 <p>
@@ -876,8 +842,6 @@ string
 </p>
 <p>MatrixGenerator defines a matrix that combines generators.
 The matrix is a cartesian product of the generators.</p>
-<div class="md-typeset__scrollwrap">
-<div class="md-typeset__table">
 <table>
 <thead>
 <tr>
@@ -901,8 +865,6 @@ The matrix is a cartesian product of the generators.</p>
 </tr>
 </tbody>
 </table>
-</div>
-</div>
 <h3 id="templates.weave.works/v1alpha1.PullRequestGenerator">PullRequestGenerator
 </h3>
 <p>
@@ -912,8 +874,6 @@ The matrix is a cartesian product of the generators.</p>
 </p>
 <p>PullRequestGenerator defines a generator that queries a Git hosting service
 for relevant PRs.</p>
-<div class="md-typeset__scrollwrap">
-<div class="md-typeset__table">
 <table>
 <thead>
 <tr>
@@ -1012,8 +972,6 @@ or to include forks if  true</p>
 </tr>
 </tbody>
 </table>
-</div>
-</div>
 <h3 id="templates.weave.works/v1alpha1.ResourceInventory">ResourceInventory
 </h3>
 <p>
@@ -1021,8 +979,6 @@ or to include forks if  true</p>
 <a href="#templates.weave.works/v1alpha1.GitOpsSetStatus">GitOpsSetStatus</a>)
 </p>
 <p>ResourceInventory contains a list of Kubernetes resource object references that have been applied by a Kustomization.</p>
-<div class="md-typeset__scrollwrap">
-<div class="md-typeset__table">
 <table>
 <thead>
 <tr>
@@ -1046,8 +1002,6 @@ or to include forks if  true</p>
 </tr>
 </tbody>
 </table>
-</div>
-</div>
 <h3 id="templates.weave.works/v1alpha1.ResourceRef">ResourceRef
 </h3>
 <p>
@@ -1055,8 +1009,6 @@ or to include forks if  true</p>
 <a href="#templates.weave.works/v1alpha1.ResourceInventory">ResourceInventory</a>)
 </p>
 <p>ResourceRef contains the information necessary to locate a resource within a cluster.</p>
-<div class="md-typeset__scrollwrap">
-<div class="md-typeset__table">
 <table>
 <thead>
 <tr>
@@ -1090,8 +1042,6 @@ string
 </tr>
 </tbody>
 </table>
-</div>
-</div>
-<div class="admonition note">
-<p class="last">This page was automatically generated with <code>gen-crd-api-reference-docs</code></p>
+<div>
+<p>This page was automatically generated with <code>gen-crd-api-reference-docs</code></p>
 </div>
