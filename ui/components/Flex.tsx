@@ -32,8 +32,23 @@ const Styled = (component) => styled(component)`
 
 class Flex extends React.PureComponent<Props> {
   render() {
-    const { children, ...props } = this.props;
-    return <div {...props}>{children}</div>;
+    const {
+      className,
+      onMouseEnter,
+      onMouseLeave,
+      "data-testid": dataTestId,
+      children,
+    } = this.props;
+    return (
+      <div
+        data-testid={dataTestId}
+        className={className}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+      >
+        {children}
+      </div>
+    );
   }
 }
 
