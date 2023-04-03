@@ -1,22 +1,25 @@
-import React from "react";
+import * as React from "react";
 import styled from "styled-components";
 
 type Props = {
+  className?: string;
+  column?: boolean;
   align?: boolean;
+  height?: string;
   between?: boolean;
   center?: boolean;
-  column?: boolean;
-  end?: boolean;
-  shadow?: boolean;
-  start?: boolean;
-  tall?: boolean;
   wide?: boolean;
   wrap?: boolean;
-} & React.HTMLAttributes<HTMLDivElement>;
+  shadow?: boolean;
+  tall?: string;
+  start?: string;
+  end?: string;
+  onMouseEnter?: React.ReactEventHandler;
+  onMouseLeave?: React.ReactEventHandler;
+  "data-testid"?: string;
+};
 
-const Styled = (component: React.ComponentType<Props>) => styled(
-  component
-)<Props>`
+const Styled = (component) => styled(component)`
   display: flex;
   flex-direction: ${({ column }) => (column ? "column" : "row")};
   align-items: ${({ align }) => (align ? "center" : "start")};
@@ -30,24 +33,26 @@ const Styled = (component: React.ComponentType<Props>) => styled(
   ${({ shadow }) => shadow && "box-shadow: 5px 10px 50px 3px #0000001a"};
 `;
 
-function Flex(props: Props) {
-  const {
-    // don't forward to div
-    align,
-    between,
-    center,
-    column,
-    end,
-    shadow,
-    start,
-    tall,
-    wide,
-    wrap,
-    // forward to div
-    children,
-    ...rest
-  } = props;
-  return <div {...rest}>{children}</div>;
+class Flex extends React.PureComponent<Props> {
+  render() {
+    const {
+      className,
+      onMouseEnter,
+      onMouseLeave,
+      "data-testid": dataTestId,
+      children,
+    } = this.props;
+    return (
+      <div
+        data-testid={dataTestId}
+        className={className}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+      >
+        {children}
+      </div>
+    );
+  }
 }
 
 export default Styled(Flex);
