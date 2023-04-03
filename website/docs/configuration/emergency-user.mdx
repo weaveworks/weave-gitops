@@ -24,7 +24,10 @@ echo -n $PASSWORD | gitops get bcrypt-hash
 $2a$10$OS5NJmPNEb13UgTOSKnMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q
 ```
 
-Now create a Kubernetes secret to store your chosen username and the password hash:
+Now create a Kubernetes secret to store your chosen username and the password hash.
+
+The name of the secret depends on your configuration (`adminUser.secretName` and `adminUser.createSecret` values).
+
 
 ```sh
 kubectl create secret generic cluster-user-auth \
