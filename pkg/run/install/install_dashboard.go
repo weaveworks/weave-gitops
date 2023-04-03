@@ -9,7 +9,6 @@ import (
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
-	loglevels "github.com/weaveworks/weave-gitops/core/logger"
 	coretypes "github.com/weaveworks/weave-gitops/core/server/types"
 	"github.com/weaveworks/weave-gitops/pkg/config"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
@@ -63,8 +62,14 @@ func GeneratePasswordHash(log logger.Logger, password string) (string, error) {
 	return string(passwordHash), nil
 }
 
+type DashboardObjects struct {
+	Manifests      []byte
+	HelmRepository *sourcev1.HelmRepository
+	HelmRelease    *helmv2.HelmRelease
+}
+
 // CreateDashboardObjects creates HelmRepository and HelmRelease objects for the GitOps Dashboard installation.
-func CreateDashboardObjects(log logger.Logger, name, namespace, username, passwordHash, chartVersion, dashboardImage string) ([]byte, error) {
+func CreateDashboardObjects(log logger.Logger, name, namespace, username, passwordHash, chartVersion, dashboardImage string) (*DashboardObjects, error) {
 	log.Actionf("Creating GitOps Dashboard objects ...")
 
 	helmRepository := makeHelmRepository(name, namespace)
@@ -83,20 +88,26 @@ func CreateDashboardObjects(log logger.Logger, name, namespace, username, passwo
 		return nil, err
 	}
 
-	return manifests, nil
+	return &DashboardObjects{
+		Manifests:      manifests,
+		HelmRepository: helmRepository,
+		HelmRelease:    helmRelease,
+	}, nil
 }
 
 // InstallDashboard installs the GitOps Dashboard.
-func InstallDashboard(ctx context.Context, log logger.Logger, manager ResourceManagerForApply, manifests []byte) error {
+func InstallDashboard(ctx context.Context, log logger.Logger, kubeClient client.Client, dashboardObjects *DashboardObjects) error {
 	log.Actionf("Installing the GitOps Dashboard ...")
 
-	applyOutput, err := apply(ctx, log, manager, manifests)
+	err := kubeClient.Create(ctx, dashboardObjects.HelmRepository)
 	if err != nil {
-		log.Failuref("GitOps Dashboard install failed")
+		log.Failuref("HelmRepository creation failed")
 		return err
 	}
-
-	log.L().V(loglevels.LogLevelInfo).Info(applyOutput)
+	if err := kubeClient.Create(ctx, dashboardObjects.HelmRelease); err != nil {
+		log.Failuref("HelmRelease creation failed")
+		return err
+	}
 
 	return nil
 }
