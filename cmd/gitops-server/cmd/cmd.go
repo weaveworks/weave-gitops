@@ -65,6 +65,8 @@ type Options struct {
 	// Stuff for profiles apparently
 	HelmRepoName      string
 	HelmRepoNamespace string
+	// cluster user account
+	AdminSecret string
 	// OIDC
 	OIDC       auth.OIDCConfig
 	OIDCSecret string
@@ -104,6 +106,8 @@ func NewCommand() *cobra.Command {
 	cmd.Flags().BoolVar(&options.MTLS, "mtls", false, "disable enforce mTLS")
 	cmd.Flags().StringVar(&options.TLSCertFile, "tls-cert-file", "", "filename for the TLS certificate, in-memory generated if omitted")
 	cmd.Flags().StringVar(&options.TLSKeyFile, "tls-private-key-file", "", "filename for the TLS key, in-memory generated if omitted")
+	// cluster user account
+	cmd.Flags().StringVar(&options.AdminSecret, "admin-secret", "", "Name of the secret that contains admin credentials")
 	// OIDC
 	cmd.Flags().StringVar(&options.OIDCSecret, "oidc-secret-name", auth.DefaultOIDCAuthSecretName, "Name of the secret that contains OIDC configuration")
 	cmd.Flags().StringVar(&options.OIDC.ClientID, "oidc-client-id", "", "The client ID for the OpenID Connect client")
@@ -172,7 +176,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("couldn't get current namespace")
 	}
 
-	authServer, err := auth.InitAuthServer(cmd.Context(), log, rawClient, options.OIDC, options.OIDCSecret, namespace, options.AuthMethods)
+	authServer, err := auth.InitAuthServer(cmd.Context(), log, rawClient, options.OIDC, options.AdminSecret, options.OIDCSecret, namespace, options.AuthMethods)
 
 	if err != nil {
 		return fmt.Errorf("could not initialise authentication server: %w", err)
