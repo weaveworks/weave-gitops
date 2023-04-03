@@ -236,7 +236,7 @@ module.exports = {
         'secrets/getting-started',
         'secrets/bootstraping-secrets',
         'secrets/setup-secrets-operator',
-        'secrets/manage-secrets-gui',
+        'secrets/manage-secrets-ui',
         'secrets/self-service',
         'secrets/faq'
       ],
