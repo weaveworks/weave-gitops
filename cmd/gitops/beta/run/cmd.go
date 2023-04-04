@@ -406,23 +406,16 @@ func dashboardStep(ctx context.Context, log logger.Logger, kubeClient *kube.Kube
 				passwordHash = dashboardHashedPassword
 			}
 
-			dashboardManifests, err := install.CreateDashboardObjects(log, defaultDashboardName, flags.Namespace, adminUsername, passwordHash, HelmChartVersion, flags.DashboardImage)
+			dashboardObjects, err := install.CreateDashboardObjects(log, defaultDashboardName, flags.Namespace, adminUsername, passwordHash, HelmChartVersion, flags.DashboardImage)
 			if err != nil {
 				return install.DashboardTypeNone, nil, "", fmt.Errorf("error creating dashboard objects: %w", err)
 			}
 
 			if generateManifestsOnly {
-				return install.DashboardTypeNone, dashboardManifests, passwordHash, nil
+				return install.DashboardTypeNone, dashboardObjects.Manifests, passwordHash, nil
 			}
 
-			man, err := install.NewManager(ctx, log, kubeClient, kubeConfigArgs)
-			if err != nil {
-				log.Failuref("Error creating resource manager")
-				return install.DashboardTypeNone, nil, "", err
-			}
-
-			err = install.InstallDashboard(ctx, log, man, dashboardManifests)
-			if err != nil {
+			if err := install.InstallDashboard(ctx, log, kubeClient, dashboardObjects); err != nil {
 				return install.DashboardTypeNone, nil, "", fmt.Errorf("gitops dashboard installation failed: %w", err)
 			} else {
 				dashboardType = install.DashboardTypeOSS

@@ -23,7 +23,6 @@ import HelmChartDetail from "./components/HelmChartDetail";
 import HelmReleaseDetail from "./components/HelmReleaseDetail";
 import HelmRepositoryDetail from "./components/HelmRepositoryDetail";
 import Icon, { IconType } from "./components/Icon";
-import ImageAutomationIcon from "./components/ImageAutomationIcon";
 import InfoList, { InfoField } from "./components/InfoList";
 import Input, { InputProps } from "./components/Input";
 import Interval from "./components/Interval";
@@ -36,6 +35,8 @@ import MessageBox from "./components/MessageBox";
 import Metadata from "./components/Metadata";
 import Modal from "./components/Modal";
 import Nav, { NavItem } from "./components/Nav";
+import ImageAutomationIcon from "./components/NavIcons/ImageAutomationIcon";
+import SourcesIcon from "./components/NavIcons/SourcesIcon";
 import NotificationsTable from "./components/NotificationsTable";
 import OCIRepositoryDetail from "./components/OCIRepositoryDetail";
 import Page from "./components/Page";
@@ -43,10 +44,9 @@ import PageStatus from "./components/PageStatus";
 import Pendo from "./components/Pendo";
 import ProviderDetail from "./components/ProviderDetail";
 import ReconciledObjectsTable from "./components/ReconciledObjectsTable";
-import ReconciliationGraph from "./components/ReconciliationGraph";
+import ReconciliationGraph, { Graph } from "./components/ReconciliationGraph";
 import RequestStateHandler from "./components/RequestStateHandler";
 import SourceLink from "./components/SourceLink";
-import SourcesIcon from "./components/SourcesIcon";
 import SourcesTable from "./components/SourcesTable";
 import Spacer from "./components/Spacer";
 import SubRouterTabs, { RouterTab } from "./components/SubRouterTabs";
@@ -108,6 +108,7 @@ import {
   statusSortHelper,
 } from "./lib/utils";
 import SignIn from "./pages/SignIn";
+import Text from "./components/Text";
 
 export {
   AppContext,
@@ -146,6 +147,7 @@ export {
   getParentNavRouteValue,
   GitRepository,
   GitRepositoryDetail,
+  Graph,
   HelmChart,
   HelmRepository,
   HelmRelease,
@@ -202,6 +204,7 @@ export {
   SyncButton,
   Spacer,
   theme,
+  Text,
   Timestamp,
   useDebounce,
   UnAuthorizedInterceptor,

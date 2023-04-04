@@ -1,9 +1,9 @@
-import React, { useContext } from "react";
 import { shake128 } from "js-sha3";
 import Mnemonic from "mnemonic-browser";
+import React, { useContext } from "react";
+import { noVersion } from "../components/Version";
 import { Auth } from "../contexts/AuthContext";
 import { CoreClientContext } from "../contexts/CoreClientContext";
-import { noVersion } from "../components/Version";
 import { useFeatureFlags } from "../hooks/featureflags";
 
 declare global {
@@ -42,7 +42,7 @@ export default function Pendo({
 
   React.useEffect(() => {
     const telemetryFlag =
-      flags.WEAVE_GITOPS_FEATURE_TELEMETRY || defaultTelemetryFlag;
+      flags?.WEAVE_GITOPS_FEATURE_TELEMETRY || defaultTelemetryFlag;
 
     const shouldInitPendo =
       !!flags &&

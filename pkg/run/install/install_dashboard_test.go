@@ -3,7 +3,6 @@ package install
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"strings"
 	"time"
 
@@ -13,19 +12,14 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/pkg/config"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/yaml"
 )
-
-// mock controller-runtime client
-type mockClientForGetInstalledDashboard struct {
-	client.Client
-	state stateListHelmReleases
-}
-
-type stateListHelmReleases string
 
 const (
 	testDashboardName = "ww-gitops"
@@ -35,103 +29,105 @@ const (
 	testUserID        = "abcdefgh90"
 	helmChartVersion  = "3.0.0"
 
-	stateListHelmReleasesReturnErr stateListHelmReleases = "list-return-err"
-
-	listHelmReleasesErrorMsg = "list HelmReleases error"
+	objectCreationErrorMsg = " \"\" is invalid: metadata.name: Required value: name is required"
 )
+
+var helmReleaseFixtures = []runtime.Object{
+	&helmv2.HelmRelease{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: "test-namespace",
+			Name:      "dashboard-1",
+		},
+	},
+	&helmv2.HelmRelease{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: "test-namespace",
+			Name:      "dashboard-2",
+		},
+		Spec: helmv2.HelmReleaseSpec{
+			Chart: helmv2.HelmChartTemplate{
+				Spec: helmv2.HelmChartTemplateSpec{
+					Chart: ossDashboardHelmChartName,
+				},
+			},
+		},
+	},
+	&helmv2.HelmRelease{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: "test-namespace",
+			Name:      "dashboard-3",
+		},
+		Spec: helmv2.HelmReleaseSpec{
+			Chart: helmv2.HelmChartTemplate{
+				Spec: helmv2.HelmChartTemplateSpec{
+					Chart: enterpriseDashboardHelmChartName,
+					SourceRef: helmv2.CrossNamespaceObjectReference{
+						Name: enterpriseDashboardHelmRepositoryName,
+					},
+				},
+			},
+		},
+	},
+	&helmv2.HelmRelease{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: "test-namespace",
+			Name:      "dashboard-4",
+		},
+	},
+}
 
 var _ = Describe("InstallDashboard", func() {
 	var fakeContext context.Context
 	var fakeLogger logger.Logger
+	var fakeClient client.WithWatch
 
 	BeforeEach(func() {
 		fakeContext = context.Background()
 		fakeLogger = logger.From(logr.Discard())
+		scheme, err := kube.CreateScheme()
+		Expect(err).NotTo(HaveOccurred())
+		fakeClient = fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(helmReleaseFixtures...).Build()
 	})
 
 	It("should install dashboard successfully", func() {
-		man := &mockResourceManagerForApply{}
-
 		manifests, err := CreateDashboardObjects(fakeLogger, testDashboardName, testNamespace, testAdminUser, testPasswordHash, helmChartVersion, "")
 		Expect(err).NotTo(HaveOccurred())
 
-		err = InstallDashboard(fakeContext, fakeLogger, man, manifests)
+		err = InstallDashboard(fakeContext, fakeLogger, fakeClient, manifests)
 		Expect(err).NotTo(HaveOccurred())
 	})
 
 	It("should return an apply all error if the resource manager returns an apply all error", func() {
-		man := &mockResourceManagerForApply{state: stateApplyAllReturnErr}
-
-		manifests, err := CreateDashboardObjects(fakeLogger, testDashboardName, testNamespace, testAdminUser, testPasswordHash, helmChartVersion, "")
-		Expect(err).NotTo(HaveOccurred())
-
-		err = InstallDashboard(fakeContext, fakeLogger, man, manifests)
+		manifests := &DashboardObjects{
+			Manifests:      []byte{},
+			HelmRepository: &sourcev1.HelmRepository{},
+			HelmRelease:    &helmv2.HelmRelease{},
+		}
+		err := InstallDashboard(fakeContext, fakeLogger, fakeClient, manifests)
 		Expect(err).To(HaveOccurred())
-		Expect(err.Error()).To(Equal(applyAllErrorMsg))
+		Expect(err.Error()).To(Equal(objectCreationErrorMsg))
 	})
 })
 
-func (man *mockClientForGetInstalledDashboard) List(_ context.Context, list client.ObjectList, opts ...client.ListOption) error {
-	switch man.state {
-	case stateListHelmReleasesReturnErr:
-		return errors.New(listHelmReleasesErrorMsg)
-	default:
-		helmReleaseList := helmv2.HelmReleaseList{
-			Items: []helmv2.HelmRelease{{
-				ObjectMeta: metav1.ObjectMeta{
-					Namespace: "test-namespace",
-					Name:      "dashboard-1",
-				},
-			}, {
-				ObjectMeta: metav1.ObjectMeta{
-					Namespace: "test-namespace",
-					Name:      "dashboard-2",
-				},
-				Spec: helmv2.HelmReleaseSpec{
-					Chart: helmv2.HelmChartTemplate{
-						Spec: helmv2.HelmChartTemplateSpec{
-							Chart: ossDashboardHelmChartName,
-						},
-					},
-				},
-			}, {
-				ObjectMeta: metav1.ObjectMeta{
-					Namespace: "test-namespace",
-					Name:      "dashboard-3",
-				},
-				Spec: helmv2.HelmReleaseSpec{
-					Chart: helmv2.HelmChartTemplate{
-						Spec: helmv2.HelmChartTemplateSpec{
-							Chart: enterpriseDashboardHelmChartName,
-							SourceRef: helmv2.CrossNamespaceObjectReference{
-								Name: enterpriseDashboardHelmRepositoryName,
-							},
-						},
-					},
-				},
-			}, {
-				ObjectMeta: metav1.ObjectMeta{
-					Namespace: "test-namespace",
-					Name:      "dashboard-4",
-				},
-			}},
-		}
-
-		helmReleaseList.DeepCopyInto(list.(*helmv2.HelmReleaseList))
-	}
-
-	return nil
-}
-
 var _ = Describe("GetInstalledDashboard", func() {
-	var fakeContext context.Context
+
+	var (
+		fakeContext context.Context
+		fakeClient  client.WithWatch
+		blankClient client.WithWatch
+	)
 
 	BeforeEach(func() {
 		fakeContext = context.Background()
+		scheme, err := kube.CreateScheme()
+		Expect(err).NotTo(HaveOccurred())
+
+		fakeClient = fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(helmReleaseFixtures...).Build()
+		blankClient = fake.NewClientBuilder().WithScheme(scheme).Build()
 	})
 
 	It("returns the oss dashboard type", func() {
-		dashboardType, dashboardName := GetInstalledDashboard(fakeContext, &mockClientForGetInstalledDashboard{}, testNamespace, map[DashboardType]bool{
+		dashboardType, dashboardName := GetInstalledDashboard(fakeContext, fakeClient, testNamespace, map[DashboardType]bool{
 			DashboardTypeOSS: true,
 		})
 		Expect(dashboardType).To(Equal(DashboardTypeOSS))
@@ -139,7 +135,7 @@ var _ = Describe("GetInstalledDashboard", func() {
 	})
 
 	It("returns the enterprise dashboard type", func() {
-		dashboardType, dashboardName := GetInstalledDashboard(fakeContext, &mockClientForGetInstalledDashboard{}, testNamespace, map[DashboardType]bool{
+		dashboardType, dashboardName := GetInstalledDashboard(fakeContext, fakeClient, testNamespace, map[DashboardType]bool{
 			DashboardTypeEnterprise: true,
 		})
 		Expect(dashboardType).To(Equal(DashboardTypeEnterprise))
@@ -147,7 +143,7 @@ var _ = Describe("GetInstalledDashboard", func() {
 	})
 
 	It("returns the enterprise dashboard type if both dashboards are installed", func() {
-		dashboardType, dashboardName := GetInstalledDashboard(fakeContext, &mockClientForGetInstalledDashboard{}, testNamespace, map[DashboardType]bool{
+		dashboardType, dashboardName := GetInstalledDashboard(fakeContext, fakeClient, testNamespace, map[DashboardType]bool{
 			DashboardTypeOSS:        true,
 			DashboardTypeEnterprise: true,
 		})
@@ -156,7 +152,7 @@ var _ = Describe("GetInstalledDashboard", func() {
 	})
 
 	It("returns nil if there is an error when listing helmreleases", func() {
-		dashboardType, dashboardName := GetInstalledDashboard(fakeContext, &mockClientForGetInstalledDashboard{state: stateListHelmReleasesReturnErr}, testNamespace, map[DashboardType]bool{
+		dashboardType, dashboardName := GetInstalledDashboard(fakeContext, blankClient, testNamespace, map[DashboardType]bool{
 			DashboardTypeOSS:        true,
 			DashboardTypeEnterprise: true,
 		})
