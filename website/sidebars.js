@@ -260,8 +260,10 @@
       label: 'GitOpsSets',
       items: [
         'gitopssets/intro',
+        'gitopssets/installation',
         'gitopssets/guide',
-        'gitopssets/api-reference'
+        'gitopssets/api-reference',
+        'gitopssets/releases'
       ],
     }
   ],

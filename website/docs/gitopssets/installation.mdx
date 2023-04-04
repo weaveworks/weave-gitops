@@ -1,0 +1,58 @@
+---
+title: Installation
+hide_title: true
+---
+
+import TierLabel from "../_components/TierLabel";
+
+# Installation <TierLabel tiers="enterprise" />
+
+The gitopssets-controller can be installed in two ways:
+
+- As part of the Weave Gitops Enterprise installation. (installed by default)
+- As a standalone installation using a Helm chart.
+
+The standalone installation can be useful for leaf clusters that don't have Weave Gitops Enterprise installed.
+
+## Prerequisites
+
+Before installing the gitopssets-controller, ensure that the following is installed:
+
+- flux
+
+## Installing the gitopssets-controller
+
+To install the gitopssets-controller using a Helm chart, use the following HelmRelease:
+
+```yaml
+apiVersion: source.toolkit.fluxcd.io/v1beta1
+kind: HelmRepository
+metadata:
+  name: weaveworks-artifacts-charts
+  namespace: gitopssets-system
+spec:
+  interval: 1m
+  url: https://artifacts.wge.dev.weave.works/dev/charts
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: gitopssets-controller
+  namespace: gitopssets-system
+spec:
+  interval: 10m
+  chart:
+    spec:
+      chart: gitopssets-controller
+      sourceRef:
+        kind: HelmRepository
+        name: weaveworks-artifacts-charts
+        namespace: gitopssets-system
+      version: 0.6.1
+  install:
+    crds: CreateReplace
+  upgrade:
+    crds: CreateReplace
+```
+
+After adding the HelmRepository and HelmRelease to a git repository synced by flux, commit the changes to complete the installation process.
