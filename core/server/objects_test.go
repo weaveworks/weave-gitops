@@ -786,8 +786,8 @@ func TestListObjectsGitOpsRunSessions(t *testing.T) {
 			Name:      "session-1",
 			Namespace: ns.Name,
 			Labels: map[string]string{
-				"app":                       "vcluster",
-				"app.kubernetes.io/part-of": "gitops-run",
+				types.AppLabel:    "vcluster",
+				types.PartOfLabel: "gitops-run",
 			},
 			Annotations: map[string]string{
 				"run.weave.works/automation-kind": "ks",
@@ -801,8 +801,8 @@ func TestListObjectsGitOpsRunSessions(t *testing.T) {
 			Name:      "session-2",
 			Namespace: ns.Name,
 			Labels: map[string]string{
-				"app":                       "vcluster",
-				"app.kubernetes.io/part-of": "gitops-run",
+				types.AppLabel:    "vcluster",
+				types.PartOfLabel: "gitops-run",
 			},
 			Annotations: map[string]string{
 				"run.weave.works/automation-kind": "helm",

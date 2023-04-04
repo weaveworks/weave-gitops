@@ -3,12 +3,12 @@ package install
 import (
 	"context"
 	"fmt"
-	appsv1 "k8s.io/api/apps/v1"
-	v1 "k8s.io/api/core/v1"
 	"strings"
 
+	appsv1 "k8s.io/api/apps/v1"
+	v1 "k8s.io/api/core/v1"
+
 	coretypes "github.com/weaveworks/weave-gitops/core/server/types"
-	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -59,7 +59,7 @@ func GetFluxVersion(ctx context.Context, log logger.Logger, kubeClient client.Cl
 		return nil, false, err
 	} else {
 		for _, item := range namespaceList.Items {
-			if item.GetLabels()[flux.VersionLabelKey] != "" {
+			if item.GetLabels()[coretypes.VersionLabel] != "" {
 				foundNamespace = item
 				break
 			}
@@ -80,7 +80,7 @@ func GetFluxVersion(ctx context.Context, log logger.Logger, kubeClient client.Cl
 			return nil, false, fmt.Errorf("error getting Flux labels")
 		}
 
-		fluxVersion := labels[flux.VersionLabelKey]
+		fluxVersion := labels[coretypes.VersionLabel]
 		if fluxVersion != "" {
 			// ok, we found the version
 			return &FluxVersionInfo{

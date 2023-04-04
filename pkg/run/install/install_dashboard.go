@@ -15,9 +15,11 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/run"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 	"golang.org/x/crypto/bcrypt"
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -40,7 +42,12 @@ const (
 	enterpriseDashboardHelmChartName      = "mccp"
 	enterpriseDashboardHelmRepositoryName = "weave-gitops-enterprise-charts"
 	helmRepositoryURL                     = "oci://ghcr.io/weaveworks/charts"
+	dashboardPartOfName                   = "weave-gitops"
+	ossDashboardAppName                   = "weave-gitops-oss"
+	enterpriseDashboardAppName            = "weave-gitops-enterprise"
 )
+
+var ErrDashboardInstalled = fmt.Errorf("dashboard already installed")
 
 func ReadPassword(log logger.Logger) (string, error) {
 	password, err := utils.ReadPasswordFromStdin(log, "Please enter a password for logging into the dashboard: ")
@@ -113,17 +120,16 @@ func InstallDashboard(ctx context.Context, log logger.Logger, kubeClient client.
 }
 
 // GetInstalledDashboard checks if the GitOps Dashboard is installed.
-func GetInstalledDashboard(ctx context.Context, kubeClient client.Client, namespace string, dashboards map[DashboardType]bool) (DashboardType, string) {
-	helmReleaseList := &helmv2.HelmReleaseList{}
-
-	if err := kubeClient.List(ctx, helmReleaseList,
-		client.InNamespace(namespace),
-	); err != nil {
-		return DashboardTypeNone, ""
-	}
-
+func GetInstalledDashboard(ctx context.Context, kubeClient client.Client, namespace string, dashboards map[DashboardType]bool) (DashboardType, string, error) {
 	shouldDetectOSSDashboard := dashboards[DashboardTypeOSS]
 	shouldDetectEnterpriseDashboard := dashboards[DashboardTypeEnterprise]
+
+	// Look for dashboard HelmReleases.
+	helmReleaseList := &helmv2.HelmReleaseList{}
+
+	if err := kubeClient.List(ctx, helmReleaseList); err != nil {
+		return DashboardTypeNone, "", err
+	}
 
 	ossDashboardInstalled := false
 	dashboardName := ""
@@ -133,7 +139,7 @@ func GetInstalledDashboard(ctx context.Context, kubeClient client.Client, namesp
 
 		if shouldDetectEnterpriseDashboard && chartSpec.Chart == enterpriseDashboardHelmChartName &&
 			chartSpec.SourceRef.Name == enterpriseDashboardHelmRepositoryName {
-			return DashboardTypeEnterprise, helmRelease.Name
+			return DashboardTypeEnterprise, helmRelease.Name, ErrDashboardInstalled
 		}
 
 		if shouldDetectOSSDashboard && chartSpec.Chart == ossDashboardHelmChartName {
@@ -143,10 +149,42 @@ func GetInstalledDashboard(ctx context.Context, kubeClient client.Client, namesp
 	}
 
 	if ossDashboardInstalled {
-		return DashboardTypeOSS, dashboardName
+		return DashboardTypeOSS, dashboardName, ErrDashboardInstalled
 	}
 
-	return DashboardTypeNone, ""
+	// Look for dashboard Deployments.
+	deploymentList := &appsv1.DeploymentList{}
+	if err := kubeClient.List(ctx, deploymentList,
+		client.MatchingLabelsSelector{
+			Selector: labels.Set(
+				map[string]string{
+					coretypes.PartOfLabel: dashboardPartOfName,
+				},
+			).AsSelector(),
+		},
+	); err != nil {
+		return DashboardTypeNone, "", err
+	}
+
+	ossDashboardInstalled = false
+
+	for _, deployment := range deploymentList.Items {
+		labels := deployment.GetLabels()
+
+		if shouldDetectEnterpriseDashboard && labels[coretypes.DashboardAppLabel] == enterpriseDashboardAppName {
+			return DashboardTypeEnterprise, "", ErrDashboardInstalled
+		}
+
+		if shouldDetectOSSDashboard && labels[coretypes.DashboardAppLabel] == ossDashboardAppName {
+			ossDashboardInstalled = true
+		}
+	}
+
+	if ossDashboardInstalled {
+		return DashboardTypeOSS, "", ErrDashboardInstalled
+	}
+
+	return DashboardTypeNone, "", nil
 }
 
 // ReconcileDashboard reconciles the dashboard. If podName is an empty string, it will get the dashboard pod by labels instead of pod name.
@@ -265,10 +303,10 @@ func makeHelmRepository(name, namespace string) *sourcev1.HelmRepository {
 			Name:      name,
 			Namespace: namespace,
 			Labels: map[string]string{
-				"app.kubernetes.io/name":       "weave-gitops-dashboard",
-				"app.kubernetes.io/component":  "ui",
-				"app.kubernetes.io/part-of":    "weave-gitops",
-				"app.kubernetes.io/created-by": "weave-gitops-cli",
+				coretypes.NameLabel:      "weave-gitops-dashboard",
+				coretypes.ComponentLabel: "ui",
+				coretypes.PartOfLabel:    "weave-gitops",
+				coretypes.CreatedByLabel: "weave-gitops-cli",
 			},
 			Annotations: map[string]string{
 				"metadata.weave.works/description": "This is the source location for the Weave GitOps Dashboard's helm chart.",

@@ -2,6 +2,7 @@ package run
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -352,18 +353,21 @@ func fluentBitStep(ctx context.Context, log logger.Logger, kubeClient *kube.Kube
 func dashboardStep(ctx context.Context, log logger.Logger, kubeClient *kube.KubeHTTP, generateManifestsOnly bool, dashboardHashedPassword string) (install.DashboardType, []byte, string, error) {
 	log.Actionf("Checking if GitOps Dashboard is already installed ...")
 
-	dashboardType, dashboardName := install.GetInstalledDashboard(ctx, kubeClient, flags.Namespace, map[install.DashboardType]bool{
+	dashboardType, dashboardName, err := install.GetInstalledDashboard(ctx, kubeClient, flags.Namespace, map[install.DashboardType]bool{
 		install.DashboardTypeOSS: true, install.DashboardTypeEnterprise: true,
 	})
 
+	shouldReconcileDashboard := false
 	var dashboardManifests []byte
 
 	switch dashboardType {
 	case install.DashboardTypeEnterprise:
 		flags.SkipDashboardInstall = true
-		log.Warningf("GitOps Enterprise Dashboard is found. GitOps OSS Dashboard will not be installed")
+		log.Warningf("GitOps Enterprise Dashboard was found. GitOps OSS Dashboard will not be installed")
+		return dashboardType, nil, "", err
 	case install.DashboardTypeOSS:
-		log.Successf("GitOps Dashboard is found")
+		log.Warningf("GitOps Dashboard was found")
+		return dashboardType, nil, "", err
 	default:
 		wantToInstallTheDashboard := false
 		if dashboardHashedPassword != "" {
@@ -386,47 +390,50 @@ func dashboardStep(ctx context.Context, log logger.Logger, kubeClient *kube.Kube
 			}
 		}
 
-		if wantToInstallTheDashboard {
-			passwordHash := ""
-			if dashboardHashedPassword == "" {
-				password, err := install.ReadPassword(log)
-				if err != nil {
-					return install.DashboardTypeNone, nil, "", err
-				}
+		if !wantToInstallTheDashboard {
+			break
+		}
 
-				if password == "" {
-					return install.DashboardTypeNone, nil, "", fmt.Errorf("dashboard password is an empty string")
-				}
-
-				passwordHash, err = install.GeneratePasswordHash(log, password)
-				if err != nil {
-					return install.DashboardTypeNone, nil, "", err
-				}
-			} else {
-				passwordHash = dashboardHashedPassword
-			}
-
-			dashboardObjects, err := install.CreateDashboardObjects(log, defaultDashboardName, flags.Namespace, adminUsername, passwordHash, HelmChartVersion, flags.DashboardImage)
+		passwordHash := ""
+		if dashboardHashedPassword == "" {
+			password, err := install.ReadPassword(log)
 			if err != nil {
-				return install.DashboardTypeNone, nil, "", fmt.Errorf("error creating dashboard objects: %w", err)
+				return install.DashboardTypeNone, nil, "", err
 			}
 
-			if generateManifestsOnly {
-				return install.DashboardTypeNone, dashboardObjects.Manifests, passwordHash, nil
+			if password == "" {
+				return install.DashboardTypeNone, nil, "", fmt.Errorf("dashboard password is an empty string")
 			}
 
-			if err := install.InstallDashboard(ctx, log, kubeClient, dashboardObjects); err != nil {
-				return install.DashboardTypeNone, nil, "", fmt.Errorf("gitops dashboard installation failed: %w", err)
-			} else {
-				dashboardType = install.DashboardTypeOSS
-				dashboardName = defaultDashboardName
-
-				log.Successf("GitOps Dashboard has been installed")
+			passwordHash, err = install.GeneratePasswordHash(log, password)
+			if err != nil {
+				return install.DashboardTypeNone, nil, "", err
 			}
+		} else {
+			passwordHash = dashboardHashedPassword
+		}
+
+		dashboardObjects, err := install.CreateDashboardObjects(log, defaultDashboardName, flags.Namespace, adminUsername, passwordHash, HelmChartVersion, flags.DashboardImage)
+		if err != nil {
+			return install.DashboardTypeNone, nil, "", fmt.Errorf("error creating dashboard objects: %w", err)
+		}
+
+		if generateManifestsOnly {
+			return install.DashboardTypeNone, dashboardObjects.Manifests, passwordHash, nil
+		}
+
+		if err := install.InstallDashboard(ctx, log, kubeClient, dashboardObjects); err != nil {
+			return install.DashboardTypeNone, nil, "", fmt.Errorf("gitops dashboard installation failed: %w", err)
+		} else {
+			dashboardType = install.DashboardTypeOSS
+			dashboardName = defaultDashboardName
+			shouldReconcileDashboard = true
+
+			log.Successf("GitOps Dashboard has been installed")
 		}
 	}
 
-	if dashboardType == install.DashboardTypeOSS {
+	if dashboardType == install.DashboardTypeOSS && shouldReconcileDashboard {
 		log.Actionf("Request reconciliation of dashboard (timeout %v) ...", flags.Timeout)
 
 		if dashboardName == "" {
@@ -477,7 +484,7 @@ func runCommandOuterProcess(cmd *cobra.Command, args []string) (retErr error) {
 	}
 
 	dashboardType, dashboardManifests, dashboardHashedPassword, err := dashboardStep(context.Background(), log, kubeClient, true, flags.DashboardHashedPassword)
-	if err != nil {
+	if err != nil && !errors.Is(err, install.ErrDashboardInstalled) {
 		return fmt.Errorf("failed to generate dashboard manifests: %v", err)
 	}
 
@@ -486,7 +493,7 @@ func runCommandOuterProcess(cmd *cobra.Command, args []string) (retErr error) {
 	sessionLog.Println("\nYou may see Flux installation logs again, as it is being installed inside the session.\n")
 
 	portForwardsForSession := []string{}
-	if dashboardType == install.DashboardTypeOSS {
+	if dashboardType == install.DashboardTypeOSS && err == nil {
 		portForwardsForSession = append(portForwardsForSession, flags.DashboardPort)
 	}
 
@@ -741,18 +748,19 @@ func runCommandInnerProcess(cmd *cobra.Command, args []string) error {
 	// ====================== Dashboard ======================
 	var (
 		dashboardType      install.DashboardType
+		dashboardErr       error
 		dashboardManifests []byte
 	)
 
-	dashboardType, dashboardManifests, _, err = dashboardStep(ctx, log, kubeClient, false, flags.DashboardHashedPassword)
-	if err != nil {
+	dashboardType, dashboardManifests, _, dashboardErr = dashboardStep(ctx, log, kubeClient, false, flags.DashboardHashedPassword)
+	if err != nil && !errors.Is(err, install.ErrDashboardInstalled) {
 		cancel()
 		return err
 	}
 
 	var cancelDashboardPortForwarding func() = nil
 
-	if dashboardType == install.DashboardTypeOSS {
+	if dashboardType == install.DashboardTypeOSS && dashboardErr == nil {
 		cancelDashboardPortForwarding, err = watch.EnablePortForwardingForDashboard(ctx, log, kubeClient, cfg, flags.Namespace, dashboardPodName, flags.DashboardPort)
 		if err != nil {
 			cancel()
@@ -947,7 +955,7 @@ func runCommandInnerProcess(cmd *cobra.Command, args []string) error {
 
 					portForwards := map[rune]watch.PortForwardShortcut{}
 
-					if dashboardType == install.DashboardTypeOSS {
+					if dashboardType == install.DashboardTypeOSS && dashboardErr == nil {
 						portForwardKey, err := watch.GetNextPortForwardKey(portForwards)
 						if err != nil {
 							log.Failuref("Error adding a portForward: %v", err)
