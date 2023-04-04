@@ -61,7 +61,7 @@ func checkDeployment(obj unstructured.Unstructured) (HealthStatus, error) {
 		return HealthStatus{Status: HealthStatusUnknown, Message: err.Error()}, err
 	}
 
-	if dpl.Generation < dpl.Status.ObservedGeneration {
+	if dpl.Generation != dpl.Status.ObservedGeneration {
 		return HealthStatus{Status: HealthStatusProgressing, Message: "waiting spec to be observed"}, nil
 	}
 
@@ -92,7 +92,7 @@ func checkReplicaSet(obj unstructured.Unstructured) (HealthStatus, error) {
 		return HealthStatus{Status: HealthStatusUnhealthy, Message: cond.Message}, nil
 	}
 
-	if rs.Generation < rs.Status.ObservedGeneration {
+	if rs.Generation != rs.Status.ObservedGeneration {
 		return HealthStatus{Status: HealthStatusProgressing, Message: "waiting spec to be observed"}, nil
 	}
 

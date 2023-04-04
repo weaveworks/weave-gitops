@@ -2,36 +2,74 @@ package health
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
 	. "github.com/onsi/gomega"
-	v1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/yaml"
 )
 
 func TestHealthCheck(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	u := unstructured.Unstructured{}
-	s := &v1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "test",
-			Namespace: "test",
-		},
-	}
-
-	sData, err := runtime.DefaultUnstructuredConverter.ToUnstructured(s)
-	g.Expect(err).To(BeNil())
-
-	fmt.Println(sData)
-	u.SetUnstructuredContent(sData)
-
 	hc := NewHealthChecker()
 
-	hs, err := hc.Check(u)
-	g.Expect(err).To(BeNil())
+	type scenarios struct {
+		data         string
+		healthStatus HealthStatusCode
+	}
 
-	g.Expect(hs.Status).To(Equal(HealthStatusHealthy))
+	for _, scenario := range []scenarios{
+		{
+			data:         "testdata/deployment-healthy.yaml",
+			healthStatus: HealthStatusHealthy,
+		},
+		{
+			data:         "testdata/deployment-unhealthy.yaml",
+			healthStatus: HealthStatusUnhealthy,
+		},
+		{
+			data:         "testdata/deployment-progressing.yaml",
+			healthStatus: HealthStatusProgressing,
+		},
+		{
+			data:         "testdata/replicaset-healthy.yaml",
+			healthStatus: HealthStatusHealthy,
+		},
+		{
+			data:         "testdata/replicaset-unhealthy.yaml",
+			healthStatus: HealthStatusUnhealthy,
+		},
+		{
+			data:         "testdata/replicaset-progressing.yaml",
+			healthStatus: HealthStatusProgressing,
+		},
+		{
+			data:         "testdata/pod-healthy.yaml",
+			healthStatus: HealthStatusHealthy,
+		},
+		{
+			data:         "testdata/pod-progressing.yaml",
+			healthStatus: HealthStatusProgressing,
+		},
+		{
+			data:         "testdata/pod-unhealthy.yaml",
+			healthStatus: HealthStatusUnhealthy,
+		},
+	} {
+		t.Run(fmt.Sprintf("%s is %s", scenario.data, scenario.healthStatus), func(t *testing.T) {
+			yamlBytes, err := os.ReadFile(scenario.data)
+			g.Expect(err).ToNot(HaveOccurred())
+			var obj unstructured.Unstructured
+			err = yaml.Unmarshal(yamlBytes, &obj)
+			g.Expect(err).ToNot(HaveOccurred())
+
+			healthStatus, err := hc.Check(obj)
+			g.Expect(err).ToNot(HaveOccurred())
+
+			g.Expect(healthStatus.Status).To(Equal(scenario.healthStatus))
+		})
+	}
+
 }

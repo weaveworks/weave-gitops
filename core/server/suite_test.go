@@ -15,6 +15,7 @@ import (
 	"github.com/weaveworks/weave-gitops/core/nsaccess/nsaccessfakes"
 	"github.com/weaveworks/weave-gitops/core/server"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
+	"github.com/weaveworks/weave-gitops/pkg/health"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/crd"
@@ -71,8 +72,10 @@ func makeGRPCServer(cfg *rest.Config, t *testing.T) pb.CoreClient {
 
 	fetch := fetcher.NewSingleClusterFetcher(cluster)
 
+	hc := health.NewHealthChecker()
+
 	clustersManager := clustersmngr.NewClustersManager([]clustersmngr.ClusterFetcher{fetch}, &nsChecker, log)
-	coreCfg, err := server.NewCoreConfig(log, cfg, "foobar", clustersManager)
+	coreCfg, err := server.NewCoreConfig(log, cfg, "foobar", clustersManager, hc)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -184,7 +187,9 @@ func makeServerConfig(fakeClient client.Client, t *testing.T, clusterName string
 	// and the default options include the Flowcontrol setup which is not mocked out
 	clustersManager := clustersmngr.NewClustersManager([]clustersmngr.ClusterFetcher{fetcher}, &nsChecker, log)
 
-	coreCfg, err := server.NewCoreConfig(log, &rest.Config{}, "foobar", clustersManager)
+	hc := health.NewHealthChecker()
+
+	coreCfg, err := server.NewCoreConfig(log, &rest.Config{}, "foobar", clustersManager, hc)
 	if err != nil {
 		t.Fatal(err)
 	}
