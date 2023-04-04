@@ -10,7 +10,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"github.com/weaveworks/weave-gitops/core/server"
-	stypes "github.com/weaveworks/weave-gitops/core/server/types"
+	coretypes "github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"google.golang.org/grpc/metadata"
@@ -56,12 +56,12 @@ func TestGetReconciledObjects(t *testing.T) {
 			Spec: appsv1.DeploymentSpec{
 				Selector: &metav1.LabelSelector{
 					MatchLabels: map[string]string{
-						"app": automationName,
+						coretypes.AppLabel: automationName,
 					},
 				},
 				Template: corev1.PodTemplateSpec{
 					ObjectMeta: metav1.ObjectMeta{
-						Labels: map[string]string{"app": automationName},
+						Labels: map[string]string{coretypes.AppLabel: automationName},
 					},
 					Spec: corev1.PodSpec{
 						Containers: []corev1.Container{{
@@ -263,12 +263,12 @@ func TestGetChildObjects(t *testing.T) {
 		Spec: appsv1.DeploymentSpec{
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
-					"app": automationName,
+					coretypes.AppLabel: automationName,
 				},
 			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels: map[string]string{"app": automationName},
+					Labels: map[string]string{coretypes.AppLabel: automationName},
 				},
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{{
@@ -352,9 +352,9 @@ func TestListFluxRuntimeObjects(t *testing.T) {
 			"flux namespace label, with controllers",
 			[]runtime.Object{
 				&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "flux-ns", Labels: map[string]string{
-					stypes.PartOfLabel: server.FluxNamespacePartOf,
+					coretypes.PartOfLabel: server.FluxNamespacePartOf,
 				}}},
-				newDeployment("random-flux-controller", "flux-ns", map[string]string{stypes.PartOfLabel: server.FluxNamespacePartOf}),
+				newDeployment("random-flux-controller", "flux-ns", map[string]string{coretypes.PartOfLabel: server.FluxNamespacePartOf}),
 				newDeployment("other-controller-in-flux-ns", "flux-ns", map[string]string{}),
 			},
 			func(res *pb.ListFluxRuntimeObjectsResponse) {
@@ -366,7 +366,7 @@ func TestListFluxRuntimeObjects(t *testing.T) {
 			"use flux-system namespace when no namespace label available",
 			[]runtime.Object{
 				&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "flux-system"}},
-				newDeployment("random-flux-controller", "flux-system", map[string]string{stypes.PartOfLabel: server.FluxNamespacePartOf}),
+				newDeployment("random-flux-controller", "flux-system", map[string]string{coretypes.PartOfLabel: server.FluxNamespacePartOf}),
 				newDeployment("other-controller-in-flux-ns", "flux-system", map[string]string{}),
 			},
 			func(res *pb.ListFluxRuntimeObjectsResponse) {
@@ -401,12 +401,12 @@ func newDeployment(name, ns string, labels map[string]string) *appsv1.Deployment
 		Spec: appsv1.DeploymentSpec{
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
-					"app": name,
+					coretypes.AppLabel: name,
 				},
 			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels: map[string]string{"app": name},
+					Labels: map[string]string{coretypes.AppLabel: name},
 				},
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{{
@@ -426,7 +426,7 @@ func TestListFluxCrds(t *testing.T) {
 
 	crd1 := &apiextensions.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{
 		Name:   "crd1",
-		Labels: map[string]string{stypes.PartOfLabel: "flux"},
+		Labels: map[string]string{coretypes.PartOfLabel: "flux"},
 	}, Spec: apiextensions.CustomResourceDefinitionSpec{
 		Group:    "group",
 		Names:    apiextensions.CustomResourceDefinitionNames{Plural: "plural", Kind: "kind"},
@@ -434,7 +434,7 @@ func TestListFluxCrds(t *testing.T) {
 	}}
 	crd2 := &apiextensions.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{
 		Name:   "crd2",
-		Labels: map[string]string{stypes.PartOfLabel: "flux"},
+		Labels: map[string]string{coretypes.PartOfLabel: "flux"},
 	}, Spec: apiextensions.CustomResourceDefinitionSpec{
 		Group: "group",
 		Versions: []apiextensions.CustomResourceDefinitionVersion{

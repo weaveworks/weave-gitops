@@ -46,12 +46,12 @@ func TestGetInventoryKustomization(t *testing.T) {
 		Spec: appsv1.DeploymentSpec{
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
-					"app": automationName,
+					types.AppLabel: automationName,
 				},
 			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels: map[string]string{"app": automationName},
+					Labels: map[string]string{types.AppLabel: automationName},
 				},
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{{

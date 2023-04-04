@@ -9,7 +9,6 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/core/server"
 	coretypes "github.com/weaveworks/weave-gitops/core/server/types"
-	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/run"
 	appsv1 "k8s.io/api/apps/v1"
@@ -51,19 +50,19 @@ var _ = Describe("GetFluxVersion", func() {
 				Name:      "source-controller",
 				Namespace: "flux-system",
 				Labels: map[string]string{
-					"app": "source-controller",
+					coretypes.AppLabel: "source-controller",
 				},
 			},
 			Spec: appsv1.DeploymentSpec{
 				Selector: &metav1.LabelSelector{
 					MatchLabels: map[string]string{
-						"app": "source-controller",
+						coretypes.AppLabel: "source-controller",
 					},
 				},
 				Template: v1.PodTemplateSpec{
 					ObjectMeta: metav1.ObjectMeta{
 						Labels: map[string]string{
-							"app": "source-controller",
+							coretypes.AppLabel: "source-controller",
 						},
 					},
 					Spec: v1.PodSpec{
@@ -102,8 +101,8 @@ var _ = Describe("GetFluxVersion", func() {
 		fluxNs := &v1.Namespace{}
 		fluxNs.Name = "flux-ns-test"
 		fluxNs.Labels = map[string]string{
-			coretypes.PartOfLabel: server.FluxNamespacePartOf,
-			flux.VersionLabelKey:  testVersion,
+			coretypes.PartOfLabel:  server.FluxNamespacePartOf,
+			coretypes.VersionLabel: testVersion,
 		}
 
 		Expect(kubeClient.Create(ctx, fluxNs)).To(Succeed())

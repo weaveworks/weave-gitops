@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	coretypes "github.com/weaveworks/weave-gitops/core/server/types"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/run"
 	"github.com/weaveworks/weave-gitops/pkg/run/constants"
@@ -40,7 +41,7 @@ func InstallDevBucketServer(
 	var (
 		err                error
 		devBucketAppLabels = map[string]string{
-			"app": constants.RunDevBucketName,
+			coretypes.AppLabel: constants.RunDevBucketName,
 		}
 	)
 

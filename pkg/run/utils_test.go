@@ -212,7 +212,7 @@ func (c *mockClientForGetPodFromResourceDescription) Get(_ context.Context, key 
 				},
 				Spec: corev1.ServiceSpec{
 					Selector: map[string]string{
-						"app": key.Name,
+						coretypes.AppLabel: key.Name,
 					},
 				},
 			}
@@ -226,7 +226,7 @@ func (c *mockClientForGetPodFromResourceDescription) Get(_ context.Context, key 
 				Spec: appsv1.DeploymentSpec{
 					Selector: &metav1.LabelSelector{
 						MatchLabels: map[string]string{
-							"app": key.Name,
+							coretypes.AppLabel: key.Name,
 						},
 					},
 				},
