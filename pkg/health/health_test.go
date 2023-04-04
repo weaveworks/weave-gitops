@@ -71,5 +71,4 @@ func TestHealthCheck(t *testing.T) {
 			g.Expect(healthStatus.Status).To(Equal(scenario.healthStatus))
 		})
 	}
-
 }

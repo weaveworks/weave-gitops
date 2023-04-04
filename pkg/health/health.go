@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	appsv1 "k8s.io/api/apps/v1"
-	v1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -53,7 +52,7 @@ func (hc *healthChecker) Check(obj unstructured.Unstructured) (HealthStatus, err
 }
 
 func checkDeployment(obj unstructured.Unstructured) (HealthStatus, error) {
-	var dpl v1.Deployment
+	var dpl appsv1.Deployment
 
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(obj.UnstructuredContent(), &dpl)
 	if err != nil {
@@ -79,7 +78,7 @@ func checkDeployment(obj unstructured.Unstructured) (HealthStatus, error) {
 }
 
 func checkReplicaSet(obj unstructured.Unstructured) (HealthStatus, error) {
-	var rs v1.ReplicaSet
+	var rs appsv1.ReplicaSet
 
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(obj.UnstructuredContent(), &rs)
 	if err != nil {
