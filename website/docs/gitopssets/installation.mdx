@@ -25,6 +25,11 @@ Before installing the gitopssets-controller, ensure that the following is instal
 To install the gitopssets-controller using a Helm chart, use the following HelmRelease:
 
 ```yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: gitopssets-system
+---
 apiVersion: source.toolkit.fluxcd.io/v1beta1
 kind: HelmRepository
 metadata:
@@ -55,4 +60,4 @@ spec:
     crds: CreateReplace
 ```
 
-After adding the HelmRepository and HelmRelease to a git repository synced by flux, commit the changes to complete the installation process.
+After adding the Namespace, HelmRepository and HelmRelease to a git repository synced by flux, commit the changes to complete the installation process.
