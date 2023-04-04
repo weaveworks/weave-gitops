@@ -4,6 +4,7 @@ import {
   Condition,
   GitRepositoryRef,
   GroupVersionKind,
+  HealthStatus,
   Interval,
   Kind,
   NamespacedObjectReference,
@@ -35,7 +36,7 @@ export class FluxObject {
   uid: string;
   info: string;
   children: FluxObject[];
-
+  health: HealthStatus;
   constructor(response: ResponseObject) {
     try {
       this.obj = JSON.parse(response.payload);
@@ -47,6 +48,7 @@ export class FluxObject {
     this.uid = response?.uid || "";
     this.info = response?.info || "";
     this.children = [];
+    this.health = response?.health || {};
   }
 
   get yaml(): string {
