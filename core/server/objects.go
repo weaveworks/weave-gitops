@@ -164,7 +164,7 @@ func parseSessionInfo(unstructuredObj unstructured.Unstructured) (string, string
 
 	labels := set.GetLabels()
 
-	if labels["app"] != "vcluster" || labels["app.kubernetes.io/part-of"] != "gitops-run" {
+	if labels[types.AppLabel] != "vcluster" || labels[types.PartOfLabel] != "gitops-run" {
 		return "", "", fmt.Errorf("unexpected format of labels")
 	}
 
