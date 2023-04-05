@@ -30,24 +30,34 @@ for deployment to their cluster.
 
 ## Profile Operator Settings
 
+Keys available in the `spec.charts` section and the template variables available to them.
+
+| **Key**                       | **Description**                              | **Template vars** |
+| ----------------------------- | -------------------------------------------- | ----------------- |
+| `helmRepositoryTemplate.path` | Path the `HelmRepository` will be written to | `params`          |
+| `items`                       | list of charts to configure, see below       |                   |
+
 Keys available in the `spec.charts.items` entries and the template variables available to them.
 
-| __Key__            | __Description__                                   | __Template vars__ |
-| -----------------  | --------------                                    | ----
-| `template.content` | Full or partial `HelmRelease` CR template         | `params` |
-| `chart`            | Shortcut to `HelmRelease.spec.chart.spec.chart`   ||
-| `version`          | Shortcut to `HelmRelease.spec.chart.spec.version` ||
-| `targetNamespace`  | Shortcut to `HelmRelease.spec.targetNamespace`    ||
-| `values`           | Shortcut to `HelmRelease.spec.values`             | `params`
-| `layer`            | Layer to install as                               ||
-| `required`         | (default=false) Allow the user to de-select this profile|
-| `editable`         | (default=false) Allow the user to edit the values.yaml of this profile|
+| **Key**            | **Description**                                                        | **Template vars** |
+| ------------------ | ---------------------------------------------------------------------- | ----------------- |
+| `template.content` | Full or partial `HelmRelease` CR template                              | `params`          |
+| `template.path`    | Path the HelmRelease will be written to                                | `params`          |
+| `chart`            | Shortcut to `HelmRelease.spec.chart.spec.chart`                        |                   |
+| `version`          | Shortcut to `HelmRelease.spec.chart.spec.version`                      |                   |
+| `targetNamespace`  | Shortcut to `HelmRelease.spec.targetNamespace`                         |                   |
+| `values`           | Shortcut to `HelmRelease.spec.values`                                  | `params`          |
+| `layer`            | Layer to install as                                                    |                   |
+| `required`         | (default=false) Allow the user to de-select this profile               |
+| `editable`         | (default=false) Allow the user to edit the values.yaml of this profile |
 
 <details><summary>Expand for a complete yaml example</summary>
 
 ```yaml
 spec:
   charts:
+    helmRepositoryTemplate:
+      path: clusters/${CLUSTER_NAME}/helm-repositories.yaml
     items:
       - chart: cert-manager
         version: v1.5.3
@@ -58,6 +68,7 @@ spec:
         targetNamespace: cert-manager
         layer: layer-1
         template:
+          path: clusters/${CLUSTER_NAME}/cert-manager.yaml
           content:
             metadata:
               labels:
@@ -87,12 +98,12 @@ Profiles can also be included within templates by the
 
 ```yaml
 annotations:
-    capi.weave.works/profile-0: '{"name": "NAME", "version": "VERSION", "editable": EDITABLE, "namespace": "NAMESPACE"}'
+  capi.weave.works/profile-0: '{"name": "NAME", "version": "VERSION", "editable": EDITABLE, "namespace": "NAMESPACE"}'
 ```
 
 Where:
-  - `name` -  is the name of the profile in the default profiles repository
-  - `version` -  (optional) will choose the default version
-  - `namespace` -  (optional) is the default target namespace for the profile
-  - `editable` -  (optional, default=`false`), allow the user to de-select this profile, making it a default instead of a requirement.
 
+- `name` - is the name of the profile in the default profiles repository
+- `version` - (optional) will choose the default version
+- `namespace` - (optional) is the default target namespace for the profile
+- `editable` - (optional, default=`false`), allow the user to de-select this profile, making it a default instead of a requirement.

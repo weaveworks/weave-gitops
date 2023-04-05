@@ -57,6 +57,27 @@ spec:
 
 </details>
 
+### Configuring paths for `charts`
+
+The `spec.charts.helmRepositoryTemplate.path` and `spec.charts.items[].template.path` fields can be used to specify the paths of these resources:
+
+Example
+
+```yaml
+spec:
+  charts:
+    helmRepositoryTemplate:
+      // highlight-next-line
+      path: clusters/${CLUSTER_NAME}/workloads/helm-repo.yaml
+    items:
+      - chart: cert-manager
+        version: 0.0.8
+        template:
+          // highlight-next-line
+          path: clusters/${CLUSTER_NAME}/workloads/cert-manager.yaml
+```
+
+
 ## Default Paths
 
 If the `spec.resourcetemplates[].path` is omitted, a default path for the
@@ -74,13 +95,14 @@ spec:
   params:
     - name: RESOURCE_NAME
       required: true
+    # or
     - name: CLUSTER_NAME
       required: true
 ```
 
 :::caution Important
 
-The **profiles** and **kustomization** features **always** use a calculated default path.
+The **kustomization** feature and the `add-common-bases` annotation feature **always** use a calculated default path.
 If you are using these features one of `CLUSTER_NAME` or `RESOURCE_NAME`
 **must** be provided, even if you specify a `path` for all the other resources in the template.
 
