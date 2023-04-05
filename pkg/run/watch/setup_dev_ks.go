@@ -230,7 +230,9 @@ func CleanupBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeClient
 	log.Actionf("Deleting Kustomization %s ...", ks.Name)
 
 	if err := kubeClient.Delete(ctx, &ks); err != nil {
-		log.Failuref("Error deleting Kustomization %s: %v", ks.Name, err.Error())
+		if !apierrors.IsNotFound(err) {
+			log.Failuref("Error deleting Kustomization %s: %v", ks.Name, err.Error())
+		}
 	} else {
 		log.Successf("Deleted Kustomization %s", ks.Name)
 	}

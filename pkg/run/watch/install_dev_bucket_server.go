@@ -315,8 +315,12 @@ func UninstallDevBucketServer(ctx context.Context, log logger.Logger, kubeClient
 	log.Actionf("Removing namespace %s ...", constants.GitOpsRunNamespace)
 
 	if err := kubeClient.Delete(ctx, &devBucketNamespace); err != nil {
-		log.Failuref("Cannot remove namespace %s", constants.GitOpsRunNamespace)
-		return err
+		if !apierrors.IsNotFound(err) {
+			log.Failuref("Cannot remove namespace %s", constants.GitOpsRunNamespace)
+			return err
+		} else {
+			return nil
+		}
 	}
 
 	log.Actionf("Waiting for namespace %s to be terminated ...", constants.GitOpsRunNamespace)
