@@ -108,6 +108,7 @@ import {
   statusSortHelper,
 } from "./lib/utils";
 import SignIn from "./pages/SignIn";
+import Text from "./components/Text";
 
 export {
   AppContext,
@@ -203,6 +204,7 @@ export {
   SyncButton,
   Spacer,
   theme,
+  Text,
   Timestamp,
   useDebounce,
   UnAuthorizedInterceptor,

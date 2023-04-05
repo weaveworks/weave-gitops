@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import "jest-styled-components";
 import React from "react";
 import { withTheme } from "../../lib/test-utils";
-import { initialFormState } from "../DataTable";
+import { initialFormState } from "../DataTable/helpers";
 import FilterDialog, { filterSeparator } from "../FilterDialog";
 
 describe("FilterDialog", () => {

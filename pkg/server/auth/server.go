@@ -23,7 +23,6 @@ import (
 const (
 	LoginOIDC                  string = "oidc"
 	LoginUsername              string = "username"
-	ClusterUserAuthSecretName  string = "cluster-user-auth"
 	DefaultOIDCAuthSecretName  string = "oidc-auth"
 	FeatureFlagClusterUser     string = "CLUSTER_USER_AUTH"
 	FeatureFlagOIDCAuth        string = "OIDC_AUTH"
@@ -72,6 +71,7 @@ type AuthConfig struct {
 	OIDCConfig          OIDCConfig
 	authMethods         map[AuthMethod]bool
 	namespace           string
+	adminSecret         string
 }
 
 // AuthServer interacts with an OIDC issuer to handle the OAuth2 process flow.
@@ -166,7 +166,7 @@ func claimsConfigFromSecret(secret corev1.Secret) *ClaimsConfig {
 	return nil
 }
 
-func NewAuthServerConfig(log logr.Logger, oidcCfg OIDCConfig, kubernetesClient ctrlclient.Client, tsv TokenSignerVerifier, namespace string, authMethods map[AuthMethod]bool) (AuthConfig, error) {
+func NewAuthServerConfig(log logr.Logger, oidcCfg OIDCConfig, kubernetesClient ctrlclient.Client, tsv TokenSignerVerifier, namespace string, authMethods map[AuthMethod]bool, adminSecret string) (AuthConfig, error) {
 	if authMethods[OIDC] {
 		if _, err := url.Parse(oidcCfg.IssuerURL); err != nil {
 			return AuthConfig{}, fmt.Errorf("invalid issuer URL: %w", err)
@@ -185,6 +185,7 @@ func NewAuthServerConfig(log logr.Logger, oidcCfg OIDCConfig, kubernetesClient c
 		OIDCConfig:          oidcCfg,
 		namespace:           namespace,
 		authMethods:         authMethods,
+		adminSecret:         adminSecret,
 	}, nil
 }
 
@@ -194,7 +195,7 @@ func NewAuthServer(ctx context.Context, cfg AuthConfig) (*AuthServer, error) {
 		var secret corev1.Secret
 		err := cfg.kubernetesClient.Get(ctx, ctrlclient.ObjectKey{
 			Namespace: cfg.namespace,
-			Name:      ClusterUserAuthSecretName,
+			Name:      cfg.adminSecret,
 		}, &secret)
 
 		if err != nil {
@@ -391,7 +392,7 @@ func (s *AuthServer) SignIn() http.HandlerFunc {
 		var hashedSecret corev1.Secret
 
 		if err := s.kubernetesClient.Get(r.Context(), ctrlclient.ObjectKey{
-			Name:      ClusterUserAuthSecretName,
+			Name:      s.adminSecret,
 			Namespace: s.namespace,
 		}, &hashedSecret); err != nil {
 			s.Log.Error(err, "Failed to query for the secret")

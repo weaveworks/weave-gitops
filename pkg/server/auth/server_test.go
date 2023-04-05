@@ -46,7 +46,7 @@ func TestCallbackAllowsGet(t *testing.T) {
 		http.MethodOptions,
 	}
 
-	s, _ := makeAuthServer(t, nil, nil, []auth.AuthMethod{auth.OIDC})
+	s, _ := makeAuthServer(t, nil, nil, []auth.AuthMethod{auth.OIDC}, "")
 
 	for _, m := range methods {
 		req := httptest.NewRequest(m, "https://example.com/callback", nil)
@@ -62,7 +62,7 @@ func TestCallbackAllowsGet(t *testing.T) {
 func TestCallbackErrorFromOIDC(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	s, _ := makeAuthServer(t, nil, nil, []auth.AuthMethod{auth.OIDC})
+	s, _ := makeAuthServer(t, nil, nil, []auth.AuthMethod{auth.OIDC}, "")
 
 	req := httptest.NewRequest(http.MethodGet, "https://example.com/callback?error=invalid_request&error_description=Unsupported%20response_type%20value", nil)
 	w := httptest.NewRecorder()
@@ -74,7 +74,7 @@ func TestCallbackErrorFromOIDC(t *testing.T) {
 func TestCallbackCodeIsEmpty(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	s, _ := makeAuthServer(t, nil, nil, []auth.AuthMethod{auth.OIDC})
+	s, _ := makeAuthServer(t, nil, nil, []auth.AuthMethod{auth.OIDC}, "")
 
 	req := httptest.NewRequest(http.MethodGet, "https://example.com/callback", nil)
 	w := httptest.NewRecorder()
@@ -86,7 +86,7 @@ func TestCallbackCodeIsEmpty(t *testing.T) {
 func TestCallbackStateCookieNotSet(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	s, _ := makeAuthServer(t, nil, nil, []auth.AuthMethod{auth.OIDC})
+	s, _ := makeAuthServer(t, nil, nil, []auth.AuthMethod{auth.OIDC}, "")
 
 	req := httptest.NewRequest(http.MethodGet, "https://example.com/callback?code=123", nil)
 	w := httptest.NewRecorder()
@@ -98,7 +98,7 @@ func TestCallbackStateCookieNotSet(t *testing.T) {
 func TestCallbackStateCookieNotValid(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	s, _ := makeAuthServer(t, nil, nil, []auth.AuthMethod{auth.OIDC})
+	s, _ := makeAuthServer(t, nil, nil, []auth.AuthMethod{auth.OIDC}, "")
 
 	req := httptest.NewRequest(http.MethodGet, "https://example.com/callback?code=123&state=some_state", nil)
 	req.AddCookie(&http.Cookie{
@@ -115,7 +115,7 @@ func TestCallbackStateCookieNotValid(t *testing.T) {
 func TestCallbackStateCookieNotBase64Encoded(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	s, _ := makeAuthServer(t, nil, nil, []auth.AuthMethod{auth.OIDC})
+	s, _ := makeAuthServer(t, nil, nil, []auth.AuthMethod{auth.OIDC}, "")
 
 	req := httptest.NewRequest(http.MethodGet, "https://example.com/callback?code=123&state=some_state", nil)
 	req.AddCookie(&http.Cookie{
@@ -132,7 +132,7 @@ func TestCallbackStateCookieNotBase64Encoded(t *testing.T) {
 func TestCallbackStateCookieNotJSONPayload(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	s, _ := makeAuthServer(t, nil, nil, []auth.AuthMethod{auth.OIDC})
+	s, _ := makeAuthServer(t, nil, nil, []auth.AuthMethod{auth.OIDC}, "")
 
 	encState := base64.StdEncoding.EncodeToString([]byte("some_state"))
 
@@ -151,7 +151,7 @@ func TestCallbackStateCookieNotJSONPayload(t *testing.T) {
 func TestCallbackCodeExchangeError(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	s, _ := makeAuthServer(t, nil, nil, []auth.AuthMethod{auth.OIDC})
+	s, _ := makeAuthServer(t, nil, nil, []auth.AuthMethod{auth.OIDC}, "")
 
 	state, _ := json.Marshal(auth.SessionState{
 		Nonce:     "abcde",
@@ -186,7 +186,7 @@ func TestSignInAllowsPOST(t *testing.T) {
 	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	s, _ := makeAuthServer(t, ctrlclientfake.NewClientBuilder().Build(), tokenSignerVerifier, []auth.AuthMethod{auth.OIDC})
+	s, _ := makeAuthServer(t, ctrlclientfake.NewClientBuilder().Build(), tokenSignerVerifier, []auth.AuthMethod{auth.OIDC}, "")
 
 	for _, m := range methods {
 		req := httptest.NewRequest(m, "https://example.com/signin", nil)
@@ -207,7 +207,7 @@ func TestSignInNoPayloadReturnsBadRequest(t *testing.T) {
 		t.Errorf("failed to create HMAC signer: %v", err)
 	}
 
-	s, _ := makeAuthServer(t, ctrlclientfake.NewClientBuilder().Build(), tokenSignerVerifier, []auth.AuthMethod{auth.OIDC})
+	s, _ := makeAuthServer(t, ctrlclientfake.NewClientBuilder().Build(), tokenSignerVerifier, []auth.AuthMethod{auth.OIDC}, "")
 
 	req := httptest.NewRequest(http.MethodPost, "https://example.com/signin", nil)
 	w := httptest.NewRecorder()
@@ -228,7 +228,7 @@ func TestSignInNoSecret(t *testing.T) {
 	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	s, _ := makeAuthServer(t, ctrlclientfake.NewClientBuilder().Build(), tokenSignerVerifier, []auth.AuthMethod{auth.OIDC})
+	s, _ := makeAuthServer(t, ctrlclientfake.NewClientBuilder().Build(), tokenSignerVerifier, []auth.AuthMethod{auth.OIDC}, "")
 
 	j, err := json.Marshal(auth.LoginRequest{})
 	g.Expect(err).NotTo(HaveOccurred())
@@ -267,7 +267,7 @@ func TestSignInWrongUsernameReturnsUnauthorized(t *testing.T) {
 	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	s, _ := makeAuthServer(t, fakeKubernetesClient, tokenSignerVerifier, []auth.AuthMethod{auth.UserAccount})
+	s, _ := makeAuthServer(t, fakeKubernetesClient, tokenSignerVerifier, []auth.AuthMethod{auth.UserAccount}, hashedSecret.Name)
 
 	login := auth.LoginRequest{
 		Username: "wrong",
@@ -309,7 +309,7 @@ func TestSignInWrongPasswordReturnsUnauthorized(t *testing.T) {
 	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	s, _ := makeAuthServer(t, fakeKubernetesClient, tokenSignerVerifier, []auth.AuthMethod{auth.OIDC})
+	s, _ := makeAuthServer(t, fakeKubernetesClient, tokenSignerVerifier, []auth.AuthMethod{auth.OIDC}, hashedSecret.Name)
 
 	login := auth.LoginRequest{
 		Password: "wrong",
@@ -327,7 +327,7 @@ func TestSignInWrongPasswordReturnsUnauthorized(t *testing.T) {
 	g.Expect(w.Result().StatusCode).To(Equal(http.StatusUnauthorized))
 }
 
-func TestSingInCorrectPassword(t *testing.T) {
+func TestSignInCorrectPassword(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	password := "my-secret-password"
@@ -350,7 +350,7 @@ func TestSingInCorrectPassword(t *testing.T) {
 	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	s, _ := makeAuthServer(t, fakeKubernetesClient, tokenSignerVerifier, []auth.AuthMethod{auth.OIDC})
+	s, _ := makeAuthServer(t, fakeKubernetesClient, tokenSignerVerifier, []auth.AuthMethod{auth.OIDC}, hashedSecret.Name)
 
 	login := auth.LoginRequest{
 		Password: password,
@@ -394,7 +394,7 @@ func TestUserInfoAllowsGET(t *testing.T) {
 		http.MethodOptions,
 	}
 
-	s, _ := makeAuthServer(t, nil, nil, []auth.AuthMethod{auth.OIDC})
+	s, _ := makeAuthServer(t, nil, nil, []auth.AuthMethod{auth.OIDC}, "")
 
 	for _, m := range methods {
 		req := httptest.NewRequest(m, "https://example.com/userinfo", nil)
@@ -410,7 +410,7 @@ func TestUserInfoAllowsGET(t *testing.T) {
 func TestUserInfoIDTokenCookieNotSet(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	s, _ := makeAuthServer(t, nil, nil, []auth.AuthMethod{auth.OIDC})
+	s, _ := makeAuthServer(t, nil, nil, []auth.AuthMethod{auth.OIDC}, "")
 
 	req := httptest.NewRequest(http.MethodGet, "https://example.com/userinfo", nil)
 	w := httptest.NewRecorder()
@@ -436,7 +436,7 @@ func TestUserInfoAdminFlow(t *testing.T) {
 		},
 	}
 	fakeKubernetesClient := ctrlclientfake.NewClientBuilder().WithObjects(hashedSecret).Build()
-	s, _ := makeAuthServer(t, fakeKubernetesClient, tokenSignerVerifier, []auth.AuthMethod{auth.UserAccount})
+	s, _ := makeAuthServer(t, fakeKubernetesClient, tokenSignerVerifier, []auth.AuthMethod{auth.UserAccount}, hashedSecret.Name)
 
 	signed, err := tokenSignerVerifier.Sign("wego-admin")
 	g.Expect(err).NotTo(HaveOccurred())
@@ -477,7 +477,7 @@ func TestUserInfoAdminFlow_differentUsername(t *testing.T) {
 	}
 	fakeKubernetesClient := ctrlclientfake.NewClientBuilder().WithObjects(hashedSecret).Build()
 
-	s, _ := makeAuthServer(t, fakeKubernetesClient, tokenSignerVerifier, []auth.AuthMethod{auth.UserAccount})
+	s, _ := makeAuthServer(t, fakeKubernetesClient, tokenSignerVerifier, []auth.AuthMethod{auth.UserAccount}, hashedSecret.Name)
 
 	signed, err := tokenSignerVerifier.Sign("dev")
 	g.Expect(err).NotTo(HaveOccurred())
@@ -518,7 +518,7 @@ func TestUserInfoAdminFlowBadCookie(t *testing.T) {
 	}
 	fakeKubernetesClient := ctrlclientfake.NewClientBuilder().WithObjects(hashedSecret).Build()
 
-	s, _ := makeAuthServer(t, fakeKubernetesClient, tokenSignerVerifier, []auth.AuthMethod{auth.UserAccount})
+	s, _ := makeAuthServer(t, fakeKubernetesClient, tokenSignerVerifier, []auth.AuthMethod{auth.UserAccount}, hashedSecret.Name)
 
 	req := httptest.NewRequest(http.MethodGet, "https://example.com/userinfo", nil)
 	req.AddCookie(&http.Cookie{
@@ -607,7 +607,7 @@ func TestUserInfoOIDCFlow(t *testing.T) {
 	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	s, m := makeAuthServer(t, nil, tokenSignerVerifier, []auth.AuthMethod{auth.OIDC})
+	s, m := makeAuthServer(t, nil, tokenSignerVerifier, []auth.AuthMethod{auth.OIDC}, "")
 
 	tokens := getVerifyTokens(t, m)
 
@@ -648,7 +648,7 @@ func TestUserInfoOIDCFlow_with_custom_claims(t *testing.T) {
 	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	authServer, m := makeAuthServer(t, nil, tokenSignerVerifier, []auth.AuthMethod{auth.OIDC})
+	authServer, m := makeAuthServer(t, nil, tokenSignerVerifier, []auth.AuthMethod{auth.OIDC}, "")
 
 	authorizeQuery := valuesFromMap(map[string]string{
 		"client_id":     m.Config().ClientID,
@@ -731,7 +731,7 @@ func TestRefresh(t *testing.T) {
 	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	s, m := makeAuthServer(t, nil, tokenSignerVerifier, []auth.AuthMethod{auth.OIDC})
+	s, m := makeAuthServer(t, nil, tokenSignerVerifier, []auth.AuthMethod{auth.OIDC}, "")
 
 	tokens := getVerifyTokens(t, m)
 
@@ -778,7 +778,7 @@ func TestRefresh(t *testing.T) {
 
 func TestRefreshNoToken(t *testing.T) {
 	g := NewGomegaWithT(t)
-	s, _ := makeAuthServer(t, nil, nil, []auth.AuthMethod{auth.OIDC})
+	s, _ := makeAuthServer(t, nil, nil, []auth.AuthMethod{auth.OIDC}, "")
 
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "https://example.com/test", nil)
@@ -789,7 +789,7 @@ func TestRefreshNoToken(t *testing.T) {
 
 func TestRefreshInvalidToken(t *testing.T) {
 	g := NewGomegaWithT(t)
-	s, _ := makeAuthServer(t, nil, nil, []auth.AuthMethod{auth.OIDC})
+	s, _ := makeAuthServer(t, nil, nil, []auth.AuthMethod{auth.OIDC}, "")
 
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "https://example.com/test", nil)
@@ -819,7 +819,7 @@ func TestLogoutSuccess(t *testing.T) {
 	}
 	fakeKubernetesClient := ctrlclientfake.NewClientBuilder().WithObjects(hashedSecret).Build()
 
-	s, _ := makeAuthServer(t, fakeKubernetesClient, nil, []auth.AuthMethod{auth.UserAccount})
+	s, _ := makeAuthServer(t, fakeKubernetesClient, nil, []auth.AuthMethod{auth.UserAccount}, hashedSecret.Name)
 
 	w := httptest.NewRecorder()
 
@@ -861,7 +861,7 @@ func TestLogoutWithWrongMethod(t *testing.T) {
 	}
 	fakeKubernetesClient := ctrlclientfake.NewClientBuilder().WithObjects(hashedSecret).Build()
 
-	s, _ := makeAuthServer(t, fakeKubernetesClient, nil, []auth.AuthMethod{auth.UserAccount})
+	s, _ := makeAuthServer(t, fakeKubernetesClient, nil, []auth.AuthMethod{auth.UserAccount}, hashedSecret.Name)
 
 	w := httptest.NewRecorder()
 
@@ -871,7 +871,7 @@ func TestLogoutWithWrongMethod(t *testing.T) {
 	g.Expect(w.Result().StatusCode).To(Equal(http.StatusMethodNotAllowed))
 }
 
-func makeAuthServer(t *testing.T, client ctrlclient.Client, tsv auth.TokenSignerVerifier, authMethods []auth.AuthMethod) (*auth.AuthServer, *mockoidc.MockOIDC) {
+func makeAuthServer(t *testing.T, client ctrlclient.Client, tsv auth.TokenSignerVerifier, authMethods []auth.AuthMethod, adminSecret string) (*auth.AuthServer, *mockoidc.MockOIDC) {
 	t.Helper()
 	g := NewGomegaWithT(t)
 
@@ -901,7 +901,7 @@ func makeAuthServer(t *testing.T, client ctrlclient.Client, tsv auth.TokenSigner
 		authMethodsMap[mthd] = true
 	}
 
-	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), oidcCfg, client, tsv, testNamespace, authMethodsMap)
+	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), oidcCfg, client, tsv, testNamespace, authMethodsMap, adminSecret)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	s, err := auth.NewAuthServer(context.Background(), authCfg)
@@ -918,7 +918,7 @@ func TestAuthMethods(t *testing.T) {
 
 	authMethods := map[auth.AuthMethod]bool{}
 
-	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), auth.OIDCConfig{}, ctrlclientfake.NewClientBuilder().Build(), nil, testNamespace, authMethods)
+	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), auth.OIDCConfig{}, ctrlclientfake.NewClientBuilder().Build(), nil, testNamespace, authMethods, "")
 	g.Expect(err).NotTo(HaveOccurred())
 
 	_, err = auth.NewAuthServer(context.Background(), authCfg)
@@ -941,7 +941,7 @@ func TestAuthMethods(t *testing.T) {
 
 	authMethods = map[auth.AuthMethod]bool{auth.UserAccount: true}
 
-	authCfg, err = auth.NewAuthServerConfig(logr.Discard(), auth.OIDCConfig{}, fakeKubernetesClient, nil, testNamespace, authMethods)
+	authCfg, err = auth.NewAuthServerConfig(logr.Discard(), auth.OIDCConfig{}, fakeKubernetesClient, nil, testNamespace, authMethods, hashedSecret.Name)
 	g.Expect(err).NotTo(HaveOccurred())
 	_, err = auth.NewAuthServer(context.Background(), authCfg)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -964,7 +964,7 @@ func TestAuthMethods(t *testing.T) {
 	}
 	authMethods = map[auth.AuthMethod]bool{auth.OIDC: true}
 
-	authCfg, err = auth.NewAuthServerConfig(logr.Discard(), oidcCfg, ctrlclientfake.NewClientBuilder().Build(), nil, testNamespace, authMethods)
+	authCfg, err = auth.NewAuthServerConfig(logr.Discard(), oidcCfg, ctrlclientfake.NewClientBuilder().Build(), nil, testNamespace, authMethods, "")
 	g.Expect(err).NotTo(HaveOccurred())
 	_, err = auth.NewAuthServer(context.Background(), authCfg)
 	g.Expect(err).NotTo(HaveOccurred())

@@ -2,17 +2,18 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import "jest-styled-components";
 import _ from "lodash";
 import React from "react";
-import { withContext, withTheme } from "../../lib/test-utils";
-import { statusSortHelper } from "../../lib/utils";
-import DataTable, {
-  Field,
+import { withContext, withTheme } from "../../../lib/test-utils";
+import { statusSortHelper } from "../../../lib/utils";
+import { filterSeparator } from "../../FilterDialog";
+import DataTable from "../DataTable";
+import {
   filterByStatusCallback,
   filterConfig,
   filterRows,
   filterSelectionsToQueryString,
   parseFilterStateFromURL,
-} from "../DataTable";
-import { filterSeparator } from "../FilterDialog";
+} from "../helpers";
+import { Field } from "../types";
 
 const uriEncodedSeparator = encodeURIComponent(filterSeparator);
 

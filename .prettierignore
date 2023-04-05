@@ -10,5 +10,5 @@
 # Ignore JSON files
 *.json
 
-# Ignore MDX files
-*.mdx
+# Ignore MD and MDX files
+*.md*
