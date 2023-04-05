@@ -521,7 +521,7 @@ func (s *AuthServer) Refresh(rw http.ResponseWriter, r *http.Request) (*UserPrin
 
 	s.setCookies(rw, rawIDToken, token.AccessToken, token.RefreshToken)
 
-	return parseJWTToken(ctx, s.verifier(), rawIDToken, s.OIDCConfig.ClaimsConfig)
+	return parseJWTToken(ctx, s.verifier(), rawIDToken, s.OIDCConfig.ClaimsConfig, s.Log)
 }
 
 func toJSON(rw http.ResponseWriter, ui UserInfo, log logr.Logger) {
