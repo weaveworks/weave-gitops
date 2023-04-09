@@ -235,10 +235,10 @@ module.exports = {
         'secrets/intro',
         'secrets/getting-started',
         'secrets/bootstraping-secrets',
-        'secrets/setup-secrets-operator',
+        'secrets/setup-eso',
+        'secrets/setup-sops',
         'secrets/manage-secrets-ui',
-        'secrets/managing-secrets-with-sops',
-        'secrets/self-service',
+        // 'secrets/self-service',
         {
           type: 'category',
           label: 'Reference',
