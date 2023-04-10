@@ -8,7 +8,9 @@ import { FluxObject } from "../lib/objects";
 import { makeImageString, statusSortHelper } from "../lib/utils";
 import DataTable from "./DataTable";
 import { DetailViewProps } from "./DetailModal";
-import HealthCheckStatusIndicator from "./HealthCheckStatusIndicator";
+import HealthCheckStatusIndicator, {
+  HealthStatusType,
+} from "./HealthCheckStatusIndicator";
 import ImageLink from "./ImageLink";
 import KubeStatusIndicator, {
   computeMessage,
@@ -93,7 +95,9 @@ function FluxObjectsTable({
         {
           label: "Health Check",
           value: ({ health }) => {
-            return <HealthCheckStatusIndicator health={health} />;
+            return health.status !== HealthStatusType.Unknown ? (
+              <HealthCheckStatusIndicator health={health} />
+            ) : null;
           },
           sortValue: ({ health }: FluxObject) => health.status,
         },

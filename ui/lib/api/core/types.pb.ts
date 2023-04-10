@@ -85,6 +85,7 @@ export type Object = {
   uid?: string
   inventory?: GroupVersionKind[]
   info?: string
+  health?: HealthStatus;
 }
 
 export type Deployment = {
