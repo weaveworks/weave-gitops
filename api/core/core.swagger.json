@@ -1119,6 +1119,9 @@
         },
         "info": {
           "type": "string"
+        },
+        "health": {
+          "$ref": "#/definitions/v1HealthStatus"
         }
       }
     },
