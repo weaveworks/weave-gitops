@@ -138,6 +138,18 @@
     },
     {
       type: 'category',
+      label: 'Explorer',
+      link: {
+        type: 'doc',
+        id: 'explorer/intro',
+      },
+      items: [
+        'explorer/getting-started',
+        'explorer/configuration',
+      ],
+    },
+    {
+      type: 'category',
       label: 'Terraform',
       items: [
         'terraform/overview',
