@@ -1,7 +1,6 @@
 import AddIcon from "@material-ui/icons/Add";
 import ArrowDropDownIcon from "@material-ui/icons/ArrowDropDown";
 import ArrowUpwardIcon from "@material-ui/icons/ArrowUpward";
-import DocsIcon from "@material-ui/icons/AssignmentOutlined";
 import CheckCircleIcon from "@material-ui/icons/CheckCircle";
 import ClearIcon from "@material-ui/icons/Clear";
 import DeleteIcon from "@material-ui/icons/Delete";
@@ -13,24 +12,37 @@ import HourglassFullIcon from "@material-ui/icons/HourglassFull";
 import LaunchIcon from "@material-ui/icons/Launch";
 import NavigateBeforeIcon from "@material-ui/icons/NavigateBefore";
 import NavigateNextIcon from "@material-ui/icons/NavigateNext";
-import NotificationsBellIcon from "@material-ui/icons/NotificationsNone";
 import PauseIcon from "@material-ui/icons/Pause";
 import PersonIcon from "@material-ui/icons/Person";
 import PlayIcon from "@material-ui/icons/PlayArrow";
 import RemoveCircleIcon from "@material-ui/icons/RemoveCircle";
 import SaveAltIcon from "@material-ui/icons/SaveAlt";
 import SearchIcon from "@material-ui/icons/Search";
-import ApplicationsIcon from "@material-ui/icons/SettingsApplicationsOutlined";
 import SkipNextIcon from "@material-ui/icons/SkipNext";
 import SkipPreviousIcon from "@material-ui/icons/SkipPrevious";
 import * as React from "react";
 import styled from "styled-components";
 import images from "../lib/images";
+import DocsIcon from "./NavIcons/DocsIcon";
 // eslint-disable-next-line
 import { colors, spacing } from "../typedefs/styled";
 import Flex from "./Flex";
-import ImageAutomationIcon from "./ImageAutomationIcon";
-import SourcesIcon from "./SourcesIcon";
+import ApplicationsIcon from "./NavIcons/ApplicationsIcon";
+import ClustersIcon from "./NavIcons/ClustersIcon";
+import DeliveryIcon from "./NavIcons/DeliveryIcon";
+import FluxIcon from "./NavIcons/FluxIcon";
+import GitOpsRunIcon from "./NavIcons/GitOpsRunIcon";
+import GitOpsSetsIcon from "./NavIcons/GitOpsSetsIcon";
+import ImageAutomationIcon from "./NavIcons/ImageAutomationIcon";
+import NotificationsIcon from "./NavIcons/NotificationsIcon";
+import PipelinesIcon from "./NavIcons/PipelinesIcon";
+import PoliciesIcon from "./NavIcons/PoliciesIcon";
+import PolicyConfigsIcon from "./NavIcons/PolicyConfigsIcon";
+import SecretsIcon from "./NavIcons/SecretsIcon";
+import SourcesIcon from "./NavIcons/SourcesIcon";
+import TemplatesIcon from "./NavIcons/TemplatesIcon";
+import TerraformIcon from "./NavIcons/TerraformIcon";
+import WorkspacesIcon from "./NavIcons/WorkspacesIcon";
 import Text from "./Text";
 
 export enum IconType {
@@ -65,9 +77,20 @@ export enum IconType {
   ApplicationsIcon,
   PlayIcon,
   PauseIcon,
-  NotificationsBell,
+  NotificationsIcon,
   SourcesIcon,
   ImageAutomationIcon,
+  DeliveryIcon,
+  GitOpsRunIcon,
+  PipelinesIcon,
+  TerraformIcon,
+  GitOpsSetsIcon,
+  PoliciesIcon,
+  PolicyConfigsIcon,
+  WorkspacesIcon,
+  SecretsIcon,
+  TemplatesIcon,
+  ClustersIcon,
 }
 
 type Props = {
@@ -155,6 +178,30 @@ function getIcon(i: IconType) {
     case IconType.FileCopyIcon:
       return FileCopyIcon;
 
+    case IconType.PlayIcon:
+      return PlayIcon;
+
+    case IconType.PauseIcon:
+      return PauseIcon;
+
+    case IconType.SourcesIcon:
+      return SourcesIcon;
+
+    case IconType.ImageAutomationIcon:
+      return ImageAutomationIcon;
+
+    case IconType.DeliveryIcon:
+      return DeliveryIcon;
+
+    case IconType.GitOpsRunIcon:
+      return GitOpsRunIcon;
+
+    case IconType.PipelinesIcon:
+      return PipelinesIcon;
+
+    case IconType.TerraformIcon:
+      return TerraformIcon;
+
     case IconType.ApplicationsIcon:
       return ApplicationsIcon;
 
@@ -162,25 +209,31 @@ function getIcon(i: IconType) {
       return DocsIcon;
 
     case IconType.FluxIcon:
-      return () => <img src={images.fluxIconSrc} />;
+      return FluxIcon;
 
-    case IconType.FluxIconHover:
-      return () => <img src={images.fluxIconHoverSrc} />;
+    case IconType.GitOpsSetsIcon:
+      return GitOpsSetsIcon;
 
-    case IconType.PlayIcon:
-      return PlayIcon;
+    case IconType.NotificationsIcon:
+      return NotificationsIcon;
 
-    case IconType.PauseIcon:
-      return PauseIcon;
+    case IconType.PoliciesIcon:
+      return PoliciesIcon;
 
-    case IconType.NotificationsBell:
-      return NotificationsBellIcon;
+    case IconType.PolicyConfigsIcon:
+      return PolicyConfigsIcon;
 
-    case IconType.SourcesIcon:
-      return SourcesIcon;
+    case IconType.SecretsIcon:
+      return SecretsIcon;
 
-    case IconType.ImageAutomationIcon:
-      return ImageAutomationIcon;
+    case IconType.TemplatesIcon:
+      return TemplatesIcon;
+
+    case IconType.WorkspacesIcon:
+      return WorkspacesIcon;
+
+    case IconType.ClustersIcon:
+      return ClustersIcon;
 
     default:
       break;
@@ -202,22 +255,27 @@ function Icon({ className, type, text, color }: Props) {
 
 export default styled(Icon)`
   svg {
-    fill: ${(props) => props.theme.colors[props.color as any]} !important;
+    fill: ${(props) => props.theme.colors[props.color as any]};
     height: ${(props) => props.theme.spacing[props.size as any]};
     width: ${(props) => props.theme.spacing[props.size as any]};
     path {
-      &.image-automation {
+      &.path-fill {
         fill: ${(props) => props.theme.colors[props.color as any]} !important;
+        transition: fill 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
       }
     }
-    &.sources {
+    rect {
+      &.rect-height {
+        height: ${(props) => props.theme.spacing[props.size as any]};
+        width: ${(props) => props.theme.spacing[props.size as any]};
+      }
+      &.rect-stroke {
+        stroke: ${(props) => props.theme.colors[props.color as any]};
+        transition: stroke 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+      }
+    }
+    &.no-fill {
       fill: none !important;
-      path {
-        fill: ${(props) => props.theme.colors[props.color as any]} !important;
-      }
-      rect {
-        stroke: ${(props) => props.theme.colors[props.color as any]} !important;
-      }
     }
   }
   &.downward {

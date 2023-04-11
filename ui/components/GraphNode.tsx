@@ -7,11 +7,11 @@ import { Kind } from "../lib/api/core/types.pb";
 import images from "../lib/images";
 import { formatURL, objectTypeToRoute } from "../lib/nav";
 import { FluxObjectNode } from "../lib/objects";
+import { AltKinds } from "./DetailModal";
 import Flex from "./Flex";
 import { computeReady, ReadyType } from "./KubeStatusIndicator";
 import Link from "./Link";
 import Text from "./Text";
-
 type Props = {
   className?: string;
   object?: FluxObjectNode;
@@ -85,7 +85,7 @@ function getStatusIcon(status: ReadyType, suspended: boolean) {
 }
 
 function GraphNode({ className, object }: Props) {
-  const { setNodeYaml } = React.useContext(AppContext);
+  const { setDetailModal } = React.useContext(AppContext);
   const status = computeReady(object.conditions);
   const secret = object.type === "Secret";
 
@@ -97,6 +97,7 @@ function GraphNode({ className, object }: Props) {
       namespace: object.namespace,
       clusterName: object.clusterName,
     });
+
   return (
     <Node wide tall between className={className}>
       <StatusLine suspended={object.suspended} status={status} />
@@ -105,10 +106,10 @@ function GraphNode({ className, object }: Props) {
           {getStatusIcon(computeReady(object.conditions), object.suspended)}
           <div style={{ padding: 4 }} />
           <Tooltip
-            title={object.name.length > 23 ? object.name : ""}
+            title={object.name?.length > 23 ? object.name : ""}
             placement="top"
           >
-            {Kind[object.type] || resolved ? (
+            {(Kind[object.type] && !AltKinds[object.type]) || resolved ? (
               <div>
                 <Link
                   to={
@@ -127,7 +128,13 @@ function GraphNode({ className, object }: Props) {
             ) : (
               <Text
                 size="huge"
-                onClick={() => (secret ? null : setNodeYaml(object))}
+                onClick={() =>
+                  secret
+                    ? null
+                    : setDetailModal({
+                        object: object,
+                      })
+                }
                 color={secret ? "neutral40" : "primary10"}
                 pointer={!secret}
                 semiBold={object.isCurrentNode}

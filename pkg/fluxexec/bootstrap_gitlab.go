@@ -74,7 +74,7 @@ func (opt *TeamOption) configureBootstrapGitLab(conf *bootstrapGitLabConfig) {
 	conf.team = opt.team
 }
 
-func (flux *Flux) bootstrapGitLabCmd(ctx context.Context, opts ...BootstrapGitLabOption) (*exec.Cmd, error) {
+func (flux *Flux) bootstrapGitLabCmd(ctx context.Context, opts ...BootstrapGitLabOption) *exec.Cmd {
 	c := defaultBootstrapGitLabOptions
 	for _, opt := range opts {
 		opt.configureBootstrapGitLab(&c)
@@ -130,14 +130,11 @@ func (flux *Flux) bootstrapGitLabCmd(ctx context.Context, opts ...BootstrapGitLa
 		args = append(args, "--team", strings.Join(c.team, ","))
 	}
 
-	return flux.buildFluxCmd(ctx, flux.env, args...), nil
+	return flux.buildFluxCmd(ctx, flux.env, args...)
 }
 
 func (flux *Flux) BootstrapGitlab(ctx context.Context, opts ...BootstrapGitLabOption) error {
-	bootstrapGitLabCmd, err := flux.bootstrapGitLabCmd(ctx, opts...)
-	if err != nil {
-		return err
-	}
+	bootstrapGitLabCmd := flux.bootstrapGitLabCmd(ctx, opts...)
 
 	if err := flux.runFluxCmd(ctx, bootstrapGitLabCmd); err != nil {
 		return err

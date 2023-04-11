@@ -18,7 +18,7 @@ if advanced_go_dev_mode:
 
     local_resource(
         'gitops-server',
-        'GOOS=linux GOARCH=amd64 make gitops-server',
+        'GOOS=linux make gitops-server',
         deps=[
             './cmd',
             './pkg',
@@ -35,7 +35,7 @@ if advanced_go_dev_mode:
                 './ui',
             ]
         )
-    
+
     docker_build_with_restart(
         image_repository,
         '.',
@@ -43,7 +43,7 @@ if advanced_go_dev_mode:
             './bin',
         ],
         dockerfile="dev.dockerfile",
-        entrypoint="/app/build/gitops-server --log-level=debug --insecure",
+        entrypoint="/app/build/gitops-server --log-level=debug --insecure --admin-secret=dev-weave-gitops-user-auth",
         live_update=[
             sync('./bin', '/app/build'),
         ],

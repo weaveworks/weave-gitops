@@ -93,7 +93,7 @@ func userCanUseNamespace(ctx context.Context, auth typedauth.AuthorizationV1Inte
 		return false, err
 	}
 
-	return hasAllRules(authRes.Status, rules, ns.Name), nil
+	return hasAllRules(authRes.Status, rules), nil
 }
 
 var allK8sVerbs = []string{"create", "get", "list", "watch", "patch", "delete", "deletecollection"}
@@ -158,7 +158,7 @@ func allAPIGroups(rules []rbacv1.PolicyRule) []string {
 //
 // Secrets don't exist in "apps" according to k8s,
 // but the "index checker" that checks this struct does not mind.
-func hasAllRules(status authorizationv1.SubjectRulesReviewStatus, rules []rbacv1.PolicyRule, ns string) bool {
+func hasAllRules(status authorizationv1.SubjectRulesReviewStatus, rules []rbacv1.PolicyRule) bool {
 	derivedAccess := map[string]map[string]map[string]bool{}
 
 	allResourcesInRules := allResources(rules)

@@ -16,7 +16,7 @@ const (
 // The length can also vary by using the min and max parameters. To have a consistent length
 // such as 11, you would pass (11, 12) for the min and max respectively
 func GenerateRandomString(min, max int) (string, error) {
-	mrand.Seed(time.Now().UnixNano())
+	mrand.New(mrand.NewSource(time.Now().UnixNano()))
 
 	length := randInt(min, max)
 	value := make([]byte, length)
@@ -33,6 +33,6 @@ func GenerateRandomString(min, max int) (string, error) {
 	return string(value), nil
 }
 
-func randInt(min int, max int) int {
+func randInt(min, max int) int {
 	return min + mrand.Intn(max-min)
 }

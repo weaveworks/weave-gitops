@@ -1,13 +1,10 @@
-import { Dialog } from "@material-ui/core";
 import * as React from "react";
 import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
-import { AppContext } from "../contexts/AppContext";
 import { useSyncFluxObject } from "../hooks/automations";
-import { useGetReconciledTree, useToggleSuspend } from "../hooks/flux";
+import { useToggleSuspend } from "../hooks/flux";
 import { Condition, Kind, ObjectRef } from "../lib/api/core/types.pb";
-import { Automation, FluxObject } from "../lib/objects";
-import { RequestError } from "../lib/types";
+import { Automation } from "../lib/objects";
 import Button from "./Button";
 import CustomActions from "./CustomActions";
 import DependenciesView from "./DependenciesView";
@@ -23,7 +20,7 @@ import Spacer from "./Spacer";
 import SubRouterTabs, { RouterTab } from "./SubRouterTabs";
 import SyncButton from "./SyncButton";
 import Text from "./Text";
-import YamlView, { DialogYamlView } from "./YamlView";
+import YamlView from "./YamlView";
 
 type Props = {
   automation: Automation;
@@ -34,9 +31,6 @@ type Props = {
 };
 
 export type ReconciledObjectsAutomation = {
-  objects: FluxObject[] | undefined[];
-  error?: RequestError;
-  isLoading?: boolean;
   source: ObjectRef;
   name: string;
   namespace: string;
@@ -54,14 +48,21 @@ function AutomationDetail({
   customActions,
 }: Props) {
   const { path } = useRouteMatch();
-  const { setNodeYaml, appState } = React.useContext(AppContext);
-  const nodeYaml = appState.nodeYaml;
+  const {
+    name,
+    namespace,
+    clusterName,
+    type,
+    suspended,
+    conditions,
+    sourceRef,
+  } = automation;
   const sync = useSyncFluxObject([
     {
-      name: automation.name,
-      namespace: automation.namespace,
-      clusterName: automation.clusterName,
-      kind: Kind[automation.type],
+      name,
+      namespace,
+      clusterName,
+      kind: Kind[type],
     },
   ]);
 
@@ -80,34 +81,15 @@ function AutomationDetail({
     automation.type === Kind.HelmRelease ? "helmrelease" : "kustomizations"
   );
 
-  //grab data
-  const {
-    data: objects,
-    error,
-    isLoading,
-  } = automation
-    ? useGetReconciledTree(
-        automation.name,
-        automation.namespace,
-        Kind[automation.type],
-        automation.inventory,
-        automation.clusterName
-      )
-    : { data: [], error: null, isLoading: false };
   const reconciledObjectsAutomation: ReconciledObjectsAutomation = {
-    objects,
-    error,
-    isLoading,
-    source: automation.sourceRef,
-    name: automation.name,
-    namespace: automation.namespace,
-    suspended: automation.suspended,
-    conditions: automation.conditions,
-    type: automation.type,
-    clusterName: automation.clusterName,
+    name,
+    namespace,
+    clusterName,
+    type: Kind[type],
+    suspended,
+    conditions,
+    source: sourceRef,
   };
-
-  // default routes
   const defaultTabs: Array<routeTab> = [
     {
       name: "Details",
@@ -232,23 +214,6 @@ function AutomationDetail({
             )
         )}
       </SubRouterTabs>
-      {nodeYaml && (
-        <Dialog
-          open={!!nodeYaml}
-          onClose={() => setNodeYaml(null)}
-          maxWidth="md"
-          fullWidth
-        >
-          <DialogYamlView
-            object={{
-              name: nodeYaml.name,
-              namespace: nodeYaml.namespace,
-              kind: nodeYaml.type,
-            }}
-            yaml={nodeYaml.yaml}
-          />
-        </Dialog>
-      )}
     </Flex>
   );
 }

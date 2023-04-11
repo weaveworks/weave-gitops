@@ -1,13 +1,12 @@
 run:
   timeout: 5m
-  go: '1.18'
+  go: '1.20'
 
 linters:
   disable-all: true
   enable:
     #- containedctx
     #- contextcheck
-    - deadcode
     #- depguard
     - errcheck
     #- errchkjson
@@ -15,7 +14,7 @@ linters:
     #- gochecknoinits
     #- gci
     #- goconst
-    #- gocritic
+    - gocritic
     #- gocyclo
     #- godot
     #- gofumpt
@@ -33,11 +32,10 @@ linters:
     #- thelper
     #- tparallel
     - typecheck
-    #- unconvert
-    #- unparam
+    - unconvert
+    - unparam
     - unused
-    - varcheck
-    #- whitespace
+    - whitespace
 
 linters-settings:
   depguard:
@@ -59,6 +57,25 @@ linters-settings:
       - Prefix(github.com/weaveworks)
       - Prefix(github.com/weaveworks/weave-gitops)
   gocritic:
+    disabled-checks:
+      - appendAssign
+      - appendCombine
+      - commentedOutCode
+      - equalFold
+      - exposedSyncMutex
+      - httpNoBody
+      - hugeParam
+      - ifElseChain
+      - importShadow
+      - methodExprCall
+      - nestingReduce
+      - preferStringWriter
+      - rangeValCopy
+      - singleCaseSwitch
+      - stringConcatSimplify
+      - unlabelStmt
+      - unnamedResult
+      - whyNoLint
     enabled-tags:
       - diagnostic
       - experimental
@@ -66,7 +83,7 @@ linters-settings:
       - performance
       - style
   gofumpt:
-    lang-version: "1.18"
+    lang-version: "1.20"
     extra-rules: true
   lll:
     line-length: 150

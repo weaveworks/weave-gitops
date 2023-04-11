@@ -36,7 +36,7 @@ func NewBearerTokenPassthroughPrincipalGetter(log logr.Logger, verifier *oidc.ID
 // The token is not verified, and no ID or Group information will be available.
 func (pg *BearerTokenPassthroughPrincipalGetter) Principal(r *http.Request) (*UserPrincipal, error) {
 	token := r.Header.Get(pg.headerName)
-	if len(token) == 0 {
+	if token == "" {
 		return nil, nil
 	}
 

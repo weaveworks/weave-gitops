@@ -79,7 +79,7 @@ func sum256(data []byte) []byte {
 }
 
 // sumHMAC calculate hmac between two input byte array.
-func sumHMAC(key []byte, data []byte) []byte {
+func sumHMAC(key, data []byte) []byte {
 	hash := hmac.New(sha256.New, key)
 	hash.Write(data)
 
@@ -215,7 +215,7 @@ func getCredential(accessKeyID, location string, t time.Time, serviceType string
 //	<CanonicalHeaders>\n
 //	<SignedHeaders>\n
 //	<HashedPayload>
-func getCanonicalRequest(req http.Request, signedHeaders string, hashedPayload string) string {
+func getCanonicalRequest(req http.Request, signedHeaders, hashedPayload string) string {
 	req.URL.RawQuery = strings.ReplaceAll(req.URL.Query().Encode(), "+", "%20")
 	canonicalRequest := strings.Join([]string{
 		req.Method,
@@ -239,7 +239,7 @@ func getStringToSignV4(t time.Time, location, canonicalRequest, serviceType stri
 }
 
 // verifySignature - verify signature for S3 version '4'
-func verifySignature(req http.Request, accessKeyID string, secretAccessKey string) error {
+func verifySignature(req http.Request, accessKeyID, secretAccessKey string) error {
 	auth := req.Header.Get("Authorization")
 	if auth == "" {
 		return fmt.Errorf("header Authorization is missing")

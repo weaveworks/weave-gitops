@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	coretypes "github.com/weaveworks/weave-gitops/core/server/types"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/run"
 	"github.com/weaveworks/weave-gitops/pkg/run/constants"
@@ -40,7 +41,7 @@ func InstallDevBucketServer(
 	var (
 		err                error
 		devBucketAppLabels = map[string]string{
-			"app": constants.RunDevBucketName,
+			coretypes.AppLabel: constants.RunDevBucketName,
 		}
 	)
 
@@ -273,7 +274,7 @@ func InstallDevBucketServer(
 	// get pod from specMap
 	namespacedName := types.NamespacedName{Namespace: specMap.Namespace, Name: specMap.Name}
 
-	pod, err := run.GetPodFromResourceDescription(ctx, namespacedName, specMap.Kind, kubeClient)
+	pod, err := run.GetPodFromResourceDescription(ctx, kubeClient, namespacedName, specMap.Kind, nil)
 	if err != nil {
 		log.Failuref("Error getting pod from specMap: %v", err)
 	}
@@ -314,8 +315,12 @@ func UninstallDevBucketServer(ctx context.Context, log logger.Logger, kubeClient
 	log.Actionf("Removing namespace %s ...", constants.GitOpsRunNamespace)
 
 	if err := kubeClient.Delete(ctx, &devBucketNamespace); err != nil {
-		log.Failuref("Cannot remove namespace %s", constants.GitOpsRunNamespace)
-		return err
+		if !apierrors.IsNotFound(err) {
+			log.Failuref("Cannot remove namespace %s", constants.GitOpsRunNamespace)
+			return err
+		} else {
+			return nil
+		}
 	}
 
 	log.Actionf("Waiting for namespace %s to be terminated ...", constants.GitOpsRunNamespace)

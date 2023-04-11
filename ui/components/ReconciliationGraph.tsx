@@ -2,6 +2,8 @@ import { Slider } from "@material-ui/core";
 import * as d3 from "d3";
 import * as React from "react";
 import styled from "styled-components";
+import { useGetInventory } from "../hooks/inventory";
+import { FluxObject } from "../lib/objects";
 import { ReconciledObjectsAutomation } from "./AutomationDetail";
 import DirectedGraph from "./DirectedGraph";
 import Flex from "./Flex";
@@ -36,18 +38,39 @@ function ReconciliationGraph({
   className,
   reconciledObjectsAutomation,
 }: Props) {
-  const {
-    name,
-    namespace,
-    suspended,
-    conditions,
+  const { type, name, clusterName, namespace } = reconciledObjectsAutomation;
+  const { data, isLoading, error } = useGetInventory(
     type,
+    name,
     clusterName,
-    objects,
-    isLoading,
-    error,
-    source,
-  } = reconciledObjectsAutomation;
+    namespace,
+    true
+  );
+
+  return (
+    <RequestStateHandler loading={isLoading} error={error}>
+      {data?.objects && (
+        <Graph
+          className={className}
+          reconciledObjectsAutomation={reconciledObjectsAutomation}
+          objects={data.objects}
+        />
+      )}
+    </RequestStateHandler>
+  );
+}
+interface GraphProps {
+  className?: string;
+  reconciledObjectsAutomation: ReconciledObjectsAutomation;
+  objects: FluxObject[];
+}
+export const Graph = ({
+  className,
+  reconciledObjectsAutomation,
+  objects,
+}: GraphProps) => {
+  const { type, name, clusterName, namespace, suspended, conditions, source } =
+    reconciledObjectsAutomation;
 
   //add extra nodes
   const secondNode = {
@@ -60,13 +83,13 @@ function ReconciliationGraph({
     children: objects,
     isCurrentNode: true,
   };
-
   const rootNode = {
     ...source,
     type: source?.kind,
     clusterName,
     children: [secondNode],
   };
+
   //graph numbers
   const nodeSize = {
     width: 800,
@@ -74,6 +97,7 @@ function ReconciliationGraph({
     verticalSeparation: 150,
     horizontalSeparation: 100,
   };
+
   //use d3 to create tree structure
   const root = d3.hierarchy(rootNode, (d) => d.children);
   const makeTree = d3
@@ -85,6 +109,7 @@ function ReconciliationGraph({
     .separation(() => 1);
   const tree = makeTree(root);
   const descendants = tree.descendants();
+
   const links = tree.links();
 
   //zoom
@@ -104,41 +129,37 @@ function ReconciliationGraph({
   const handleMouseUp = () => {
     setIsPanning(false);
   };
-
   return (
-    <RequestStateHandler loading={isLoading} error={error}>
-      <Flex className={className} wide tall>
-        <GraphDiv
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          //ends drag event if mouse leaves svg
-          onMouseLeave={handleMouseUp}
-        >
-          <DirectedGraph
-            descendants={descendants}
-            links={links}
-            nodeSize={nodeSize}
-            zoomPercent={zoomPercent}
-            pan={pan}
-          />
-        </GraphDiv>
-        <SliderFlex tall column align>
-          <Slider
-            onChange={(_, value: number) => setZoomPercent(value)}
-            defaultValue={defaultZoomPercent}
-            orientation="vertical"
-            aria-label="zoom"
-            min={5}
-          />
-          <Spacer padding="xs" />
-          <PercentFlex>{zoomPercent}%</PercentFlex>
-        </SliderFlex>
-      </Flex>
-    </RequestStateHandler>
+    <Flex className={className} wide tall>
+      <GraphDiv
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        //ends drag event if mouse leaves svg
+        onMouseLeave={handleMouseUp}
+      >
+        <DirectedGraph
+          descendants={descendants}
+          links={links}
+          nodeSize={nodeSize}
+          zoomPercent={zoomPercent}
+          pan={pan}
+        />
+      </GraphDiv>
+      <SliderFlex tall column align>
+        <Slider
+          onChange={(_, value: number) => setZoomPercent(value)}
+          defaultValue={defaultZoomPercent}
+          orientation="vertical"
+          aria-label="zoom"
+          min={5}
+        />
+        <Spacer padding="xs" />
+        <PercentFlex>{zoomPercent}%</PercentFlex>
+      </SliderFlex>
+    </Flex>
   );
-}
-
+};
 export default styled(ReconciliationGraph)`
   .MuiSlider-vertical {
     min-height: 400px;

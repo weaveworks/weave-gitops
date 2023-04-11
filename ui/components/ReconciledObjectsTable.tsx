@@ -1,6 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
 import { AppContext } from "../contexts/AppContext";
+import { useGetInventory } from "../hooks/inventory";
 import { ReconciledObjectsAutomation } from "./AutomationDetail";
 import { filterByStatusCallback, filterConfig } from "./DataTable";
 import FluxObjectsTable from "./FluxObjectsTable";
@@ -15,22 +16,29 @@ function ReconciledObjectsTable({
   className,
   reconciledObjectsAutomation,
 }: Props) {
-  const { objects, isLoading, error } = reconciledObjectsAutomation;
+  const { type, name, clusterName, namespace } = reconciledObjectsAutomation;
+  const { data, isLoading, error } = useGetInventory(
+    type,
+    name,
+    clusterName,
+    namespace,
+    false
+  );
 
   const initialFilterState = {
-    ...filterConfig(objects, "type"),
-    ...filterConfig(objects, "namespace"),
-    ...filterConfig(objects, "status", filterByStatusCallback),
+    ...filterConfig(data?.objects, "type"),
+    ...filterConfig(data?.objects, "namespace"),
+    ...filterConfig(data?.objects, "status", filterByStatusCallback),
   };
 
-  const { setNodeYaml } = React.useContext(AppContext);
+  const { setDetailModal } = React.useContext(AppContext);
 
   return (
     <RequestStateHandler loading={isLoading} error={error}>
       <FluxObjectsTable
         className={className}
-        objects={objects}
-        onClick={setNodeYaml}
+        objects={data?.objects}
+        onClick={setDetailModal}
         initialFilterState={initialFilterState}
       />
     </RequestStateHandler>

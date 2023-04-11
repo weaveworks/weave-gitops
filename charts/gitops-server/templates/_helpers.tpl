@@ -51,6 +51,14 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
+App selector labels
+*/}}
+{{- define "chart.appSelectorLabels" -}}
+app.kubernetes.io/part-of: weave-gitops
+weave.works/app: weave-gitops-oss
+{{- end }}
+
+{{/*
 Create the name of the service account to use
 */}}
 {{- define "chart.serviceAccountName" -}}
@@ -74,4 +82,15 @@ Return the target Kubernetes version
 {{- else }}
 {{- default .Capabilities.KubeVersion.Version .Values.kubeVersion -}}
 {{- end -}}
+{{- end -}}
+
+{{/*
+Create the name of the admin credentials secret to use
+*/}}
+{{- define "chart.adminUserSecret" -}}
+{{- if (and .Values.adminUser.create .Values.adminUser.createSecret) }}
+{{- include "chart.fullname" . }}-user-auth
+{{- else }}
+{{- .Values.adminUser.secretName }}
+{{- end }}
 {{- end -}}

@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"sort"
 	"strings"
+	"sync"
 
 	"github.com/go-logr/logr"
 	"github.com/mattn/go-tty"
@@ -90,7 +91,33 @@ func generalizeKind(kind string) string {
 	}
 }
 
-func ForwardPort(log logr.Logger, pod *corev1.Pod, cfg *rest.Config, specMap *PortForwardSpec, waitFwd chan struct{}, readyChannel chan struct{}) error {
+type safeBuffer struct {
+	buffer bytes.Buffer
+	mux    sync.RWMutex
+}
+
+func (sb *safeBuffer) Write(p []byte) (n int, err error) {
+	sb.mux.Lock()
+	defer sb.mux.Unlock()
+
+	return sb.buffer.Write(p)
+}
+
+func (sb *safeBuffer) Len() int {
+	sb.mux.RLock()
+	defer sb.mux.RUnlock()
+
+	return sb.buffer.Len()
+}
+
+func (sb *safeBuffer) String() string {
+	sb.mux.RLock()
+	defer sb.mux.RUnlock()
+
+	return sb.buffer.String()
+}
+
+func ForwardPort(log logr.Logger, pod *corev1.Pod, cfg *rest.Config, specMap *PortForwardSpec, waitFwd, readyChannel chan struct{}) error {
 	reqURL, err := url.Parse(
 		fmt.Sprintf("%s/api/v1/namespaces/%s/pods/%s/portforward",
 			cfg.Host,
@@ -109,8 +136,8 @@ func ForwardPort(log logr.Logger, pod *corev1.Pod, cfg *rest.Config, specMap *Po
 
 	dialer := spdy.NewDialer(upgrader, &http.Client{Transport: transport}, "POST", reqURL)
 
-	outStd := bytes.Buffer{}
-	outErr := bytes.Buffer{}
+	outStd := safeBuffer{}
+	outErr := safeBuffer{}
 
 	fw, err2 := portforward.NewOnAddresses(
 		dialer,

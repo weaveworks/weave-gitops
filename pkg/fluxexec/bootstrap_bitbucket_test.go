@@ -2,6 +2,7 @@ package fluxexec
 
 import (
 	"context"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
@@ -12,8 +13,7 @@ var _ = Describe("bootstrapBitBucketServerCmd", func() {
 			flux, err := NewFlux(".", "/path/to/flux")
 			Expect(err).To(BeNil())
 
-			initCmd, err := flux.bootstrapBitbucketServerCmd(context.TODO())
-			Expect(err).To(BeNil())
+			initCmd := flux.bootstrapBitbucketServerCmd(context.TODO())
 			Expect(initCmd.Args[1:]).To(Equal([]string{
 				"bootstrap",
 				"bitbucket-server",
@@ -24,7 +24,7 @@ var _ = Describe("bootstrapBitBucketServerCmd", func() {
 			flux, err := NewFlux(".", "/path/to/flux")
 			Expect(err).To(BeNil())
 
-			initCmd, err := flux.bootstrapBitbucketServerCmd(context.TODO(),
+			initCmd := flux.bootstrapBitbucketServerCmd(context.TODO(),
 				WithGlobalOptions(
 					Namespace("weave-gitops-system"),
 				),
@@ -34,7 +34,6 @@ var _ = Describe("bootstrapBitBucketServerCmd", func() {
 				),
 				Group("group1", "group2"),
 			)
-			Expect(err).To(BeNil())
 			Expect(initCmd.Args[1:]).To(Equal([]string{
 				"bootstrap",
 				"bitbucket-server",

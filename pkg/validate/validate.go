@@ -16,7 +16,7 @@ import (
 	"github.com/yannh/kubeconform/pkg/validator"
 )
 
-func Validate(targetDir string, kubernetesVersion string, fluxVersion string) error {
+func Validate(targetDir, kubernetesVersion, fluxVersion string) error {
 	var (
 		o     output.Output
 		err   error
@@ -30,7 +30,7 @@ func Validate(targetDir string, kubernetesVersion string, fluxVersion string) er
 
 	fluxSchemaDir := filepath.Join(userCacheDir, ".gitops", "flux", "schemas")
 	if _, err := os.Stat(fluxSchemaDir); os.IsNotExist(err) {
-		if err := os.MkdirAll(fluxSchemaDir, 0755); err != nil {
+		if err := os.MkdirAll(fluxSchemaDir, 0o755); err != nil {
 			return err
 		}
 
@@ -105,7 +105,7 @@ func Validate(targetDir string, kubernetesVersion string, fluxVersion string) er
 
 	cacheDir := filepath.Join(userCacheDir, ".gitops", "schema-cache")
 	// make sure the cache directory exists
-	if err := os.MkdirAll(cacheDir, 0755); err != nil {
+	if err := os.MkdirAll(cacheDir, 0o755); err != nil {
 		return err
 	}
 
@@ -283,7 +283,7 @@ func untar(destDir string, r io.Reader) (retErr error) {
 		// if it's a dir and doesn't exist create it
 		case tar.TypeDir:
 			if _, err := os.Stat(target); err != nil {
-				if err := os.MkdirAll(target, 0755); err != nil {
+				if err := os.MkdirAll(target, 0o755); err != nil {
 					return err
 				}
 			}

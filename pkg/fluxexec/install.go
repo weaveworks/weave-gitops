@@ -81,10 +81,7 @@ func (opt *WatchAllNamespacesOption) configureInstall(conf *installConfig) {
 }
 
 func (flux *Flux) Install(ctx context.Context, opts ...InstallOption) error {
-	installCmd, err := flux.installCmd(ctx, opts...)
-	if err != nil {
-		return err
-	}
+	installCmd := flux.installCmd(ctx, opts...)
 
 	if err := flux.runFluxCmd(ctx, installCmd); err != nil {
 		return err
@@ -93,7 +90,7 @@ func (flux *Flux) Install(ctx context.Context, opts ...InstallOption) error {
 	return nil
 }
 
-func (flux *Flux) installCmd(ctx context.Context, opts ...InstallOption) (*exec.Cmd, error) {
+func (flux *Flux) installCmd(ctx context.Context, opts ...InstallOption) *exec.Cmd {
 	c := defaultInstallOptions
 	for _, o := range opts {
 		o.configureInstall(&c)
@@ -155,5 +152,5 @@ func (flux *Flux) installCmd(ctx context.Context, opts ...InstallOption) (*exec.
 		args = append(args, "--components-extra", strings.Join(extras, ","))
 	}
 
-	return flux.buildFluxCmd(ctx, nil, args...), nil
+	return flux.buildFluxCmd(ctx, nil, args...)
 }

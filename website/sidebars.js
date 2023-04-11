@@ -9,7 +9,7 @@
  Create as many sidebars as you want.
  */
 
-module.exports = {
+ module.exports = {
   docs: [
     {
       type: 'category',
@@ -216,8 +216,9 @@ module.exports = {
       },
       items: [
         'policy/getting-started',
+        'policy/authorization',
+        'policy/policy',
         'policy/weave-policy-profile',
-        'policy/configuration',
         'policy/policy-set',
         'policy/policy-configuration',
         'policy/releases',
@@ -257,10 +258,32 @@ module.exports = {
     {
       type: 'category',
       label: 'Templates',
+      link: {
+        type: 'doc',
+        id: 'gitops-templates/intro',
+      },
       items: [
-        'gitops-templates/templates',
         'gitops-templates/quickstart-templates',
+        {
+          type: 'category',
+          label: 'Creating Templates',
+          link: {
+            type: 'doc',
+            id: 'gitops-templates/creating-templates',
+          },
+          items: [
+            'gitops-templates/resource-templates',
+            'gitops-templates/repo-rendered-paths',
+            'gitops-templates/profiles',
+            'gitops-templates/annotations',
+            'gitops-templates/params',
+            'gitops-templates/supported-langs',
+            'gitops-templates/create-cluster-example',
+            'gitops-templates/capd-example',
+          ],
+        },
         'gitops-templates/cli',
+        'gitops-templates/versions',
       ],
     },
     {
@@ -268,11 +291,10 @@ module.exports = {
       label: 'GitOpsSets',
       items: [
         'gitopssets/intro',
-        'gitopssets/features',
-        'gitopssets/list-generator',
-        'gitopssets/git-generator',
-        'gitopssets/matrix-generator',
-        'gitopssets/pull-request-generator',
+        'gitopssets/installation',
+        'gitopssets/guide',
+        'gitopssets/api-reference',
+        'gitopssets/releases'
       ],
     }
   ],
