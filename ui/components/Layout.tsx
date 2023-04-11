@@ -45,6 +45,11 @@ const navItems: NavItem[] = [
     icon: IconType.NotificationsIcon,
   },
   {
+    label: "GitOps Run",
+    link: { value: V2Routes.Sources },
+    icon: IconType.GitOpsRunIcon,
+  },
+  {
     label: "Docs",
     link: {
       value: "docs",

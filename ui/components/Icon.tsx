@@ -263,6 +263,10 @@ export default styled(Icon)`
         fill: ${(props) => props.theme.colors[props.color as any]} !important;
         transition: fill 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
       }
+      &.stroke-fill {
+        stroke: ${(props) => props.theme.colors[props.color as any]} !important;
+        transition: fill 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+      }
     }
     rect {
       &.rect-height {
@@ -273,9 +277,6 @@ export default styled(Icon)`
         stroke: ${(props) => props.theme.colors[props.color as any]};
         transition: stroke 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
       }
-    }
-    &.no-fill {
-      fill: none !important;
     }
   }
   &.downward {
