@@ -146,6 +146,8 @@
       items: [
         'explorer/getting-started',
         'explorer/configuration',
+        'explorer/querying',
+        'explorer/operations',
       ],
     },
     {

@@ -11,61 +11,29 @@ import AlphaWarning from "../_components/_alpha_warning.mdx";
 <AlphaWarning/>
 
 ## Prerequisites
+Before using Explorer, please ensure that:
+- You have Weave Gitops Enterprise [v0.21.0](../../releases)
 
-Before using Pipelines, please ensure that:
+## Enable
 
-## Define a pipeline
+// Feature Flag configuration to enable
 
-A pipeline allows you to define the route your application is taking in order to make it to production.
-There are three main concepts playing in a pipeline:
-- the `application` to deliver
-- the `environments` that your app will go through in its way to production (general)
-- the `deployment targets` or the clusters that each environment has
 
-You can define a delivery pipeline using a `Pipeline` custom resource.
-An example of how it looks for an application `podinfo` is shown below.
+## Security
 
-<details><summary>Expand to view</summary>
 
-```yaml
----
-apiVersion: pipelines.weave.works/v1alpha1
-kind: Pipeline
-metadata:
-  name: podinfo-02
-  namespace: flux-system
-spec:
-  appRef:
-    apiVersion: helm.toolkit.fluxcd.io/v2beta1
-    kind: HelmRelease
-    name: podinfo
-  environments:
-    - name: dev
-      targets:
-        - namespace: podinfo-02-dev
-          clusterRef:
-            kind: GitopsCluster
-            name: dev
-            namespace: flux-system
-    - name: test
-      targets:
-        - namespace: podinfo-02-qa
-          clusterRef:
-            kind: GitopsCluster
-            name: dev
-            namespace: flux-system
-        - namespace: podinfo-02-perf
-          clusterRef:
-            kind: GitopsCluster
-            name: dev
-            namespace: flux-system
-    - name: prod
-      targets:
-        - namespace: podinfo-02-prod
-          clusterRef:
-            kind: GitopsCluster
-            name: prod
-            namespace: flux-system
-```
+### Management Cluster
 
-</details>
+// What are the security considerations for using explorer in management cluster
+
+### Leaf Cluster
+
+
+// What are the security considerations for using explorer in management cluster
+
+
+## Next Steps
+- See [configuration](./configuration.mdx) for that.
+- See options query language.
+
+
