@@ -10,8 +10,34 @@ import AlphaWarning from "../_components/_alpha_warning.mdx";
 
 <AlphaWarning/>
 
-// Explorer the problem it solves
+As platform engineer or as developer, your applications and platform services will likely span multiple kubernetes clusters
+or infrastructure components.  In order to manage and operate them you require a platform capability that
+allows you to discover the resources from a single place.
 
-// The current value it provides
+Explorer is that capability that allows any platform user to discover platform resources from a single place
+across all your kubernetes clusters.
 
-Now that you know what Explorer can do for you, follow [getting started](../getting-started).
+![explorer](imgs/explorer-ui.png)
+
+## FAQ
+
+### Which journeys would be able to use explorer for?
+
+Explorer is better suited for journeys matching the discovery of resources across the platform resources inventory.
+
+### Which journeys would be better using other weave gitops capabilities for?
+
+If you have a particular resources you want to manage, weave gitops offers single resource experience
+for almost every resource.
+
+### Which Kinds does explorer support?
+
+The following resources are currently suppported:
+
+- Flux HelmRelease https://fluxcd.io/flux/components/helm/helmreleases/
+- Flux Kustomizations https://fluxcd.io/flux/components/kustomize/kustomization/
+
+## Next Steps
+
+Now that you know what Explorer is, follow [getting started](../getting-started) to quickly have a feeling
+of what Explorer can do for you.
