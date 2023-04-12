@@ -1,0 +1,169 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    prometheus.io/port: "9797"
+    prometheus.io/scrape: "true"
+  creationTimestamp: "2023-03-31T13:07:45Z"
+  generateName: podinfo-74fb7649cd-
+  labels:
+    app: podinfo
+    pod-template-hash: 74fb7649cd
+  name: podinfo-74fb7649cd-64nbx
+  namespace: default
+  ownerReferences:
+  - apiVersion: apps/v1
+    blockOwnerDeletion: true
+    controller: true
+    kind: ReplicaSet
+    name: podinfo-74fb7649cd
+    uid: ef559e14-0b70-47a9-affc-0ba6c3f5dbfd
+  resourceVersion: "4967248"
+  uid: a6ed82ea-43b5-4669-b011-28bdd7ecd6b7
+spec:
+  containers:
+  - command:
+    - ./podinfo
+    - --port=9898
+    - --port-metrics=9797
+    - --grpc-port=9999
+    - --grpc-service-name=podinfo
+    - --level=info
+    - --random-delay=false
+    - --random-error=false
+    env:
+    - name: PODINFO_UI_COLOR
+      value: '#34577c'
+    image: ghcr.io/stefanprodan/podinfo:6.3.5
+    imagePullPolicy: IfNotPresent
+    livenessProbe:
+      exec:
+        command:
+        - podcli
+        - check
+        - http
+        - localhost:9898/healthz
+      failureThreshold: 3
+      initialDelaySeconds: 5
+      periodSeconds: 10
+      successThreshold: 1
+      timeoutSeconds: 5
+    name: podinfod
+    ports:
+    - containerPort: 9898
+      name: http
+      protocol: TCP
+    - containerPort: 9797
+      name: http-metrics
+      protocol: TCP
+    - containerPort: 9999
+      name: grpc
+      protocol: TCP
+    readinessProbe:
+      exec:
+        command:
+        - podcli
+        - check
+        - http
+        - localhost:9898/readyz
+      failureThreshold: 3
+      initialDelaySeconds: 5
+      periodSeconds: 10
+      successThreshold: 1
+      timeoutSeconds: 5
+    resources:
+      limits:
+        cpu: "2"
+        memory: 512Mi
+      requests:
+        cpu: 100m
+        memory: 64Mi
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-629r9
+      readOnly: true
+  dnsPolicy: ClusterFirst
+  enableServiceLinks: true
+  nodeName: wge-dev-control-plane
+  preemptionPolicy: PreemptLowerPriority
+  priority: 0
+  restartPolicy: Always
+  schedulerName: default-scheduler
+  securityContext: {}
+  serviceAccount: default
+  serviceAccountName: default
+  terminationGracePeriodSeconds: 30
+  tolerations:
+  - effect: NoExecute
+    key: node.kubernetes.io/not-ready
+    operator: Exists
+    tolerationSeconds: 300
+  - effect: NoExecute
+    key: node.kubernetes.io/unreachable
+    operator: Exists
+    tolerationSeconds: 300
+  volumes:
+  - name: kube-api-access-629r9
+    projected:
+      defaultMode: 420
+      sources:
+      - serviceAccountToken:
+          expirationSeconds: 3607
+          path: token
+      - configMap:
+          items:
+          - key: ca.crt
+            path: ca.crt
+          name: kube-root-ca.crt
+      - downwardAPI:
+          items:
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+            path: namespace
+status:
+  conditions:
+  - lastProbeTime: null
+    lastTransitionTime: "2023-03-31T13:07:45Z"
+    status: "True"
+    type: Initialized
+  - lastProbeTime: null
+    lastTransitionTime: "2023-04-04T12:49:59Z"
+    status: "True"
+    type: Ready
+  - lastProbeTime: null
+    lastTransitionTime: "2023-04-04T12:49:59Z"
+    status: "True"
+    type: ContainersReady
+  - type: PodScheduled
+    status: "False"
+    lastTransitionTime: "2023-04-04T10:15:00Z"
+    reason: Unschedulable
+    message: '0/3 nodes are available: 3 Insufficient cpu.'
+  containerStatuses:
+  - containerID: containerd://49f235e75a5f74d47639e84ab1c52dd9f61ac151eba5f07362c2da8678d9e134
+    image: ghcr.io/stefanprodan/podinfo:6.3.5
+    imageID: ghcr.io/stefanprodan/podinfo@sha256:b68bfced7e4dbf9961c33bab7a36c5b80364dbd3390a496e9801411987ca296a
+    lastState:
+      terminated:
+        containerID: containerd://1c895e8da94cea97b6eaa885c450751e4af5ec41e1517b26b83aff95951ed810
+        exitCode: 0
+        finishedAt: "2023-04-04T12:49:40Z"
+        reason: Completed
+        startedAt: "2023-04-04T12:38:40Z"
+    name: podinfod
+    ready: true
+    restartCount: 9
+    started: true
+    state:
+      running:
+        startedAt: "2023-04-04T12:49:43Z"
+  hostIP: 172.18.0.2
+  phase: Pending
+  podIP: 10.244.0.42
+  podIPs:
+  - ip: 10.244.0.42
+  qosClass: Burstable
+  startTime: "2023-03-31T13:07:45Z"

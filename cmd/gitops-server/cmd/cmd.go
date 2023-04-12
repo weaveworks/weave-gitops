@@ -32,6 +32,7 @@ import (
 	"github.com/weaveworks/weave-gitops/core/nsaccess"
 	core "github.com/weaveworks/weave-gitops/core/server"
 	"github.com/weaveworks/weave-gitops/pkg/featureflags"
+	"github.com/weaveworks/weave-gitops/pkg/health"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
@@ -215,7 +216,9 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	clustersManager := clustersmngr.NewClustersManager([]clustersmngr.ClusterFetcher{fetcher}, nsaccess.NewChecker(nsaccess.DefautltWegoAppRules), log)
 	clustersManager.Start(ctx)
 
-	coreConfig, err := core.NewCoreConfig(log, rest, clusterName, clustersManager)
+	healthChecker := health.NewHealthChecker()
+
+	coreConfig, err := core.NewCoreConfig(log, rest, clusterName, clustersManager, healthChecker)
 	if err != nil {
 		return fmt.Errorf("could not create core config: %w", err)
 	}

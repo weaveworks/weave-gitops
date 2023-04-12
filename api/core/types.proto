@@ -66,11 +66,17 @@ message NamespacedObjectReference {
     string namespace = 2;
 }
 
+message HealthStatus {
+    string status = 1;
+    string message = 2;
+}
+
 message InventoryEntry {
     string payload = 1;
     string tenant = 2;
     string clusterName = 3;
-    repeated InventoryEntry children = 4;
+    HealthStatus health = 4;
+    repeated InventoryEntry children = 5;
 }
 
 message Object {
@@ -80,6 +86,7 @@ message Object {
     string   uid                        = 4;
     repeated GroupVersionKind inventory = 5;
     string   info                       = 6;
+    HealthStatus health                 = 7;
 }
 
 message Deployment {

@@ -1,0 +1,167 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    prometheus.io/port: "9797"
+    prometheus.io/scrape: "true"
+  creationTimestamp: "2023-04-04T13:09:47Z"
+  generateName: podinfo-5f98dfcf66-
+  labels:
+    app: podinfo
+    pod-template-hash: 5f98dfcf66
+  name: podinfo-5f98dfcf66-rnj6c
+  namespace: default
+  ownerReferences:
+  - apiVersion: apps/v1
+    blockOwnerDeletion: true
+    controller: true
+    kind: ReplicaSet
+    name: podinfo-5f98dfcf66
+    uid: 34175008-0ed8-4366-94f8-06c75e72cd62
+  resourceVersion: "4977417"
+  uid: fbafc718-2101-4726-88cb-e8d8f6b6e955
+spec:
+  containers:
+  - command:
+    - ./podinfo
+    - --port=9898
+    - --port-metrics=9797
+    - --grpc-port=9999
+    - --grpc-service-name=podinfo
+    - --level=info
+    - --random-delay=false
+    - --random-error=false
+    env:
+    - name: PODINFO_UI_COLOR
+      value: '#34577c'
+    image: ghcr.io/stefanprodan/podinfo-broken:6.3.5
+    imagePullPolicy: IfNotPresent
+    livenessProbe:
+      exec:
+        command:
+        - podcli
+        - check
+        - http
+        - localhost:9898/healthz
+      failureThreshold: 3
+      initialDelaySeconds: 5
+      periodSeconds: 10
+      successThreshold: 1
+      timeoutSeconds: 5
+    name: podinfod
+    ports:
+    - containerPort: 9898
+      name: http
+      protocol: TCP
+    - containerPort: 9797
+      name: http-metrics
+      protocol: TCP
+    - containerPort: 9999
+      name: grpc
+      protocol: TCP
+    readinessProbe:
+      exec:
+        command:
+        - podcli
+        - check
+        - http
+        - localhost:9898/readyz
+      failureThreshold: 3
+      initialDelaySeconds: 5
+      periodSeconds: 10
+      successThreshold: 1
+      timeoutSeconds: 5
+    resources:
+      limits:
+        cpu: "2"
+        memory: 512Mi
+      requests:
+        cpu: 100m
+        memory: 64Mi
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-8rk2j
+      readOnly: true
+  dnsPolicy: ClusterFirst
+  enableServiceLinks: true
+  nodeName: wge-dev-control-plane
+  preemptionPolicy: PreemptLowerPriority
+  priority: 0
+  restartPolicy: Always
+  schedulerName: default-scheduler
+  securityContext: {}
+  serviceAccount: default
+  serviceAccountName: default
+  terminationGracePeriodSeconds: 30
+  tolerations:
+  - effect: NoExecute
+    key: node.kubernetes.io/not-ready
+    operator: Exists
+    tolerationSeconds: 300
+  - effect: NoExecute
+    key: node.kubernetes.io/unreachable
+    operator: Exists
+    tolerationSeconds: 300
+  volumes:
+  - name: kube-api-access-8rk2j
+    projected:
+      defaultMode: 420
+      sources:
+      - serviceAccountToken:
+          expirationSeconds: 3607
+          path: token
+      - configMap:
+          items:
+          - key: ca.crt
+            path: ca.crt
+          name: kube-root-ca.crt
+      - downwardAPI:
+          items:
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+            path: namespace
+status:
+  conditions:
+  - lastProbeTime: null
+    lastTransitionTime: "2023-04-04T13:09:47Z"
+    status: "True"
+    type: Initialized
+  - lastProbeTime: null
+    lastTransitionTime: "2023-04-04T13:09:47Z"
+    message: 'containers with unready status: [podinfod[]'
+    reason: ContainersNotReady
+    status: "False"
+    type: Ready
+  - lastProbeTime: null
+    lastTransitionTime: "2023-04-04T13:09:47Z"
+    message: 'containers with unready status: [podinfod[]'
+    reason: ContainersNotReady
+    status: "False"
+    type: ContainersReady
+  - lastProbeTime: null
+    lastTransitionTime: "2023-04-04T13:09:47Z"
+    status: "True"
+    type: PodScheduled
+  containerStatuses:
+  - image: ghcr.io/stefanprodan/podinfo-broken:6.3.5
+    imageID: ""
+    lastState: {}
+    name: podinfod
+    ready: false
+    restartCount: 0
+    started: false
+    state:
+      waiting:
+        reason: ImagePullBackOff
+        message: 'Back-off pulling image "my-image:v1"'
+  hostIP: 172.18.0.2
+  phase: Failed
+  podIP: 10.244.0.60
+  message: 'Error: ImagePullBackOff'
+  podIPs:
+  - ip: 10.244.0.60
+  qosClass: Burstable
+  startTime: "2023-04-04T13:09:47Z"

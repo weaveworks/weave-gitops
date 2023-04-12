@@ -9,6 +9,7 @@ import (
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/nsaccess"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
+	"github.com/weaveworks/weave-gitops/pkg/health"
 	"github.com/weaveworks/weave-gitops/pkg/services/crd"
 	"k8s.io/client-go/rest"
 )
@@ -36,6 +37,7 @@ type coreServer struct {
 	clustersManager clustersmngr.ClustersManager
 	primaryKinds    *PrimaryKinds
 	crd             crd.Fetcher
+	healthChecker   health.HealthChecker
 }
 
 type CoreServerConfig struct {
@@ -46,9 +48,10 @@ type CoreServerConfig struct {
 	ClustersManager clustersmngr.ClustersManager
 	PrimaryKinds    *PrimaryKinds
 	CRDService      crd.Fetcher
+	HealthChecker   health.HealthChecker
 }
 
-func NewCoreConfig(log logr.Logger, cfg *rest.Config, clusterName string, clustersManager clustersmngr.ClustersManager) (CoreServerConfig, error) {
+func NewCoreConfig(log logr.Logger, cfg *rest.Config, clusterName string, clustersManager clustersmngr.ClustersManager, healthChecker health.HealthChecker) (CoreServerConfig, error) {
 	kinds, err := DefaultPrimaryKinds()
 	if err != nil {
 		return CoreServerConfig{}, err
@@ -61,6 +64,7 @@ func NewCoreConfig(log logr.Logger, cfg *rest.Config, clusterName string, cluste
 		NSAccess:        nsaccess.NewChecker(nsaccess.DefautltWegoAppRules),
 		ClustersManager: clustersManager,
 		PrimaryKinds:    kinds,
+		HealthChecker:   healthChecker,
 	}, nil
 }
 
@@ -75,5 +79,6 @@ func NewCoreServer(cfg CoreServerConfig) (pb.CoreServer, error) {
 		clustersManager: cfg.ClustersManager,
 		primaryKinds:    cfg.PrimaryKinds,
 		crd:             cfg.CRDService,
+		healthChecker:   cfg.HealthChecker,
 	}, nil
 }
