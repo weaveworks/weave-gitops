@@ -9,6 +9,8 @@ import TabItem from "@theme/TabItem";
 import TierLabel from "../../_components/TierLabel";
 import CurlCodeBlock from "../../_components/CurlCodeBlock";
 import oauthBitbucket from '/img/oauth-bitbucket.png';
+import oauthAzureDevOps from '/img/oauth-azure-devops.png';
+import oauthAzureDevOpsSuccess from '/img/oauth-azure-devops-success.png';
 
 ## Installing Weave GitOps Enterprise<TierLabel tiers="Enterprise" />
 
@@ -287,6 +289,35 @@ kubectl edit secret generic git-provider-credentials --namespace=flux-system
 If BitBucket Server is running on the default port (7990), make sure you include the port number in the values of the secret, for example: `GIT_HOST_TYPES=git.example.com:7990=bitbucket-server`
 
 :::
+
+</TabItem>
+<TabItem value="azure-devops" label="Azure DevOps">
+
+Navigate to https://app.vsaex.visualstudio.com/app/register and register a new application, as explained in the [docs](https://learn.microsoft.com/en-us/azure/devops/integrate/get-started/authentication/oauth?view=azure-devops#1-register-your-app). You will be asked to set the authorization callback URL as well as select which scopes to grant. The callback URL should be set to `<WGE dashboard URL>/oauth/azuredevops`. You will also need to select the `Code (read and write)` scope from the list as this is needed for WGE to be able to create pull requests on behalf of users. An example of configuring these settings is shown below.
+
+<figure>
+<img src={oauthAzureDevOps}/>
+<figcaption>Creating a new application</figcaption>
+</figure>
+
+After creating your application, you will be presented with the application settings. Take note of the `App ID` and `Client Secret` values as you will use them to configure WGE.
+
+<figure>
+<img src={oauthAzureDevOpsSuccess}/>
+<figcaption>Application settings</figcaption>
+</figure>
+
+In your cluster, create a secret named `git-provider-credentials` that contains the `App ID` and `Client Secret` values from the newly created application.
+
+**Replace values** in this snippet and run:
+
+```bash
+kubectl create secret generic git-provider-credentials --namespace=flux-system \
+  --from-literal="AZURE_DEVOPS_CLIENT_ID=<App ID value>" \
+  --from-literal="AZURE_DEVOPS_CLIENT_SECRET=<Client Secret value>"
+```
+
+WGE is now configured to ask users for authorization the next time a pull request needs to be created as part of using a template. Note that each user can view and manage which applications they have authorized by navigating to https://app.vsaex.visualstudio.com/me.
 
 </TabItem>
 </Tabs>
