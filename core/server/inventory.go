@@ -262,11 +262,20 @@ func (cs *coreServer) unstructuredToInventoryEntry(ctx context.Context, clusterN
 	clusterUserNss := cs.clustersManager.GetUserNamespaces(auth.Principal(ctx))
 	tenant := GetTenant(unstructuredObj.GetNamespace(), clusterName, clusterUserNss)
 
+	health, err := cs.healthChecker.Check(unstructuredObj)
+	if err != nil {
+		return nil, err
+	}
+
 	entry := &pb.InventoryEntry{
 		Payload:     string(bytes),
 		Tenant:      tenant,
 		ClusterName: clusterName,
 		Children:    children,
+		Health: &pb.HealthStatus{
+			Status:  string(health.Status),
+			Message: health.Message,
+		},
 	}
 
 	return entry, nil

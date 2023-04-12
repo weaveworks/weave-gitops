@@ -13,6 +13,7 @@ import (
 	"github.com/weaveworks/weave-gitops/core/server"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/featureflags"
+	"github.com/weaveworks/weave-gitops/pkg/health"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"k8s.io/client-go/rest"
 )
@@ -36,7 +37,9 @@ func TestGetFeatureFlags(t *testing.T) {
 		fetcher.NewSingleClusterFetcher(cluster),
 	}, &nsChecker, logr.Discard())
 
-	cfg, err := server.NewCoreConfig(logr.Discard(), &rest.Config{}, "test", clustersManager)
+	hc := health.NewHealthChecker()
+
+	cfg, err := server.NewCoreConfig(logr.Discard(), &rest.Config{}, "test", clustersManager, hc)
 	Expect(err).NotTo(HaveOccurred())
 	coreSrv, err := server.NewCoreServer(cfg)
 	Expect(err).NotTo(HaveOccurred())
