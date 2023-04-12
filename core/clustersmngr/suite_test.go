@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
 	"k8s.io/client-go/rest"
 )
@@ -30,7 +31,7 @@ func TestMain(m *testing.M) {
 }
 
 func makeLeafCluster(t *testing.T, name string) cluster.Cluster {
-	cluster, err := cluster.NewSingleCluster(name, k8sEnv.Rest, nil)
+	cluster, err := cluster.NewSingleCluster(name, k8sEnv.Rest, nil, kube.UserPrefixes{})
 	if err != nil {
 		t.Error("Expected err to be nil, got", err)
 	}
@@ -45,7 +46,7 @@ func makeUnreachableLeafCluster(t *testing.T, name string) cluster.Cluster {
 	// FIXME: better addresses?
 	c.Host = "0.0.0.0:65535"
 
-	cluster, err := cluster.NewSingleCluster(name, c, nil)
+	cluster, err := cluster.NewSingleCluster(name, c, nil, kube.UserPrefixes{})
 	if err != nil {
 		t.Error("Expected err to be nil, got", err)
 	}

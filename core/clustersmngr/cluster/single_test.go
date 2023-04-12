@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	. "github.com/onsi/gomega"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
 	"k8s.io/apimachinery/pkg/util/rand"
@@ -19,7 +20,7 @@ func TestSingleCluster(t *testing.T) {
 
 	g := NewGomegaWithT(t)
 
-	cluster, err := NewSingleCluster("Default", config, nil)
+	cluster, err := NewSingleCluster("Default", config, nil, kube.UserPrefixes{})
 	g.Expect(err).To(BeNil())
 
 	g.Expect(cluster.GetName()).To(Equal("Default"))
@@ -77,9 +78,9 @@ func TestClientConfigWithUser(t *testing.T) {
 			// Set up
 			clusterName := fmt.Sprintf("clustersmngr-test-%d-%s", idx, rand.String(5))
 
-			cluster, err := NewSingleCluster(clusterName, k8sEnv.Rest, nil)
+			cluster, err := NewSingleCluster(clusterName, k8sEnv.Rest, nil, kube.UserPrefixes{})
 			g.Expect(err).NotTo(HaveOccurred())
-			res, err := getImpersonatedConfig(cluster.(*singleCluster).restConfig, tt.principal)
+			res, err := getImpersonatedConfig(cluster.(*singleCluster).restConfig, tt.principal, kube.UserPrefixes{})
 
 			// Test
 			if tt.expectedErr != nil {
