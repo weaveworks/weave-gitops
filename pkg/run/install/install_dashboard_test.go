@@ -3,6 +3,7 @@ package install
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"strings"
 	"time"
 
@@ -11,9 +12,11 @@ import (
 	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	coretypes "github.com/weaveworks/weave-gitops/core/server/types"
 	"github.com/weaveworks/weave-gitops/pkg/config"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
+	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -35,13 +38,13 @@ const (
 var helmReleaseFixtures = []runtime.Object{
 	&helmv2.HelmRelease{
 		ObjectMeta: metav1.ObjectMeta{
-			Namespace: "test-namespace",
+			Namespace: testNamespace,
 			Name:      "dashboard-1",
 		},
 	},
 	&helmv2.HelmRelease{
 		ObjectMeta: metav1.ObjectMeta{
-			Namespace: "test-namespace",
+			Namespace: testNamespace,
 			Name:      "dashboard-2",
 		},
 		Spec: helmv2.HelmReleaseSpec{
@@ -54,7 +57,7 @@ var helmReleaseFixtures = []runtime.Object{
 	},
 	&helmv2.HelmRelease{
 		ObjectMeta: metav1.ObjectMeta{
-			Namespace: "test-namespace",
+			Namespace: testNamespace,
 			Name:      "dashboard-3",
 		},
 		Spec: helmv2.HelmReleaseSpec{
@@ -70,10 +73,50 @@ var helmReleaseFixtures = []runtime.Object{
 	},
 	&helmv2.HelmRelease{
 		ObjectMeta: metav1.ObjectMeta{
-			Namespace: "test-namespace",
+			Namespace: testNamespace,
 			Name:      "dashboard-4",
 		},
 	},
+}
+
+var deploymentFixtures = []runtime.Object{
+	&appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: testNamespace,
+			Name:      "dashboard-1",
+		},
+	}, &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: testNamespace,
+			Name:      "dashboard-2",
+			Labels: map[string]string{
+				coretypes.PartOfLabel:       dashboardPartOfName,
+				coretypes.DashboardAppLabel: ossDashboardAppName,
+			},
+		},
+	}, &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: testNamespace,
+			Name:      "dashboard-3",
+			Labels: map[string]string{
+				coretypes.PartOfLabel:       dashboardPartOfName,
+				coretypes.DashboardAppLabel: enterpriseDashboardAppName,
+			},
+		},
+	}, &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: testNamespace,
+			Name:      "dashboard-4",
+		},
+	},
+}
+
+type ErroringFakeClient struct {
+	client.Client
+}
+
+func (p *ErroringFakeClient) List(_ context.Context, _ client.ObjectList, _ ...client.ListOption) error {
+	return errors.New("error listing objects")
 }
 
 var _ = Describe("InstallDashboard", func() {
@@ -110,11 +153,12 @@ var _ = Describe("InstallDashboard", func() {
 })
 
 var _ = Describe("GetInstalledDashboard", func() {
-
 	var (
-		fakeContext context.Context
-		fakeClient  client.WithWatch
-		blankClient client.WithWatch
+		fakeContext                context.Context
+		fakeClientWithHelmReleases client.WithWatch
+		fakeClientWithDeployments  client.WithWatch
+		blankClient                client.WithWatch
+		errorClient                ErroringFakeClient
 	)
 
 	BeforeEach(func() {
@@ -122,42 +166,92 @@ var _ = Describe("GetInstalledDashboard", func() {
 		scheme, err := kube.CreateScheme()
 		Expect(err).NotTo(HaveOccurred())
 
-		fakeClient = fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(helmReleaseFixtures...).Build()
+		fakeClientWithHelmReleases = fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(helmReleaseFixtures...).Build()
+		fakeClientWithDeployments = fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(deploymentFixtures...).Build()
 		blankClient = fake.NewClientBuilder().WithScheme(scheme).Build()
+		errorClient = ErroringFakeClient{}
 	})
 
-	It("returns the oss dashboard type", func() {
-		dashboardType, dashboardName := GetInstalledDashboard(fakeContext, fakeClient, testNamespace, map[DashboardType]bool{
+	It("returns the oss dashboard type if the dashboard is installed with a helmrelease", func() {
+		dashboardType, dashboardName, err := GetInstalledDashboard(fakeContext, fakeClientWithHelmReleases, testNamespace, map[DashboardType]bool{
 			DashboardTypeOSS: true,
 		})
+		Expect(err).To(HaveOccurred())
+		Expect(errors.Is(err, ErrDashboardInstalled)).To(BeTrue())
 		Expect(dashboardType).To(Equal(DashboardTypeOSS))
 		Expect(dashboardName).To(Equal("dashboard-2"))
 	})
 
-	It("returns the enterprise dashboard type", func() {
-		dashboardType, dashboardName := GetInstalledDashboard(fakeContext, fakeClient, testNamespace, map[DashboardType]bool{
+	It("returns the enterprise dashboard type if the dashboard is installed with a helmrelease", func() {
+		dashboardType, dashboardName, err := GetInstalledDashboard(fakeContext, fakeClientWithHelmReleases, testNamespace, map[DashboardType]bool{
 			DashboardTypeEnterprise: true,
 		})
+		Expect(err).To(HaveOccurred())
+		Expect(errors.Is(err, ErrDashboardInstalled)).To(BeTrue())
 		Expect(dashboardType).To(Equal(DashboardTypeEnterprise))
 		Expect(dashboardName).To(Equal("dashboard-3"))
 	})
 
-	It("returns the enterprise dashboard type if both dashboards are installed", func() {
-		dashboardType, dashboardName := GetInstalledDashboard(fakeContext, fakeClient, testNamespace, map[DashboardType]bool{
+	It("returns the enterprise dashboard type if both dashboards are installed with a helmrelease", func() {
+		dashboardType, dashboardName, err := GetInstalledDashboard(fakeContext, fakeClientWithHelmReleases, testNamespace, map[DashboardType]bool{
 			DashboardTypeOSS:        true,
 			DashboardTypeEnterprise: true,
 		})
+		Expect(err).To(HaveOccurred())
+		Expect(errors.Is(err, ErrDashboardInstalled)).To(BeTrue())
 		Expect(dashboardType).To(Equal(DashboardTypeEnterprise))
 		Expect(dashboardName).To(Equal("dashboard-3"))
 	})
 
-	It("returns nil if there is an error when listing helmreleases", func() {
-		dashboardType, dashboardName := GetInstalledDashboard(fakeContext, blankClient, testNamespace, map[DashboardType]bool{
+	It("returns the oss dashboard type if the dashboard is installed with a deployment only", func() {
+		dashboardType, dashboardName, err := GetInstalledDashboard(fakeContext, fakeClientWithDeployments, testNamespace, map[DashboardType]bool{
+			DashboardTypeOSS: true,
+		})
+		Expect(err).To(HaveOccurred())
+		Expect(errors.Is(err, ErrDashboardInstalled)).To(BeTrue())
+		Expect(dashboardType).To(Equal(DashboardTypeOSS))
+		Expect(dashboardName).To(BeEmpty())
+	})
+
+	It("returns the enterprise dashboard type if the dashboard is installed with a deployment only", func() {
+		dashboardType, dashboardName, err := GetInstalledDashboard(fakeContext, fakeClientWithDeployments, testNamespace, map[DashboardType]bool{
+			DashboardTypeEnterprise: true,
+		})
+		Expect(err).To(HaveOccurred())
+		Expect(errors.Is(err, ErrDashboardInstalled)).To(BeTrue())
+		Expect(dashboardType).To(Equal(DashboardTypeEnterprise))
+		Expect(dashboardName).To(BeEmpty())
+	})
+
+	It("returns the enterprise dashboard type if both dashboards are installed with a deployment only", func() {
+		dashboardType, dashboardName, err := GetInstalledDashboard(fakeContext, fakeClientWithDeployments, testNamespace, map[DashboardType]bool{
 			DashboardTypeOSS:        true,
 			DashboardTypeEnterprise: true,
 		})
+		Expect(err).To(HaveOccurred())
+		Expect(errors.Is(err, ErrDashboardInstalled)).To(BeTrue())
+		Expect(dashboardType).To(Equal(DashboardTypeEnterprise))
+		Expect(dashboardName).To(BeEmpty())
+	})
+
+	It("returns none dashboard type with no error if no objects are returned", func() {
+		dashboardType, dashboardName, err := GetInstalledDashboard(fakeContext, blankClient, testNamespace, map[DashboardType]bool{
+			DashboardTypeOSS:        true,
+			DashboardTypeEnterprise: true,
+		})
+		Expect(err).NotTo(HaveOccurred())
 		Expect(dashboardType).To(Equal(DashboardTypeNone))
-		Expect(dashboardName).To(Equal(""))
+		Expect(dashboardName).To(BeEmpty())
+	})
+
+	It("returns none dashboard type if there is an error when listing objects", func() {
+		dashboardType, dashboardName, err := GetInstalledDashboard(fakeContext, &errorClient, testNamespace, map[DashboardType]bool{
+			DashboardTypeOSS:        true,
+			DashboardTypeEnterprise: true,
+		})
+		Expect(err).To(HaveOccurred())
+		Expect(dashboardType).To(Equal(DashboardTypeNone))
+		Expect(dashboardName).To(BeEmpty())
 	})
 })
 

@@ -7,7 +7,6 @@ import (
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	coretypes "github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
-	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -60,7 +59,7 @@ func (cs *coreServer) getFluxVersion(ctx context.Context, k8sClient client.Clien
 		return "", fmt.Errorf("error getting list of objects")
 	} else {
 		for _, item := range listResult.Items {
-			if item.GetLabels()[flux.VersionLabelKey] != "" {
+			if item.GetLabels()[coretypes.VersionLabel] != "" {
 				u = item
 				break
 			}
@@ -72,7 +71,7 @@ func (cs *coreServer) getFluxVersion(ctx context.Context, k8sClient client.Clien
 		return "", fmt.Errorf("error getting labels")
 	}
 
-	fluxVersion := labels[flux.VersionLabelKey]
+	fluxVersion := labels[coretypes.VersionLabel]
 	if fluxVersion == "" {
 		return "", fmt.Errorf("no flux version found")
 	}

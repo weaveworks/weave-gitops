@@ -19,7 +19,6 @@ import (
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	coretypes "github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
-	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/run/constants"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
@@ -74,7 +73,7 @@ func (cs *coreServer) getFluxNamespace(ctx context.Context, k8sClient client.Cli
 		return "", fmt.Errorf("error getting list of objects")
 	} else {
 		for _, item := range namespaceList.Items {
-			if item.GetLabels()[flux.VersionLabelKey] != "" {
+			if item.GetLabels()[coretypes.VersionLabel] != "" {
 				ns = &item
 				break
 			}

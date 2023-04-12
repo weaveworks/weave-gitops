@@ -242,6 +242,7 @@
             id: 'gitops-templates/creating-templates',
           },
           items: [
+            'gitops-templates/resource-templates',
             'gitops-templates/repo-rendered-paths',
             'gitops-templates/profiles',
             'gitops-templates/annotations',
@@ -260,8 +261,10 @@
       label: 'GitOpsSets',
       items: [
         'gitopssets/intro',
+        'gitopssets/installation',
         'gitopssets/guide',
-        'gitopssets/api-reference'
+        'gitopssets/api-reference',
+        'gitopssets/releases'
       ],
     }
   ],

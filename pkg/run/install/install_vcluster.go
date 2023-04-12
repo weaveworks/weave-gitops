@@ -11,6 +11,7 @@ import (
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
+	coretypes "github.com/weaveworks/weave-gitops/core/server/types"
 	"github.com/weaveworks/weave-gitops/pkg/run/constants"
 	"github.com/weaveworks/weave-gitops/pkg/run/session"
 	appsv1 "k8s.io/api/apps/v1"
@@ -54,8 +55,8 @@ func makeVClusterHelmRelease(name, namespace, fluxNamespace, command string, por
 			Name:      name,
 			Namespace: namespace,
 			Labels: map[string]string{
-				"app":                       "vcluster",
-				"app.kubernetes.io/part-of": "gitops-run",
+				coretypes.AppLabel:    "vcluster",
+				coretypes.PartOfLabel: "gitops-run",
 			},
 		},
 		Spec: helmv2.HelmReleaseSpec{
