@@ -13,7 +13,7 @@ import (
 
 // InitAuthServer creates a new AuthServer and configures it for the correct
 // authentication methods.
-func InitAuthServer(ctx context.Context, log logr.Logger, rawKubernetesClient ctrlclient.Client, oidcConfig OIDCConfig, adminSecret, oidcSecret, namespace string, authMethodStrings []string) (*AuthServer, error) {
+func InitAuthServer(ctx context.Context, log logr.Logger, rawKubernetesClient ctrlclient.Client, oidcConfig OIDCConfig, oidcSecret, namespace string, authMethodStrings []string) (*AuthServer, error) {
 	log.V(logger.LogLevelDebug).Info("Registering authentication methods", "methods", authMethodStrings)
 
 	authMethods, err := ParseAuthMethodArray(authMethodStrings)
@@ -64,7 +64,7 @@ func InitAuthServer(ctx context.Context, log logr.Logger, rawKubernetesClient ct
 		tsv.SetDevMode(true)
 	}
 
-	authCfg, err := NewAuthServerConfig(log, oidcConfig, rawKubernetesClient, tsv, namespace, authMethods, adminSecret)
+	authCfg, err := NewAuthServerConfig(log, oidcConfig, rawKubernetesClient, tsv, namespace, authMethods)
 	if err != nil {
 		return nil, err
 	}
