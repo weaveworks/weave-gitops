@@ -10,32 +10,77 @@ import AlphaWarning from "../_components/_alpha_warning.mdx";
 
 <AlphaWarning/>
 
-## Prerequisites
+Getting started wtih Explorer is very simple. This guide shows you the basics steps to start using it
+
+## Pre-requisites
+
 Before using Explorer, please ensure that:
+
 - You have Weave Gitops Enterprise [v0.21.0](../../releases)
-- You have Explorer enabled. See [configuration](./configuration.mdx) for that.
+- You have deployed an application.
+
+## Setup
+
+Explorer is enabled via configuration through the feature flag  `enableExplorer` that you could
+configure in your Weave Gitops Enterprise helm release values file
+
+
+```yaml
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: weave-gitops-enterprise
+  namespace: flux-system
+spec:
+  # ... other spec components
+  values:
+    enableExplorer: true
+```
+
+For a complete overview on the configuration you could see [configuration](./configuration.mdx).
 
 ## Explorer UI
 
-// Describes the explorer UI
+Login to weave gitops and Explorer will be shown in the navigation menu `Explorer`
+
+The main UI looks like
+
+![explorer](imgs/explorer-ui.png)
+
+With you main components
+
+- A search dialog with filter to querying the platform resources
+- A table with the found resources.
+
+For a more detailed view on the UI you could see [querying](./querying.mdx).
 
 ## Discovering Applications
 
-Showing a couple of examples of how to discover helm release and kustomization
+For this example we are using the application `podinfo` but you could use any other app that suits your scenario.
 
-Link to a page with supported resources
+There are two main ways to discover data:
 
-### Via filter
+- via query language
+- via filters
 
-### Via Query Language
+### Querying
 
-Link to the query language page
+Just typing `podinfo` in the search dialog returns the applications that matches the term
 
-// Supported Resources
+![podinfo app found](imgs/getting-started-querying-app.png)
 
-// Basics of Query Language
+For more info on how querying works to query and advanced queries see [querying](./querying.mdx).
 
+### Filtering
+
+A set of queries are set as filters. For example, you could get all the apps that are failing in
+a moment in time by filtering by status `failed`
+
+![failed apps](imgs/getting-started-failed.png)
 
 ## Next Steps
-- See [configuration](./configuration.mdx) for that.
-- See options query language.
+Once you have an initial experience using explorer, you could
+
+- Deep dive in [querying](./querying.mdx) to see how it works and advanced queries.
+- See [configuration](./configuration.mdx) for the options that you could configure in explorer.
