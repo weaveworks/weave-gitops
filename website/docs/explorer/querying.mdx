@@ -111,13 +111,36 @@ Here a set of questions around querying to allow you get started by practice.
 
 ### How can I discover resources from a cluster?
 
+You could use the single term with `clusterName` or `cluster:clusterName`
+
+For example for management cluster could be `management` or `cluster:management`
+
+![filter by cluster](imgs/explorer-query-filter-cluster.png)
+
 ### How can I discover resources from a namespace?
+
+You could use the single term with `namespaceName` or `namespace:namespaceName`.
 
 ### How can I discover applications?
 
+You should filter by kind where kind could be either HelmRelease or Kustomization like `kind:Kustomization` or `kind:HelmRelease`.
+You could also use the pre-built filters.
+
+![filter by kind](imgs/explorer-query-filter-kind.png)
+
+::warning Exact Matching
+
+Remember that `key:value` is key==value so  `kind:helmrelease` wont return helm releases.
+:::
+
 ### How can I discover failed applications?
 
+You should filter by `status:Failed` to find the failing apps or use the pre-built filters.
+
 ### How can I discover resources by name?
+
+You could use the single term with `resourceName` or `name:resourceName`.
+
 
 
 
