@@ -50,11 +50,11 @@ func (c *ClaimsConfig) PrincipalFromClaims(token claimsToken) (*UserPrincipal, e
 
 		if ok {
 			for _, v := range gv {
-				if s, ok := v.(string); !ok {
+				s, ok := v.(string)
+				if !ok {
 					return nil, fmt.Errorf("invalid groups claim %q in response %v", groupsKey, v)
-				} else {
-					groups = append(groups, s)
 				}
+				groups = append(groups, s)
 			}
 		} else {
 			if s, ok := v.(string); ok && len(s) > 0{
