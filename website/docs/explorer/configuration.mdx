@@ -10,27 +10,80 @@ import AlphaWarning from "../_components/_alpha_warning.mdx";
 
 <AlphaWarning/>
 
+This page helps you to understand the options available to configure Explorer
+
 ## Prerequisites
 Before using Explorer, please ensure that:
 - You have Weave Gitops Enterprise [v0.21.0](../../releases)
 
-## Enable
+## Setup
 
-// Feature Flag configuration to enable
+Explorer is enabled via configuration through the feature flag  `enableExplorer` that you could
+configure in your Weave Gitops Enterprise helm release values file
 
+```yaml
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: weave-gitops-enterprise
+  namespace: flux-system
+spec:
+  # ... other spec components
+  values:
+    enableExplorer: true
+```
+
+## Configuration
+
+### Clusters
+
+Explorer watches the [GitopsClusters](https://docs.gitops.weave.works/docs/next/cluster-management/managing-existing-clusters/#connect-a-cluster)
+that you have connected to Weave Gitops Enterprise.
+
+### Kinds
+
+Explorer watches for the following kind resources out of the box:
+
+- RBAC: ClusterRole, Role, ClusterRoleBinding and RoleBinding
+- Flux Applications: Kustomizations, HelmRelease
+
+## Data Layer
+
+Explorer take a simple approach to manage resource views. It leverages a data store for caching the views and query them.
+The storage lifecycle is bounded to weave gitops enterprise and does not provide persistence guarantees.
+Instead, it requests data as required to the leaf clusters. In its simplest form, the data store used is [SQLite](https://sqlite.org/index.html).
 
 ## Security
 
+There are two main security paths in the context of Explorer:
+
+1. A read path exercised when a weave gitops user queries the data.
+2. A write path that is executed to collect and store the data from the leaf clusters.
+
+In terms of security they are having a set of considerations
+
+## Security for the read path
+
+For the read path, explorer leverages existing authentication and authorization built-in the [application](https://docs.gitops.weave.works/docs/configuration/securing-access-to-the-dashboard/)
+that identifies for a user logged in the application: its identity and the access permissions via Kuberentes RBAC.
+Query results are filtered honouring the access determined via RBAC.
+
+## Security for the write path
 
 ### Management Cluster
 
-// What are the security considerations for using explorer in management cluster
+As mentioned earlier, [GitopsClusters](https://docs.gitops.weave.works/docs/next/cluster-management/managing-existing-clusters/#connect-a-cluster)
+defines the connection and security context that explorer will use to connect and watch leaf cluster resources.
 
 ### Leaf Cluster
 
+Given that the gitopscluster defines an authentication context, that user in the leaf cluster needs to have the
+permissions to watch the [supported kinds](#kinds). Apart from the RBAC [specified](https://docs.gitops.weave.works/docs/next/cluster-management/managing-existing-clusters/#how-to-connect-a-cluster)
 
-// What are the security considerations for using explorer in management cluster
+Access to the kinds should be allowed by the following rbac in the leaf clusters:
 
+//TBA
 
 ## Next Steps
 - See [configuration](./configuration.mdx) for that.
