@@ -78,6 +78,54 @@ spec:
 ...
 ```
 
+#### (Optional) Using a helm chart from a remote public/private repository
+The helm releases with the profiles can be added in a remote repository which can be referenced using a HelmRepository resource.The repository can be either public or private, although extra steps are required to use the private repo.
+
+In this example a public repo and branch is referenced directly where the helm releases are
+```yaml title="HelmRepository.yaml"
+apiVersion: source.toolkit.fluxcd.io/v1beta1
+kind: HelmRepository
+metadata:
+  name: weaveworks-charts
+  namespace: flux-system
+spec:
+  interval: 1m
+  url: https://raw.githubusercontent.com/weaveworks/weave-gitops-profile-examples/gh-pages
+```
+
+To be able to use private repositories with restricted access, a secret can be used and synced to the target leaf cluster using `SecretSync`. 
+
+The secret is referenced in the SecretSync as `spec.secretRef` and the labels of the target leaf cluster are added for the syncer to match clusters against those labels using  `spec.clusterSelector.matchLabels`.
+```yaml title="SecretSync.yaml"
+apiVersion: capi.weave.works/v1alpha1
+kind: SecretSync
+metadata:
+  name: my-dev-secret-syncer
+  namespace: flux-system
+spec:
+  clusterSelector:
+    matchLabels:
+      weave.works/capi: bootstrap
+  secretRef:
+    name: weave-gitops-enterprise-credentials
+  targetNamespace: my-namespace
+```
+
+Once the SecretSync and Secret are available, the secret can be directly referenced in the HelmRepsitory object directly
+```yaml title="PrivateHelmRepository.yaml"
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: HelmRepository
+metadata:
+  name: weaveworks-charts
+  namespace: flux-system
+spec:
+  interval: 60m
+  secretRef:
+    name: weave-gitops-enterprise-credentials
+  url: https://charts.dev.wkp.weave.works/releases/charts-v3
+  ```
+**note**: The `HelmRepoSecret`, `SecretSync`, and the `GitopsCluster` should all be in the same namespace.
+
 ### 2. Select which profiles you want installed when creating a cluster
 
 Currently WGE inspects the current namespace that it is deployed in (in the management cluster) for a `HelmRepository` object named `weaveworks-charts`. This Kubernetes object should be pointing to a Helm chart repository that includes the profiles that are available for installation.
