@@ -90,10 +90,10 @@ metadata:
   namespace: flux-system
 spec:
   interval: 1m
-  url: https://raw.githubusercontent.com/weaveworks/weave-gitops-profile-examples/gh-pages
+  url: https://weaveworks.github.io/weave-gitops-profile-examples/
 ```
 
-To be able to use private repositories with restricted access, a secret can be used and synced to the target leaf cluster using `SecretSync`. 
+To be able to use private repositories with restricted access, a secret can be used and synced to the target leaf cluster using [SecretSync](../secrets/bootstraping-secrets.mdx). 
 
 The secret is referenced in the SecretSync as `spec.secretRef` and the labels of the target leaf cluster are added for the syncer to match clusters against those labels using  `spec.clusterSelector.matchLabels`.
 ```yaml title="SecretSync.yaml"
@@ -108,7 +108,7 @@ spec:
       weave.works/capi: bootstrap
   secretRef:
     name: weave-gitops-enterprise-credentials
-  targetNamespace: my-namespace
+  targetNamespace: flux-system
 ```
 
 Once the SecretSync and Secret are available, the secret can be directly referenced in the HelmRepsitory object directly
