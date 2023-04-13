@@ -83,14 +83,3 @@ Return the target Kubernetes version
 {{- default .Capabilities.KubeVersion.Version .Values.kubeVersion -}}
 {{- end -}}
 {{- end -}}
-
-{{/*
-Create the name of the admin credentials secret to use
-*/}}
-{{- define "chart.adminUserSecret" -}}
-{{- if (and .Values.adminUser.create .Values.adminUser.createSecret) }}
-{{- include "chart.fullname" . }}-user-auth
-{{- else }}
-{{- .Values.adminUser.secretName }}
-{{- end }}
-{{- end -}}
