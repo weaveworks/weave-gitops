@@ -45,7 +45,7 @@ func (c *ClaimsConfig) PrincipalFromClaims(token claimsToken) (*UserPrincipal, e
 	groups := []string{}
 
 	if v, ok := claims[groupsKey]; ok {
-		
+
 		gv, ok := v.([]interface{})
 
 		if ok {
@@ -57,7 +57,7 @@ func (c *ClaimsConfig) PrincipalFromClaims(token claimsToken) (*UserPrincipal, e
 				groups = append(groups, s)
 			}
 		} else {
-			if s, ok := v.(string); ok && len(s) > 0{
+			if s, ok := v.(string); ok && len(s) > 0 {
 				groups = append(groups, s)
 			} else {
 				return nil, fmt.Errorf("the groups claim %q is an empty value", groupsKey)
