@@ -10,14 +10,16 @@ import AlphaWarning from "../_components/_alpha_warning.mdx";
 
 <AlphaWarning/>
 
-//Operations guidance for users
+As platform engineer you could need to have a finer understanding on the underlying logic for Explorer. The following
+options are available to you to operate and troubleshoot it.
 
 ## Debug Access Rules
-// Explain the feature
 
-## Known Limitations
+It is a debugging tool to make visible explorer authorization logic. You could find it as tab `Access Rules`  alongside
+the `Query` tab.
 
-## Next Steps
-//Explain
+![access rules](imgs/debug-access-rules.png)
 
+You could discover by `Cluster` and `Subject` the `Kinds` it is allowed to read. These are the rules that
+will be the source of truth doing authorization when a user does a query.
 
