@@ -101,9 +101,7 @@ create a query like the following:
 
 ![and query](imgs/explorer-query-and.png)
 
-with two sequential filters
-
-`namespace:flux-system` and `cluster:management` you can
+with two sequential filters `namespace:flux-system` and `cluster:management` to achieve it.
 
 ## FAQ
 
@@ -128,9 +126,11 @@ You could also use the pre-built filters.
 
 ![filter by kind](imgs/explorer-query-filter-kind.png)
 
-::warning Exact Matching
+:::warning Exact Matching
 
-Remember that `key:value` is key==value so  `kind:helmrelease` wont return helm releases.
+Remember that `key:value` is `key=value`
+- `kind:HelmRelease` returns all Helm Releases apps
+- `kind:helmrelease` wont return anything
 :::
 
 ### How can I discover failed applications?

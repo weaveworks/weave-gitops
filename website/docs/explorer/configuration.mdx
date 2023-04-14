@@ -14,7 +14,7 @@ This page helps you to understand the options available to configure Explorer
 
 ## Prerequisites
 Before using Explorer, please ensure that:
-- You have Weave Gitops Enterprise [v0.21.0](../../releases)
+- You have Weave Gitops Enterprise [v0.21.2](../../releases)
 
 ## Setup
 
@@ -50,8 +50,8 @@ Explorer watches for the following kind resources out of the box:
 
 ## Data Layer
 
-Explorer take a simple approach to manage resource views. It leverages a data store for caching the views and query them.
-The storage lifecycle is bounded to weave gitops enterprise and does not provide persistence guarantees.
+Explorer take a simple approach to manage resource views. It leverages a Data Store for caching the views and query them.
+The storage lifecycle is bounded to Weave Gitops Enterprise app and does not provide persistence guarantees.
 Instead, it requests data as required to the leaf clusters. In its simplest form, the data store used is [SQLite](https://sqlite.org/index.html).
 
 ## Authentication and Authorization
@@ -61,12 +61,12 @@ There are two main paths to consider within Explorer in the context of authentic
 1. The read or querying path is exercised when a weave gitops user queries the data.
 2. The write or collecting path is exercised to gather the resources from the leaf clusters.
 
-We look in them separately.
+We look into them separately.
 
 ## Authentication and Authorization for querying
 
-Explorer leverages existing authentication and authorization built-in the [application](https://docs.gitops.weave.works/docs/configuration/securing-access-to-the-dashboard/)
-that identifies for a user logged in the application: its identity and the access permissions via Kuberentes RBAC.
+Explorer leverages existing authentication and authorization built-in the [application](https://docs.gitops.weave.works/docs/configuration/securing-access-to-the-dashboard/).
+It identifies for a user logged in the application: its identity and the access permissions via Kuberentes RBAC.
 Query results are filtered honouring the access determined via RBAC.
 
 ## Authentication and Authorization for collecting
@@ -78,7 +78,7 @@ Therefore, you should ensure that the user has access to watch the [Kinds](#kind
 Complete out of https://github.com/weaveworks/weave-gitops-enterprise/issues/2732
 
 ## Next Steps
-- See [configuration](./configuration.mdx) for that.
-- See options query language.
+- See [querying](./querying.mdx) to deep dive in how to query.
+- See [operations](./operations.mdx) for day troubleshooting and operations.
 
 
