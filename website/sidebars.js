@@ -241,6 +241,36 @@
     },
     {
       type: 'category',
+      label: 'Secrets',
+      link: {
+        type: 'doc',
+        id: 'secrets/intro',
+      },
+      items: [
+        'secrets/intro',
+        'secrets/getting-started',
+        'secrets/bootstraping-secrets',
+        'secrets/setup-eso',
+        'secrets/setup-sops',
+        'secrets/manage-secrets-ui',
+        // 'secrets/self-service',
+        {
+          type: 'category',
+          label: 'Reference',
+          items: [
+            {
+              type: 'category',
+              label: 'v1alpha1',
+              items: [
+                'secrets/spec/v1alpha1/secretSync',
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    {
+      type: 'category',
       label: 'Templates',
       link: {
         type: 'doc',
@@ -256,6 +286,7 @@
             id: 'gitops-templates/creating-templates',
           },
           items: [
+            'gitops-templates/resource-templates',
             'gitops-templates/repo-rendered-paths',
             'gitops-templates/profiles',
             'gitops-templates/annotations',
@@ -274,8 +305,10 @@
       label: 'GitOpsSets',
       items: [
         'gitopssets/intro',
+        'gitopssets/installation',
         'gitopssets/guide',
-        'gitopssets/api-reference'
+        'gitopssets/api-reference',
+        'gitopssets/releases'
       ],
     }
   ],

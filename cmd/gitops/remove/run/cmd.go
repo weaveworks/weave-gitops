@@ -1,6 +1,7 @@
 package run
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -10,13 +11,16 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/run"
+	"github.com/weaveworks/weave-gitops/pkg/run/install"
 	"github.com/weaveworks/weave-gitops/pkg/run/session"
+	"github.com/weaveworks/weave-gitops/pkg/run/watch"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/client-go/rest"
 )
 
 type RunCommandFlags struct {
 	AllSessions bool
+	NoSession   bool
 
 	// Global flags.
 	Namespace  string
@@ -44,6 +48,9 @@ gitops remove run --all-sessions
 
 # Remove all GitOps Run sessions from the dev namespace
 gitops remove run -n dev --all-sessions
+
+# Clean up resources from a failed GitOps Run in no session mode
+gitops remove run --no-session
 `,
 		PreRunE: removeRunPreRunE(opts),
 		RunE:    removeRunRunE(opts),
@@ -56,6 +63,7 @@ gitops remove run -n dev --all-sessions
 	cmdFlags := cmd.Flags()
 
 	cmdFlags.BoolVar(&flags.AllSessions, "all-sessions", false, "Remove all GitOps Run sessions")
+	cmdFlags.BoolVar(&flags.NoSession, "no-session", false, "Remove all GitOps Run sessions")
 
 	kubeConfigArgs = run.GetKubeConfigArgs()
 
@@ -122,8 +130,11 @@ func getKubeClient(cmd *cobra.Command) (*kube.KubeHTTP, *rest.Config, error) {
 
 func removeRunPreRunE(opts *config.Options) func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		numArgs := len(args)
+		if flags.NoSession {
+			return nil
+		}
 
+		numArgs := len(args)
 		if numArgs == 0 && !flags.AllSessions {
 			return cmderrors.ErrSessionNameIsRequired
 		}
@@ -140,8 +151,25 @@ func removeRunRunE(opts *config.Options) func(cmd *cobra.Command, args []string)
 		}
 
 		log := logger.NewCLILogger(os.Stdout)
+		ctx := context.Background()
 
-		if flags.AllSessions {
+		if flags.NoSession {
+			if err := watch.CleanupBucketSourceAndHelm(ctx, log, kubeClient, flags.Namespace); err != nil {
+				return err
+			}
+
+			if err := watch.CleanupBucketSourceAndKS(ctx, log, kubeClient, flags.Namespace); err != nil {
+				return err
+			}
+
+			if err := watch.UninstallDevBucketServer(ctx, log, kubeClient); err != nil {
+				return err
+			}
+
+			if err := install.UninstallFluentBit(ctx, log, kubeClient, flags.Namespace, install.FluentBitHRName); err != nil {
+				return err
+			}
+		} else if flags.AllSessions {
 			internalSessions, listErr := session.List(kubeClient, flags.Namespace)
 			if listErr != nil {
 				return listErr
