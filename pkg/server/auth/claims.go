@@ -45,7 +45,6 @@ func (c *ClaimsConfig) PrincipalFromClaims(token claimsToken) (*UserPrincipal, e
 	groups := []string{}
 
 	if v, ok := claims[groupsKey]; ok {
-
 		gv, ok := v.([]interface{})
 
 		if ok {
