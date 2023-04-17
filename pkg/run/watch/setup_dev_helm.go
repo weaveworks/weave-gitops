@@ -90,7 +90,9 @@ func CleanupBucketSourceAndHelm(ctx context.Context, log logger.Logger, kubeClie
 	log.Actionf("Deleting HelmRelease %s ...", helm.Name)
 
 	if err := kubeClient.Delete(ctx, &helm); err != nil {
-		log.Failuref("Error deleting HelmRelease %s: %v", helm.Name, err.Error())
+		if !apierrors.IsNotFound(err) {
+			log.Failuref("Error deleting HelmRelease %s: %v", helm.Name, err.Error())
+		}
 	} else {
 		log.Successf("Deleted HelmRelease %s", helm.Name)
 	}

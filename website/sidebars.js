@@ -227,6 +227,36 @@
     },
     {
       type: 'category',
+      label: 'Secrets',
+      link: {
+        type: 'doc',
+        id: 'secrets/intro',
+      },
+      items: [
+        'secrets/intro',
+        'secrets/getting-started',
+        'secrets/bootstraping-secrets',
+        'secrets/setup-eso',
+        'secrets/setup-sops',
+        'secrets/manage-secrets-ui',
+        // 'secrets/self-service',
+        {
+          type: 'category',
+          label: 'Reference',
+          items: [
+            {
+              type: 'category',
+              label: 'v1alpha1',
+              items: [
+                'secrets/spec/v1alpha1/secretSync',
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    {
+      type: 'category',
       label: 'Templates',
       link: {
         type: 'doc',

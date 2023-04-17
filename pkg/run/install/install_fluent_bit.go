@@ -193,7 +193,9 @@ func UninstallFluentBit(ctx context.Context, log logger.Logger, kubeClient clien
 	log.Actionf("Removing Fluent Bit HelmRelease %s/%s ...", hr.Namespace, hr.Name)
 
 	if err := kubeClient.Delete(ctx, hr); err != nil {
-		return fmt.Errorf("failed to delete HelmRelease: %w", err)
+		if !apierrors.IsNotFound(err) {
+			return fmt.Errorf("failed to delete HelmRelease: %w", err)
+		}
 	}
 
 	log.Actionf("Waiting for HelmRelease %s/%s to be deleted...", hr.Namespace, hr.Name)
@@ -217,6 +219,21 @@ func UninstallFluentBit(ctx context.Context, log logger.Logger, kubeClient clien
 	}
 
 	log.Successf("HelmRelease %s/%s deleted", hr.Namespace, hr.Name)
+
+	helmRepository := &sourcev1.HelmRepository{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "fluent",
+			Namespace: hrNamespace,
+		},
+	}
+
+	if err := kubeClient.Delete(ctx, helmRepository); err != nil {
+		if !apierrors.IsNotFound(err) {
+			return fmt.Errorf("failed to delete HelmRepository: %w", err)
+		}
+	}
+
+	log.Successf("HelmRepository %s/%s deleted", helmRepository.Namespace, helmRepository.Name)
 
 	return nil
 }

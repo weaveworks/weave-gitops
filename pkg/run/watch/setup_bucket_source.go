@@ -102,7 +102,9 @@ func cleanupBucketAndSecretObjects(ctx context.Context, log logger.Logger, kubeC
 	log.Actionf("Deleting secret %s ...", secret.Name)
 
 	if err := kubeClient.Delete(ctx, &secret); err != nil {
-		log.Failuref("Error deleting secret %s: %v", secret.Name, err.Error())
+		if !apierrors.IsNotFound(err) {
+			log.Failuref("Error deleting secret %s: %v", secret.Name, err.Error())
+		}
 	} else {
 		log.Successf("Deleted secret %s", secret.Name)
 	}
@@ -118,7 +120,9 @@ func cleanupBucketAndSecretObjects(ctx context.Context, log logger.Logger, kubeC
 	log.Actionf("Deleting source %s ...", source.Name)
 
 	if err := kubeClient.Delete(ctx, &source); err != nil {
-		log.Failuref("Error deleting source %s: %v", source.Name, err.Error())
+		if !apierrors.IsNotFound(err) {
+			log.Failuref("Error deleting source %s: %v", source.Name, err.Error())
+		}
 	} else {
 		log.Successf("Deleted source %s", source.Name)
 	}

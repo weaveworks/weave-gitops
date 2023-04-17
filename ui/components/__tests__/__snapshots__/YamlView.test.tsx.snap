@@ -26,6 +26,12 @@ exports[`YamlView snapshots renders 1`] = `
   transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
+.c5 svg path.stroke-fill {
+  stroke: !important;
+  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
 .c5 svg rect.rect-height {
   height: 12px;
   width: 12px;
@@ -34,10 +40,6 @@ exports[`YamlView snapshots renders 1`] = `
 .c5 svg rect.rect-stroke {
   -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-}
-
-.c5 svg.no-fill {
-  fill: none !important;
 }
 
 .c5.downward {

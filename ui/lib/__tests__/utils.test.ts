@@ -20,7 +20,25 @@ describe("utils lib", () => {
   describe("isHTTP", () => {
     it("detects HTTP", () => {
       expect(isHTTP("http://www.google.com")).toEqual(true);
-      expect(isHTTP("http://www.google.com/")).toEqual(true);
+      expect(isHTTP("https://www.google.com/")).toEqual(true);
+      expect(isHTTP("http://10.0.0.1/")).toEqual(true);
+      expect(isHTTP("http://127.0.0.1/")).toEqual(true);
+      expect(isHTTP("https://192.168.0.1/")).toEqual(true);
+      expect(isHTTP("http://192.168.0.2/")).toEqual(true);
+      expect(isHTTP("https://169.254.0.1/")).toEqual(true);
+      expect(isHTTP("http://169.254.0.2/")).toEqual(true);
+      expect(isHTTP("https://172.31.0.1/")).toEqual(true);
+      expect(isHTTP("http://172.31.0.2/")).toEqual(true);
+      expect(
+        isHTTP(
+          "http://localhost:8080/applications/argocd/fsa-installation?view=tree"
+        )
+      ).toEqual(true);
+      expect(
+        isHTTP(
+          "https://localhost:8080/applications/argocd/fsa-installation?view=tree"
+        )
+      ).toEqual(true);
       expect(
         isHTTP("http://github.com/weaveworks/weave-gitops-clusters")
       ).toEqual(true);
