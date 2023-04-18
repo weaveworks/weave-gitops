@@ -63,7 +63,7 @@ Then we install flux on it.
 Then we bring up tilt, without auto-restart enabled (see [the FAQ
 entry below](#the-server-keeps-restarting-and-its-annoying)).
 
-`$ FAST_AND_FURIOUSER=1 SKIP_UI_BUILD=1 MANUAL_MODE=1 tilt up`
+`$ FAST_AND_FURIOUSER=1 SKIP_UI_BUILD=1 tilt up`
 
 Then we make our node_modules, this will take a little while.
 
