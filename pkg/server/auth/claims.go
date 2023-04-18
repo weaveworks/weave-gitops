@@ -45,16 +45,22 @@ func (c *ClaimsConfig) PrincipalFromClaims(token claimsToken) (*UserPrincipal, e
 	groups := []string{}
 
 	if v, ok := claims[groupsKey]; ok {
-		gv, ok := v.([]interface{})
-		if !ok {
-			return nil, fmt.Errorf("invalid groups claim %q in response %v", groupsKey, v)
-		}
 
-		for _, v := range gv {
-			if s, ok := v.(string); !ok {
-				return nil, fmt.Errorf("invalid groups claim %q in response %v", groupsKey, v)
-			} else {
+		gv, ok := v.([]interface{})
+
+		if ok {
+			for _, v := range gv {
+				s, ok := v.(string)
+				if !ok {
+					return nil, fmt.Errorf("invalid groups claim %q in response %v", groupsKey, v)
+				}
 				groups = append(groups, s)
+			}
+		} else {
+			if s, ok := v.(string); ok && len(s) > 0 {
+				groups = append(groups, s)
+			} else {
+				return nil, fmt.Errorf("the groups claim %q is an empty value", groupsKey)
 			}
 		}
 	}
