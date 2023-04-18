@@ -201,7 +201,7 @@ func UninstallFluentBit(ctx context.Context, log logger.Logger, kubeClient clien
 	log.Actionf("Waiting for HelmRelease %s/%s to be deleted...", hr.Namespace, hr.Name)
 
 	if err := wait.ExponentialBackoff(wait.Backoff{
-		Duration: 1 * time.Second,
+		Duration: 4 * time.Second,
 		Factor:   2,
 		Jitter:   1,
 		Steps:    10,
