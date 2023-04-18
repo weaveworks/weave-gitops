@@ -42,6 +42,14 @@ func TestPrincipalFromClaims(t *testing.T) {
 			config: &auth.ClaimsConfig{Groups: "test_groups"},
 			want:   &auth.UserPrincipal{ID: "example@example.com", Groups: []string{"new-group1", "new-group2"}},
 		},
+		{
+			name: "single string custom group claim",
+			token: testutils.MakeJWToken(t, privKey, "example@example.com", func(m map[string]any) {
+				m["test_groups"] = "single-group"
+			}),
+			config: &auth.ClaimsConfig{Groups: "test_groups"},
+			want:   &auth.UserPrincipal{ID: "example@example.com", Groups: []string{"single-group"}},
+		},
 	}
 
 	srv := testutils.MakeKeysetServer(t, privKey)

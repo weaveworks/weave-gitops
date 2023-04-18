@@ -53,7 +53,7 @@ func (pg *JWTCookiePrincipalGetter) Principal(r *http.Request) (*UserPrincipal, 
 
 	pg.log.V(logger.LogLevelDebug).Info("parsing cookie JWT token", "claimsConfig", pg.claimsConfig)
 
-	return parseJWTToken(r.Context(), pg.verifier, cookie.Value, pg.claimsConfig)
+	return parseJWTToken(r.Context(), pg.verifier, cookie.Value, pg.claimsConfig, pg.log)
 }
 
 // JWTAuthorizationHeaderPrincipalGetter inspects the Authorization
@@ -83,7 +83,7 @@ func (pg *JWTAuthorizationHeaderPrincipalGetter) Principal(r *http.Request) (*Us
 
 	pg.log.V(logger.LogLevelDebug).Info("parsing authorization header JWT token", "claimsConfig", pg.claimsConfig)
 
-	return parseJWTToken(r.Context(), pg.verifier, extractToken(header), pg.claimsConfig)
+	return parseJWTToken(r.Context(), pg.verifier, extractToken(header), pg.claimsConfig, pg.log)
 }
 
 func extractToken(s string) string {
@@ -99,11 +99,12 @@ func extractToken(s string) string {
 	return strings.TrimSpace(parts[1])
 }
 
-func parseJWTToken(ctx context.Context, verifier tokenVerifier, rawIDToken string, cc *ClaimsConfig) (*UserPrincipal, error) {
+func parseJWTToken(ctx context.Context, verifier tokenVerifier, rawIDToken string, cc *ClaimsConfig, log logr.Logger) (*UserPrincipal, error) {
 	token, err := verifier.Verify(ctx, rawIDToken)
 	if err != nil {
 		return nil, fmt.Errorf("failed to verify JWT token: %w", err)
 	}
+	log.V(logger.LogLevelDebug).Info("parsed JWT token", "expires", token.Expiry)
 
 	return cc.PrincipalFromClaims(token)
 }
