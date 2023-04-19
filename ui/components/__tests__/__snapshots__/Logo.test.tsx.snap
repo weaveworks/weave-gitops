@@ -16,6 +16,27 @@ exports[`Logo snapshots renders collapsed view 1`] = `
   width: 100%;
 }
 
+.c2 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: start;
+  -webkit-box-align: start;
+  -ms-flex-align: start;
+  align-items: start;
+}
+
+.c3 {
+  opacity: 0;
+  -webkit-transition: opacity 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: opacity 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  pointer-events: none;
+}
+
 .c1 {
   padding-left: 20px;
   width: 92px;
@@ -38,12 +59,6 @@ exports[`Logo snapshots renders collapsed view 1`] = `
   margin-right: 8px;
 }
 
-.c1 img:nth-child(2) {
-  opacity: 0;
-  -webkit-transition: opacity 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: opacity 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-}
-
 .c1 img {
   width: auto;
   height: 32px;
@@ -60,9 +75,18 @@ exports[`Logo snapshots renders collapsed view 1`] = `
       src=""
     />
   </a>
-  <img
-    src=""
-  />
+  <div
+    className="c2 c3"
+  >
+    <a
+      href="/applications"
+      onClick={[Function]}
+    >
+      <img
+        src=""
+      />
+    </a>
+  </div>
 </div>
 `;
 
@@ -80,6 +104,26 @@ exports[`Logo snapshots renders open view 1`] = `
   -ms-flex-align: start;
   align-items: start;
   width: 100%;
+}
+
+.c2 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: start;
+  -webkit-box-align: start;
+  -ms-flex-align: start;
+  align-items: start;
+}
+
+.c3 {
+  opacity: 1;
+  -webkit-transition: opacity 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: opacity 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c1 {
@@ -104,12 +148,6 @@ exports[`Logo snapshots renders open view 1`] = `
   margin-right: 8px;
 }
 
-.c1 img:nth-child(2) {
-  opacity: 1;
-  -webkit-transition: opacity 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: opacity 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-}
-
 .c1 img {
   width: auto;
   height: 32px;
@@ -126,8 +164,17 @@ exports[`Logo snapshots renders open view 1`] = `
       src=""
     />
   </a>
-  <img
-    src=""
-  />
+  <div
+    className="c2 c3"
+  >
+    <a
+      href="/applications"
+      onClick={[Function]}
+    >
+      <img
+        src=""
+      />
+    </a>
+  </div>
 </div>
 `;

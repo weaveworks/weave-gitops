@@ -220,6 +220,60 @@
         ]
       }
     },
+    "/v1/inventory": {
+      "get": {
+        "operationId": "Core_GetInventory",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetInventoryResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "kind",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "namespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "withChildren",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "tags": [
+          "Core"
+        ]
+      }
+    },
     "/v1/namespace/flux": {
       "post": {
         "summary": "GetFluxNamespace returns with a namespace with a specific label.",
@@ -710,6 +764,17 @@
         }
       }
     },
+    "v1GetInventoryResponse": {
+      "type": "object",
+      "properties": {
+        "entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1InventoryEntry"
+          }
+        }
+      }
+    },
     "v1GetObjectResponse": {
       "type": "object",
       "properties": {
@@ -832,6 +897,40 @@
         }
       },
       "title": "GroupVersionKind represents an objects Kubernetes API type data"
+    },
+    "v1HealthStatus": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "v1InventoryEntry": {
+      "type": "object",
+      "properties": {
+        "payload": {
+          "type": "string"
+        },
+        "tenant": {
+          "type": "string"
+        },
+        "clusterName": {
+          "type": "string"
+        },
+        "health": {
+          "$ref": "#/definitions/v1HealthStatus"
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1InventoryEntry"
+          }
+        }
+      }
     },
     "v1IsCRDAvailableResponse": {
       "type": "object",
@@ -1020,6 +1119,9 @@
         },
         "info": {
           "type": "string"
+        },
+        "health": {
+          "$ref": "#/definitions/v1HealthStatus"
         }
       }
     },

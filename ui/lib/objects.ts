@@ -1,9 +1,10 @@
-import { stringify } from "yaml";
 import _ from "lodash";
+import { stringify } from "yaml";
 import {
   Condition,
   GitRepositoryRef,
   GroupVersionKind,
+  HealthStatus,
   Interval,
   Kind,
   NamespacedObjectReference,
@@ -35,7 +36,7 @@ export class FluxObject {
   uid: string;
   info: string;
   children: FluxObject[];
-
+  health: HealthStatus;
   constructor(response: ResponseObject) {
     try {
       this.obj = JSON.parse(response.payload);
@@ -47,6 +48,7 @@ export class FluxObject {
     this.uid = response?.uid || "";
     this.info = response?.info || "";
     this.children = [];
+    this.health = response?.health || {};
   }
 
   get yaml(): string {
@@ -367,6 +369,58 @@ export class Alert extends FluxObject {
   }
   get eventSources(): CrossNamespaceObjectRef[] {
     return this.obj.spec?.eventSources || [];
+  }
+}
+
+//for pods
+export type Toleration = {
+  key: string;
+  operator: string;
+  value: string;
+  effect: string;
+  tolerationSeconds: number;
+};
+
+export type Container = {
+  name: string;
+  image: string;
+  args: string[];
+  ports: any[];
+  enVar: string[];
+  //status?
+};
+
+export class Pod extends FluxObject {
+  get podIP(): string {
+    return this.obj.status?.podIP || "-";
+  }
+  get podIPs(): string[] {
+    return this.obj.status?.podIPs || ["-"];
+  }
+  get priorityClass(): string {
+    return this.obj.spec?.priorityClassName || "-";
+  }
+  get qosClass(): string {
+    return this.obj.status?.qosClass || "-";
+  }
+  get tolerations(): Toleration[] {
+    return this.obj.spec?.tolerations || [];
+  }
+  get containers(): Container[] {
+    return this.obj.spec?.containers || [];
+  }
+  get volumes(): { name: string; type: string }[] {
+    const volumeObjs = [];
+    const volumes = this.obj.spec?.volumes || [];
+    volumes.forEach((volume) => {
+      const name = volume.name || "-";
+      let type = "-";
+      Object.keys(volume).forEach((key) => {
+        if (key !== "name" && key !== "emptyDir") type = key;
+      });
+      volumeObjs.push({ name, type });
+    });
+    return volumeObjs;
   }
 }
 

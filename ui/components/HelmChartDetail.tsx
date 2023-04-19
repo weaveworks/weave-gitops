@@ -16,22 +16,20 @@ type Props = {
 };
 
 function HelmChartDetail({ className, helmChart, customActions }: Props) {
-  const { data } = useFeatureFlags();
-  const flags = data.flags;
+  const { isFlagEnabled } = useFeatureFlags();
 
   const tenancyInfo: InfoField[] =
-    flags.WEAVE_GITOPS_FEATURE_TENANCY === "true" && helmChart.tenant
+    isFlagEnabled("WEAVE_GITOPS_FEATURE_TENANCY") && helmChart.tenant
       ? [["Tenant", helmChart.tenant]]
       : [];
-  const clusterInfo: InfoField[] =
-    flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true"
-      ? [
-          [
-            "Cluster",
-            <ClusterDashboardLink clusterName={helmChart?.clusterName} />,
-          ],
-        ]
-      : [];
+  const clusterInfo: InfoField[] = isFlagEnabled("WEAVE_GITOPS_FEATURE_CLUSTER")
+    ? [
+        [
+          "Cluster",
+          <ClusterDashboardLink clusterName={helmChart?.clusterName} />,
+        ],
+      ]
+    : [];
 
   return (
     <SourceDetail

@@ -11,6 +11,7 @@ import (
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
+	coretypes "github.com/weaveworks/weave-gitops/core/server/types"
 	"github.com/weaveworks/weave-gitops/pkg/run/constants"
 	"github.com/weaveworks/weave-gitops/pkg/run/session"
 	appsv1 "k8s.io/api/apps/v1"
@@ -22,7 +23,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func makeVClusterHelmRepository(namespace string) (*sourcev1.HelmRepository, error) {
+func makeVClusterHelmRepository(namespace string) *sourcev1.HelmRepository {
 	helmRepository := &sourcev1.HelmRepository{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "loft-sh",
@@ -33,10 +34,10 @@ func makeVClusterHelmRepository(namespace string) (*sourcev1.HelmRepository, err
 		},
 	}
 
-	return helmRepository, nil
+	return helmRepository
 }
 
-func makeVClusterHelmRelease(name string, namespace string, fluxNamespace string, command string, portForwards []string, automationKind string) (*helmv2.HelmRelease, error) {
+func makeVClusterHelmRelease(name, namespace, fluxNamespace, command string, portForwards []string, automationKind string) *helmv2.HelmRelease {
 	annotations := []string{
 		`"run.weave.works/cli-version": "` + version.Version + `"`,
 		`"run.weave.works/command": "` + command + `"`,
@@ -54,8 +55,8 @@ func makeVClusterHelmRelease(name string, namespace string, fluxNamespace string
 			Name:      name,
 			Namespace: namespace,
 			Labels: map[string]string{
-				"app":                       "vcluster",
-				"app.kubernetes.io/part-of": "gitops-run",
+				coretypes.AppLabel:    "vcluster",
+				coretypes.PartOfLabel: "gitops-run",
 			},
 		},
 		Spec: helmv2.HelmReleaseSpec{
@@ -105,14 +106,11 @@ func makeVClusterHelmRelease(name string, namespace string, fluxNamespace string
 		},
 	}
 
-	return helmRelease, nil
+	return helmRelease
 }
 
-func installVCluster(kubeClient client.Client, name string, namespace string, fluxNamespace string, portForwards []string, automationKind string) error {
-	helmRepo, err := makeVClusterHelmRepository(namespace)
-	if err != nil {
-		return err
-	}
+func installVCluster(kubeClient client.Client, name, namespace, fluxNamespace string, portForwards []string, automationKind string) error {
+	helmRepo := makeVClusterHelmRepository(namespace)
 
 	if err := kubeClient.Create(context.Background(), helmRepo); err != nil {
 		if apierrors.IsAlreadyExists(err) {
@@ -125,10 +123,7 @@ func installVCluster(kubeClient client.Client, name string, namespace string, fl
 	args := append([]string{filepath.Base(os.Args[0])}, os.Args[1:]...)
 	command := strings.Join(args, " ")
 
-	helmRelease, err := makeVClusterHelmRelease(name, namespace, fluxNamespace, command, portForwards, automationKind)
-	if err != nil {
-		return err
-	}
+	helmRelease := makeVClusterHelmRelease(name, namespace, fluxNamespace, command, portForwards, automationKind)
 
 	if err := kubeClient.Create(context.Background(), helmRelease); err != nil {
 		if apierrors.IsAlreadyExists(err) {
@@ -146,7 +141,6 @@ func installVCluster(kubeClient client.Client, name string, namespace string, fl
 				Name:      name,
 				Namespace: namespace,
 			}, &instance); err != nil {
-
 			if apierrors.IsNotFound(err) {
 				return false, nil
 			} else {
@@ -166,7 +160,7 @@ func installVCluster(kubeClient client.Client, name string, namespace string, fl
 	return nil
 }
 
-func uninstallVcluster(kubeClient client.Client, name string, namespace string) error {
+func uninstallVcluster(kubeClient client.Client, name, namespace string) error {
 	// clean up the session resources using functions from the session package
 	internalSession, err := session.Get(kubeClient, name, namespace)
 	if err != nil {
@@ -178,10 +172,7 @@ func uninstallVcluster(kubeClient client.Client, name string, namespace string) 
 	}
 
 	// clean up repo
-	helmRepo, err := makeVClusterHelmRepository(namespace)
-	if err != nil {
-		return err
-	}
+	helmRepo := makeVClusterHelmRepository(namespace)
 
 	if err := kubeClient.Delete(context.Background(), helmRepo); err != nil {
 		if apierrors.IsNotFound(err) {

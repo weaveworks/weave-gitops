@@ -12,7 +12,7 @@ import (
 // is terminating. Each component creating resources on the cluster should
 // return such a function that is then added to the CleanupFuncs stack by
 // the orchestrating code and removed from it and executed during shutdown.
-type CleanupFunc func(ctx context.Context) error
+type CleanupFunc func(ctx context.Context, log logger.Logger) error
 
 // CleanupFuncs is a stack holding CleanupFunc references that are used
 // to roll up all resources created during an GitOps Run session as soon
@@ -24,6 +24,10 @@ type CleanupFuncs struct {
 // Push implements the stack's Push operation, adding the given CleanupFunc
 // to the top of the stack.
 func (c *CleanupFuncs) Push(f CleanupFunc) {
+	if f == nil {
+		return
+	}
+
 	c.fns = append(c.fns, f)
 }
 
@@ -49,10 +53,9 @@ func CleanupCluster(ctx context.Context, log logger.Logger, fns CleanupFuncs) er
 			}
 			break
 		}
-		if err := fn(ctx); err != nil {
+		if err := fn(ctx, log); err != nil {
 			log.Failuref("failed cleaning up: %s", err)
 		}
-
 	}
 
 	return nil

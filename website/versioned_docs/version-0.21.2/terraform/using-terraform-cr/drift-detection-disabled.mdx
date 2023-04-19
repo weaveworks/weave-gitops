@@ -1,0 +1,37 @@
+---
+title: Disable drift detection
+hide_title: true
+---
+
+# Use TF-controller with drift detection disabled
+
+To disable drift detection in a `Terraform` object reconciled by the TF-controller, you can add the following configuration to your `Terraform` object:
+
+```yaml {8}
+apiVersion: infra.contrib.fluxcd.io/v1alpha1
+kind: Terraform
+metadata:
+  name: helloworld
+  namespace: flux-system
+spec:
+  approvePlan: auto
+  disableDriftDetection: true
+  interval: 1m
+  path: ./
+  sourceRef:
+    kind: GitRepository
+    name: helloworld
+    namespace: flux-system
+```
+
+This configuration will tell the TF-controller to run the specified Terraform configuration
+located at `./` in the `flux-system` namespace, with a polling `interval` of 1 minute.
+It will also automatically approve any plans that are created,
+and it will not perform drift detection.
+
+Drift detection is a feature that compares the current state of the resources
+managed by Terraform with the desired state defined in the configuration files.
+If there are any differences, the TF-controller will create a plan to bring
+the resources back in line with the configuration.
+By setting `spec.disableDriftDetection: true`, you are telling the TF-controller
+to skip this check and not create any plans to correct for any detected drift.

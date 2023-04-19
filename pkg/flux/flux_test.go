@@ -2,7 +2,6 @@ package flux_test
 
 import (
 	"fmt"
-	"path/filepath"
 	"strings"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -44,5 +43,5 @@ var _ = Describe("CreateSecretGit", func() {
 })
 
 func fluxPath() string {
-	return filepath.Join("flux")
+	return "flux"
 }

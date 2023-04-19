@@ -57,22 +57,20 @@ function HelmReleaseDetail({
   customTabs,
   customActions,
 }: Props) {
-  const { data } = useFeatureFlags();
-  const flags = data.flags;
+  const { isFlagEnabled } = useFeatureFlags();
 
   const tenancyInfo: InfoField[] =
-    flags.WEAVE_GITOPS_FEATURE_TENANCY === "true" && helmRelease?.tenant
+    isFlagEnabled("WEAVE_GITOPS_FEATURE_TENANCY") && helmRelease?.tenant
       ? [["Tenant", helmRelease?.tenant]]
       : [];
-  const clusterInfo: InfoField[] =
-    flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true"
-      ? [
-          [
-            "Cluster",
-            <ClusterDashboardLink clusterName={helmRelease?.clusterName} />,
-          ],
-        ]
-      : [];
+  const clusterInfo: InfoField[] = isFlagEnabled("WEAVE_GITOPS_FEATURE_CLUSTER")
+    ? [
+        [
+          "Cluster",
+          <ClusterDashboardLink clusterName={helmRelease?.clusterName} />,
+        ],
+      ]
+    : [];
 
   return (
     <AutomationDetail

@@ -9,7 +9,7 @@
  Create as many sidebars as you want.
  */
 
-module.exports = {
+ module.exports = {
   docs: [
     {
       type: 'category',
@@ -216,12 +216,43 @@ module.exports = {
       },
       items: [
         'policy/getting-started',
+        'policy/authorization',
+        'policy/policy',
         'policy/weave-policy-profile',
-        'policy/configuration',
         'policy/policy-set',
         'policy/policy-configuration',
         'policy/releases',
         'policy/commit-time-checks',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Secrets',
+      link: {
+        type: 'doc',
+        id: 'secrets/intro',
+      },
+      items: [
+        'secrets/intro',
+        'secrets/getting-started',
+        'secrets/bootstraping-secrets',
+        'secrets/setup-eso',
+        'secrets/setup-sops',
+        'secrets/manage-secrets-ui',
+        // 'secrets/self-service',
+        {
+          type: 'category',
+          label: 'Reference',
+          items: [
+            {
+              type: 'category',
+              label: 'v1alpha1',
+              items: [
+                'secrets/spec/v1alpha1/secretSync',
+              ],
+            },
+          ],
+        },
       ],
     },
     {
@@ -241,6 +272,7 @@ module.exports = {
             id: 'gitops-templates/creating-templates',
           },
           items: [
+            'gitops-templates/resource-templates',
             'gitops-templates/repo-rendered-paths',
             'gitops-templates/profiles',
             'gitops-templates/annotations',
@@ -259,11 +291,10 @@ module.exports = {
       label: 'GitOpsSets',
       items: [
         'gitopssets/intro',
-        'gitopssets/features',
-        'gitopssets/list-generator',
-        'gitopssets/git-generator',
-        'gitopssets/matrix-generator',
-        'gitopssets/pull-request-generator',
+        'gitopssets/installation',
+        'gitopssets/guide',
+        'gitopssets/api-reference',
+        'gitopssets/releases'
       ],
     }
   ],

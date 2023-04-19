@@ -24,6 +24,7 @@ enum Kind {
     ImageRepository       = 10;
     ImageUpdateAutomation = 11;
     ImagePolicy           = 12;
+    Pod                   = 13;
 };
 
 enum HelmRepositoryType {
@@ -65,6 +66,19 @@ message NamespacedObjectReference {
     string namespace = 2;
 }
 
+message HealthStatus {
+    string status = 1;
+    string message = 2;
+}
+
+message InventoryEntry {
+    string payload = 1;
+    string tenant = 2;
+    string clusterName = 3;
+    HealthStatus health = 4;
+    repeated InventoryEntry children = 5;
+}
+
 message Object {
     string   payload                    = 1;
     string   clusterName                = 2;
@@ -72,6 +86,7 @@ message Object {
     string   uid                        = 4;
     repeated GroupVersionKind inventory = 5;
     string   info                       = 6;
+    HealthStatus health                 = 7;
 }
 
 message Deployment {

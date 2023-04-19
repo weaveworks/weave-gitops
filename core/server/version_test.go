@@ -8,7 +8,6 @@ import (
 	"github.com/weaveworks/weave-gitops/core/server"
 	coretypes "github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
-	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"google.golang.org/grpc/metadata"
 	v1 "k8s.io/api/core/v1"
@@ -21,7 +20,7 @@ const (
 
 func TestGetVersion(t *testing.T) {
 	g := NewGomegaWithT(t)
-	c, _ := makeGRPCServer(k8sEnv.Rest, t)
+	c := makeGRPCServer(k8sEnv.Rest, t)
 
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
@@ -39,8 +38,8 @@ func TestGetVersion(t *testing.T) {
 	fluxNs := &v1.Namespace{}
 	fluxNs.Name = "flux-ns-test"
 	fluxNs.Labels = map[string]string{
-		coretypes.PartOfLabel: server.FluxNamespacePartOf,
-		flux.VersionLabelKey:  testVersion,
+		coretypes.PartOfLabel:  server.FluxNamespacePartOf,
+		coretypes.VersionLabel: testVersion,
 	}
 	g.Expect(k.Create(ctx, fluxNs)).To(Succeed())
 

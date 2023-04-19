@@ -1,8 +1,10 @@
 import * as React from "react";
 import styled from "styled-components";
 import { ObjectRef } from "../lib/api/core/types.pb";
+import { createYamlCommand } from "../lib/utils";
 import CopyToClipboard from "./CopyToCliboard";
-type Props = {
+
+export type YamlViewProps = {
   className?: string;
   yaml: string;
   object?: ObjectRef;
@@ -17,23 +19,27 @@ const YamlHeader = styled.div`
   text-overflow: ellipsis;
 `;
 
-function UnstyledYamlView({ yaml, object, className }: Props) {
-  const headerText = `kubectl get ${object.kind.toLowerCase()} ${
-    object.name
-  } -n ${object.namespace} -o yaml `;
+function UnstyledYamlView({ yaml, object, className }: YamlViewProps) {
+  const headerText = createYamlCommand(
+    object.kind,
+    object.name,
+    object.namespace
+  );
 
   return (
     <div className={className}>
       <YamlHeader>
         {headerText}
-        <CopyToClipboard
-          value={headerText}
-          className="yaml-copy"
-          size="small"
-        ></CopyToClipboard>
+        {headerText && (
+          <CopyToClipboard
+            value={headerText}
+            className="yaml-copy"
+            size="small"
+          />
+        )}
       </YamlHeader>
       <pre>
-        {yaml.split("\n").map((yaml, index) => (
+        {yaml?.split("\n").map((yaml, index) => (
           <code key={index}>{yaml}</code>
         ))}
       </pre>

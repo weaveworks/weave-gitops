@@ -7,6 +7,10 @@ import { formatURL, objectTypeToRoute } from "../lib/nav";
 import { FluxObject } from "../lib/objects";
 import { makeImageString, statusSortHelper } from "../lib/utils";
 import DataTable from "./DataTable";
+import { DetailViewProps } from "./DetailModal";
+import HealthCheckStatusIndicator, {
+  HealthStatusType,
+} from "./HealthCheckStatusIndicator";
 import ImageLink from "./ImageLink";
 import KubeStatusIndicator, {
   computeMessage,
@@ -19,7 +23,7 @@ import Text from "./Text";
 
 type Props = {
   className?: string;
-  onClick?: (o: FluxObject) => void;
+  onClick?: (o: DetailViewProps) => void;
   objects: FluxObject[];
   initialFilterState?: any;
 };
@@ -59,7 +63,13 @@ function FluxObjectsTable({
 
             return (
               <Text
-                onClick={() => (secret ? null : onClick(u))}
+                onClick={() =>
+                  secret
+                    ? null
+                    : onClick({
+                        object: u,
+                      })
+                }
                 color={secret ? "neutral40" : "primary10"}
                 pointer={!secret}
               >
@@ -81,6 +91,15 @@ function FluxObjectsTable({
           label: "Namespace",
           value: "namespace",
           sortValue: ({ namespace }) => namespace,
+        },
+        {
+          label: "Health Check",
+          value: ({ health }) => {
+            return health.status !== HealthStatusType.Unknown ? (
+              <HealthCheckStatusIndicator health={health} />
+            ) : null;
+          },
+          sortValue: ({ health }: FluxObject) => health.status,
         },
         {
           label: "Status",

@@ -56,7 +56,7 @@ func RegisterAuthServer(mux *http.ServeMux, prefix string, srv *AuthServer, logi
 	}
 
 	mux.Handle(prefix, srv.OAuth2Flow())
-	mux.Handle(prefix+"/callback", srv.Callback())
+	mux.HandleFunc(prefix+"/callback", srv.Callback)
 	mux.Handle(prefix+"/sign_in", middleware.Handle(srv.SignIn()))
 	mux.HandleFunc(prefix+"/userinfo", srv.UserInfo)
 	mux.Handle(prefix+"/logout", srv.Logout())
@@ -198,29 +198,61 @@ func WithAPIAuth(next http.Handler, srv *AuthServer, publicRoutes []string) http
 		}
 	}
 
-	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		if IsPublicRoute(r.URL, publicRoutes) {
-			next.ServeHTTP(rw, r)
+	return &authenticatedMiddleware{
+		next:            next,
+		srv:             srv,
+		publicRoutes:    publicRoutes,
+		principalGetter: multi,
+		locks:           newRefreshLocker(),
+	}
+}
+
+type authenticatedMiddleware struct {
+	srv             *AuthServer
+	publicRoutes    []string
+	next            http.Handler
+	principalGetter PrincipalGetter
+	locks           *refreshLocks
+}
+
+func getRefreshToken(r *http.Request) string {
+	refreshTokenCookie, err := r.Cookie(RefreshTokenCookieName)
+	if err != nil {
+		return ""
+	}
+
+	return refreshTokenCookie.Value
+}
+
+func (a *authenticatedMiddleware) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+	if IsPublicRoute(r.URL, a.publicRoutes) {
+		a.next.ServeHTTP(rw, r)
+		return
+	}
+
+	principal, err := a.principalGetter.Principal(r)
+
+	if refreshToken := getRefreshToken(r); err != nil || principal == nil {
+		var refreshErr error
+		if refreshToken != "" {
+			unlock := a.locks.lock(refreshToken)
+			defer unlock()
+
+			principal, refreshErr = a.srv.Refresh(rw, r)
+		}
+
+		if refreshErr != nil || principal == nil {
+			a.srv.Log.V(logger.LogLevelWarn).Info("refreshing token failed", "err", refreshErr, "principal", principal)
+			a.srv.Log.V(logger.LogLevelWarn).Info("Authentication failed", "err", err, "principal", principal)
+
+			JSONError(a.srv.Log, rw, "Authentication required", http.StatusUnauthorized)
 			return
 		}
 
-		principal, err := multi.Principal(r)
-		if err != nil || principal == nil {
-			var refreshErr error
-			principal, refreshErr = srv.Refresh(rw, r)
-			if refreshErr != nil || principal == nil {
-				srv.Log.V(logger.LogLevelWarn).Info("refreshing token failed", "err", refreshErr, "principal", principal)
-				srv.Log.V(logger.LogLevelWarn).Info("Authentication failed", "err", err, "principal", principal)
+		a.srv.Log.Info("Successfully refreshed token", "principal", principal)
+	}
 
-				JSONError(srv.Log, rw, "Authentication required", http.StatusUnauthorized)
-				return
-			}
-
-			srv.Log.Info("Successfully refreshed token", "principal", principal)
-		}
-
-		next.ServeHTTP(rw, r.Clone(WithPrincipal(r.Context(), principal)))
-	})
+	a.next.ServeHTTP(rw, r.Clone(WithPrincipal(r.Context(), principal)))
 }
 
 func generateNonce() (string, error) {

@@ -1,0 +1,21 @@
+---
+title: 'Example: CAPD Template'
+hide_title: true
+---
+
+import TierLabel from "../_components/TierLabel";
+
+# CAPD Template Example <TierLabel tiers="Enterprise" />
+
+This full example works with the CAPD provider, see [Cluster API Providers](../cluster-management/cluster-api-providers.mdx).
+
+import CodeBlock from "@theme/CodeBlock";
+import CapdTemplate from "!!raw-loader!../assets/templates/capd-template.yaml";
+
+<CodeBlock
+  title="clusters/management/capi/templates/capd-template.yaml"
+  className="language-yaml"
+>
+  {CapdTemplate}
+</CodeBlock>
+

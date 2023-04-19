@@ -5,7 +5,7 @@ import (
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 )
 
-func deleteContext(kubeConfig *clientcmdapi.Config, kubeContext string, otherContext string) error {
+func deleteContext(kubeConfig *clientcmdapi.Config, kubeContext, otherContext string) error {
 	// Get context
 	contextRaw, ok := kubeConfig.Contexts[kubeContext]
 	if !ok {
