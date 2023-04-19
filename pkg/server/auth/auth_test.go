@@ -120,7 +120,7 @@ func TestWithAPIAuthRefreshParallelism(t *testing.T) {
 
 	authMethods := map[auth.AuthMethod]bool{auth.OIDC: true}
 
-	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), oidcCfg, fakeKubernetesClient, tokenSignerVerifier, testNamespace, authMethods, "")
+	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), oidcCfg, fakeKubernetesClient, tokenSignerVerifier, testNamespace, authMethods)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	srv, err := auth.NewAuthServer(context.Background(), authCfg)

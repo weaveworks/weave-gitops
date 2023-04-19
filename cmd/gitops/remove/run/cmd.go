@@ -63,7 +63,7 @@ gitops remove run --no-session
 	cmdFlags := cmd.Flags()
 
 	cmdFlags.BoolVar(&flags.AllSessions, "all-sessions", false, "Remove all GitOps Run sessions")
-	cmdFlags.BoolVar(&flags.NoSession, "no-session", false, "Remove all GitOps Run sessions")
+	cmdFlags.BoolVar(&flags.NoSession, "no-session", false, "Remove all GitOps Run components in the non-session mode")
 
 	kubeConfigArgs = run.GetKubeConfigArgs()
 
@@ -130,6 +130,7 @@ func getKubeClient(cmd *cobra.Command) (*kube.KubeHTTP, *rest.Config, error) {
 
 func removeRunPreRunE(opts *config.Options) func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
+		// if flags.NoSession is set, we don't need to check for session name
 		if flags.NoSession {
 			return nil
 		}
