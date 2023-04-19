@@ -109,6 +109,7 @@ import {
 } from "./lib/utils";
 import SignIn from "./pages/SignIn";
 import Text from "./components/Text";
+import { useGetInventory } from "./hooks/inventory";
 
 export {
   AppContext,
@@ -210,6 +211,7 @@ export {
   UnAuthorizedInterceptor,
   useFeatureFlags,
   useGetObject,
+  useGetInventory,
   useListObjects,
   useListAlerts,
   useListAutomations,

@@ -124,6 +124,11 @@ func NewJWTAdminCookiePrincipalGetter(log logr.Logger, verifier TokenSignerVerif
 }
 
 func (pg *JWTAdminCookiePrincipalGetter) Principal(r *http.Request) (*UserPrincipal, error) {
+	header := r.Header.Get("Authorization")
+	if header != "" {
+		return parseJWTAdminToken(pg.verifier, extractToken(header))
+	}
+
 	cookie, err := r.Cookie(pg.cookieName)
 	if err == http.ErrNoCookie {
 		return nil, nil
