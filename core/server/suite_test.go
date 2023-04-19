@@ -65,7 +65,7 @@ func makeGRPCServer(cfg *rest.Config, t *testing.T) pb.CoreClient {
 		t.Fatal(err)
 	}
 
-	cluster, err := cluster.NewSingleCluster("Default", k8sEnv.Rest, scheme)
+	cluster, err := cluster.NewSingleCluster("Default", k8sEnv.Rest, scheme, kube.UserPrefixes{})
 	if err != nil {
 		t.Fatal(err)
 	}

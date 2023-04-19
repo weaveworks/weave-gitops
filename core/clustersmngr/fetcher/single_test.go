@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/fetcher"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"k8s.io/client-go/rest"
 )
 
@@ -18,7 +19,7 @@ func TestSingleFetcher(t *testing.T) {
 
 	g := NewGomegaWithT(t)
 
-	cluster, err := cluster.NewSingleCluster("Default", config, nil)
+	cluster, err := cluster.NewSingleCluster("Default", config, nil, kube.UserPrefixes{})
 	g.Expect(err).To(BeNil())
 
 	fetcher := fetcher.NewSingleClusterFetcher(cluster)

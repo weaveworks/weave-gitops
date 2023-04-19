@@ -50,13 +50,15 @@ var DefaultScopes = []string{
 // OIDCConfig is used to configure an AuthServer to interact with
 // an OIDC issuer.
 type OIDCConfig struct {
-	IssuerURL     string
-	ClientID      string
-	ClientSecret  string
-	RedirectURL   string
-	TokenDuration time.Duration
-	Scopes        []string
-	ClaimsConfig  *ClaimsConfig
+	IssuerURL      string
+	ClientID       string
+	ClientSecret   string
+	RedirectURL    string
+	TokenDuration  time.Duration
+	Scopes         []string
+	ClaimsConfig   *ClaimsConfig
+	UsernamePrefix string
+	GroupsPrefix   string
 }
 
 // This is only used if the OIDCConfig doesn't have a TokenDuration set. If
@@ -108,10 +110,12 @@ type UserInfo struct {
 // - customScopes - defaults to "openid","offline_access","email","groups"
 func NewOIDCConfigFromSecret(secret corev1.Secret) OIDCConfig {
 	cfg := OIDCConfig{
-		IssuerURL:    string(secret.Data["issuerURL"]),
-		ClientID:     string(secret.Data["clientID"]),
-		ClientSecret: string(secret.Data["clientSecret"]),
-		RedirectURL:  string(secret.Data["redirectURL"]),
+		IssuerURL:      string(secret.Data["issuerURL"]),
+		ClientID:       string(secret.Data["clientID"]),
+		ClientSecret:   string(secret.Data["clientSecret"]),
+		RedirectURL:    string(secret.Data["redirectURL"]),
+		UsernamePrefix: string(secret.Data["oidcUsernamePrefix"]),
+		GroupsPrefix:   string(secret.Data["oidcGroupsPrefix"]),
 	}
 	cfg.ClaimsConfig = claimsConfigFromSecret(secret)
 

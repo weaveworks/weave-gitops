@@ -519,7 +519,7 @@ func createClusterClientsPool(g *GomegaWithT, clusterName string) clustersmngr.C
 	})
 	g.Expect(err).To(BeNil())
 
-	cluster, err := cluster.NewSingleCluster(clusterName, k8sEnv.Rest, scheme)
+	cluster, err := cluster.NewSingleCluster(clusterName, k8sEnv.Rest, scheme, kube.UserPrefixes{})
 	g.Expect(err).To(BeNil())
 	err = clientsPool.Add(
 		client,

@@ -14,6 +14,7 @@ import (
 	"github.com/weaveworks/weave-gitops/core/nsaccess"
 	"github.com/weaveworks/weave-gitops/core/nsaccess/nsaccessfakes"
 	"github.com/weaveworks/weave-gitops/pkg/featureflags"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"golang.org/x/net/context"
 	v1 "k8s.io/api/core/v1"
@@ -33,7 +34,7 @@ func TestGetImpersonatedClient(t *testing.T) {
 	nsChecker := &nsaccessfakes.FakeChecker{}
 	nsChecker.FilterAccessibleNamespacesReturns([]v1.Namespace{*ns2}, nil)
 
-	cluster, err := cluster.NewSingleCluster("test", k8sEnv.Rest, nil, cluster.DefaultKubeConfigOptions...)
+	cluster, err := cluster.NewSingleCluster("test", k8sEnv.Rest, nil, kube.UserPrefixes{}, cluster.DefaultKubeConfigOptions...)
 	g.Expect(err).To(BeNil())
 
 	clustersFetcher := fetcher.NewSingleClusterFetcher(cluster)
@@ -84,7 +85,7 @@ func TestUseUserClientForNamespaces(t *testing.T) {
 	nsChecker := &nsaccessfakes.FakeChecker{}
 	nsChecker.FilterAccessibleNamespacesReturns([]v1.Namespace{*ns2}, nil)
 
-	cluster, err := cluster.NewSingleCluster("test", k8sEnv.Rest, nil, cluster.DefaultKubeConfigOptions...)
+	cluster, err := cluster.NewSingleCluster("test", k8sEnv.Rest, nil, kube.UserPrefixes{}, cluster.DefaultKubeConfigOptions...)
 	g.Expect(err).To(BeNil())
 
 	clustersFetcher := fetcher.NewSingleClusterFetcher(cluster)
@@ -134,7 +135,7 @@ func TestGetImpersonatedDiscoveryClient(t *testing.T) {
 	nsChecker := &nsaccessfakes.FakeChecker{}
 	nsChecker.FilterAccessibleNamespacesReturns([]v1.Namespace{*ns1}, nil)
 
-	cl, err := cluster.NewSingleCluster(cluster.DefaultCluster, k8sEnv.Rest, nil, cluster.DefaultKubeConfigOptions...)
+	cl, err := cluster.NewSingleCluster(cluster.DefaultCluster, k8sEnv.Rest, nil, kube.UserPrefixes{}, cluster.DefaultKubeConfigOptions...)
 	g.Expect(err).To(BeNil())
 
 	clustersFetcher := fetcher.NewSingleClusterFetcher(cl)
