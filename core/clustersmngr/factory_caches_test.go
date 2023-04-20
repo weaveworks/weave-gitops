@@ -10,6 +10,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/rest"
@@ -36,7 +37,7 @@ func TestUsersNamespaces(t *testing.T) {
 	})
 
 	t.Run("all namespaces from all", func(t *testing.T) {
-		cl, err := cluster.NewSingleCluster(clusterName, &rest.Config{}, nil)
+		cl, err := cluster.NewSingleCluster(clusterName, &rest.Config{}, nil, kube.UserPrefixes{})
 		g.Expect(err).NotTo(HaveOccurred())
 		nsMap := un.GetAll(user, []cluster.Cluster{cl})
 		g.Expect(nsMap).To(Equal(map[string][]v1.Namespace{clusterName: {ns}}))
@@ -51,10 +52,10 @@ func TestClusters(t *testing.T) {
 	c1 := "cluster-1"
 	c2 := "cluster-2"
 
-	cluster1, err := cluster.NewSingleCluster(c1, &rest.Config{}, nil)
+	cluster1, err := cluster.NewSingleCluster(c1, &rest.Config{}, nil, kube.UserPrefixes{})
 	g.Expect(err).NotTo(HaveOccurred())
 
-	cluster2, err := cluster.NewSingleCluster(c2, &rest.Config{}, nil)
+	cluster2, err := cluster.NewSingleCluster(c2, &rest.Config{}, nil, kube.UserPrefixes{})
 	g.Expect(err).NotTo(HaveOccurred())
 
 	testClusters := []cluster.Cluster{cluster1, cluster2}
@@ -127,7 +128,7 @@ func TestClusterSet_Set(t *testing.T) {
 }
 
 func newTestCluster(t *testing.T, name, server string) cluster.Cluster {
-	c, err := cluster.NewSingleCluster(name, &rest.Config{Host: server}, nil)
+	c, err := cluster.NewSingleCluster(name, &rest.Config{Host: server}, nil, kube.UserPrefixes{})
 	if err != nil {
 		t.Error("Expected error to be nil, got", err)
 	}

@@ -115,6 +115,10 @@ func NewCommand() *cobra.Command {
 	cmd.Flags().StringVar(&options.OIDC.ClaimsConfig.Username, "oidc-username-claim", auth.ClaimUsername, "JWT claim to use as the user name. By default email, which is expected to be a unique identifier of the end user. Admins can choose other claims, such as sub or name, depending on their provider")
 	cmd.Flags().StringVar(&options.OIDC.ClaimsConfig.Groups, "oidc-groups-claim", auth.ClaimGroups, "JWT claim to use as the user's group. If the claim is present it must be an array of strings")
 	cmd.Flags().StringSliceVar(&options.OIDC.Scopes, "custom-oidc-scopes", auth.DefaultScopes, "Customise the requested scopes for then OIDC authentication flow - openid will always be requested")
+	// OIDC prefixes
+	cmd.Flags().StringVar(&options.OIDC.UsernamePrefix, "oidc-username-prefix", "", "Prefix to add to the username when impersonating")
+	cmd.Flags().StringVar(&options.OIDC.GroupsPrefix, "oidc-group-prefix", "", "Prefix to add to the groups when impersonating")
+
 	// Metrics
 	cmd.Flags().BoolVar(&options.EnableMetrics, "enable-metrics", false, "Starts the metrics listener")
 	cmd.Flags().StringVar(&options.MetricsAddress, "metrics-address", ":2112", "If the metrics listener is enabled, bind to this address")
@@ -187,7 +191,22 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	ctx := context.Background()
 
-	cl, err := cluster.NewSingleCluster(cluster.DefaultCluster, rest, scheme, cluster.DefaultKubeConfigOptions...)
+	oidcPrefixes := kube.UserPrefixes{
+		UsernamePrefix: options.OIDC.UsernamePrefix,
+		GroupsPrefix:   options.OIDC.GroupsPrefix,
+	}
+
+	// Incorporate values from authServer.AuthConfig.OIDCConfig
+	if authServer.AuthConfig.OIDCConfig.UsernamePrefix != "" {
+		log.V(logger.LogLevelWarn).Info("OIDC username prefix configured by both CLI and secret. Secret values will take precedence.")
+		oidcPrefixes.UsernamePrefix = authServer.AuthConfig.OIDCConfig.UsernamePrefix
+	}
+	if authServer.AuthConfig.OIDCConfig.GroupsPrefix != "" {
+		log.V(logger.LogLevelWarn).Info("OIDC groups prefix configured by both CLI and secret. Secret values will take precedence.")
+		oidcPrefixes.GroupsPrefix = authServer.AuthConfig.OIDCConfig.GroupsPrefix
+	}
+
+	cl, err := cluster.NewSingleCluster(cluster.DefaultCluster, rest, scheme, oidcPrefixes, cluster.DefaultKubeConfigOptions...)
 	if err != nil {
 		return fmt.Errorf("failed to create cluster client; %w", err)
 	}

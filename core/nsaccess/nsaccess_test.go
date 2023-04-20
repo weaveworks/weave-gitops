@@ -341,7 +341,7 @@ func newRestConfigWithRole(t *testing.T, testCfg *rest.Config, roleName types.Na
 		t.Fatal(err)
 	}
 
-	cluster, err := cluster.NewSingleCluster("test", testCfg, scheme)
+	cluster, err := cluster.NewSingleCluster("test", testCfg, scheme, kube.UserPrefixes{})
 	if err != nil {
 		t.Fatal(err)
 	}

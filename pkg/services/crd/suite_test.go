@@ -12,6 +12,7 @@ import (
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	"github.com/weaveworks/weave-gitops/core/nsaccess"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
 	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -58,7 +59,7 @@ func createClient(k8sEnv *testutils.K8sTestEnv) (clustersmngr.Client, clustersmn
 	ctx := context.Background()
 	log := logr.Discard()
 
-	singleCluster, err := cluster.NewSingleCluster(defaultClusterName, k8sEnv.Rest, nil)
+	singleCluster, err := cluster.NewSingleCluster(defaultClusterName, k8sEnv.Rest, nil, kube.UserPrefixes{})
 	if err != nil {
 		return nil, nil, err
 	}

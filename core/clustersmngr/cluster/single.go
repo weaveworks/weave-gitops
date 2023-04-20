@@ -14,12 +14,13 @@ import (
 )
 
 type singleCluster struct {
-	name       string
-	restConfig *rest.Config
-	scheme     *apiruntime.Scheme
+	name         string
+	restConfig   *rest.Config
+	scheme       *apiruntime.Scheme
+	userPrefixes kube.UserPrefixes
 }
 
-func NewSingleCluster(name string, config *rest.Config, scheme *apiruntime.Scheme, kubeConfigOptions ...KubeConfigOption) (Cluster, error) {
+func NewSingleCluster(name string, config *rest.Config, scheme *apiruntime.Scheme, userPrefixes kube.UserPrefixes, kubeConfigOptions ...KubeConfigOption) (Cluster, error) {
 	// TODO: why does the cluster care about options?
 	config.Timeout = kubeClientTimeout
 	config.Dial = (&net.Dialer{
@@ -38,9 +39,10 @@ func NewSingleCluster(name string, config *rest.Config, scheme *apiruntime.Schem
 	}
 
 	return &singleCluster{
-		name:       name,
-		restConfig: config,
-		scheme:     scheme,
+		name:         name,
+		restConfig:   config,
+		scheme:       scheme,
+		userPrefixes: userPrefixes,
 	}, nil
 }
 
@@ -69,16 +71,16 @@ func getClientFromConfig(config *rest.Config, scheme *apiruntime.Scheme) (client
 	return client, nil
 }
 
-func getImpersonatedConfig(config *rest.Config, user *auth.UserPrincipal) (*rest.Config, error) {
+func getImpersonatedConfig(config *rest.Config, user *auth.UserPrincipal, userPrefixes kube.UserPrefixes) (*rest.Config, error) {
 	if !user.Valid() {
 		return nil, fmt.Errorf("no user ID or Token found in UserPrincipal")
 	}
 
-	return kube.ConfigWithPrincipal(user, config), nil
+	return kube.ConfigWithPrincipal(user, config, userPrefixes), nil
 }
 
 func (c *singleCluster) GetUserClient(user *auth.UserPrincipal) (client.Client, error) {
-	cfg, err := getImpersonatedConfig(c.restConfig, user)
+	cfg, err := getImpersonatedConfig(c.restConfig, user, c.userPrefixes)
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +103,7 @@ func (c *singleCluster) GetServerClient() (client.Client, error) {
 }
 
 func (c *singleCluster) GetUserClientset(user *auth.UserPrincipal) (kubernetes.Interface, error) {
-	cfg, err := getImpersonatedConfig(c.restConfig, user)
+	cfg, err := getImpersonatedConfig(c.restConfig, user, c.userPrefixes)
 	if err != nil {
 		return nil, err
 	}
