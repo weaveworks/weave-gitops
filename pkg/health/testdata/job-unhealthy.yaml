@@ -1,0 +1,63 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  annotations: {}
+  creationTimestamp: "2023-04-20T13:44:49Z"
+  generateName: nginx-classic-web-
+  generation: 1
+  labels:
+    app.kubernetes.io/created-by: infra-provisioning-controller-manager
+  name: nginx-classic-web-8fqk6
+  namespace: services
+  resourceVersion: "1054240774"
+  uid: c5a437ef-be19-4d07-a89c-4f73e7f86ea1
+spec:
+  backoffLimit: 4
+  completionMode: NonIndexed
+  completions: 1
+  parallelism: 1
+  selector:
+    matchLabels:
+      controller-uid: c5a437ef-be19-4d07-a89c-4f73e7f86ea1
+  suspend: false
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
+      creationTimestamp: null
+      labels:
+        controller-uid: c5a437ef-be19-4d07-a89c-4f73e7f86ea1
+        job-name: nginx-classic-web-8fqk6
+    spec:
+      containers:
+      - image: nginx
+        imagePullPolicy: IfNotPresent
+        name: nginx-runner
+        resources:
+          limits:
+            cpu: 500m
+            memory: 768Mi
+          requests:
+            cpu: 250m
+            memory: 768Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      priorityClassName: infra-provisioning-operator-high-priority
+      restartPolicy: Never
+      schedulerName: default-scheduler
+      securityContext: {}
+      serviceAccount: infra-provisioning-manager
+      serviceAccountName: infra-provisioning-manager
+      terminationGracePeriodSeconds: 30
+  ttlSecondsAfterFinished: 14400
+status:
+  completionTime: "2023-04-20T13:50:54Z"
+  conditions:
+  - lastProbeTime: "2023-04-20T13:50:54Z"
+    lastTransitionTime: "2023-04-20T13:50:54Z"
+    status: "True"
+    type: Complete
+  startTime: "2023-04-20T13:44:49Z"
+  succeeded: 0
+  failed: 1

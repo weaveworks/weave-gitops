@@ -57,6 +57,30 @@ func TestHealthCheck(t *testing.T) {
 			data:         "testdata/pod-unhealthy.yaml",
 			healthStatus: HealthStatusUnhealthy,
 		},
+		{
+			data:         "testdata/daemonset-healthy.yaml",
+			healthStatus: HealthStatusHealthy,
+		},
+		{
+			data:         "testdata/daemonset-progressing.yaml",
+			healthStatus: HealthStatusProgressing,
+		},
+		{
+			data:         "testdata/statefulset-healthy.yaml",
+			healthStatus: HealthStatusHealthy,
+		},
+		{
+			data:         "testdata/statefulset-progressing.yaml",
+			healthStatus: HealthStatusProgressing,
+		},
+		{
+			data:         "testdata/job-healthy.yaml",
+			healthStatus: HealthStatusHealthy,
+		},
+		{
+			data:         "testdata/job-unhealthy.yaml",
+			healthStatus: HealthStatusUnhealthy,
+		},
 	} {
 		t.Run(fmt.Sprintf("%s is %s", scenario.data, scenario.healthStatus), func(t *testing.T) {
 			yamlBytes, err := os.ReadFile(scenario.data)
