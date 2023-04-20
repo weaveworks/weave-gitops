@@ -19,6 +19,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/run"
 	"github.com/weaveworks/weave-gitops/pkg/run/constants"
+	"github.com/weaveworks/weave-gitops/pkg/sourceignore"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
@@ -332,6 +333,35 @@ func WatchDirsForFileWalker(watcher *fsnotify.Watcher, ignorer *ignore.GitIgnore
 	}
 }
 
+// InitializeRootDir initializes the root directory (creates the .sourceignore file in it).
+func InitializeRootDir(log logger.Logger, rootPath string) error {
+	stat, err := os.Stat(rootPath)
+
+	if err != nil {
+		return err
+	} else if !stat.IsDir() {
+		return fmt.Errorf("root must be a directory")
+	} else {
+		f, err := os.Open(rootPath)
+		if err != nil {
+			return err
+		}
+
+		_, err = f.Readdirnames(1)
+		if err != nil && !errors.Is(err, io.EOF) {
+			return err
+		}
+	}
+
+	err = sourceignore.CreateIgnoreFile(rootPath, sourceignore.IgnoreFilename, []string{})
+	if err == nil {
+		log.Successf("%s file created. Please add ignore patterns to ignore specific YAML files or directories during validation to it", sourceignore.IgnoreFilename)
+	}
+
+	return err
+}
+
+// InitializeTargetDir initializes the target directory (creates the entrypoint Kustomization in it).
 func InitializeTargetDir(targetPath string) error {
 	shouldCreate := false
 	stat, err := os.Stat(targetPath)

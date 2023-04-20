@@ -34,6 +34,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/run/install"
 	"github.com/weaveworks/weave-gitops/pkg/run/watch"
 	"github.com/weaveworks/weave-gitops/pkg/s3"
+	"github.com/weaveworks/weave-gitops/pkg/sourceignore"
 	"github.com/weaveworks/weave-gitops/pkg/validate"
 	"github.com/weaveworks/weave-gitops/pkg/version"
 	corev1 "k8s.io/api/core/v1"
@@ -780,6 +781,10 @@ func runCommandInnerProcess(cmd *cobra.Command, args []string) error {
 		}
 	}
 
+	if err := watch.InitializeRootDir(log, paths.RootDir); err != nil && !errors.Is(err, sourceignore.ErrIgnoreFileExists) {
+		return fmt.Errorf("couldn't initialize root dir %s: %w", paths.RootDir, err)
+	}
+
 	if err := watch.InitializeTargetDir(paths.GetAbsoluteTargetDir()); err != nil {
 		return fmt.Errorf("couldn't set up against target %s: %w", paths.TargetDir, err)
 	}
@@ -884,7 +889,9 @@ func runCommandInnerProcess(cmd *cobra.Command, args []string) error {
 
 				// Skip all dotfiles because these are usually created by editors as swap files. A reconciliation
 				// should only be triggered by files that are actually part of the application being run.
-				if !info.IsDir() && strings.HasPrefix(filepath.Base(event.Name), ".") {
+				base := filepath.Base(event.Name)
+
+				if !info.IsDir() && strings.HasPrefix(base, ".") && base != sourceignore.IgnoreFilename {
 					continue
 				}
 
@@ -928,7 +935,7 @@ func runCommandInnerProcess(cmd *cobra.Command, args []string) error {
 						// validate only files under the target dir
 						log.Actionf("Validating files under %s/ ...", paths.TargetDir)
 
-						if err := validate.Validate(paths.GetAbsoluteTargetDir(), kubernetesVersion, fluxVersionInfo.FluxVersion); err != nil {
+						if err := validate.Validate(log, paths.GetAbsoluteTargetDir(), paths.RootDir, kubernetesVersion, fluxVersionInfo.FluxVersion); err != nil {
 							log.Failuref("Validation failed: please review the errors and try again: %v", err)
 							continue
 						}

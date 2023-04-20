@@ -11,12 +11,14 @@ import (
 	"sync"
 
 	"github.com/hashicorp/go-cleanhttp"
+	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/weaveworks/weave-gitops/pkg/sourceignore"
 	"github.com/yannh/kubeconform/pkg/output"
 	"github.com/yannh/kubeconform/pkg/resource"
 	"github.com/yannh/kubeconform/pkg/validator"
 )
 
-func Validate(targetDir, kubernetesVersion, fluxVersion string) error {
+func Validate(log logger.Logger, targetDir, rootDir, kubernetesVersion, fluxVersion string) error {
 	var (
 		o     output.Output
 		err   error
@@ -82,13 +84,23 @@ func Validate(targetDir, kubernetesVersion, fluxVersion string) error {
 		}
 	}
 
+	// load sourceignore patterns
+	ignorePath := filepath.Join(rootDir, sourceignore.IgnoreFilename)
+
+	ps, err := sourceignore.ReadIgnoreFile(ignorePath, nil)
+	if err != nil {
+		log.Warningf("Couldn't read the ignore file %s: %v", ignorePath, err)
+	}
+
+	filter := sourceignore.IgnoreFileFilter(ps, []string{})
+
 	// walk the target directory and find all YAML files
 	err = filepath.Walk(targetDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
 
-		if !info.IsDir() && (filepath.Ext(path) == ".yaml" || filepath.Ext(path) == ".yml") {
+		if !info.IsDir() && (filepath.Ext(path) == ".yaml" || filepath.Ext(path) == ".yml") && !filter(path, info) {
 			files = append(files, path)
 		}
 
