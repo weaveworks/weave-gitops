@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/fluxcd/flux2/pkg/manifestgen/install"
+	"github.com/fluxcd/flux2/v2/pkg/manifestgen/install"
 	"github.com/fluxcd/pkg/ssa"
 	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo/v2"

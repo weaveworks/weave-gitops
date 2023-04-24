@@ -60,6 +60,18 @@ type UserRepository struct {
 	deployKeysReturnsOnCall map[int]struct {
 		result1 gitprovider.DeployKeyClient
 	}
+	DeployTokensStub        func() (gitprovider.DeployTokenClient, error)
+	deployTokensMutex       sync.RWMutex
+	deployTokensArgsForCall []struct {
+	}
+	deployTokensReturns struct {
+		result1 gitprovider.DeployTokenClient
+		result2 error
+	}
+	deployTokensReturnsOnCall map[int]struct {
+		result1 gitprovider.DeployTokenClient
+		result2 error
+	}
 	FilesStub        func() gitprovider.FileClient
 	filesMutex       sync.RWMutex
 	filesArgsForCall []struct {
@@ -420,6 +432,62 @@ func (fake *UserRepository) DeployKeysReturnsOnCall(i int, result1 gitprovider.D
 	fake.deployKeysReturnsOnCall[i] = struct {
 		result1 gitprovider.DeployKeyClient
 	}{result1}
+}
+
+func (fake *UserRepository) DeployTokens() (gitprovider.DeployTokenClient, error) {
+	fake.deployTokensMutex.Lock()
+	ret, specificReturn := fake.deployTokensReturnsOnCall[len(fake.deployTokensArgsForCall)]
+	fake.deployTokensArgsForCall = append(fake.deployTokensArgsForCall, struct {
+	}{})
+	stub := fake.DeployTokensStub
+	fakeReturns := fake.deployTokensReturns
+	fake.recordInvocation("DeployTokens", []interface{}{})
+	fake.deployTokensMutex.Unlock()
+	if stub != nil {
+		return stub()
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *UserRepository) DeployTokensCallCount() int {
+	fake.deployTokensMutex.RLock()
+	defer fake.deployTokensMutex.RUnlock()
+	return len(fake.deployTokensArgsForCall)
+}
+
+func (fake *UserRepository) DeployTokensCalls(stub func() (gitprovider.DeployTokenClient, error)) {
+	fake.deployTokensMutex.Lock()
+	defer fake.deployTokensMutex.Unlock()
+	fake.DeployTokensStub = stub
+}
+
+func (fake *UserRepository) DeployTokensReturns(result1 gitprovider.DeployTokenClient, result2 error) {
+	fake.deployTokensMutex.Lock()
+	defer fake.deployTokensMutex.Unlock()
+	fake.DeployTokensStub = nil
+	fake.deployTokensReturns = struct {
+		result1 gitprovider.DeployTokenClient
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *UserRepository) DeployTokensReturnsOnCall(i int, result1 gitprovider.DeployTokenClient, result2 error) {
+	fake.deployTokensMutex.Lock()
+	defer fake.deployTokensMutex.Unlock()
+	fake.DeployTokensStub = nil
+	if fake.deployTokensReturnsOnCall == nil {
+		fake.deployTokensReturnsOnCall = make(map[int]struct {
+			result1 gitprovider.DeployTokenClient
+			result2 error
+		})
+	}
+	fake.deployTokensReturnsOnCall[i] = struct {
+		result1 gitprovider.DeployTokenClient
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *UserRepository) Files() gitprovider.FileClient {
@@ -886,6 +954,8 @@ func (fake *UserRepository) Invocations() map[string][][]interface{} {
 	defer fake.deleteMutex.RUnlock()
 	fake.deployKeysMutex.RLock()
 	defer fake.deployKeysMutex.RUnlock()
+	fake.deployTokensMutex.RLock()
+	defer fake.deployTokensMutex.RUnlock()
 	fake.filesMutex.RLock()
 	defer fake.filesMutex.RUnlock()
 	fake.getMutex.RLock()

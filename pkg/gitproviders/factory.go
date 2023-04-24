@@ -2,11 +2,12 @@ package gitproviders
 
 import (
 	"fmt"
-
 	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitlab"
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/fluxcd/go-git-providers/stash"
+	"github.com/go-logr/zapr"
+	"go.uber.org/zap"
 )
 
 // GitProviderName holds a Git provider definition.
@@ -43,10 +44,12 @@ func buildGitProvider(config Config) (gitprovider.Client, string, error) {
 		return nil, "", fmt.Errorf("no git provider token present")
 	}
 
+	logger := zapr.NewLogger(zap.L())
 	switch config.Provider {
 	case GitProviderGitHub:
 		opts := []gitprovider.ClientOption{
 			gitprovider.WithOAuth2Token(config.Token),
+			gitprovider.WithLogger(&logger),
 		}
 
 		// Quirk of ggp, if using github.com or gitlab.com and you prepend
@@ -67,6 +70,7 @@ func buildGitProvider(config Config) (gitprovider.Client, string, error) {
 		opts := []gitprovider.ClientOption{
 			gitprovider.WithOAuth2Token(config.Token),
 			gitprovider.WithConditionalRequests(true),
+			gitprovider.WithLogger(&logger),
 		}
 
 		// Quirk, see above
@@ -90,13 +94,14 @@ func buildGitProvider(config Config) (gitprovider.Client, string, error) {
 		opts := []gitprovider.ClientOption{
 			gitprovider.WithOAuth2Token(config.Token),
 			gitprovider.WithConditionalRequests(true),
+			gitprovider.WithLogger(&logger),
 		}
 
 		hostname := "https://" + config.Hostname
 		opts = append(opts, gitprovider.WithDomain(hostname))
 
 		if client, err := stash.NewStashClient(config.Username, config.Token, opts...); err != nil {
-			return nil, "", err
+			return nil, "", fmt.Errorf("failed to create BitBucket Server client: %w", err)
 		} else {
 			return client, hostname, nil
 		}
