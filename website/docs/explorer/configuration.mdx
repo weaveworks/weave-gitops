@@ -71,8 +71,68 @@ Query results are filtered honouring the access determined via RBAC.
 
 ## Authentication and Authorization for collecting
 
-As mentioned earlier, [GitopsClusters](https://docs.gitops.weave.works/docs/next/cluster-management/managing-existing-clusters/#connect-a-cluster)
+:::caution
+
+**This feature is in alpha and certain aspects will change**
+
+We're very excited for people to use this feature.
+However, please note that some changes will be made to the security by implementing impersonation for more
+fine-grained control over the collector.
+:::
+
+
+[GitopsClusters](https://docs.gitops.weave.works/docs/next/cluster-management/managing-existing-clusters/#connect-a-cluster)
 defines the connection and security context that Explorer leverages to collect data from leaf clusters.
+
+Given that you have followed the indications to RBAC indications in the [documentation](https://docs.gitops.weave.works/docs/next/configuration/service-account-permissions/).
+To enable explorer to watch resources you need to add the following RBAC resources
+
+Define a ClusterRole that allows watching
+
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: collector
+rules:
+  - apiGroups: [ "rbac.authorization.k8s.io" ]
+    resources: [ "roles", "clusterroles", "rolebindings", "clusterrolebindings" ]
+    verbs: [ "list", "watch" ]
+  - apiGroups: [ "kustomize.toolkit.fluxcd.io" ]
+    resources: [ "kustomizations" ]
+    verbs: [ "list", "watch" ]
+  - apiGroups: [ "helm.toolkit.fluxcd.io" ]
+    resources: [ "helmreleases" ]
+    verbs: [ "list", "watch" ]
+  - apiGroups: [ "source.toolkit.fluxcd.io" ]
+    resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories", "ocirepositories" ]
+    verbs: [ "list", "watch" ]
+```
+
+If you want the collector to watch any namespace use a ClusterRoleBinding
+```yaml
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: wge-collector
+subjects:
+  - kind: ServiceAccount
+    name: <gitops-cluster-service-account-name> # service account name that your gitops cluster uses
+    namespace: <gitops-cluster-service-account-namespace>
+roleRef:
+  kind: ClusterRole
+  name: collector
+  apiGroup: rbac.authorization.k8s.io
+```
+
+If you want the collector to watch a particular namespace use a `RoleBinding` instead
+
+:::tip
+It is recommended to add these RBAC resources as part of your [bases](https://docs.gitops.weave.works/docs/next/cluster-management/getting-started/#add-common-rbac-to-the-repo)
+:::
+
+
 
 ## Next Steps
 - See [querying](./querying.mdx) to deep dive in how to query.
