@@ -11,6 +11,7 @@ import DependenciesView from "./DependenciesView";
 import EventsTable from "./EventsTable";
 import Flex from "./Flex";
 import InfoList, { InfoField } from "./InfoList";
+import { ReadyStatusValue, ReadyType } from "./KubeStatusIndicator";
 import { routeTab } from "./KustomizationDetail";
 import Metadata from "./Metadata";
 import PageStatus from "./PageStatus";
@@ -57,6 +58,14 @@ function AutomationDetail({
     conditions,
     sourceRef,
   } = automation;
+
+  const [canaryStatus, setCanaryStatus] = React.useState<Condition>({
+    type: ReadyType.Ready,
+    status: ReadyStatusValue.None,
+    reason: "None",
+    message: "No Canaries",
+  });
+
   const sync = useSyncFluxObject([
     {
       name,
@@ -105,6 +114,9 @@ function AutomationDetail({
             <ReconciledObjectsTable
               className={className}
               reconciledObjectsAutomation={reconciledObjectsAutomation}
+              setCanaryStatus={
+                customTabs || customActions ? setCanaryStatus : null
+              }
             />
           </>
         );
@@ -176,6 +188,9 @@ function AutomationDetail({
         conditions={automation.conditions}
         suspended={automation.suspended}
       />
+      {(customTabs || customActions) && (
+        <PageStatus conditions={[canaryStatus]} suspended={false} />
+      )}
       <Flex wide start>
         <SyncButton
           onClick={(opts) => sync.mutateAsync(opts)}
