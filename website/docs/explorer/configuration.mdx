@@ -71,23 +71,31 @@ Query results are filtered honouring the access determined via RBAC.
 
 ## Authentication and Authorization for collecting
 
-:::caution
+[GitopsClusters](../cluster-management/managing-existing-clusters.mdx#connect-a-cluster)
+define the connection and security context that Explorer leverages to collect data from leaf clusters. Given that you have followed the indications
+in [setup RBAC](../configuration/service-account-permissions.mdx), the gitops clusters service account
+is able to impersonate any user or group.
 
-**This feature is in alpha and certain aspects will change**
+To configure collection, you would need to extend this configuration with the following:
 
-We're very excited for people to use this feature.
-However, please note that some changes will be made to the security by implementing impersonation for more
-fine-grained control over the collector.
-:::
+1. Create a service account `collector` in `flux-system` namespace for any leaf cluster that you want to watch.
+
+<details><summary>Expand to see an example</summary>
+
+```yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: collector
+  namespace: flux-system
+```
+
+</details>
 
 
-[GitopsClusters](https://docs.gitops.weave.works/docs/next/cluster-management/managing-existing-clusters/#connect-a-cluster)
-defines the connection and security context that Explorer leverages to collect data from leaf clusters.
+2. Create a `collector` ClusterRole with the permissions to watch the supported resources.
 
-Given that you have followed the indications to RBAC indications in the [documentation](https://docs.gitops.weave.works/docs/next/configuration/service-account-permissions/).
-To enable explorer to watch resources you need to add the following RBAC resources
-
-Define a ClusterRole that allows watching
+<details><summary>Expand to see an example</summary>
 
 ```yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -109,28 +117,52 @@ rules:
     verbs: [ "list", "watch" ]
 ```
 
-If you want the collector to watch any namespace use a ClusterRoleBinding
+</details>
+
+3. Create a `collector` ClusterRolebinding (or RoleBinding) to assign permissions to `collector` service account.
+
+<details><summary>Expand to see an example</summary>
+
 ```yaml
----
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: wge-collector
+  name: collector
 subjects:
   - kind: ServiceAccount
-    name: <gitops-cluster-service-account-name> # service account name that your gitops cluster uses
-    namespace: <gitops-cluster-service-account-namespace>
+    name: collector
+    namespace: flux-system
 roleRef:
   kind: ClusterRole
   name: collector
   apiGroup: rbac.authorization.k8s.io
 ```
 
-If you want the collector to watch a particular namespace use a `RoleBinding` instead
+</details>
 
-:::tip
-It is recommended to add these RBAC resources as part of your [bases](https://docs.gitops.weave.works/docs/next/cluster-management/getting-started/#add-common-rbac-to-the-repo)
-:::
+If you want the collector to watch a particular namespace use a `RoleBinding` instead.
+
+4. Extend impersonation role to allow impersonate service account `collector`
+
+<details><summary>Expand to see an example</summary>
+
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: clusters-service-impersonator-role
+rules:
+  - apiGroups: [""]
+    resources: ["users", "groups"]
+    verbs: ["impersonate"]
+  - apiGroups: [ "" ]
+    resources: [ "serviceaccounts" ]
+    verbs: [ "impersonate" ]
+    resourceNames:
+      - "collector"
+```
+</details>
+
 
 
 
