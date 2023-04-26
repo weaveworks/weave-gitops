@@ -73,12 +73,11 @@ Query results are filtered honouring the access determined via RBAC.
 
 [GitopsClusters](../cluster-management/managing-existing-clusters.mdx#connect-a-cluster)
 define the connection and security context that Explorer leverages to collect data from leaf clusters. Given that you have followed the indications
-in [setup RBAC](../configuration/service-account-permissions.mdx), the gitops clusters service account
-is able to impersonate any user or group.
+in [setup RBAC](../configuration/service-account-permissions.mdx), the GitopsCluster service account is able to impersonate any user or group.
 
 To configure collection, you would need to extend this configuration with the following:
 
-1. Create a service account `collector` in `flux-system` namespace for any leaf cluster that you want to watch.
+1. Create a ServiceAccount `collector` in `flux-system` namespace for any leaf cluster that you want to watch.
 
 <details><summary>Expand to see an example</summary>
 
@@ -93,7 +92,7 @@ metadata:
 </details>
 
 
-2. Create a `collector` ClusterRole with the permissions to watch the supported resources.
+2. Create a ClusterRole `collector` with the permissions to watch the supported resources.
 
 <details><summary>Expand to see an example</summary>
 
@@ -119,7 +118,7 @@ rules:
 
 </details>
 
-3. Create a `collector` ClusterRolebinding (or RoleBinding) to assign permissions to `collector` service account.
+3. Create a ClusterRolebinding `collector` to assign permissions to `collector` ServiceAccount.
 
 <details><summary>Expand to see an example</summary>
 
@@ -140,9 +139,9 @@ roleRef:
 
 </details>
 
-If you want the collector to watch a particular namespace use a `RoleBinding` instead.
+If you want the collector to watch a particular namespace use a RoleBinding instead.
 
-4. Extend impersonation role to allow impersonate service account `collector`
+4. Extend impersonation rules to allow service account impersonation for ServiceAccount `collector`
 
 <details><summary>Expand to see an example</summary>
 
@@ -162,9 +161,6 @@ rules:
       - "collector"
 ```
 </details>
-
-
-
 
 ## Next Steps
 - See [querying](./querying.mdx) to deep dive in how to query.
