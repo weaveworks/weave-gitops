@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: "2022-10-10T19:52:38Z"
+  finalizers:
+  - service.kubernetes.io/load-balancer-cleanup
+  - service.k8s.aws/resources
+  name: ambassador-external
+  namespace: ingress-system
+  resourceVersion: "1054542159"
+  uid: a010e699-fa08-4a27-a0c7-5aef77de47e5
+spec:
+  allocateLoadBalancerNodePorts: true
+  clusterIP: 172.20.183.45
+  clusterIPs:
+  - 172.20.183.45
+  externalTrafficPolicy: Cluster
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+  - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+  - name: http
+    nodePort: 31193
+    port: 80
+    protocol: TCP
+    targetPort: 8080
+  - name: https
+    nodePort: 31897
+    port: 443
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app.kubernetes.io/instance: ambassador-external
+    app.kubernetes.io/name: ambassador-external
+  sessionAffinity: None
+  type: LoadBalancer

@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  creationTimestamp: "2022-01-27T20:36:16Z"
+  generation: 1
+  name: grafana
+  namespace: system
+  resourceVersion: "663778628"
+  uid: 412cd84d-9472-4fd4-ab4d-f4d232b41e2d
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: grafana.system.cloud
+    http:
+      paths:
+      - backend:
+          service:
+            name: kube-prometheus-stack-grafana
+            port:
+              number: 80
+        path: /
+        pathType: ImplementationSpecific
+status:
+  loadBalancer:
+    ingress:
+    - ip: 172.20.28.77

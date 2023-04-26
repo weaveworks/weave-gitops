@@ -1,0 +1,81 @@
+---
+title: Configuration
+hide_title: true
+---
+
+import TierLabel from "./../_components/TierLabel";
+import AlphaWarning from "../_components/_alpha_warning.mdx";
+
+# Configuration <TierLabel tiers="Enterprise" />
+
+<AlphaWarning/>
+
+This page helps you to understand the options available to configure Explorer
+
+## Prerequisites
+Before using Explorer, please ensure that:
+- You have Weave Gitops Enterprise [v0.21.2](../../releases)
+
+## Setup
+
+Explorer is enabled via configuration through the feature flag  `enableExplorer` that you could
+configure in your Weave Gitops Enterprise helm release values file
+
+```yaml
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: weave-gitops-enterprise
+  namespace: flux-system
+spec:
+  # ... other spec components
+  values:
+    enableExplorer: true
+```
+
+## Configuration
+
+### Clusters
+
+Explorer watches the [GitopsClusters](https://docs.gitops.weave.works/docs/next/cluster-management/managing-existing-clusters/#connect-a-cluster)
+that you have connected to Weave Gitops Enterprise.
+
+### Kinds
+
+Explorer watches for the following kind resources out of the box:
+
+- RBAC: ClusterRole, Role, ClusterRoleBinding and RoleBinding
+- Flux Applications: Kustomizations, HelmRelease
+
+## Data Layer
+
+Explorer take a simple approach to manage resource views. It leverages a Data Store for caching the views and query them.
+The storage lifecycle is bounded to Weave Gitops Enterprise app and does not provide persistence guarantees.
+Instead, it requests data as required to the leaf clusters. In its simplest form, the data store used is [SQLite](https://sqlite.org/index.html).
+
+## Authentication and Authorization
+
+There are two main paths to consider within Explorer in the context of authentication and authorization (authN/authZ):
+
+1. The read or querying path is exercised when a weave gitops user queries the data.
+2. The write or collecting path is exercised to gather the resources from the leaf clusters.
+
+We look into them separately.
+
+## Authentication and Authorization for querying
+
+Explorer leverages existing authentication and authorization built-in the [application](https://docs.gitops.weave.works/docs/configuration/securing-access-to-the-dashboard/).
+It identifies for a user logged in the application: its identity and the access permissions via Kuberentes RBAC.
+Query results are filtered honouring the access determined via RBAC.
+
+## Authentication and Authorization for collecting
+
+As mentioned earlier, [GitopsClusters](https://docs.gitops.weave.works/docs/next/cluster-management/managing-existing-clusters/#connect-a-cluster)
+defines the connection and security context that Explorer leverages to collect data from leaf clusters.
+
+## Next Steps
+- See [querying](./querying.mdx) to deep dive in how to query.
+- See [operations](./operations.mdx) for day troubleshooting and operations.
+
+
