@@ -1,0 +1,35 @@
+[
+{ "level": 3, "value": "GitOpsSet", "id": "templates.weave.works/v1alpha1.GitOpsSet" }
+,
+{ "level": 3, "value": "APIClientGenerator", "id": "templates.weave.works/v1alpha1.APIClientGenerator" }
+,
+{ "level": 3, "value": "ClusterGenerator", "id": "templates.weave.works/v1alpha1.ClusterGenerator" }
+,
+{ "level": 3, "value": "GitOpsSetGenerator", "id": "templates.weave.works/v1alpha1.GitOpsSetGenerator" }
+,
+{ "level": 3, "value": "GitOpsSetNestedGenerator", "id": "templates.weave.works/v1alpha1.GitOpsSetNestedGenerator" }
+,
+{ "level": 3, "value": "GitOpsSetSpec", "id": "templates.weave.works/v1alpha1.GitOpsSetSpec" }
+,
+{ "level": 3, "value": "GitOpsSetStatus", "id": "templates.weave.works/v1alpha1.GitOpsSetStatus" }
+,
+{ "level": 3, "value": "GitOpsSetTemplate", "id": "templates.weave.works/v1alpha1.GitOpsSetTemplate" }
+,
+{ "level": 3, "value": "GitRepositoryGenerator", "id": "templates.weave.works/v1alpha1.GitRepositoryGenerator" }
+,
+{ "level": 3, "value": "GitRepositoryGeneratorDirectoryItem", "id": "templates.weave.works/v1alpha1.GitRepositoryGeneratorDirectoryItem" }
+,
+{ "level": 3, "value": "GitRepositoryGeneratorFileItem", "id": "templates.weave.works/v1alpha1.GitRepositoryGeneratorFileItem" }
+,
+{ "level": 3, "value": "HeadersReference", "id": "templates.weave.works/v1alpha1.HeadersReference" }
+,
+{ "level": 3, "value": "ListGenerator", "id": "templates.weave.works/v1alpha1.ListGenerator" }
+,
+{ "level": 3, "value": "MatrixGenerator", "id": "templates.weave.works/v1alpha1.MatrixGenerator" }
+,
+{ "level": 3, "value": "PullRequestGenerator", "id": "templates.weave.works/v1alpha1.PullRequestGenerator" }
+,
+{ "level": 3, "value": "ResourceInventory", "id": "templates.weave.works/v1alpha1.ResourceInventory" }
+,
+{ "level": 3, "value": "ResourceRef", "id": "templates.weave.works/v1alpha1.ResourceRef" }
+]
