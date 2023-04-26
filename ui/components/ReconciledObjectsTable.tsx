@@ -3,6 +3,7 @@ import styled from "styled-components";
 import { AppContext } from "../contexts/AppContext";
 import { useGetInventory } from "../hooks/inventory";
 import { Condition } from "../lib/api/core/types.pb";
+import { FluxObject } from "../lib/objects";
 import { ReconciledObjectsAutomation } from "./AutomationDetail";
 import { filterByStatusCallback, filterConfig } from "./DataTable";
 import FluxObjectsTable from "./FluxObjectsTable";
@@ -14,6 +15,52 @@ interface Props {
   reconciledObjectsAutomation: ReconciledObjectsAutomation;
   setCanaryStatus?: Dispatch<SetStateAction<Condition>>;
 }
+
+export const createCanaryCondition = (objs: FluxObject[]): Condition => {
+  //summarize status of all canaries
+  const statusTally = objs.reduce(
+    (prev, current) => {
+      if (!current || current.type !== "Canary") return prev;
+      const condition = current.conditions[0];
+      if (!condition) return prev;
+      if (
+        condition.reason === "Succeeded" ||
+        condition.reason === "Initialized"
+      )
+        prev["True"] += 1;
+      else if (condition.reason === "Failed") prev["False"] += 1;
+      else prev["Unknown"] += 1;
+      return prev;
+    },
+    { True: 0, False: 0, Unknown: 0 }
+  );
+  //create conditions object
+  let condition: Condition = {
+    type: ReadyType.Ready,
+    status: ReadyStatusValue.None,
+    message: "No canaries",
+  };
+  if (statusTally["False"])
+    condition = {
+      type: ReadyType.Ready,
+      status: ReadyStatusValue.False,
+      message: "One or more canaries failed",
+    };
+  else if (statusTally["Unknown"])
+    condition = {
+      type: ReadyType.Ready,
+      status: ReadyStatusValue.Unknown,
+      reason: "Progressing",
+      message: "One or more canaries in progress",
+    };
+  else if (statusTally["True"])
+    condition = {
+      type: ReadyType.Ready,
+      status: ReadyStatusValue.True,
+      message: "All canaries have Succeeded",
+    };
+  return condition;
+};
 
 function ReconciledObjectsTable({
   className,
@@ -33,51 +80,7 @@ function ReconciledObjectsTable({
   useEffect(() => {
     //if no data or in OSS don't run
     if (!data?.objects || !setCanaryStatus) return;
-    //summarize status of all canaries
-    let status = 0;
-    data.objects.forEach((obj) => {
-      if (obj.type !== "Canary") return;
-      //do canaries ever have more than one condition or an undefined condition?
-      let promotedCondition = obj.conditions[0];
-      //succeeded < progressing < failed
-      if (
-        (promotedCondition.reason === "Succeeded" ||
-          promotedCondition.reason === "Initialized") &&
-        status < 1
-      )
-        return (status = 1);
-      if (promotedCondition.reason === "Failed" && status < 3)
-        return (status = 3);
-      //I'm counting Waiting, Progressing, WaitingPromotion, Promoting, and Finalising as an "In Progress" state
-      return (status = 2);
-    });
-    //create conditions object
-    let condition: Condition = {
-      type: ReadyType.Ready,
-      status: ReadyStatusValue.None,
-      message: "No canaries",
-    };
-    switch (status) {
-      case 1:
-        condition = {
-          type: ReadyType.Ready,
-          status: ReadyStatusValue.True,
-          message: "All canaries have Succeeded",
-        };
-      case 2:
-        condition = {
-          type: ReadyType.Ready,
-          status: ReadyStatusValue.Unknown,
-          reason: "Progressing",
-          message: "One or more canaries in progress",
-        };
-      case 3:
-        condition = {
-          type: ReadyType.Ready,
-          status: ReadyStatusValue.False,
-          message: "One or more canaries failed",
-        };
-    }
+    const condition = createCanaryCondition(data.objects);
     return setCanaryStatus(condition);
   }, [data]);
 
