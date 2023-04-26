@@ -1,0 +1,59 @@
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  creationTimestamp: "2023-01-17T18:26:50Z"
+  labels:
+    app: istiod
+    install.operator.istio.io/owning-resource: unknown
+    install.operator.istio.io/owning-resource-namespace: istio-system
+    istio.io/rev: 1-15-3
+    operator.istio.io/component: Pilot
+    operator.istio.io/managed: Reconcile
+    operator.istio.io/version: 1.15.3
+    release: istio
+  name: istiod-1-15-3
+  namespace: istio-system
+  resourceVersion: "1071635185"
+  uid: 0aeab944-dcc6-46c5-ba2e-68333d1c9a80
+spec:
+  maxReplicas: 50
+  metrics:
+  - resource:
+      name: cpu
+      target:
+        averageUtilization: 80
+        type: Utilization
+    type: Resource
+  minReplicas: 30
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: istiod-1-15-3
+status:
+  conditions:
+  - lastTransitionTime: "2023-01-17T18:27:05Z"
+    message: recommended size matches current size
+    reason: ReadyForNewScale
+    status: "True"
+    type: AbleToScale
+  - lastTransitionTime: "2023-03-27T15:33:09Z"
+    message: the HPA was able to successfully calculate a replica count from cpu resource
+      utilization (percentage of request)
+    reason: ValidMetricFound
+    status: "True"
+    type: ScalingActive
+  - lastTransitionTime: "2023-04-19T21:05:51Z"
+    message: the desired replica count is less than the minimum replica count
+    reason: TooFewReplicas
+    status: "True"
+    type: ScalingLimited
+  currentMetrics:
+  - resource:
+      current:
+        averageUtilization: 0
+        averageValue: 6m
+      name: cpu
+    type: Resource
+  currentReplicas: 30
+  desiredReplicas: 35
+  lastScaleTime: "2023-03-27T16:57:58Z"
