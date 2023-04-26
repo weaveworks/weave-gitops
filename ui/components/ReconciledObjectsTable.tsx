@@ -51,13 +51,13 @@ export const createCanaryCondition = (objs: FluxObject[]): Condition => {
       type: ReadyType.Ready,
       status: ReadyStatusValue.Unknown,
       reason: "Progressing",
-      message: "One or more canaries in progress",
+      message: "One or more canaries are in progress",
     };
   else if (statusTally["True"])
     condition = {
       type: ReadyType.Ready,
       status: ReadyStatusValue.True,
-      message: "All canaries have Succeeded",
+      message: "All canaries have succeeded",
     };
   return condition;
 };
