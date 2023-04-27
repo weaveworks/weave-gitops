@@ -7,10 +7,12 @@ import { automationLastUpdated } from "../lib/utils";
 import Alert from "./Alert";
 import AutomationDetail from "./AutomationDetail";
 import ClusterDashboardLink from "./ClusterDashboardLink";
+import Flex from "./Flex";
 import { InfoField } from "./InfoList";
 import Interval from "./Interval";
 import { routeTab } from "./KustomizationDetail";
 import SourceLink from "./SourceLink";
+import Text from "./Text";
 import Timestamp from "./Timestamp";
 
 type Props = {
@@ -82,19 +84,27 @@ function HelmReleaseDetail({
         ["Kind", Kind.HelmRelease],
         ["Source", helmChartLink(helmRelease)],
         ["Chart", helmRelease?.helmChart.chart],
-        ["Chart Version", helmRelease.helmChart.version],
         ["Last Applied Revision", helmRelease.lastAppliedRevision],
         ["Last Attempted Revision", helmRelease.lastAttemptedRevision],
         ...clusterInfo,
         ...tenancyInfo,
         ["Interval", <Interval interval={helmRelease?.interval} />],
-        [
-          "Last Updated",
-          <Timestamp time={automationLastUpdated(helmRelease)} />,
-        ],
         ["Namespace", helmRelease?.namespace],
       ]}
-    />
+    >
+      <Flex wide end gap="14">
+        <Text capitalize semiBold color="neutral30">
+          Chart Version:{" "}
+          <Text size="large" color="neutral40">{helmRelease.helmChart.version}</Text>
+        </Text>
+        <Text capitalize semiBold color="neutral30">
+          Last Updated:{" "}
+          <Text size="large" color="neutral40">
+            <Timestamp time={automationLastUpdated(helmRelease)} />
+          </Text>
+        </Text>
+      </Flex>
+    </AutomationDetail>
   );
 }
 

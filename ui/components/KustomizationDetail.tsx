@@ -7,9 +7,11 @@ import { automationLastUpdated } from "../lib/utils";
 import Alert from "./Alert";
 import AutomationDetail from "./AutomationDetail";
 import ClusterDashboardLink from "./ClusterDashboardLink";
+import Flex from "./Flex";
 import { InfoField } from "./InfoList";
 import Interval from "./Interval";
 import SourceLink from "./SourceLink";
+import Text from "./Text";
 import Timestamp from "./Timestamp";
 
 export interface routeTab {
@@ -63,18 +65,28 @@ function KustomizationDetail({
             clusterName={kustomization?.clusterName}
           />,
         ],
-        ["Applied Revision", kustomization?.lastAppliedRevision],
         ...clusterInfo,
         ...tenancyInfo,
         ["Path", kustomization?.path],
         ["Interval", <Interval interval={kustomization?.interval} />],
-        [
-          "Last Updated",
-          <Timestamp time={automationLastUpdated(kustomization)} />,
-        ],
         ["Namespace", kustomization?.namespace],
       ]}
-    />
+    >
+      <Flex wide end gap="14">
+        <Text capitalize semiBold color="neutral30">
+          Applied Revision:{" "}
+          <Text size="large" color="neutral40">
+            {kustomization?.lastAppliedRevision}
+          </Text>
+        </Text>
+        <Text capitalize semiBold color="neutral30">
+          Last Updated:{" "}
+          <Text size="large" color="neutral40">
+            <Timestamp time={automationLastUpdated(kustomization)} />
+          </Text>
+        </Text>
+      </Flex>
+    </AutomationDetail>
   );
 }
 
