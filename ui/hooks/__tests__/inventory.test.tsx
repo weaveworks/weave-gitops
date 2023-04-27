@@ -1,6 +1,6 @@
+import { ReadyStatusValue } from "../../components/KubeStatusIndicator";
 import { FluxObject } from "../../lib/objects";
-import { ReadyStatusValue } from "../KubeStatusIndicator";
-import { createCanaryCondition } from "../ReconciledObjectsTable";
+import { createCanaryCondition } from "../inventory";
 
 describe("createCanaryCondition", () => {
   const falseCanary = {

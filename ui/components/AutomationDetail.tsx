@@ -3,6 +3,7 @@ import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
 import { useSyncFluxObject } from "../hooks/automations";
 import { useToggleSuspend } from "../hooks/flux";
+import { createCanaryCondition, useGetInventory } from "../hooks/inventory";
 import { Condition, Kind, ObjectRef } from "../lib/api/core/types.pb";
 import { Automation } from "../lib/objects";
 import Button from "./Button";
@@ -11,7 +12,6 @@ import DependenciesView from "./DependenciesView";
 import EventsTable from "./EventsTable";
 import Flex from "./Flex";
 import InfoList, { InfoField } from "./InfoList";
-import { ReadyStatusValue, ReadyType } from "./KubeStatusIndicator";
 import { routeTab } from "./KustomizationDetail";
 import Metadata from "./Metadata";
 import PageStatus from "./PageStatus";
@@ -59,12 +59,15 @@ function AutomationDetail({
     sourceRef,
   } = automation;
 
-  const [canaryStatus, setCanaryStatus] = React.useState<Condition>({
-    type: ReadyType.Ready,
-    status: ReadyStatusValue.None,
-    reason: "None",
-    message: "No Canaries",
-  });
+  const { data: inventory } = useGetInventory(
+    type,
+    name,
+    clusterName,
+    namespace,
+    false
+  );
+
+  const canaryStatus = createCanaryCondition(inventory?.objects);
 
   const sync = useSyncFluxObject([
     {
@@ -114,9 +117,6 @@ function AutomationDetail({
             <ReconciledObjectsTable
               className={className}
               reconciledObjectsAutomation={reconciledObjectsAutomation}
-              setCanaryStatus={
-                customTabs || customActions ? setCanaryStatus : null
-              }
             />
           </>
         );
