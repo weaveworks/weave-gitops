@@ -39,14 +39,22 @@ spec:
 ### Clusters
 
 Explorer watches the [GitopsClusters](https://docs.gitops.weave.works/docs/next/cluster-management/managing-existing-clusters/#connect-a-cluster)
-that you have connected to Weave Gitops Enterprise.
+that you have connected to Weave Gitops Enterprise, as well as your Management cluster.
 
 ### Kinds
 
 Explorer watches for the following kind resources out of the box:
 
-- RBAC: ClusterRole, Role, ClusterRoleBinding and RoleBinding
-- Flux Applications: Kustomizations, HelmRelease
+[Flux GitOps Toolkit](https://fluxcd.io/flux/components/)
+
+- [HelmRelease](https://fluxcd.io/flux/components/helm/helmreleases/)
+- [Kustomizations](https://fluxcd.io/flux/components/kustomize/kustomization/)
+- [Sources](https://fluxcd.io/flux/components/source/)
+  - [GitRepostiories](https://fluxcd.io/flux/components/source/gitrepositories/)
+  - [OciRepositories](https://fluxcd.io/flux/components/source/ocirepositories/)
+  - [HelmRepositories](https://fluxcd.io/flux/components/source/helmrepositories/)
+  - [HelmCharts](https://fluxcd.io/flux/components/source/helmcharts/)
+  - [Buckets](https://fluxcd.io/flux/components/source/buckets/)
 
 ## Data Layer
 
