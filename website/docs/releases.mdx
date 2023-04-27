@@ -10,6 +10,39 @@ import TierLabel from "./_components/TierLabel";
 This page details the changes for Weave GitOps Enterprise and its associated components. For Weave GitOps OSS - please see the release notes on [GitHub](https://github.com/weaveworks/weave-gitops/releases).
 :::
 
+## v0.22.0
+2023-04-27
+
+
+### Highlights
+
+#### Explorer
+
+- Explorer supports now Flux sources.
+- Applications UI and Sources UI could be configured to use Explorer backend to improve UI experience.
+
+#### GitopsSets
+
+- Now supports correctly templating numbers and object chunks
+
+#### Cluster Bootrap
+
+- Don't wait for ControlPlane readiness to sync secrets, this allows secrets to be sync'd related to CNI or other early stage processes
+
+### Known issues
+
+- Clusters page horizontally scrolls too much and status becomes unreadable for some fields
+
+### Dependency versions
+
+- weave-gitops v0.22.0
+- cluster-controller v1.4.1
+- cluster-bootstrap-controller v0.6.0
+- templates-controller v0.2.0
+- (optional) pipeline-controller v0.20.0
+- (optional) policy-agent v2.3.0
+- (optional) gitopssets-controller v0.9.0
+
 ## v0.21.2
 2023-04-13
 
@@ -75,9 +108,9 @@ This page details the changes for Weave GitOps Enterprise and its associated com
 
 #### GitopsSets
 
-- New `cluster` generator allows you to interact with the Weave GitOps Cluster inventory. GitOps Clusters that are added and removed to the inventory are reflected by the generator. That can be used to target for example to manage applications across a fleet of clusters. 
-- Enhanced `gitRepository` generator can now scan directories and paths with the new `directory` option, which enables you to create for example dynamically Flux Kustomizations , based on your repository. 
-- New `apiClient` generator allows you to query and endpoint, and provide data for your template. 
+- New `cluster` generator allows you to interact with the Weave GitOps Cluster inventory. GitOps Clusters that are added and removed to the inventory are reflected by the generator. That can be used to target for example to manage applications across a fleet of clusters.
+- Enhanced `gitRepository` generator can now scan directories and paths with the new `directory` option, which enables you to create for example dynamically Flux Kustomizations , based on your repository.
+- New `apiClient` generator allows you to query and endpoint, and provide data for your template.
 - Reconciliation metrics are now reported to the `/metrics` endpoint ready to be collected
 
 
