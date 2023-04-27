@@ -159,7 +159,7 @@ More information about `flux` and the `flux bootstrap` command can be found [her
 
 :::note At this point a few things have occurred:
 * Your Flux management cluster is now running
-* A new git repo was created based on the parameters you set in the `flux bootstrap` command. Take a look at your repositories. 
+* A new git repo was created based on the parameters you set in the `flux bootstrap` command. Take a look at your repositories.
 :::
 
 ### 2. Install a CAPI provider
@@ -249,7 +249,7 @@ kubectl create secret generic git-provider-credentials --namespace=flux-system \
 </TabItem>
 <TabItem value="bitbucket-server" label="BitBucket Server">
 
-Create a new [incoming application link](https://confluence.atlassian.com/bitbucketserver/configure-an-incoming-link-1108483657.html) from 
+Create a new [incoming application link](https://confluence.atlassian.com/bitbucketserver/configure-an-incoming-link-1108483657.html) from
 the BitBucket administration dashboard. You will be asked to enter a unique name and the redirect URL for the external application. The redirect URL
 should be set to `<WGE dashboard URL>/oauth/bitbucketserver`. You will also need to select permissions for the application. The minimum set of
 permissions needed for WGE to create pull requests on behalf of users is `Repositories - Write`. An example of configuring these settings is shown below.
@@ -381,13 +381,13 @@ git commit -m "Deploy Weave GitOps Enterprise"
 git push
 ```
 
-Flux will reconcile the helm-release and WGE will be deployed into the cluster. You can check the `flux-system` namespace to verify all pods are running. 
+Flux will reconcile the helm-release and WGE will be deployed into the cluster. You can check the `flux-system` namespace to verify all pods are running.
 
 ### 6. Configure password
 
 In order to login to the WGE UI, you need to generate a bcrypt hash for your chosen password and store it as a secret in the Kubernetes cluster.
 
-There are several different ways to generate a bcrypt hash, this guide uses `gitops get bcrypt-hash` from our CLI, which can be installed by following 
+There are several different ways to generate a bcrypt hash, this guide uses `gitops get bcrypt-hash` from our CLI, which can be installed by following
 the instructions [here](#gitops-cli).
 
 ```bash
@@ -414,7 +414,7 @@ brew install weaveworks/tap/gitops-ee
 ```
 
 ```bash
-curl --silent --location "https://artifacts.wge.dev.weave.works/releases/bin/0.18.0/gitops-$(uname | tr '[:upper:]' '[:lower:]')-$(uname -m).tar.gz" | tar xz -C /tmp
+curl --silent --location "https://artifacts.wge.dev.weave.works/releases/bin/0.22.0/gitops-$(uname | tr '[:upper:]' '[:lower:]')-$(uname -m).tar.gz" | tar xz -C /tmp
 sudo mv /tmp/gitops /usr/local/bin
 gitops version
 ```
@@ -430,9 +430,9 @@ Then you can head over to either:
 
 ### (Optional) Install the TF-Controller
 
-The [TF-Controller](https://weaveworks.github.io/tf-controller/) is a controller for Flux to reconcile Terraform resources in a GitOps way. 
+The [TF-Controller](https://weaveworks.github.io/tf-controller/) is a controller for Flux to reconcile Terraform resources in a GitOps way.
 
-With Flux and the TF-Controller, Weave GitOps Enterprise makes it easy to add Terraform templates to clusters and continuously reconcile any changes made to the Terraform source manifest. 
+With Flux and the TF-Controller, Weave GitOps Enterprise makes it easy to add Terraform templates to clusters and continuously reconcile any changes made to the Terraform source manifest.
 
 Check out our guide on how to [use Terraform templates](../../guides/using-terraform-templates.mdx), and why not try your hands at using it with the RDS example!
 
