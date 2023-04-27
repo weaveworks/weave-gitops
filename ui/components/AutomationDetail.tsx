@@ -1,3 +1,4 @@
+import { Collapse } from "@material-ui/core";
 import * as React from "react";
 import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
@@ -19,7 +20,6 @@ import ReconciliationGraph from "./ReconciliationGraph";
 import Spacer from "./Spacer";
 import SubRouterTabs, { RouterTab } from "./SubRouterTabs";
 import SyncButton from "./SyncButton";
-import Text from "./Text";
 import YamlView from "./YamlView";
 
 type Props = {
@@ -28,6 +28,31 @@ type Props = {
   info: InfoField[];
   customTabs?: Array<routeTab>;
   customActions?: JSX.Element[];
+  children?: JSX.Element;
+};
+const Collapsible = ({ children }) => {
+  const [isOpen, setIsOpen] = React.useState(false);
+
+  const toggle = () => setIsOpen(!isOpen);
+
+  return (
+    <div>
+      <Collapse in={isOpen} collapsedSize={40}>
+        {children}
+      </Collapse>
+      <div
+        onClick={toggle}
+        style={{
+          textAlign: "center",
+          padding: "20px 0",
+          background: "linear-gradient(to bottom, #ffffff, #f6f7f9)",
+          cursor: "pointer",
+        }}
+      >
+        {isOpen ? "Show Less" : "Show More"}
+      </div>
+    </div>
+  );
 };
 
 export type ReconciledObjectsAutomation = {
@@ -46,6 +71,7 @@ function AutomationDetail({
   info,
   customTabs,
   customActions,
+  children,
 }: Props) {
   const { path } = useRouteMatch();
   const {
@@ -97,11 +123,13 @@ function AutomationDetail({
       component: () => {
         return (
           <>
-            <InfoList items={info} />
-            <Metadata
-              metadata={automation.metadata}
-              labels={automation.labels}
-            />
+            <Collapsible>
+              <InfoList items={info} />
+              <Metadata
+                metadata={automation.metadata}
+                labels={automation.labels}
+              />
+            </Collapsible>
             <ReconciledObjectsTable
               className={className}
               reconciledObjectsAutomation={reconciledObjectsAutomation}
@@ -169,9 +197,7 @@ function AutomationDetail({
 
   return (
     <Flex wide tall column className={className}>
-      <Text size="large" semiBold titleHeight>
-        {automation.name}
-      </Text>
+      {children}
       <PageStatus
         conditions={automation.conditions}
         suspended={automation.suspended}
