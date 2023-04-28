@@ -39,6 +39,7 @@ const navItems: NavItem[] = [
     link: { value: V2Routes.FluxRuntime },
     icon: IconType.FluxIcon,
   },
+  { label: "header test" },
   {
     label: "Notifications",
     link: { value: V2Routes.Notifications },
