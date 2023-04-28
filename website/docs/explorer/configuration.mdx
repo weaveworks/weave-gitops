@@ -14,12 +14,20 @@ This page helps you to understand the options available to configure Explorer
 
 ## Prerequisites
 Before using Explorer, please ensure that:
-- You have Weave Gitops Enterprise [v0.21.2](../../releases)
+- You have Weave Gitops Enterprise [v0.23.0](../../releases)
 
 ## Setup
 
-Explorer is enabled via configuration through the feature flag  `enableExplorer` that you could
-configure in your Weave Gitops Enterprise helm release values file
+The following configuration options are available for you to setup Explorer.
+
+- `.spec.values.enableExplorer`: feature flag to control whether Explorer is enabled.
+- `.spec.values.useQueryServiceBackend`: feature flag to control whether you want to leverage Explorer backend capabilities for
+other UI experiences like [Applications](../getting-started/ui/#applications-view) or [Sources](../getting-started/ui/#the-sources-view)
+- `.spec.values.explorer.collector.serviceAccount`: ServiceAccount `name` and `namespace` that explorer collector will use to impersonate
+in leaf clusters. Make sure you read [authz for collector](#Authentication_and_Authorization_for_collecting) before setting it. Default
+values are `name: collector`, `namespace: flux-system`.
+
+You should specify them in your HelmRelease values:
 
 ```yaml
 ---
@@ -31,7 +39,13 @@ metadata:
 spec:
   # ... other spec components
   values:
-    enableExplorer: true
+    enableExplorer: true # feature flag to enable explorer
+    useQueryServiceBackend: true # uses explorer query backend in collection UIs
+    explorer:
+      collector:
+        serviceAccount: # service account that collector will impersonate in leaf clusters
+          name: collector
+          namespace: flux-system
 ```
 
 ## Configuration
@@ -85,7 +99,7 @@ in [setup RBAC](../configuration/service-account-permissions.mdx), the GitopsClu
 
 To configure collection, you would need to extend this configuration with the following:
 
-1. Create a ServiceAccount `collector` in `flux-system` namespace for any leaf cluster that you want to watch.
+1. Create a ServiceAccount for the one that you specified in your [setup](#setup) `.spec.values.explorer.collector.serviceAccount`.
 
 <details><summary>Expand to see an example</summary>
 
@@ -93,14 +107,14 @@ To configure collection, you would need to extend this configuration with the fo
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: collector
-  namespace: flux-system
+  name: collector # should match .spec.values.explorer.collector.serviceAccount.name
+  namespace: flux-system # should match .spec.values.explorer.collector.serviceAccount.namespace
 ```
 
 </details>
 
 
-2. Create a ClusterRole `collector` with the permissions to watch the supported resources.
+2. Create a ClusterRole with the permissions to watch the supported resources.
 
 <details><summary>Expand to see an example</summary>
 
@@ -108,7 +122,7 @@ metadata:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: collector
+  name: collector # could be .spec.values.explorer.collector.serviceAccount.name
 rules:
   - apiGroups: [ "rbac.authorization.k8s.io" ]
     resources: [ "roles", "clusterroles", "rolebindings", "clusterrolebindings" ]
@@ -126,7 +140,7 @@ rules:
 
 </details>
 
-3. Create a ClusterRolebinding `collector` to assign permissions to `collector` ServiceAccount.
+3. Create a ClusterRolebinding to assign previous ClusterRole to the created collector `ServiceAccount`.
 
 <details><summary>Expand to see an example</summary>
 
@@ -134,14 +148,14 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: collector
+  name: collector # could be .spec.values.explorer.collector.serviceAccount.name
 subjects:
   - kind: ServiceAccount
-    name: collector
-    namespace: flux-system
+    name: collector # should match .spec.values.explorer.collector.serviceAccount.name
+    namespace: flux-system # should match .spec.values.explorer.collector.serviceAccount.namespace
 roleRef:
   kind: ClusterRole
-  name: collector
+  name: collector # name of the cluster role created earlier
   apiGroup: rbac.authorization.k8s.io
 ```
 
@@ -166,7 +180,7 @@ rules:
     resources: [ "serviceaccounts" ]
     verbs: [ "impersonate" ]
     resourceNames:
-      - "collector"
+      - "collector" # should match .spec.values.explorer.collector.serviceAccount.name
 ```
 </details>
 
