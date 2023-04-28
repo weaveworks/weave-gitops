@@ -39,14 +39,22 @@ spec:
 ### Clusters
 
 Explorer watches the [GitopsClusters](https://docs.gitops.weave.works/docs/next/cluster-management/managing-existing-clusters/#connect-a-cluster)
-that you have connected to Weave Gitops Enterprise.
+that you have connected to Weave Gitops Enterprise, as well as your Management cluster.
 
 ### Kinds
 
 Explorer watches for the following kind resources out of the box:
 
-- RBAC: ClusterRole, Role, ClusterRoleBinding and RoleBinding
-- Flux Applications: Kustomizations, HelmRelease
+[Flux GitOps Toolkit](https://fluxcd.io/flux/components/)
+
+- [HelmRelease](https://fluxcd.io/flux/components/helm/helmreleases/)
+- [Kustomizations](https://fluxcd.io/flux/components/kustomize/kustomization/)
+- [Sources](https://fluxcd.io/flux/components/source/)
+  - [GitRepostiories](https://fluxcd.io/flux/components/source/gitrepositories/)
+  - [OciRepositories](https://fluxcd.io/flux/components/source/ocirepositories/)
+  - [HelmRepositories](https://fluxcd.io/flux/components/source/helmrepositories/)
+  - [HelmCharts](https://fluxcd.io/flux/components/source/helmcharts/)
+  - [Buckets](https://fluxcd.io/flux/components/source/buckets/)
 
 ## Data Layer
 
@@ -71,8 +79,96 @@ Query results are filtered honouring the access determined via RBAC.
 
 ## Authentication and Authorization for collecting
 
-As mentioned earlier, [GitopsClusters](https://docs.gitops.weave.works/docs/next/cluster-management/managing-existing-clusters/#connect-a-cluster)
-defines the connection and security context that Explorer leverages to collect data from leaf clusters.
+[GitopsClusters](../cluster-management/managing-existing-clusters.mdx#connect-a-cluster)
+define the connection and security context that Explorer leverages to collect data from leaf clusters. Given that you have followed the indications
+in [setup RBAC](../configuration/service-account-permissions.mdx), the GitopsCluster service account is able to impersonate any user or group.
+
+To configure collection, you would need to extend this configuration with the following:
+
+1. Create a ServiceAccount `collector` in `flux-system` namespace for any leaf cluster that you want to watch.
+
+<details><summary>Expand to see an example</summary>
+
+```yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: collector
+  namespace: flux-system
+```
+
+</details>
+
+
+2. Create a ClusterRole `collector` with the permissions to watch the supported resources.
+
+<details><summary>Expand to see an example</summary>
+
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: collector
+rules:
+  - apiGroups: [ "rbac.authorization.k8s.io" ]
+    resources: [ "roles", "clusterroles", "rolebindings", "clusterrolebindings" ]
+    verbs: [ "list", "watch" ]
+  - apiGroups: [ "kustomize.toolkit.fluxcd.io" ]
+    resources: [ "kustomizations" ]
+    verbs: [ "list", "watch" ]
+  - apiGroups: [ "helm.toolkit.fluxcd.io" ]
+    resources: [ "helmreleases" ]
+    verbs: [ "list", "watch" ]
+  - apiGroups: [ "source.toolkit.fluxcd.io" ]
+    resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories", "ocirepositories" ]
+    verbs: [ "list", "watch" ]
+```
+
+</details>
+
+3. Create a ClusterRolebinding `collector` to assign permissions to `collector` ServiceAccount.
+
+<details><summary>Expand to see an example</summary>
+
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: collector
+subjects:
+  - kind: ServiceAccount
+    name: collector
+    namespace: flux-system
+roleRef:
+  kind: ClusterRole
+  name: collector
+  apiGroup: rbac.authorization.k8s.io
+```
+
+</details>
+
+If you want the collector to watch a particular namespace use a RoleBinding instead.
+
+4. Extend impersonation rules to allow service account impersonation for ServiceAccount `collector`
+
+<details><summary>Expand to see an example</summary>
+
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: clusters-service-impersonator-role
+rules:
+  - apiGroups: [""]
+    resources: ["users", "groups"]
+    verbs: ["impersonate"]
+  - apiGroups: [ "" ]
+    resources: [ "serviceaccounts" ]
+    verbs: [ "impersonate" ]
+    resourceNames:
+      - "collector"
+```
+</details>
 
 ## Next Steps
 - See [querying](./querying.mdx) to deep dive in how to query.
