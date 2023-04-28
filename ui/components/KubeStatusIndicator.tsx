@@ -110,6 +110,12 @@ export const getIndicatorInfo = (
       icon: IconType.ReconcileIcon,
       color: "primary",
     };
+  if (ready === ReadyType.PendingAction)
+    return {
+      type: ReadyType.PendingAction,
+      icon: IconType.ReconcileIcon,
+      color: "feedbackOriginal",
+    };
   if (ready === ReadyType.Ready)
     return {
       type: ReadyType.Ready,
