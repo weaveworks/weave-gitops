@@ -2,12 +2,18 @@ import * as React from "react";
 
 function GitOpsSetsIcon() {
   return (
-    <svg viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path
-        d="M2.25 6.75H12.75V5.25H2.25V6.75ZM2.25 9.75H12.75V8.25H2.25V9.75ZM2.25 12.75H12.75V11.25H2.25V12.75ZM14.25 12.75H15.75V11.25H14.25V12.75ZM14.25 5.25V6.75H15.75V5.25H14.25ZM14.25 9.75H15.75V8.25H14.25V9.75Z"
-        fill="#1A1A1A"
-        className="path-fill"
-      />
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      strokeLinecap="round"
+    >
+      <line className="stroke-fill" x1="7.5" y1="15" x2="13.5" y2="15" />
+      <circle className="path-fill" cx="5" cy="15" r="1" />
+      <line className="stroke-fill" x1="7.5" y1="12" x2="19.5" y2="12" />
+      <circle className="path-fill" cx="5" cy="12" r="1" />
+      <line className="stroke-fill" x1="7.5" y1="9" x2="19.5" y2="9" />
+      <circle className="path-fill" cx="5" cy="9" r="1" />
     </svg>
   );
 }
