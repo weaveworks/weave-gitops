@@ -2,10 +2,13 @@ package health
 
 import (
 	"fmt"
+	"strings"
 
 	appsv1 "k8s.io/api/apps/v1"
+	autoscalingv2 "k8s.io/api/autoscaling/v2"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
+	networkingv1 "k8s.io/api/networking/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -51,6 +54,14 @@ func (hc *healthChecker) Check(obj unstructured.Unstructured) (HealthStatus, err
 		return checkJob(obj)
 	case "Pod":
 		return checkPod(obj)
+	case "HorizontalPodAutoscaler":
+		return checkHorizontalPodAutoscaler(obj)
+	case "Ingress":
+		return checkIngress(obj)
+	case "PersistentVolumeClaim":
+		return checkPVC(obj)
+	case "Service":
+		return checkService(obj)
 	}
 
 	return HealthStatus{
@@ -225,6 +236,94 @@ func checkPod(obj unstructured.Unstructured) (HealthStatus, error) {
 	}
 
 	return HealthStatus{Status: HealthStatusUnknown, Message: pod.Status.Message}, nil
+}
+
+func checkHorizontalPodAutoscaler(obj unstructured.Unstructured) (HealthStatus, error) {
+	var hpa autoscalingv2.HorizontalPodAutoscaler
+
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(obj.UnstructuredContent(), &hpa)
+	if err != nil {
+		err = fmt.Errorf("converting unstructured to horizontalpodautoscaler: %w", err)
+		return HealthStatus{Status: HealthStatusUnknown, Message: err.Error()}, err
+	}
+
+	if hpa.Status.CurrentReplicas != hpa.Status.DesiredReplicas {
+		return HealthStatus{Status: HealthStatusProgressing, Message: "waiting for desired replicas"}, nil
+	}
+
+	if isHPAUnhealthy(hpa) {
+		return HealthStatus{Status: HealthStatusUnhealthy, Message: "There is at least one condition with Failed or Invalid reason"}, nil
+	}
+
+	return HealthStatus{Status: HealthStatusHealthy}, nil
+}
+
+func checkIngress(obj unstructured.Unstructured) (HealthStatus, error) {
+	var ing networkingv1.Ingress
+
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(obj.UnstructuredContent(), &ing)
+	if err != nil {
+		err = fmt.Errorf("converting unstructured to ingress: %w", err)
+		return HealthStatus{Status: HealthStatusUnknown, Message: err.Error()}, err
+	}
+
+	if len(ing.Status.LoadBalancer.Ingress) == 0 {
+		return HealthStatus{Status: HealthStatusProgressing, Message: "waiting for loadbalancer ingress"}, nil
+	}
+
+	return HealthStatus{Status: HealthStatusHealthy}, nil
+}
+
+func checkPVC(obj unstructured.Unstructured) (HealthStatus, error) {
+	var pvc corev1.PersistentVolumeClaim
+
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(obj.UnstructuredContent(), &pvc)
+	if err != nil {
+		err = fmt.Errorf("converting unstructured to pvc: %w", err)
+		return HealthStatus{Status: HealthStatusUnknown, Message: err.Error()}, err
+	}
+
+	var status HealthStatusCode
+	switch pvc.Status.Phase {
+	case corev1.ClaimLost:
+		status = HealthStatusUnhealthy
+	case corev1.ClaimPending:
+		status = HealthStatusProgressing
+	case corev1.ClaimBound:
+		status = HealthStatusHealthy
+	default:
+		status = HealthStatusUnknown
+	}
+
+	return HealthStatus{Status: status}, nil
+}
+
+func checkService(obj unstructured.Unstructured) (HealthStatus, error) {
+	var svc corev1.Service
+
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(obj.UnstructuredContent(), &svc)
+	if err != nil {
+		err = fmt.Errorf("converting unstructured to service: %w", err)
+		return HealthStatus{Status: HealthStatusUnknown, Message: err.Error()}, err
+	}
+
+	if svc.Spec.Type == corev1.ServiceTypeLoadBalancer {
+		if len(svc.Status.LoadBalancer.Ingress) == 0 {
+			return HealthStatus{Status: HealthStatusProgressing, Message: "waiting for loadbalancer ingress"}, nil
+		}
+	}
+
+	return HealthStatus{Status: HealthStatusHealthy}, nil
+}
+
+func isHPAUnhealthy(hpa autoscalingv2.HorizontalPodAutoscaler) bool {
+	for _, c := range hpa.Status.Conditions {
+		if c.Status == corev1.ConditionTrue && (strings.Contains(c.Reason, "Failed") || strings.Contains(c.Reason, "Invalid")) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func getDeploymentCondition(deployment appsv1.Deployment, condType appsv1.DeploymentConditionType) *appsv1.DeploymentCondition {

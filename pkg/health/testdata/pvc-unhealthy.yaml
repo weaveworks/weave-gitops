@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  annotations:
+    pv.kubernetes.io/bind-completed: "yes"
+    pv.kubernetes.io/bound-by-controller: "yes"
+    pv.kubernetes.io/migrated-to: ebs.csi.aws.com
+    volume.beta.kubernetes.io/storage-provisioner: kubernetes.io/aws-ebs
+    volume.kubernetes.io/selected-node: ip-10-28-40-213.ec2.internal
+  creationTimestamp: "2022-01-25T16:01:43Z"
+  finalizers:
+  - kubernetes.io/pvc-protection
+  labels:
+    app: prometheus
+    app.kubernetes.io/instance: kube-prometheus-stack-prometheus
+    app.kubernetes.io/managed-by: prometheus-operator
+    app.kubernetes.io/name: prometheus
+    app.kubernetes.io/version: 2.27.1
+    operator.prometheus.io/name: kube-prometheus-stack-prometheus
+    operator.prometheus.io/shard: "0"
+    prometheus: kube-prometheus-stack-prometheus
+  name: prometheus-kube-prometheus-stack-prometheus-db-prometheus-kube-prometheus-stack-prometheus-0
+  namespace: system
+  resourceVersion: "911791607"
+  uid: d1bba593-5e7c-49f9-9471-40da5cb942c5
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 60Gi
+  storageClassName: standard
+  volumeMode: Filesystem
+  volumeName: pvc-d1bba593-5e7c-49f9-9471-40da5cb942c5
+status:
+  accessModes:
+  - ReadWriteOnce
+  capacity:
+    storage: 60Gi
+  phase: Lost
