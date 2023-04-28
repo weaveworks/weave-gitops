@@ -1,5 +1,7 @@
 import AddIcon from "@material-ui/icons/Add";
 import ArrowDropDownIcon from "@material-ui/icons/ArrowDropDown";
+import ArrowDownwardRoundedIcon from "@material-ui/icons/ArrowDownwardRounded";
+import ArrowUpwardRoundedIcon from "@material-ui/icons/ArrowUpwardRounded";
 import ArrowUpwardIcon from "@material-ui/icons/ArrowUpward";
 import CheckCircleIcon from "@material-ui/icons/CheckCircle";
 import ClearIcon from "@material-ui/icons/Clear";
@@ -52,6 +54,8 @@ export enum IconType {
   AddIcon,
   ArrowUpwardIcon,
   ArrowDropDownIcon,
+  ArrowDownwardRoundedIcon,
+  ArrowUpwardRoundedIcon,
   DeleteIcon,
   SaveAltIcon,
   ErrorIcon,
@@ -175,6 +179,12 @@ function getIcon(i: IconType) {
     case IconType.ArrowDropDownIcon:
       return ArrowDropDownIcon;
 
+    case IconType.ArrowDownwardRoundedIcon:
+      return ArrowDownwardRoundedIcon;
+
+    case IconType.ArrowUpwardRoundedIcon:
+      return ArrowUpwardRoundedIcon;
+
     case IconType.FileCopyIcon:
       return FileCopyIcon;
 
@@ -240,7 +250,7 @@ function getIcon(i: IconType) {
   }
 }
 
-function Icon({ className, type, text, color }: Props) {
+function Icon({ className, type, text, color}: Props) {
   return (
     <Flex align className={className}>
       {React.createElement(getIcon(type) || "span")}
