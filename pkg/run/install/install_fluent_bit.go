@@ -4,12 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"html/template"
 	"strings"
 	"time"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/run/constants"
 	appsv1 "k8s.io/api/apps/v1"
@@ -98,13 +98,13 @@ func mapToJSON(m map[string]interface{}) (*v1.JSON, error) {
 	return result, nil
 }
 
-func makeFluentBitHelmRepository(namespace string) *sourcev1.HelmRepository {
-	helmRepository := &sourcev1.HelmRepository{
+func makeFluentBitHelmRepository(namespace string) *sourcev1b2.HelmRepository {
+	helmRepository := &sourcev1b2.HelmRepository{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "fluent",
 			Namespace: namespace,
 		},
-		Spec: sourcev1.HelmRepositorySpec{
+		Spec: sourcev1b2.HelmRepositorySpec{
 			URL: "https://fluent.github.io/helm-charts",
 		},
 	}
@@ -220,7 +220,7 @@ func UninstallFluentBit(ctx context.Context, log logger.Logger, kubeClient clien
 
 	log.Successf("HelmRelease %s/%s deleted", hr.Namespace, hr.Name)
 
-	helmRepository := &sourcev1.HelmRepository{
+	helmRepository := &sourcev1b2.HelmRepository{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "fluent",
 			Namespace: hrNamespace,

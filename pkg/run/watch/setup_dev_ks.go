@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"io"
 	"os"
 	"path/filepath"
@@ -12,7 +13,6 @@ import (
 
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/fluxcd/pkg/apis/meta"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/fsnotify/fsnotify"
 	"github.com/minio/minio-go/v7"
 	ignore "github.com/sabhiram/go-gitignore"
@@ -62,7 +62,7 @@ func SetupBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeClient c
 			Interval: metav1.Duration{Duration: 30 * 24 * time.Hour}, // 30 days
 			Prune:    true,                                           // GC the kustomization
 			SourceRef: kustomizev1.CrossNamespaceSourceReference{
-				Kind: sourcev1.BucketKind,
+				Kind: sourcev1b2.BucketKind,
 				Name: constants.RunDevBucketName,
 			},
 			Timeout: &metav1.Duration{Duration: params.Timeout},
@@ -421,7 +421,7 @@ func ReconcileDevBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeC
 		}, schema.GroupVersionKind{
 			Group:   "source.toolkit.fluxcd.io",
 			Version: "v1beta2",
-			Kind:    sourcev1.BucketKind,
+			Kind:    sourcev1b2.BucketKind,
 		})
 	if err != nil {
 		return err
@@ -429,7 +429,7 @@ func ReconcileDevBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeC
 
 	// wait for the reconciliation of dev-bucket to be done
 	if err := wait.Poll(interval, timeout, func() (bool, error) {
-		devBucket := &sourcev1.Bucket{}
+		devBucket := &sourcev1b2.Bucket{}
 		if err := kubeClient.Get(ctx, types.NamespacedName{
 			Name:      constants.RunDevBucketName,
 			Namespace: namespace,
@@ -444,7 +444,7 @@ func ReconcileDevBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeC
 
 	// wait for devBucket to be ready
 	if err := wait.Poll(interval, timeout, func() (bool, error) {
-		devBucket := &sourcev1.Bucket{}
+		devBucket := &sourcev1b2.Bucket{}
 		if err := kubeClient.Get(ctx, types.NamespacedName{
 			Name:      constants.RunDevBucketName,
 			Namespace: namespace,

@@ -14,7 +14,7 @@ import (
 	reflectorv1 "github.com/fluxcd/image-reflector-controller/api/v1beta1"
 	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	notificationv2 "github.com/fluxcd/notification-controller/api/v1beta1"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	"github.com/pkg/errors"
 	appsv1 "k8s.io/api/apps/v1"
 	authv1 "k8s.io/api/authentication/v1"

@@ -3,10 +3,11 @@ package server
 import (
 	"context"
 	"fmt"
+	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	"github.com/hashicorp/go-multierror"
 	"github.com/weaveworks/weave-gitops/core/fluxsync"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
@@ -126,12 +127,12 @@ func getFluxObject(kind string) (fluxsync.Reconcilable, error) {
 
 	case sourcev1.GitRepositoryKind:
 		return &fluxsync.GitRepositoryAdapter{GitRepository: &sourcev1.GitRepository{}}, nil
-	case sourcev1.BucketKind:
-		return &fluxsync.BucketAdapter{Bucket: &sourcev1.Bucket{}}, nil
-	case sourcev1.HelmRepositoryKind:
-		return &fluxsync.HelmRepositoryAdapter{HelmRepository: &sourcev1.HelmRepository{}}, nil
-	case sourcev1.OCIRepositoryKind:
-		return &fluxsync.OCIRepositoryAdapter{OCIRepository: &sourcev1.OCIRepository{}}, nil
+	case sourcev1b2.BucketKind:
+		return &fluxsync.BucketAdapter{Bucket: &sourcev1b2.Bucket{}}, nil
+	case sourcev1b2.HelmRepositoryKind:
+		return &fluxsync.HelmRepositoryAdapter{HelmRepository: &sourcev1b2.HelmRepository{}}, nil
+	case sourcev1b2.OCIRepositoryKind:
+		return &fluxsync.OCIRepositoryAdapter{OCIRepository: &sourcev1b2.OCIRepository{}}, nil
 	}
 
 	return nil, fmt.Errorf("not supported kind: %s", kind)
