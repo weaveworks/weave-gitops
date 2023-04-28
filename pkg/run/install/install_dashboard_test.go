@@ -4,11 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"strings"
 	"time"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -143,7 +143,7 @@ var _ = Describe("InstallDashboard", func() {
 	It("should return an apply all error if the resource manager returns an apply all error", func() {
 		manifests := &DashboardObjects{
 			Manifests:      []byte{},
-			HelmRepository: &sourcev1.HelmRepository{},
+			HelmRepository: &sourcev1b2.HelmRepository{},
 			HelmRelease:    &helmv2.HelmRelease{},
 		}
 		err := InstallDashboard(fakeContext, fakeLogger, fakeClient, manifests)
@@ -275,7 +275,7 @@ var _ = Describe("generateManifestsForDashboard", func() {
 		manifests := strings.Split(string(manifestsData), "---\n")
 		Expect(len(manifests)).To(Equal(2))
 
-		var actualHelmRepository sourcev1.HelmRepository
+		var actualHelmRepository sourcev1b2.HelmRepository
 		err = yaml.Unmarshal([]byte(manifests[0]), &actualHelmRepository)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(actualHelmRepository.Name).To(Equal(testDashboardName))
@@ -401,8 +401,8 @@ var _ = Describe("makeHelmRelease", func() {
 var _ = Describe("makeHelmRepository", func() {
 	It("creates helmrepository", func() {
 		actual := makeHelmRepository(testDashboardName, testNamespace)
-		Expect(actual.Kind).To(Equal(sourcev1.HelmRepositoryKind))
-		Expect(actual.APIVersion).To(Equal(sourcev1.GroupVersion.Identifier()))
+		Expect(actual.Kind).To(Equal(sourcev1b2.HelmRepositoryKind))
+		Expect(actual.APIVersion).To(Equal(sourcev1b2.GroupVersion.Identifier()))
 		Expect(actual.Name).To(Equal(testDashboardName))
 		Expect(actual.Namespace).To(Equal(testNamespace))
 

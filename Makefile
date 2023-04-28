@@ -219,6 +219,16 @@ echo-flux-version:
 echo-dev-bucket-container:
 	@echo $(DEV_BUCKET_CONTAINER_IMAGE)
 
+download-test-crds:
+	group_resources="source/helmrepositories source/buckets source/gitrepositories source/helmcharts source/ocirepositories"; \
+	for group_resource in $$group_resources; do \
+		group="$${group_resource%/*}"; resource="$${group_resource#*/}"; \
+		echo "Downloading $${group}.$${resource}"; \
+		curl -sL "https://raw.githubusercontent.com/fluxcd/source-controller/v1.0.0-rc.1/config/crd/bases/$${group}.toolkit.fluxcd.io_$${resource}.yaml" -o "tools/testcrds/$${group}.toolkit.fluxcd.io_$${resource}.yaml"; \
+	done
+	curl -sL "https://raw.githubusercontent.com/fluxcd/kustomize-controller/v1.0.0-rc.1/config/crd/bases/kustomize.toolkit.fluxcd.io_kustomizations.yaml" -o "tools/testcrds/kustomize.toolkit.fluxcd.io_kustomizations.yaml"
+	curl -sL "https://raw.githubusercontent.com/fluxcd/helm-controller/v0.32.1/config/crd/bases/helm.toolkit.fluxcd.io_helmreleases.yaml" -o "tools/testcrds/helm.toolkit.fluxcd.io_helmreleases.yaml"
+
 .PHONY: help
 # Thanks to https://www.thapaliya.com/en/writings/well-documented-makefiles/
 help:  ## Display this help.
