@@ -27,7 +27,7 @@ import styled from "styled-components";
 import images from "../lib/images";
 import DocsIcon from "./NavIcons/DocsIcon";
 // eslint-disable-next-line
-import { colors, spacing } from "../typedefs/styled";
+import { colors, fontSizes, spacing } from "../typedefs/styled";
 import Flex from "./Flex";
 import ApplicationsIcon from "./NavIcons/ApplicationsIcon";
 import ClustersIcon from "./NavIcons/ClustersIcon";
@@ -103,6 +103,7 @@ type Props = {
   color?: keyof typeof colors;
   text?: string;
   size: keyof typeof spacing;
+  fontSize?: keyof typeof fontSizes;
 };
 
 function getIcon(i: IconType) {
@@ -250,12 +251,12 @@ function getIcon(i: IconType) {
   }
 }
 
-function Icon({ className, type, text, color}: Props) {
+function Icon({ className, type, text, color, fontSize }: Props) {
   return (
     <Flex align className={className}>
       {React.createElement(getIcon(type) || "span")}
       {text && (
-        <Text color={color} bold>
+        <Text color={color} bold size={fontSize}>
           {text}
         </Text>
       )}
@@ -298,6 +299,7 @@ export default styled(Icon)`
   ${Text} {
     margin-left: 4px;
     color: ${(props) => props.theme.colors[props.color as any]};
+    font-size: ${(props) => props.theme.fontSizes[props.fontSize as any]};
   }
 
   img {

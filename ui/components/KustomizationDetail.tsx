@@ -71,22 +71,7 @@ function KustomizationDetail({
         ["Interval", <Interval interval={kustomization?.interval} />],
         ["Namespace", kustomization?.namespace],
       ]}
-    >
-      <Flex wide end gap="14">
-        <Text capitalize semiBold color="neutral30">
-          Applied Revision:{" "}
-          <Text size="large" color="neutral40">
-            {kustomization?.lastAppliedRevision}
-          </Text>
-        </Text>
-        <Text capitalize semiBold color="neutral30">
-          Last Updated:{" "}
-          <Text size="large" color="neutral40">
-            <Timestamp time={automationLastUpdated(kustomization)} />
-          </Text>
-        </Text>
-      </Flex>
-    </AutomationDetail>
+    />
   );
 }
 

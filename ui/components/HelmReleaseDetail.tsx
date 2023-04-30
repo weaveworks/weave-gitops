@@ -91,20 +91,7 @@ function HelmReleaseDetail({
         ["Interval", <Interval interval={helmRelease?.interval} />],
         ["Namespace", helmRelease?.namespace],
       ]}
-    >
-      <Flex wide end gap="14">
-        <Text capitalize semiBold color="neutral30">
-          Chart Version:{" "}
-          <Text size="large" color="neutral40">{helmRelease.helmChart.version}</Text>
-        </Text>
-        <Text capitalize semiBold color="neutral30">
-          Last Updated:{" "}
-          <Text size="large" color="neutral40">
-            <Timestamp time={automationLastUpdated(helmRelease)} />
-          </Text>
-        </Text>
-      </Flex>
-    </AutomationDetail>
+    />
   );
 }
 

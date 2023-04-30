@@ -1,4 +1,3 @@
-import { Collapse } from "@material-ui/core";
 import * as React from "react";
 import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
@@ -6,14 +5,15 @@ import { useSyncFluxObject } from "../hooks/automations";
 import { useToggleSuspend } from "../hooks/flux";
 import { useGetInventory } from "../hooks/inventory";
 import { Condition, Kind, ObjectRef } from "../lib/api/core/types.pb";
-import { Automation, FluxObject } from "../lib/objects";
+import { Automation, HelmRelease } from "../lib/objects";
+import { automationLastUpdated } from "../lib/utils";
 import Button from "./Button";
+import Collapsible from "./Collapsible";
 import CustomActions from "./CustomActions";
 import DependenciesView from "./DependenciesView";
 import EventsTable from "./EventsTable";
 import Flex from "./Flex";
-import { HealthStatusType } from "./HealthCheckStatusIndicator";
-import Icon, { IconType } from "./Icon";
+import HealthCheckAgg, { computeAggHealthCheck } from "./HealthCheckAgg";
 import InfoList, { InfoField } from "./InfoList";
 import { routeTab } from "./KustomizationDetail";
 import Metadata from "./Metadata";
@@ -24,6 +24,8 @@ import RequestStateHandler from "./RequestStateHandler";
 import Spacer from "./Spacer";
 import SubRouterTabs, { RouterTab } from "./SubRouterTabs";
 import SyncButton from "./SyncButton";
+import Text from "./Text";
+import Timestamp from "./Timestamp";
 import YamlView from "./YamlView";
 
 type Props = {
@@ -32,39 +34,6 @@ type Props = {
   info: InfoField[];
   customTabs?: Array<routeTab>;
   customActions?: JSX.Element[];
-  children?: JSX.Element;
-};
-const Collapsible = ({ children }) => {
-  const [isOpen, setIsOpen] = React.useState(false);
-
-  const toggle = () => setIsOpen(!isOpen);
-
-  return (
-    <div>
-      <Collapse in={isOpen} collapsedSize={40}>
-        {children}
-      </Collapse>
-      <div
-        onClick={toggle}
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          cursor: "pointer",
-          background: "linear-gradient(to bottom, #ffffff, #f6f7f9)",
-        }}
-      >
-        <Icon
-          type={
-            isOpen
-              ? IconType.ArrowUpwardRoundedIcon
-              : IconType.ArrowDownwardRoundedIcon
-          }
-          size="medium"
-          text={isOpen ? "Show Less" : "Show More"}
-        />
-      </div>
-    </div>
-  );
 };
 
 export type ReconciledObjectsAutomation = {
@@ -76,31 +45,6 @@ export type ReconciledObjectsAutomation = {
   type: string;
   clusterName: string;
 };
-interface AggStatus {
-  health: {
-    healthy: number;
-    unhealthy: number;
-    NA: number;
-  };
-}
-
-function computeAggHealthCheck(objects: FluxObject[]): AggStatus {
-  const healthAgg = { healthy: 0, unhealthy: 0, NA: 0 };
-  objects.forEach(({ health }) => {
-    switch (health.status) {
-      case HealthStatusType.Healthy:
-        healthAgg.healthy += 1;
-        break;
-      case HealthStatusType.Unhealthy:
-        healthAgg.unhealthy += 1;
-        break;
-      default:
-        healthAgg.NA += 1;
-        break;
-    }
-  });
-  return { health: healthAgg };
-}
 
 function AutomationDetail({
   automation,
@@ -108,7 +52,6 @@ function AutomationDetail({
   info,
   customTabs,
   customActions,
-  children,
 }: Props) {
   const {
     name,
@@ -137,8 +80,8 @@ function AutomationDetail({
     false,
     {
       retry: false,
-      refetchInterval: (data) =>
-        data?.objects && location.href.includes("details") ? 5000 : false,
+      refetchInterval: 5000,
+      enabled: !!location.href.includes("details"),
     }
   );
 
@@ -166,7 +109,7 @@ function AutomationDetail({
     automation.type === Kind.HelmRelease ? "helmrelease" : "kustomizations"
   );
 
-  const { health } = computeAggHealthCheck(data?.objects || []);
+  const health  = computeAggHealthCheck(data?.objects || []);
   const defaultTabs: Array<routeTab> = [
     {
       name: "Details",
@@ -249,14 +192,33 @@ function AutomationDetail({
   ];
   return (
     <Flex wide tall column className={className}>
-      {children}
-      {health && (
-        <Flex wide gap="14">
-          <span>Healthy:{health.healthy}</span>
-          <span>UnHealthy:{health.unhealthy}</span>
-          <span>NA:{health.NA}</span>
-        </Flex>
-      )}
+      <Flex wide end gap="14">
+        {automation?.type === "HelmRelease" ? (
+          <Text capitalize semiBold color="neutral30">
+            Chart Version:{" "}
+            <Text size="large" color="neutral40">
+              {(automation as HelmRelease).helmChart?.version}
+            </Text>
+          </Text>
+        ) : (
+          <Text capitalize semiBold color="neutral30">
+            Applied Revision:{" "}
+            <Text size="large" color="neutral40">
+              {automation?.lastAppliedRevision}
+            </Text>
+          </Text>
+        )}
+        <Text capitalize semiBold color="neutral30">
+          Last Updated:{" "}
+          <Text size="large" color="neutral40">
+            <Timestamp time={automationLastUpdated(automation)} />
+          </Text>
+        </Text>
+      </Flex>
+      <Spacer m={["base", "none"]} />
+      {health && <HealthCheckAgg health={health} />}
+      <Spacer m={["base", "none"]} />
+
       <PageStatus
         conditions={automation.conditions}
         suspended={automation.suspended}
