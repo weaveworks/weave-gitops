@@ -109,7 +109,7 @@ function AutomationDetail({
     automation.type === Kind.HelmRelease ? "helmrelease" : "kustomizations"
   );
 
-  const health  = computeAggHealthCheck(data?.objects || []);
+  const health = computeAggHealthCheck(data?.objects || []);
   const defaultTabs: Array<routeTab> = [
     {
       name: "Details",
@@ -197,14 +197,14 @@ function AutomationDetail({
           <Text capitalize semiBold color="neutral30">
             Chart Version:{" "}
             <Text size="large" color="neutral40">
-              {(automation as HelmRelease).helmChart?.version}
+              {(automation as HelmRelease).helmChart?.version || "-"}
             </Text>
           </Text>
         ) : (
           <Text capitalize semiBold color="neutral30">
             Applied Revision:{" "}
             <Text size="large" color="neutral40">
-              {automation?.lastAppliedRevision}
+              {automation?.lastAppliedRevision || "-"}
             </Text>
           </Text>
         )}
