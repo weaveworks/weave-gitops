@@ -80,8 +80,8 @@ function AutomationDetail({
     false,
     {
       retry: false,
-      refetchInterval: 5000,
-      enabled: !!location.href.includes("details"),
+      refetchInterval: (data) =>
+        data?.objects && location.href.includes("details") ? 5000 : false,
     }
   );
 
