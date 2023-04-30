@@ -3,17 +3,13 @@ import styled from "styled-components";
 import { useFeatureFlags } from "../hooks/featureflags";
 import { Kind } from "../lib/api/core/types.pb";
 import { HelmRelease } from "../lib/objects";
-import { automationLastUpdated } from "../lib/utils";
 import Alert from "./Alert";
 import AutomationDetail from "./AutomationDetail";
 import ClusterDashboardLink from "./ClusterDashboardLink";
-import Flex from "./Flex";
 import { InfoField } from "./InfoList";
 import Interval from "./Interval";
 import { routeTab } from "./KustomizationDetail";
 import SourceLink from "./SourceLink";
-import Text from "./Text";
-import Timestamp from "./Timestamp";
 
 type Props = {
   name: string;
