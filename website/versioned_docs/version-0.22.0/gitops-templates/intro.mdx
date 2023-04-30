@@ -1,0 +1,47 @@
+---
+title: Introduction
+hide_title: true
+---
+
+import TierLabel from "../_components/TierLabel";
+
+# Introduction <TierLabel tiers="Enterprise" />
+
+`GitOpsTemplate`s enable Application Developers to self-service components and
+services easily through the Weave GitOps Dashboard.
+
+With a `GitOpsTemplate`, any resource that can be expressed in yaml
+(such as basic kubernetes resources, Flux primitives, TF controller, Crossplane, Cluster API)
+can be templated into a standardised definition, available for use.
+
+Templates are simple YAML files, which can be enriched with Parameters, Variables,
+Metadata and conditions.
+
+Whan an Application Developer uses a Template via the GIU, the rendered
+template is added to their GitOps repository via a PR. When merged and reconciled, the resources in
+the template are created. These can be any resource, such as a `MachinePool` for
+CAPI objects, a Flux Kustomization or a Terraform Controller resource.
+
+:::tip
+
+The only restriction on `GitOpsTemplate`s is that they are valid `yaml`. Beyond
+that, a rendered template can create any resource desired :sparkles:.
+
+:::
+
+![quickstart templates view](imgs/quickstart-templates-view.png)
+
+:::info
+
+GitOpsTemplate or CAPITemplate?
+
+The only difference between `CAPITemplate` and `GitOpsTemplate` is the default
+value of these two annotations:
+
+| Annotation | default value for `CAPITemplate` | default value for `GitOpsTemplate` |
+| ----------- | ---------------- | ------------------ |
+| `templates.weave.works/add-common-bases`  | `"true"` | `"false"` |
+| `templates.weave.works/inject-prune-annotations` | `"true"` | `"false"` |
+
+:::
+
