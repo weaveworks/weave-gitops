@@ -3,7 +3,7 @@ import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
 import { useSyncFluxObject } from "../hooks/automations";
 import { useToggleSuspend } from "../hooks/flux";
-import { useGetInventory } from "../hooks/inventory";
+import { createCanaryCondition, useGetInventory } from "../hooks/inventory";
 import { Condition, Kind, ObjectRef } from "../lib/api/core/types.pb";
 import { Automation, HelmRelease } from "../lib/objects";
 import { automationLastUpdated } from "../lib/utils";
@@ -107,7 +107,7 @@ function AutomationDetail({
     },
     automation.type === Kind.HelmRelease ? "helmrelease" : "kustomizations"
   );
-
+  const canaryStatus = createCanaryCondition(data?.objects);
   const health = computeAggHealthCheck(data?.objects || []);
   const defaultTabs: Array<routeTab> = [
     {
@@ -222,6 +222,9 @@ function AutomationDetail({
         conditions={automation.conditions}
         suspended={automation.suspended}
       />
+      {(customTabs || customActions) && (
+        <PageStatus conditions={[canaryStatus]} suspended={false} />
+      )}
       <Flex wide start>
         <SyncButton
           onClick={(opts) => sync.mutateAsync(opts)}

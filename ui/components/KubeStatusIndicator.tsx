@@ -19,12 +19,14 @@ export enum ReadyType {
   NotReady = "Not Ready",
   Reconciling = "Reconciling",
   Suspended = "Suspended",
+  None = "None",
 }
 
 export enum ReadyStatusValue {
   True = "True",
   False = "False",
   Unknown = "Unknown",
+  None = "None",
 }
 
 export function computeReady(conditions: Condition[]): ReadyType {
@@ -44,6 +46,8 @@ export function computeReady(conditions: Condition[]): ReadyType {
     ) {
       return ReadyType.Reconciling;
     }
+
+    if (readyCondition.status === ReadyStatusValue.None) return ReadyType.None;
 
     return ReadyType.NotReady;
   }
@@ -108,6 +112,12 @@ export const getIndicatorInfo = (
       type: ReadyType.Ready,
       icon: IconType.CheckCircleIcon,
       color: "successOriginal",
+    };
+  if (ready === ReadyType.None)
+    return {
+      type: ReadyType.None,
+      icon: IconType.RemoveCircleIcon,
+      color: "neutral20",
     };
   return {
     type: ReadyType.NotReady,
