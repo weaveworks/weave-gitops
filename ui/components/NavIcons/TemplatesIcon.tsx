@@ -2,10 +2,22 @@ import * as React from "react";
 
 function TemplatesIcon() {
   return (
-    <svg viewBox="-4 -4 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path
-        d="M5.75 0.75V7.25H0.75V0.75H5.75ZM5.75 9.75V13.25H0.75V9.75H5.75ZM13.25 6.75V13.25H8.25V6.75H13.25ZM13.25 4.25H8.25V0.75H13.25V4.25Z"
         className="path-fill"
+        d="m10.5,5v3.5h-5.5v-3.5h5.5m0-1h-5.5c-.55,0-1,.45-1,1v3.5c0,.55.45,1,1,1h5.5c.55,0,1-.45,1-1v-3.5c0-.55-.45-1-1-1h0Z"
+      />
+      <path
+        className="path-fill"
+        d="m10.5,11.5v7.5h-5.5v-7.5h5.5m0-1h-5.5c-.55,0-1,.45-1,1v7.5c0,.55.45,1,1,1h5.5c.55,0,1-.45,1-1v-7.5c0-.55-.45-1-1-1h0Z"
+      />
+      <path
+        className="path-fill"
+        d="m18.96,15.5v3.5h-5.5v-3.5h5.5m0-1h-5.5c-.55,0-1,.45-1,1v3.5c0,.55.45,1,1,1h5.5c.55,0,1-.45,1-1v-3.5c0-.55-.45-1-1-1h0Z"
+      />
+      <path
+        className="path-fill"
+        d="m18.96,5v7.5h-5.5v-7.5h5.5m0-1h-5.5c-.55,0-1,.45-1,1v7.5c0,.55.45,1,1,1h5.5c.55,0,1-.45,1-1v-7.5c0-.55-.45-1-1-1h0Z"
       />
     </svg>
   );
