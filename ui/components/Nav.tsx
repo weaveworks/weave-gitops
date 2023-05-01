@@ -88,6 +88,7 @@ const NavContent = styled.div<{ collapsed: boolean }>`
   }
   .header {
     opacity: ${(props) => (props.collapsed ? 0 : 1)};
+    letter-spacing: 1px;
     transition: opacity 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
     //must match height to center text
     line-height: 32px;

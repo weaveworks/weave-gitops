@@ -5,7 +5,7 @@ function NotificationsIcon() {
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
       <g id="notifications">
         <polyline className="path-fill" points="4 19.98 4 16.98 7 16.98" />
-        <rect className="stroke-fill" x="4" y="16" width="2.88" height=".99" />
+        <rect className="path-fill" x="4" y="16" width="2.88" height=".99" />
       </g>
       <g id="gitops_run">
         <path
