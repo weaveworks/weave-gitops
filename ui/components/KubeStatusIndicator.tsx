@@ -47,9 +47,6 @@ export function computeReady(conditions: Condition[]): ReadyType {
         return ReadyType.PendingAction;
     }
 
-    {
-    }
-
     if (readyCondition.status === ReadyStatusValue.None) return ReadyType.None;
 
     return ReadyType.NotReady;
