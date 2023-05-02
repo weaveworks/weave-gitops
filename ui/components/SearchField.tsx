@@ -53,7 +53,7 @@ function SearchField({ className, onSubmit }: Props) {
         color="inherit"
       >
         <Icon
-          type={IconType.SearchIcon}
+          type={IconType.ExploreIcon}
           size="medium"
           color={expanded ? "primary" : "neutral30"}
         />

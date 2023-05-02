@@ -32,6 +32,7 @@ import Flex from "./Flex";
 import ApplicationsIcon from "./NavIcons/ApplicationsIcon";
 import ClustersIcon from "./NavIcons/ClustersIcon";
 import DeliveryIcon from "./NavIcons/DeliveryIcon";
+import ExploreIcon from "./NavIcons/ExploreIcon";
 import FluxIcon from "./NavIcons/FluxIcon";
 import GitOpsRunIcon from "./NavIcons/GitOpsRunIcon";
 import GitOpsSetsIcon from "./NavIcons/GitOpsSetsIcon";
@@ -95,6 +96,7 @@ export enum IconType {
   SecretsIcon,
   TemplatesIcon,
   ClustersIcon,
+  ExploreIcon,
 }
 
 type Props = {
@@ -246,6 +248,9 @@ function getIcon(i: IconType) {
     case IconType.ClustersIcon:
       return ClustersIcon;
 
+    case IconType.ExploreIcon:
+      return ExploreIcon;
+
     default:
       break;
   }
@@ -269,24 +274,25 @@ export default styled(Icon)`
     fill: ${(props) => props.theme.colors[props.color as any]};
     height: ${(props) => props.theme.spacing[props.size as any]};
     width: ${(props) => props.theme.spacing[props.size as any]};
-    path {
+    path,
+    line,
+    polygon,
+    rect,
+    circle,
+    polyline {
       &.path-fill {
         fill: ${(props) => props.theme.colors[props.color as any]} !important;
         transition: fill 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
       }
       &.stroke-fill {
         stroke: ${(props) => props.theme.colors[props.color as any]} !important;
-        transition: fill 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+        transition: stroke 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
       }
     }
     rect {
       &.rect-height {
         height: ${(props) => props.theme.spacing[props.size as any]};
         width: ${(props) => props.theme.spacing[props.size as any]};
-      }
-      &.rect-stroke {
-        stroke: ${(props) => props.theme.colors[props.color as any]};
-        transition: stroke 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
       }
     }
   }
