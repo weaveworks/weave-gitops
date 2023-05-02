@@ -88,6 +88,7 @@ const NavContent = styled.div<{ collapsed: boolean }>`
   }
   .header {
     opacity: ${(props) => (props.collapsed ? 0 : 1)};
+    letter-spacing: 1px;
     transition: opacity 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
     //must match height to center text
     line-height: 32px;
@@ -119,7 +120,7 @@ const LinkTab = React.forwardRef((p: any, ref) => {
   let className = "link-flex";
   if (p["aria-selected"]) className += " selected";
 
-  let color: keyof typeof colors = "neutral40";
+  let color: keyof typeof colors = "neutral30";
   if (p.collapsed) color = "neutral00";
   if (p["aria-selected"] || hovered) {
     if (p.collapsed) color = "primaryLight05";
@@ -142,7 +143,7 @@ const LinkTab = React.forwardRef((p: any, ref) => {
       icon={
         <LinkTabIcon
           iconType={item.icon}
-          color={p["aria-selected"] || hovered ? "primary10" : "neutral40"}
+          color={p["aria-selected"] || hovered ? "primary10" : "neutral30"}
           collapsed={p.collapsed}
           title={item.label}
         />
@@ -178,7 +179,7 @@ function Nav({
               return (
                 <Text
                   uppercase
-                  color="neutral30"
+                  color="neutral40"
                   semiBold
                   className="header"
                   key={n.label}

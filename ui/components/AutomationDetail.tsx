@@ -3,6 +3,7 @@ import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
 import { useSyncFluxObject } from "../hooks/automations";
 import { useToggleSuspend } from "../hooks/flux";
+import { createCanaryCondition, useGetInventory } from "../hooks/inventory";
 import { Condition, Kind, ObjectRef } from "../lib/api/core/types.pb";
 import { Automation } from "../lib/objects";
 import Button from "./Button";
@@ -57,6 +58,17 @@ function AutomationDetail({
     conditions,
     sourceRef,
   } = automation;
+
+  const { data: inventory } = useGetInventory(
+    type,
+    name,
+    clusterName,
+    namespace,
+    false
+  );
+
+  const canaryStatus = createCanaryCondition(inventory?.objects);
+
   const sync = useSyncFluxObject([
     {
       name,
@@ -176,6 +188,9 @@ function AutomationDetail({
         conditions={automation.conditions}
         suspended={automation.suspended}
       />
+      {(customTabs || customActions) && (
+        <PageStatus conditions={[canaryStatus]} suspended={false} />
+      )}
       <Flex wide start>
         <SyncButton
           onClick={(opts) => sync.mutateAsync(opts)}

@@ -20,26 +20,31 @@ exports[`YamlView snapshots renders 1`] = `
   width: 12px;
 }
 
-.c5 svg path.path-fill {
+.c5 svg path.path-fill,
+.c5 svg line.path-fill,
+.c5 svg polygon.path-fill,
+.c5 svg rect.path-fill,
+.c5 svg circle.path-fill,
+.c5 svg polyline.path-fill {
   fill: !important;
   -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
-.c5 svg path.stroke-fill {
+.c5 svg path.stroke-fill,
+.c5 svg line.stroke-fill,
+.c5 svg polygon.stroke-fill,
+.c5 svg rect.stroke-fill,
+.c5 svg circle.stroke-fill,
+.c5 svg polyline.stroke-fill {
   stroke: !important;
-  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c5 svg rect.rect-height {
   height: 12px;
   width: 12px;
-}
-
-.c5 svg rect.rect-stroke {
-  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c5.downward {
