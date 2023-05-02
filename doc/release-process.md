@@ -47,7 +47,7 @@ To release a new version of Weave Gitops, you need to:
     staging site (there's a link in the list of github status checks
     called "Doc site preview")
 - The PR cover message contains draft release notes. Edit the cover
-  message to fill in or delete blocks as appropriate. Move as many PRs out of "Uncategorized" as you possibly can. 
+  message to fill in or delete blocks as appropriate. Move as many PRs out of "Uncategorized" as you possibly can.
 - If everything looks good, approve the PR - do *not* merge or things
   won't be published in the right order. This immediately kicks off the
   release job.
