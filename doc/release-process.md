@@ -52,6 +52,7 @@ To release a new version of Weave Gitops, you need to:
   won't be published in the right order. This immediately kicks off the
   release job.
 - Cross you fingers and ask for a blessing from Mr. Kubernetes, then wait for the action to finish (~20 minutes), at which point the PR will be merged automatically.
+- Notify weave-gitops-dev channel that PRs are now safe to merge
 
 # Technical details
 
