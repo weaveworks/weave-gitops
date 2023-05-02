@@ -3,14 +3,12 @@ import styled from "styled-components";
 import { useFeatureFlags } from "../hooks/featureflags";
 import { Kind } from "../lib/api/core/types.pb";
 import { Kustomization } from "../lib/objects";
-import { automationLastUpdated } from "../lib/utils";
 import Alert from "./Alert";
 import AutomationDetail from "./AutomationDetail";
 import ClusterDashboardLink from "./ClusterDashboardLink";
 import { InfoField } from "./InfoList";
 import Interval from "./Interval";
 import SourceLink from "./SourceLink";
-import Timestamp from "./Timestamp";
 
 export interface routeTab {
   name: string;
@@ -63,15 +61,10 @@ function KustomizationDetail({
             clusterName={kustomization?.clusterName}
           />,
         ],
-        ["Applied Revision", kustomization?.lastAppliedRevision],
         ...clusterInfo,
         ...tenancyInfo,
         ["Path", kustomization?.path],
         ["Interval", <Interval interval={kustomization?.interval} />],
-        [
-          "Last Updated",
-          <Timestamp time={automationLastUpdated(kustomization)} />,
-        ],
         ["Namespace", kustomization?.namespace],
       ]}
     />

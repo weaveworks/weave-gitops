@@ -1,5 +1,7 @@
 import AddIcon from "@material-ui/icons/Add";
 import ArrowDropDownIcon from "@material-ui/icons/ArrowDropDown";
+import ArrowDownwardRoundedIcon from "@material-ui/icons/ArrowDownwardRounded";
+import ArrowUpwardRoundedIcon from "@material-ui/icons/ArrowUpwardRounded";
 import ArrowUpwardIcon from "@material-ui/icons/ArrowUpward";
 import CheckCircleIcon from "@material-ui/icons/CheckCircle";
 import ClearIcon from "@material-ui/icons/Clear";
@@ -25,7 +27,7 @@ import styled from "styled-components";
 import images from "../lib/images";
 import DocsIcon from "./NavIcons/DocsIcon";
 // eslint-disable-next-line
-import { colors, spacing } from "../typedefs/styled";
+import { colors, fontSizes, spacing } from "../typedefs/styled";
 import Flex from "./Flex";
 import ApplicationsIcon from "./NavIcons/ApplicationsIcon";
 import ClustersIcon from "./NavIcons/ClustersIcon";
@@ -53,6 +55,8 @@ export enum IconType {
   AddIcon,
   ArrowUpwardIcon,
   ArrowDropDownIcon,
+  ArrowDownwardRoundedIcon,
+  ArrowUpwardRoundedIcon,
   DeleteIcon,
   SaveAltIcon,
   ErrorIcon,
@@ -101,6 +105,7 @@ type Props = {
   color?: keyof typeof colors;
   text?: string;
   size: keyof typeof spacing;
+  fontSize?: keyof typeof fontSizes;
 };
 
 function getIcon(i: IconType) {
@@ -177,6 +182,12 @@ function getIcon(i: IconType) {
     case IconType.ArrowDropDownIcon:
       return ArrowDropDownIcon;
 
+    case IconType.ArrowDownwardRoundedIcon:
+      return ArrowDownwardRoundedIcon;
+
+    case IconType.ArrowUpwardRoundedIcon:
+      return ArrowUpwardRoundedIcon;
+
     case IconType.FileCopyIcon:
       return FileCopyIcon;
 
@@ -245,12 +256,12 @@ function getIcon(i: IconType) {
   }
 }
 
-function Icon({ className, type, text, color }: Props) {
+function Icon({ className, type, text, color, fontSize }: Props) {
   return (
     <Flex align className={className}>
       {React.createElement(getIcon(type) || "span")}
       {text && (
-        <Text color={color} bold>
+        <Text color={color} bold size={fontSize}>
           {text}
         </Text>
       )}
@@ -294,6 +305,7 @@ export default styled(Icon)`
   ${Text} {
     margin-left: 4px;
     color: ${(props) => props.theme.colors[props.color as any]};
+    font-size: ${(props) => props.theme.fontSizes[props.fontSize as any]};
   }
 
   img {
