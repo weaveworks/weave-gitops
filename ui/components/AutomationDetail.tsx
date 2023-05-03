@@ -3,23 +3,29 @@ import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
 import { useSyncFluxObject } from "../hooks/automations";
 import { useToggleSuspend } from "../hooks/flux";
+import { createCanaryCondition, useGetInventory } from "../hooks/inventory";
 import { Condition, Kind, ObjectRef } from "../lib/api/core/types.pb";
-import { Automation } from "../lib/objects";
+import { Automation, HelmRelease } from "../lib/objects";
+import { automationLastUpdated } from "../lib/utils";
 import Button from "./Button";
+import Collapsible from "./Collapsible";
 import CustomActions from "./CustomActions";
 import DependenciesView from "./DependenciesView";
 import EventsTable from "./EventsTable";
 import Flex from "./Flex";
+import HealthCheckAgg, { computeAggHealthCheck } from "./HealthCheckAgg";
 import InfoList, { InfoField } from "./InfoList";
 import { routeTab } from "./KustomizationDetail";
 import Metadata from "./Metadata";
 import PageStatus from "./PageStatus";
 import ReconciledObjectsTable from "./ReconciledObjectsTable";
 import ReconciliationGraph from "./ReconciliationGraph";
+import RequestStateHandler from "./RequestStateHandler";
 import Spacer from "./Spacer";
 import SubRouterTabs, { RouterTab } from "./SubRouterTabs";
 import SyncButton from "./SyncButton";
 import Text from "./Text";
+import Timestamp from "./Timestamp";
 import YamlView from "./YamlView";
 
 type Props = {
@@ -47,7 +53,6 @@ function AutomationDetail({
   customTabs,
   customActions,
 }: Props) {
-  const { path } = useRouteMatch();
   const {
     name,
     namespace,
@@ -57,6 +62,28 @@ function AutomationDetail({
     conditions,
     sourceRef,
   } = automation;
+  const reconciledObjectsAutomation: ReconciledObjectsAutomation = {
+    name,
+    namespace,
+    clusterName,
+    type: Kind[type],
+    suspended,
+    conditions,
+    source: sourceRef,
+  };
+  const { path } = useRouteMatch();
+  const { data, isLoading, error } = useGetInventory(
+    type,
+    name,
+    clusterName,
+    namespace,
+    false,
+    {
+      retry: false,
+      refetchInterval: 5000,
+    }
+  );
+
   const sync = useSyncFluxObject([
     {
       name,
@@ -80,16 +107,8 @@ function AutomationDetail({
     },
     automation.type === Kind.HelmRelease ? "helmrelease" : "kustomizations"
   );
-
-  const reconciledObjectsAutomation: ReconciledObjectsAutomation = {
-    name,
-    namespace,
-    clusterName,
-    type: Kind[type],
-    suspended,
-    conditions,
-    source: sourceRef,
-  };
+  const canaryStatus = createCanaryCondition(data?.objects);
+  const health = computeAggHealthCheck(data?.objects || []);
   const defaultTabs: Array<routeTab> = [
     {
       name: "Details",
@@ -97,15 +116,19 @@ function AutomationDetail({
       component: () => {
         return (
           <>
-            <InfoList items={info} />
-            <Metadata
-              metadata={automation.metadata}
-              labels={automation.labels}
-            />
-            <ReconciledObjectsTable
-              className={className}
-              reconciledObjectsAutomation={reconciledObjectsAutomation}
-            />
+            <Collapsible>
+              <InfoList items={info} />
+              <Metadata
+                metadata={automation.metadata}
+                labels={automation.labels}
+              />
+            </Collapsible>
+            <RequestStateHandler loading={isLoading} error={error}>
+              <ReconciledObjectsTable
+                className={className}
+                objects={data?.objects}
+              />
+            </RequestStateHandler>
           </>
         );
       },
@@ -166,16 +189,42 @@ function AutomationDetail({
       visible: true,
     },
   ];
-
   return (
     <Flex wide tall column className={className}>
-      <Text size="large" semiBold titleHeight>
-        {automation.name}
-      </Text>
+      <Flex wide end gap="14">
+        {automation?.type === "HelmRelease" ? (
+          <Text capitalize semiBold color="neutral30">
+            Chart Version:{" "}
+            <Text size="large" color="neutral40">
+              {(automation as HelmRelease).helmChart?.version || "-"}
+            </Text>
+          </Text>
+        ) : (
+          <Text capitalize semiBold color="neutral30">
+            Applied Revision:{" "}
+            <Text size="large" color="neutral40">
+              {automation?.lastAppliedRevision || "-"}
+            </Text>
+          </Text>
+        )}
+        <Text capitalize semiBold color="neutral30">
+          Last Updated:{" "}
+          <Text size="large" color="neutral40">
+            <Timestamp time={automationLastUpdated(automation)} />
+          </Text>
+        </Text>
+      </Flex>
+      <Spacer m={["base", "none"]} />
+      {health && <HealthCheckAgg health={health} />}
+      <Spacer m={["base", "none"]} />
+
       <PageStatus
         conditions={automation.conditions}
         suspended={automation.suspended}
       />
+      {(customTabs || customActions) && (
+        <PageStatus conditions={[canaryStatus]} suspended={false} />
+      )}
       <Flex wide start>
         <SyncButton
           onClick={(opts) => sync.mutateAsync(opts)}

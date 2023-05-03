@@ -3,16 +3,46 @@ import * as React from "react";
 function ImageAutomationIcon() {
   return (
     <svg
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
+      id="image_automation"
       xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
     >
       <path
         className="path-fill"
-        d="M12 9L15 12H12.75V18.75H11.25V12H9L12 9ZM18.75 18.75H14.25V17.2575H18.75V6.735H5.25V17.2575H9.75V18.75H5.25C4.425 18.75 3.75 18.075 3.75 17.25V6.75C3.75 5.925 4.425 5.25 5.25 5.25H18.75C19.575 5.25 20.25 5.925 20.25 6.75V17.25C20.25 18.075 19.575 18.75 18.75 18.75ZM12 9L15 12H12.75V18.75H11.25V12H9L12 9ZM18.75 18.75H14.25V17.2575H18.75V6.735H5.25V17.2575H9.75V18.75H5.25C4.425 18.75 3.75 18.075 3.75 17.25V6.75C3.75 5.925 4.425 5.25 5.25 5.25H18.75C19.575 5.25 20.25 5.925 20.25 6.75V17.25C20.25 18.075 19.575 18.75 18.75 18.75Z"
-        fill="#1A1A1A"
+        d="m12.98,14.04c-.28,0-.5-.22-.5-.5s.22-.52.5-.52.5.2.5.48v.04c0,.28-.22.5-.5.5Zm0-1.76c-.28,0-.5-.22-.5-.5s.22-.52.5-.52.5.2.5.48v.04c0,.28-.22.5-.5.5Z"
+      />
+      <path
+        className="path-fill"
+        d="m12.98,15.78c-.28,0-.5-.22-.5-.5s.22-.52.5-.52.5.2.5.48v.04c0,.28-.22.5-.5.5Z"
+      />
+      <polygon
+        className="path-fill"
+        points="15.41 10.48 10.55 10.48 12.98 8.05 15.41 10.48"
+      />
+      <path
+        className="stroke-fill"
+        fill="none"
+        d="m4.5,6v11.51c0,1.1.91,2,2.01,2h11.49"
+      />
+      <path
+        className="stroke-fill"
+        fill="none"
+        d="m6.5,10v-4.49c0-.55.45-1,1-1h6.85"
+      />
+      <path
+        className="stroke-fill"
+        fill="none"
+        d="m10.96,17.5h-3.48c-.55,0-1-.46-1-1.01l.02-6.9"
+      />
+      <path
+        className="stroke-fill"
+        fill="none"
+        d="m19.5,10v-4.49c0-.55-.45-1-1-1h-4.5"
+      />
+      <path
+        className="stroke-fill"
+        fill="none"
+        d="m15.01,17.5h3.52c.55,0,1-.46,1-1.01l-.02-7.79"
       />
     </svg>
   );

@@ -1,13 +1,29 @@
 import * as React from "react";
-
+//<style>.cls-1{fill:#737373;}.cls-2{fill:none;stroke:#737373;stroke-linecap:round;}
 function DocsIcon() {
   return (
-    <svg viewBox="-3 -3 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
       <path
-        d="M4.48889 13.4667H10.6V12.1333H4.48889V13.4667ZM4.48889 9.66667H13.5111V8.33333H4.48889V9.66667ZM4.48889 5.86667H13.5111V4.53333H4.48889V5.86667ZM2.33333 17C1.97778 17 1.66667 16.8667 1.4 16.6C1.13333 16.3333 1 16.0222 1 15.6667V2.33333C1 1.97778 1.13333 1.66667 1.4 1.4C1.66667 1.13333 1.97778 1 2.33333 1H15.6667C16.0222 1 16.3333 1.13333 16.6 1.4C16.8667 1.66667 17 1.97778 17 2.33333V15.6667C17 16.0222 16.8667 16.3333 16.6 16.6C16.3333 16.8667 16.0222 17 15.6667 17H2.33333ZM2.33333 15.6667H15.6667V2.33333H2.33333V15.6667ZM2.33333 15.6667V2.33333V15.6667Z"
-        fill="#1A1A1A"
         className="path-fill"
+        d="m19,5v14H5V5h14m0-1H5c-.55,0-1,.45-1,1v14c0,.55.45,1,1,1h14c.55,0,1-.45,1-1V5c0-.55-.45-1-1-1h0Z"
       />
+      <line
+        className="stroke-fill"
+        fill="none"
+        x1="8"
+        y1="15"
+        x2="12"
+        y2="15"
+      />
+      <line
+        className="stroke-fill"
+        fill="none"
+        x1="8"
+        y1="12"
+        x2="16"
+        y2="12"
+      />
+      <line className="stroke-fill" fill="none" x1="8" y1="9" x2="16" y2="9" />
     </svg>
   );
 }

@@ -143,26 +143,31 @@ exports[`DataTable snapshots renders 1`] = `
   width: 16px;
 }
 
-.c9 svg path.path-fill {
+.c9 svg path.path-fill,
+.c9 svg line.path-fill,
+.c9 svg polygon.path-fill,
+.c9 svg rect.path-fill,
+.c9 svg circle.path-fill,
+.c9 svg polyline.path-fill {
   fill: !important;
   -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
-.c9 svg path.stroke-fill {
+.c9 svg path.stroke-fill,
+.c9 svg line.stroke-fill,
+.c9 svg polygon.stroke-fill,
+.c9 svg rect.stroke-fill,
+.c9 svg circle.stroke-fill,
+.c9 svg polyline.stroke-fill {
   stroke: !important;
-  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c9 svg rect.rect-height {
   height: 16px;
   width: 16px;
-}
-
-.c9 svg rect.rect-stroke {
-  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c9.downward {
