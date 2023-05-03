@@ -29,6 +29,7 @@ get pushed to end-users.
 ## Let's get started
 
 To release a new version of Weave Gitops, you need to:
+- Verify that there are no outstanding PRs that need to be merged in the weave-gitops-dev channel on Slack, notify the channel that you are starting the release process, and to not merge anything into main until you say otherwise.
 - Decide on an appropriate release number depending on if you want a
   pre-release or stable release. Do include a leading `v`. See [the
   releases page](https://github.com/weaveworks/weave-gitops/releases)
@@ -46,12 +47,12 @@ To release a new version of Weave Gitops, you need to:
     staging site (there's a link in the list of github status checks
     called "Doc site preview")
 - The PR cover message contains draft release notes. Edit the cover
-  message to fill in or delete blocks as appropriate.
+  message to fill in or delete blocks as appropriate. In case of making a fix release because of regressions, add a message about the regression to the release notes. Move as many PRs out of "Uncategorized" as you possibly can.
 - If everything looks good, approve the PR - do *not* merge or things
   won't be published in the right order. This immediately kicks off the
   release job.
-- Wait for the action to finish (~20 minutes), at which point the PR
-  will be merged automatically.
+- Wait for the action to finish, at which point the PR will be merged automatically.
+- Notify weave-gitops-dev channel that PRs are now safe to merge.
 
 # Technical details
 

@@ -14,6 +14,7 @@ type Props = {
   tall?: string;
   start?: string;
   end?: string;
+  gap?: string;
   onMouseEnter?: React.ReactEventHandler;
   onMouseLeave?: React.ReactEventHandler;
   "data-testid"?: string;
@@ -23,6 +24,7 @@ const Styled = (component) => styled(component)`
   display: flex;
   flex-direction: ${({ column }) => (column ? "column" : "row")};
   align-items: ${({ align }) => (align ? "center" : "start")};
+  ${({ gap }) => gap && `gap: ${gap}px`};
   ${({ tall }) => tall && `height: 100%`};
   ${({ wide }) => wide && "width: 100%"};
   ${({ wrap }) => wrap && "flex-wrap: wrap"};
