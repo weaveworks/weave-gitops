@@ -213,7 +213,11 @@ function Nav({
               collapse
             </Text>
           </Fade>
-          <CollapseButton size="small" onClick={() => setCollapsed(!collapsed)}>
+          <CollapseButton
+            size="small"
+            color="inherit"
+            onClick={() => setCollapsed(!collapsed)}
+          >
             {collapsed ? <ArrowRight /> : <ArrowLeft />}
           </CollapseButton>
         </Flex>

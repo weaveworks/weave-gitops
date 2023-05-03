@@ -142,7 +142,7 @@ function SignIn() {
             </Flex>
           ) : null}
           {isFlagEnabled("OIDC_AUTH") && isFlagEnabled("CLUSTER_USER_AUTH") ? (
-            <Divider variant="middle" />
+            <Divider variant="middle" style={{ padding: "12px" }} />
           ) : null}
           {isFlagEnabled("CLUSTER_USER_AUTH") ? (
             <form

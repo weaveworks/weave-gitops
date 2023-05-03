@@ -129,7 +129,7 @@ const App = () => (
 const StylesProvider = ({ children }) => {
   const { settings } = React.useContext(AppContext);
   const mode = settings.theme;
-  const appliedTheme = theme(mode);
+  const appliedTheme = theme("dark");
   return (
     <ThemeProvider theme={appliedTheme}>
       <MuiThemeProvider theme={muiTheme(appliedTheme.colors)}>
