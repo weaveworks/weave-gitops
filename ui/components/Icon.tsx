@@ -97,6 +97,7 @@ export enum IconType {
   TemplatesIcon,
   ClustersIcon,
   ExploreIcon,
+  PendingActionIcon,
 }
 
 type Props = {
@@ -178,6 +179,9 @@ function getIcon(i: IconType) {
 
     case IconType.ReconcileIcon:
       return () => <img src={images.reconcileSrc} />;
+
+    case IconType.PendingActionIcon:
+      return () => <img src={images.pendingAction} />;
 
     case IconType.ArrowDropDownIcon:
       return ArrowDropDownIcon;

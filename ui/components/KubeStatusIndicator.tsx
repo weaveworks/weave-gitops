@@ -18,6 +18,7 @@ export enum ReadyType {
   Ready = "Ready",
   NotReady = "Not Ready",
   Reconciling = "Reconciling",
+  PendingAction = "PendingAction",
   Suspended = "Suspended",
   None = "None",
 }
@@ -40,11 +41,10 @@ export function computeReady(conditions: Condition[]): ReadyType {
       return ReadyType.Ready;
     }
 
-    if (
-      readyCondition.status === ReadyStatusValue.Unknown &&
-      readyCondition.reason === "Progressing"
-    ) {
-      return ReadyType.Reconciling;
+    if (readyCondition.status === ReadyStatusValue.Unknown) {
+      if (readyCondition.reason === "Progressing") return ReadyType.Reconciling;
+      if (readyCondition.reason === "TerraformPlannedWithChanges")
+        return ReadyType.PendingAction;
     }
 
     if (readyCondition.status === ReadyStatusValue.None) return ReadyType.None;
@@ -106,6 +106,12 @@ export const getIndicatorInfo = (
       type: ReadyType.Reconciling,
       icon: IconType.ReconcileIcon,
       color: "primary",
+    };
+  if (ready === ReadyType.PendingAction)
+    return {
+      type: ReadyType.PendingAction,
+      icon: IconType.PendingActionIcon,
+      color: "feedbackOriginal",
     };
   if (ready === ReadyType.Ready)
     return {
