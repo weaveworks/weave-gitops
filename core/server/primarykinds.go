@@ -26,8 +26,24 @@ func DefaultPrimaryKinds() (*PrimaryKinds, error) {
 		return nil, err
 	}
 
+	for _, gv := range scheme.PreferredVersionAllGroups() {
+		for kind := range scheme.KnownTypes(gv) {
+			gvk := schema.GroupVersionKind{
+				Group:   gv.Group,
+				Version: gv.Version,
+				Kind:    kind,
+			}
+			kinds.kinds[kind] = gvk
+			fmt.Printf("Added kind %+v: %+v\n", kind, gvk)
+		}
+	}
+
+	// add anything we missed
 	for gvk := range scheme.AllKnownTypes() {
-		kinds.kinds[gvk.Kind] = gvk
+		if _, ok := kinds.kinds[gvk.Kind]; !ok {
+			kinds.kinds[gvk.Kind] = gvk
+			fmt.Printf("Added additional %+v: %+v\n", gvk.Kind, gvk)
+		}
 	}
 
 	return kinds, nil
