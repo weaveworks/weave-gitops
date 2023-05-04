@@ -22,7 +22,7 @@ func GetTenant(namespace, clusterName string, clusterUserNamespaces map[string][
 func GetClusterUserNamespacesNames(clusterUserNamespaces map[string][]v1.Namespace) []string {
 	namespaces := make([]string, len(clusterUserNamespaces))
 	for ns := range clusterUserNamespaces {
-	  namespaces = append(namespaces, ns)
+		namespaces = append(namespaces, ns)
 	}
 	return namespaces
 }

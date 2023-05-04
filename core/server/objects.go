@@ -149,9 +149,9 @@ func (cs *coreServer) ListObjects(ctx context.Context, msg *pb.ListObjectsReques
 	}
 
 	return &pb.ListObjectsResponse{
-		Objects: results,
-		Errors:  respErrors,
-		SearchedNamespaces: GetClusterUserNamespacesNames(clusterUserNamespaces), 
+		Objects:            results,
+		Errors:             respErrors,
+		SearchedNamespaces: GetClusterUserNamespacesNames(clusterUserNamespaces),
 	}, nil
 }
 
