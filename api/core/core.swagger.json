@@ -1047,6 +1047,12 @@
           "items": {
             "$ref": "#/definitions/v1ListError"
           }
+        },
+        "searchedNamespaces": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       }
     },

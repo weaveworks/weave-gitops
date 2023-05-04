@@ -235,6 +235,7 @@ message ListObjectsRequest {
 message ListObjectsResponse {
     repeated Object objects = 1;
     repeated ListError errors = 2;
+    repeated string searched_namespaces = 3;
 }
 
 message GetReconciledObjectsRequest {
