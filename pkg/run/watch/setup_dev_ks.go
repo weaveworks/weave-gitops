@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
+	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
 	"github.com/fluxcd/pkg/apis/meta"
 	"github.com/fsnotify/fsnotify"
 	"github.com/minio/minio-go/v7"

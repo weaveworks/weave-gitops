@@ -12,7 +12,8 @@ import (
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	automation1 "github.com/fluxcd/image-automation-controller/api/v1beta1"
 	reflectorv1 "github.com/fluxcd/image-reflector-controller/api/v1beta1"
-	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
+	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
+	kustomizev1b2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	notificationv2 "github.com/fluxcd/notification-controller/api/v1beta1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
@@ -30,7 +31,8 @@ func CreateScheme() (*apiruntime.Scheme, error) {
 	builder := apiruntime.SchemeBuilder{
 		sourcev1.AddToScheme,
 		sourcev1b2.AddToScheme,
-		kustomizev2.AddToScheme,
+		kustomizev1.AddToScheme,
+		kustomizev1b2.AddToScheme,
 		helmv2.AddToScheme,
 		corev1.AddToScheme,
 		extensionsv1.AddToScheme,

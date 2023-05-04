@@ -6,6 +6,7 @@ import (
 	"crypto/rsa"
 	"encoding/json"
 	"fmt"
+	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -23,7 +24,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 
-	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	"github.com/onsi/gomega"
 	appsv1 "k8s.io/api/apps/v1"
@@ -87,7 +87,7 @@ func StartK8sTestEnvironment(crdPaths []string) (*K8sTestEnv, error) {
 			&corev1.Secret{},
 			&appsv1.Deployment{},
 			&corev1.ConfigMap{},
-			&kustomizev2.Kustomization{},
+			&kustomizev1.Kustomization{},
 			&sourcev1.GitRepository{},
 			&v1.CustomResourceDefinition{},
 		},
