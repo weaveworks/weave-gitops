@@ -46,8 +46,7 @@ const NavContent = styled.div<{ collapsed: boolean }>`
   justify-content: space-between;
   width: 100%;
   height: 100%;
-  border-radius: 10px;
-  border-bottom-right-radius: 0px;
+  border-top-right-radius: 10px;
   background-color: ${(props) => props.theme.colors.neutral00};
   //28px bottom padding is medium + xxs - in the theme these are strings with px at the end so you can't add them together. This lines up with the footer.
   padding: ${(props) => props.theme.spacing.medium} 0px 28px 0px;

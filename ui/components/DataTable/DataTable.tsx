@@ -25,6 +25,7 @@ import Icon, { IconType } from "../Icon";
 import SearchField from "../SearchField";
 import Spacer from "../Spacer";
 import Text from "../Text";
+import SortableLabel from "./SortableLabel";
 import {
   filterRows,
   filterSelectionsToQueryString,
@@ -34,7 +35,6 @@ import {
   sortByField,
   toPairs,
 } from "./helpers";
-import SortableLabel from "./SortableLabel";
 import { Field, FilterState } from "./types";
 
 /** DataTable Properties  */
@@ -397,7 +397,7 @@ export const DataTable = styled(UnstyledDataTable)`
     text-overflow: ellipsis;
   }
   .filter-options-chip {
-    background-color: ${(props) => props.theme.colors.primaryLight05};
+    background-color: ${(props) => props.theme.colors.neutralGray};
   }
 `;
 

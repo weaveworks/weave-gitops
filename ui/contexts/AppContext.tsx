@@ -83,7 +83,7 @@ export default function AppContextProvider({ ...props }: AppProps) {
   const toggleDarkMode = () => {
     const newMode = appSettings.theme === "light" ? "dark" : "light";
     localStorage.setItem("mode", newMode);
-    setAppSettings({
+    return setAppSettings({
       ...appSettings,
       theme: newMode,
     });
