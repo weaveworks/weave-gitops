@@ -1049,9 +1049,9 @@
           }
         },
         "searchedNamespaces": {
-          "type": "array",
-          "items": {
-            "type": "string"
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/v1NamespaceList"
           }
         }
       }
@@ -1099,6 +1099,17 @@
         },
         "clusterName": {
           "type": "string"
+        }
+      }
+    },
+    "v1NamespaceList": {
+      "type": "object",
+      "properties": {
+        "namespaces": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       }
     },

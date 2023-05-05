@@ -232,10 +232,14 @@ message ListObjectsRequest {
     map<string, string> labels = 4;
 }
 
+message NamespaceList { 
+    repeated string namespaces = 1; 
+}
+
 message ListObjectsResponse {
     repeated Object objects = 1;
     repeated ListError errors = 2;
-    repeated string searched_namespaces = 3;
+    map<string, NamespaceList> searched_namespaces = 3;
 }
 
 message GetReconciledObjectsRequest {

@@ -1,6 +1,7 @@
 package server
 
 import (
+	api "github.com/weaveworks/weave-gitops/pkg/api/core"
 	v1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -19,10 +20,20 @@ func GetTenant(namespace, clusterName string, clusterUserNamespaces map[string][
 	return ""
 }
 
-func GetClusterUserNamespacesNames(clusterUserNamespaces map[string][]v1.Namespace) []string {
-	namespaces := make([]string, len(clusterUserNamespaces))
-	for ns := range clusterUserNamespaces {
-		namespaces = append(namespaces, ns)
+func GetClusterUserNamespacesNames(clusterUserNamespaces map[string][]v1.Namespace) map[string]*api.NamespaceList {
+	namespaces := make(map[string]*api.NamespaceList)
+
+	for clusterName := range clusterUserNamespaces {
+		var clusterNamespaces []string
+
+		for _, ns := range clusterUserNamespaces[clusterName] {
+			clusterNamespaces = append(clusterNamespaces, ns.GetName())
+		}
+
+		namespaces[clusterName] = &api.NamespaceList{
+			Namespaces: clusterNamespaces,
+		}
 	}
+
 	return namespaces
 }
