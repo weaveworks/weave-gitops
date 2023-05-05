@@ -149,12 +149,11 @@ func (cs *coreServer) ListObjects(ctx context.Context, msg *pb.ListObjectsReques
 	}
 
 	return &pb.ListObjectsResponse{
-		Objects: results,
-		Errors:  respErrors,
+		Objects:            results,
+		Errors:             respErrors,
 		SearchedNamespaces: GetClusterUserNamespacesNames(clusterUserNamespaces),
 	}, nil
 }
-
 
 func parseSessionInfo(unstructuredObj unstructured.Unstructured) (string, string, error) {
 	var set v1.StatefulSet
