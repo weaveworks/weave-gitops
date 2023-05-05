@@ -104,7 +104,8 @@ const TopToolBar = styled(Flex)`
 function Layout({ className, children }: Props) {
   const [collapsed, setCollapsed] = useState<boolean>(false);
 
-  const { appState, setDetailModal, toggleDarkMode } = useContext(AppContext);
+  const { appState, setDetailModal, toggleDarkMode, settings } =
+    useContext(AppContext);
   const detail = appState.detailModal;
 
   const { currentPage } = useNavigation();
@@ -115,7 +116,10 @@ function Layout({ className, children }: Props) {
       <TopToolBar start align wide>
         <Logo collapsed={collapsed} link={V2Routes.Automations} />
         <Breadcrumbs />
-        <Switch onChange={() => toggleDarkMode()} />
+        <Switch
+          onChange={() => toggleDarkMode()}
+          defaultChecked={settings.theme === "dark"}
+        />
         <UserSettings />
       </TopToolBar>
       <Main wide tall>
