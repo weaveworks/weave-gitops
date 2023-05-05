@@ -38,8 +38,13 @@ export function filterConfig(
   return { [key]: { options: config, transformFunc: computeValue } };
 }
 
-export function filterRows<T>(rows: T[], filters: FilterConfig) {
-  if (_.keys(filters).length === 0) {
+export function filterRows<T>(
+  rows: T[],
+  filters: FilterConfig,
+  disableFilter?: boolean
+) {
+  if (disableFilter || _.keys(filters).length === 0) {
+    console.log("not filtering");
     return rows;
   }
 
@@ -66,9 +71,10 @@ export function filterRows<T>(rows: T[], filters: FilterConfig) {
 export function filterText(
   rows,
   fields: Field[],
-  textFilters: FilterState["textFilters"]
+  textFilters: FilterState["textFilters"],
+  disableFilter?: boolean
 ) {
-  if (textFilters.length === 0) {
+  if (disableFilter || textFilters.length === 0) {
     return rows;
   }
 

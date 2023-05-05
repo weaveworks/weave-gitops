@@ -52,6 +52,9 @@ export interface Props {
   emptyMessagePlaceholder?: React.ReactNode;
   onColumnHeaderClick?: (field: Field) => void;
   disableSort?: boolean;
+  disableFilter?: boolean;
+  disableURLState?: boolean;
+  onFilterChange?: (sel: FilterSelections) => void;
 }
 //styled components
 const EmptyRow = styled(TableRow)<{ colSpan: number }>`
@@ -81,6 +84,9 @@ function UnstyledDataTable({
   emptyMessagePlaceholder,
   onColumnHeaderClick,
   disableSort,
+  disableFilter,
+  disableURLState,
+  onFilterChange,
 }: Props) {
   //URL info
   const history = useHistory();
@@ -95,18 +101,35 @@ function UnstyledDataTable({
     textFilters: state.textFilters,
   });
 
-  const handleFilterChange = (sel: FilterSelections) => {
-    const filterQuery = filterSelectionsToQueryString(sel);
-    history.replace({ ...location, search: filterQuery });
+  const updateUrl = (search: any) => {
+    if (!disableURLState) {
+      history.replace({
+        ...location,
+        search: qs.stringify(search, { skipNull: true, skipEmptyString: true }),
+      });
+    }
   };
 
-  let filtered = filterRows(rows, filterState.filters);
-  filtered = filterText(filtered, fields, filterState.textFilters);
+  let filtered = filterRows(rows, filterState.filters, disableFilter);
+  filtered = filterText(
+    filtered,
+    fields,
+    filterState.textFilters,
+    disableFilter
+  );
+
+  const handleFilterChange = (sel: FilterSelections) => {
+    const filterQuery = filterSelectionsToQueryString(sel);
+
+    updateUrl(filterQuery);
+  };
+
   const chips = toPairs(filterState);
 
   const doChange = (formState) => {
-    if (handleFilterChange) {
-      handleFilterChange(formState);
+    handleFilterChange(formState);
+    if (onFilterChange) {
+      onFilterChange(formState);
     }
   };
 
@@ -130,10 +153,13 @@ function UnstyledDataTable({
 
     if (textFilters.length) query["search"] = textFilters.join("_") + "_";
     else if (query["search"]) query = _.omit(query, "search");
-    history.replace({ ...location, search: qs.stringify(query) });
+    updateUrl(query);
 
     doChange(next.formState);
     setFilterState({ formState: next.formState, filters, textFilters });
+    if (onFilterChange) {
+      onFilterChange(next.formState);
+    }
   };
 
   const handleTextSearchSubmit = (val: string) => {
@@ -141,7 +167,8 @@ function UnstyledDataTable({
     const query = qs.parse(search);
     if (!query["search"]) query["search"] = `${val}_`;
     if (!query["search"].includes(val)) query["search"] += `${val}_`;
-    history.replace({ ...location, search: qs.stringify(query) });
+    updateUrl(query);
+
     setFilterState({
       ...filterState,
       textFilters: _.uniq([...filterState.textFilters, val]),
@@ -158,7 +185,7 @@ function UnstyledDataTable({
     const url = qs.parse(location.search);
     //keeps things like clusterName and namespace for details pages
     const cleared = _.omit(url, ["filters", "search"]);
-    history.replace({ ...location, search: qs.stringify(cleared) });
+    updateUrl(cleared);
   };
 
   const handleFilterSelect = (filters, formState) => {
