@@ -79,7 +79,7 @@ func (cs *coreServer) ListObjects(ctx context.Context, msg *pb.ListObjectsReques
 		listOptions = append(listOptions, client.MatchingLabels(msg.Labels))
 	}
 
-	if err != nil {
+	if err := clustersClient.ClusteredList(ctx, clist, true, listOptions...); err != nil {
 		var errs clustersmngr.ClusteredListError
 		if !errors.As(err, &errs) {
 			return nil, err
@@ -149,11 +149,12 @@ func (cs *coreServer) ListObjects(ctx context.Context, msg *pb.ListObjectsReques
 	}
 
 	return &pb.ListObjectsResponse{
-		Objects:            results,
-		Errors:             respErrors,
+		Objects: results,
+		Errors:  respErrors,
 		SearchedNamespaces: GetClusterUserNamespacesNames(clusterUserNamespaces),
 	}, nil
 }
+
 
 func parseSessionInfo(unstructuredObj unstructured.Unstructured) (string, string, error) {
 	var set v1.StatefulSet
