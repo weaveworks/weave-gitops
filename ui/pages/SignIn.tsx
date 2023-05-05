@@ -35,6 +35,9 @@ export const FormWrapper = styled(Flex)`
 
 const Logo = styled(Flex)`
   margin-bottom: ${(props) => props.theme.spacing.medium};
+  img:first-child {
+    margin-right: ${(props) => props.theme.spacing.xs};
+  }
 `;
 
 const Footer = styled(Flex)`
@@ -117,8 +120,9 @@ function SignIn() {
         }}
       >
         <div>
-          <Logo wide center>
-            <img src={images.weaveLogo} />
+          <Logo wide align center>
+            <img src={images.logoLight} height="60px" width="auto" />
+            <img src={images.logotype} />
           </Logo>
           {isFlagEnabled("OIDC_AUTH") ? (
             <Flex wide center>
