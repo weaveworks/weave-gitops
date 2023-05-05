@@ -19,7 +19,7 @@ export const FormWrapper = styled(Flex)`
   background-color: ${(props) => props.theme.colors.white};
   border-radius: ${(props) => props.theme.borderRadius.soft};
   width: 500px;
-  padding-top: ${(props) => props.theme.spacing.large};
+  padding-top: 40px;
   align-content: space-between;
   .MuiButton-label {
     width: 250px;
@@ -34,7 +34,7 @@ export const FormWrapper = styled(Flex)`
 `;
 
 const Logo = styled(Flex)`
-  margin-bottom: ${(props) => props.theme.spacing.medium};
+  margin-bottom: ${(props) => props.theme.spacing.large};
   img:first-child {
     margin-right: ${(props) => props.theme.spacing.xs};
   }
