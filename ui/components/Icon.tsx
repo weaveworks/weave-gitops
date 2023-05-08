@@ -11,6 +11,7 @@ import LogoutIcon from "@material-ui/icons/ExitToApp";
 import FileCopyIcon from "@material-ui/icons/FileCopyOutlined";
 import FilterIcon from "@material-ui/icons/FilterList";
 import HourglassFullIcon from "@material-ui/icons/HourglassFull";
+import InfoIcon from "@material-ui/icons/Info";
 import LaunchIcon from "@material-ui/icons/Launch";
 import NavigateBeforeIcon from "@material-ui/icons/NavigateBefore";
 import NavigateNextIcon from "@material-ui/icons/NavigateNext";
@@ -98,6 +99,7 @@ export enum IconType {
   ClustersIcon,
   ExploreIcon,
   PendingActionIcon,
+  InfoIcon,
 }
 
 type Props = {
@@ -254,6 +256,9 @@ function getIcon(i: IconType) {
 
     case IconType.ExploreIcon:
       return ExploreIcon;
+
+    case IconType.InfoIcon:
+      return InfoIcon;
 
     default:
       break;

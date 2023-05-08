@@ -16,15 +16,22 @@ import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
 import SourceLink from "./SourceLink";
 import Timestamp from "./Timestamp";
+import { NamespaceList } from "../lib/api/core/core.pb";
 
 type Props = {
   className?: string;
   automations?: Automation[];
   appName?: string;
   hideSource?: boolean;
+  searchedNamespaces?: { [key: string]: string[] }[];
 };
 
-function AutomationsTable({ className, automations, hideSource }: Props) {
+function AutomationsTable({
+  className,
+  automations,
+  hideSource,
+  searchedNamespaces,
+}: Props) {
   const { isFlagEnabled } = useFeatureFlags();
 
   let initialFilterState = {
@@ -164,6 +171,7 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
       className={className}
       filters={initialFilterState}
       hasCheckboxes
+      searchedNamespaces={searchedNamespaces}
     />
   );
 }

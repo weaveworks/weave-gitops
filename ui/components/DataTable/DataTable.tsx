@@ -36,6 +36,8 @@ import {
 } from "./helpers";
 import SortableLabel from "./SortableLabel";
 import { Field, FilterState } from "./types";
+import InfoModal from "../InfoModal";
+import { ListObjectsResponse, NamespaceList } from "../../lib/api/core/core.pb";
 
 /** DataTable Properties  */
 export interface Props {
@@ -52,6 +54,7 @@ export interface Props {
   emptyMessagePlaceholder?: React.ReactNode;
   onColumnHeaderClick?: (field: Field) => void;
   disableSort?: boolean;
+  searchedNamespaces?: { [key: string]: string[] }[];
 }
 //styled components
 const EmptyRow = styled(TableRow)<{ colSpan: number }>`
@@ -81,6 +84,7 @@ function UnstyledDataTable({
   emptyMessagePlaceholder,
   onColumnHeaderClick,
   disableSort,
+  searchedNamespaces,
 }: Props) {
   //URL info
   const history = useHistory();
@@ -89,6 +93,8 @@ function UnstyledDataTable({
   const state = parseFilterStateFromURL(search);
 
   const [filterDialogOpen, setFilterDialogOpen] = React.useState(dialogOpen);
+  const [searchedNamespacesModalOpen, setSearchedNamespacesModalOpen] =
+    React.useState(false);
   const [filterState, setFilterState] = React.useState<FilterState>({
     filters: selectionsToFilters(state.initialSelections, filters),
     formState: initialFormState(filters, state.initialSelections),
@@ -245,6 +251,7 @@ function UnstyledDataTable({
       </TableRow>
     );
   });
+
   return (
     <Flex wide tall column className={className}>
       <TopBar wide align end>
@@ -257,6 +264,24 @@ function UnstyledDataTable({
               onClearAll={handleClearAll}
             />
             <IconFlex align>
+              <IconButton
+                onClick={() =>
+                  setSearchedNamespacesModalOpen(!searchedNamespacesModalOpen)
+                }
+                variant="text"
+              >
+                <Icon
+                  type={IconType.InfoIcon}
+                  size="medium"
+                  // color="neutral30"
+                />
+              </IconButton>
+              {searchedNamespacesModalOpen && (
+                <InfoModal
+                  data={searchedNamespaces}
+                  onClose={setSearchedNamespacesModalOpen}
+                />
+              )}
               <SearchField onSubmit={handleTextSearchSubmit} />
               <IconButton
                 onClick={() => setFilterDialogOpen(!filterDialogOpen)}

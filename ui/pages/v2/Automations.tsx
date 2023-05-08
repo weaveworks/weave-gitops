@@ -10,13 +10,19 @@ type Props = {
 
 function Automations({ className }: Props) {
   const { data: automations, error, isLoading } = useListAutomations();
+
+  console.log("automations", automations);
+
   return (
     <Page
       error={error || automations?.errors}
       loading={isLoading}
       className={className}
     >
-      <AutomationsTable automations={automations?.result} />
+      <AutomationsTable
+        automations={automations?.result}
+        searchedNamespaces={automations?.searchedNamespaces}
+      />
     </Page>
   );
 }

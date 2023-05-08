@@ -17,7 +17,13 @@ import {
 } from "../lib/types";
 import { notifyError, notifySuccess } from "../lib/utils";
 import { convertResponse } from "./objects";
-type Res = { result: Automation[]; errors: MultiRequestError[] };
+import _ from "lodash";
+
+type Res = {
+  result: Automation[];
+  errors: MultiRequestError[];
+  searchedNamespaces: { [key: string]: string[] }[];
+};
 
 export function useListAutomations(
   namespace: string = NoNamespace,
@@ -41,7 +47,11 @@ export function useListAutomations(
           })
       );
       return Promise.all(p).then((responses) => {
-        const final = { result: [], errors: [] };
+        const final = {
+          result: [],
+          errors: [],
+          searchedNamespaces: [] as { [key: string]: string[] }[],
+        };
         for (const { kind, response } of responses) {
           final.result.push(
             ...response.objects.map(
@@ -53,6 +63,21 @@ export function useListAutomations(
               return { ...o, kind };
             })
           );
+          for (var k of Object.keys(response.searchedNamespaces)) {
+            const existingKeys = final.searchedNamespaces.map(
+              (ns) => Object.keys(ns)[0]
+            );
+            if (!existingKeys.includes(k)) {
+              final.searchedNamespaces.push({
+                [k as string]: response.searchedNamespaces[k].namespaces,
+              });
+            } else {
+              final.searchedNamespaces[existingKeys.indexOf(k)][k] = _.uniq([
+                ...final.searchedNamespaces[existingKeys.indexOf(k)][k],
+                ...response.searchedNamespaces[k].namespaces,
+              ]);
+            }
+          }
         }
         return final;
       });
