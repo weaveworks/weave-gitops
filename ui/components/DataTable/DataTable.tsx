@@ -26,6 +26,7 @@ import SearchField from "../SearchField";
 import Spacer from "../Spacer";
 import Text from "../Text";
 import InfoModal from "../InfoModal";
+import { SearchedNamespaces } from "../../hooks/automations";
 import {
   filterRows,
   filterSelectionsToQueryString,
@@ -37,7 +38,6 @@ import {
 } from "./helpers";
 import SortableLabel from "./SortableLabel";
 import { Field, FilterState } from "./types";
-import { SearchedNamespaces } from "../../hooks/automations";
 
 /** DataTable Properties  */
 export interface Props {

@@ -1,5 +1,6 @@
 import { useContext } from "react";
 import { useMutation, useQuery } from "react-query";
+import _ from "lodash";
 import { CoreClientContext } from "../contexts/CoreClientContext";
 import {
   ListObjectsResponse,
@@ -17,7 +18,6 @@ import {
 } from "../lib/types";
 import { notifyError, notifySuccess } from "../lib/utils";
 import { convertResponse } from "./objects";
-import _ from "lodash";
 
 export type SearchedNamespaces = { [key: string]: string[] }[];
 
@@ -65,7 +65,7 @@ export function useListAutomations(
               return { ...o, kind };
             })
           );
-          for (var k of Object.keys(response.searchedNamespaces)) {
+          for (const k of Object.keys(response.searchedNamespaces)) {
             const existingKeys = final.searchedNamespaces.map(
               (ns) => Object.keys(ns)[0]
             );

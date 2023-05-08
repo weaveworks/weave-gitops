@@ -1,8 +1,8 @@
-import { Box, List, ListItem } from "@material-ui/core";
+import { List, ListItem } from "@material-ui/core";
 import React, { Dispatch, SetStateAction } from "react";
+import { SearchedNamespaces } from "../hooks/automations";
 import Modal from "./Modal";
 import Text from "./Text";
-import { SearchedNamespaces } from "../hooks/automations";
 
 export type Props = {
   searchedNamespaces: SearchedNamespaces;
