@@ -37,6 +37,7 @@ import {
 } from "./helpers";
 import SortableLabel from "./SortableLabel";
 import { Field, FilterState } from "./types";
+import { SearchedNamespaces } from "../../hooks/automations";
 
 /** DataTable Properties  */
 export interface Props {
@@ -53,7 +54,7 @@ export interface Props {
   emptyMessagePlaceholder?: React.ReactNode;
   onColumnHeaderClick?: (field: Field) => void;
   disableSort?: boolean;
-  searchedNamespaces?: { [key: string]: string[] }[];
+  searchedNamespaces?: SearchedNamespaces;
 }
 //styled components
 const EmptyRow = styled(TableRow)<{ colSpan: number }>`
@@ -278,7 +279,7 @@ function UnstyledDataTable({
                 </IconButton>
               )}
               <InfoModal
-                data={searchedNamespaces}
+                searchedNamespaces={searchedNamespaces}
                 open={searchedNamespacesModalOpen}
                 onCloseModal={setSearchedNamespacesModalOpen}
               />

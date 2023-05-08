@@ -25,6 +25,8 @@ type Res = {
   searchedNamespaces: { [key: string]: string[] }[];
 };
 
+export type SearchedNamespaces = { [key: string]: string[] }[];
+
 export function useListAutomations(
   namespace: string = NoNamespace,
   opts: ReactQueryOptions<Res, RequestError> = {
@@ -50,7 +52,7 @@ export function useListAutomations(
         const final = {
           result: [],
           errors: [],
-          searchedNamespaces: [] as { [key: string]: string[] }[],
+          searchedNamespaces: [] as SearchedNamespaces,
         };
         for (const { kind, response } of responses) {
           final.result.push(

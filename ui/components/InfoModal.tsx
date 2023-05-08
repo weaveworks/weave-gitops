@@ -1,30 +1,31 @@
-import { Box, IconButton, List, ListItem } from "@material-ui/core";
-import React, { Dispatch, SetStateAction, useContext } from "react";
-import styled from "styled-components";
-import Flex from "./Flex";
+import { Box, List, ListItem } from "@material-ui/core";
+import React, { Dispatch, SetStateAction } from "react";
 import Modal from "./Modal";
 import Text from "./Text";
+import { SearchedNamespaces } from "../hooks/automations";
 
 export type Props = {
-  data: any;
+  searchedNamespaces: SearchedNamespaces;
   onCloseModal: Dispatch<SetStateAction<boolean>>;
   open: boolean;
 };
 
-function InfoModal({ data, onCloseModal, open }: Props) {
+function InfoModal({ searchedNamespaces, onCloseModal, open }: Props) {
   const onClose = () => onCloseModal(false);
+
   const content = (
     <Box>
       <List>
-        {data?.map((item) => (
+        {searchedNamespaces?.map((ns) => (
           <ListItem>
-            <Text bold>{Object.keys(item)[0]}</Text>:{" "}
-            {(Object.values(item)[0] as string[]).join(", ")}
+            <Text bold>{Object.keys(ns)[0]}</Text>:{" "}
+            {(Object.values(ns)[0] as string[]).join(", ")}
           </ListItem>
         ))}
       </List>
     </Box>
   );
+
   return (
     <Modal
       open={open}
