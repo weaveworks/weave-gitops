@@ -25,6 +25,7 @@ import Icon, { IconType } from "../Icon";
 import SearchField from "../SearchField";
 import Spacer from "../Spacer";
 import Text from "../Text";
+import InfoModal from "../InfoModal";
 import {
   filterRows,
   filterSelectionsToQueryString,
@@ -36,8 +37,6 @@ import {
 } from "./helpers";
 import SortableLabel from "./SortableLabel";
 import { Field, FilterState } from "./types";
-import InfoModal from "../InfoModal";
-import { ListObjectsResponse, NamespaceList } from "../../lib/api/core/core.pb";
 
 /** DataTable Properties  */
 export interface Props {
@@ -264,24 +263,25 @@ function UnstyledDataTable({
               onClearAll={handleClearAll}
             />
             <IconFlex align>
-              <IconButton
-                onClick={() =>
-                  setSearchedNamespacesModalOpen(!searchedNamespacesModalOpen)
-                }
-                variant="text"
-              >
-                <Icon
-                  type={IconType.InfoIcon}
-                  size="medium"
-                  // color="neutral30"
-                />
-              </IconButton>
-              {searchedNamespacesModalOpen && (
-                <InfoModal
-                  data={searchedNamespaces}
-                  onClose={setSearchedNamespacesModalOpen}
-                />
+              {searchedNamespaces && (
+                <IconButton
+                  onClick={() =>
+                    setSearchedNamespacesModalOpen(!searchedNamespacesModalOpen)
+                  }
+                  variant="text"
+                >
+                  <Icon
+                    type={IconType.InfoIcon}
+                    size="medium"
+                    color="neutral20"
+                  />
+                </IconButton>
               )}
+              <InfoModal
+                data={searchedNamespaces}
+                open={searchedNamespacesModalOpen}
+                onCloseModal={setSearchedNamespacesModalOpen}
+              />
               <SearchField onSubmit={handleTextSearchSubmit} />
               <IconButton
                 onClick={() => setFilterDialogOpen(!filterDialogOpen)}

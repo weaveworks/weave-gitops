@@ -16,7 +16,6 @@ import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
 import SourceLink from "./SourceLink";
 import Timestamp from "./Timestamp";
-import { NamespaceList } from "../lib/api/core/core.pb";
 
 type Props = {
   className?: string;

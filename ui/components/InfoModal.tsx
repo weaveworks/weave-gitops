@@ -1,39 +1,39 @@
-import { Box, IconButton } from "@material-ui/core";
-import { Close } from "@material-ui/icons";
+import { Box, IconButton, List, ListItem } from "@material-ui/core";
 import React, { Dispatch, SetStateAction, useContext } from "react";
 import styled from "styled-components";
-import { AppContext } from "../contexts/AppContext";
 import Flex from "./Flex";
+import Modal from "./Modal";
 import Text from "./Text";
 
 export type Props = {
-  className?: string;
   data: any;
-  onClose: Dispatch<SetStateAction<boolean>>;
+  onCloseModal: Dispatch<SetStateAction<boolean>>;
+  open: boolean;
 };
 
-const HeaderFlex = styled(Flex)`
-  margin-bottom: ${(props) => props.theme.spacing.xs};
-`;
-
-function InfoModal({ data, onClose, className }: Props) {
+function InfoModal({ data, onCloseModal, open }: Props) {
+  const onClose = () => onCloseModal(false);
+  const content = (
+    <Box>
+      <List>
+        {data?.map((item) => (
+          <ListItem>
+            <Text bold>{Object.keys(item)[0]}</Text>:{" "}
+            {(Object.values(item)[0] as string[]).join(", ")}
+          </ListItem>
+        ))}
+      </List>
+    </Box>
+  );
   return (
-    <div className={className}>
-      <HeaderFlex wide between align>
-        <Text size="large" bold color="neutral30" titleHeight>
-          These are the namespaces that we've searched
-        </Text>
-        <IconButton onClick={() => onClose(false)}>
-          <Close />
-        </IconButton>
-      </HeaderFlex>
-      <Box>{data.map((d) => console.log(d))}</Box>
-    </div>
+    <Modal
+      open={open}
+      onClose={onClose}
+      title="Searched namespaces"
+      description="These are the namespaces that we've searched per cluster to retrieve the objects that you are seeing on this page."
+      children={content}
+    />
   );
 }
 
-export default styled(InfoModal).attrs({ className: InfoModal.name })`
-  height: 100%;
-  padding: ${(props) =>
-    props.theme.spacing.small + " " + props.theme.spacing.medium};
-`;
+export default InfoModal;
