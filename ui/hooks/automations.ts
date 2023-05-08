@@ -19,13 +19,13 @@ import { notifyError, notifySuccess } from "../lib/utils";
 import { convertResponse } from "./objects";
 import _ from "lodash";
 
+export type SearchedNamespaces = { [key: string]: string[] }[];
+
 type Res = {
   result: Automation[];
   errors: MultiRequestError[];
-  searchedNamespaces: { [key: string]: string[] }[];
+  searchedNamespaces: SearchedNamespaces;
 };
-
-export type SearchedNamespaces = { [key: string]: string[] }[];
 
 export function useListAutomations(
   namespace: string = NoNamespace,
