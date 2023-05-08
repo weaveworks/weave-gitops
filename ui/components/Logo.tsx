@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
+import { AppContext } from "../contexts/AppContext";
 import images from "../lib/images";
 import { V2Routes } from "../lib/types";
 import { Fade } from "../lib/utils";
@@ -13,14 +14,16 @@ type Props = {
 };
 
 function Logo({ className, link, collapsed }: Props) {
+  const { settings } = React.useContext(AppContext);
+  const dark = settings.theme === "dark";
   return (
     <Flex className={className} wide>
       <Link to={link || V2Routes.Automations}>
-        <img src={images.logoLight} />
+        <img src={dark ? images.logoDark : images.logoLight} />
       </Link>
       <Fade fade={collapsed}>
         <Link to={link || V2Routes.Automations}>
-          <img src={images.logotype} />
+          <img src={dark ? images.logotypeLight : images.logotype} />
         </Link>
       </Fade>
     </Flex>

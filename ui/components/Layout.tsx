@@ -1,4 +1,4 @@
-import { Drawer, Switch } from "@material-ui/core";
+import { Drawer } from "@material-ui/core";
 import React, { useContext, useState } from "react";
 import styled from "styled-components";
 import { AppContext } from "../contexts/AppContext";
@@ -104,8 +104,7 @@ const TopToolBar = styled(Flex)`
 function Layout({ className, children }: Props) {
   const [collapsed, setCollapsed] = useState<boolean>(false);
 
-  const { appState, setDetailModal, toggleDarkMode, settings } =
-    useContext(AppContext);
+  const { appState, setDetailModal } = useContext(AppContext);
   const detail = appState.detailModal;
 
   const { currentPage } = useNavigation();
@@ -116,10 +115,6 @@ function Layout({ className, children }: Props) {
       <TopToolBar start align wide>
         <Logo collapsed={collapsed} link={V2Routes.Automations} />
         <Breadcrumbs />
-        <Switch
-          onChange={() => toggleDarkMode()}
-          defaultChecked={settings.theme === "dark"}
-        />
         <UserSettings />
       </TopToolBar>
       <Main wide tall>

@@ -78,11 +78,9 @@ const NavContent = styled.div<{ collapsed: boolean }>`
     align-items: center;
     //matches .MuiSvgIcon-root
     transition: background-color 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
-    &.selected {
+    &.selected,
+    :hover {
       background-color: rgba(0, 179, 236, 0.1);
-    }
-    :hover:not(.selected) {
-      background-color: ${(props) => props.theme.colors.neutral10};
     }
   }
   .header {

@@ -58,7 +58,8 @@ export const theme = (mode: "light" | "dark"): DefaultTheme => {
         black: "#fff",
         white: "#1a1a1a",
         primary: "#009CCC",
-        primaryLight05: "#E5F7FD",
+        //only used in nav text when collapsed + selected/hover
+        primaryLight05: "rgba(0,179,236,0.05)",
         primaryLight10: "#98E0F7",
         primary10: "#009CCC",
         primary20: "#006B8E",
@@ -66,7 +67,7 @@ export const theme = (mode: "light" | "dark"): DefaultTheme => {
         successMedium: "#78CC9C",
         successOriginal: "#27AE60",
         successDark: "#156034",
-        alertLight: "#EECEC7",
+        alertLight: "#9F3119",
         alertMedium: "#D58572",
         alertOriginal: "#BC3B1D",
         alertDark: "#9F3119",
@@ -76,8 +77,9 @@ export const theme = (mode: "light" | "dark"): DefaultTheme => {
         neutral20: "#d8d8d8",
         neutral30: "#f5f5f5",
         neutral40: "#ffffff",
+        whiteToPrimary: "#32324B",
         greyToPrimary: "#009CCC",
-        backGrey: "#eef0f4",
+        backGrey: "#32324B",
         feedbackLight: "#FCE6D2",
         feedbackMedium: "#F7BF8E",
         feedbackOriginal: "#F2994A",
@@ -114,7 +116,8 @@ export const theme = (mode: "light" | "dark"): DefaultTheme => {
         neutral20: "#d8d8d8",
         neutral30: "#737373",
         neutral40: "#1a1a1a",
-        greyToPrimary: "#f5f5f5",
+        whiteToPrimary: "#fff",
+        greyToPrimary: "#737373",
         backGrey: "#eef0f4",
         feedbackLight: "#FCE6D2",
         feedbackMedium: "#F7BF8E",
@@ -152,9 +155,14 @@ export const GlobalStyle = createGlobalStyle`
     margin: 0;
     min-width: fit-content;
     background: right bottom no-repeat fixed; 
-    background-image: url(${
-      images.bg
-    }), linear-gradient(to bottom, rgba(85, 105, 145, .1) 5%, rgba(85, 105, 145, .1), rgba(85, 105, 145, .25) 35%);
+    background-image: ${(props) =>
+      props.theme.colors.black === "#fff"
+        ? `url(${images.bgDark})`
+        : `url(${images.bg}), linear-gradient(to bottom, rgba(85, 105, 145, .1) 5%, rgba(85, 105, 145, .1), rgba(85, 105, 145, .25) 35%)`};
+    background-color: ${(props) =>
+      props.theme.colors.black === "#fff"
+        ? props.theme.colors.backGrey
+        : "transparent"};
     background-size: 100%;
   }
   .auth-modal-size {
@@ -219,6 +227,9 @@ export const muiTheme = (colors) =>
         //Feedback - Alert - Original
         main: colors.alertOriginal,
       },
+      error: {
+        main: colors.alertLight,
+      },
       text: {
         //Neutral - Neutral - 40
         primary: colors.neutral40,
@@ -247,6 +258,23 @@ export const muiTheme = (colors) =>
         paper: {
           width: "60%",
           minWidth: 600,
+        },
+      },
+      //for dark mode disabled buttons
+      MuiButton: {
+        root: {
+          "&$disabled": {
+            color:
+              colors.black === "#fff" ? colors.primary20 : colors.neutral20,
+          },
+        },
+        outlined: {
+          "&$disabled": {
+            border:
+              colors.black === "#fff"
+                ? `1px solid ${colors.primary20}`
+                : `1px solid ${colors.neutral20}`,
+          },
         },
       },
     },

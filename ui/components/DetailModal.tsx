@@ -59,7 +59,11 @@ function DetailModal({ object, className }: DetailViewProps) {
 }
 
 export default styled(DetailModal).attrs({ className: DetailModal.name })`
+  background: ${(props) => props.theme.colors.white};
   height: 100%;
   padding: ${(props) =>
     props.theme.spacing.small + " " + props.theme.spacing.medium};
+  .MuiIconButton-root {
+    color: ${(props) => props.theme.colors.black};
+  }
 `;

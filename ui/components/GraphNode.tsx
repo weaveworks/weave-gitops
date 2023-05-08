@@ -9,7 +9,7 @@ import { formatURL, objectTypeToRoute } from "../lib/nav";
 import { FluxObjectNode } from "../lib/objects";
 import { AltKinds } from "./DetailModal";
 import Flex from "./Flex";
-import { computeReady, ReadyType } from "./KubeStatusIndicator";
+import { ReadyType, computeReady } from "./KubeStatusIndicator";
 import Link from "./Link";
 import Text from "./Text";
 type Props = {
@@ -29,8 +29,8 @@ const GraphIcon = styled.img`
 `;
 
 const Node = styled(Flex)`
-  background: white;
-  border: 5px solid ${(props) => props.theme.colors.neutral30};
+  background: ${(props) => props.theme.colors.white};
+  border: 5px solid ${(props) => props.theme.colors.greyToPrimary};
   border-radius: ${nodeBorderRadius}px;
   user-select: none;
 `;
