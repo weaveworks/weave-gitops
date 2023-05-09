@@ -56,40 +56,6 @@ function withSearchParams(Cmp) {
   };
 }
 
-// const { appState, setDetailModal } = useContext(AppContext);
-// const detail = appState.detailModal;
-
-// const { currentPage } = useNavigation();
-// const value = getParentNavRouteValue(currentPage);
-
-// return (
-//   <AppContainer className={className}>
-//     <TopToolBar start align wide>
-//       <Logo collapsed={collapsed} link={V2Routes.Automations} />
-//       <Breadcrumbs />
-//       <UserSettings />
-//     </TopToolBar>
-//     <Main wide tall>
-//       <Nav
-//         navItems={navItems}
-//         collapsed={collapsed}
-//         setCollapsed={setCollapsed}
-//         currentPage={value}
-//       />
-//       <ContentContainer>{children}</ContentContainer>
-//     </Main>
-//     <Drawer
-//       anchor="right"
-//       open={detail ? true : false}
-//       onClose={() => setDetailModal(null)}
-//       ModalProps={{ keepMounted: false }}
-//     >
-//       {detail && (
-//         <DetailModal className={detail.className} object={detail.object} />
-//       )}
-//     </Drawer>
-//   </AppContainer>
-
 const navItems: NavItem[] = [
   {
     label: "Applications",

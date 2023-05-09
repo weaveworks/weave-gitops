@@ -110,6 +110,7 @@ import {
 import SignIn from "./pages/SignIn";
 import Text from "./components/Text";
 import Layout from "./components/Layout";
+import useNavigation from "./hooks/navigation";
 
 export {
   AppContext,
@@ -223,6 +224,7 @@ export {
   useSyncFluxObject,
   useRequestState,
   useToggleSuspend,
+  useNavigation,
   UserSettings,
   V2Routes,
   YamlView,

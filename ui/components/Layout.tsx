@@ -2,7 +2,6 @@ import { Drawer } from "@material-ui/core";
 import React, { useContext } from "react";
 import styled from "styled-components";
 import { AppContext } from "../contexts/AppContext";
-import useNavigation from "../hooks/navigation";
 import Breadcrumbs from "./Breadcrumbs";
 import DetailModal from "./DetailModal";
 import Flex from "./Flex";
