@@ -78,7 +78,7 @@ type LogOption func(*zap.Config)
 // WithLogLevel will set the log level on the Logger Config
 func WithLogLevel(l zapcore.Level) LogOption {
 	return func(c *zap.Config) {
-		c.Level = zap.NewAtomicLevelAt(zapcore.Level(l))
+		c.Level = zap.NewAtomicLevelAt(l)
 	}
 }
 

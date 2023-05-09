@@ -12,7 +12,7 @@ type Props = {
   hideDropdown?: boolean;
 };
 
-const ArrowDropDown = styled(IconButton)`
+export const ArrowDropDown = styled(IconButton)`
   &.MuiButton-outlined {
     border-color: ${(props) => props.theme.colors.neutral20};
   }
@@ -27,12 +27,14 @@ const ArrowDropDown = styled(IconButton)`
   }
 `;
 
-const DropDown = styled(Flex)`
+export const DropDown = styled(Flex)`
   position: absolute;
   overflow: hidden;
   background: white;
   height: ${(props) => (props.open ? "100%" : "0px")};
-  transition: height 0.2s ease-in;
+  transition-property: height;
+  transition-duration: 0.2s;
+  transition-timing-function: ease-in-out;
   z-index: 1;
 `;
 
@@ -75,7 +77,7 @@ function SyncButton({
         </Button>
         {arrowDropDown}
       </Flex>
-      <DropDown open={open}>
+      <DropDown open={open} absolute={true}>
         <Button
           variant="outlined"
           color="primary"

@@ -11,6 +11,7 @@ import (
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/run"
+	"github.com/weaveworks/weave-gitops/pkg/run/constants"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -25,7 +26,7 @@ func SetupBucketSourceAndHelm(ctx context.Context, log logger.Logger, kubeClient
 
 	helm := helmv2.HelmRelease{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      RunDevHelmName,
+			Name:      constants.RunDevHelmName,
 			Namespace: params.Namespace,
 			Annotations: map[string]string{
 				"metadata.weave.works/description": "This is a temporary HelmRelease created by GitOps Run. This will be cleaned up when this instance of GitOps Run is ended.",
@@ -41,7 +42,7 @@ func SetupBucketSourceAndHelm(ctx context.Context, log logger.Logger, kubeClient
 					ReconcileStrategy: "Revision",
 					SourceRef: helmv2.CrossNamespaceObjectReference{
 						Kind: sourcev1.BucketKind,
-						Name: RunDevBucketName,
+						Name: constants.RunDevBucketName,
 					},
 					// relative to the root of SourceRef
 					ValuesFiles: []string{
@@ -81,7 +82,7 @@ func CleanupBucketSourceAndHelm(ctx context.Context, log logger.Logger, kubeClie
 	// delete ks
 	helm := helmv2.HelmRelease{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      RunDevHelmName,
+			Name:      constants.RunDevHelmName,
 			Namespace: namespace,
 		},
 	}
@@ -89,7 +90,9 @@ func CleanupBucketSourceAndHelm(ctx context.Context, log logger.Logger, kubeClie
 	log.Actionf("Deleting HelmRelease %s ...", helm.Name)
 
 	if err := kubeClient.Delete(ctx, &helm); err != nil {
-		log.Failuref("Error deleting HelmRelease %s: %v", helm.Name, err.Error())
+		if !apierrors.IsNotFound(err) {
+			log.Failuref("Error deleting HelmRelease %s: %v", helm.Name, err.Error())
+		}
 	} else {
 		log.Successf("Deleted HelmRelease %s", helm.Name)
 	}
@@ -103,14 +106,14 @@ func CleanupBucketSourceAndHelm(ctx context.Context, log logger.Logger, kubeClie
 
 // ReconcileDevBucketSourceAndHelm reconciles the dev-bucket and dev-helm asynchronously.
 func ReconcileDevBucketSourceAndHelm(ctx context.Context, log logger.Logger, kubeClient client.Client, namespace string, timeout time.Duration) error {
-	const interval = 10 * time.Second
+	const interval = 4 * time.Second
 
-	log.Actionf("Start reconciling %s and %s ...", RunDevBucketName, RunDevHelmName)
+	log.Actionf("Start reconciling %s and %s ...", constants.RunDevBucketName, constants.RunDevHelmName)
 
 	// reconcile dev-bucket
 	sourceRequestedAt, err := run.RequestReconciliation(ctx, kubeClient,
 		types.NamespacedName{
-			Name:      RunDevBucketName,
+			Name:      constants.RunDevBucketName,
 			Namespace: namespace,
 		}, schema.GroupVersionKind{
 			Group:   sourcev1.GroupVersion.Group,
@@ -121,13 +124,19 @@ func ReconcileDevBucketSourceAndHelm(ctx context.Context, log logger.Logger, kub
 		return err
 	}
 
-	log.Actionf("Reconciling %s ...", RunDevBucketName)
+	log.Actionf("Reconciling %s ...", constants.RunDevBucketName)
 
 	// wait for the reconciliation of dev-bucket to be done
-	if err := wait.Poll(interval, timeout, func() (bool, error) {
+	if err := wait.ExponentialBackoff(wait.Backoff{
+		Duration: interval,
+		Factor:   2,
+		Jitter:   1,
+		Steps:    10,
+		Cap:      timeout,
+	}, func() (done bool, err error) {
 		devBucket := &sourcev1.Bucket{}
 		if err := kubeClient.Get(ctx, types.NamespacedName{
-			Name:      RunDevBucketName,
+			Name:      constants.RunDevBucketName,
 			Namespace: namespace,
 		}, devBucket); err != nil {
 			return false, err
@@ -138,13 +147,19 @@ func ReconcileDevBucketSourceAndHelm(ctx context.Context, log logger.Logger, kub
 		return err
 	}
 
-	log.Successf("Reconciled %s", RunDevBucketName)
+	log.Successf("Reconciled %s", constants.RunDevBucketName)
 
 	// wait for devBucket to be ready
-	if err := wait.Poll(interval, timeout, func() (bool, error) {
+	if err := wait.ExponentialBackoff(wait.Backoff{
+		Duration: interval,
+		Factor:   2,
+		Jitter:   1,
+		Steps:    10,
+		Cap:      timeout,
+	}, func() (done bool, err error) {
 		devBucket := &sourcev1.Bucket{}
 		if err := kubeClient.Get(ctx, types.NamespacedName{
-			Name:      RunDevBucketName,
+			Name:      constants.RunDevBucketName,
 			Namespace: namespace,
 		}, devBucket); err != nil {
 			return false, err
@@ -155,12 +170,12 @@ func ReconcileDevBucketSourceAndHelm(ctx context.Context, log logger.Logger, kub
 		return err
 	}
 
-	log.Successf("Bucket %s is ready", RunDevBucketName)
+	log.Successf("Bucket %s is ready", constants.RunDevBucketName)
 
 	// reconcile dev-ks
 	helmRequestedAt, err := run.RequestReconciliation(ctx, kubeClient,
 		types.NamespacedName{
-			Name:      RunDevHelmName,
+			Name:      constants.RunDevHelmName,
 			Namespace: namespace,
 		}, schema.GroupVersionKind{
 			Group:   helmv2.GroupVersion.Group,
@@ -171,12 +186,18 @@ func ReconcileDevBucketSourceAndHelm(ctx context.Context, log logger.Logger, kub
 		return err
 	}
 
-	log.Actionf("Reconciling %s ...", RunDevHelmName)
+	log.Actionf("Reconciling %s ...", constants.RunDevHelmName)
 
-	if err := wait.Poll(interval, timeout, func() (bool, error) {
+	if err := wait.ExponentialBackoff(wait.Backoff{
+		Duration: interval,
+		Factor:   2,
+		Jitter:   1,
+		Steps:    10,
+		Cap:      timeout,
+	}, func() (done bool, err error) {
 		devHelm := &helmv2.HelmRelease{}
 		if err := kubeClient.Get(ctx, types.NamespacedName{
-			Name:      RunDevHelmName,
+			Name:      constants.RunDevHelmName,
 			Namespace: namespace,
 		}, devHelm); err != nil {
 			return false, err
@@ -187,18 +208,25 @@ func ReconcileDevBucketSourceAndHelm(ctx context.Context, log logger.Logger, kub
 		return err
 	}
 
-	log.Successf("Reconciled %s", RunDevHelmName)
+	log.Successf("Reconciled %s", constants.RunDevHelmName)
 
 	devHelm := &helmv2.HelmRelease{}
-	devHelmErr := wait.Poll(interval, timeout, func() (bool, error) {
+
+	devHelmErr := wait.ExponentialBackoff(wait.Backoff{
+		Duration: interval,
+		Factor:   2,
+		Jitter:   1,
+		Steps:    10,
+		Cap:      timeout,
+	}, func() (done bool, err error) {
 		if err := kubeClient.Get(ctx, types.NamespacedName{
-			Name:      RunDevHelmName,
+			Name:      constants.RunDevHelmName,
 			Namespace: namespace,
 		}, devHelm); err != nil {
 			return false, err
 		}
 
-		log.Actionf("Waiting for %s to be ready ...", RunDevHelmName)
+		log.Actionf("Waiting for %s to be ready ...", constants.RunDevHelmName)
 
 		cond := apimeta.FindStatusCondition(devHelm.Status.Conditions, meta.ReadyCondition)
 		if cond == nil {

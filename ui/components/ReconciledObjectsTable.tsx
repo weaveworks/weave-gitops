@@ -1,39 +1,31 @@
-import * as React from "react";
+import React from "react";
 import styled from "styled-components";
 import { AppContext } from "../contexts/AppContext";
-import { ReconciledObjectsAutomation } from "./AutomationDetail";
+import { FluxObject } from "../lib/objects";
 import { filterByStatusCallback, filterConfig } from "./DataTable";
 import FluxObjectsTable from "./FluxObjectsTable";
-import RequestStateHandler from "./RequestStateHandler";
 
 interface Props {
   className?: string;
-  reconciledObjectsAutomation: ReconciledObjectsAutomation;
+  objects: FluxObject[];
 }
 
-function ReconciledObjectsTable({
-  className,
-  reconciledObjectsAutomation,
-}: Props) {
-  const { objects, isLoading, error } = reconciledObjectsAutomation;
-
+function ReconciledObjectsTable({ className, objects }: Props) {
   const initialFilterState = {
     ...filterConfig(objects, "type"),
     ...filterConfig(objects, "namespace"),
     ...filterConfig(objects, "status", filterByStatusCallback),
   };
 
-  const { setNodeYaml } = React.useContext(AppContext);
+  const { setDetailModal } = React.useContext(AppContext);
 
   return (
-    <RequestStateHandler loading={isLoading} error={error}>
-      <FluxObjectsTable
-        className={className}
-        objects={objects}
-        onClick={setNodeYaml}
-        initialFilterState={initialFilterState}
-      />
-    </RequestStateHandler>
+    <FluxObjectsTable
+      className={className}
+      objects={objects}
+      onClick={setDetailModal}
+      initialFilterState={initialFilterState}
+    />
   );
 }
 export default styled(ReconciledObjectsTable).attrs({

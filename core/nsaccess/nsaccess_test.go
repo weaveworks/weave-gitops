@@ -135,7 +135,6 @@ func TestFilterAccessibleNamespaces(t *testing.T) {
 		g.Expect(err).NotTo(HaveOccurred())
 
 		g.Expect(filtered).To(HaveLen(0))
-
 	})
 	t.Run("filters out namespaces that do not have the right verbs", func(t *testing.T) {
 		g := NewGomegaWithT(t)
@@ -342,7 +341,7 @@ func newRestConfigWithRole(t *testing.T, testCfg *rest.Config, roleName types.Na
 		t.Fatal(err)
 	}
 
-	cluster, err := cluster.NewSingleCluster("test", testCfg, scheme)
+	cluster, err := cluster.NewSingleCluster("test", testCfg, scheme, kube.UserPrefixes{})
 	if err != nil {
 		t.Fatal(err)
 	}

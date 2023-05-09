@@ -16,7 +16,33 @@ exports[`YamlView snapshots renders 1`] = `
 }
 
 .c5 svg {
+  height: 12px;
+  width: 12px;
+}
+
+.c5 svg path.path-fill,
+.c5 svg line.path-fill,
+.c5 svg polygon.path-fill,
+.c5 svg rect.path-fill,
+.c5 svg circle.path-fill,
+.c5 svg polyline.path-fill {
   fill: !important;
+  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
+.c5 svg path.stroke-fill,
+.c5 svg line.stroke-fill,
+.c5 svg polygon.stroke-fill,
+.c5 svg rect.stroke-fill,
+.c5 svg circle.stroke-fill,
+.c5 svg polyline.stroke-fill {
+  stroke: !important;
+  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
+.c5 svg rect.rect-height {
   height: 12px;
   width: 12px;
 }
@@ -48,6 +74,17 @@ exports[`YamlView snapshots renders 1`] = `
   padding: 0;
 }
 
+.c3.MuiButton-outlinedPrimary {
+  border: 1px solid #f5f5f5;
+  padding: 4px;
+}
+
+.c3.MuiButton-root {
+  height: initial;
+  width: initial;
+  min-width: 0px;
+}
+
 .c1 {
   background: #f5f5f5;
   padding: 12px;
@@ -56,17 +93,6 @@ exports[`YamlView snapshots renders 1`] = `
   font-family: monospace;
   color: #009CCC;
   text-overflow: ellipsis;
-}
-
-.c3.MuiButton-outlinedPrimary {
-  border: 1px solid #f5f5f5;
-  padding: 8px;
-}
-
-.c3.MuiButton-root {
-  height: initial;
-  width: initial;
-  min-width: 0px;
 }
 
 .c0 {
@@ -79,34 +105,7 @@ exports[`YamlView snapshots renders 1`] = `
 }
 
 .c0 pre {
-  overflow-y: scroll;
-  overflow-x: hidden;
-  padding: 12px;
-  white-space: pre-wrap;
-}
-
-.c0 pre::before {
-  counter-reset: listing;
-}
-
-.c0 code {
-  width: 100%;
-  counter-increment: listing;
-  text-align: left;
-  float: left;
-  clear: left;
-}
-
-.c0 code::before {
-  width: 28px;
-  color: #009CCC;
-  content: counter(listing);
-  display: inline-block;
-  float: left;
-  height: auto;
-  padding-left: auto;
-  margin-right: 12px;
-  text-align: right;
+  padding: 24px 12px !important;
 }
 
 <div
@@ -115,9 +114,9 @@ exports[`YamlView snapshots renders 1`] = `
   <div
     className="c1"
   >
-    kubectl get kustomization podinfo -n flux-system -o yaml 
+    kubectl get kustomization podinfo -n flux-system -o yaml
     <button
-      className="MuiButtonBase-root MuiButton-root MuiButton-outlined c2 c3 MuiButton-outlinedPrimary MuiButton-disableElevation"
+      className="MuiButtonBase-root MuiButton-root MuiButton-outlined c2 c3 yaml-copy MuiButton-outlinedPrimary MuiButton-disableElevation"
       disabled={false}
       onBlur={[Function]}
       onClick={[Function]}
@@ -154,9 +153,71 @@ exports[`YamlView snapshots renders 1`] = `
       </span>
     </button>
   </div>
-  <pre>
-    <code>
-      yaml\\nyaml\\nyaml\\n
+  <pre
+    style={
+      Object {
+        "MozHyphens": "none",
+        "MozTabSize": "4",
+        "OTabSize": "4",
+        "WebkitHyphens": "none",
+        "background": "#f5f2f0",
+        "backgroundColor": "transparent",
+        "color": "black",
+        "fontFamily": "Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace",
+        "fontSize": "1em",
+        "hyphens": "none",
+        "lineHeight": "1.5",
+        "margin": 0,
+        "msHyphens": "none",
+        "overflow": "auto",
+        "padding": "1em",
+        "tabSize": "4",
+        "textAlign": "left",
+        "textShadow": "0 1px white",
+        "whiteSpace": "pre",
+        "wordBreak": "normal",
+        "wordSpacing": "normal",
+        "wordWrap": "normal",
+      }
+    }
+  >
+    <code
+      style={
+        Object {
+          "whiteSpace": "pre-wrap",
+        }
+      }
+      wordBreak="break-word"
+    >
+      <span
+        style={
+          Object {
+            "display": "flex",
+            "flexWrap": "wrap",
+          }
+        }
+      >
+        <span
+          className="linenumber react-syntax-highlighter-line-number"
+          style={
+            Object {
+              "color": "slategray",
+              "display": "inline-block",
+              "minWidth": "1.25em",
+              "paddingRight": "1em",
+              "textAlign": "right",
+              "userSelect": "none",
+            }
+          }
+        >
+          1
+        </span>
+        <span
+          style={Object {}}
+        >
+          yaml\\nyaml\\nyaml\\n
+        </span>
+      </span>
     </code>
   </pre>
 </div>

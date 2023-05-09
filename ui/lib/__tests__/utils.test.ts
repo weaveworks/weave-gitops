@@ -1,8 +1,10 @@
-import { Automation, HelmRelease, Kustomization } from "../objects";
 import { GetVersionResponse } from "../api/core/core.pb";
+import { Kind } from "../api/core/types.pb";
+import { Automation, HelmRelease, Kustomization } from "../objects";
 import {
   convertGitURLToGitProvider,
   convertImage,
+  createYamlCommand,
   formatLogTimestamp,
   formatMetadataKey,
   getAppVersion,
@@ -18,7 +20,25 @@ describe("utils lib", () => {
   describe("isHTTP", () => {
     it("detects HTTP", () => {
       expect(isHTTP("http://www.google.com")).toEqual(true);
-      expect(isHTTP("http://www.google.com/")).toEqual(true);
+      expect(isHTTP("https://www.google.com/")).toEqual(true);
+      expect(isHTTP("http://10.0.0.1/")).toEqual(true);
+      expect(isHTTP("http://127.0.0.1/")).toEqual(true);
+      expect(isHTTP("https://192.168.0.1/")).toEqual(true);
+      expect(isHTTP("http://192.168.0.2/")).toEqual(true);
+      expect(isHTTP("https://169.254.0.1/")).toEqual(true);
+      expect(isHTTP("http://169.254.0.2/")).toEqual(true);
+      expect(isHTTP("https://172.31.0.1/")).toEqual(true);
+      expect(isHTTP("http://172.31.0.2/")).toEqual(true);
+      expect(
+        isHTTP(
+          "http://localhost:8080/applications/argocd/fsa-installation?view=tree"
+        )
+      ).toEqual(true);
+      expect(
+        isHTTP(
+          "https://localhost:8080/applications/argocd/fsa-installation?view=tree"
+        )
+      ).toEqual(true);
       expect(
         isHTTP("http://github.com/weaveworks/weave-gitops-clusters")
       ).toEqual(true);
@@ -385,5 +405,23 @@ describe("utils lib", () => {
     it("should return a hyphen for empty string", () => {
       expect(formatLogTimestamp("")).toEqual("-");
     });
+  });
+});
+
+describe("createYamlCommand", () => {
+  it("creates kubectl get yaml string for objects with namespaces", () => {
+    expect(
+      createYamlCommand(Kind.Kustomization, "test", "flux-system")
+    ).toEqual(`kubectl get kustomization test -n flux-system -o yaml`);
+  });
+  it("creates kubectl get yaml string for objects without namespaces", () => {
+    expect(createYamlCommand(Kind.Kustomization, "test", undefined)).toEqual(
+      `kubectl get kustomization test -o yaml`
+    );
+  });
+  it("returns null if name or kind are false values", () => {
+    expect(createYamlCommand(undefined, undefined, "flux-system")).toEqual(
+      null
+    );
   });
 });

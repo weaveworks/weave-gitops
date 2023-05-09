@@ -1,4 +1,4 @@
-import { Tab, Tabs } from "@material-ui/core";
+import { Tabs } from "@material-ui/core";
 import _ from "lodash";
 import qs from "query-string";
 import * as React from "react";
@@ -7,8 +7,8 @@ import styled from "styled-components";
 import { formatURL, Redirect } from "../lib/nav";
 import Flex from "./Flex";
 import Link from "./Link";
+import MuiTab from "./MuiTab";
 import Spacer from "./Spacer";
-import Text from "./Text";
 
 type Props = {
   className?: string;
@@ -56,38 +56,6 @@ export function RouterTab({ children }: TabProps) {
   return children;
 }
 
-function TabWrapper({
-  route,
-  clearQuery,
-  active,
-}: {
-  route: PathConfig;
-  clearQuery?: boolean;
-  active?: boolean;
-}) {
-  const { name, path } = route;
-  const query = qs.parse(window.location.search);
-  // this calculates a link relative to the current path
-  const to = useHref(path);
-  return (
-    <Tab
-      component={ForwardedLink as typeof Link}
-      to={formatURL(to, clearQuery ? "" : query)}
-      className={`${active && "active-tab"}`}
-      label={
-        <Text
-          size="small"
-          uppercase
-          bold={Boolean(active)}
-          semiBold={!active}
-          color={active ? "primary10" : "neutral30"}
-        >
-          {name}
-        </Text>
-      }
-    />
-  );
-}
 
 function SubRouterTabs({ className, children, clearQuery }: Props) {
   const query = qs.parse(window.location.search);
@@ -108,14 +76,19 @@ function SubRouterTabs({ className, children, clearQuery }: Props) {
 
   return (
     <Flex wide tall column start className={className}>
-      <Tabs indicatorColor="primary" value={activeIndex}>
+      <Tabs
+        indicatorColor="primary"
+        value={activeIndex}
+        className="horizontal-tabs"
+      >
         {_.map(routes, (route, i) => {
           return (
-            <TabWrapper
-              key={route.path}
-              route={route}
-              clearQuery={clearQuery}
-              active={i === activeIndex}
+            <MuiTab
+              component={ForwardedLink as typeof Link}
+              key={i}
+              to={formatURL(`${route.path}`, clearQuery ? "" : query)}
+              active={window.location.pathname.includes(route.path)}
+              text={route.name}
             />
           );
         })}
@@ -136,29 +109,4 @@ function SubRouterTabs({ className, children, clearQuery }: Props) {
   );
 }
 
-export default styled(SubRouterTabs).attrs({ className: SubRouterTabs.name })`
-  .active-tab {
-    background: ${(props) => props.theme.colors.primary}19;
-  }
-  .MuiTab-root {
-    line-height: 1;
-    letter-spacing: 1px;
-    height: 32px;
-    min-height: 32px;
-    width: fit-content;
-    @media (min-width: 600px) {
-      min-width: 132px;
-    }
-  }
-  //trust me there's both tab and tabS
-  .MuiTabs-root {
-    min-height: 32px;
-  }
-  .MuiTabs-fixed {
-    height: 32px;
-  }
-  .MuiTabs-indicator {
-    height: 3px;
-    background-color: ${(props) => props.theme.colors.primary};
-  }
-`;
+export default styled(SubRouterTabs).attrs({ className: SubRouterTabs.name })``;

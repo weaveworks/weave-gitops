@@ -1,28 +1,31 @@
-import { Dialog } from "@material-ui/core";
 import * as React from "react";
 import styled from "styled-components";
-import { AppContext } from "../contexts/AppContext";
 import { useSyncFluxObject } from "../hooks/automations";
-import { useGetReconciledTree, useToggleSuspend } from "../hooks/flux";
+import { useToggleSuspend } from "../hooks/flux";
+import { createCanaryCondition, useGetInventory } from "../hooks/inventory";
 import { Condition, Kind, ObjectRef } from "../lib/api/core/types.pb";
-import { Automation, FluxObject } from "../lib/objects";
-import { RequestError } from "../lib/types";
+import { Automation, HelmRelease } from "../lib/objects";
+import { automationLastUpdated } from "../lib/utils";
 import Button from "./Button";
+import Collapsible from "./Collapsible";
 import CustomActions from "./CustomActions";
 import DependenciesView from "./DependenciesView";
 import EventsTable from "./EventsTable";
 import Flex from "./Flex";
+import HealthCheckAgg, { computeAggHealthCheck } from "./HealthCheckAgg";
 import InfoList, { InfoField } from "./InfoList";
 import { routeTab } from "./KustomizationDetail";
 import Metadata from "./Metadata";
 import PageStatus from "./PageStatus";
 import ReconciledObjectsTable from "./ReconciledObjectsTable";
 import ReconciliationGraph from "./ReconciliationGraph";
+import RequestStateHandler from "./RequestStateHandler";
 import Spacer from "./Spacer";
 import SubRouterTabs, { RouterTab } from "./SubRouterTabs";
 import SyncButton from "./SyncButton";
 import Text from "./Text";
-import YamlView, { DialogYamlView } from "./YamlView";
+import Timestamp from "./Timestamp";
+import YamlView from "./YamlView";
 
 type Props = {
   automation: Automation;
@@ -33,9 +36,6 @@ type Props = {
 };
 
 export type ReconciledObjectsAutomation = {
-  objects: FluxObject[] | undefined[];
-  error?: RequestError;
-  isLoading?: boolean;
   source: ObjectRef;
   name: string;
   namespace: string;
@@ -52,14 +52,42 @@ function AutomationDetail({
   customTabs,
   customActions,
 }: Props) {
-  const { setNodeYaml, appState } = React.useContext(AppContext);
-  const nodeYaml = appState.nodeYaml;
+  const {
+    name,
+    namespace,
+    clusterName,
+    type,
+    suspended,
+    conditions,
+    sourceRef,
+  } = automation;
+  const reconciledObjectsAutomation: ReconciledObjectsAutomation = {
+    name,
+    namespace,
+    clusterName,
+    type: Kind[type],
+    suspended,
+    conditions,
+    source: sourceRef,
+  };
+  const { data, isLoading, error } = useGetInventory(
+    type,
+    name,
+    clusterName,
+    namespace,
+    false,
+    {
+      retry: false,
+      refetchInterval: 5000,
+    }
+  );
+
   const sync = useSyncFluxObject([
     {
-      name: automation.name,
-      namespace: automation.namespace,
-      clusterName: automation.clusterName,
-      kind: Kind[automation.type],
+      name,
+      namespace,
+      clusterName,
+      kind: Kind[type],
     },
   ]);
 
@@ -77,37 +105,8 @@ function AutomationDetail({
     },
     automation.type === Kind.HelmRelease ? "helmrelease" : "kustomizations"
   );
-
-  //grab data
-  const {
-    data: objects,
-    error,
-    isLoading,
-  } = automation
-    ? useGetReconciledTree(
-        automation.name,
-        automation.namespace,
-        Kind[automation.type],
-        automation.inventory,
-        automation.clusterName
-      )
-    : { data: [], error: null, isLoading: false };
-  //add extra nodes
-
-  const reconciledObjectsAutomation: ReconciledObjectsAutomation = {
-    objects,
-    error,
-    isLoading,
-    source: automation.sourceRef,
-    name: automation.name,
-    namespace: automation.namespace,
-    suspended: automation.suspended,
-    conditions: automation.conditions,
-    type: automation.type,
-    clusterName: automation.clusterName,
-  };
-
-  // default routes
+  const canaryStatus = createCanaryCondition(data?.objects);
+  const health = computeAggHealthCheck(data?.objects || []);
   const defaultTabs: Array<routeTab> = [
     {
       name: "Details",
@@ -115,15 +114,19 @@ function AutomationDetail({
       component: () => {
         return (
           <>
-            <InfoList items={info} />
-            <Metadata
-              metadata={automation.metadata}
-              labels={automation.labels}
-            />
-            <ReconciledObjectsTable
-              className={className}
-              reconciledObjectsAutomation={reconciledObjectsAutomation}
-            />
+            <Collapsible>
+              <InfoList items={info} />
+              <Metadata
+                metadata={automation.metadata}
+                labels={automation.labels}
+              />
+            </Collapsible>
+            <RequestStateHandler loading={isLoading} error={error}>
+              <ReconciledObjectsTable
+                className={className}
+                objects={data?.objects}
+              />
+            </RequestStateHandler>
           </>
         );
       },
@@ -184,16 +187,42 @@ function AutomationDetail({
       visible: true,
     },
   ];
-
   return (
     <Flex wide tall column className={className}>
-      <Text size="large" semiBold titleHeight>
-        {automation.name}
-      </Text>
+      <Flex wide end gap="14">
+        {automation?.type === "HelmRelease" ? (
+          <Text capitalize semiBold color="neutral30">
+            Chart Version:{" "}
+            <Text size="large" color="neutral40">
+              {(automation as HelmRelease).helmChart?.version || "-"}
+            </Text>
+          </Text>
+        ) : (
+          <Text capitalize semiBold color="neutral30">
+            Applied Revision:{" "}
+            <Text size="large" color="neutral40">
+              {automation?.lastAppliedRevision || "-"}
+            </Text>
+          </Text>
+        )}
+        <Text capitalize semiBold color="neutral30">
+          Last Updated:{" "}
+          <Text size="large" color="neutral40">
+            <Timestamp time={automationLastUpdated(automation)} />
+          </Text>
+        </Text>
+      </Flex>
+      <Spacer m={["base", "none"]} />
+      {health && <HealthCheckAgg health={health} />}
+      <Spacer m={["base", "none"]} />
+
       <PageStatus
         conditions={automation.conditions}
         suspended={automation.suspended}
       />
+      {(customTabs || customActions) && (
+        <PageStatus conditions={[canaryStatus]} suspended={false} />
+      )}
       <Flex wide start>
         <SyncButton
           onClick={(opts) => sync.mutateAsync(opts)}
@@ -232,24 +261,6 @@ function AutomationDetail({
             )
         )}
       </SubRouterTabs>
-
-      {nodeYaml && (
-        <Dialog
-          open={!!nodeYaml}
-          onClose={() => setNodeYaml(null)}
-          maxWidth="md"
-          fullWidth
-        >
-          <DialogYamlView
-            object={{
-              name: nodeYaml.name,
-              namespace: nodeYaml.namespace,
-              kind: nodeYaml.type,
-            }}
-            yaml={nodeYaml.yaml}
-          />
-        </Dialog>
-      )}
     </Flex>
   );
 }

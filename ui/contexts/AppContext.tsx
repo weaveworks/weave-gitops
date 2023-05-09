@@ -1,13 +1,13 @@
 import * as React from "react";
-import { useNavigate } from "react-router-dom";
+import { useHistory } from "react-router-dom";
+import { DetailViewProps } from "../components/DetailModal";
 import { formatURL } from "../lib/nav";
-import { FluxObject, FluxObjectNode } from "../lib/objects";
 import { PageRoute, V2Routes } from "../lib/types";
 import { notifySuccess } from "../lib/utils";
 
 type AppState = {
   error: null | { fatal: boolean; message: string; detail?: string };
-  nodeYaml: FluxObjectNode | null;
+  detailModal: DetailViewProps;
 };
 
 type AppSettings = {
@@ -18,7 +18,7 @@ export type AppContextType = {
   userConfigRepoName: string;
   doAsyncError: (message: string, detail: string) => void;
   clearAsyncError: () => void;
-  setNodeYaml: (obj: FluxObject | FluxObjectNode) => void;
+  setDetailModal: (props: DetailViewProps | null) => void;
   appState: AppState;
   settings: AppSettings;
   navigate: {
@@ -43,7 +43,7 @@ export default function AppContextProvider({ ...props }: AppProps) {
   const navigate = useNavigate();
   const [appState, setAppState] = React.useState({
     error: null,
-    nodeYaml: null,
+    detailModal: null,
   });
 
   const clearAsyncError = () => {
@@ -66,16 +66,15 @@ export default function AppContextProvider({ ...props }: AppProps) {
     });
   };
 
-  const setNodeYaml = (obj: FluxObject | FluxObjectNode) => {
-    if (obj) setAppState({ ...appState, nodeYaml: obj });
-    else setAppState({ ...appState, nodeYaml: null });
+  const setDetailModal = (props: DetailViewProps | null) => {
+    setAppState({ ...appState, detailModal: props });
   };
 
   const value: AppContextType = {
     userConfigRepoName: "wego-github-jlw-config-repo",
     doAsyncError,
     clearAsyncError,
-    setNodeYaml,
+    setDetailModal,
     appState,
     notifySuccess: props.notifySuccess || notifySuccess,
     settings: {

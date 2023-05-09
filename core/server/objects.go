@@ -6,15 +6,22 @@ import (
 	"fmt"
 
 	"github.com/fluxcd/helm-controller/api/v2beta1"
+	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/hashicorp/go-multierror"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/logger"
 	"github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
+	"github.com/weaveworks/weave-gitops/pkg/run/constants"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
+	v1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+)
+
+const (
+	sessionObjectsInfo = "session objects created"
 )
 
 func getUnstructuredHelmReleaseInventory(ctx context.Context, obj unstructured.Unstructured, c clustersmngr.Client, cluster string) ([]*pb.GroupVersionKind, error) {
@@ -100,6 +107,7 @@ func (cs *coreServer) ListObjects(ctx context.Context, msg *pb.ListObjectsReques
 				var obj client.Object = &unstructuredObj
 
 				var inventory []*pb.GroupVersionKind = nil
+				var info string
 
 				switch gvk.Kind {
 				case "Secret":
@@ -116,9 +124,20 @@ func (cs *coreServer) ListObjects(ctx context.Context, msg *pb.ListObjectsReques
 
 						cs.logger.V(logger.LogLevelDebug).Info("Couldn't grab inventory for helm release", "error", err)
 					}
+				case "StatefulSet":
+					clusterName, kind, err := parseSessionInfo(unstructuredObj)
+					if err != nil {
+						break
+					}
+
+					created, _ := cs.sessionObjectsCreated(ctx, clusterName, "flux-system", kind)
+
+					if created {
+						info = sessionObjectsInfo
+					}
 				}
 
-				o, err := types.K8sObjectToProto(obj, n, tenant, inventory)
+				o, err := types.K8sObjectToProto(obj, n, tenant, inventory, info)
 				if err != nil {
 					respErrors = append(respErrors, &pb.ListError{ClusterName: n, Message: "converting items: " + err.Error()})
 					continue
@@ -133,6 +152,71 @@ func (cs *coreServer) ListObjects(ctx context.Context, msg *pb.ListObjectsReques
 		Objects: results,
 		Errors:  respErrors,
 	}, nil
+}
+
+func parseSessionInfo(unstructuredObj unstructured.Unstructured) (string, string, error) {
+	var set v1.StatefulSet
+
+	err := runtime.DefaultUnstructuredConverter.FromUnstructured(unstructuredObj.UnstructuredContent(), &set)
+	if err != nil {
+		return "", "", fmt.Errorf("converting unstructured to statefulset: %w", err)
+	}
+
+	labels := set.GetLabels()
+
+	if labels[types.AppLabel] != "vcluster" || labels[types.PartOfLabel] != "gitops-run" {
+		return "", "", fmt.Errorf("unexpected format of labels")
+	}
+
+	annotations := set.GetAnnotations()
+
+	var kind string
+	if annotations["run.weave.works/automation-kind"] == "ks" {
+		kind = kustomizev1.KustomizationKind
+	} else {
+		kind = v2beta1.HelmReleaseKind
+	}
+
+	ns := annotations["run.weave.works/namespace"]
+	if ns == "" {
+		return "", "", fmt.Errorf("empty session namespace")
+	}
+
+	clusterName := ns + "/" + set.GetName()
+
+	return clusterName, kind, nil
+}
+
+func (cs *coreServer) sessionObjectsCreated(ctx context.Context, clusterName, objectNamespace, automationKind string) (bool, error) {
+	automationName := constants.RunDevHelmName
+
+	if automationKind == kustomizev1.KustomizationKind {
+		automationName = constants.RunDevKsName
+	}
+
+	automation, err := cs.GetObject(ctx, &pb.GetObjectRequest{
+		Name:        automationName,
+		Namespace:   objectNamespace,
+		Kind:        automationKind,
+		ClusterName: clusterName,
+	})
+
+	if err != nil {
+		return false, err
+	}
+
+	src, err := cs.GetObject(ctx, &pb.GetObjectRequest{
+		Name:        constants.RunDevBucketName,
+		Namespace:   objectNamespace,
+		Kind:        "Bucket",
+		ClusterName: clusterName,
+	})
+
+	if err != nil {
+		return false, err
+	}
+
+	return automation != nil && src != nil, nil
 }
 
 func (cs *coreServer) GetObject(ctx context.Context, msg *pb.GetObjectRequest) (*pb.GetObjectResponse, error) {
@@ -181,7 +265,7 @@ func (cs *coreServer) GetObject(ctx context.Context, msg *pb.GetObjectRequest) (
 
 	tenant := GetTenant(obj.GetNamespace(), msg.ClusterName, clusterUserNamespaces)
 
-	res, err := types.K8sObjectToProto(obj, msg.ClusterName, tenant, inventory)
+	res, err := types.K8sObjectToProto(obj, msg.ClusterName, tenant, inventory, "")
 
 	if err != nil {
 		return nil, fmt.Errorf("converting object to proto: %w", err)

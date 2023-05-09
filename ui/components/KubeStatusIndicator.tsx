@@ -18,12 +18,16 @@ export enum ReadyType {
   Ready = "Ready",
   NotReady = "Not Ready",
   Reconciling = "Reconciling",
+  PendingAction = "PendingAction",
+  Suspended = "Suspended",
+  None = "None",
 }
 
 export enum ReadyStatusValue {
   True = "True",
   False = "False",
   Unknown = "Unknown",
+  None = "None",
 }
 
 export function computeReady(conditions: Condition[]): ReadyType {
@@ -37,12 +41,13 @@ export function computeReady(conditions: Condition[]): ReadyType {
       return ReadyType.Ready;
     }
 
-    if (
-      readyCondition.status === ReadyStatusValue.Unknown &&
-      readyCondition.reason === "Progressing"
-    ) {
-      return ReadyType.Reconciling;
+    if (readyCondition.status === ReadyStatusValue.Unknown) {
+      if (readyCondition.reason === "Progressing") return ReadyType.Reconciling;
+      if (readyCondition.reason === "TerraformPlannedWithChanges")
+        return ReadyType.PendingAction;
     }
+
+    if (readyCondition.status === ReadyStatusValue.None) return ReadyType.None;
 
     return ReadyType.NotReady;
   }
@@ -78,6 +83,54 @@ export function computeMessage(conditions: Condition[]) {
 
   return conditions[0].message;
 }
+
+type IndicatorInfo = {
+  icon: IconType;
+  color: keyof typeof colors;
+  type: ReadyType;
+};
+
+export const getIndicatorInfo = (
+  suspended: boolean,
+  conditions: Condition[]
+): IndicatorInfo => {
+  if (suspended)
+    return {
+      icon: IconType.SuspendedIcon,
+      color: "feedbackOriginal",
+      type: ReadyType.Suspended,
+    };
+  const ready = computeReady(conditions);
+  if (ready === ReadyType.Reconciling)
+    return {
+      type: ReadyType.Reconciling,
+      icon: IconType.ReconcileIcon,
+      color: "primary",
+    };
+  if (ready === ReadyType.PendingAction)
+    return {
+      type: ReadyType.PendingAction,
+      icon: IconType.PendingActionIcon,
+      color: "feedbackOriginal",
+    };
+  if (ready === ReadyType.Ready)
+    return {
+      type: ReadyType.Ready,
+      icon: IconType.CheckCircleIcon,
+      color: "successOriginal",
+    };
+  if (ready === ReadyType.None)
+    return {
+      type: ReadyType.None,
+      icon: IconType.RemoveCircleIcon,
+      color: "neutral20",
+    };
+  return {
+    type: ReadyType.NotReady,
+    icon: IconType.FailedIcon,
+    color: "alertOriginal",
+  };
+};
 
 export type SpecialObject = "DaemonSet";
 
@@ -136,35 +189,14 @@ function KubeStatusIndicator({
   short,
   suspended,
 }: Props) {
-  let readyText;
-  let icon;
-  let iconColor: keyof typeof colors;
-  if (suspended) {
-    readyText = "Suspended";
-    icon = IconType.SuspendedIcon;
-  } else {
-    const ready = computeReady(conditions);
-    if (ready === ReadyType.Reconciling) {
-      readyText = ReadyType.Reconciling;
-      icon = IconType.ReconcileIcon;
-      iconColor = "primary";
-    } else if (ready === ReadyType.Ready) {
-      readyText = ReadyType.Ready;
-      icon = IconType.CheckCircleIcon;
-      iconColor = "successOriginal";
-    } else {
-      readyText = ReadyType.NotReady;
-      icon = IconType.FailedIcon;
-      iconColor = "alertOriginal";
-    }
-  }
+  const { type, color, icon } = getIndicatorInfo(suspended, conditions);
 
   let text = computeMessage(conditions);
-  if (short || suspended) text = readyText;
+  if (short || suspended) text = type;
 
   return (
     <Flex start className={className} align>
-      <Icon size="base" type={icon} color={iconColor} text={text} />
+      <Icon size="base" type={icon} color={color} text={text} />
     </Flex>
   );
 }

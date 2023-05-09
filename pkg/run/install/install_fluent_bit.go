@@ -11,6 +11,7 @@ import (
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/weaveworks/weave-gitops/pkg/run/constants"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -97,7 +98,7 @@ func mapToJSON(m map[string]interface{}) (*v1.JSON, error) {
 	return result, nil
 }
 
-func makeFluentBitHelmRepository(namespace string) (*sourcev1.HelmRepository, error) {
+func makeFluentBitHelmRepository(namespace string) *sourcev1.HelmRepository {
 	helmRepository := &sourcev1.HelmRepository{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "fluent",
@@ -108,10 +109,10 @@ func makeFluentBitHelmRepository(namespace string) (*sourcev1.HelmRepository, er
 		},
 	}
 
-	return helmRepository, nil
+	return helmRepository
 }
 
-func makeFluentBitHelmRelease(name string, fluxNamespace string, targetNamespace string, bucketName string, bucketServerPort int32) (*helmv2.HelmRelease, error) {
+func makeFluentBitHelmRelease(name, fluxNamespace, targetNamespace, bucketName string, bucketServerPort int32) (*helmv2.HelmRelease, error) {
 	configOutputs, err := makeConfigOutputs(bucketName, bucketServerPort)
 	if err != nil {
 		return nil, err
@@ -123,7 +124,7 @@ func makeFluentBitHelmRelease(name string, fluxNamespace string, targetNamespace
 				"name": "AWS_ACCESS_KEY_ID",
 				"valueFrom": map[string]interface{}{
 					"secretKeyRef": map[string]interface{}{
-						"name": "run-dev-bucket-credentials",
+						"name": constants.RunDevBucketCredentials,
 						"key":  "accesskey",
 					},
 				},
@@ -132,7 +133,7 @@ func makeFluentBitHelmRelease(name string, fluxNamespace string, targetNamespace
 				"name": "AWS_SECRET_ACCESS_KEY",
 				"valueFrom": map[string]interface{}{
 					"secretKeyRef": map[string]interface{}{
-						"name": "run-dev-bucket-credentials",
+						"name": constants.RunDevBucketCredentials,
 						"key":  "secretkey",
 					},
 				},
@@ -181,11 +182,64 @@ func makeFluentBitHelmRelease(name string, fluxNamespace string, targetNamespace
 	return &obj, nil
 }
 
-func InstallFluentBit(ctx context.Context, log logger.Logger, kubeClient client.Client, fluxNamespace string, targetNamespace string, name string, bucketName string, bucketServerPort int32) error {
-	helmRepo, err := makeFluentBitHelmRepository(fluxNamespace)
-	if err != nil {
-		return err
+func UninstallFluentBit(ctx context.Context, log logger.Logger, kubeClient client.Client, hrNamespace, hrName string) error {
+	hr := &helmv2.HelmRelease{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      hrName,
+			Namespace: hrNamespace,
+		},
 	}
+
+	log.Actionf("Removing Fluent Bit HelmRelease %s/%s ...", hr.Namespace, hr.Name)
+
+	if err := kubeClient.Delete(ctx, hr); err != nil {
+		if !apierrors.IsNotFound(err) {
+			return fmt.Errorf("failed to delete HelmRelease: %w", err)
+		}
+	}
+
+	log.Actionf("Waiting for HelmRelease %s/%s to be deleted...", hr.Namespace, hr.Name)
+
+	if err := wait.ExponentialBackoff(wait.Backoff{
+		Duration: 4 * time.Second,
+		Factor:   2,
+		Jitter:   1,
+		Steps:    10,
+	}, func() (done bool, err error) {
+		if err := kubeClient.Get(ctx, client.ObjectKeyFromObject(hr), hr); err != nil {
+			if apierrors.IsNotFound(err) {
+				return true, nil
+			} else {
+				return false, fmt.Errorf("failed retrieving HelmRelease: %w", err)
+			}
+		}
+		return false, nil
+	}); err != nil {
+		return fmt.Errorf("failed waiting for HelmRelease %s/%s to be deleted: %w", hr.Namespace, hr.Name, err)
+	}
+
+	log.Successf("HelmRelease %s/%s deleted", hr.Namespace, hr.Name)
+
+	helmRepository := &sourcev1.HelmRepository{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "fluent",
+			Namespace: hrNamespace,
+		},
+	}
+
+	if err := kubeClient.Delete(ctx, helmRepository); err != nil {
+		if !apierrors.IsNotFound(err) {
+			return fmt.Errorf("failed to delete HelmRepository: %w", err)
+		}
+	}
+
+	log.Successf("HelmRepository %s/%s deleted", helmRepository.Namespace, helmRepository.Name)
+
+	return nil
+}
+
+func InstallFluentBit(ctx context.Context, log logger.Logger, kubeClient client.Client, fluxNamespace, targetNamespace, name, bucketName string, bucketServerPort int32) error {
+	helmRepo := makeFluentBitHelmRepository(fluxNamespace)
 
 	log.Actionf("creating HelmRepository %s/%s", helmRepo.Namespace, helmRepo.Name)
 
@@ -206,7 +260,7 @@ func InstallFluentBit(ctx context.Context, log logger.Logger, kubeClient client.
 
 	log.Actionf("creating HelmRelease %s/%s", helmRelease.Namespace, helmRelease.Name)
 
-	if err := kubeClient.Create(context.Background(), helmRelease); err != nil {
+	if err := kubeClient.Create(ctx, helmRelease); err != nil {
 		if apierrors.IsAlreadyExists(err) {
 			// do nothing
 		} else {
@@ -219,12 +273,11 @@ func InstallFluentBit(ctx context.Context, log logger.Logger, kubeClient client.
 	if err := wait.Poll(2*time.Second, 5*time.Minute, func() (bool, error) {
 		instance := appsv1.DaemonSet{}
 		if err := kubeClient.Get(
-			context.Background(),
+			ctx,
 			types.NamespacedName{
 				Name:      name,
 				Namespace: targetNamespace,
 			}, &instance); err != nil {
-
 			if apierrors.IsNotFound(err) {
 				return false, nil
 			} else {

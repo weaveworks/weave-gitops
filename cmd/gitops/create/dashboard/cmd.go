@@ -20,7 +20,6 @@ import (
 )
 
 const (
-	helmChartName        = "weave-gitops"
 	defaultAdminUsername = "admin"
 )
 
@@ -148,7 +147,7 @@ func createDashboardCommandRunE(opts *config.Options) func(*cobra.Command, []str
 			adminUsername = defaultAdminUsername
 		}
 
-		manifests, err := install.CreateDashboardObjects(log, dashboardName, flags.Namespace, adminUsername, passwordHash, "", "")
+		dashboardObjects, err := install.CreateDashboardObjects(log, dashboardName, flags.Namespace, adminUsername, passwordHash, "", "")
 		if err != nil {
 			return fmt.Errorf("error creating dashboard objects: %w", err)
 		}
@@ -157,7 +156,7 @@ func createDashboardCommandRunE(opts *config.Options) func(*cobra.Command, []str
 
 		if flags.Export {
 			fmt.Println("---")
-			fmt.Println(string(manifests))
+			fmt.Println(string(dashboardObjects.Manifests))
 
 			return nil
 		}
@@ -215,14 +214,7 @@ func createDashboardCommandRunE(opts *config.Options) func(*cobra.Command, []str
 		}
 
 		log.Actionf("Applying GitOps Dashboard manifests")
-
-		man, err := install.NewManager(ctx, log, kubeClient, kubeConfigArgs)
-		if err != nil {
-			log.Failuref("Error creating resource manager")
-			return err
-		}
-
-		err = install.InstallDashboard(ctx, log, man, manifests)
+		err = install.InstallDashboard(ctx, log, kubeClient, dashboardObjects)
 		if err != nil {
 			return fmt.Errorf("gitops dashboard installation failed: %w", err)
 		} else {
@@ -233,9 +225,7 @@ func createDashboardCommandRunE(opts *config.Options) func(*cobra.Command, []str
 
 		log.Waitingf("Waiting for GitOps Dashboard reconciliation")
 
-		dashboardPodName := dashboardName + "-" + helmChartName
-
-		if err := install.ReconcileDashboard(ctx, kubeClient, dashboardName, flags.Namespace, dashboardPodName, flags.Timeout); err != nil {
+		if err := install.ReconcileDashboard(ctx, kubeClient, dashboardName, flags.Namespace, "", flags.Timeout); err != nil {
 			log.Failuref("Error requesting reconciliation of dashboard: %v", err.Error())
 		} else {
 			log.Successf("GitOps Dashboard %s is ready", dashboardName)

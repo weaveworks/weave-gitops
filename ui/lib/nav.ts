@@ -10,7 +10,7 @@ import { NoNamespace, PageRoute, V2Routes } from "./types";
 // Example: /sources and /git_repo will both show the "Sources" nav as selected.
 export const getParentNavValue = (
   path: string
-): PageRoute | V2Routes | boolean => {
+): V2Routes | PageRoute | boolean => {
   const [, currentPage] = _.split(path, "/");
   switch (`/${currentPage}`) {
     case V2Routes.Automations:
@@ -45,6 +45,9 @@ export const getParentNavValue = (
     case V2Routes.Provider:
       return V2Routes.Notifications;
 
+    case V2Routes.UserInfo:
+      return V2Routes.UserInfo;
+
     default:
       // The "Tabs" component of material-ui wants a bool
       return false;
@@ -53,7 +56,7 @@ export const getParentNavValue = (
 
 export const getParentNavRouteValue = (
   path: string
-): PageRoute | V2Routes | boolean => {
+): V2Routes | PageRoute | boolean => {
   const [, currentPage] = _.split(path, "/");
   switch (`/${currentPage}`) {
     case V2Routes.Automations:
@@ -82,6 +85,9 @@ export const getParentNavRouteValue = (
     case V2Routes.Provider:
       return V2Routes.Notifications;
 
+    case V2Routes.UserInfo:
+      return V2Routes.UserInfo;
+
     default:
       // The "Tabs" component of material-ui wants a bool
       return false;
@@ -96,6 +102,7 @@ const pageTitles = {
   [V2Routes.ImagePolicies]: "Image Policies",
   [V2Routes.ImageUpdates]: "Image Updates",
   [V2Routes.ImageRepositories]: "Image Repositories",
+  [V2Routes.UserInfo]: "User Info",
 };
 
 export const getPageLabel = (route: V2Routes): string => {

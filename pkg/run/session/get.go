@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/weaveworks/weave-gitops/core/server/types"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func Get(kubeClient client.Client, name string, namespace string) (*InternalSession, error) {
+func Get(kubeClient client.Client, name, namespace string) (*InternalSession, error) {
 	var result *InternalSession
 
 	statefulSet := appsv1.StatefulSet{}
@@ -27,7 +28,7 @@ func Get(kubeClient client.Client, name string, namespace string) (*InternalSess
 
 	labels := statefulSet.GetLabels()
 	if labels != nil {
-		if labels["app"] != "vcluster" || labels["app.kubernetes.io/part-of"] != "gitops-run" {
+		if labels[types.AppLabel] != "vcluster" || labels[types.PartOfLabel] != "gitops-run" {
 			return nil, fmt.Errorf("%s/%s is an invalid GitOps Run session", namespace, name)
 		}
 	}

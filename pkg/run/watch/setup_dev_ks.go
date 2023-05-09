@@ -18,6 +18,8 @@ import (
 	ignore "github.com/sabhiram/go-gitignore"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/run"
+	"github.com/weaveworks/weave-gitops/pkg/run/constants"
+	"github.com/weaveworks/weave-gitops/pkg/sourceignore"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
@@ -48,7 +50,7 @@ func SetupBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeClient c
 
 	ks := kustomizev1.Kustomization{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      RunDevKsName,
+			Name:      constants.RunDevKsName,
 			Namespace: params.Namespace,
 			Annotations: map[string]string{
 				"metadata.weave.works/description": "This is a temporary Kustomization created by GitOps Run. This will be cleaned up when this instance of GitOps Run is ended.",
@@ -61,7 +63,7 @@ func SetupBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeClient c
 			Prune:    true,                                           // GC the kustomization
 			SourceRef: kustomizev1.CrossNamespaceSourceReference{
 				Kind: sourcev1.BucketKind,
-				Name: RunDevBucketName,
+				Name: constants.RunDevBucketName,
 			},
 			Timeout: &metav1.Duration{Duration: params.Timeout},
 			Path:    params.Path,
@@ -119,7 +121,7 @@ func setupDecryption(ctx context.Context, params SetupRunObjectParams, kubeClien
 
 	decSecret := corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "run-dev-ks-decryption",
+			Name:      constants.RunDevKsDecryption,
 			Namespace: params.Namespace,
 		},
 		Data: map[string][]byte{
@@ -141,7 +143,7 @@ func setupDecryption(ctx context.Context, params SetupRunObjectParams, kubeClien
 }
 
 // SyncDir recursively uploads all files in a directory to an S3 bucket with minio library
-func SyncDir(ctx context.Context, log logger.Logger, dir string, bucket string, client *minio.Client, ignorer *ignore.GitIgnore) error {
+func SyncDir(ctx context.Context, log logger.Logger, dir, bucket string, client *minio.Client, ignorer *ignore.GitIgnore) error {
 	log.Actionf("Refreshing bucket %s ...", bucket)
 
 	if err := client.RemoveBucketWithOptions(ctx, bucket, minio.RemoveBucketOptions{
@@ -198,7 +200,7 @@ func SyncDir(ctx context.Context, log logger.Logger, dir string, bucket string, 
 			log.Failuref("Couldn't upload %v: %v", path, err)
 			return nil
 		}
-		uploadCount = uploadCount + 1
+		uploadCount++
 		if uploadCount%10 == 0 {
 			fmt.Print(".")
 		}
@@ -221,7 +223,7 @@ func CleanupBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeClient
 	// delete ks
 	ks := kustomizev1.Kustomization{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      RunDevKsName,
+			Name:      constants.RunDevKsName,
 			Namespace: namespace,
 		},
 	}
@@ -229,7 +231,9 @@ func CleanupBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeClient
 	log.Actionf("Deleting Kustomization %s ...", ks.Name)
 
 	if err := kubeClient.Delete(ctx, &ks); err != nil {
-		log.Failuref("Error deleting Kustomization %s: %v", ks.Name, err.Error())
+		if !apierrors.IsNotFound(err) {
+			log.Failuref("Error deleting Kustomization %s: %v", ks.Name, err.Error())
+		}
 	} else {
 		log.Successf("Deleted Kustomization %s", ks.Name)
 	}
@@ -329,6 +333,35 @@ func WatchDirsForFileWalker(watcher *fsnotify.Watcher, ignorer *ignore.GitIgnore
 	}
 }
 
+// InitializeRootDir initializes the root directory (creates the .sourceignore file in it).
+func InitializeRootDir(log logger.Logger, rootPath string) error {
+	stat, err := os.Stat(rootPath)
+
+	if err != nil {
+		return err
+	} else if !stat.IsDir() {
+		return fmt.Errorf("root must be a directory")
+	} else {
+		f, err := os.Open(rootPath)
+		if err != nil {
+			return err
+		}
+
+		_, err = f.Readdirnames(1)
+		if err != nil && !errors.Is(err, io.EOF) {
+			return err
+		}
+	}
+
+	err = sourceignore.CreateIgnoreFile(rootPath, sourceignore.IgnoreFilename, []string{})
+	if err == nil {
+		log.Successf("%s file created. Please add ignore patterns to ignore specific YAML files or directories during validation to it", sourceignore.IgnoreFilename)
+	}
+
+	return err
+}
+
+// InitializeTargetDir initializes the target directory (creates the entrypoint Kustomization in it).
 func InitializeTargetDir(targetPath string) error {
 	shouldCreate := false
 	stat, err := os.Stat(targetPath)
@@ -336,7 +369,7 @@ func InitializeTargetDir(targetPath string) error {
 	if err != nil && !errors.Is(err, os.ErrNotExist) {
 		return err
 	} else if err != nil {
-		err := os.MkdirAll(targetPath, 0755)
+		err := os.MkdirAll(targetPath, 0o755)
 		if err != nil {
 			return err
 		}
@@ -383,7 +416,7 @@ func ReconcileDevBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeC
 	// reconcile dev-bucket
 	sourceRequestedAt, err := run.RequestReconciliation(ctx, kubeClient,
 		types.NamespacedName{
-			Name:      RunDevBucketName,
+			Name:      constants.RunDevBucketName,
 			Namespace: namespace,
 		}, schema.GroupVersionKind{
 			Group:   "source.toolkit.fluxcd.io",
@@ -398,7 +431,7 @@ func ReconcileDevBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeC
 	if err := wait.Poll(interval, timeout, func() (bool, error) {
 		devBucket := &sourcev1.Bucket{}
 		if err := kubeClient.Get(ctx, types.NamespacedName{
-			Name:      RunDevBucketName,
+			Name:      constants.RunDevBucketName,
 			Namespace: namespace,
 		}, devBucket); err != nil {
 			return false, err
@@ -413,7 +446,7 @@ func ReconcileDevBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeC
 	if err := wait.Poll(interval, timeout, func() (bool, error) {
 		devBucket := &sourcev1.Bucket{}
 		if err := kubeClient.Get(ctx, types.NamespacedName{
-			Name:      RunDevBucketName,
+			Name:      constants.RunDevBucketName,
 			Namespace: namespace,
 		}, devBucket); err != nil {
 			return false, err
@@ -426,7 +459,7 @@ func ReconcileDevBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeC
 	// reconcile dev-ks
 	ksRequestedAt, err := run.RequestReconciliation(ctx, kubeClient,
 		types.NamespacedName{
-			Name:      RunDevKsName,
+			Name:      constants.RunDevKsName,
 			Namespace: namespace,
 		}, schema.GroupVersionKind{
 			Group:   "kustomize.toolkit.fluxcd.io",
@@ -440,7 +473,7 @@ func ReconcileDevBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeC
 	if err := wait.Poll(interval, timeout, func() (bool, error) {
 		devKs := &kustomizev1.Kustomization{}
 		if err := kubeClient.Get(ctx, types.NamespacedName{
-			Name:      RunDevKsName,
+			Name:      constants.RunDevKsName,
 			Namespace: namespace,
 		}, devKs); err != nil {
 			return false, err
@@ -454,7 +487,7 @@ func ReconcileDevBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeC
 	devKs := &kustomizev1.Kustomization{}
 	devKsErr := wait.Poll(interval, timeout, func() (bool, error) {
 		if err := kubeClient.Get(ctx, types.NamespacedName{
-			Name:      RunDevKsName,
+			Name:      constants.RunDevKsName,
 			Namespace: namespace,
 		}, devKs); err != nil {
 			return false, err

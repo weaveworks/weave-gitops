@@ -501,7 +501,7 @@ func createClusterRoleBinding(g *GomegaWithT, user string) *rbacv1.ClusterRoleBi
 	return crb
 }
 
-func createClusterClientsPool(g *GomegaWithT, clusterName string) clustersmngr.ClientsPool {
+func createClusterClientsPool(g *GomegaWithT, clusterName string) clustersmngr.ClientsPool { //nolint:unparam
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
 
@@ -519,7 +519,7 @@ func createClusterClientsPool(g *GomegaWithT, clusterName string) clustersmngr.C
 	})
 	g.Expect(err).To(BeNil())
 
-	cluster, err := cluster.NewSingleCluster(clusterName, k8sEnv.Rest, scheme)
+	cluster, err := cluster.NewSingleCluster(clusterName, k8sEnv.Rest, scheme, kube.UserPrefixes{})
 	g.Expect(err).To(BeNil())
 	err = clientsPool.Add(
 		client,

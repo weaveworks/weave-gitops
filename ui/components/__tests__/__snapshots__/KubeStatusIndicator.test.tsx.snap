@@ -43,7 +43,34 @@ exports[`KubeStatusIndicator snapshots renders error 1`] = `
 }
 
 .c4 svg {
+  fill: #BC3B1D;
+  height: 16px;
+  width: 16px;
+}
+
+.c4 svg path.path-fill,
+.c4 svg line.path-fill,
+.c4 svg polygon.path-fill,
+.c4 svg rect.path-fill,
+.c4 svg circle.path-fill,
+.c4 svg polyline.path-fill {
   fill: #BC3B1D !important;
+  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
+.c4 svg path.stroke-fill,
+.c4 svg line.stroke-fill,
+.c4 svg polygon.stroke-fill,
+.c4 svg rect.stroke-fill,
+.c4 svg circle.stroke-fill,
+.c4 svg polyline.stroke-fill {
+  stroke: #BC3B1D !important;
+  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
+.c4 svg rect.rect-height {
   height: 16px;
   width: 16px;
 }
@@ -144,7 +171,34 @@ exports[`KubeStatusIndicator snapshots renders success 1`] = `
 }
 
 .c4 svg {
+  fill: #27AE60;
+  height: 16px;
+  width: 16px;
+}
+
+.c4 svg path.path-fill,
+.c4 svg line.path-fill,
+.c4 svg polygon.path-fill,
+.c4 svg rect.path-fill,
+.c4 svg circle.path-fill,
+.c4 svg polyline.path-fill {
   fill: #27AE60 !important;
+  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
+.c4 svg path.stroke-fill,
+.c4 svg line.stroke-fill,
+.c4 svg polygon.stroke-fill,
+.c4 svg rect.stroke-fill,
+.c4 svg circle.stroke-fill,
+.c4 svg polyline.stroke-fill {
+  stroke: #27AE60 !important;
+  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
+.c4 svg rect.rect-height {
   height: 16px;
   width: 16px;
 }

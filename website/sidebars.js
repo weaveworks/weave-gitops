@@ -9,7 +9,7 @@
  Create as many sidebars as you want.
  */
 
-module.exports = {
+ module.exports = {
   docs: [
     {
       type: 'category',
@@ -72,10 +72,22 @@ module.exports = {
     },
     {
       type: 'category',
-      label: 'Configuration',
+      label: 'Access Configuration',
       items: [
         'configuration/recommended-rbac-configuration',
-        'configuration/securing-access-to-the-dashboard',
+        {
+          type: 'category',
+          label: 'Securing Access to the Dashboard',
+          collapsed: false,
+          link: {
+            type: 'doc',
+            id:'configuration/securing-access-to-the-dashboard',
+          },
+          items: [
+            'configuration/oidc-access',
+            'configuration/emergency-user',
+          ],
+        },
         'configuration/service-account-permissions',
         'configuration/user-permissions',
         'configuration/tls',
@@ -85,10 +97,10 @@ module.exports = {
       type: 'category',
       label: 'Guides',
       items: [
-        'guides/deploying-capa',
-        'guides/cert-manager',
         'guides/setting-up-dex',
+        'guides/cert-manager',
         'guides/displaying-custom-metadata',
+        'guides/deploying-capa',
         'guides/using-terraform-templates',
         'guides/delivery',
         'guides/flagger-manual-gating',
@@ -97,8 +109,11 @@ module.exports = {
     {
       type: 'category',
       label: 'GitOps Run',
+      link: {
+        type: 'doc',
+        id: 'gitops-run/overview',
+      },
       items: [
-        'gitops-run/overview',
         'gitops-run/get-started',
       ],
     },
@@ -118,6 +133,21 @@ module.exports = {
         'cluster-management/profiles',
         'cluster-management/add-applications',
         'cluster-management/gitrepo-selection',
+        'cluster-management/disable-capi',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Explorer',
+      link: {
+        type: 'doc',
+        id: 'explorer/intro',
+      },
+      items: [
+        'explorer/getting-started',
+        'explorer/configuration',
+        'explorer/querying',
+        'explorer/operations',
       ],
     },
     {
@@ -200,8 +230,9 @@ module.exports = {
       },
       items: [
         'policy/getting-started',
+        'policy/authorization',
+        'policy/policy',
         'policy/weave-policy-profile',
-        'policy/configuration',
         'policy/policy-set',
         'policy/policy-configuration',
         'policy/releases',
@@ -210,10 +241,63 @@ module.exports = {
     },
     {
       type: 'category',
-      label: 'Templates',
+      label: 'Secrets',
+      link: {
+        type: 'doc',
+        id: 'secrets/intro',
+      },
       items: [
-        'gitops-templates/templates',
+        'secrets/intro',
+        'secrets/getting-started',
+        'secrets/bootstraping-secrets',
+        'secrets/setup-eso',
+        'secrets/setup-sops',
+        'secrets/manage-secrets-ui',
+        // 'secrets/self-service',
+        {
+          type: 'category',
+          label: 'Reference',
+          items: [
+            {
+              type: 'category',
+              label: 'v1alpha1',
+              items: [
+                'secrets/spec/v1alpha1/secretSync',
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Templates',
+      link: {
+        type: 'doc',
+        id: 'gitops-templates/intro',
+      },
+      items: [
+        'gitops-templates/quickstart-templates',
+        {
+          type: 'category',
+          label: 'Creating Templates',
+          link: {
+            type: 'doc',
+            id: 'gitops-templates/creating-templates',
+          },
+          items: [
+            'gitops-templates/resource-templates',
+            'gitops-templates/repo-rendered-paths',
+            'gitops-templates/profiles',
+            'gitops-templates/annotations',
+            'gitops-templates/params',
+            'gitops-templates/supported-langs',
+            'gitops-templates/create-cluster-example',
+            'gitops-templates/capd-example',
+          ],
+        },
         'gitops-templates/cli',
+        'gitops-templates/versions',
       ],
     },
     {
@@ -221,16 +305,19 @@ module.exports = {
       label: 'GitOpsSets',
       items: [
         'gitopssets/intro',
-        'gitopssets/features',
-        'gitopssets/list-generator',
-        'gitopssets/git-generator',
-        'gitopssets/matrix-generator',
-        'gitopssets/pull-request-generator',
+        'gitopssets/installation',
+        'gitopssets/guide',
+        'gitopssets/api-reference',
+        'gitopssets/releases'
       ],
     }
   ],
   ref: [
-    'references/helm-reference',
+    {
+      type: 'doc',
+      label: 'OSS Helm Reference',
+      id: 'references/helm-reference',
+    },
     {
       type: 'category',
       label: 'CLI Reference',

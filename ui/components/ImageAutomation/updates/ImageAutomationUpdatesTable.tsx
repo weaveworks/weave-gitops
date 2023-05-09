@@ -38,6 +38,7 @@ const ImageAutomationUpdatesTable = () => {
               </Link>
             ),
             textSearchable: true,
+            sortValue: ({ name }) => name || "",
             maxWidth: 600,
           },
           {

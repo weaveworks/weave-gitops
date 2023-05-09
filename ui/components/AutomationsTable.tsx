@@ -25,8 +25,7 @@ type Props = {
 };
 
 function AutomationsTable({ className, automations, hideSource }: Props) {
-  const { data } = useFeatureFlags();
-  const flags = data.flags;
+  const { isFlagEnabled } = useFeatureFlags();
 
   let initialFilterState = {
     ...filterConfig(automations, "type"),
@@ -34,14 +33,14 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
     ...filterConfig(automations, "status", filterByStatusCallback),
   };
 
-  if (flags.WEAVE_GITOPS_FEATURE_TENANCY === "true") {
+  if (isFlagEnabled("WEAVE_GITOPS_FEATURE_TENANCY")) {
     initialFilterState = {
       ...initialFilterState,
       ...filterConfig(automations, "tenant"),
     };
   }
 
-  if (flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true") {
+  if (isFlagEnabled("WEAVE_GITOPS_FEATURE_CLUSTER")) {
     initialFilterState = {
       ...initialFilterState,
       ...filterConfig(automations, "clusterName"),
@@ -80,10 +79,10 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
       label: "Namespace",
       value: "namespace",
     },
-    ...(flags.WEAVE_GITOPS_FEATURE_TENANCY === "true"
+    ...(isFlagEnabled("WEAVE_GITOPS_FEATURE_TENANCY")
       ? [{ label: "Tenant", value: "tenant" }]
       : []),
-    ...(flags.WEAVE_GITOPS_FEATURE_CLUSTER === "true"
+    ...(isFlagEnabled("WEAVE_GITOPS_FEATURE_CLUSTER")
       ? [{ label: "Cluster", value: "clusterName" }]
       : []),
     {

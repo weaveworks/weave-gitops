@@ -59,12 +59,15 @@ export function withTheme(element) {
   );
 }
 
-type TestContextProps = AppProps & { api?: typeof Core };
+type TestContextProps = AppProps & {
+  api?: typeof Core;
+  featureFlags?: { [key: string]: string };
+};
 
 export function withContext(
   TestComponent,
   url: string,
-  { api, ...appProps }: TestContextProps
+  { api, featureFlags, ...appProps }: TestContextProps
 ) {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
@@ -74,7 +77,9 @@ export function withContext(
     <MemoryRouter initialEntries={[url]}>
       <AppContextProvider renderFooter {...appProps}>
         <QueryClientProvider client={queryClient}>
-          <CoreClientContext.Provider value={{ api, featureFlags: {} }}>
+          <CoreClientContext.Provider
+            value={{ api, featureFlags: featureFlags || {} }}
+          >
             {isElement ? TestComponent : <TestComponent />}
           </CoreClientContext.Provider>
         </QueryClientProvider>

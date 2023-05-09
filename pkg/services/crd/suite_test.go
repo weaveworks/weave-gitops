@@ -12,6 +12,7 @@ import (
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	"github.com/weaveworks/weave-gitops/core/nsaccess"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
 	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -43,7 +44,7 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func newService(ctx context.Context, k8sEnv *testutils.K8sTestEnv) (crd.Fetcher, error) {
+func newService(k8sEnv *testutils.K8sTestEnv) (crd.Fetcher, error) {
 	_, clustersManager, err := createClient(k8sEnv)
 	if err != nil {
 		return nil, err
@@ -51,14 +52,14 @@ func newService(ctx context.Context, k8sEnv *testutils.K8sTestEnv) (crd.Fetcher,
 
 	log := logr.Discard()
 
-	return crd.NewFetcher(ctx, log, clustersManager), nil
+	return crd.NewFetcher(log, clustersManager), nil
 }
 
 func createClient(k8sEnv *testutils.K8sTestEnv) (clustersmngr.Client, clustersmngr.ClustersManager, error) {
 	ctx := context.Background()
 	log := logr.Discard()
 
-	singleCluster, err := cluster.NewSingleCluster(defaultClusterName, k8sEnv.Rest, nil)
+	singleCluster, err := cluster.NewSingleCluster(defaultClusterName, k8sEnv.Rest, nil, kube.UserPrefixes{})
 	if err != nil {
 		return nil, nil, err
 	}
@@ -97,7 +98,7 @@ func newCRD(
 	g *gomega.GomegaWithT,
 	k client.Client,
 	info CRDInfo,
-) v1.CustomResourceDefinition {
+) {
 	resource := v1.CustomResourceDefinition{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: fmt.Sprintf("%s.%s", info.Plural, info.Group),
@@ -131,6 +132,4 @@ func newCRD(
 	if !info.NoTest {
 		g.Expect(err).ToNot(gomega.HaveOccurred(), "should be able to create crd: %s", resource.GetName())
 	}
-
-	return resource
 }

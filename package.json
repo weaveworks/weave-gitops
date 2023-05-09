@@ -1,6 +1,6 @@
 {
   "name": "@weaveworks/weave-gitops",
-  "version": "0.17.0-rc.3",
+  "version": "0.22.0",
   "description": "Weave GitOps core",
   "targets": {
     "default": {
@@ -66,10 +66,10 @@
     "react-lottie-player": "^1.4.3",
     "react-query": "^3.34.7",
     "react-router-dom": "^6.8.1",
+    "react-syntax-highlighter": "^15.5.0",
     "react-toastify": "^7.0.4",
-    "sha3": "^2.1.4",
     "styled-components": "^5.3.0",
-    "yaml": "^1.10.2"
+    "yaml": "^2.2.2"
   },
   "jest": {
     "preset": "ts-jest",
@@ -83,10 +83,10 @@
     "testEnvironment": "jsdom"
   },
   "devDependencies": {
-    "@parcel/config-default": "^2.3.2",
-    "@parcel/optimizer-data-url": "^2.3.2",
-    "@parcel/transformer-inline-string": "^2.3.2",
-    "@parcel/transformer-typescript-tsc": "^2.3.2",
+    "@parcel/config-default": "^2.8.3",
+    "@parcel/optimizer-data-url": "^2.8.3",
+    "@parcel/transformer-inline-string": "^2.8.3",
+    "@parcel/transformer-typescript-tsc": "^2.8.3",
     "@testing-library/jest-dom": "^5.12.0",
     "@testing-library/react": "^11.2.7",
     "@testing-library/react-hooks": "^6.0.0",
@@ -99,16 +99,19 @@
     "@types/styled-components": "^5.1.9",
     "@typescript-eslint/eslint-plugin": "^4.16.1",
     "@typescript-eslint/parser": "^4.16.1",
-    "buffer": "^6.0.3",
+    "buffer": "^5.7.1",
     "eslint": "^7.28.0",
     "eslint-plugin-import": "^2.25.4",
     "jest": "^27.3.1",
     "jest-styled-components": "^7.0.4",
-    "parcel": "^2.3.2",
+    "parcel": "^2.8.3",
     "prettier": "^2.6.2",
     "process": "^0.11.10",
     "react-test-renderer": "^17.0.2",
     "ts-jest": "^27.0.7",
     "typescript": "~4.3.5"
+  },
+  "alias": {
+    "yaml": "yaml/browser/dist/index.js"
   }
 }

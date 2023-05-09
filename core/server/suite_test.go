@@ -15,6 +15,7 @@ import (
 	"github.com/weaveworks/weave-gitops/core/nsaccess/nsaccessfakes"
 	"github.com/weaveworks/weave-gitops/core/server"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
+	"github.com/weaveworks/weave-gitops/pkg/health"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/crd"
@@ -51,7 +52,7 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func makeGRPCServer(cfg *rest.Config, t *testing.T) (pb.CoreClient, server.CoreServerConfig) {
+func makeGRPCServer(cfg *rest.Config, t *testing.T) pb.CoreClient {
 	log := logr.Discard()
 	nsChecker = nsaccessfakes.FakeChecker{}
 	nsChecker.FilterAccessibleNamespacesStub = func(ctx context.Context, t typedauth.AuthorizationV1Interface, n []v1.Namespace) ([]v1.Namespace, error) {
@@ -64,15 +65,17 @@ func makeGRPCServer(cfg *rest.Config, t *testing.T) (pb.CoreClient, server.CoreS
 		t.Fatal(err)
 	}
 
-	cluster, err := cluster.NewSingleCluster("Default", k8sEnv.Rest, scheme)
+	cluster, err := cluster.NewSingleCluster("Default", k8sEnv.Rest, scheme, kube.UserPrefixes{})
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	fetch := fetcher.NewSingleClusterFetcher(cluster)
 
+	hc := health.NewHealthChecker()
+
 	clustersManager := clustersmngr.NewClustersManager([]clustersmngr.ClusterFetcher{fetch}, &nsChecker, log)
-	coreCfg, err := server.NewCoreConfig(log, cfg, "foobar", clustersManager)
+	coreCfg, err := server.NewCoreConfig(log, cfg, "foobar", clustersManager, hc)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -118,7 +121,7 @@ func makeGRPCServer(cfg *rest.Config, t *testing.T) (pb.CoreClient, server.CoreS
 		conn.Close()
 	})
 
-	return pb.NewCoreClient(conn), coreCfg
+	return pb.NewCoreClient(conn)
 }
 
 type userKey struct{}
@@ -158,7 +161,7 @@ func withClientsPoolInterceptor(clustersManager clustersmngr.ClustersManager) gr
 	})
 }
 
-func makeServerConfig(fakeClient client.Client, t *testing.T) server.CoreServerConfig {
+func makeServerConfig(fakeClient client.Client, t *testing.T, clusterName string) server.CoreServerConfig {
 	log := logr.Discard()
 	nsChecker = nsaccessfakes.FakeChecker{}
 	nsChecker.FilterAccessibleNamespacesStub = func(ctx context.Context, t typedauth.AuthorizationV1Interface, n []v1.Namespace) ([]v1.Namespace, error) {
@@ -168,7 +171,12 @@ func makeServerConfig(fakeClient client.Client, t *testing.T) server.CoreServerC
 	clientset := fake.NewSimpleClientset()
 
 	cluster := clusterfakes.FakeCluster{}
-	cluster.GetNameReturns("Default")
+
+	if clusterName == "" {
+		clusterName = "Default"
+	}
+
+	cluster.GetNameReturns(clusterName)
 	cluster.GetUserClientReturns(fakeClient, nil)
 	cluster.GetUserClientsetReturns(clientset, nil)
 	cluster.GetServerClientReturns(fakeClient, nil)
@@ -179,7 +187,9 @@ func makeServerConfig(fakeClient client.Client, t *testing.T) server.CoreServerC
 	// and the default options include the Flowcontrol setup which is not mocked out
 	clustersManager := clustersmngr.NewClustersManager([]clustersmngr.ClusterFetcher{fetcher}, &nsChecker, log)
 
-	coreCfg, err := server.NewCoreConfig(log, &rest.Config{}, "foobar", clustersManager)
+	hc := health.NewHealthChecker()
+
+	coreCfg, err := server.NewCoreConfig(log, &rest.Config{}, "foobar", clustersManager, hc)
 	if err != nil {
 		t.Fatal(err)
 	}

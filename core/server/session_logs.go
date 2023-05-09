@@ -4,28 +4,37 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"regexp"
+	"sort"
+	"strconv"
+	"strings"
+	"time"
+
+	"github.com/weaveworks/weave-gitops/pkg/compositehash"
+
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	coretypes "github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
-	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/weaveworks/weave-gitops/pkg/run/constants"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
-	"io"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"regexp"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sort"
-	"strings"
-	"time"
+)
+
+const (
+	// identical string can be used in the UI to test for the secret not found condition.
+	secretNotFound = "secret not found"
 )
 
 type s3Reader interface {
 	ListObjects(ctx context.Context, bucketName string, opts minio.ListObjectsOptions) <-chan minio.ObjectInfo
-	GetObject(ctx context.Context, bucketName string, objectName string, opts minio.GetObjectOptions) (io.ReadCloser, error)
+	GetObject(ctx context.Context, bucketName, objectName string, opts minio.GetObjectOptions) (io.ReadCloser, error)
 }
 
 type s3ReaderWrapper struct {
@@ -40,7 +49,7 @@ func (s *s3ReaderWrapper) ListObjects(ctx context.Context, bucketName string, op
 	return s.r.ListObjects(ctx, bucketName, opts)
 }
 
-func (s *s3ReaderWrapper) GetObject(ctx context.Context, bucketName string, objectName string, opts minio.GetObjectOptions) (io.ReadCloser, error) {
+func (s *s3ReaderWrapper) GetObject(ctx context.Context, bucketName, objectName string, opts minio.GetObjectOptions) (io.ReadCloser, error) {
 	return s.r.GetObject(ctx, bucketName, objectName, opts)
 }
 
@@ -64,7 +73,7 @@ func (cs *coreServer) getFluxNamespace(ctx context.Context, k8sClient client.Cli
 		return "", fmt.Errorf("error getting list of objects")
 	} else {
 		for _, item := range namespaceList.Items {
-			if item.GetLabels()[flux.VersionLabelKey] != "" {
+			if item.GetLabels()[coretypes.VersionLabel] != "" {
 				ns = &item
 				break
 			}
@@ -103,7 +112,7 @@ func (cs *coreServer) GetSessionLogs(ctx context.Context, msg *pb.GetSessionLogs
 
 	cli, err := clustersClient.Scoped(clusterName)
 	if err != nil {
-		retErr := fmt.Errorf("getting cluster client: %w", err)
+		retErr := fmt.Errorf("session %s not found: %w", clusterName, err)
 		return &pb.GetSessionLogsResponse{Error: retErr.Error()}, retErr
 	}
 
@@ -111,6 +120,21 @@ func (cs *coreServer) GetSessionLogs(ctx context.Context, msg *pb.GetSessionLogs
 	if err != nil {
 		// assume flux-system if we can't find the flux namespace
 		fluxNamespace = "flux-system"
+	}
+
+	logSourceFilter := msg.GetLogSourceFilter()
+	isLoadingGitOpsRunLogs := logSourceFilter == "" || logSourceFilter == logger.SessionLogSource
+
+	if isLoadingGitOpsRunLogs {
+		// check if we can get session logs already
+		// if the secret is not created yet, we should not display an error in the browser console
+		if err = isSecretCreated(ctx, cli, constants.GitOpsRunNamespace, constants.RunDevBucketCredentials); err != nil {
+			return &pb.GetSessionLogsResponse{Error: err.Error()}, nil
+		}
+
+		if err = isSecretCreated(ctx, cli, fluxNamespace, constants.RunDevBucketCredentials); err != nil {
+			return &pb.GetSessionLogsResponse{Error: err.Error()}, nil
+		}
 	}
 
 	info, err := getBucketConnectionInfo(ctx, clusterName, fluxNamespace, cli)
@@ -135,8 +159,7 @@ func (cs *coreServer) GetSessionLogs(ctx context.Context, msg *pb.GetSessionLogs
 		firstToken string
 	)
 
-	logSourceFilter := msg.GetLogSourceFilter()
-	if logSourceFilter == "" || logSourceFilter == logger.SessionLogSource {
+	if isLoadingGitOpsRunLogs {
 		// get gitops-run logs
 		gitopsRunLogs, token, err := getGitOpsRunLogs(
 			ctx,
@@ -168,9 +191,9 @@ func (cs *coreServer) GetSessionLogs(ctx context.Context, msg *pb.GetSessionLogs
 
 	// we sort the logs by timestamp
 	sort.Slice(logEntries, func(i, j int) bool {
-		tsi, _ := time.Parse(time.RFC3339, logEntries[i].GetTimestamp())
-		tsj, _ := time.Parse(time.RFC3339, logEntries[j].GetTimestamp())
-		return tsi.Before(tsj)
+		tsi, _ := strconv.ParseInt(logEntries[i].GetSortingKey(), 10, 64)
+		tsj, _ := strconv.ParseInt(logEntries[j].GetSortingKey(), 10, 64)
+		return tsi < tsj
 	})
 
 	return &pb.GetSessionLogsResponse{
@@ -178,6 +201,21 @@ func (cs *coreServer) GetSessionLogs(ctx context.Context, msg *pb.GetSessionLogs
 		NextToken:  firstToken + "," + secondToken,
 		LogSources: append([]string{logger.SessionLogSource}, logSources...),
 	}, nil
+}
+
+func isSecretCreated(ctx context.Context, cli client.Client, namespace, name string) error { //nolint:unparam
+	secret := corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace,
+		},
+	}
+
+	if err := cli.Get(ctx, client.ObjectKeyFromObject(&secret), &secret); err != nil {
+		return fmt.Errorf("%s in the namespace %s: %w", secretNotFound, namespace, err)
+	}
+
+	return nil
 }
 
 func detectLogLevel(message string) string {
@@ -188,7 +226,7 @@ func detectLogLevel(message string) string {
 	if errorRegex.MatchString(message) {
 		return "error"
 	} else if warnRegex.MatchString(message) {
-		return "warn"
+		return "warning"
 	} else {
 		return "info"
 	}
@@ -214,7 +252,7 @@ type PodLog struct {
 	} `json:"kubernetes"`
 }
 
-func getPodLogs(ctx context.Context, nextToken string, minioClient s3Reader, bucketName string, logSourceFilter string, logLevelFilter string) ([]*pb.LogEntry, string, []string, error) {
+func getPodLogs(ctx context.Context, nextToken string, minioClient s3Reader, bucketName, logSourceFilter, logLevelFilter string) ([]*pb.LogEntry, string, []string, error) {
 	// we use the second part of the token as the startAfter value
 	if strings.Contains(nextToken, ",") {
 		parts := strings.SplitN(nextToken, ",", 2)
@@ -291,11 +329,17 @@ func getPodLogs(ctx context.Context, nextToken string, minioClient s3Reader, buc
 				continue
 			}
 
+			hash, err := compositehash.New(innerMessage, podLog.Time)
+			if err != nil {
+				return nil, "", nil, err
+			}
+
 			logs = append(logs, &pb.LogEntry{
-				Timestamp: podLog.Time.Format(time.RFC3339),
-				Level:     logLevel,
-				Message:   innerMessage,
-				Source:    loggingSource,
+				SortingKey: fmt.Sprintf("%d", hash),
+				Timestamp:  podLog.Time.Format(time.RFC3339),
+				Level:      logLevel,
+				Message:    innerMessage,
+				Source:     loggingSource,
 			})
 		}
 		lastToken = obj.Key
@@ -310,7 +354,7 @@ func getPodLogs(ctx context.Context, nextToken string, minioClient s3Reader, buc
 	return logs, lastToken, logSources, nil
 }
 
-func getGitOpsRunLogs(ctx context.Context, sessionID string, nextToken string, minioClient s3Reader, bucketName string, logLevelFilter string) ([]*pb.LogEntry, string, error) {
+func getGitOpsRunLogs(ctx context.Context, sessionID, nextToken string, minioClient s3Reader, bucketName, logLevelFilter string) ([]*pb.LogEntry, string, error) {
 	// we use the first part of the token as the startAfter value
 	if strings.Contains(nextToken, ",") {
 		parts := strings.SplitN(nextToken, ",", 2)
@@ -362,20 +406,15 @@ func getGitOpsRunLogs(ctx context.Context, sessionID string, nextToken string, m
 	return logs, lastToken, nil
 }
 
-func getBucketConnectionInfo(ctx context.Context, clusterName string, fluxNamespace string, cli client.Client) (*bucketConnectionInfo, error) {
-
-	const sourceName = "run-dev-bucket"
-	var secretName = sourceName + "-credentials"
-
+func getBucketConnectionInfo(ctx context.Context, clusterName, fluxNamespace string, cli client.Client) (*bucketConnectionInfo, error) {
 	// get secret
 	secret := corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      secretName,
+			Name:      constants.RunDevBucketCredentials,
 			Namespace: fluxNamespace,
 		},
 	}
 
-	// get secret
 	if err := cli.Get(ctx, client.ObjectKeyFromObject(&secret), &secret); err != nil {
 		return nil, err
 	}
@@ -383,7 +422,7 @@ func getBucketConnectionInfo(ctx context.Context, clusterName string, fluxNamesp
 	// get bucket source
 	bucket := sourcev1.Bucket{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      sourceName,
+			Name:      constants.RunDevBucketName,
 			Namespace: fluxNamespace,
 		},
 	}

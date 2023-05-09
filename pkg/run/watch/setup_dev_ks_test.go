@@ -19,6 +19,7 @@ import (
 
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/weaveworks/weave-gitops/pkg/run/constants"
 )
 
 // mock controller-runtime client
@@ -218,7 +219,7 @@ var _ = Describe("SetupBucketSourceAndKS", func() {
 				Expect(
 					k8sClient.Get(context.Background(), client.ObjectKey{
 						Namespace: testNS.Name,
-						Name:      "run-dev-ks-decryption",
+						Name:      constants.RunDevKsDecryption,
 					}, &decSecret),
 				).To(Succeed(), "failed to retrieve decryption Secret")
 
@@ -228,7 +229,7 @@ var _ = Describe("SetupBucketSourceAndKS", func() {
 				Expect(
 					k8sClient.Get(context.Background(), client.ObjectKey{
 						Namespace: testNS.Name,
-						Name:      RunDevKsName,
+						Name:      constants.RunDevKsName,
 					}, &ks),
 				).To(Succeed(), "failed to retrieve Kustomization")
 

@@ -2,7 +2,7 @@ const versions = require("./versions.json");
 /** @type {import('@docusaurus/types').DocusaurusConfig} */
 module.exports = {
   title: "Weave GitOps",
-  tagline: "Weave GitOps Documentation",
+  tagline: "The official Flux expansion pack.",
   url: "https://docs.gitops.weave.works",
   baseUrl: "/",
   onBrokenLinks: "throw",
@@ -45,12 +45,12 @@ module.exports = {
           type: "doc",
           docId: "intro",
           position: "left",
-          label: "Getting Started",
+          label: "Docs",
         },
         {
           type: 'docSidebar',
           position: 'left',
-          label: 'Helm Chart & CLI',
+          label: 'Reference',
           sidebarId: 'ref',
         },
         {
@@ -149,6 +149,12 @@ module.exports = {
       // },
     },
   },
+  scripts: [
+    {
+      src: 'https://kit.fontawesome.com/73855c6ec3.js',
+      async: true,
+    },
+  ],
   presets: [
     [
       "@docusaurus/preset-classic",

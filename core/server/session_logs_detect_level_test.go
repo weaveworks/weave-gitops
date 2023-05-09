@@ -10,11 +10,11 @@ func TestDetectLogLevel(t *testing.T) {
 		expected string
 	}{
 		{"[ERROR] something went wrong", "error"},
-		{"[warn] disk is almost full", "warn"},
+		{"[warn] disk is almost full", "warning"},
 		{"[info] system started", "info"},
 		{"[ftl] system failure", "error"},
 		{"application error", "error"},
-		{"application warning", "warn"},
+		{"application warning", "warning"},
 		{"application info", "info"},
 	}
 	for _, tc := range testCases {

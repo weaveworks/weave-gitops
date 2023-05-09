@@ -74,7 +74,7 @@ var (
 	blurredButton = fmt.Sprintf("[ %s ]", blurredStyle.Render(buttonText))
 )
 
-func makeViewport(width int, height int, content string) viewport.Model {
+func makeViewport(width, height int, content string) viewport.Model {
 	vp := viewport.New(width, height)
 	vp.YPosition = 0
 	vp.SetContent(content)
@@ -261,15 +261,15 @@ func (input *bootstrapWizardInput) getView(isFocused bool) string {
 		checkmark = blurredStyle.Render("_")
 	}
 
-	open := "["
-	close := "]"
+	checkboxStart := "["
+	checkboxEnd := "]"
 
 	if isFocused {
-		open = focusedStyle.Render(open)
-		close = focusedStyle.Render(close)
+		checkboxStart = focusedStyle.Render(checkboxStart)
+		checkboxEnd = focusedStyle.Render(checkboxEnd)
 	}
 
-	return fmt.Sprintf("%s%s%s %s", open, checkmark, close, input.flagName)
+	return fmt.Sprintf("%s%s%s %s", checkboxStart, checkmark, checkboxEnd, input.flagName)
 }
 
 func initialWizardModel(tasks []*BootstrapWizardTask, msgChan chan BootstrapCmdOptions) wizardModel {

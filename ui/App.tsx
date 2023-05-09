@@ -41,6 +41,7 @@ import Notifications from "./pages/v2/Notifications";
 import OCIRepositoryPage from "./pages/v2/OCIRepositoryPage";
 import ProviderPage from "./pages/v2/ProviderPage";
 import Sources from "./pages/v2/Sources";
+import UserInfo from "./pages/v2/UserInfo";
 
 const queryClient = new QueryClient();
 
@@ -114,6 +115,7 @@ const App = () => (
           path={V2Routes.ProfileInfo}
           component={ProfileInfo}
         />
+        <Route path={V2Routes.UserInfo} component={UserInfo} />
 
         {/* <Redirect to={V2Routes.Automations} /> */}
 

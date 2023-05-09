@@ -1,9 +1,10 @@
-import React, { useContext } from "react";
 import { shake128 } from "js-sha3";
 import Mnemonic from "mnemonic-browser";
+import React, { useContext } from "react";
+import { noVersion } from "../components/Version";
 import { Auth } from "../contexts/AuthContext";
 import { CoreClientContext } from "../contexts/CoreClientContext";
-import { noVersion } from "../components/Version";
+import { useFeatureFlags } from "../hooks/featureflags";
 
 declare global {
   interface Window {
@@ -33,6 +34,8 @@ export default function Pendo({
   version,
 }: Props) {
   const { featureFlags: flags } = useContext(CoreClientContext);
+  const { isFlagEnabled } = useFeatureFlags();
+
   const { userInfo } = useContext(Auth);
   const [isPendoInitialized, setIsPendoInitialized] = React.useState(false);
   const [isPendoAgentReady, setIsPendoAgentReady] = React.useState(false);
@@ -87,7 +90,7 @@ export default function Pendo({
 
     const account = {
       id: accountId,
-      devMode: flags.WEAVE_GITOPS_FEATURE_DEV_MODE === "true",
+      devMode: isFlagEnabled("WEAVE_GITOPS_FEATURE_DEV_MODE"),
     };
 
     // This is copied from the pendo docs

@@ -56,15 +56,13 @@ const (
 )
 
 var (
-	//ErrWegoConfigNotFound indicates weave gitops config could not be found
+	// ErrWegoConfigNotFound indicates weave gitops config could not be found
 	ErrWegoConfigNotFound = errors.New("Wego Config not found")
 )
 
 // InClusterConfig defines a function for checking if this code is executing in kubernetes.
 // This can be overriden if needed.
-var InClusterConfig func() (*rest.Config, error) = func() (*rest.Config, error) {
-	return rest.InClusterConfig()
-}
+var InClusterConfig func() (*rest.Config, error) = rest.InClusterConfig
 
 var ErrNamespaceNotFound = errors.New("namespace not found")
 

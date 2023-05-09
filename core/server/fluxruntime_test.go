@@ -10,7 +10,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"github.com/weaveworks/weave-gitops/core/server"
-	stypes "github.com/weaveworks/weave-gitops/core/server/types"
+	coretypes "github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"google.golang.org/grpc/metadata"
@@ -29,7 +29,7 @@ func TestGetReconciledObjects(t *testing.T) {
 
 	ctx := context.Background()
 
-	c, _ := makeGRPCServer(k8sEnv.Rest, t)
+	c := makeGRPCServer(k8sEnv.Rest, t)
 
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
@@ -56,12 +56,12 @@ func TestGetReconciledObjects(t *testing.T) {
 			Spec: appsv1.DeploymentSpec{
 				Selector: &metav1.LabelSelector{
 					MatchLabels: map[string]string{
-						"app": automationName,
+						coretypes.AppLabel: automationName,
 					},
 				},
 				Template: corev1.PodTemplateSpec{
 					ObjectMeta: metav1.ObjectMeta{
-						Labels: map[string]string{"app": automationName},
+						Labels: map[string]string{coretypes.AppLabel: automationName},
 					},
 					Spec: corev1.PodSpec{
 						Containers: []corev1.Container{{
@@ -195,7 +195,7 @@ func TestGetReconciledObjectsWithSecret(t *testing.T) {
 
 	ctx := context.Background()
 
-	c, _ := makeGRPCServer(k8sEnv.Rest, t)
+	c := makeGRPCServer(k8sEnv.Rest, t)
 
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
@@ -263,12 +263,12 @@ func TestGetChildObjects(t *testing.T) {
 		Spec: appsv1.DeploymentSpec{
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
-					"app": automationName,
+					coretypes.AppLabel: automationName,
 				},
 			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels: map[string]string{"app": automationName},
+					Labels: map[string]string{coretypes.AppLabel: automationName},
 				},
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{{
@@ -305,7 +305,7 @@ func TestGetChildObjects(t *testing.T) {
 	g.Expect(err).To(BeNil())
 
 	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(&ns, deployment, rs).Build()
-	cfg := makeServerConfig(client, t)
+	cfg := makeServerConfig(client, t, "")
 	c := makeServer(cfg, t)
 
 	res, err := c.GetChildObjects(ctx, &pb.GetChildObjectsRequest{
@@ -352,9 +352,9 @@ func TestListFluxRuntimeObjects(t *testing.T) {
 			"flux namespace label, with controllers",
 			[]runtime.Object{
 				&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "flux-ns", Labels: map[string]string{
-					stypes.PartOfLabel: server.FluxNamespacePartOf,
+					coretypes.PartOfLabel: server.FluxNamespacePartOf,
 				}}},
-				newDeployment("random-flux-controller", "flux-ns", map[string]string{stypes.PartOfLabel: server.FluxNamespacePartOf}),
+				newDeployment("random-flux-controller", "flux-ns", map[string]string{coretypes.PartOfLabel: server.FluxNamespacePartOf}),
 				newDeployment("other-controller-in-flux-ns", "flux-ns", map[string]string{}),
 			},
 			func(res *pb.ListFluxRuntimeObjectsResponse) {
@@ -366,7 +366,7 @@ func TestListFluxRuntimeObjects(t *testing.T) {
 			"use flux-system namespace when no namespace label available",
 			[]runtime.Object{
 				&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "flux-system"}},
-				newDeployment("random-flux-controller", "flux-system", map[string]string{stypes.PartOfLabel: server.FluxNamespacePartOf}),
+				newDeployment("random-flux-controller", "flux-system", map[string]string{coretypes.PartOfLabel: server.FluxNamespacePartOf}),
 				newDeployment("other-controller-in-flux-ns", "flux-system", map[string]string{}),
 			},
 			func(res *pb.ListFluxRuntimeObjectsResponse) {
@@ -381,7 +381,7 @@ func TestListFluxRuntimeObjects(t *testing.T) {
 			scheme, err := kube.CreateScheme()
 			g.Expect(err).To(BeNil())
 			client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(tt.objects...).Build()
-			cfg := makeServerConfig(client, t)
+			cfg := makeServerConfig(client, t, "")
 			c := makeServer(cfg, t)
 			res, err := c.ListFluxRuntimeObjects(ctx, &pb.ListFluxRuntimeObjectsRequest{})
 			g.Expect(err).NotTo(HaveOccurred())
@@ -401,12 +401,12 @@ func newDeployment(name, ns string, labels map[string]string) *appsv1.Deployment
 		Spec: appsv1.DeploymentSpec{
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
-					"app": name,
+					coretypes.AppLabel: name,
 				},
 			},
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels: map[string]string{"app": name},
+					Labels: map[string]string{coretypes.AppLabel: name},
 				},
 				Spec: corev1.PodSpec{
 					Containers: []corev1.Container{{
@@ -426,7 +426,7 @@ func TestListFluxCrds(t *testing.T) {
 
 	crd1 := &apiextensions.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{
 		Name:   "crd1",
-		Labels: map[string]string{stypes.PartOfLabel: "flux"},
+		Labels: map[string]string{coretypes.PartOfLabel: "flux"},
 	}, Spec: apiextensions.CustomResourceDefinitionSpec{
 		Group:    "group",
 		Names:    apiextensions.CustomResourceDefinitionNames{Plural: "plural", Kind: "kind"},
@@ -434,16 +434,20 @@ func TestListFluxCrds(t *testing.T) {
 	}}
 	crd2 := &apiextensions.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{
 		Name:   "crd2",
-		Labels: map[string]string{stypes.PartOfLabel: "flux"},
+		Labels: map[string]string{coretypes.PartOfLabel: "flux"},
 	}, Spec: apiextensions.CustomResourceDefinitionSpec{
-		Group:    "group",
-		Versions: []apiextensions.CustomResourceDefinitionVersion{{Name: "0"}},
+		Group: "group",
+		Versions: []apiextensions.CustomResourceDefinitionVersion{
+			{Name: "0"},
+			// "Active" version in etcd, use this one.
+			{Name: "1", Storage: true},
+		},
 	}}
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
 
 	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(crd1, crd2).Build()
-	cfg := makeServerConfig(client, t)
+	cfg := makeServerConfig(client, t, "")
 	c := makeServer(cfg, t)
 
 	res, err := c.ListFluxCrds(ctx, &pb.ListFluxCrdsRequest{})
@@ -457,5 +461,5 @@ func TestListFluxCrds(t *testing.T) {
 	g.Expect(first.Name.Group).To(Equal("group"))
 	g.Expect(first.Kind).To(Equal("kind"))
 	g.Expect(first.ClusterName).To(Equal(cluster.DefaultCluster))
-	g.Expect(res.Crds[1].Version).To(Equal("0"))
+	g.Expect(res.Crds[1].Version).To(Equal("1"))
 }

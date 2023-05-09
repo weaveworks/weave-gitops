@@ -76,10 +76,7 @@ func (opt *TeamOption) configureBootstrapGitHub(conf *bootstrapGitHubConfig) {
 }
 
 func (flux *Flux) BootstrapGitHub(ctx context.Context, opts ...BootstrapGitHubOption) error {
-	bootstrapGitHubCmd, err := flux.bootstrapGitHubCmd(ctx, opts...)
-	if err != nil {
-		return err
-	}
+	bootstrapGitHubCmd := flux.bootstrapGitHubCmd(ctx, opts...)
 
 	if err := flux.runFluxCmd(ctx, bootstrapGitHubCmd); err != nil {
 		return err
@@ -88,7 +85,7 @@ func (flux *Flux) BootstrapGitHub(ctx context.Context, opts ...BootstrapGitHubOp
 	return nil
 }
 
-func (flux *Flux) bootstrapGitHubCmd(ctx context.Context, opts ...BootstrapGitHubOption) (*exec.Cmd, error) {
+func (flux *Flux) bootstrapGitHubCmd(ctx context.Context, opts ...BootstrapGitHubOption) *exec.Cmd {
 	c := defaultBootstrapGitHubOptions
 	for _, o := range opts {
 		o.configureBootstrapGitHub(&c)
@@ -145,5 +142,5 @@ func (flux *Flux) bootstrapGitHubCmd(ctx context.Context, opts ...BootstrapGitHu
 		args = append(args, "--team", strings.Join(c.team, ","))
 	}
 
-	return flux.buildFluxCmd(ctx, flux.env, args...), nil
+	return flux.buildFluxCmd(ctx, flux.env, args...)
 }
