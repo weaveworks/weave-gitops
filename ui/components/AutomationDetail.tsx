@@ -3,9 +3,10 @@ import * as React from "react";
 import styled from "styled-components";
 import { AppContext } from "../contexts/AppContext";
 import { useSyncFluxObject } from "../hooks/automations";
-import { useToggleSuspend } from "../hooks/flux";
-import { Kind } from "../lib/api/core/types.pb";
-import { Automation } from "../lib/objects";
+import { useGetReconciledTree, useToggleSuspend } from "../hooks/flux";
+import { Condition, Kind, ObjectRef } from "../lib/api/core/types.pb";
+import { Automation, FluxObject } from "../lib/objects";
+import { RequestError } from "../lib/types";
 import Button from "./Button";
 import CustomActions from "./CustomActions";
 import DependenciesView from "./DependenciesView";
@@ -29,6 +30,19 @@ type Props = {
   info: InfoField[];
   customTabs?: Array<routeTab>;
   customActions?: JSX.Element[];
+};
+
+export type ReconciledObjectsAutomation = {
+  objects: FluxObject[] | undefined[];
+  error?: RequestError;
+  isLoading?: boolean;
+  source: ObjectRef;
+  name: string;
+  namespace: string;
+  suspended: boolean;
+  conditions: Condition[];
+  type: string;
+  clusterName: string;
 };
 
 function AutomationDetail({
@@ -64,6 +78,35 @@ function AutomationDetail({
     automation.type === Kind.HelmRelease ? "helmrelease" : "kustomizations"
   );
 
+  //grab data
+  const {
+    data: objects,
+    error,
+    isLoading,
+  } = automation
+    ? useGetReconciledTree(
+        automation.name,
+        automation.namespace,
+        Kind[automation.type],
+        automation.inventory,
+        automation.clusterName
+      )
+    : { data: [], error: null, isLoading: false };
+  //add extra nodes
+
+  const reconciledObjectsAutomation: ReconciledObjectsAutomation = {
+    objects,
+    error,
+    isLoading,
+    source: automation.sourceRef,
+    name: automation.name,
+    namespace: automation.namespace,
+    suspended: automation.suspended,
+    conditions: automation.conditions,
+    type: automation.type,
+    clusterName: automation.clusterName,
+  };
+
   // default routes
   const defaultTabs: Array<routeTab> = [
     {
@@ -77,7 +120,10 @@ function AutomationDetail({
               metadata={automation.metadata}
               labels={automation.labels}
             />
-            <ReconciledObjectsTable automation={automation} />
+            <ReconciledObjectsTable
+              className={className}
+              reconciledObjectsAutomation={reconciledObjectsAutomation}
+            />
           </>
         );
       },
@@ -107,8 +153,8 @@ function AutomationDetail({
       component: () => {
         return (
           <ReconciliationGraph
-            parentObject={automation}
-            source={automation.sourceRef}
+            className={className}
+            reconciledObjectsAutomation={reconciledObjectsAutomation}
           />
         );
       },
