@@ -242,19 +242,21 @@ function AutomationDetail({
       )} */}
 
       <Collapsible>
-        <div className="grid grid-items">
-          {info.map(([k, v]) => {
-            return (
-              <Flex id={k} gap="8">
-                <Text capitalize semiBold color="neutral30">
-                  {k}:
-                </Text>
-                {v || "-"}
-              </Flex>
-            );
-          })}
+        <div className="collapse-wrapper ">
+          <div className="grid grid-items">
+            {info.map(([k, v]) => {
+              return (
+                <Flex id={k} gap="8">
+                  <Text capitalize semiBold color="neutral30">
+                    {k}:
+                  </Text>
+                  {v || "-"}
+                </Flex>
+              );
+            })}
+          </div>
+          <Metadata metadata={automation.metadata} labels={automation.labels} />
         </div>
-        <Metadata metadata={automation.metadata} labels={automation.labels} />
       </Collapsible>
 
       <SubRouterTabs rootPath={`${path}/details`}>
@@ -292,11 +294,14 @@ export default styled(AutomationDetail).attrs({
   ${PageStatus} {
     padding: ${(props) => props.theme.spacing.small} 0px;
   }
+  .collapse-wrapper {
+    padding: 16px 44px;
+    width: 100%;
+  }
   .grid {
     width: 100%;
     display: grid;
     gap: 8px;
-    padding: 16px 44px;
   }
   .grid-items {
     grid-template-columns: repeat(auto-fit, minmax(calc(50% - 8px), 1fr));
