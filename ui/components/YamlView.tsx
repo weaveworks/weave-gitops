@@ -1,21 +1,16 @@
 import * as React from "react";
-import styled from "styled-components";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { darcula } from "react-syntax-highlighter/dist/cjs/styles/prism";
+import styled from "styled-components";
+import { AppContext } from "../contexts/AppContext";
 import { ObjectRef } from "../lib/api/core/types.pb";
 import { createYamlCommand } from "../lib/utils";
 import CopyToClipboard from "./CopyToCliboard";
-
-export enum UiMode {
-  Light = "Light",
-  Dark = "Dark",
-}
 
 export type YamlViewProps = {
   className?: string;
   yaml: string;
   object?: ObjectRef;
-  mode?: UiMode;
 };
 
 const YamlHeader = styled.div`
@@ -28,19 +23,20 @@ const YamlHeader = styled.div`
   text-overflow: ellipsis;
 `;
 
-function UnstyledYamlView({ yaml, object, mode, className }: YamlViewProps) {
+function UnstyledYamlView({ yaml, object, className }: YamlViewProps) {
   const headerText = createYamlCommand(
     object.kind,
     object.name,
     object.namespace
   );
 
-  const useDarkMode = mode === UiMode.Dark;
+  const { settings } = React.useContext(AppContext);
+  const dark = settings.theme === "dark";
 
   const styleProps = {
     customStyle: {
       margin: 0,
-      ...(!useDarkMode && { backgroundColor: "transparent" }),
+      ...(!dark && { backgroundColor: "transparent" }),
     },
 
     codeTagProps: {
@@ -51,7 +47,7 @@ function UnstyledYamlView({ yaml, object, mode, className }: YamlViewProps) {
 
     lineProps: { style: { flexWrap: "wrap" } },
 
-    ...(useDarkMode && { style: darcula }),
+    ...(dark && { style: darcula }),
   };
 
   return (
@@ -94,10 +90,6 @@ const YamlView = styled(UnstyledYamlView).attrs({
       ${(props) => props.theme.spacing.small} !important;
   }
 `;
-
-YamlView.defaultProps = {
-  mode: UiMode.Light,
-};
 
 export const DialogYamlView = styled(YamlView)`
   margin-bottom: 0;

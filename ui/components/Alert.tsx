@@ -1,12 +1,12 @@
 import {
-  Alert as MaterialAlert,
-  // eslint-disable-next-line
   AlertProps,
   AlertTitle,
+  Alert as MaterialAlert,
 } from "@material-ui/lab";
 import * as React from "react";
 import styled from "styled-components";
 import Flex from "./Flex";
+import Text from "./Text";
 
 /** Alert Properties */
 export interface Props {
@@ -21,19 +21,25 @@ export interface Props {
   /** CSS MUI Overrides or other styling */
   className?: string;
 }
-
 /** Form Alert */
 function UnstyledAlert({ center, title, message, severity, className }: Props) {
   return (
     <Flex wide start={!center} className={className}>
       <MaterialAlert severity={severity}>
         <AlertTitle>{title}</AlertTitle>
-        {message}
+        <Text color="black">{message}</Text>
       </MaterialAlert>
     </Flex>
   );
 }
 
-const Alert = styled(UnstyledAlert)``;
+const Alert = styled(UnstyledAlert)`
+  .MuiAlert-standardError {
+    background-color: ${(props) => props.theme.colors.alertLight};
+  }
+  .MuiAlertTitle-root {
+    color: ${(props) => props.theme.colors.black};
+  }
+`;
 
 export default Alert;

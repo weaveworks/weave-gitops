@@ -30,7 +30,7 @@ export const ArrowDropDown = styled(IconButton)`
 export const DropDown = styled(Flex)`
   position: absolute;
   overflow: hidden;
-  background: white;
+  background: ${(props) => props.theme.colors.white};
   height: ${(props) => (props.open ? "100%" : "0px")};
   transition-property: height;
   transition-duration: 0.2s;

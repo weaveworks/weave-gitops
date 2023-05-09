@@ -61,7 +61,7 @@ export const theme = (mode: "light" | "dark"): DefaultTheme => {
         //only used in nav text when collapsed + selected/hover
         primaryLight05: "rgba(0,179,236,0.05)",
         primaryLight10: "#98E0F7",
-        primary10: "#009CCC",
+        primary10: "#00b3ec",
         primary20: "#006B8E",
         successLight: "#C9EBD7",
         successMedium: "#78CC9C",
@@ -213,6 +213,14 @@ export const GlobalStyle = createGlobalStyle`
       background-color: ${(props) => props.theme.colors.primary};
     }
   }
+  //toastify 
+  :root {
+    ${(props) =>
+      `--toastify-color-info: ${props.theme.colors.primary};
+      --toastify-color-success: ${props.theme.colors.successLight};
+      --toastify-color-warning: ${props.theme.colors.feedbackLight};
+      --toastify-color-error: ${props.theme.colors.alertLight};`}
+  }
 `;
 
 export const muiTheme = (colors) =>
@@ -226,9 +234,6 @@ export const muiTheme = (colors) =>
       secondary: {
         //Feedback - Alert - Original
         main: colors.alertOriginal,
-      },
-      error: {
-        main: colors.alertLight,
       },
       text: {
         //Neutral - Neutral - 40

@@ -179,6 +179,7 @@ function SignIn() {
                     <IconButton
                       aria-label="toggle password visibility"
                       onClick={() => setShowPassword(!showPassword)}
+                      color="primary"
                     >
                       {showPassword ? <Visibility /> : <VisibilityOff />}
                     </IconButton>
