@@ -72,11 +72,16 @@ function UserSettings({ className }: { className?: string }) {
         id="account-menu"
         open={open}
         onClose={handleClose}
-        onClick={handleClose}
+        onClick={handleClose}s
         transformOrigin={{ horizontal: 150, vertical: -80 }}
       >
+<<<<<<< HEAD
         <MenuItem disabled>Hello, {userInfo?.email}</MenuItem>
         <MenuItem onClick={() => navigate(V2Routes.Notifications)}>
+=======
+        <MenuItem  onClick={()=>history.push(V2Routes.ProfileInfo)}>Hello, {userInfo?.email}</MenuItem>
+        <MenuItem onClick={() => history.push(V2Routes.Notifications)}>
+>>>>>>> 7ffa3f465 (init view for user profile to show user groups)
           Notifications
         </MenuItem>
         <MenuItem className="logout" onClick={() => logOut()}>
