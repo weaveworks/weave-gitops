@@ -21,6 +21,7 @@ export namespace colors {
   const whiteToPrimary: string;
   const greyToPrimary: string;
   const backGrey: string;
+  const blueWithOpacity: string;
   const feedbackLight: string;
   const feedbackMedium: string;
   const feedbackOriginal: string;

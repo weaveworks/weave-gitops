@@ -80,7 +80,7 @@ const NavContent = styled.div<{ collapsed: boolean }>`
     transition: background-color 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
     &.selected,
     :hover {
-      background-color: rgba(0, 179, 236, 0.1);
+      background-color: ${(props) => props.theme.colors.blueWithOpacity};
     }
   }
   .header {

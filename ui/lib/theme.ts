@@ -80,6 +80,7 @@ export const theme = (mode: "light" | "dark"): DefaultTheme => {
         whiteToPrimary: "#32324B",
         greyToPrimary: "#009CCC",
         backGrey: "#32324B",
+        blueWithOpacity: "rgba(0, 179, 236, 0.1)",
         feedbackLight: "#FCE6D2",
         feedbackMedium: "#F7BF8E",
         feedbackOriginal: "#F2994A",
@@ -119,6 +120,7 @@ export const theme = (mode: "light" | "dark"): DefaultTheme => {
         whiteToPrimary: "#fff",
         greyToPrimary: "#737373",
         backGrey: "#eef0f4",
+        blueWithOpacity: "rgba(0, 179, 236, 0.1)",
         feedbackLight: "#FCE6D2",
         feedbackMedium: "#F7BF8E",
         feedbackOriginal: "#F2994A",
@@ -257,6 +259,7 @@ export const muiTheme = (colors) =>
       MuiPaper: {
         root: {
           overflowX: "hidden",
+          backgroundColor: colors.white,
         },
       },
       MuiDrawer: {

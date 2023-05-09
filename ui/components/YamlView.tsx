@@ -14,7 +14,7 @@ export type YamlViewProps = {
 };
 
 const YamlHeader = styled.div`
-  background: ${(props) => props.theme.colors.neutral10};
+  background: ${(props) => props.theme.colors.neutralGray};
   padding: ${(props) => props.theme.spacing.small};
   width: 100%;
   border-bottom: 1px solid ${(props) => props.theme.colors.neutral20};

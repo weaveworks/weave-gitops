@@ -314,7 +314,7 @@ exports[`DataTable snapshots renders 1`] = `
 }
 
 .c1 .filter-options-chip {
-  background-color: #E5F7FD;
+  background-color: #F6F7F9;
 }
 
 <div

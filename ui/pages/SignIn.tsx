@@ -219,9 +219,4 @@ export default styled(SignIn)`
   ${LoadingPage} {
     padding: ${(props) => props.theme.spacing.medium};
   }
-  form {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
 `;

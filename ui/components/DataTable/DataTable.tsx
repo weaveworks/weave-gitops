@@ -374,7 +374,10 @@ export const DataTable = styled(UnstyledDataTable)`
     transition: background 0.5s ease-in-out;
   }
   .MuiTableRow-root:not(.MuiTableRow-head):hover {
-    background: ${(props) => props.theme.colors.neutral10};
+    background: ${(props) =>
+      props.theme.colors.black === "#fff"
+        ? props.theme.colors.blueWithOpacity
+        : props.theme.colors.neutral10};
     transition: background 0.5s ease-in-out;
   }
   table {
@@ -398,6 +401,13 @@ export const DataTable = styled(UnstyledDataTable)`
   }
   .filter-options-chip {
     background-color: ${(props) => props.theme.colors.neutralGray};
+  }
+  //override so filter dialog button stays highlighted, but color is too bright in dark mode
+  .MuiButton-contained {
+    ${(props) =>
+      props.theme.colors.black === "#fff"
+        ? `background-color: ${props.theme.colors.neutral10};`
+        : null}
   }
 `;
 

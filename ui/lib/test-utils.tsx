@@ -20,7 +20,6 @@ import {
 } from "./api/core/core.pb";
 import theme, { muiTheme } from "./theme";
 import { RequestError } from "./types";
-
 export type CoreOverrides = {
   GetChildObjects?: (req: GetChildObjectsRequest) => GetChildObjectsResponse;
   GetReconciledObjects?: (
@@ -52,11 +51,14 @@ export const createCoreMockClient = (
   return promisified as typeof Core;
 };
 
-export function withTheme(element) {
+export function withTheme(element, mode: "light" | "dark" = "light") {
+  const appliedTheme = theme(mode);
   return (
-    <MuiThemeProvider theme={muiTheme}>
-      <ThemeProvider theme={theme("light")}>{element}</ThemeProvider>
-    </MuiThemeProvider>
+    <ThemeProvider theme={appliedTheme}>
+      <MuiThemeProvider theme={muiTheme(appliedTheme.colors)}>
+        {element}
+      </MuiThemeProvider>
+    </ThemeProvider>
   );
 }
 
@@ -76,6 +78,9 @@ export function withContext(
     defaultOptions: { queries: { retry: false } },
   });
   const isElement = React.isValidElement(TestComponent);
+  window.matchMedia = jest.fn();
+  //@ts-ignore
+  window.matchMedia.mockReturnValue({ matches: false });
   return (
     <Router history={history}>
       <AppContextProvider renderFooter {...appProps}>

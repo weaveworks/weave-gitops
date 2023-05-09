@@ -1,7 +1,7 @@
 import qs from "query-string";
 import React from "react";
 import { useLocation } from "react-router-dom";
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
 import useNavigation from "../hooks/navigation";
 import { formatURL, getPageLabel, getParentNavValue } from "../lib/nav";
 import { V2Routes } from "../lib/types";
@@ -15,7 +15,8 @@ export const Breadcrumbs = () => {
   const parentValue = getParentNavValue(currentPage) as V2Routes;
   const label = getPageLabel(parentValue);
   const parsed = qs.parse(search);
-
+  const theme = useTheme();
+  console.log(theme);
   return (
     <Flex align>
       <Link
