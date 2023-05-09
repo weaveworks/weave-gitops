@@ -109,6 +109,7 @@ import {
 } from "./lib/utils";
 import SignIn from "./pages/SignIn";
 import Text from "./components/Text";
+import Layout from "./components/Layout";
 
 export {
   AppContext,
@@ -170,6 +171,7 @@ export {
   KubeStatusIndicator,
   KustomizationDetail,
   Kustomization,
+  Layout,
   Link,
   LinkResolverProvider,
   LoadingPage,

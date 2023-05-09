@@ -40,6 +40,11 @@ import OCIRepositoryPage from "./pages/v2/OCIRepositoryPage";
 import ProviderPage from "./pages/v2/ProviderPage";
 import Sources from "./pages/v2/Sources";
 import UserInfo from "./pages/v2/UserInfo";
+import Logo from "./components/Logo";
+import Nav, { NavItem } from "./components/Nav";
+import { IconType } from "./components/Icon";
+import { getParentNavRouteValue } from "./lib/nav";
+import useNavigation from "./hooks/navigation";
 
 const queryClient = new QueryClient();
 
@@ -50,80 +55,169 @@ function withSearchParams(Cmp) {
     return <Cmp {...rest} {...params} />;
   };
 }
-const App = () => (
-  <Layout>
-    <PendoContainer />
-    <ErrorBoundary>
-      <Switch>
-        <Route exact path={V2Routes.Automations} component={Automations} />
-        <Route
-          path={V2Routes.Kustomization}
-          component={withSearchParams(KustomizationPage)}
-        />
-        <Route path={V2Routes.Sources} component={Sources} />
-        <Route
-          path={V2Routes.ImageAutomation}
-          component={ImageAutomationPage}
-        />
-        <Route
-          path={V2Routes.ImageAutomationUpdatesDetails}
-          component={withSearchParams(ImageAutomationUpdatesDetails)}
-        />
-        <Route
-          path={V2Routes.ImageAutomationRepositoryDetails}
-          component={withSearchParams(ImageAutomationRepoDetails)}
-        />
-        <Route
-          path={V2Routes.ImagePolicyDetails}
-          component={withSearchParams(ImagePolicyDetails)}
-        />
-        <Route path={V2Routes.FluxRuntime} component={FluxRuntime} />
-        <Route
-          path={V2Routes.GitRepo}
-          component={withSearchParams(GitRepositoryDetail)}
-        />
-        <Route
-          path={V2Routes.HelmRepo}
-          component={withSearchParams(HelmRepositoryDetail)}
-        />
-        <Route
-          path={V2Routes.Bucket}
-          component={withSearchParams(BucketDetail)}
-        />
-        <Route
-          path={V2Routes.HelmRelease}
-          component={withSearchParams(HelmReleasePage)}
-        />
-        <Route
-          path={V2Routes.HelmChart}
-          component={withSearchParams(HelmChartDetail)}
-        />
-        <Route
-          path={V2Routes.OCIRepository}
-          component={withSearchParams(OCIRepositoryPage)}
-        />
-        <Route
-          path={V2Routes.Notifications}
-          component={withSearchParams(Notifications)}
-        />
-        <Route
-          path={V2Routes.Provider}
-          component={withSearchParams(ProviderPage)}
-        />
-        <Route path={V2Routes.UserInfo} component={UserInfo} />
 
-        <Redirect exact from="/" to={V2Routes.Automations} />
+// const { appState, setDetailModal } = useContext(AppContext);
+// const detail = appState.detailModal;
 
-        <Route exact path="*" component={Error} />
-      </Switch>
-    </ErrorBoundary>
-    <ToastContainer
-      position="top-center"
-      autoClose={5000}
-      newestOnTop={false}
+// const { currentPage } = useNavigation();
+// const value = getParentNavRouteValue(currentPage);
+
+// return (
+//   <AppContainer className={className}>
+//     <TopToolBar start align wide>
+//       <Logo collapsed={collapsed} link={V2Routes.Automations} />
+//       <Breadcrumbs />
+//       <UserSettings />
+//     </TopToolBar>
+//     <Main wide tall>
+//       <Nav
+//         navItems={navItems}
+//         collapsed={collapsed}
+//         setCollapsed={setCollapsed}
+//         currentPage={value}
+//       />
+//       <ContentContainer>{children}</ContentContainer>
+//     </Main>
+//     <Drawer
+//       anchor="right"
+//       open={detail ? true : false}
+//       onClose={() => setDetailModal(null)}
+//       ModalProps={{ keepMounted: false }}
+//     >
+//       {detail && (
+//         <DetailModal className={detail.className} object={detail.object} />
+//       )}
+//     </Drawer>
+//   </AppContainer>
+
+const navItems: NavItem[] = [
+  {
+    label: "Applications",
+    link: { value: V2Routes.Automations },
+    icon: IconType.ApplicationsIcon,
+  },
+  {
+    label: "Sources",
+    link: { value: V2Routes.Sources },
+    icon: IconType.SourcesIcon,
+  },
+  {
+    label: "Image Automation",
+    link: { value: V2Routes.ImageAutomation },
+    icon: IconType.ImageAutomationIcon,
+  },
+  {
+    label: "Flux Runtime",
+    link: { value: V2Routes.FluxRuntime },
+    icon: IconType.FluxIcon,
+  },
+  {
+    label: "Notifications",
+    link: { value: V2Routes.Notifications },
+    icon: IconType.NotificationsIcon,
+  },
+  {
+    label: "Docs",
+    link: {
+      value: "docs",
+      href: "https://docs.gitops.weave.works/",
+      newTab: true,
+    },
+    icon: IconType.DocsIcon,
+  },
+];
+
+const App = () => {
+  const [collapsed, setCollapsed] = React.useState<boolean>(false);
+  const { currentPage } = useNavigation();
+  const value = getParentNavRouteValue(currentPage);
+
+  const logo = <Logo collapsed={collapsed} link={V2Routes.Automations} />;
+
+  const nav = (
+    <Nav
+      navItems={navItems}
+      collapsed={collapsed}
+      setCollapsed={setCollapsed}
+      currentPage={value}
     />
-  </Layout>
-);
+  );
+
+  return (
+    <Layout logo={logo} nav={nav}>
+      <PendoContainer />
+      <ErrorBoundary>
+        <Switch>
+          <Route exact path={V2Routes.Automations} component={Automations} />
+          <Route
+            path={V2Routes.Kustomization}
+            component={withSearchParams(KustomizationPage)}
+          />
+          <Route path={V2Routes.Sources} component={Sources} />
+          <Route
+            path={V2Routes.ImageAutomation}
+            component={ImageAutomationPage}
+          />
+          <Route
+            path={V2Routes.ImageAutomationUpdatesDetails}
+            component={withSearchParams(ImageAutomationUpdatesDetails)}
+          />
+          <Route
+            path={V2Routes.ImageAutomationRepositoryDetails}
+            component={withSearchParams(ImageAutomationRepoDetails)}
+          />
+          <Route
+            path={V2Routes.ImagePolicyDetails}
+            component={withSearchParams(ImagePolicyDetails)}
+          />
+          <Route path={V2Routes.FluxRuntime} component={FluxRuntime} />
+          <Route
+            path={V2Routes.GitRepo}
+            component={withSearchParams(GitRepositoryDetail)}
+          />
+          <Route
+            path={V2Routes.HelmRepo}
+            component={withSearchParams(HelmRepositoryDetail)}
+          />
+          <Route
+            path={V2Routes.Bucket}
+            component={withSearchParams(BucketDetail)}
+          />
+          <Route
+            path={V2Routes.HelmRelease}
+            component={withSearchParams(HelmReleasePage)}
+          />
+          <Route
+            path={V2Routes.HelmChart}
+            component={withSearchParams(HelmChartDetail)}
+          />
+          <Route
+            path={V2Routes.OCIRepository}
+            component={withSearchParams(OCIRepositoryPage)}
+          />
+          <Route
+            path={V2Routes.Notifications}
+            component={withSearchParams(Notifications)}
+          />
+          <Route
+            path={V2Routes.Provider}
+            component={withSearchParams(ProviderPage)}
+          />
+          <Route path={V2Routes.UserInfo} component={UserInfo} />
+
+          <Redirect exact from="/" to={V2Routes.Automations} />
+
+          <Route exact path="*" component={Error} />
+        </Switch>
+      </ErrorBoundary>
+      <ToastContainer
+        position="top-center"
+        autoClose={5000}
+        newestOnTop={false}
+      />
+    </Layout>
+  );
+};
 
 export default function AppContainer() {
   return (
