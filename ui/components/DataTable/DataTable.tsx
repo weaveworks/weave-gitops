@@ -307,10 +307,10 @@ function UnstyledDataTable({
                 {checkboxes && (
                   <TableCell key={"checkboxes"}>
                     <Checkbox
-                      checked={filtered.length === checked.length}
+                      checked={filtered?.length === checked.length}
                       onChange={(e) =>
                         e.target.checked
-                          ? setChecked(filtered.map((r) => r.uid))
+                          ? setChecked(filtered?.map((r) => r.uid))
                           : setChecked([])
                       }
                       color="primary"
