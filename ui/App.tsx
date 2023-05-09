@@ -111,11 +111,7 @@ const App = () => (
           path={V2Routes.Provider}
           element={<ProviderPage {...withSearchParams()} />}
         />
-                <Route
-          path={V2Routes.ProfileInfo}
-          component={ProfileInfo}
-        />
-        <Route path={V2Routes.UserInfo} component={UserInfo} />
+        <Route path={V2Routes.UserInfo} element={UserInfo} />
 
         {/* <Redirect to={V2Routes.Automations} /> */}
 
