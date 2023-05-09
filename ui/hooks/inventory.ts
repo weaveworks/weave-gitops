@@ -95,3 +95,37 @@ export const createCanaryCondition = (objs: FluxObject[]): Condition => {
     };
   return condition;
 };
+
+// Will be used later on when we change Deployments in app details to cards (workloads+canary) + list other resources in a table
+// export const mapWorkloadEntries = (entries: FluxObject[]) => {
+//   const canaries: FluxObject[] = [];
+//   const ents: FluxObject[] = [];
+//   const workloads: FluxObject[] = [];
+
+//   entries.forEach((obj) => {
+//     switch (obj.type) {
+//       case "Canary":
+//         canaries.push(obj);
+//         break;
+//       case "Deployment":
+//       case "ReplicaSet":
+//       case "StatefulSet":
+//       case "Job":
+//         workloads.push(obj);
+//         break;
+//       default:
+//         ents.push(obj);
+//         break;
+//     }
+//   });
+//   const mappedWorkloads = workloads.map((r: FluxObject) => {
+//     const dep = canaries.find((c) => {
+//       const { kind, name } = c.obj.spec.targetRef;
+//       return r.type === kind && r.name === name && r.namespace === c.namespace;
+//     });
+//     if (dep) r.canaryResource = dep;
+//     return r;
+//   });
+
+//   return { workloads: mappedWorkloads, components: ents };
+// };

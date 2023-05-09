@@ -3,7 +3,7 @@ import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
 import { useSyncFluxObject } from "../hooks/automations";
 import { useToggleSuspend } from "../hooks/flux";
-import { createCanaryCondition, useGetInventory } from "../hooks/inventory";
+import { useGetInventory } from "../hooks/inventory";
 import { Condition, Kind, ObjectRef } from "../lib/api/core/types.pb";
 import { Automation, HelmRelease } from "../lib/objects";
 import { automationLastUpdated } from "../lib/utils";
@@ -14,7 +14,7 @@ import DependenciesView from "./DependenciesView";
 import EventsTable from "./EventsTable";
 import Flex from "./Flex";
 import HealthCheckAgg, { computeAggHealthCheck } from "./HealthCheckAgg";
-import InfoList, { InfoField } from "./InfoList";
+import { InfoField } from "./InfoList";
 import { routeTab } from "./KustomizationDetail";
 import Metadata from "./Metadata";
 import PageStatus from "./PageStatus";
@@ -77,11 +77,7 @@ function AutomationDetail({
     name,
     clusterName,
     namespace,
-    false,
-    {
-      retry: false,
-      refetchInterval: 5000,
-    }
+    false
   );
 
   const sync = useSyncFluxObject([
@@ -107,8 +103,11 @@ function AutomationDetail({
     },
     automation.type === Kind.HelmRelease ? "helmrelease" : "kustomizations"
   );
-  const canaryStatus = createCanaryCondition(data?.objects);
+
+  // agreed to hide canary status agg for now as there's some concerns about the pd status ( when it's ready and when it's not)
+  // const canaryStatus = createCanaryCondition(data?.objects);
   const health = computeAggHealthCheck(data?.objects || []);
+
   const defaultTabs: Array<routeTab> = [
     {
       name: "Details",
@@ -116,13 +115,6 @@ function AutomationDetail({
       component: () => {
         return (
           <>
-            <Collapsible>
-              <InfoList items={info} />
-              <Metadata
-                metadata={automation.metadata}
-                labels={automation.labels}
-              />
-            </Collapsible>
             <RequestStateHandler loading={isLoading} error={error}>
               <ReconciledObjectsTable
                 className={className}
@@ -190,56 +182,72 @@ function AutomationDetail({
     },
   ];
   return (
-    <Flex wide tall column className={className}>
-      <Flex wide end gap="14">
-        {automation?.type === "HelmRelease" ? (
+    <Flex wide tall column className={className} gap="16">
+      <Flex wide>
+        <Flex start>
+          <SyncButton
+            onClick={(opts) => sync.mutateAsync(opts)}
+            loading={sync.isLoading}
+            disabled={automation.suspended}
+          />
+          <Spacer padding="xs" />
+          <Button
+            onClick={() => suspend.mutateAsync()}
+            loading={suspend.isLoading}
+          >
+            {automation.suspended ? "Resume" : "Suspend"}
+          </Button>
+          <CustomActions actions={customActions} />
+        </Flex>
+        <Flex wide end gap="14">
+          {automation?.type === "HelmRelease" ? (
+            <Text capitalize semiBold color="neutral30">
+              Chart Version:{" "}
+              <Text size="large" color="neutral40">
+                {(automation as HelmRelease).helmChart?.version || "-"}
+              </Text>
+            </Text>
+          ) : (
+            <Text capitalize semiBold color="neutral30">
+              Applied Revision:{" "}
+              <Text size="large" color="neutral40">
+                {automation?.lastAppliedRevision || "-"}
+              </Text>
+            </Text>
+          )}
           <Text capitalize semiBold color="neutral30">
-            Chart Version:{" "}
+            Last Updated:{" "}
             <Text size="large" color="neutral40">
-              {(automation as HelmRelease).helmChart?.version || "-"}
+              <Timestamp time={automationLastUpdated(automation)} />
             </Text>
           </Text>
-        ) : (
-          <Text capitalize semiBold color="neutral30">
-            Applied Revision:{" "}
-            <Text size="large" color="neutral40">
-              {automation?.lastAppliedRevision || "-"}
-            </Text>
-          </Text>
-        )}
-        <Text capitalize semiBold color="neutral30">
-          Last Updated:{" "}
-          <Text size="large" color="neutral40">
-            <Timestamp time={automationLastUpdated(automation)} />
-          </Text>
-        </Text>
+        </Flex>
       </Flex>
-      <Spacer m={["base", "none"]} />
-      {health && <HealthCheckAgg health={health} />}
-      <Spacer m={["base", "none"]} />
-
       <PageStatus
         conditions={automation.conditions}
         suspended={automation.suspended}
       />
-      {(customTabs || customActions) && (
+      {health && <HealthCheckAgg health={health} />}
+
+      {/* {(customTabs || customActions) && (
         <PageStatus conditions={[canaryStatus]} suspended={false} />
-      )}
-      <Flex wide start>
-        <SyncButton
-          onClick={(opts) => sync.mutateAsync(opts)}
-          loading={sync.isLoading}
-          disabled={automation.suspended}
-        />
-        <Spacer padding="xs" />
-        <Button
-          onClick={() => suspend.mutateAsync()}
-          loading={suspend.isLoading}
-        >
-          {automation.suspended ? "Resume" : "Suspend"}
-        </Button>
-        <CustomActions actions={customActions} />
-      </Flex>
+      )} */}
+
+      <Collapsible>
+        <div className="grid grid-items">
+          {info.map(([k, v]) => {
+            return (
+              <Flex id={k} gap="8">
+                <Text capitalize semiBold color="neutral30">
+                  {k}:
+                </Text>
+                {v || "-"}
+              </Flex>
+            );
+          })}
+        </div>
+        <Metadata metadata={automation.metadata} labels={automation.labels} />
+      </Collapsible>
 
       <SubRouterTabs rootPath={`${path}/details`}>
         {defaultTabs.map(
@@ -270,10 +278,19 @@ function AutomationDetail({
 export default styled(AutomationDetail).attrs({
   className: AutomationDetail.name,
 })`
+  ${Collapsible} {
+    width: 100%;
+  }
   ${PageStatus} {
     padding: ${(props) => props.theme.spacing.small} 0px;
   }
-  ${SubRouterTabs} {
-    margin-top: ${(props) => props.theme.spacing.medium};
+  .grid {
+    width: 100%;
+    display: grid;
+    gap: 8px;
+    padding: 16px 44px;
+  }
+  .grid-items {
+    grid-template-columns: repeat(auto-fit, minmax(calc(50% - 8px), 1fr));
   }
 `;

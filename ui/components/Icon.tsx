@@ -3,6 +3,8 @@ import ArrowDropDownIcon from "@material-ui/icons/ArrowDropDown";
 import ArrowDownwardRoundedIcon from "@material-ui/icons/ArrowDownwardRounded";
 import ArrowUpwardRoundedIcon from "@material-ui/icons/ArrowUpwardRounded";
 import ArrowUpwardIcon from "@material-ui/icons/ArrowUpward";
+import KeyboardArrowRightIcon from "@material-ui/icons/KeyboardArrowRight";
+import KeyboardArrowDownIcon from "@material-ui/icons/KeyboardArrowDown";
 import CheckCircleIcon from "@material-ui/icons/CheckCircle";
 import ClearIcon from "@material-ui/icons/Clear";
 import DeleteIcon from "@material-ui/icons/Delete";
@@ -57,6 +59,8 @@ export enum IconType {
   ArrowDropDownIcon,
   ArrowDownwardRoundedIcon,
   ArrowUpwardRoundedIcon,
+  KeyboardArrowRightIcon,
+  KeyboardArrowDownIcon,
   DeleteIcon,
   SaveAltIcon,
   ErrorIcon,
@@ -125,6 +129,10 @@ function getIcon(i: IconType) {
 
     case IconType.ArrowUpwardIcon:
       return ArrowUpwardIcon;
+    case IconType.KeyboardArrowRightIcon:
+      return KeyboardArrowRightIcon;
+    case IconType.KeyboardArrowDownIcon:
+      return KeyboardArrowDownIcon;
 
     case IconType.DeleteIcon:
       return DeleteIcon;
