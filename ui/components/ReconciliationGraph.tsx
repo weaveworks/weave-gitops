@@ -10,6 +10,12 @@ import Flex from "./Flex";
 import RequestStateHandler from "./RequestStateHandler";
 import Spacer from "./Spacer";
 
+// This is working around a parcel build error.
+// https://github.com/parcel-bundler/parcel/issues/8792
+// https://github.com/weaveworks/weave-gitops/issues/3672
+// Theory: this is tricking parcel into correctly importing d3. :shrug:
+d3;
+
 interface Props {
   className?: string;
   reconciledObjectsAutomation: ReconciledObjectsAutomation;

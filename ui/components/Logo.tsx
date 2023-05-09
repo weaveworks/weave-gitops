@@ -16,7 +16,7 @@ function Logo({ className, link, collapsed }: Props) {
   return (
     <Flex className={className} wide>
       <Link to={link || V2Routes.Automations}>
-        <img src={images.weaveG} />
+        <img src={images.logoLight} />
       </Link>
       <Fade fade={collapsed}>
         <Link to={link || V2Routes.Automations}>
