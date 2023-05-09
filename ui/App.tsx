@@ -113,7 +113,7 @@ const App = () => (
         />
         <Route path={V2Routes.UserInfo} element={UserInfo} />
 
-        {/* <Redirect to={V2Routes.Automations} /> */}
+        <Route path="/" element={<Automations />} />
 
         <Route path="*" element={<Error />} />
       </Routes>
