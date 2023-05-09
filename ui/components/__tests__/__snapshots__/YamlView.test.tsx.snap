@@ -185,9 +185,9 @@ exports[`YamlView snapshots renders 1`] = `
       style={
         Object {
           "whiteSpace": "pre-wrap",
+          "wordBreak": "break-word",
         }
       }
-      wordBreak="break-word"
     >
       <span
         style={
