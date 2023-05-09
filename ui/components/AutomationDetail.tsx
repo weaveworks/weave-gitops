@@ -1,3 +1,4 @@
+import { Tooltip } from "@material-ui/core";
 import * as React from "react";
 import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
@@ -208,12 +209,19 @@ function AutomationDetail({
               </Text>
             </Text>
           ) : (
-            <Text capitalize semiBold color="neutral30">
-              Applied Revision:{" "}
-              <Text size="large" color="neutral40">
-                {automation?.lastAppliedRevision || "-"}
+            <Flex gap="4" alignItems="baseline">
+              <Text capitalize semiBold color="neutral30">
+                Applied Revision:
               </Text>
-            </Text>
+              <Tooltip
+                title={automation?.lastAppliedRevision || "-"}
+                placement="top"
+              >
+                <Text size="large" color="neutral40" className="trim-text">
+                  {automation?.lastAppliedRevision || "-"}
+                </Text>
+              </Tooltip>
+            </Flex>
           )}
           <Text capitalize semiBold color="neutral30">
             Last Updated:{" "}
@@ -292,5 +300,11 @@ export default styled(AutomationDetail).attrs({
   }
   .grid-items {
     grid-template-columns: repeat(auto-fit, minmax(calc(50% - 8px), 1fr));
+  }
+  .trim-text {
+    max-width: 150px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 `;
