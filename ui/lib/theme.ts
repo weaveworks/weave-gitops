@@ -1,6 +1,6 @@
 // Typescript will handle type-checking/linting for this file
-// eslint-disable-next-line
 import { createTheme } from "@material-ui/core";
+// eslint-disable-next-line
 import { createGlobalStyle, DefaultTheme } from "styled-components";
 import images from "./images";
 
