@@ -26,6 +26,7 @@ import (
 // 3. Add the new mapping to the map below
 // 4. Don't forget to *remove the oldest mapping* from the map below
 var sourceVerToFluxVer = map[string]string{
+	"v1.0.0-rc.2": "v2.0.0-rc.2",
 	"v1.0.0-rc.1": "v2.0.0-rc.1",
 	"v0.36.1":     "v0.41.2",
 	"v0.36.0":     "v0.41.0",
