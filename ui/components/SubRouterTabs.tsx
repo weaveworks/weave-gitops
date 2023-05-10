@@ -56,7 +56,6 @@ export function RouterTab({ children }: TabProps) {
   return children;
 }
 
-
 function SubRouterTabs({ className, children, clearQuery }: Props) {
   const query = qs.parse(window.location.search);
   const childs = findChildren(children).filter((c) => c);

@@ -23,5 +23,8 @@ export default function useNavigation(): {
 export const useOnLocationChange = (handleLocationChange: any) => {
   const location = useLocation();
 
-  useEffect(() => handleLocationChange(location), [location, handleLocationChange]);
+  useEffect(
+    () => handleLocationChange(location),
+    [location, handleLocationChange]
+  );
 };
