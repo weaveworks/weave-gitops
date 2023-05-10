@@ -40,7 +40,7 @@ module.exports = {
           // /docs/oldDoc -> /docs/newDoc
           {
             to: '/docs/getting-started/intro/',
-            from: ['/docs/gitops-dashboard/index.html', '/docs/gitops-dashboard/index'],
+            from: ['/docs/getting-started/', '/docs/getting-started'],
           },
         ],
       },
