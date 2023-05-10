@@ -51,80 +51,85 @@ function withSearchParams(Cmp) {
   };
 }
 
-const App = () => (
-  <Layout>
-    <PendoContainer />
-    <ErrorBoundary>
-      <Switch>
-        <Route exact path={V2Routes.Automations} component={Automations} />
-        <Route
-          path={V2Routes.Kustomization}
-          component={withSearchParams(KustomizationPage)}
-        />
-        <Route path={V2Routes.Sources} component={Sources} />
-        <Route
-          path={V2Routes.ImageAutomation}
-          component={ImageAutomationPage}
-        />
-        <Route
-          path={V2Routes.ImageAutomationUpdatesDetails}
-          component={withSearchParams(ImageAutomationUpdatesDetails)}
-        />
-        <Route
-          path={V2Routes.ImageAutomationRepositoryDetails}
-          component={withSearchParams(ImageAutomationRepoDetails)}
-        />
-        <Route
-          path={V2Routes.ImagePolicyDetails}
-          component={withSearchParams(ImagePolicyDetails)}
-        />
-        <Route path={V2Routes.FluxRuntime} component={FluxRuntime} />
-        <Route
-          path={V2Routes.GitRepo}
-          component={withSearchParams(GitRepositoryDetail)}
-        />
-        <Route
-          path={V2Routes.HelmRepo}
-          component={withSearchParams(HelmRepositoryDetail)}
-        />
-        <Route
-          path={V2Routes.Bucket}
-          component={withSearchParams(BucketDetail)}
-        />
-        <Route
-          path={V2Routes.HelmRelease}
-          component={withSearchParams(HelmReleasePage)}
-        />
-        <Route
-          path={V2Routes.HelmChart}
-          component={withSearchParams(HelmChartDetail)}
-        />
-        <Route
-          path={V2Routes.OCIRepository}
-          component={withSearchParams(OCIRepositoryPage)}
-        />
-        <Route
-          path={V2Routes.Notifications}
-          component={withSearchParams(Notifications)}
-        />
-        <Route
-          path={V2Routes.Provider}
-          component={withSearchParams(ProviderPage)}
-        />
-        <Route path={V2Routes.UserInfo} component={UserInfo} />
+const App = () => {
+  const { settings } = React.useContext(AppContext);
+  const dark = settings.theme === "dark";
+  return (
+    <Layout>
+      <PendoContainer />
+      <ErrorBoundary>
+        <Switch>
+          <Route exact path={V2Routes.Automations} component={Automations} />
+          <Route
+            path={V2Routes.Kustomization}
+            component={withSearchParams(KustomizationPage)}
+          />
+          <Route path={V2Routes.Sources} component={Sources} />
+          <Route
+            path={V2Routes.ImageAutomation}
+            component={ImageAutomationPage}
+          />
+          <Route
+            path={V2Routes.ImageAutomationUpdatesDetails}
+            component={withSearchParams(ImageAutomationUpdatesDetails)}
+          />
+          <Route
+            path={V2Routes.ImageAutomationRepositoryDetails}
+            component={withSearchParams(ImageAutomationRepoDetails)}
+          />
+          <Route
+            path={V2Routes.ImagePolicyDetails}
+            component={withSearchParams(ImagePolicyDetails)}
+          />
+          <Route path={V2Routes.FluxRuntime} component={FluxRuntime} />
+          <Route
+            path={V2Routes.GitRepo}
+            component={withSearchParams(GitRepositoryDetail)}
+          />
+          <Route
+            path={V2Routes.HelmRepo}
+            component={withSearchParams(HelmRepositoryDetail)}
+          />
+          <Route
+            path={V2Routes.Bucket}
+            component={withSearchParams(BucketDetail)}
+          />
+          <Route
+            path={V2Routes.HelmRelease}
+            component={withSearchParams(HelmReleasePage)}
+          />
+          <Route
+            path={V2Routes.HelmChart}
+            component={withSearchParams(HelmChartDetail)}
+          />
+          <Route
+            path={V2Routes.OCIRepository}
+            component={withSearchParams(OCIRepositoryPage)}
+          />
+          <Route
+            path={V2Routes.Notifications}
+            component={withSearchParams(Notifications)}
+          />
+          <Route
+            path={V2Routes.Provider}
+            component={withSearchParams(ProviderPage)}
+          />
+          <Route path={V2Routes.UserInfo} component={UserInfo} />
 
-        <Redirect exact from="/" to={V2Routes.Automations} />
+          <Redirect exact from="/" to={V2Routes.Automations} />
 
-        <Route exact path="*" component={Error} />
-      </Switch>
-    </ErrorBoundary>
-    <ToastContainer
-      position="top-center"
-      autoClose={5000}
-      newestOnTop={false}
-    />
-  </Layout>
-);
+          <Route exact path="*" component={Error} />
+        </Switch>
+      </ErrorBoundary>
+      <ToastContainer
+        position="top-center"
+        autoClose={5000}
+        newestOnTop={false}
+        theme={dark ? "dark" : "light"}
+      />
+    </Layout>
+  );
+};
 
 const StylesProvider = ({ children }) => {
   const { settings } = React.useContext(AppContext);

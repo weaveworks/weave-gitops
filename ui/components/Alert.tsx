@@ -1,8 +1,4 @@
-import {
-  AlertProps,
-  AlertTitle,
-  Alert as MaterialAlert,
-} from "@material-ui/lab";
+import { AlertTitle, Alert as MaterialAlert } from "@material-ui/lab";
 import * as React from "react";
 import styled from "styled-components";
 import Flex from "./Flex";
@@ -11,7 +7,7 @@ import Text from "./Text";
 /** Alert Properties */
 export interface Props {
   /** string of one of the colors from our `MuiTheme` - also sets the corresponding material icon - see /ui/lib/theme.ts and https://mui.com/customization/theming/ */
-  severity?: AlertProps["severity"];
+  severity?: "error" | "info" | "success" | "warning";
   /** Overrides `justify-content: flex-start` (left) to render the Alert in the center of it's 100% width `<Flex />` component */
   center?: boolean;
   /** text for Mui's `<AlertTitle />` component */

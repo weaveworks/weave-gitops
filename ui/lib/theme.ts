@@ -215,14 +215,6 @@ export const GlobalStyle = createGlobalStyle`
       background-color: ${(props) => props.theme.colors.primary};
     }
   }
-  //toastify 
-  :root {
-    ${(props) =>
-      `--toastify-color-info: ${props.theme.colors.primary};
-      --toastify-color-success: ${props.theme.colors.successLight};
-      --toastify-color-warning: ${props.theme.colors.feedbackLight};
-      --toastify-color-error: ${props.theme.colors.alertLight};`}
-  }
 `;
 
 export const muiTheme = (colors) =>
