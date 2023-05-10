@@ -31,7 +31,7 @@ const ContentContainer = styled.div`
   min-width: 900px;
   max-width: 100%;
   //without a hard value in the height property, min-height in the Page component doesn't work
-  height: 1px;
+  height: 100vh;
   min-height: 100%;
   padding-bottom: ${(props) => props.theme.spacing.small};
   padding-right: ${(props) => props.theme.spacing.medium};
