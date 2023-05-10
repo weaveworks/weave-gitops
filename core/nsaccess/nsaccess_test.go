@@ -171,6 +171,84 @@ func TestFilterAccessibleNamespaces(t *testing.T) {
 
 		g.Expect(filtered).To(HaveLen(0))
 	})
+	t.Run("filters out namespaces that do not have the right resources (multiple required rules)", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+		ns := newNamespace(context.Background(), adminClient, NewGomegaWithT(t))
+		defer removeNs(t, adminClient, ns)
+
+		roleName := makeRole(ns)
+
+		roleRules := []rbacv1.PolicyRule{
+			{
+				APIGroups: []string{""},
+				Resources: []string{"secrets", "events", "namespaces"},
+				Verbs:     []string{"get", "list"},
+			},
+		}
+
+		userCfg := newRestConfigWithRole(t, testCfg, roleName, roleRules)
+
+		requiredRules := []rbacv1.PolicyRule{
+			{
+				APIGroups: []string{""},
+				Resources: []string{"pods"},
+				Verbs:     []string{"get", "list"},
+			},
+			{
+				APIGroups: []string{""},
+				Resources: []string{"secrets", "events", "namespaces"},
+				Verbs:     []string{"get", "list"},
+			},
+		}
+
+		list := &corev1.NamespaceList{}
+		g.Expect(adminClient.List(ctx, list)).To(Succeed())
+
+		checker := NewChecker(requiredRules)
+		filtered, err := checker.FilterAccessibleNamespaces(ctx, userCfg, list.Items)
+		g.Expect(err).NotTo(HaveOccurred())
+
+		g.Expect(filtered).To(HaveLen(0))
+	})
+	t.Run("filters out namespaces that do not have the right verbs (multiple required rules)", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+		ns := newNamespace(context.Background(), adminClient, NewGomegaWithT(t))
+		defer removeNs(t, adminClient, ns)
+
+		roleName := makeRole(ns)
+
+		roleRules := []rbacv1.PolicyRule{
+			{
+				APIGroups: []string{""},
+				Resources: []string{"secrets", "pods", "events", "namespaces"},
+				Verbs:     []string{"get"},
+			},
+		}
+
+		userCfg := newRestConfigWithRole(t, testCfg, roleName, roleRules)
+
+		requiredRules := []rbacv1.PolicyRule{
+			{
+				APIGroups: []string{""},
+				Resources: []string{"secrets", "events", "pods", "namespaces"},
+				Verbs:     []string{"get", "list"},
+			},
+			{
+				APIGroups: []string{""},
+				Resources: []string{"pods"},
+				Verbs:     []string{"get"},
+			},
+		}
+
+		list := &corev1.NamespaceList{}
+		g.Expect(adminClient.List(ctx, list)).To(Succeed())
+
+		checker := NewChecker(requiredRules)
+		filtered, err := checker.FilterAccessibleNamespaces(ctx, userCfg, list.Items)
+		g.Expect(err).NotTo(HaveOccurred())
+
+		g.Expect(filtered).To(HaveLen(0))
+	})
 	t.Run("works when api groups are defined in multiple roles", func(t *testing.T) {
 		g := NewGomegaWithT(t)
 		ns := newNamespace(context.Background(), adminClient, NewGomegaWithT(t))
@@ -209,6 +287,50 @@ func TestFilterAccessibleNamespaces(t *testing.T) {
 		g.Expect(err).NotTo(HaveOccurred())
 
 		g.Expect(filtered).To(HaveLen(1))
+	})
+	t.Run("works when api groups are defined in multiple roles (multiple required rules)", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+		ns := newNamespace(context.Background(), adminClient, NewGomegaWithT(t))
+		defer removeNs(t, adminClient, ns)
+
+		roleName := makeRole(ns)
+
+		roleRules := []rbacv1.PolicyRule{
+			{
+				APIGroups: []string{""},
+				Resources: []string{"secrets", "events", "namespaces"},
+				Verbs:     []string{"get", "list"},
+			},
+			{
+				APIGroups: []string{""},
+				Resources: []string{"pods"},
+				Verbs:     []string{"get", "list"},
+			},
+		}
+
+		userCfg := newRestConfigWithRole(t, testCfg, roleName, roleRules)
+
+		requiredRules := []rbacv1.PolicyRule{
+			{
+				APIGroups: []string{""},
+				Resources: []string{"secrets", "events", "namespaces"},
+				Verbs:     []string{"get", "list"},
+			},
+			{
+				APIGroups: []string{""},
+				Resources: []string{"pods"},
+				Verbs:     []string{"get", "list"},
+			},
+		}
+
+		list := &corev1.NamespaceList{}
+		g.Expect(adminClient.List(ctx, list)).To(Succeed())
+
+		checker := NewChecker(requiredRules)
+		filtered, err := checker.FilterAccessibleNamespaces(ctx, userCfg, list.Items)
+		g.Expect(err).NotTo(HaveOccurred())
+
+		g.Expect(filtered).To(HaveLen(2))
 	})
 	t.Run("works when a user has * permissions on api/group/verb", func(t *testing.T) {
 		testCases := map[string][]rbacv1.PolicyRule{
