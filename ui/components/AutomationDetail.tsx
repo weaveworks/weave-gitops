@@ -115,14 +115,12 @@ function AutomationDetail({
       path: `${path}/details`,
       component: () => {
         return (
-          <>
             <RequestStateHandler loading={isLoading} error={error}>
               <ReconciledObjectsTable
                 className={className}
                 objects={data?.objects}
               />
             </RequestStateHandler>
-          </>
         );
       },
       visible: true,
