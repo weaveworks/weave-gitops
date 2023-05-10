@@ -59,57 +59,57 @@ const App = () => (
       <Routes>
         <Route path={V2Routes.Automations} element={<Automations />} />
         <Route
-          path={V2Routes.Kustomization}
+          path={V2Routes.Kustomization + "/*"}
           element={<KustomizationPage {...withSearchParams()} />}
         />
         <Route path={V2Routes.Sources} element={<Sources />} />
         <Route
-          path={V2Routes.ImageAutomation}
+          path={V2Routes.ImageAutomation + "/*"}
           element={<ImageAutomationPage />}
         />
         <Route
-          path={V2Routes.ImageAutomationUpdatesDetails}
+          path={V2Routes.ImageAutomationUpdatesDetails + "/*"}
           element={<ImageAutomationUpdatesDetails {...withSearchParams()} />}
         />
         <Route
-          path={V2Routes.ImageAutomationRepositoryDetails}
+          path={V2Routes.ImageAutomationRepositoryDetails + "/*"}
           element={<ImageAutomationRepoDetails {...withSearchParams()} />}
         />
         <Route
-          path={V2Routes.ImagePolicyDetails}
+          path={V2Routes.ImagePolicyDetails + "/*"}
           element={<ImagePolicyDetails {...withSearchParams()} />}
         />
-        <Route path={V2Routes.FluxRuntime} element={<FluxRuntime />} />
+        <Route path={V2Routes.FluxRuntime + "/*"} element={<FluxRuntime />} />
         <Route
-          path={V2Routes.GitRepo}
+          path={V2Routes.GitRepo + "/*"}
           element={<GitRepositoryDetail {...withSearchParams()} />}
         />
         <Route
-          path={V2Routes.HelmRepo}
+          path={V2Routes.HelmRepo + "/*"}
           element={<HelmRepositoryDetail {...withSearchParams()} />}
         />
         <Route
-          path={V2Routes.Bucket}
+          path={V2Routes.Bucket + "/*"}
           element={<BucketDetail {...withSearchParams()} />}
         />
         <Route
-          path={V2Routes.HelmRelease}
+          path={V2Routes.HelmRelease + "/*"}
           element={<HelmReleasePage {...withSearchParams()} />}
         />
         <Route
-          path={V2Routes.HelmChart}
+          path={V2Routes.HelmChart + "/*"}
           element={<HelmChartDetail {...withSearchParams()} />}
         />
         <Route
-          path={V2Routes.OCIRepository}
+          path={V2Routes.OCIRepository + "/*"}
           element={<OCIRepositoryPage {...withSearchParams()} />}
         />
         <Route
-          path={V2Routes.Notifications}
+          path={V2Routes.Notifications + "/*"}
           element={<Notifications {...withSearchParams()} />}
         />
         <Route
-          path={V2Routes.Provider}
+          path={V2Routes.Provider + "/*"}
           element={<ProviderPage {...withSearchParams()} />}
         />
         <Route path={V2Routes.UserInfo} element={UserInfo} />

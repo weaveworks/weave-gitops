@@ -23,7 +23,7 @@ export enum V2Routes {
   UserInfo = "/user_info",
   Automations = "/applications",
   Sources = "/sources",
-  FluxRuntime = "/flux_runtime/*",
+  FluxRuntime = "/flux_runtime",
   Kustomization = "/kustomization/*",
   HelmRelease = "/helm_release/*",
   HelmRepo = "/helm_repo/*",
