@@ -14,7 +14,6 @@ type Props = {
 };
 
 function KustomizationPage({ className, name, namespace, clusterName }: Props) {
-  console.log("KustomizationPage", name, namespace, clusterName);
   const {
     data: kustomization,
     isLoading,
