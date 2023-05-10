@@ -47,7 +47,7 @@ function DirectedGraph({
       ref={svgRef}
     >
       <g transform={`translate(${zoomBox / 2}, 50)`}>
-        <g stroke={theme.colors.greyToPrimary} strokeWidth={5} fill="none">
+        <g stroke={theme.colors.grayToPrimary} strokeWidth={5} fill="none">
           {_.map(links, (l, index) => {
             const verticalHalf = (l.target.y - l.source.y) / 2;
             // l is an object with a source and target node, each with an x and y value.

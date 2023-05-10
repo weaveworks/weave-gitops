@@ -78,8 +78,8 @@ export const theme = (mode: "light" | "dark"): DefaultTheme => {
         neutral30: "#f5f5f5",
         neutral40: "#ffffff",
         whiteToPrimary: "#32324B",
-        greyToPrimary: "#009CCC",
-        backGrey: "#32324B",
+        grayToPrimary: "#009CCC",
+        backGray: "#32324B",
         blueWithOpacity: "rgba(0, 179, 236, 0.1)",
         feedbackLight: "#FCE6D2",
         feedbackMedium: "#F7BF8E",
@@ -118,8 +118,8 @@ export const theme = (mode: "light" | "dark"): DefaultTheme => {
         neutral30: "#737373",
         neutral40: "#1a1a1a",
         whiteToPrimary: "#fff",
-        greyToPrimary: "#737373",
-        backGrey: "#eef0f4",
+        grayToPrimary: "#737373",
+        backGray: "#eef0f4",
         blueWithOpacity: "rgba(0, 179, 236, 0.1)",
         feedbackLight: "#FCE6D2",
         feedbackMedium: "#F7BF8E",
@@ -163,7 +163,7 @@ export const GlobalStyle = createGlobalStyle`
         : `url(${images.bg}), linear-gradient(to bottom, rgba(85, 105, 145, .1) 5%, rgba(85, 105, 145, .1), rgba(85, 105, 145, .25) 35%)`};
     background-color: ${(props) =>
       props.theme.colors.black === "#fff"
-        ? props.theme.colors.backGrey
+        ? props.theme.colors.neutralGray
         : "transparent"};
     background-size: 100%;
   }
