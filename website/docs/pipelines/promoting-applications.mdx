@@ -177,7 +177,7 @@ In the journey of creating a pull request, there are different secrets involved:
 
 1. Pipeline controller receives events via [webhook from leaf clusters](./#setup-notifications-from-leaf-clusters). Hmac is used for authN/authZ so an hmac key should be provided in this case.
 2. Pipeline controller clones and patches manifests to promote from the pipeline configuration repo. A set of [git credentials](https://fluxcd.io/flux/components/source/gitrepositories/#secret-reference) are required.
-3. Pipeline controller uses git provider api to create the pull request with the promoted manifests. A Personal Access Token (PAT) needs to be created to interact with pipelines git provider API.
+3. Pipeline controller uses git provider api to create the pull request with the promoted manifests. A Personal Access Token (PAT) needs to be created to interact with pipelines git provider API. This PAT is also used to list pull requests from the configured repository.
 
 Create a Kubernetes secret with the previous data.
 
