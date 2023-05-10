@@ -16,7 +16,6 @@ export const Breadcrumbs = () => {
   const label = getPageLabel(parentValue);
   const parsed = qs.parse(search);
   const theme = useTheme();
-  console.log(theme);
   return (
     <Flex align>
       <Link

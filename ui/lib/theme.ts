@@ -1,6 +1,6 @@
 // Typescript will handle type-checking/linting for this file
-import { createTheme } from "@material-ui/core";
 // eslint-disable-next-line
+import { createTheme } from "@material-ui/core";
 import { createGlobalStyle, DefaultTheme } from "styled-components";
 import images from "./images";
 
@@ -274,6 +274,22 @@ export const muiTheme = (colors) =>
               colors.black === "#fff"
                 ? `1px solid ${colors.primary20}`
                 : `1px solid ${colors.neutral20}`,
+          },
+        },
+      },
+      //disabled checkboxes in dark mode
+      MuiCheckbox: {
+        colorSecondary: {
+          "&$disabled": {
+            color: colors.black === "#fff" && colors.neutral40,
+          },
+        },
+      },
+      MuiInput: {
+        underline: {
+          "&::before": {
+            borderBottom:
+              colors.black === "#fff" && `1px solid ${colors.neutral40}`,
           },
         },
       },
