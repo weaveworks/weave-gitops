@@ -44,7 +44,9 @@ function UnstyledYamlView({ yaml, object, mode, className }: YamlViewProps) {
     },
 
     codeTagProps: {
-      wordBreak: "break-word",
+      style: {
+        wordBreak: "break-word",
+      },
     },
 
     lineProps: { style: { flexWrap: "wrap" } },

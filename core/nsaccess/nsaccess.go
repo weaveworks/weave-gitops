@@ -206,16 +206,14 @@ Rules:
 
 			if !ok {
 				hasAccess = false
-				continue
+				break Rules
 			}
-
-		Resources:
 			for _, resource := range rule.Resources {
 				r, ok := g[resource]
 				if !ok {
 					// A resource is not present for this apiGroup.
 					hasAccess = false
-					continue Rules
+					break Rules
 				}
 
 				for _, verb := range rule.Verbs {
@@ -224,10 +222,8 @@ Rules:
 						// A verb is not present for this resource,
 						// no need to check the rest of the verbs.
 						hasAccess = false
-						continue Resources
+						break Rules
 					}
-
-					hasAccess = true
 				}
 			}
 		}
