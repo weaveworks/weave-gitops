@@ -7,6 +7,7 @@ import {
   Route,
   BrowserRouter as Router,
   useLocation,
+  Navigate,
 } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -113,7 +114,7 @@ const App = () => (
         />
         <Route path={V2Routes.UserInfo} element={UserInfo} />
 
-        <Route path="/" element={<Automations />} />
+        <Route path="/" element={<Navigate to="/applications" replace />} />
 
         <Route path="*" element={<Error />} />
       </Routes>
