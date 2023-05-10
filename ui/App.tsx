@@ -18,13 +18,11 @@ import ImageAutomationRepoDetails from "./components/ImageAutomation/repositorie
 import ImageAutomationUpdatesDetails from "./components/ImageAutomation/updates/ImageAutomationUpdatesDetails";
 import Layout from "./components/Layout";
 import PendoContainer from "./components/PendoContainer";
-import ProfileInfo from "./components/ProfileSettings";
 import AppContextProvider from "./contexts/AppContext";
 import AuthContextProvider, { AuthCheck } from "./contexts/AuthContext";
 import CoreClientContextProvider from "./contexts/CoreClientContext";
 import { Core } from "./lib/api/core/core.pb";
 import Fonts from "./lib/fonts";
-import { Redirect } from "./lib/nav";
 import theme, { GlobalStyle, muiTheme } from "./lib/theme";
 import { V2Routes } from "./lib/types";
 import Error from "./pages/Error";
