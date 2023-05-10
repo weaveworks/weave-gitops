@@ -40,7 +40,7 @@ module.exports = {
           // /docs/oldDoc -> /docs/newDoc
           {
             to: '/docs/getting-started/intro/',
-            from: ['/docs/getting-started/', '/docs/getting-started'],
+            from: ['/docs/getting-started'],
           },
         ],
       },
