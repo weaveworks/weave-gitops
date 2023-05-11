@@ -54,7 +54,7 @@ import SyncButton from "./components/SyncButton";
 import Timestamp from "./components/Timestamp";
 import UserGroupsTable from "./components/UserGroupsTable";
 import UserSettings from "./components/UserSettings";
-import YamlView, { DialogYamlView } from "./components/YamlView";
+import YamlView, { DialogYamlView, UiMode } from "./components/YamlView";
 import AppContextProvider, { AppContext } from "./contexts/AppContext";
 import AuthContextProvider, { Auth, AuthCheck } from "./contexts/AuthContext";
 import CoreClientContextProvider, {
@@ -206,6 +206,7 @@ export {
   theme,
   Text,
   Timestamp,
+  UiMode,
   useDebounce,
   UnAuthorizedInterceptor,
   useFeatureFlags,
