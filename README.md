@@ -63,7 +63,7 @@ brew tap weaveworks/tap
 brew install weaveworks/tap/gitops
 ```
 
-Please see the [getting started guide](https://docs.gitops.weave.works/docs/getting-started).
+Please see the [getting started guide](https://docs.gitops.weave.works/docs/getting-started/intro).
 
 ## CLI Reference
 
@@ -117,7 +117,7 @@ Please see our Weave GitOps OSS [FAQ](https://www.weave.works/faqs-for-weave-git
 Need help or want to contribute? Please see the links below.
 
 - Getting Started?
-    - Follow our [Get Started guide](https://docs.gitops.weave.works/docs/getting-started) and give us feedback
+    - Follow our [Get Started guide](https://docs.gitops.weave.works/docs/getting-started/intro) and give us feedback
 - Need help?
     - Talk to us in
       the [#weave-gitops channel](https://app.slack.com/client/T2NDH1D9D/C0248LVC719/thread/C2ND76PAA-1621532937.019800)

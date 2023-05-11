@@ -41,6 +41,7 @@ jobs:
           fi
           sed -i 's#url:.*$#url: "https://staging.docs.gitops.weave.works",#' docusaurus.config.js
           sed -i 's#baseUrl:.*$#baseUrl: "/${{ github.head_ref }}/",#' docusaurus.config.js
+          yarn clear
           npm run build
       - id: auth
         uses: google-github-actions/auth@v0.4.0
@@ -97,6 +98,7 @@ jobs:
           else
           npm i
           fi
+          yarn clear
           npm run build
       - id: auth
         uses: google-github-actions/auth@v0.4.0
