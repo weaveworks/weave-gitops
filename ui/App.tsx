@@ -17,7 +17,10 @@ import ImageAutomationRepoDetails from "./components/ImageAutomation/repositorie
 import ImageAutomationUpdatesDetails from "./components/ImageAutomation/updates/ImageAutomationUpdatesDetails";
 import Layout from "./components/Layout";
 import PendoContainer from "./components/PendoContainer";
-import AppContextProvider, { AppContext } from "./contexts/AppContext";
+import AppContextProvider, {
+  AppContext,
+  ThemeTypes,
+} from "./contexts/AppContext";
 import AuthContextProvider, { AuthCheck } from "./contexts/AuthContext";
 import CoreClientContextProvider from "./contexts/CoreClientContext";
 import { Core } from "./lib/api/core/core.pb";
@@ -53,7 +56,7 @@ function withSearchParams(Cmp) {
 
 const App = () => {
   const { settings } = React.useContext(AppContext);
-  const dark = settings.theme === "dark";
+  const dark = settings.theme === ThemeTypes.Dark;
   return (
     <Layout>
       <PendoContainer />
@@ -125,7 +128,7 @@ const App = () => {
         position="top-center"
         autoClose={5000}
         newestOnTop={false}
-        theme={dark ? "dark" : "light"}
+        theme={dark ? ThemeTypes.Dark : ThemeTypes.Light}
       />
     </Layout>
   );

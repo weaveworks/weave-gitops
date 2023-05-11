@@ -2,6 +2,7 @@
 import { createTheme } from "@material-ui/core";
 // eslint-disable-next-line
 import { createGlobalStyle, DefaultTheme } from "styled-components";
+import { ThemeTypes } from "../contexts/AppContext";
 import images from "./images";
 
 const baseSpacingNumber = 16;
@@ -49,9 +50,9 @@ const baseTheme = {
   },
 };
 
-export const theme = (mode: "light" | "dark"): DefaultTheme => {
+export const theme = (mode: ThemeTypes = ThemeTypes.Light): DefaultTheme => {
   //dark
-  if (mode === "dark")
+  if (mode === ThemeTypes.Dark)
     return {
       ...baseTheme,
       colors: {

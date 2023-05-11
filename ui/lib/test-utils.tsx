@@ -5,7 +5,10 @@ import * as React from "react";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { Router } from "react-router-dom";
 import { ThemeProvider } from "styled-components";
-import AppContextProvider, { AppProps } from "../contexts/AppContext";
+import AppContextProvider, {
+  AppProps,
+  ThemeTypes,
+} from "../contexts/AppContext";
 import { CoreClientContext } from "../contexts/CoreClientContext";
 import {
   Core,
@@ -51,7 +54,7 @@ export const createCoreMockClient = (
   return promisified as typeof Core;
 };
 
-export function withTheme(element, mode: "light" | "dark" = "light") {
+export function withTheme(element, mode: ThemeTypes = ThemeTypes.Light) {
   const appliedTheme = theme(mode);
   return (
     <ThemeProvider theme={appliedTheme}>

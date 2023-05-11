@@ -2,7 +2,7 @@ import * as React from "react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { darcula } from "react-syntax-highlighter/dist/cjs/styles/prism";
 import styled from "styled-components";
-import { AppContext } from "../contexts/AppContext";
+import { AppContext, ThemeTypes } from "../contexts/AppContext";
 import { ObjectRef } from "../lib/api/core/types.pb";
 import { createYamlCommand } from "../lib/utils";
 import CopyToClipboard from "./CopyToCliboard";
@@ -11,6 +11,7 @@ export type YamlViewProps = {
   className?: string;
   yaml: string;
   object?: ObjectRef;
+  theme?: ThemeTypes;
 };
 
 const YamlHeader = styled.div`
@@ -23,15 +24,16 @@ const YamlHeader = styled.div`
   text-overflow: ellipsis;
 `;
 
-function UnstyledYamlView({ yaml, object, className }: YamlViewProps) {
+function UnstyledYamlView({ yaml, object, className, theme }: YamlViewProps) {
   const headerText = createYamlCommand(
     object.kind,
     object.name,
     object.namespace
   );
-
   const { settings } = React.useContext(AppContext);
-  const dark = settings.theme === "dark";
+  const dark = theme
+    ? theme === ThemeTypes.Dark
+    : settings.theme === ThemeTypes.Dark;
 
   const styleProps = {
     customStyle: {

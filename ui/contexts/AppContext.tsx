@@ -10,9 +10,14 @@ type AppState = {
   detailModal: DetailViewProps;
 };
 
+export enum ThemeTypes {
+  Light = "light",
+  Dark = "dark",
+}
+
 type AppSettings = {
   renderFooter: boolean;
-  theme: "light" | "dark";
+  theme: ThemeTypes;
 };
 
 export type AppContextType = {
@@ -51,9 +56,9 @@ export default function AppContextProvider({ ...props }: AppProps) {
     renderFooter: props.renderFooter,
     theme:
       window.matchMedia("prefers-color-scheme: dark").matches ||
-      localStorage.getItem("mode") === "dark"
-        ? "dark"
-        : "light",
+      localStorage.getItem("mode") === ThemeTypes.Dark
+        ? ThemeTypes.Dark
+        : ThemeTypes.Light,
   });
 
   const clearAsyncError = () => {
@@ -81,7 +86,10 @@ export default function AppContextProvider({ ...props }: AppProps) {
   };
 
   const toggleDarkMode = () => {
-    const newMode = appSettings.theme === "light" ? "dark" : "light";
+    const newMode =
+      appSettings.theme === ThemeTypes.Light
+        ? ThemeTypes.Dark
+        : ThemeTypes.Light;
     localStorage.setItem("mode", newMode);
     return setAppSettings({
       ...appSettings,

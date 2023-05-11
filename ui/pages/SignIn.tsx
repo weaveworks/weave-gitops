@@ -6,7 +6,7 @@ import Alert from "../components/Alert";
 import Button from "../components/Button";
 import Flex from "../components/Flex";
 import LoadingPage from "../components/LoadingPage";
-import { AppContext } from "../contexts/AppContext";
+import { AppContext, ThemeTypes } from "../contexts/AppContext";
 import { Auth } from "../contexts/AuthContext";
 import { useFeatureFlags } from "../hooks/featureflags";
 import images from "../lib/images";
@@ -87,7 +87,7 @@ function SignIn() {
   const handleUserPassSubmit = () => signIn({ username, password });
 
   const { settings } = React.useContext(AppContext);
-  const dark = settings.theme === "dark";
+  const dark = settings.theme === ThemeTypes.Dark;
 
   return (
     <Flex
