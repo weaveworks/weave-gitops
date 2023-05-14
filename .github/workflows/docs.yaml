@@ -11,6 +11,7 @@ on:
       - 'main'
     paths:
       - 'website/**'
+  workflow_dispatch:
 
 jobs:
 
