@@ -32,6 +32,7 @@ jobs:
           GA_KEY: "dummy"
           ALGOLIA_API_KEY: ${{ secrets.ALGOLIA_API_KEY }}
         run: |
+          export NODE_OPTIONS=--max-old-space-size=4096
           if [ -e yarn.lock ]; then
           yarn install --frozen-lockfile
           elif [ -e package-lock.json ]; then
