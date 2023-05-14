@@ -91,6 +91,7 @@ jobs:
         run: |
           git config --global user.email "corporate-it+weaveworks-docs-bot@weave.works"
           git config --global user.name "weaveworks-docs-bot"
+          export NODE_OPTIONS=--max-old-space-size=4096
           if [ -e yarn.lock ]; then
           yarn install --frozen-lockfile
           elif [ -e package-lock.json ]; then
