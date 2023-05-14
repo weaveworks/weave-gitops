@@ -157,6 +157,7 @@ function SignIn() {
                   placeholder="Username"
                   value={username}
                   required
+                  autoFocus
                 />
               </Flex>
               <Flex center align>
