@@ -48,7 +48,7 @@ describe("Link", () => {
     const { container: link } = render(
       withTheme(
         <MemoryRouter>
-          <Link to="http://google.com">Text</Link>
+          <Link to="/http://google.com">Text</Link>
         </MemoryRouter>
       )
     );
@@ -61,7 +61,7 @@ describe("Link", () => {
     const { container: link } = render(
       withTheme(
         <MemoryRouter>
-          <Link to="oci://ghcr.io/some/chart">Text</Link>
+          <Link to="/oci://ghcr.io/some/chart">Text</Link>
         </MemoryRouter>
       )
     );
