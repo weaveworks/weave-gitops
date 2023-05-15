@@ -30,7 +30,6 @@ function ChipGroup({ className, chips = [], onChipRemove, onClearAll }: Props) {
             <Chip
               label={isUndefined ? chip + "null" : chip}
               onDelete={() => onChipRemove([chip])}
-              className="filter-options-chip"
             />
           </Flex>
         );
@@ -42,7 +41,10 @@ function ChipGroup({ className, chips = [], onChipRemove, onClearAll }: Props) {
 
 export default styled(ChipGroup).attrs({ className: ChipGroup.name })`
   .MuiChip-root {
+    color: ${(props) => props.theme.colors.black};
     margin-right: ${(props) => props.theme.spacing.xxs};
+    background-color: ${(props) => props.theme.colors.neutralGray};
+    transition: none;
   }
   height: 40px;
   padding: 4px 0px;

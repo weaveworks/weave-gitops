@@ -23,14 +23,18 @@ export const Content = styled(Flex)`
   margin: 0 auto;
   min-height: 100%;
   max-width: 100%;
+`;
+
+const Children = styled(Flex)`
   padding-bottom: ${(props) => props.theme.spacing.medium};
   padding-left: ${(props) => props.theme.spacing.medium};
   padding-right: ${(props) => props.theme.spacing.medium};
   padding-top: ${(props) => props.theme.spacing.medium};
+
+  max-width: 100%;
+  box-sizing: border-box;
   overflow: hidden;
 `;
-
-const Children = styled(Flex)``;
 
 export function Errors({ error }) {
   const arr = _.isArray(error) ? error : [error];

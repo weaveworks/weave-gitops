@@ -6,7 +6,7 @@ import Icon, { IconType } from "./Icon";
 
 const CopyButton = styled(IconButton)`
   &.MuiButton-outlinedPrimary {
-    border: 1px solid ${(props) => props.theme.colors.neutral10};
+    margin-left: ${(props) => props.theme.spacing.xxs};
     padding: ${(props) => props.theme.spacing.xxs};
   }
   &.MuiButton-root {

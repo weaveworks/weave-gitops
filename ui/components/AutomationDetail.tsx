@@ -244,7 +244,7 @@ function AutomationDetail({
           <div className="grid grid-items">
             {info.map(([k, v]) => {
               return (
-                <Flex id={k} gap="8">
+                <Flex id={k} gap="8" key={k}>
                   <Text capitalize semiBold color="neutral30">
                     {k}:
                   </Text>

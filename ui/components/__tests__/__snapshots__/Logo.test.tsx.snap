@@ -68,7 +68,7 @@ exports[`Logo snapshots renders collapsed view 1`] = `
   className="c0 c1"
 >
   <a
-    href="/applications"
+    href=""
     onClick={[Function]}
   >
     <img
@@ -79,7 +79,7 @@ exports[`Logo snapshots renders collapsed view 1`] = `
     className="c2 c3"
   >
     <a
-      href="/applications"
+      href=""
       onClick={[Function]}
     >
       <img
@@ -157,7 +157,7 @@ exports[`Logo snapshots renders open view 1`] = `
   className="c0 c1"
 >
   <a
-    href="/applications"
+    href=""
     onClick={[Function]}
   >
     <img
@@ -168,7 +168,7 @@ exports[`Logo snapshots renders open view 1`] = `
     className="c2 c3"
   >
     <a
-      href="/applications"
+      href=""
       onClick={[Function]}
     >
       <img

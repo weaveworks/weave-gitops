@@ -7,7 +7,7 @@ const MessageBox = styled(Flex)`
   padding: ${({ theme }) => theme.spacing.medium}
     ${({ theme }) => theme.spacing.xl} ${({ theme }) => theme.spacing.xxl};
   border-radius: 10px;
-  background-color: #ffffffd9;
+  background-color: ${({ theme }) => theme.colors.neutralGray};
   color: ${({ theme }) => theme.colors.neutral30};
 `;
 

@@ -15,7 +15,6 @@ export const Breadcrumbs = () => {
   const parentValue = getParentNavValue(currentPage) as V2Routes;
   const label = getPageLabel(parentValue);
   const parsed = qs.parse(search);
-
   return (
     <Flex align>
       <Link
