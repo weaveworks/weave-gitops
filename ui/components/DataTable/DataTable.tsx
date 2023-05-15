@@ -12,6 +12,7 @@ import qs from "query-string";
 import * as React from "react";
 import { useHistory, useLocation } from "react-router-dom";
 import styled from "styled-components";
+import { ThemeTypes } from "../../contexts/AppContext";
 import { IconButton } from "../Button";
 import CheckboxActions from "../CheckboxActions";
 import ChipGroup from "../ChipGroup";
@@ -375,7 +376,7 @@ export const DataTable = styled(UnstyledDataTable)`
   }
   .MuiTableRow-root:not(.MuiTableRow-head):hover {
     background: ${(props) =>
-      props.theme.colors.black === "#fff"
+      props.theme.mode === ThemeTypes.Dark
         ? props.theme.colors.blueWithOpacity
         : props.theme.colors.neutral10};
     transition: background 0.5s ease-in-out;
@@ -405,7 +406,7 @@ export const DataTable = styled(UnstyledDataTable)`
   //override so filter dialog button stays highlighted, but color is too bright in dark mode
   .MuiButton-contained {
     ${(props) =>
-      props.theme.colors.black === "#fff"
+      props.theme.mode === ThemeTypes.Dark
         ? `background-color: ${props.theme.colors.neutral10};`
         : null}
   }

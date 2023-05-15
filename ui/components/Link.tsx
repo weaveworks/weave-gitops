@@ -39,7 +39,7 @@ function Link({
   onMouseLeave,
   ...props
 }: Props) {
-  if (href && !isAllowedLink(href)) {
+  if ((href && !isAllowedLink(href)) || (!href && !to)) {
     return <Text {...textProps}>{children}</Text>;
   }
 

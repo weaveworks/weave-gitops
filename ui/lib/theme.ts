@@ -91,6 +91,7 @@ export const theme = (mode: ThemeTypes = ThemeTypes.Light): DefaultTheme => {
         defaultOriginal: "#F2994A",
         defaultDark: "#8A460A",
       },
+      mode: ThemeTypes.Dark,
     };
   //light
   else
@@ -131,6 +132,7 @@ export const theme = (mode: ThemeTypes = ThemeTypes.Light): DefaultTheme => {
         defaultOriginal: "#F2994A",
         defaultDark: "#8A460A",
       },
+      mode: ThemeTypes.Light,
     };
 };
 
@@ -159,11 +161,11 @@ export const GlobalStyle = createGlobalStyle`
     min-width: fit-content;
     background: right bottom no-repeat fixed; 
     background-image: ${(props) =>
-      props.theme.colors.black === "#fff"
+      props.theme.mode === ThemeTypes.Dark
         ? `url(${images.bgDark})`
         : `url(${images.bg}), linear-gradient(to bottom, rgba(85, 105, 145, .1) 5%, rgba(85, 105, 145, .1), rgba(85, 105, 145, .25) 35%)`};
     background-color: ${(props) =>
-      props.theme.colors.black === "#fff"
+      props.theme.mode === ThemeTypes.Dark
         ? props.theme.colors.neutralGray
         : "transparent"};
     background-size: 100%;
@@ -218,7 +220,7 @@ export const GlobalStyle = createGlobalStyle`
   }
 `;
 
-export const muiTheme = (colors) =>
+export const muiTheme = (colors, mode) =>
   createTheme({
     typography: { fontFamily: "proxima-nova" },
     palette: {
@@ -266,13 +268,13 @@ export const muiTheme = (colors) =>
         root: {
           "&$disabled": {
             color:
-              colors.black === "#fff" ? colors.primary20 : colors.neutral20,
+              mode === ThemeTypes.Dark ? colors.primary20 : colors.neutral20,
           },
         },
         outlined: {
           "&$disabled": {
             border:
-              colors.black === "#fff"
+              mode === ThemeTypes.Dark
                 ? `1px solid ${colors.primary20}`
                 : `1px solid ${colors.neutral20}`,
           },
@@ -282,7 +284,7 @@ export const muiTheme = (colors) =>
       MuiCheckbox: {
         colorSecondary: {
           "&$disabled": {
-            color: colors.black === "#fff" && colors.neutral40,
+            color: mode === ThemeTypes.Dark && colors.neutral40,
           },
         },
       },
@@ -290,7 +292,7 @@ export const muiTheme = (colors) =>
         underline: {
           "&::before": {
             borderBottom:
-              colors.black === "#fff" && `1px solid ${colors.neutral40}`,
+              mode === ThemeTypes.Dark && `1px solid ${colors.neutral40}`,
           },
         },
       },

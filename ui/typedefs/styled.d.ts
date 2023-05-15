@@ -1,5 +1,6 @@
 /* eslint-disable */
 import "styled-components";
+import { ThemeTypes } from "../contexts/AppContext";
 export namespace colors {
   const black: string;
   const white: string;
@@ -76,5 +77,6 @@ declare module "styled-components" {
     spacing: typeof spacing;
     borderRadius: typeof borderRadius;
     boxShadow: typeof boxShadow;
+    mode: ThemeTypes;
   }
 }

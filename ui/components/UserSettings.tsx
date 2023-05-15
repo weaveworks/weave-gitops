@@ -105,7 +105,7 @@ export default styled(UserSettings)`
   .MuiSwitch-thumb {
     color: #fff;
     background-image: url(${(props) =>
-      props.theme.colors.black === "#fff"
+      props.theme.mode === ThemeTypes.Dark
         ? images.darkModeIcon
         : images.lightModeIcon});
   }

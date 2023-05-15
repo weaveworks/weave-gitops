@@ -58,7 +58,7 @@ export function withTheme(element, mode: ThemeTypes = ThemeTypes.Light) {
   const appliedTheme = theme(mode);
   return (
     <ThemeProvider theme={appliedTheme}>
-      <MuiThemeProvider theme={muiTheme(appliedTheme.colors)}>
+      <MuiThemeProvider theme={muiTheme(appliedTheme.colors, mode)}>
         {element}
       </MuiThemeProvider>
     </ThemeProvider>

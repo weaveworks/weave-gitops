@@ -2,7 +2,8 @@ import * as React from "react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { darcula } from "react-syntax-highlighter/dist/cjs/styles/prism";
 import styled from "styled-components";
-import { AppContext, ThemeTypes } from "../contexts/AppContext";
+import { ThemeTypes } from "../contexts/AppContext";
+import { useInDarkMode } from "../hooks/theme";
 import { ObjectRef } from "../lib/api/core/types.pb";
 import { createYamlCommand } from "../lib/utils";
 import CopyToClipboard from "./CopyToCliboard";
@@ -30,10 +31,8 @@ function UnstyledYamlView({ yaml, object, className, theme }: YamlViewProps) {
     object.name,
     object.namespace
   );
-  const { settings } = React.useContext(AppContext);
-  const dark = theme
-    ? theme === ThemeTypes.Dark
-    : settings.theme === ThemeTypes.Dark;
+
+  const dark = theme ? theme === ThemeTypes.Dark : useInDarkMode();
 
   const styleProps = {
     customStyle: {

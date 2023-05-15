@@ -23,6 +23,7 @@ import AppContextProvider, {
 } from "./contexts/AppContext";
 import AuthContextProvider, { AuthCheck } from "./contexts/AuthContext";
 import CoreClientContextProvider from "./contexts/CoreClientContext";
+import { useInDarkMode } from "./hooks/theme";
 import { Core } from "./lib/api/core/core.pb";
 import Fonts from "./lib/fonts";
 import theme, { GlobalStyle, muiTheme } from "./lib/theme";
@@ -55,8 +56,7 @@ function withSearchParams(Cmp) {
 }
 
 const App = () => {
-  const { settings } = React.useContext(AppContext);
-  const dark = settings.theme === ThemeTypes.Dark;
+  const dark = useInDarkMode();
   return (
     <Layout>
       <PendoContainer />
@@ -140,7 +140,7 @@ const StylesProvider = ({ children }) => {
   const appliedTheme = theme(mode);
   return (
     <ThemeProvider theme={appliedTheme}>
-      <MuiThemeProvider theme={muiTheme(appliedTheme.colors)}>
+      <MuiThemeProvider theme={muiTheme(appliedTheme.colors, mode)}>
         <Fonts />
         <GlobalStyle />
         {children}
