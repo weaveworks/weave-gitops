@@ -400,9 +400,6 @@ export const DataTable = styled(UnstyledDataTable)`
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  .filter-options-chip {
-    background-color: ${(props) => props.theme.colors.neutralGray};
-  }
   //override so filter dialog button stays highlighted, but color is too bright in dark mode
   .MuiButton-contained {
     ${(props) =>
