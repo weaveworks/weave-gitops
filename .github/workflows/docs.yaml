@@ -11,6 +11,7 @@ on:
       - 'main'
     paths:
       - 'website/**'
+  workflow_dispatch:
 
 jobs:
 
@@ -31,6 +32,7 @@ jobs:
         env:
           GA_KEY: "dummy"
           ALGOLIA_API_KEY: ${{ secrets.ALGOLIA_API_KEY }}
+          NODE_OPTIONS: "--max-old-space-size=4096"
         run: |
           if [ -e yarn.lock ]; then
           yarn install --frozen-lockfile
@@ -41,6 +43,7 @@ jobs:
           fi
           sed -i 's#url:.*$#url: "https://staging.docs.gitops.weave.works",#' docusaurus.config.js
           sed -i 's#baseUrl:.*$#baseUrl: "/${{ github.head_ref }}/",#' docusaurus.config.js
+          yarn clear
           npm run build
       - id: auth
         uses: google-github-actions/auth@v0.4.0
@@ -87,6 +90,7 @@ jobs:
           GIT_USER: git
           GA_KEY: ${{ secrets.GA_KEY }}
           ALGOLIA_API_KEY: ${{ secrets.ALGOLIA_API_KEY }}
+          NODE_OPTIONS: "--max-old-space-size=4096"
         run: |
           git config --global user.email "corporate-it+weaveworks-docs-bot@weave.works"
           git config --global user.name "weaveworks-docs-bot"
@@ -97,6 +101,7 @@ jobs:
           else
           npm i
           fi
+          yarn clear
           npm run build
       - id: auth
         uses: google-github-actions/auth@v0.4.0

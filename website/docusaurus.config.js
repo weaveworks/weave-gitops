@@ -32,6 +32,19 @@ module.exports = {
         };
       },
     }),
+    [
+        '@docusaurus/plugin-client-redirects',
+      {
+        fromExtensions: ['html', 'htm'], // /myPage.html -> /myPage
+        redirects: [
+          // /docs/oldDoc -> /docs/newDoc
+          {
+            to: '/docs/getting-started/intro/',
+            from: ['/docs/getting-started'],
+          },
+        ],
+      },
+    ],
   ],
   themeConfig: {
     navbar: {
@@ -185,6 +198,12 @@ module.exports = {
           trackingID: process.env.GA_KEY,
           // Optional fields.
           anonymizeIP: true, // Should IPs be anonymized?
+        },
+        sitemap: {
+            changefreq: 'weekly',
+            priority: 0.5,
+            ignorePatterns: ['/tags/**'],
+            filename: 'sitemap.xml',
         },
       },
     ],
