@@ -201,7 +201,7 @@ exports[`Breadcrumbs snapshots renders on the root page 1`] = `
   align-items: center;
 }
 
-.c2 {
+.c1 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 20px;
   font-weight: 800;
@@ -210,24 +210,13 @@ exports[`Breadcrumbs snapshots renders on the root page 1`] = `
   color: #1a1a1a;
 }
 
-.c1 {
-  -webkit-text-decoration: none;
-  text-decoration: none;
-}
-
 <div
   className="c0"
 >
-  <a
+  <span
     className="c1"
-    href="/"
-    onClick={[Function]}
-  >
-    <span
-      className="c2"
-      color="neutral40"
-      size="large"
-    />
-  </a>
+    color="neutral40"
+    size="large"
+  />
 </div>
 `;
