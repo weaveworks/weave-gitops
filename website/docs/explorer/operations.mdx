@@ -23,3 +23,36 @@ the `Query` tab.
 You could discover by `Cluster` and `Subject` the `Kinds` it is allowed to read. These are the rules that
 will be the source of truth doing authorization when a user does a query.
 
+
+## Monitoring
+
+Explorer provides the following telemetry to use for operations.
+
+### Metrics
+
+You could monitor Explorer via [Prometheus](https://prometheus.io/)
+
+// configuration based on https://fluxcd.io/flux/guides/monitoring/
+
+#### Querying
+
+Monitor by its [golden signals](https://sre.google/sre-book/monitoring-distributed-systems/#xref_monitoring_golden-signals):
+
+- latency: // add timeseries name
+- errors // add timeseries name
+- rate // add timeseries name
+- saturation // add timeseries name
+
+#### Collector
+
+
+#### Grafana Dashboards
+
+Here the grafana dashboard that
+
+// do like https://fluxcd.io/flux/guides/monitoring/#install-flux-grafana-dashboards
+
+
+
+
+### Logging
