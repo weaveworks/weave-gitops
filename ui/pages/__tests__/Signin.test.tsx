@@ -1,6 +1,3 @@
-// Mock out the bg animation component
-jest.mock("../../components/Animations/SignInBackground", () => () => null);
-
 import { render, screen } from "@testing-library/react";
 import * as React from "react";
 import { withContext, withTheme } from "../../lib/test-utils";

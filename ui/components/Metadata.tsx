@@ -19,7 +19,7 @@ const Label = styled(Text)`
   margin-right: ${(props) => props.theme.spacing.xxs};
   border-radius: 15px;
   white-space: nowrap;
-  background-color: ${(props) => props.theme.colors.neutral20};
+  background-color: ${(props) => props.theme.colors.neutralGray};
 `;
 
 const LabelFlex = styled(Flex)`

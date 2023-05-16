@@ -128,7 +128,7 @@ exports[`Metadata snapshots renders with data 1`] = `
   margin-right: 4px;
   border-radius: 15px;
   white-space: nowrap;
-  background-color: #d8d8d8;
+  background-color: #F6F7F9;
 }
 
 .c9 {

@@ -1331,6 +1331,21 @@
     react-helmet-async "*"
     react-loadable "npm:@docusaurus/react-loadable@5.5.2"
 
+"@docusaurus/plugin-client-redirects@^2.4.0":
+  version "2.4.0"
+  resolved "https://registry.yarnpkg.com/@docusaurus/plugin-client-redirects/-/plugin-client-redirects-2.4.0.tgz#53117d112ac9cc191deda053af4335e0381b4125"
+  integrity sha512-HsS+Dc2ZLWhfpjYJ5LIrOB/XfXZcElcC7o1iA4yIVtiFz+LHhwP863fhqbwSJ1c6tNDOYBH3HwbskHrc/PIn7Q==
+  dependencies:
+    "@docusaurus/core" "2.4.0"
+    "@docusaurus/logger" "2.4.0"
+    "@docusaurus/utils" "2.4.0"
+    "@docusaurus/utils-common" "2.4.0"
+    "@docusaurus/utils-validation" "2.4.0"
+    eta "^2.0.0"
+    fs-extra "^10.1.0"
+    lodash "^4.17.21"
+    tslib "^2.4.0"
+
 "@docusaurus/plugin-content-blog@2.4.0":
   version "2.4.0"
   resolved "https://registry.yarnpkg.com/@docusaurus/plugin-content-blog/-/plugin-content-blog-2.4.0.tgz#50dbfbc7b51f152ae660385fd8b34076713374c3"
@@ -1431,7 +1446,7 @@
     "@docusaurus/utils-validation" "2.4.0"
     tslib "^2.4.0"
 
-"@docusaurus/plugin-sitemap@2.4.0":
+"@docusaurus/plugin-sitemap@2.4.0", "@docusaurus/plugin-sitemap@^2.4.0":
   version "2.4.0"
   resolved "https://registry.yarnpkg.com/@docusaurus/plugin-sitemap/-/plugin-sitemap-2.4.0.tgz#ba0eb43565039fe011bdd874b5c5d7252b19d709"
   integrity sha512-pZxh+ygfnI657sN8a/FkYVIAmVv0CGk71QMKqJBOfMmDHNN1FeDeFkBjWP49ejBqpqAhjufkv5UWq3UOu2soCw==

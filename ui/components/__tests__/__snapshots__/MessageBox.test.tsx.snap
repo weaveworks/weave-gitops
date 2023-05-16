@@ -21,7 +21,7 @@ exports[`MessageBox snapshots renders 1`] = `
   width: 560px;
   padding: 24px 48px 64px;
   border-radius: 10px;
-  background-color: #ffffffd9;
+  background-color: #F6F7F9;
   color: #737373;
 }
 
