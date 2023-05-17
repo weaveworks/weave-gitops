@@ -32,9 +32,10 @@ export enum ReadyStatusValue {
 
 export function computeReady(conditions: Condition[]): ReadyType {
   if (!conditions?.length) return undefined;
-  const readyCondition =
-    _.find(conditions, (c) => c.type === "Ready") ||
-    _.find(conditions, (c) => c.type === "Available");
+  const readyCondition = _.find(
+    conditions,
+    (c) => c.type === "Ready" || c.type === "Available"
+  );
 
   if (readyCondition) {
     if (readyCondition.status === ReadyStatusValue.True) {
@@ -64,9 +65,10 @@ export function computeMessage(conditions: Condition[]) {
     return undefined;
   }
 
-  const readyCondition =
-    _.find(conditions, (c) => c.type === "Ready") ||
-    _.find(conditions, (c) => c.type === "Available");
+  const readyCondition = _.find(
+    conditions,
+    (c) => c.type === "Ready" || c.type === "Available"
+  );
 
   if (readyCondition) {
     return readyCondition.message;
