@@ -70,6 +70,7 @@ export const createCanaryCondition = (objs: FluxObject[]): Condition => {
         case "Initializing":
         case "Initialized":
         case "Waiting":
+        case "Progressing":
         case "WaitingPromotion":
         case "Promoting":
         case "Finalising":
