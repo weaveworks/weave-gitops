@@ -72,6 +72,11 @@ function Footer({ className }: Props) {
 }
 
 export default styled(Footer).attrs({ className: Footer.name })`
+  max-width: 100%;
+  box-sizing: border-box;
+  background: ${(props) => props.theme.colors.neutralGray};
   color: ${(props) => props.theme.colors.neutral30};
-  padding-top: ${(props) => props.theme.spacing.small};
+  padding: ${(props) => props.theme.spacing.medium};
+  border-radius: 0 0
+    ${(props) => `${props.theme.spacing.xs} ${props.theme.spacing.xs}`};
 `;

@@ -40,7 +40,7 @@ exports[`Page snapshots default 1`] = `
   justify-content: flex-start;
 }
 
-.c4 {
+.c5 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -59,7 +59,7 @@ exports[`Page snapshots default 1`] = `
   justify-content: space-between;
 }
 
-.c6 {
+.c7 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -73,7 +73,7 @@ exports[`Page snapshots default 1`] = `
   align-items: start;
 }
 
-.c7 {
+.c8 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 400;
@@ -82,7 +82,7 @@ exports[`Page snapshots default 1`] = `
   white-space: nowrap;
 }
 
-.c10 {
+.c11 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 400;
@@ -91,22 +91,26 @@ exports[`Page snapshots default 1`] = `
   color: #00b3ec;
 }
 
-.c8 {
+.c9 {
   padding: 4px;
 }
 
-.c9 {
+.c10 {
   -webkit-text-decoration: none;
   text-decoration: none;
 }
 
-.c11 {
+.c12 {
   padding-right: 24px;
 }
 
-.c5 {
+.c6 {
+  max-width: 100%;
+  box-sizing: border-box;
+  background: #F6F7F9;
   color: #737373;
-  padding-top: 12px;
+  padding: 24px;
+  border-radius: 0 0 8px 8px;
 }
 
 .c1 {
@@ -116,10 +120,15 @@ exports[`Page snapshots default 1`] = `
   margin: 0 auto;
   min-height: 100%;
   max-width: 100%;
+}
+
+.c4 {
   padding-bottom: 24px;
   padding-left: 24px;
   padding-right: 24px;
   padding-top: 24px;
+  max-width: 100%;
+  box-sizing: border-box;
   overflow: hidden;
 }
 
@@ -131,32 +140,32 @@ exports[`Page snapshots default 1`] = `
   className="c0 c1 c2"
 >
   <div
-    className="c3"
+    className="c3 c4"
   />
   <footer
-    className="c4 c5 Footer"
+    className="c5 c6 Footer"
     role="footer"
   >
     <div
-      className="c6"
+      className="c7"
     >
       <span
-        className="c7"
+        className="c8"
         size="medium"
       >
         Need help? Contact us at
       </span>
       <div
-        className="c8"
+        className="c9"
       />
       <a
-        className="c9"
+        className="c10"
         href="mailto:sales@weave.works"
         rel="noreferrer"
         target="_blank"
       >
         <span
-          className="c10"
+          className="c11"
           color="primary"
           size="medium"
         >
@@ -165,13 +174,13 @@ exports[`Page snapshots default 1`] = `
       </a>
     </div>
     <div
-      className="c6 c11"
+      className="c7 c12"
     >
       <div
-        className="c8"
+        className="c9"
       />
       <span
-        className="c7"
+        className="c8"
         size="medium"
       >
         © 

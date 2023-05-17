@@ -46,8 +46,7 @@ const NavContent = styled.div<{ collapsed: boolean }>`
   justify-content: space-between;
   width: 100%;
   height: 100%;
-  border-radius: 10px;
-  border-bottom-right-radius: 0px;
+  border-top-right-radius: 10px;
   background-color: ${(props) => props.theme.colors.neutral00};
   //28px bottom padding is medium + xxs - in the theme these are strings with px at the end so you can't add them together. This lines up with the footer.
   padding: ${(props) => props.theme.spacing.medium} 0px 28px 0px;
@@ -79,11 +78,9 @@ const NavContent = styled.div<{ collapsed: boolean }>`
     align-items: center;
     //matches .MuiSvgIcon-root
     transition: background-color 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
-    &.selected {
-      background-color: rgba(0, 179, 236, 0.1);
-    }
-    :hover:not(.selected) {
-      background-color: ${(props) => props.theme.colors.neutral10};
+    &.selected,
+    :hover {
+      background-color: ${(props) => props.theme.colors.blueWithOpacity};
     }
   }
   .header {
@@ -213,7 +210,11 @@ function Nav({
               collapse
             </Text>
           </Fade>
-          <CollapseButton size="small" onClick={() => setCollapsed(!collapsed)}>
+          <CollapseButton
+            size="small"
+            color="inherit"
+            onClick={() => setCollapsed(!collapsed)}
+          >
             {collapsed ? <ArrowRight /> : <ArrowLeft />}
           </CollapseButton>
         </Flex>

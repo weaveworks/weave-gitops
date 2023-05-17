@@ -5,7 +5,10 @@ import * as React from "react";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { Router } from "react-router-dom";
 import { ThemeProvider } from "styled-components";
-import AppContextProvider, { AppProps } from "../contexts/AppContext";
+import AppContextProvider, {
+  AppProps,
+  ThemeTypes,
+} from "../contexts/AppContext";
 import { CoreClientContext } from "../contexts/CoreClientContext";
 import {
   Core,
@@ -20,7 +23,6 @@ import {
 } from "./api/core/core.pb";
 import theme, { muiTheme } from "./theme";
 import { RequestError } from "./types";
-
 export type CoreOverrides = {
   GetChildObjects?: (req: GetChildObjectsRequest) => GetChildObjectsResponse;
   GetReconciledObjects?: (
@@ -52,11 +54,14 @@ export const createCoreMockClient = (
   return promisified as typeof Core;
 };
 
-export function withTheme(element) {
+export function withTheme(element, mode: ThemeTypes = ThemeTypes.Light) {
+  const appliedTheme = theme(mode);
   return (
-    <MuiThemeProvider theme={muiTheme}>
-      <ThemeProvider theme={theme}>{element}</ThemeProvider>
-    </MuiThemeProvider>
+    <ThemeProvider theme={appliedTheme}>
+      <MuiThemeProvider theme={muiTheme(appliedTheme.colors, mode)}>
+        {element}
+      </MuiThemeProvider>
+    </ThemeProvider>
   );
 }
 
@@ -76,6 +81,9 @@ export function withContext(
     defaultOptions: { queries: { retry: false } },
   });
   const isElement = React.isValidElement(TestComponent);
+  window.matchMedia = jest.fn();
+  //@ts-ignore
+  window.matchMedia.mockReturnValue({ matches: false });
   return (
     <Router history={history}>
       <AppContextProvider renderFooter {...appProps}>

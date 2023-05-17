@@ -14,7 +14,7 @@ type Props = {
 
 export const ArrowDropDown = styled(IconButton)`
   &.MuiButton-outlined {
-    border-color: ${(props) => props.theme.colors.neutral20};
+    border-color: ${(props) => props.theme.colors.grayToPrimary};
   }
   &.MuiButton-root {
     border-radius: 0;
@@ -30,7 +30,7 @@ export const ArrowDropDown = styled(IconButton)`
 export const DropDown = styled(Flex)`
   position: absolute;
   overflow: hidden;
-  background: white;
+  background: ${(props) => props.theme.colors.white};
   height: ${(props) => (props.open ? "100%" : "0px")};
   transition-property: height;
   transition-duration: 0.2s;
