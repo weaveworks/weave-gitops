@@ -227,6 +227,13 @@ Rules:
 				}
 			}
 		}
+		// If the rule has a resource name, we allow namespace access.
+		// Impersonation will handle restricting access to the resource name.
+		// https://github.com/weaveworks/weave-gitops/issues/3702
+		if rule.ResourceNames != nil {
+			hasAccess = true
+			break Rules
+		}
 	}
 
 	return hasAccess
