@@ -165,6 +165,7 @@ function SignIn() {
                 placeholder="Username"
                 value={username}
                 required
+                autoFocus
               />
               <Input
                 onChange={(e) => setPassword(e.currentTarget.value)}
