@@ -402,6 +402,39 @@ func TestFilterAccessibleNamespaces(t *testing.T) {
 			})
 		}
 	})
+
+	t.Run("allows namespaces with resourceName specified", func(t *testing.T) {
+		g := NewGomegaWithT(t)
+		ns := newNamespace(context.Background(), adminClient, g)
+		defer removeNs(t, adminClient, ns)
+
+		roleName := makeRole(ns)
+
+		roleRules := []rbacv1.PolicyRule{
+			{
+				APIGroups:     []string{""},
+				Resources:     []string{"secrets", "events", "namespaces"},
+				Verbs:         []string{"get", "list"},
+				ResourceNames: []string{"my-resource"},
+			},
+		}
+
+		userCfg := newRestConfigWithRole(t, testCfg, roleName, roleRules)
+
+		requiredRules := []rbacv1.PolicyRule{
+			{
+				APIGroups: []string{""},
+				Resources: []string{"secrets", "events", "namespaces"},
+				Verbs:     []string{"get", "list"},
+			},
+		}
+
+		checker := NewChecker(requiredRules)
+		filtered, err := checker.FilterAccessibleNamespaces(ctx, userCfg, []corev1.Namespace{*ns})
+		g.Expect(err).NotTo(HaveOccurred())
+
+		g.Expect(filtered).To(HaveLen(1))
+	})
 }
 
 func newNamespace(ctx context.Context, k client.Client, g *GomegaWithT) *corev1.Namespace {
