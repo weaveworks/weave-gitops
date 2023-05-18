@@ -7,7 +7,7 @@ import images from "./images";
 
 const baseSpacingNumber = 16;
 
-const baseTheme = {
+export const baseTheme = {
   fontFamilies: {
     monospace: "'Roboto Mono', monospace",
     regular: "'proxima-nova', Helvetica, Arial, sans-serif",
