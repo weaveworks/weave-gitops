@@ -13,15 +13,15 @@ type Props = {
   link?: string;
 };
 
-function Logo({ className, link, collapsed }: Props) {
+function Logo({ className, link = V2Routes.Automations, collapsed }: Props) {
   const dark = useInDarkMode();
   return (
     <Flex className={className} wide>
-      <Link to={link || V2Routes.Automations}>
+      <Link to={link}>
         <img src={dark ? images.logoDark : images.logoLight} />
       </Link>
       <Fade fade={collapsed}>
-        <Link to={link || V2Routes.Automations}>
+        <Link to={link}>
           <img src={dark ? images.logotypeLight : images.logotype} />
         </Link>
       </Fade>
