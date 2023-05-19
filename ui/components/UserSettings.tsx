@@ -46,7 +46,12 @@ const PersonButton = styled(IconButton)<{ open: boolean }>`
   }
 `;
 
-function UserSettings({ className }: { className?: string }) {
+type Props = {
+  className?: string;
+  darkModeEnabled?: boolean;
+};
+
+function UserSettings({ className, darkModeEnabled = true }: Props) {
   const history = useHistory();
   const [anchorEl, setAnchorEl] = React.useState(null);
   const { userInfo, logOut } = React.useContext(Auth);
@@ -62,11 +67,13 @@ function UserSettings({ className }: { className?: string }) {
 
   return (
     <div className={className}>
-      <Switch
-        onChange={() => toggleDarkMode()}
-        checked={settings.theme === ThemeTypes.Dark}
-        color="primary"
-      />
+      {darkModeEnabled && (
+        <Switch
+          onChange={() => toggleDarkMode()}
+          checked={settings.theme === ThemeTypes.Dark}
+          color="primary"
+        />
+      )}
       <Tooltip title="Account settings" enterDelay={500} enterNextDelay={500}>
         <PersonButton
           onClick={handleClick}
