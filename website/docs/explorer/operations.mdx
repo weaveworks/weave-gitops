@@ -30,29 +30,60 @@ Explorer provides the following telemetry to use for operations.
 
 ### Metrics
 
-You could monitor Explorer via [Prometheus](https://prometheus.io/)
+Explorer exports [Prometheus](https://prometheus.io/) metrics.
 
-// configuration based on https://fluxcd.io/flux/guides/monitoring/
+Configuration happens during releasing as shown below.
+
+```yaml
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: weave-gitops-enterprise
+  namespace: flux-system
+spec:
+  values:
+    #### Metrics - Prometheus metrics configuration
+    metrics:
+      # Enables metrics generation and prometheus endpoint
+      enabled: false
+      service:
+        # -- Port to start the metrics exporter on
+        port: 2112
+        # -- Annotations to set on the service
+        annotations:
+          prometheus.io/scrape: "true"
+          prometheus.io/path: "/metrics"
+          prometheus.io/port: "{{ .Values.metrics.service.port }}"
+```
 
 #### Querying
 
-Monitor by its [golden signals](https://sre.google/sre-book/monitoring-distributed-systems/#xref_monitoring_golden-signals):
+Based on [go-http-metrics](https://github.com/slok/go-http-metrics/blob/master/metrics/prometheus/prometheus.go), the following
+metrics are generated.
 
-- latency: // add timeseries name
-- errors // add timeseries name
-- rate // add timeseries name
-- saturation // add timeseries name
+**Request Duration:** histogram with the latency of the HTTP requests.
 
-#### Collector
+```
+http_request_duration_seconds_bucket{code="200",handler="/v1/query",method="POST",service="",le="0.05"} 0
+http_request_duration_seconds_sum{code="200",handler="/v1/query",method="POST",service=""} 10.088081923
+http_request_duration_seconds_count{code="200",handler="/v1/query",method="POST",service=""} 51
+```
 
+**Response Size:** histogram with the size of the HTTP responses in bytes
 
-#### Grafana Dashboards
+```
+http_response_size_bytes_bucket{code="200",handler="/v1/query",method="POST",service="",le="0.05"} 10
+http_response_size_bytes_sum{code="200",handler="/v1/query",method="POST",service=""} 120
+http_response_size_bytes_count{code="200",handler="/v1/query",method="POST",service=""} 10
+```
 
-Here the grafana dashboard that
+**Request In Flight:** gauge with the number of inflight requests being handled at the same time.
 
-// do like https://fluxcd.io/flux/guides/monitoring/#install-flux-grafana-dashboards
+```
+http_requests_inflight{handler="/v1/query",service=""} 0
+```
 
+You could leverage [this grafana dashboard](./resources/dashboard.json) in Grafana to monitor its [golden signals](https://sre.google/sre-book/monitoring-distributed-systems/#xref_monitoring_golden-signals)
 
-
-
-### Logging
+![explorer](imgs/explorer-query-metrics.png)
