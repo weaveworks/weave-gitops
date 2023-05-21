@@ -6,6 +6,7 @@ option go_package = "github.com/weaveworks/weave-gitops/core/api";
 
 import "google/api/annotations.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
+import "google/protobuf/any.proto";
 
 import "api/core/types.proto";
 
@@ -169,6 +170,24 @@ service Core {
             get : "/v1/inventory",
         };
     }
+    /**
+    * ListPolicyValidations list policy validations available on the management cluster
+    */
+    rpc ListPolicyValidations(ListPolicyValidationsRequest) returns (ListPolicyValidationsResponse) {
+        option (google.api.http) = {
+        post : "/v1/policyviolations"
+        body : "*"
+        };
+    }
+
+    /** 
+    * GetPolicyValidation gets a policy validations on the management cluster by id
+    */
+    rpc GetPolicyValidation(GetPolicyValidationRequest) returns (GetPolicyValidationResponse) {
+        option (google.api.http) = {
+        get : "/v1/policyviolations/{violation_id}"
+        };
+    }
 }
 
 message GetInventoryRequest {
@@ -183,6 +202,64 @@ message GetInventoryResponse {
     repeated InventoryEntry entries = 1;
 }
 
+message PolicyValidation{
+    string id = 1;
+    string message = 2;
+    string cluster_id = 3;
+    string category = 4;
+    string severity = 5;
+    string created_at = 6;
+    string entity=7;
+    string namespace=8;
+    string violating_entity=9;
+    string description=10;
+    string how_to_solve=11;
+    string name=12;
+    string clusterName = 13;
+    repeated PolicyValidationOccurrence occurrences = 14;
+    string policy_id = 15;
+    repeated PolicyValidationParam parameters = 16;
+  }
+
+message ListPolicyValidationsRequest{
+    string clusterName = 1;
+    Pagination pagination = 2;
+    string application = 3;
+    string namespace = 4;
+    string kind = 5;
+}
+  
+message ListPolicyValidationsResponse {
+    repeated PolicyValidation violations = 1;
+    int32 total = 2;
+    string nextPageToken = 3;
+    repeated ListError errors = 4;
+}
+
+message GetPolicyValidationRequest{
+    string violation_id = 1;
+    string clusterName = 2;
+}
+  
+message GetPolicyValidationResponse{
+    PolicyValidation violation = 1; 
+}
+
+message PolicyValidationOccurrence {
+    string message = 1;
+}
+  
+message PolicyValidationParam {
+    string name = 1;
+    string type = 2;
+    google.protobuf.Any value = 3;
+    bool required = 4;
+    string config_ref = 5;
+}
+
+message PolicyParamRepeatedString { 
+    repeated string value = 1; 
+}
 
 message Pagination {
     int32 pageSize = 1;
