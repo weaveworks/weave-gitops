@@ -180,7 +180,7 @@ service Core {
         };
     }
 
-    /** 
+    /**
     * GetPolicyValidation gets a policy validations on the management cluster by id
     */
     rpc GetPolicyValidation(GetPolicyValidationRequest) returns (GetPolicyValidationResponse) {
@@ -219,7 +219,7 @@ message PolicyValidation{
     repeated PolicyValidationOccurrence occurrences = 14;
     string policy_id = 15;
     repeated PolicyValidationParam parameters = 16;
-  }
+}
 
 message ListPolicyValidationsRequest{
     string clusterName = 1;
@@ -228,7 +228,6 @@ message ListPolicyValidationsRequest{
     string namespace = 4;
     string kind = 5;
 }
-  
 message ListPolicyValidationsResponse {
     repeated PolicyValidation violations = 1;
     int32 total = 2;
@@ -240,15 +239,14 @@ message GetPolicyValidationRequest{
     string violation_id = 1;
     string clusterName = 2;
 }
-  
+
 message GetPolicyValidationResponse{
-    PolicyValidation violation = 1; 
+    PolicyValidation violation = 1;
 }
 
 message PolicyValidationOccurrence {
     string message = 1;
 }
-  
 message PolicyValidationParam {
     string name = 1;
     string type = 2;
@@ -257,8 +255,8 @@ message PolicyValidationParam {
     string config_ref = 5;
 }
 
-message PolicyParamRepeatedString { 
-    repeated string value = 1; 
+message PolicyParamRepeatedString {
+    repeated string value = 1;
 }
 
 message Pagination {
