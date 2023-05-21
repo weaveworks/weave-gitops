@@ -20,8 +20,6 @@ import (
 	sigsClient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-var errRequiredClusterName = errors.New("`clusterName` param is required")
-
 type validationList struct {
 	Validations []*pb.PolicyValidation
 	Token       string
@@ -87,13 +85,9 @@ func (cs *coreServer) ListPolicyValidations(ctx context.Context, m *pb.ListPolic
 }
 
 func (cs *coreServer) GetPolicyValidation(ctx context.Context, m *pb.GetPolicyValidationRequest) (*pb.GetPolicyValidationResponse, error) {
-	clusterClient, err := cs.clustersManager.GetImpersonatedClientForCluster(ctx, auth.Principal(ctx), m.ClusterName)
+	clusterClient, err := cs.clustersManager.GetImpersonatedClient(ctx, auth.Principal(ctx))
 	if err != nil {
 		return nil, fmt.Errorf("error getting impersonating client: %w", err)
-	}
-
-	if m.ClusterName == "" {
-		return nil, errRequiredClusterName
 	}
 
 	selector, err := k8sLabels.ValidatedSelectorFromSet(map[string]string{
