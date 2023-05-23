@@ -1,14 +1,13 @@
 import React from "react";
-import { Link } from "react-router-dom";
 import { useListPolicyValidations } from "../../../../hooks/policyViolations";
 import { ListPolicyValidationsRequest } from "../../../../lib/api/core/core.pb";
 import { formatURL } from "../../../../lib/nav";
 import { V2Routes } from "../../../../lib/types";
 import DataTable, { Field, filterConfig } from "../../../DataTable";
+import Link from "../../../Link";
 import RequestStateHandler from "../../../RequestStateHandler";
 import Timestamp from "../../../Timestamp";
 import Severity from "../../Utilis/Severity";
-
 
 interface Props {
   req: ListPolicyValidationsRequest;
