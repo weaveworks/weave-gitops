@@ -82,4 +82,11 @@ function Link({
 
 export default styled(Link)`
   text-decoration: none;
+
+  &.ellipsis {
+    max-width: 300px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 `;

@@ -1,3 +1,4 @@
+import { Tooltip } from "@material-ui/core";
 import qs from "query-string";
 import React from "react";
 import { useLocation } from "react-router-dom";
@@ -32,20 +33,22 @@ export const Breadcrumbs = () => {
               color="neutral40"
             />
           )}
+          <Tooltip title={parsed.name} placement="bottom">
             <Link
               to={formatURL(currentPage, parsed)}
               textProps={{
                 size: "large",
                 color: "neutral40",
-                className: "ellipsis",
               }}
+              className="ellipsis"
             >
               {parsed.name}
             </Link>
+          </Tooltip>
         </>
       )}
     </Flex>
   );
 };
 
-export default styled(Breadcrumbs)``;
+export default styled(Breadcrumbs).attrs({ className: Breadcrumbs.name })``;
