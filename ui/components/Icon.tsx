@@ -268,13 +268,13 @@ function getIcon(i: IconType) {
 
     case IconType.ExploreIcon:
       return ExploreIcon;
-    
+
     case IconType.CallMade:
       return CallMade;
-    
+
     case IconType.CallReceived:
       return CallReceived;
-    
+
     case IconType.Remove:
       return Remove;
 
