@@ -86,6 +86,13 @@ exports[`Footer snapshots default 1`] = `
   text-decoration: none;
 }
 
+.c5.ellipsis {
+  max-width: 300px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .c7 {
   padding-right: 24px;
 }
@@ -304,6 +311,13 @@ exports[`Footer snapshots no api version 1`] = `
 .c5 {
   -webkit-text-decoration: none;
   text-decoration: none;
+}
+
+.c5.ellipsis {
+  max-width: 300px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .c7 {

@@ -166,6 +166,13 @@ exports[`Version snapshots renders a link with version text and version href 1`]
   text-decoration: none;
 }
 
+.c3.ellipsis {
+  max-width: 300px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 <div
   className="c0 Version"
 >

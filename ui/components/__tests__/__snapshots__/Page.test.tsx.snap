@@ -100,6 +100,13 @@ exports[`Page snapshots default 1`] = `
   text-decoration: none;
 }
 
+.c10.ellipsis {
+  max-width: 300px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .c12 {
   padding-right: 24px;
 }
