@@ -40,7 +40,11 @@ function Link({
   ...props
 }: Props) {
   if ((href && !isAllowedLink(href)) || (!href && !to)) {
-    return <Text {...textProps}>{children}</Text>;
+    return (
+      <Text className={className} {...textProps}>
+        {children}
+      </Text>
+    );
   }
 
   const txt = (
@@ -80,6 +84,6 @@ function Link({
   );
 }
 
-export default styled(Link)`
+export default styled(Link).attrs({ className: Link.name })`
   text-decoration: none;
 `;
