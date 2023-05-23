@@ -5,7 +5,7 @@ import Text from "../../Text";
 
 function Severity({ severity }: { severity: string }) {
   return (
-    <Flex alignItems="center" gap="4">
+    <Flex alignItems="center" gap="4" data-testid={severity}>
       {(() => {
         switch (severity.toLocaleLowerCase()) {
           case "low":
@@ -26,7 +26,7 @@ function Severity({ severity }: { severity: string }) {
             );
         }
       })()}
-      <Text capitalize size="medium" data-testid={severity}>
+      <Text capitalize size="medium">
         {severity}
       </Text>
     </Flex>
