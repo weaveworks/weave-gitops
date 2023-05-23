@@ -19,7 +19,6 @@ import { InfoField } from "./InfoList";
 import { routeTab } from "./KustomizationDetail";
 import Metadata from "./Metadata";
 import PageStatus from "./PageStatus";
-import { PolicyViolationsList } from "./PolicyViolations/Table";
 import ReconciledObjectsTable from "./ReconciledObjectsTable";
 import ReconciliationGraph from "./ReconciliationGraph";
 import RequestStateHandler from "./RequestStateHandler";
@@ -29,6 +28,7 @@ import SyncButton from "./SyncButton";
 import Text from "./Text";
 import Timestamp from "./Timestamp";
 import YamlView from "./YamlView";
+import { PolicyViolationsList } from "./Policies/PolicyViolations/Table";
 
 type Props = {
   automation: Automation;

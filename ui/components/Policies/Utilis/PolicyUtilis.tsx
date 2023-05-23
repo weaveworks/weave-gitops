@@ -1,8 +1,8 @@
 import { Chip } from "@material-ui/core";
 import React from "react";
 import styled from "styled-components";
-import Flex from "../Flex";
-import Text from "../Text";
+import Flex from "../../Flex";
+import Text from "../../Text";
 
 export const parseValue = (parameter: {
   type?: string | undefined;

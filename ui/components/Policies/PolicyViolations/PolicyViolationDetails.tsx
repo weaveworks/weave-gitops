@@ -3,21 +3,22 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
 import styled from "styled-components";
-import { useGetPolicyValidationDetails } from "../../hooks/policyViolations";
-import { PolicyValidation } from "../../lib/api/core/core.pb";
-import { Kind } from "../../lib/api/core/types.pb";
-import { formatURL } from "../../lib/nav";
-import { V2Routes } from "../../lib/types";
-import Flex from "../Flex";
-import Link from "../Link";
-import Page from "../Page";
-import Text from "../Text";
-import Timestamp from "../Timestamp";
+import { useGetPolicyValidationDetails } from "../../../hooks/policyViolations";
+import { PolicyValidation } from "../../../lib/api/core/core.pb";
+import { Kind } from "../../../lib/api/core/types.pb";
+import { formatURL } from "../../../lib/nav";
+import { V2Routes } from "../../../lib/types";
+import Flex from "../../Flex";
+import Link from "../../Link";
+import Page from "../../Page";
+import Text from "../../Text";
+import Timestamp from "../../Timestamp";
 
-import { AppContext } from "../../contexts/AppContext";
-import { FluxObject } from "../../lib/objects";
-import Parameters from "./Parameters";
-import Severity from "./Severity";
+import { AppContext } from "../../../contexts/AppContext";
+import { FluxObject } from "../../../lib/objects";
+import Parameters from "../Utilis/Parameters";
+import Severity from "../Utilis/Severity";
+import HeaderRows, { Header } from "../Utilis/HeaderRows";
 
 const SectionWrapper = ({ tilte, children }) => {
   return (
@@ -51,7 +52,7 @@ const ViolationDetails = ({ violation }: IViolationDetailsProps) => {
   } = violation || {};
 
   const entityObject = new FluxObject({ payload: violatingEntity });
-  const headers = [
+  const headers: Header[] = [
     {
       rowkey: "Policy Name",
       value: name,
@@ -104,20 +105,7 @@ const ViolationDetails = ({ violation }: IViolationDetailsProps) => {
 
   return (
     <Flex wide tall column gap="32">
-      <Flex column gap="8">
-        {headers.map((h) => {
-          return (
-            <Flex center gap="8" data-testid={h.rowkey} key={h.rowkey}>
-              <Text color="neutral30" semiBold size="medium">
-                {h.rowkey}:
-              </Text>
-              <Text color="neutral40" size="medium">
-                {h.children || h.value || "-"}
-              </Text>
-            </Flex>
-          );
-        })}
-      </Flex>
+      <HeaderRows headers={headers} />
       <SectionWrapper tilte={` Occurrences ( ${occurrences?.length} )`}>
         <ul className="occurrences">
           {occurrences?.map((item) => (

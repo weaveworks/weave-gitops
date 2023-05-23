@@ -1,7 +1,7 @@
 import React from "react";
-import Flex from "../Flex";
-import Icon, { IconType } from "../Icon";
-import Text from "../Text";
+import Flex from "../../Flex";
+import Icon, { IconType } from "../../Icon";
+import Text from "../../Text";
 
 function Severity({ severity }: { severity: string }) {
   return (
@@ -26,7 +26,7 @@ function Severity({ severity }: { severity: string }) {
             );
         }
       })()}
-      <Text capitalize size="medium">
+      <Text capitalize size="medium" data-testid={severity}>
         {severity}
       </Text>
     </Flex>

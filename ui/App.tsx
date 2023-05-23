@@ -44,7 +44,7 @@ import OCIRepositoryPage from "./pages/v2/OCIRepositoryPage";
 import ProviderPage from "./pages/v2/ProviderPage";
 import Sources from "./pages/v2/Sources";
 import UserInfo from "./pages/v2/UserInfo";
-import PolicyViolationDetails from "./components/PolicyViolations/PolicyViolationDetails";
+import PolicyViolationDetails from "./components/Policies/PolicyViolations/PolicyViolationDetails";
 
 const queryClient = new QueryClient();
 
