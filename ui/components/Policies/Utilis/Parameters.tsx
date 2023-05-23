@@ -12,7 +12,12 @@ const Parameters = ({
   return (
     <>
       {parameters?.map((parameter) => (
-        <ParameterWrapper key={parameter.name} id={parameter.name} wide gap="8">
+        <ParameterWrapper
+          key={parameter.name}
+          wide
+          gap="8"
+          className={parameter.name}
+        >
           <ParameterCell label="Name" value={parameter.name} />
 
           {parameterType !== "violations" && (
