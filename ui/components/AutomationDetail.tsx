@@ -19,6 +19,7 @@ import { InfoField } from "./InfoList";
 import { routeTab } from "./KustomizationDetail";
 import Metadata from "./Metadata";
 import PageStatus from "./PageStatus";
+import { PolicyViolationsList } from "./PolicyViolations/Table";
 import ReconciledObjectsTable from "./ReconciledObjectsTable";
 import ReconciliationGraph from "./ReconciliationGraph";
 import RequestStateHandler from "./RequestStateHandler";
@@ -94,10 +95,10 @@ function AutomationDetail({
     {
       objects: [
         {
-          name: automation.name,
-          namespace: automation.namespace,
-          clusterName: automation.clusterName,
-          kind: automation.type,
+          name,
+          namespace,
+          clusterName,
+          kind: Kind[type],
         },
       ],
       suspend: !automation.suspended,
@@ -133,10 +134,10 @@ function AutomationDetail({
           <EventsTable
             namespace={automation.namespace}
             involvedObject={{
-              kind: automation.type,
-              name: automation.name,
-              namespace: automation.namespace,
-              clusterName: automation.clusterName,
+              name,
+              namespace,
+              clusterName,
+              kind: Kind[type],
             }}
           />
         );
@@ -178,6 +179,24 @@ function AutomationDetail({
         );
       },
       visible: true,
+    },
+    {
+      name: "Violations",
+      path: `${path}/violations`,
+      component: () => {
+        return (
+          <PolicyViolationsList
+            req={{
+              application: name,
+              clusterName,
+              namespace,
+              kind: type,
+            }}
+            sourcePath="kustomization"
+          />
+        );
+      },
+      visible: !customTabs?.find((c) => c.name === "Violations"),
     },
   ];
   return (
