@@ -38,7 +38,7 @@ export const PolicyViolationsList = ({ req }: Props) => {
       ),
       textSearchable: true,
       sortValue: ({ message }) => message,
-      maxWidth: 650,
+      maxWidth: 300,
     },
     {
       label: "Severity",

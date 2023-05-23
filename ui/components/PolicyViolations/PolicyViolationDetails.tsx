@@ -14,7 +14,8 @@ import Page from "../Page";
 import Text from "../Text";
 import Timestamp from "../Timestamp";
 
-import YamlView from "../YamlView";
+import { AppContext } from "../../contexts/AppContext";
+import { FluxObject } from "../../lib/objects";
 import Parameters from "./Parameters";
 import Severity from "./Severity";
 
@@ -33,7 +34,9 @@ interface IViolationDetailsProps {
   violation: PolicyValidation;
 }
 const ViolationDetails = ({ violation }: IViolationDetailsProps) => {
+  const { setDetailModal } = React.useContext(AppContext);
   const {
+    clusterName,
     severity,
     createdAt,
     category,
@@ -47,13 +50,30 @@ const ViolationDetails = ({ violation }: IViolationDetailsProps) => {
     parameters,
   } = violation || {};
 
-  const violatingEntityObj = JSON.parse(violatingEntity);
-  const entityKind = violatingEntityObj.kind;
-
+  const entityObject = new FluxObject({ payload: violatingEntity });
   const headers = [
     {
       rowkey: "Policy Name",
       value: name,
+    },
+    {
+      rowkey: "Application",
+      children: (
+        <Link
+          to={formatURL(
+            entityObject.type === Kind.Kustomization
+              ? V2Routes.Kustomization
+              : V2Routes.HelmRelease,
+            {
+              name: entity,
+              namespace: namespace,
+              clusterName,
+            }
+          )}
+        >
+          {namespace}/{entity}
+        </Link>
+      ),
     },
     {
       rowkey: "Violation Time",
@@ -68,21 +88,16 @@ const ViolationDetails = ({ violation }: IViolationDetailsProps) => {
       value: category,
     },
     {
-      rowkey: "Application",
+      rowkey: "Violating Entity",
       children: (
-        <Link
-          to={formatURL(
-            entityKind === Kind.Kustomization
-              ? V2Routes.Kustomization
-              : V2Routes.HelmRelease,
-            {
-              name: entity,
-              namespace: namespace,
-            }
-          )}
+        <Text
+          pointer
+          size="medium"
+          color="primary"
+          onClick={() => setDetailModal({ object: entityObject })}
         >
-          {namespace}/{entity}
-        </Link>
+          {entityObject.namespace}/{entityObject.name}
+        </Text>
       ),
     },
   ];
@@ -120,14 +135,6 @@ const ViolationDetails = ({ violation }: IViolationDetailsProps) => {
           children={howToSolve || ""}
           remarkPlugins={[remarkGfm]}
           className="editor"
-        />
-      </SectionWrapper>
-      <SectionWrapper tilte="Violating Entity:">
-        <YamlView
-          type="json"
-          yaml={violatingEntity}
-          object={null}
-          className="code"
         />
       </SectionWrapper>
       <SectionWrapper tilte=" Parameters Values:">
@@ -185,5 +192,6 @@ export default styled(PolicyViolationDetails)`
   }
   ul.occurrences {
     padding-left: ${(props) => props.theme.spacing.base};
+    margin: 0;
   }
 `;

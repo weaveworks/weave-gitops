@@ -46,6 +46,6 @@ export const ParameterWrapper = styled(Flex)`
 `;
 
 export const ChipWrap = styled(Chip)`
-  color: ${(props) => props.theme.colors.black};
+  color: ${(props) => props.theme.colors.black} !important;
   background-color: ${(props) => props.theme.colors.neutralGray} !important;
 `;

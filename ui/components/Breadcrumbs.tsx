@@ -25,17 +25,23 @@ export const Breadcrumbs = () => {
       </Link>
       {parentValue !== currentPage && parsed.name && (
         <>
-          <Icon
-            type={IconType.NavigateNextIcon}
-            size="large"
-            color="neutral40"
-          />
-          <Link
-            to={formatURL(currentPage, parsed)}
-            textProps={{ size: "large", color: "neutral40" }}
-          >
-            {parsed.name}
-          </Link>
+          {label && (
+            <Icon
+              type={IconType.NavigateNextIcon}
+              size="large"
+              color="neutral40"
+            />
+          )}
+            <Link
+              to={formatURL(currentPage, parsed)}
+              textProps={{
+                size: "large",
+                color: "neutral40",
+                className: "ellipsis",
+              }}
+            >
+              {parsed.name}
+            </Link>
         </>
       )}
     </Flex>

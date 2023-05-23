@@ -46,9 +46,6 @@ export const getParentNavValue = (
     case V2Routes.UserInfo:
       return V2Routes.UserInfo;
 
-    case V2Routes.PolicyViolationDetails:
-      return V2Routes.Automations;
-    
     default:
       // The "Tabs" component of material-ui wants a bool
       return false;
@@ -63,6 +60,7 @@ export const getParentNavRouteValue = (
     case V2Routes.Automations:
     case V2Routes.Kustomization:
     case V2Routes.HelmRelease:
+    case V2Routes.PolicyViolationDetails:
       return V2Routes.Automations;
 
     case V2Routes.Sources:
