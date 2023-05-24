@@ -20,6 +20,8 @@ import PauseIcon from "@material-ui/icons/Pause";
 import PersonIcon from "@material-ui/icons/Person";
 import PlayIcon from "@material-ui/icons/PlayArrow";
 import RemoveCircleIcon from "@material-ui/icons/RemoveCircle";
+import { CallReceived, CallMade, Remove } from "@material-ui/icons";
+import { VerifiedUser, Policy } from "@material-ui/icons";
 import SaveAltIcon from "@material-ui/icons/SaveAlt";
 import SearchIcon from "@material-ui/icons/Search";
 import SkipNextIcon from "@material-ui/icons/SkipNext";
@@ -102,6 +104,11 @@ export enum IconType {
   ClustersIcon,
   ExploreIcon,
   PendingActionIcon,
+  CallReceived,
+  CallMade,
+  Remove,
+  VerifiedUser,
+  Policy,
 }
 
 type Props = {
@@ -262,6 +269,21 @@ function getIcon(i: IconType) {
 
     case IconType.ExploreIcon:
       return ExploreIcon;
+
+    case IconType.CallReceived:
+      return CallReceived;
+
+    case IconType.CallMade:
+      return CallMade;
+
+    case IconType.Remove:
+      return Remove;
+
+    case IconType.VerifiedUser:
+      return VerifiedUser;
+      
+    case IconType.Policy:
+      return Policy;
 
     default:
       break;
