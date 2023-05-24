@@ -4,28 +4,23 @@ import Icon, { IconType } from "../../Icon";
 import Text from "../../Text";
 
 function Severity({ severity }: { severity: string }) {
+  let icon = null;
+  switch (severity.toLocaleLowerCase()) {
+    case "low":
+      icon = (
+        <Icon type={IconType.CallReceived} color="primary20" size="base" />
+      );
+      break;
+    case "medium":
+      icon = <Icon type={IconType.Remove} color="feedbackDark" size="base" />;
+      break;
+    case "high":
+      icon = <Icon type={IconType.CallMade} color="alertDark" size="base" />;
+      break;
+  }
   return (
     <Flex alignItems="center" gap="4" data-testid={severity}>
-      {(() => {
-        switch (severity.toLocaleLowerCase()) {
-          case "low":
-            return (
-              <Icon
-                type={IconType.CallReceived}
-                color="primary20"
-                size="base"
-              />
-            );
-          case "medium":
-            return (
-              <Icon type={IconType.Remove} color="feedbackDark" size="base" />
-            );
-          case "high":
-            return (
-              <Icon type={IconType.CallMade} color="alertDark" size="base" />
-            );
-        }
-      })()}
+      {icon}
       <Text capitalize size="medium">
         {severity}
       </Text>
