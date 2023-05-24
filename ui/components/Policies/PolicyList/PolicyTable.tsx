@@ -60,7 +60,7 @@ export const PolicyTable: FC<Props> = ({ policies }) => {
           value: (p: any) => (
             <Link
               to={formatURL(V2Routes.PolicyDetailsPage, {
-                clusterName: p.clusterName,
+                clusterName:  isFlagEnabled("WEAVE_GITOPS_FEATURE_CLUSTER")? p.clusterName : 'Default',
                 id: p.id,
                 name: p.name,
               })}
