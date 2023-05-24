@@ -9,6 +9,7 @@ import { V2Routes } from "../lib/types";
 import Flex from "./Flex";
 import Icon, { IconType } from "./Icon";
 import Link from "./Link";
+import Text from "./Text";
 
 export const Breadcrumbs = ({ className }: { className?: string }) => {
   const { currentPage } = useNavigation();
@@ -34,15 +35,9 @@ export const Breadcrumbs = ({ className }: { className?: string }) => {
             />
           )}
           <Tooltip title={parsed.name} placement="bottom">
-            <Link
-              to={formatURL(currentPage, parsed)}
-              textProps={{
-                size: "large",
-                color: "neutral40",
-              }}
-            >
+            <Text size="large" color="neutral40" className="ellipsis">
               {parsed.name}
-            </Link>
+            </Text>
           </Tooltip>
         </>
       )}
