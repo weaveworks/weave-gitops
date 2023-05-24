@@ -14,9 +14,10 @@ import Severity from "../Utilis/Severity";
 
 type Props = {
   policy: Policy;
+  ClusterComponent?: any;
 };
 
-function PolicyDetails({ policy }: Props) {
+function PolicyDetails({ policy, ClusterComponent }: Props) {
   //   const { data: automations, error, isLoading } = useListAutomations();
   //   const { data, isLoading, error } = useListListPolicies({});
   const isLoading: boolean = false;
@@ -43,8 +44,8 @@ function PolicyDetails({ policy }: Props) {
     },
     {
       rowkey: "Cluster",
-      value: clusterName || "",
-      visible: isFlagEnabled("WEAVE_GITOPS_FEATURE_CLUSTER"),
+      value: <ClusterComponent clusterName={clusterName} />,
+      visible: !isFlagEnabled("WEAVE_GITOPS_FEATURE_CLUSTER"),
     },
     {
       rowkey: "Tenant",
