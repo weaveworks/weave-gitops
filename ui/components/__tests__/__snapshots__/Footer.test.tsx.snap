@@ -409,13 +409,8 @@ exports[`Footer snapshots no api version 1`] = `
         class="c4"
       />
       <a
-<<<<<<< HEAD
-        class="c5"
-        href="https://github.com/weaveworks/weave-gitops/releases/tag/v0.24.0-rc.1"
-=======
         class="c5 Link"
-        href="https://github.com/weaveworks/weave-gitops/releases/tag/v0.23.0"
->>>>>>> 29107af9c (update snaps)
+        href="https://github.com/weaveworks/weave-gitops/releases/tag/v0.24.0-rc.1"
         rel="noreferrer"
         target="_blank"
       >
