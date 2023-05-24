@@ -11,7 +11,7 @@ import Icon, { IconType } from "./Icon";
 import Link from "./Link";
 import Text from "./Text";
 
-const EllipsedText = styled(Text)<{ maxWidth?: string }>`
+const EllipsesText = styled(Text)<{ maxWidth?: string }>`
   max-width: ${(prop) => prop.maxWidth || "300px"};
   white-space: nowrap;
   overflow: hidden;
@@ -42,9 +42,9 @@ export const Breadcrumbs = () => {
             />
           )}
           <Tooltip title={parsed.name} placement="bottom">
-            <EllipsedText size="large" color="neutral40" className="ellipsis">
+            <EllipsesText size="large" color="neutral40" className="ellipsis">
               {parsed.name}
-            </EllipsedText>
+            </EllipsesText>
           </Tooltip>
         </>
       )}
