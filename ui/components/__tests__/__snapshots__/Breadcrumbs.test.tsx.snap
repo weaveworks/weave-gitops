@@ -140,6 +140,13 @@ exports[`Breadcrumbs snapshots renders child route 1`] = `
   text-decoration: none;
 }
 
+.c6 {
+  max-width: 300px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 <div
   className="c0"
 >
@@ -170,27 +177,21 @@ exports[`Breadcrumbs snapshots renders child route 1`] = `
       />
     </svg>
   </div>
-  <a
+  <span
     aria-describedby={null}
-    className="c1 Link"
-    href="/kustomization?name=flux"
+    className="c2 c5 c6 ellipsis"
+    color="neutral40"
     onBlur={[Function]}
-    onClick={[Function]}
     onFocus={[Function]}
     onMouseLeave={[Function]}
     onMouseOver={[Function]}
     onTouchEnd={[Function]}
     onTouchStart={[Function]}
+    size="large"
     title="flux"
   >
-    <span
-      className="c2 c5"
-      color="neutral40"
-      size="large"
-    >
-      flux
-    </span>
-  </a>
+    flux
+  </span>
 </div>
 `;
 
