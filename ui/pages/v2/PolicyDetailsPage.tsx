@@ -82,8 +82,8 @@ function PolicyDetailsPage({ className, clusterName, id }: Props) {
   return (
     <Page error={error || []} loading={isLoading} className={className}>
       <Flex wide tall column gap="32">
-        <PolicyDetails policy={data.policy} />
-        <Parameters parameters={data.policy?.parameters} />
+        <PolicyDetails policy={data?.policy || {}} />
+        <Parameters parameters={data?.policy?.parameters || []} />
       </Flex>
     </Page>
   );
