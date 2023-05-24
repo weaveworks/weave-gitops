@@ -81,12 +81,12 @@ export const PolicyTable: FC<Props> = ({ policies }) => {
         },
         {
           label: "Audit",
-          value: ({ audit }) => <PolicyMode modeName={audit || "audit"} />,
+          value: ({ audit }) => <PolicyMode modeName={audit} />,
         },
         {
           label: "Enforce",
           value: ({ enforce }) => (
-            <PolicyMode modeName={enforce ? "admission" : "admission"} />
+            <PolicyMode modeName={enforce ? "admission" : ""} />
           ),
         },
         ...(isFlagEnabled("WEAVE_GITOPS_FEATURE_TENANCY")
