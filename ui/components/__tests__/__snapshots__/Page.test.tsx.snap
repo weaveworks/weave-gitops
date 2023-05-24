@@ -100,13 +100,6 @@ exports[`Page snapshots default 1`] = `
   text-decoration: none;
 }
 
-.c10.ellipsis {
-  max-width: 300px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 .c12 {
   padding-right: 24px;
 }
@@ -166,7 +159,7 @@ exports[`Page snapshots default 1`] = `
         className="c9"
       />
       <a
-        className="c10"
+        className="c10 Link"
         href="mailto:sales@weave.works"
         rel="noreferrer"
         target="_blank"

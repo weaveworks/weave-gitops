@@ -10,7 +10,7 @@ import Flex from "./Flex";
 import Icon, { IconType } from "./Icon";
 import Link from "./Link";
 
-export const Breadcrumbs = () => {
+export const Breadcrumbs = ({ className }: { className?: string }) => {
   const { currentPage } = useNavigation();
   const { search } = useLocation();
   const parentValue = getParentNavValue(currentPage) as V2Routes;
@@ -40,7 +40,6 @@ export const Breadcrumbs = () => {
                 size: "large",
                 color: "neutral40",
               }}
-              className="ellipsis"
             >
               {parsed.name}
             </Link>

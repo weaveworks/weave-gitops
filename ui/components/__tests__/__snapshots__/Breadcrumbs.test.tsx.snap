@@ -29,18 +29,11 @@ exports[`Breadcrumbs snapshots renders 1`] = `
   text-decoration: none;
 }
 
-.c1.ellipsis {
-  max-width: 300px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 <div
   className="c0"
 >
   <a
-    className="c1"
+    className="c1 Link"
     href="/applications"
     onClick={[Function]}
   >
@@ -147,18 +140,11 @@ exports[`Breadcrumbs snapshots renders child route 1`] = `
   text-decoration: none;
 }
 
-.c1.ellipsis {
-  max-width: 300px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 <div
   className="c0"
 >
   <a
-    className="c1"
+    className="c1 Link"
     href="/applications"
     onClick={[Function]}
   >
@@ -186,7 +172,7 @@ exports[`Breadcrumbs snapshots renders child route 1`] = `
   </div>
   <a
     aria-describedby={null}
-    className="c1 ellipsis"
+    className="c1 Link"
     href="/kustomization?name=flux"
     onBlur={[Function]}
     onClick={[Function]}
@@ -232,11 +218,16 @@ exports[`Breadcrumbs snapshots renders on the root page 1`] = `
   color: #1a1a1a;
 }
 
+.c2 {
+  -webkit-text-decoration: none;
+  text-decoration: none;
+}
+
 <div
   className="c0"
 >
   <span
-    className="c1"
+    className="c1 c2 Link"
     color="neutral40"
     size="large"
   />
