@@ -159,7 +159,7 @@ exports[`Page snapshots default 1`] = `
         className="c9"
       />
       <a
-        className="c10"
+        className="c10 Link"
         href="mailto:sales@weave.works"
         rel="noreferrer"
         target="_blank"
