@@ -33,8 +33,9 @@ const SectionWrapper = ({ tilte, children }) => {
 
 interface IViolationDetailsProps {
   violation: PolicyValidation;
+  kind: string;
 }
-const ViolationDetails = ({ violation }: IViolationDetailsProps) => {
+const ViolationDetails = ({ violation, kind }: IViolationDetailsProps) => {
   const { setDetailModal } = React.useContext(AppContext);
   const {
     clusterName,
@@ -62,7 +63,7 @@ const ViolationDetails = ({ violation }: IViolationDetailsProps) => {
       children: (
         <Link
           to={formatURL(
-            entityObject.type === Kind.Kustomization
+            Kind[kind] === Kind.Kustomization
               ? V2Routes.Kustomization
               : V2Routes.HelmRelease,
             {
@@ -136,15 +137,16 @@ interface Props {
   id: string;
   clusterName?: string;
   className?: string;
+  kind?: string;
 }
 
-const PolicyViolationDetails = ({ id, className }: Props) => {
+const PolicyViolationDetails = ({ id, className, kind }: Props) => {
   const { data, error, isLoading } = useGetPolicyValidationDetails({
     violationId: id,
   });
   return (
     <Page error={error} loading={isLoading} className={className}>
-      {data && <ViolationDetails violation={data.violation} />}
+      {data && <ViolationDetails violation={data.violation} kind={kind} />}
     </Page>
   );
 };
