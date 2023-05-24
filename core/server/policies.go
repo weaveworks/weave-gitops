@@ -11,7 +11,6 @@ import (
 
 	"github.com/golang/protobuf/ptypes/any"
 	"github.com/hashicorp/go-multierror"
-	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
 	pacv2beta2 "github.com/weaveworks/policy-agent/api/v2beta2"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
@@ -159,18 +158,13 @@ func (cs *coreServer) ListPolicies(ctx context.Context, m *pb.ListPoliciesReques
 
 	var continueToken string
 	var listsV2beta2 map[string][]client.ObjectList
-	var listsV2beta1 map[string][]client.ObjectList
 
 	if m.ClusterName == "" {
 		clistV2beta2 := clustersmngr.NewClusteredList(func() client.ObjectList {
 			return &pacv2beta2.PolicyList{}
 		})
-		clistV2beta1 := clustersmngr.NewClusteredList(func() client.ObjectList {
-			return &pacv2beta1.PolicyList{}
-		})
 
 		var errsV2beta2 clustersmngr.ClusteredListError
-		var errsV2beta1 clustersmngr.ClusteredListError
 
 		if err := clustersClient.ClusteredList(ctx, clistV2beta2, false, opts...); err != nil {
 			if !errors.As(err, &errsV2beta2) {
@@ -183,45 +177,17 @@ func (cs *coreServer) ListPolicies(ctx context.Context, m *pb.ListPoliciesReques
 			}
 		}
 
-		if err := clustersClient.ClusteredList(ctx, clistV2beta1, false, opts...); err != nil {
-			if !errors.As(err, &errsV2beta1) {
-				return nil, fmt.Errorf("error while listing v2beta1 policies: %w", err)
-			}
-		}
-		for _, e := range errsV2beta1.Errors {
-			if !strings.Contains(e.Err.Error(), "no matches for kind \"Policy\"") {
-				respErrors = append(respErrors, &pb.ListError{ClusterName: e.Cluster, Message: e.Err.Error()})
-			}
-		}
-
 		continueToken = clistV2beta2.GetContinue()
 		listsV2beta2 = clistV2beta2.Lists()
-		listsV2beta1 = clistV2beta1.Lists()
 	} else {
 		listV2beta2 := &pacv2beta2.PolicyList{}
-		listV2beta1 := &pacv2beta1.PolicyList{}
-
-		policiesV2beta2, policiesV2beta1 := true, true
 
 		if err := clustersClient.List(ctx, m.ClusterName, listV2beta2, opts...); err != nil {
-			policiesV2beta2 = false
-		}
-		if err := clustersClient.List(ctx, m.ClusterName, listV2beta1, opts...); err != nil {
-			policiesV2beta1 = false
-		}
-
-		if !(policiesV2beta2 || policiesV2beta1) {
 			return nil, fmt.Errorf("error while listing policies for cluster %s: %w", m.ClusterName, err)
 		}
 
 		continueToken = listV2beta2.GetContinue()
-
-		if policiesV2beta1 {
-			listsV2beta1 = map[string][]client.ObjectList{m.ClusterName: {listV2beta1}}
-		}
-		if policiesV2beta2 {
-			listsV2beta2 = map[string][]client.ObjectList{m.ClusterName: {listV2beta2}}
-		}
+		listsV2beta2 = map[string][]client.ObjectList{m.ClusterName: {listV2beta2}}
 	}
 
 	var policies []*pb.Policy
@@ -240,24 +206,6 @@ func (cs *coreServer) ListPolicies(ctx context.Context, m *pb.ListPoliciesReques
 
 				policies = append(policies, policy)
 				collectedPolicies[getClusterPolicyKey(clusterName, list.Items[i].GetName())] = struct{}{}
-			}
-		}
-	}
-	for clusterName, lists := range listsV2beta1 {
-		for _, l := range lists {
-			list, ok := l.(*pacv2beta1.PolicyList)
-			if !ok {
-				continue
-			}
-			for i := range list.Items {
-				if _, ok := collectedPolicies[getClusterPolicyKey(clusterName, list.Items[i].GetName())]; ok {
-					continue
-				}
-				policy, err := toPolicyResponseV2beta1(list.Items[i], clusterName, false)
-				if err != nil {
-					return nil, err
-				}
-				policies = append(policies, policy)
 			}
 		}
 	}
@@ -280,30 +228,16 @@ func (cs *coreServer) GetPolicy(ctx context.Context, m *pb.GetPolicyRequest) (*p
 		return nil, errRequiredClusterName
 	}
 	policyCRv2beta2 := pacv2beta2.Policy{}
-	policyCRv2beta1 := pacv2beta1.Policy{}
-	policiesV2beta2, policiesV2beta1 := true, true
+
 	if err := clustersClient.Get(ctx, m.ClusterName, types.NamespacedName{Name: m.PolicyName}, &policyCRv2beta2); err != nil {
-		policiesV2beta2 = false
-	}
-	if err := clustersClient.Get(ctx, m.ClusterName, types.NamespacedName{Name: m.PolicyName}, &policyCRv2beta1); err != nil {
-		policiesV2beta1 = false
-	}
-	if !(policiesV2beta2 || policiesV2beta1) {
 		return nil, fmt.Errorf("error while getting policy %s from cluster %s: %w", m.PolicyName, m.ClusterName, err)
 	}
 
 	var policy *pb.Policy
-	if policiesV2beta1 {
-		policy, err = toPolicyResponseV2beta1(policyCRv2beta1, m.ClusterName, true)
-		if err != nil {
-			return nil, err
-		}
-	}
-	if policiesV2beta2 {
-		policy, err = toPolicyResponse(policyCRv2beta2, m.ClusterName, true)
-		if err != nil {
-			return nil, err
-		}
+
+	policy, err = toPolicyResponse(policyCRv2beta2, m.ClusterName, true)
+	if err != nil {
+		return nil, err
 	}
 
 	return &pb.GetPolicyResponse{Policy: policy}, nil
