@@ -7,7 +7,7 @@ import DataTable, { Field, filterConfig } from "../../../DataTable";
 import Link from "../../../Link";
 import RequestStateHandler from "../../../RequestStateHandler";
 import Timestamp from "../../../Timestamp";
-import Severity from "../../Utilis/Severity";
+import Severity from "../../Utils/Severity";
 
 interface Props {
   req: ListPolicyValidationsRequest;

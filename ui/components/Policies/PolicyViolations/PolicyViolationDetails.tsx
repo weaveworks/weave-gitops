@@ -16,15 +16,15 @@ import Timestamp from "../../Timestamp";
 
 import { AppContext } from "../../../contexts/AppContext";
 import { FluxObject } from "../../../lib/objects";
-import Parameters from "../Utilis/Parameters";
-import Severity from "../Utilis/Severity";
-import HeaderRows, { Header } from "../Utilis/HeaderRows";
+import HeaderRows, { Header } from "../Utils/HeaderRows";
+import Parameters from "../Utils/Parameters";
+import Severity from "../Utils/Severity";
 
-const SectionWrapper = ({ tilte, children }) => {
+const SectionWrapper = ({ title, children }) => {
   return (
     <Flex column wide gap="8" data-testid="occurrences">
       <Text bold color="neutral30">
-        {tilte}
+        {title}
       </Text>
       {children}
     </Flex>
@@ -107,7 +107,7 @@ const ViolationDetails = ({ violation, kind }: IViolationDetailsProps) => {
   return (
     <Flex wide tall column gap="32">
       <HeaderRows headers={headers} />
-      <SectionWrapper tilte={` Occurrences ( ${occurrences?.length} )`}>
+      <SectionWrapper title={` Occurrences ( ${occurrences?.length} )`}>
         <ul className="occurrences">
           {occurrences?.map((item) => (
             <li key={item.message}>
@@ -116,17 +116,17 @@ const ViolationDetails = ({ violation, kind }: IViolationDetailsProps) => {
           ))}
         </ul>
       </SectionWrapper>
-      <SectionWrapper tilte="Description:">
+      <SectionWrapper title="Description:">
         <ReactMarkdown children={description || ""} className="editor" />
       </SectionWrapper>
-      <SectionWrapper tilte="How to solve:">
+      <SectionWrapper title="How to solve:">
         <ReactMarkdown
           children={howToSolve || ""}
           remarkPlugins={[remarkGfm]}
           className="editor"
         />
       </SectionWrapper>
-      <SectionWrapper tilte=" Parameters Values:">
+      <SectionWrapper title=" Parameters Values:">
         <Parameters parameters={parameters} />
       </SectionWrapper>
     </Flex>

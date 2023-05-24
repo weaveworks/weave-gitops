@@ -1,6 +1,6 @@
 import React from "react";
 import { PolicyValidationParam } from "../../../lib/api/core/core.pb";
-import { ParameterCell, ParameterWrapper, parseValue } from "./PolicyUtilis";
+import { ParameterCell, ParameterWrapper, parseValue } from "./PolicyUtils";
 
 const Parameters = ({
   parameters,

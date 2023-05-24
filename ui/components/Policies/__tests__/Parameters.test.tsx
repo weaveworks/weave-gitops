@@ -1,8 +1,8 @@
 import { render } from "@testing-library/react";
 import React from "react";
 import { withTheme } from "../../../lib/test-utils";
-import Parameters from "../Utilis/Parameters";
-import { parseValue } from "../Utilis/PolicyUtilis";
+import Parameters from "../Utils/Parameters";
+import { parseValue } from "../Utils/PolicyUtils";
 
 const parameters = [
   {
