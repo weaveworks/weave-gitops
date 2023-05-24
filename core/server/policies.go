@@ -76,57 +76,61 @@ func getPolicyParamValue(param pacv2beta2.PolicyParameters, policyID string) (*a
 	return anyValue, nil
 }
 
-func toPolicyResponse(policyCRD pacv2beta2.Policy, clusterName string) (*pb.Policy, error) {
+func toPolicyResponse(policyCRD pacv2beta2.Policy, clusterName string, fullDetails bool) (*pb.Policy, error) {
 	policySpec := policyCRD.Spec
 
-	var policyLabels []*pb.PolicyTargetLabel
-	for i := range policySpec.Targets.Labels {
-		policyLabels = append(policyLabels, &pb.PolicyTargetLabel{
-			Values: policySpec.Targets.Labels[i],
-		})
+	policy := &pb.Policy{
+		Name:      policySpec.Name,
+		Id:        policySpec.ID,
+		Category:  policySpec.Category,
+		Tags:      policySpec.Tags,
+		Severity:  policySpec.Severity,
+		CreatedAt: policyCRD.CreationTimestamp.Format(time.RFC3339),
+		Tenant:    policyCRD.GetLabels()["toolkit.fluxcd.io/tenant"],
+		Modes:     policyCRD.Status.Modes,
 	}
 
-	var policyParams []*pb.PolicyParam
-	for _, param := range policySpec.Parameters {
-		policyParam := &pb.PolicyParam{
-			Name:     param.Name,
-			Required: param.Required,
-			Type:     param.Type,
+	if fullDetails {
+		var policyLabels []*pb.PolicyTargetLabel
+		for i := range policySpec.Targets.Labels {
+			policyLabels = append(policyLabels, &pb.PolicyTargetLabel{
+				Values: policySpec.Targets.Labels[i],
+			})
 		}
-		value, err := getPolicyParamValue(param, policySpec.ID)
-		if err != nil {
-			return nil, err
+
+		var policyParams []*pb.PolicyParam
+		for _, param := range policySpec.Parameters {
+			policyParam := &pb.PolicyParam{
+				Name:     param.Name,
+				Required: param.Required,
+				Type:     param.Type,
+			}
+			value, err := getPolicyParamValue(param, policySpec.ID)
+			if err != nil {
+				return nil, err
+			}
+			policyParam.Value = value
+			policyParams = append(policyParams, policyParam)
 		}
-		policyParam.Value = value
-		policyParams = append(policyParams, policyParam)
-	}
-	var policyStandards []*pb.PolicyStandard
-	for _, standard := range policySpec.Standards {
-		policyStandards = append(policyStandards, &pb.PolicyStandard{
-			Id:       standard.ID,
-			Controls: standard.Controls,
-		})
-	}
-	policy := &pb.Policy{
-		Name:        policySpec.Name,
-		Id:          policySpec.ID,
-		Code:        policySpec.Code,
-		Description: policySpec.Description,
-		HowToSolve:  policySpec.HowToSolve,
-		Category:    policySpec.Category,
-		Tags:        policySpec.Tags,
-		Severity:    policySpec.Severity,
-		Standards:   policyStandards,
-		Targets: &pb.PolicyTargets{
+		var policyStandards []*pb.PolicyStandard
+		for _, standard := range policySpec.Standards {
+			policyStandards = append(policyStandards, &pb.PolicyStandard{
+				Id:       standard.ID,
+				Controls: standard.Controls,
+			})
+		}
+
+		policy.Code = policySpec.Code
+		policy.Description = policySpec.Description
+		policy.HowToSolve = policySpec.HowToSolve
+		policy.Standards = policyStandards
+		policy.Targets = &pb.PolicyTargets{
 			Kinds:      policySpec.Targets.Kinds,
 			Namespaces: policySpec.Targets.Namespaces,
 			Labels:     policyLabels,
-		},
-		Parameters:  policyParams,
-		CreatedAt:   policyCRD.CreationTimestamp.Format(time.RFC3339),
-		ClusterName: clusterName,
-		Tenant:      policyCRD.GetLabels()["toolkit.fluxcd.io/tenant"],
-		Modes:       policyCRD.Status.Modes,
+		}
+		policy.Parameters = policyParams
+		policy.ClusterName = clusterName
 	}
 
 	return policy, nil
@@ -229,7 +233,7 @@ func (cs *coreServer) ListPolicies(ctx context.Context, m *pb.ListPoliciesReques
 				continue
 			}
 			for i := range list.Items {
-				policy, err := toPolicyResponse(list.Items[i], clusterName)
+				policy, err := toPolicyResponse(list.Items[i], clusterName, false)
 				if err != nil {
 					return nil, err
 				}
@@ -249,7 +253,7 @@ func (cs *coreServer) ListPolicies(ctx context.Context, m *pb.ListPoliciesReques
 				if _, ok := collectedPolicies[getClusterPolicyKey(clusterName, list.Items[i].GetName())]; ok {
 					continue
 				}
-				policy, err := toPolicyResponseV2beta1(list.Items[i], clusterName)
+				policy, err := toPolicyResponseV2beta1(list.Items[i], clusterName, false)
 				if err != nil {
 					return nil, err
 				}
@@ -290,13 +294,13 @@ func (cs *coreServer) GetPolicy(ctx context.Context, m *pb.GetPolicyRequest) (*p
 
 	var policy *pb.Policy
 	if policiesV2beta1 {
-		policy, err = toPolicyResponseV2beta1(policyCRv2beta1, m.ClusterName)
+		policy, err = toPolicyResponseV2beta1(policyCRv2beta1, m.ClusterName, true)
 		if err != nil {
 			return nil, err
 		}
 	}
 	if policiesV2beta2 {
-		policy, err = toPolicyResponse(policyCRv2beta2, m.ClusterName)
+		policy, err = toPolicyResponse(policyCRv2beta2, m.ClusterName, true)
 		if err != nil {
 			return nil, err
 		}
