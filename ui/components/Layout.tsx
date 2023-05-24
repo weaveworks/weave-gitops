@@ -64,9 +64,6 @@ const AppContainer = styled.div`
   padding: 0;
 `;
 
-//top tool bar height needs to match main padding top
-const topBarHeight = "60px";
-
 const ContentContainer = styled.div`
   width: 100%;
   min-width: 900px;
@@ -83,23 +80,9 @@ const ContentContainer = styled.div`
 `;
 
 const Main = styled(Flex)`
-  padding-top: ${topBarHeight};
   box-sizing: border-box;
 `;
 
-const TopToolBar = styled(Flex)`
-  position: fixed;
-  background-color: ${(props) => props.theme.colors.neutralGray};
-  height: ${topBarHeight};
-  min-width: 650px;
-  width: 100%;
-  ${UserSettings} {
-    justify-self: flex-end;
-    margin-left: auto;
-  }
-  //puts it over nav text (must be an mui thing)
-  z-index: 2;
-`;
 
 function Layout({ className, children }: Props) {
   const [collapsed, setCollapsed] = useState<boolean>(false);
@@ -112,18 +95,16 @@ function Layout({ className, children }: Props) {
 
   return (
     <AppContainer className={className}>
-      <TopToolBar start align wide>
-        <Logo collapsed={collapsed} link={V2Routes.Automations} />
-        <Breadcrumbs />
-        <UserSettings />
-      </TopToolBar>
       <Main wide tall>
-        <Nav
-          navItems={navItems}
-          collapsed={collapsed}
-          setCollapsed={setCollapsed}
-          currentPage={value}
-        />
+        <Flex column tall>
+          <Logo collapsed={collapsed} link={V2Routes.Automations} />
+          <Nav
+            navItems={navItems}
+            collapsed={collapsed}
+            setCollapsed={setCollapsed}
+            currentPage={value}
+          />
+        </Flex>
         <ContentContainer>{children}</ContentContainer>
       </Main>
       <Drawer

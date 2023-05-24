@@ -8,6 +8,8 @@ import Flex from "./Flex";
 import Footer from "./Footer";
 import LoadingPage from "./LoadingPage";
 import Spacer from "./Spacer";
+import UserSettings from "./UserSettings";
+import Breadcrumbs from "./Breadcrumbs";
 
 export type PageProps = {
   className?: string;
@@ -34,6 +36,21 @@ const Children = styled(Flex)`
   max-width: 100%;
   box-sizing: border-box;
   overflow: hidden;
+`;
+const topBarHeight = "60px";
+
+const TopToolBar = styled(Flex)`
+  position: fixed;
+  background-color: ${(props) => props.theme.colors.neutralGray};
+  height: ${topBarHeight};
+  min-width: 650px;
+  width: 100%;
+  ${UserSettings} {
+    justify-self: flex-end;
+    margin-left: auto;
+  }
+  //puts it over nav text (must be an mui thing)
+  z-index: 2;
 `;
 
 export function Errors({ error }) {
@@ -65,13 +82,19 @@ function Page({ children, loading, error, className }: PageProps) {
   }
 
   return (
-    <Content wide between column className={className}>
-      <Children column wide tall start>
-        <Errors error={error} />
-        {children}
-      </Children>
-      {settings.renderFooter && <Footer />}
-    </Content>
+    <Flex column wide tall>
+      <TopToolBar start align wide>
+        <Breadcrumbs />
+        <UserSettings />
+      </TopToolBar>
+      <Content wide between column className={className}>
+        <Children column wide tall start>
+          <Errors error={error} />
+          {children}
+        </Children>
+        {settings.renderFooter && <Footer />}
+      </Content>
+    </Flex>
   );
 }
 
