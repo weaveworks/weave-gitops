@@ -64,25 +64,11 @@ const AppContainer = styled.div`
   padding: 0;
 `;
 
-const ContentContainer = styled.div`
-  width: 100%;
-  min-width: 900px;
-  max-width: 100%;
-  //without a hard value in the height property, min-height in the Page component doesn't work
-  height: 1px;
-  min-height: 100%;
-  padding-bottom: ${(props) => props.theme.spacing.small};
-  padding-right: ${(props) => props.theme.spacing.medium};
-  padding-left: ${(props) => props.theme.spacing.medium};
-  overflow: hidden;
-  overflow-y: scroll;
-  box-sizing: border-box;
-`;
+
 
 const Main = styled(Flex)`
   box-sizing: border-box;
 `;
-
 
 function Layout({ className, children }: Props) {
   const [collapsed, setCollapsed] = useState<boolean>(false);
@@ -105,7 +91,7 @@ function Layout({ className, children }: Props) {
             currentPage={value}
           />
         </Flex>
-        <ContentContainer>{children}</ContentContainer>
+        {children}
       </Main>
       <Drawer
         anchor="right"

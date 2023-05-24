@@ -41,8 +41,8 @@ export default styled(Logo)`
     width: auto;
     height: 32px;
   }
-  padding-left: 20px;
-  height: 60px;
+  padding-left: 12px;
+  height: 65px;
   //nav width: 200px - space btwn nav and content: 24px - content padding: 24px. All together 248px - 20 for left padding to line up with detail page titles.
   width: ${(props) => (props.collapsed ? "36px" : "180px")};
   transition: width 0.5s;

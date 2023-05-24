@@ -17,7 +17,16 @@ export type PageProps = {
   loading?: boolean;
   error?: RequestError | RequestError[] | MultiRequestError[];
 };
-
+const ContentContainer = styled.div`
+  width: 100%;
+  display: flex;
+  overflow: hidden;
+  flex-grow: 1;
+  
+`;
+const PageLayout = styled(Flex)`
+  padding: 0 ${(props) => props.theme.spacing.medium};
+`;
 export const Content = styled(Flex)`
   background-color: ${(props) => props.theme.colors.white};
   border-radius: 10px;
@@ -26,30 +35,19 @@ export const Content = styled(Flex)`
   min-height: 100%;
   max-width: 100%;
 `;
-
-const Children = styled(Flex)`
-  padding-bottom: ${(props) => props.theme.spacing.medium};
-  padding-left: ${(props) => props.theme.spacing.medium};
-  padding-right: ${(props) => props.theme.spacing.medium};
-  padding-top: ${(props) => props.theme.spacing.medium};
-
-  max-width: 100%;
-  box-sizing: border-box;
-  overflow: hidden;
-`;
 const topBarHeight = "60px";
 
+const Children = styled(Flex)`
+  max-height: calc(100vh - ${topBarHeight});
+  overflow-wrap: normal;
+  overflow-x: scroll;
+  padding-right: 24px;
+  margin: 0px auto;
+`;
+
 const TopToolBar = styled(Flex)`
-  position: fixed;
-  background-color: ${(props) => props.theme.colors.neutralGray};
   height: ${topBarHeight};
   min-width: 650px;
-  width: 100%;
-  ${UserSettings} {
-    justify-self: flex-end;
-    margin-left: auto;
-  }
-  //puts it over nav text (must be an mui thing)
   z-index: 2;
 `;
 
@@ -72,29 +70,28 @@ export function Errors({ error }) {
 
 function Page({ children, loading, error, className }: PageProps) {
   const { settings } = useCommon();
-
-  if (loading) {
-    return (
-      <Content wide tall start column>
-        <LoadingPage />
-      </Content>
-    );
-  }
-
   return (
-    <Flex column wide tall>
-      <TopToolBar start align wide>
+    <PageLayout column wide tall>
+      <TopToolBar start align wide between>
         <Breadcrumbs />
         <UserSettings />
       </TopToolBar>
-      <Content wide between column className={className}>
-        <Children column wide tall start>
-          <Errors error={error} />
-          {children}
-        </Children>
-        {settings.renderFooter && <Footer />}
-      </Content>
-    </Flex>
+      <ContentContainer>
+        <Content wide between column className={className}>
+          {loading ? (
+            <LoadingPage />
+          ) : (
+            <>
+              <Children column wide tall start>
+                <Errors error={error} />
+                {/* {children} */}
+              </Children>
+              {settings.renderFooter && <Footer />}
+            </>
+          )}
+        </Content>
+      </ContentContainer>
+    </PageLayout>
   );
 }
 
