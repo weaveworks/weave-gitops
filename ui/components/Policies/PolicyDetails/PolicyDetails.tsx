@@ -45,7 +45,7 @@ function PolicyDetails({ policy, ClusterComponent }: Props) {
     {
       rowkey: "Cluster",
       value: <ClusterComponent clusterName={clusterName} />,
-      visible: !isFlagEnabled("WEAVE_GITOPS_FEATURE_CLUSTER"),
+      visible: isFlagEnabled("WEAVE_GITOPS_FEATURE_CLUSTER"),
     },
     {
       rowkey: "Tenant",
