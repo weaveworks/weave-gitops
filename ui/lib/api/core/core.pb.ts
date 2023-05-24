@@ -44,6 +44,7 @@ export type ListPolicyValidationsRequest = {
   application?: string
   namespace?: string
   kind?: string
+  policyId?: string
 }
 
 export type ListPolicyValidationsResponse = {

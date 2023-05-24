@@ -57,6 +57,10 @@ func (cs *coreServer) ListPolicyValidations(ctx context.Context, m *pb.ListPolic
 		fieldSelectorSet["involvedObject.namespace"] = m.Namespace
 	}
 
+	if m.PolicyId != "" {
+		fieldSelectorSet["involvedObject.fieldPath"] = m.PolicyId
+	}
+
 	fieldSelector := k8sFields.SelectorFromSet(fieldSelectorSet)
 
 	opts := []sigsClient.ListOption{}
