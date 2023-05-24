@@ -18,6 +18,7 @@ export const PolicyViolationsList = ({ req }: Props) => {
   const { data, error, isLoading } = useListPolicyValidations(req);
   const initialFilterState = {
     ...filterConfig(data?.violations, "severity"),
+    ...filterConfig(data?.violations, "name"),
   };
   const fields: Field[] = [
     {
@@ -28,6 +29,7 @@ export const PolicyViolationsList = ({ req }: Props) => {
             id,
             clusterName,
             name: message,
+            kind: req.kind,
           })}
           data-violation-message={message}
         >
@@ -46,10 +48,8 @@ export const PolicyViolationsList = ({ req }: Props) => {
     {
       label: "Violated Policy",
       value: "name",
-      textSearchable: true,
       sortValue: ({ name }) => name,
     },
-
     {
       label: "Violation Time",
       value: ({ createdAt }) => <Timestamp time={createdAt} />,
