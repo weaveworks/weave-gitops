@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { useInDarkMode } from "../hooks/theme";
 import images from "../lib/images";
+import { V2Routes } from "../lib/types";
 import { Fade } from "../lib/utils";
 import Flex from "./Flex";
 
@@ -12,7 +13,7 @@ type Props = {
   link?: string;
 };
 
-function Logo({ className, link, collapsed }: Props) {
+function Logo({ className, link = V2Routes.Automations, collapsed }: Props) {
   const dark = useInDarkMode();
   return (
     <Flex className={className} wide>
