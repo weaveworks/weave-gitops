@@ -7,25 +7,23 @@ import TierLabel from "../_components/TierLabel";
 
 # Introduction <TierLabel tiers="Enterprise" />
 
-`GitOpsTemplate`s enable Application Developers to self-service components and
-services easily through the Weave GitOps Dashboard.
+A `GitOpsTemplate` enables application developers to self-service components and
+services easily through the Weave GitOps Dashboard. It's a simple YAML file that you can enrich with parameters, variables,
+metadata, and conditions.
 
-With a `GitOpsTemplate`, any resource that can be expressed in yaml
-(such as basic kubernetes resources, Flux primitives, TF controller, Crossplane, Cluster API)
-can be templated into a standardised definition, available for use.
+Use a `GitOpsTemplate` to template any resource that can be expressed in YAML
+(basic Kubernetes resources, Flux primitives, Terraform controller, Crossplane, Cluster API, etc.)
+into a standardised definition.
 
-Templates are simple YAML files, which can be enriched with Parameters, Variables,
-Metadata and conditions.
-
-Whan an Application Developer uses a Template via the GIU, the rendered
-template is added to their GitOps repository via a PR. When merged and reconciled, the resources in
-the template are created. These can be any resource, such as a `MachinePool` for
-CAPI objects, a Flux Kustomization or a Terraform Controller resource.
+Application developers can use a template through our GUI. The rendered
+template is added to their GitOps repository via a pull request. When merged and reconciled, the resources in
+the template are created. A resource can be a `MachinePool` for
+CAPI objects, a Flux Kustomization, or a Terraform Controller resource, to name a few examples.
 
 :::tip
 
-The only restriction on `GitOpsTemplate`s is that they are valid `yaml`. Beyond
-that, a rendered template can create any resource desired :sparkles:.
+A `GitOpsTemplate` must be valid `yaml`. Beyond
+this, a rendered template can create any resource you need :sparkles:.
 
 :::
 
