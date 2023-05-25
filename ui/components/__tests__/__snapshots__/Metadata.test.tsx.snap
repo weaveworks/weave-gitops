@@ -242,7 +242,7 @@ exports[`Metadata snapshots renders with data 1`] = `
         </td>
         <td>
           <a
-            className="c5"
+            className="c5 Link"
             href="https://google.com"
             rel="noreferrer"
             target="_blank"

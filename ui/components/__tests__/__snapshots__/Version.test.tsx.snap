@@ -180,7 +180,7 @@ exports[`Version snapshots renders a link with version text and version href 1`]
     className="c2"
   />
   <a
-    className="c3"
+    className="c3 Link"
     href="https://github.com/weaveworks/weave-gitops"
     rel="noreferrer"
     target="_blank"

@@ -1,4 +1,4 @@
-import { Divider, IconButton, Input, InputAdornment } from "@material-ui/core";
+import { IconButton, Input, InputAdornment } from "@material-ui/core";
 import { Visibility, VisibilityOff } from "@material-ui/icons";
 import * as React from "react";
 import styled from "styled-components";
@@ -34,6 +34,11 @@ const Logo = styled(Flex)`
   img:first-child {
     margin-right: ${(props) => props.theme.spacing.xs};
   }
+`;
+
+const OidcFlex = styled(Flex)`
+  ${(props) =>
+    props.clusterAuth && `padding-bottom: ${props.theme.spacing.small}`}
 `;
 
 const Footer = styled(Flex)`
@@ -133,7 +138,12 @@ function SignIn() {
           />
         </Logo>
         {isFlagEnabled("OIDC_AUTH") ? (
-          <Flex wide center>
+          <OidcFlex
+            wide
+            center
+            //extra padding-bottom for when both auth flags are enabled
+            clusterAuth={isFlagEnabled("CLUSTER_USER_AUTH")}
+          >
             <Button
               type="submit"
               onClick={(e) => {
@@ -144,10 +154,7 @@ function SignIn() {
               {flags.WEAVE_GITOPS_FEATURE_OIDC_BUTTON_LABEL ||
                 "LOGIN WITH OIDC PROVIDER"}
             </Button>
-          </Flex>
-        ) : null}
-        {isFlagEnabled("OIDC_AUTH") && isFlagEnabled("CLUSTER_USER_AUTH") ? (
-          <Divider variant="middle" style={{ padding: "12px" }} />
+          </OidcFlex>
         ) : null}
         {isFlagEnabled("CLUSTER_USER_AUTH") ? (
           <form
@@ -213,9 +220,6 @@ function SignIn() {
 }
 
 export default styled(SignIn)`
-  .MuiDivider-root {
-    margin: ${(props) => props.theme.spacing.base};
-  }
   ${LoadingPage} {
     padding: ${(props) => props.theme.spacing.medium};
   }
