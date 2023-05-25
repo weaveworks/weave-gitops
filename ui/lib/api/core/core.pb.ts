@@ -66,14 +66,6 @@ export type ListObjectsRequest = {
   clusterName?: string
   labels?: {[key: string]: string}
 }
-export type PolicyValidationParam = {
-  name?: string
-  type?: string
-  value?: GoogleProtobufAny.Any
-  required?: boolean
-  configRef?: string
-}
-
 
 export type ListObjectsResponse = {
   objects?: Gitops_coreV1Types.Object[]
