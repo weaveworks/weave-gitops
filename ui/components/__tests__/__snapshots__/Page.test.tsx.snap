@@ -54,7 +54,7 @@ exports[`Page snapshots default 1`] = `
   align-items: center;
 }
 
-.c9 {
+.c11 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -73,7 +73,7 @@ exports[`Page snapshots default 1`] = `
   justify-content: space-between;
 }
 
-.c12 {
+.c14 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -93,7 +93,7 @@ exports[`Page snapshots default 1`] = `
   justify-content: flex-start;
 }
 
-.c14 {
+.c16 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -112,7 +112,7 @@ exports[`Page snapshots default 1`] = `
   justify-content: space-between;
 }
 
-.c16 {
+.c18 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -126,7 +126,16 @@ exports[`Page snapshots default 1`] = `
   align-items: start;
 }
 
-.c18 {
+.c6 {
+  font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
+  font-size: 20px;
+  font-weight: 400;
+  text-transform: none;
+  font-style: normal;
+  color: #1a1a1a;
+}
+
+.c19 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 400;
@@ -135,7 +144,7 @@ exports[`Page snapshots default 1`] = `
   white-space: nowrap;
 }
 
-.c21 {
+.c22 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 400;
@@ -144,72 +153,72 @@ exports[`Page snapshots default 1`] = `
   color: #00b3ec;
 }
 
-.c7 svg {
+.c9 svg {
   height: 24px;
   width: 24px;
 }
 
-.c7 svg path.path-fill,
-.c7 svg line.path-fill,
-.c7 svg polygon.path-fill,
-.c7 svg rect.path-fill,
-.c7 svg circle.path-fill,
-.c7 svg polyline.path-fill {
+.c9 svg path.path-fill,
+.c9 svg line.path-fill,
+.c9 svg polygon.path-fill,
+.c9 svg rect.path-fill,
+.c9 svg circle.path-fill,
+.c9 svg polyline.path-fill {
   fill: !important;
   -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
-.c7 svg path.stroke-fill,
-.c7 svg line.stroke-fill,
-.c7 svg polygon.stroke-fill,
-.c7 svg rect.stroke-fill,
-.c7 svg circle.stroke-fill,
-.c7 svg polyline.stroke-fill {
+.c9 svg path.stroke-fill,
+.c9 svg line.stroke-fill,
+.c9 svg polygon.stroke-fill,
+.c9 svg rect.stroke-fill,
+.c9 svg circle.stroke-fill,
+.c9 svg polyline.stroke-fill {
   stroke: !important;
   -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
-.c7 svg rect.rect-height {
+.c9 svg rect.rect-height {
   height: 24px;
   width: 24px;
 }
 
-.c7.downward {
+.c9.downward {
   -webkit-transform: rotate(180deg);
   -ms-transform: rotate(180deg);
   transform: rotate(180deg);
 }
 
-.c7.upward {
+.c9.upward {
   -webkit-transform: initial;
   -ms-transform: initial;
   transform: initial;
 }
 
-.c7 .c17 {
+.c9 .c5 {
   margin-left: 4px;
 }
 
-.c7 img {
+.c9 img {
   width: 24px;
 }
 
-.c19 {
+.c20 {
   padding: 4px;
 }
 
-.c20 {
+.c21 {
   -webkit-text-decoration: none;
   text-decoration: none;
 }
 
-.c22 {
+.c23 {
   padding-right: 24px;
 }
 
-.c15 {
+.c17 {
   max-width: 100%;
   box-sizing: border-box;
   background: #F6F7F9;
@@ -218,31 +227,31 @@ exports[`Page snapshots default 1`] = `
   border-radius: 0 0 8px 8px;
 }
 
-.c6 {
+.c8 {
   height: 40px;
   width: 40px;
 }
 
-.c6.MuiIconButton-root {
+.c8.MuiIconButton-root {
   background-color: #F6F7F9;
   color: #737373;
 }
 
-.c6.MuiIconButton-root:hover {
+.c8.MuiIconButton-root:hover {
   background-color: #fff;
   color: #009CCC;
 }
 
-.c5 .MuiSwitch-thumb {
+.c7 .MuiSwitch-thumb {
   color: #fff;
   background-image: url();
 }
 
-.c5 .MuiSwitch-track {
+.c7 .MuiSwitch-track {
   background-color: #00b3ec;
 }
 
-.c8 {
+.c10 {
   height: 100%;
   width: calc(100% - 48px);
   padding: 0 24px;
@@ -261,7 +270,7 @@ exports[`Page snapshots default 1`] = `
   overflow: hidden;
 }
 
-.c10 {
+.c12 {
   background-color: #fff;
   border-radius: 10px;
   box-sizing: border-box;
@@ -269,7 +278,7 @@ exports[`Page snapshots default 1`] = `
   min-height: 100%;
 }
 
-.c13 {
+.c15 {
   width: calc(100% - 48px);
   padding: 24px;
   height: 100%;
@@ -283,7 +292,7 @@ exports[`Page snapshots default 1`] = `
   padding: 0 32px;
 }
 
-.c11 .MuiAlert-root {
+.c13 .MuiAlert-root {
   width: 100%;
 }
 
@@ -295,9 +304,22 @@ exports[`Page snapshots default 1`] = `
   >
     <div
       className="c4"
-    />
+    >
+      <div
+        className="c4"
+      >
+        <span
+          className="c5 c6"
+          color="neutral40"
+          data-testid="text-test"
+          size="large"
+        >
+          test
+        </span>
+      </div>
+    </div>
     <div
-      className="c5"
+      className="c7"
     >
       <span
         className="MuiSwitch-root"
@@ -342,7 +364,7 @@ exports[`Page snapshots default 1`] = `
       <button
         aria-describedby={null}
         aria-haspopup="true"
-        className="MuiButtonBase-root MuiIconButton-root c6"
+        className="MuiButtonBase-root MuiIconButton-root c8"
         disabled={false}
         onBlur={[Function]}
         onClick={[Function]}
@@ -366,7 +388,7 @@ exports[`Page snapshots default 1`] = `
           className="MuiIconButton-label"
         >
           <div
-            className="c4 c7"
+            className="c4 c9"
           >
             <svg
               aria-hidden={true}
@@ -387,38 +409,38 @@ exports[`Page snapshots default 1`] = `
     </div>
   </div>
   <div
-    className="c8"
+    className="c10"
   >
     <div
-      className="c9 c10 c11"
+      className="c11 c12 c13"
     >
       <div
-        className="c12 c13"
+        className="c14 c15"
       />
       <footer
-        className="c14 c15 Footer"
+        className="c16 c17 Footer"
         role="footer"
       >
         <div
-          className="c16"
+          className="c18"
         >
           <span
-            className="c17 c18"
+            className="c5 c19"
             size="medium"
           >
             Need help? Contact us at
           </span>
           <div
-            className="c19"
+            className="c20"
           />
           <a
-            className="c20"
+            className="c21 Link"
             href="mailto:sales@weave.works"
             rel="noreferrer"
             target="_blank"
           >
             <span
-              className="c17 c21"
+              className="c5 c22"
               color="primary"
               size="medium"
             >
@@ -427,13 +449,13 @@ exports[`Page snapshots default 1`] = `
           </a>
         </div>
         <div
-          className="c16 c22"
+          className="c18 c23"
         >
           <div
-            className="c19"
+            className="c20"
           />
           <span
-            className="c17 c18"
+            className="c5 c19"
             size="medium"
           >
             © 

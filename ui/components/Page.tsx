@@ -15,7 +15,7 @@ export type PageProps = {
   className?: string;
   children?: any;
   loading?: boolean;
-  path?: Breadcrumb[];
+  path: Breadcrumb[];
   error?: RequestError | RequestError[] | MultiRequestError[];
 };
 

@@ -32,10 +32,12 @@ function HelmRepositoryDetail({
   );
 
   return (
-    <Page error={error} loading={isLoading} className={className} path={[
-      { label: "Sources", url: V2Routes.Sources },
-      { label: name },
-    ]}>
+    <Page
+      error={error}
+      loading={isLoading}
+      className={className}
+      path={[{ label: "Sources", url: V2Routes.Sources }, { label: name }]}
+    >
       <HelmRepositoryDetailComponent helmRepository={helmRepository} />
     </Page>
   );

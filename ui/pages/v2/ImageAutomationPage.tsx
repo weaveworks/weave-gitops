@@ -18,7 +18,11 @@ function ImageAutomationPage() {
     error,
   } = useCheckCRDInstalled(crdName);
   return (
-    <Page loading={isLoading} error={error} path={[{ label: "Image Automations" }]}>
+    <Page
+      loading={isLoading}
+      error={error}
+      path={[{ label: "Image Automations" }]}
+    >
       {!isCRDAvailable ? (
         <Flex wide tall column align>
           <MessageBox>
