@@ -14,6 +14,7 @@ function Notifications({ className }: Props) {
       className={className}
       loading={isLoading}
       error={data?.errors || error}
+      path={[{ label: "Notifications" }]}
     >
       <NotificationsTable rows={data?.objects} />
     </Page>

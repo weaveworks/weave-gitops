@@ -5,6 +5,7 @@ import Page from "../../components/Page";
 import { useGetObject } from "../../hooks/objects";
 import { Kind } from "../../lib/api/core/types.pb";
 import { GitRepository } from "../../lib/objects";
+import { V2Routes } from "../../lib/types";
 type Props = {
   className?: string;
   name: string;
@@ -30,7 +31,12 @@ function GitRepositoryDetail({
   );
 
   return (
-    <Page error={error} loading={isLoading} className={className}>
+    <Page
+      error={error}
+      loading={isLoading}
+      className={className}
+      path={[{ label: "Sources", url: V2Routes.Sources }, { label: name }]}
+    >
       <GitRepositoryDetailComponent gitRepository={gitRepository} />
     </Page>
   );
