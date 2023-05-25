@@ -25,9 +25,11 @@ type CoreClient interface {
 	// ListFluxRuntimeObjects lists the flux runtime deployments from a cluster.
 	ListFluxRuntimeObjects(ctx context.Context, in *ListFluxRuntimeObjectsRequest, opts ...grpc.CallOption) (*ListFluxRuntimeObjectsResponse, error)
 	ListFluxCrds(ctx context.Context, in *ListFluxCrdsRequest, opts ...grpc.CallOption) (*ListFluxCrdsResponse, error)
+	// *
 	// GetReconciledObjects returns a list of objects that were created as a result a Flux automation.
 	// This list is derived by looking at the Kustomization or HelmRelease specified in the request body.
 	GetReconciledObjects(ctx context.Context, in *GetReconciledObjectsRequest, opts ...grpc.CallOption) (*GetReconciledObjectsResponse, error)
+	// *
 	// GetChildObjects returns the children of a given object, specified by a GroupVersionKind.
 	// Not all Kubernets objects have children. For example, a Deployment has a child ReplicaSet, but a Service has no child objects.
 	GetChildObjects(ctx context.Context, in *GetChildObjectsRequest, opts ...grpc.CallOption) (*GetChildObjectsResponse, error)
@@ -41,19 +43,23 @@ type CoreClient interface {
 	SyncFluxObject(ctx context.Context, in *SyncFluxObjectRequest, opts ...grpc.CallOption) (*SyncFluxObjectResponse, error)
 	// GetVersion returns version information about the server
 	GetVersion(ctx context.Context, in *GetVersionRequest, opts ...grpc.CallOption) (*GetVersionResponse, error)
+	// *
 	// GetFeatureFlags returns configuration information about the server
 	GetFeatureFlags(ctx context.Context, in *GetFeatureFlagsRequest, opts ...grpc.CallOption) (*GetFeatureFlagsResponse, error)
 	// ToggleSuspendResource suspends or resumes a flux object.
 	ToggleSuspendResource(ctx context.Context, in *ToggleSuspendResourceRequest, opts ...grpc.CallOption) (*ToggleSuspendResourceResponse, error)
 	// GetSessionLogs returns the logs for a given session
 	GetSessionLogs(ctx context.Context, in *GetSessionLogsRequest, opts ...grpc.CallOption) (*GetSessionLogsResponse, error)
+	// *
 	// IsCRDAvailable returns with a hashmap where the keys are the names of
 	// the clusters, and the value is a boolean indicating whether given CRD is
 	// installed or not on that cluster.
 	IsCRDAvailable(ctx context.Context, in *IsCRDAvailableRequest, opts ...grpc.CallOption) (*IsCRDAvailableResponse, error)
 	GetInventory(ctx context.Context, in *GetInventoryRequest, opts ...grpc.CallOption) (*GetInventoryResponse, error)
+	// *
 	// ListPolicyValidations list policy validations available on the management cluster
 	ListPolicyValidations(ctx context.Context, in *ListPolicyValidationsRequest, opts ...grpc.CallOption) (*ListPolicyValidationsResponse, error)
+	// *
 	// GetPolicyValidation gets a policy validations on the management cluster by id
 	GetPolicyValidation(ctx context.Context, in *GetPolicyValidationRequest, opts ...grpc.CallOption) (*GetPolicyValidationResponse, error)
 }
@@ -239,9 +245,11 @@ type CoreServer interface {
 	// ListFluxRuntimeObjects lists the flux runtime deployments from a cluster.
 	ListFluxRuntimeObjects(context.Context, *ListFluxRuntimeObjectsRequest) (*ListFluxRuntimeObjectsResponse, error)
 	ListFluxCrds(context.Context, *ListFluxCrdsRequest) (*ListFluxCrdsResponse, error)
+	// *
 	// GetReconciledObjects returns a list of objects that were created as a result a Flux automation.
 	// This list is derived by looking at the Kustomization or HelmRelease specified in the request body.
 	GetReconciledObjects(context.Context, *GetReconciledObjectsRequest) (*GetReconciledObjectsResponse, error)
+	// *
 	// GetChildObjects returns the children of a given object, specified by a GroupVersionKind.
 	// Not all Kubernets objects have children. For example, a Deployment has a child ReplicaSet, but a Service has no child objects.
 	GetChildObjects(context.Context, *GetChildObjectsRequest) (*GetChildObjectsResponse, error)
@@ -255,19 +263,23 @@ type CoreServer interface {
 	SyncFluxObject(context.Context, *SyncFluxObjectRequest) (*SyncFluxObjectResponse, error)
 	// GetVersion returns version information about the server
 	GetVersion(context.Context, *GetVersionRequest) (*GetVersionResponse, error)
+	// *
 	// GetFeatureFlags returns configuration information about the server
 	GetFeatureFlags(context.Context, *GetFeatureFlagsRequest) (*GetFeatureFlagsResponse, error)
 	// ToggleSuspendResource suspends or resumes a flux object.
 	ToggleSuspendResource(context.Context, *ToggleSuspendResourceRequest) (*ToggleSuspendResourceResponse, error)
 	// GetSessionLogs returns the logs for a given session
 	GetSessionLogs(context.Context, *GetSessionLogsRequest) (*GetSessionLogsResponse, error)
+	// *
 	// IsCRDAvailable returns with a hashmap where the keys are the names of
 	// the clusters, and the value is a boolean indicating whether given CRD is
 	// installed or not on that cluster.
 	IsCRDAvailable(context.Context, *IsCRDAvailableRequest) (*IsCRDAvailableResponse, error)
 	GetInventory(context.Context, *GetInventoryRequest) (*GetInventoryResponse, error)
+	// *
 	// ListPolicyValidations list policy validations available on the management cluster
 	ListPolicyValidations(context.Context, *ListPolicyValidationsRequest) (*ListPolicyValidationsResponse, error)
+	// *
 	// GetPolicyValidation gets a policy validations on the management cluster by id
 	GetPolicyValidation(context.Context, *GetPolicyValidationRequest) (*GetPolicyValidationResponse, error)
 	mustEmbedUnimplementedCoreServer()
