@@ -1,32 +1,54 @@
+import { render } from "@testing-library/react";
 import "jest-styled-components";
 import React from "react";
-import renderer from "react-test-renderer";
-import { withContext, withTheme } from "../../lib/test-utils";
-import Breadcrumbs from "../Breadcrumbs";
+import { BrowserRouter } from "react-router-dom";
+import { withTheme } from "../../lib/test-utils";
+import { V2Routes } from "../../lib/types";
+import Breadcrumbs, { Breadcrumb } from "../Breadcrumbs";
+
+function checkPath(path: Breadcrumb[]) {
+  render(
+    withTheme(
+      <BrowserRouter>
+        <Breadcrumbs path={path} />
+      </BrowserRouter>
+    )
+  );
+
+  path.forEach(({ url, label }) => {
+    if (url) {
+      const ele = document.querySelector(
+        `[data-testid="link-${label}"]`
+      ) as HTMLLinkElement;
+      expect(ele).toBeTruthy();
+      expect(ele.textContent).toEqual(label);
+      expect(ele.href).toEqual(`${location.origin}${url}`);
+    } else {
+      const ele = document.querySelector(
+        `[data-testid="text-${label}"]`
+      ) as HTMLElement;
+      expect(ele).toBeTruthy();
+      expect(ele.textContent).toEqual(label);
+    }
+  });
+}
 
 describe("Breadcrumbs", () => {
-  describe("snapshots", () => {
-    it("renders", () => {
-      const tree = renderer
-        .create(withTheme(withContext(<Breadcrumbs />, "/applications", {})))
-        .toJSON();
-      expect(tree).toMatchSnapshot();
-    });
-    it("renders child route", () => {
-      const tree = renderer
-        .create(
-          withTheme(
-            withContext(<Breadcrumbs />, "/kustomization?name=flux", {})
-          )
-        )
-        .toJSON();
-      expect(tree).toMatchSnapshot();
-    });
-    it("renders on the root page", () => {
-      const tree = renderer
-        .create(withTheme(withContext(<Breadcrumbs />, "/", {})))
-        .toJSON();
-      expect(tree).toMatchSnapshot();
-    });
+  it("check different routes", async () => {
+    [
+      [{ label: "Applications" }],
+      [
+        { label: "Applications", url: V2Routes.Automations },
+        { label: "flux-system" },
+      ],
+      [
+        { label: "Applications", url: V2Routes.Automations },
+        {
+          label: "flux-system",
+          url: "/kustomization/details?clusterName=Default&name=flux-system&namespace=flux-system",
+        },
+        { label: "violation-message" },
+      ],
+    ].forEach((s) => checkPath(s));
   });
 });

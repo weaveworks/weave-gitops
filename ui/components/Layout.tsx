@@ -5,13 +5,11 @@ import { AppContext } from "../contexts/AppContext";
 import useNavigation from "../hooks/navigation";
 import { getParentNavRouteValue } from "../lib/nav";
 import { V2Routes } from "../lib/types";
-import Breadcrumbs from "./Breadcrumbs";
 import DetailModal from "./DetailModal";
 import Flex from "./Flex";
 import { IconType } from "./Icon";
 import Logo from "./Logo";
 import Nav, { NavItem } from "./Nav";
-import UserSettings from "./UserSettings";
 
 type Props = {
   className?: string;
@@ -63,8 +61,6 @@ const AppContainer = styled.div`
   margin: 0 auto;
   padding: 0;
 `;
-
-
 
 const Main = styled(Flex)`
   box-sizing: border-box;

@@ -11,7 +11,7 @@ export interface Breadcrumb {
 interface Props {
   path: Breadcrumb[];
 }
-export const Breadcrumbs = ({ path }: Props) => {
+export const Breadcrumbs = ({ path = [] }: Props) => {
   return (
     <Flex align>
       {path.map(({ label, url }) => {
@@ -20,6 +20,7 @@ export const Breadcrumbs = ({ path }: Props) => {
             {url ? (
               <>
                 <Link
+                  data-testid={`link-${label}`}
                   to={url}
                   textProps={{ bold: true, size: "large", color: "neutral40" }}
                 >
@@ -32,7 +33,11 @@ export const Breadcrumbs = ({ path }: Props) => {
                 />
               </>
             ) : (
-              <Text size="large" color="neutral40">
+              <Text
+                size="large"
+                color="neutral40"
+                data-testid={`text-${label}`}
+              >
                 {label}
               </Text>
             )}
