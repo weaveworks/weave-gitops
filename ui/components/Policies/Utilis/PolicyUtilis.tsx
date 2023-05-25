@@ -47,6 +47,7 @@ export const SectionWrapper = ({ title, children }) => {
     </Flex>
   );
 };
+
 export const ModeWrapper = styled(Flex)`
   align-items: center;
   justify-content: flex-start;
@@ -71,10 +72,11 @@ export const ParameterWrapper = styled(Flex)`
 `;
 
 export const ChipWrap = styled(Chip)`
-  color: ${(props) => props.theme.colors.black} !important;
-  margin-right: ${(props) => props.theme.spacing.xxs};
-
-  background-color: ${(props) => props.theme.colors.neutralGray} !important;
+  .MuiChip-root {
+    height: inherit;
+    color: ${(props) => props.theme.colors.black};
+    background-color: ${(props) => props.theme.colors.neutralGray};
+  }
 `;
 
 export const Editor = styled(ReactMarkdown)`

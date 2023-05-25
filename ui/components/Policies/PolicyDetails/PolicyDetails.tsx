@@ -18,11 +18,6 @@ type Props = {
 };
 
 function PolicyDetails({ policy, ClusterComponent }: Props) {
-  //   const { data: automations, error, isLoading } = useListAutomations();
-  //   const { data, isLoading, error } = useListListPolicies({});
-  const isLoading: boolean = false;
-  const error = null;
-  console.log((props) => props.theme);
   const {
     id,
     tenant,
@@ -55,13 +50,13 @@ function PolicyDetails({ policy, ClusterComponent }: Props) {
     {
       rowkey: "Tags",
       children: (
-        <div id="policy-details-header-tags">
+        <Flex id="policy-details-header-tags" gap="4">
           {!!tags && tags?.length > 0 ? (
             tags?.map((tag) => <ChipWrap key={tag} label={tag} />)
           ) : (
             <Text>There is no tags for this policy</Text>
           )}
-        </div>
+        </Flex>
       ),
     },
     {
@@ -109,11 +104,10 @@ function PolicyDetails({ policy, ClusterComponent }: Props) {
           style={darcula}
           wrapLongLines="pre-wrap"
           showLineNumbers={true}
-          codeTagProps={{
-            className: "code",
-          }}
           customStyle={{
             height: "450px",
+            width: "100%",
+            padding: "1em 0 1em 1em",
           }}
         >
           {code}
