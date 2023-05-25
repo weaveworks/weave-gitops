@@ -26,7 +26,7 @@ const HeaderRows = ({ headers }: Props) => {
                 h.children
               ) : (
                 <Text color="neutral40" size="medium">
-                  {h.value || "-"}
+                  {h.value || "--"}
                 </Text>
               )}
             </Flex>

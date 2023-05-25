@@ -72,10 +72,15 @@ export const ParameterWrapper = styled(Flex)`
 `;
 
 export const ChipWrap = styled(Chip)`
-  .MuiChip-root {
-    height: inherit;
+  &.MuiChip-root {
     color: ${(props) => props.theme.colors.black};
-    background-color: ${(props) => props.theme.colors.neutralGray};
+    background-color: ${(props) => props.theme.colors.neutral10};
+    padding: 2px 4px;
+    height: inherit;
+    border-radius: 4px;
+  }
+  .MuiChip-label {
+    padding: 0;
   }
 `;
 
@@ -83,7 +88,7 @@ export const Editor = styled(ReactMarkdown)`
   width: calc(100% - 24px);
   padding: ${(props) => props.theme.spacing.small};
   overflow: scroll;
-  background: ${(props) => props.theme.colors.neutralGray};
+  background: ${(props) => props.theme.colors.neutral10};
   max-height: 300px;
   & a {
     color: ${(props) => props.theme.colors.primary};
