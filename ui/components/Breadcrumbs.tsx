@@ -12,7 +12,7 @@ import Link from "./Link";
 import Text from "./Text";
 
 const EllipsesText = styled(Text)<{ maxWidth?: string }>`
-  max-width: ${(prop) => prop.maxWidth || "300px"};
+  max-width: ${(prop) => prop.maxWidth || "400px"};
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

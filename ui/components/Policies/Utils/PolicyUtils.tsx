@@ -45,6 +45,14 @@ export const ParameterWrapper = styled(Flex)`
 `;
 
 export const ChipWrap = styled(Chip)`
-  color: ${(props) => props.theme.colors.black} !important;
-  background-color: ${(props) => props.theme.colors.neutralGray} !important;
+  &.MuiChip-root {
+    color: ${(props) => props.theme.colors.black};
+    background-color: ${(props) => props.theme.colors.neutralGray};
+    padding: 2px 4px;
+    height: inherit;
+    border-radius: 4px;
+  }
+  .MuiChip-label {
+    padding: 0;
+  }
 `;

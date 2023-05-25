@@ -22,9 +22,13 @@ const HeaderRows = ({ headers }: Props) => {
               <Text color="neutral30" semiBold size="medium">
                 {h.rowkey}:
               </Text>
-              <Text color="neutral40" size="medium">
-                {h.children || h.value || "-"}
-              </Text>
+              {h.children ? (
+                h.children
+              ) : (
+                <Text color="neutral40" size="medium">
+                  {h.value || "-"}
+                </Text>
+              )}
             </Flex>
           )
         );
