@@ -32,11 +32,11 @@ export const ArrowDropDown = styled(IconButton)`
   }
 `;
 
-const Sync = styled(Button)<{ hideDropdown: boolean }>`
+const Sync = styled(Button)<{ $hideDropdown: boolean }>`
   &.MuiButton-outlined {
     margin-right: 0;
     ${(props) =>
-      !props.hideDropdown &&
+      !props.$hideDropdown &&
       `border-radius: 2px 0 0 2px; border-right: none; &:hover {border-right: none;};`}
   }
 `;
@@ -85,7 +85,8 @@ function SyncButton({
           loading={loading}
           variant="outlined"
           onClick={() => onClick({ withSource: true })}
-          hideDropdown={hideDropdown}
+          //$ - transient prop that is not passed to DOM https://styled-components.com/docs/api#transient-props
+          $hideDropdown={hideDropdown}
         >
           Sync
         </Sync>
