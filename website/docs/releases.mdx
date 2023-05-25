@@ -26,6 +26,8 @@ This page details the changes for Weave GitOps Enterprise and its associated com
 - You can now filter out the versions that will be shown from a HelmRepository when installing a chart via annotations:
   - `"weave.works/helm-version-filter": "> 0.0.0"` to filter out rc releases
   - `"weave.works/helm-version-filter": "> 1.0.0"` to filter any pre 1.0 releases
+  - `"weave.works/helm-version-filter": "> 3.0.0-0"` to filter any pre 3.0 releases but include rc releases
+
 
 ### Dependency versions
 
