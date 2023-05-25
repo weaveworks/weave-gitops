@@ -10,6 +10,79 @@ import TierLabel from "./_components/TierLabel";
 This page details the changes for Weave GitOps Enterprise and its associated components. For Weave GitOps OSS - please see the release notes on [GitHub](https://github.com/weaveworks/weave-gitops/releases).
 :::
 
+## v0.24.0
+2023-05-25
+
+### Highlights
+
+#### GitOpsSets 
+
+- GitOpsSets can now generate from [Flux Image Automation](https://fluxcd.io/flux/components/image/)'s `ImagePolicy`. This allows you to include the latest version of an image in your templates, for example to keep a `Deployment` up to date.
+- Cross namespace support lands, create resources in multiple namespaces, they'll also be cleaned up properly via finalizers.
+- The **Sync** button in the UI now works correctly
+
+#### Profiles and Charts
+
+- You can now filter out the versions that will be shown from a HelmRepository when installing a chart via annotations:
+  - `"weave.works/helm-version-filter": "> 0.0.0"` to filter out rc releases
+  - `"weave.works/helm-version-filter": "> 1.0.0"` to filter any pre 1.0 releases
+
+### Dependency versions
+
+- weave-gitops v0.24.0
+- cluster-controller v1.5.2
+- cluster-bootstrap-controller v0.6.0
+- templates-controller v0.2.0
+- (optional) pipeline-controller v0.21.0
+- (optional) policy-agent v2.3.0
+- (optional) gitopssets-controller v0.12.0
+
+## v0.23.0
+2023-05-12
+
+### Highlights
+
+#### Application Details
+
+- Health status is now displayed for Kubernetes built-in resources.
+
+#### Explorer
+- You could [configure the service account](https://docs.gitops.weave.works/docs/explorer/configuration/#authentication-and-authorization-for-collecting) to use for collecting resources.
+
+#### Templates
+
+- You can now provide a _Markdown_ description of a template. This will be rendered at the top of the Template page allowing template authors to provide clear instructions to their users on how to best fill in the values and complete any other required tests and checks.
+- Raw templates are more flexible and allow you to render resources which don't have an explicit `metadata.name` field.
+
+#### Cluster details
+
+- The cluster details page now shows a Cluster's Connectivity status, along with more details for _both_ GitopsClusters and CAPIClusters, including:
+  - Conditions
+  - Labels
+  - Annotations
+
+### Breaking Changes
+
+(none)
+
+### Known issues
+
+#### Explorer
+
+- When enabled [useQueryServiceBackend](https://docs.gitops.weave.works/docs/explorer/configuration/#setup) navigation from Clusters UI to Applications UI is not possible as Explorer does not yet support filtering.
+
+### Dependency versions
+
+- weave-gitops v0.23.0
+- cluster-controller v1.4.1
+- cluster-bootstrap-controller v0.6.0
+- templates-controller v0.2.0
+- (optional) pipeline-controller v0.21.0
+- (optional) policy-agent v2.3.0
+- (optional) gitopssets-controller v0.11.0
+
+
+
 ## v0.22.0
 2023-04-27
 
