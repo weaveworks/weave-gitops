@@ -1,0 +1,142 @@
+---
+title: Querying
+hide_title: true
+---
+
+import TierLabel from "./../_components/TierLabel";
+import AlphaWarning from "../_components/_alpha_warning.mdx";
+
+# Querying <TierLabel tiers="Enterprise" />
+
+<AlphaWarning/>
+
+Explorer recommended way to discover resources is via its search dialog. This guide provides the background to understand
+it and set how to use it.
+
+## Schema
+
+Every resource is normalised to the following common schema:
+
+| __Key__                  | __Description__                                                     |
+| -----------------          | --------------                                                  |
+| Cluster                    | Name of cluster where the resource exists. As gitops cluster `<GitopsClusterNamespace,GitopsClusterName>`|
+| Namespace                  | Namespace name where the resource exists.|
+| Kind                  | Resource kubernetes type or [kind](https://kubernetes.io/docs/reference/using-api/api-concepts/#standard-api-terminology)|
+| Name                  | Resource name as specified in its manifest.|
+| Status                  | Resource health status. Indicates the status of its reconciliation.|
+| Message                  | Resource health status message. It extends status field with information about the status.|
+
+For a `podinfo` helm release from a cluster `default/progress-delivery-demo2-32` like this:
+
+```yaml
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: podinfo
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: podinfo
+      interval: 1m
+      reconcileStrategy: ChartVersion
+      sourceRef:
+        kind: HelmRepository
+        name: podinfo
+      version: 6.0.0
+  interval: 1m
+status:
+  conditions:
+  - message: Release reconciliation succeeded
+    reason: ReconciliationSucceeded
+    status: "True"
+    type: Ready
+```
+
+The schema looks like
+
+| Cluster    | Namespace | Kind          | Name    | Status    | Message                 |
+|------------| ---------| ----------------|---------|----------|------------------------|
+|`default/progress-delivery-demo2-32` | `flux-system`   | `HelmRelease` | `podinfo` | `Success` | `Release reconciliation succeeded`  |
+
+And represented in the UI like
+
+![explorer](imgs/explorer-query-overview.png)
+
+## Querying
+
+Based on the previous schema you have two main modes to discover or filter the data
+
+1. Filter by key and value: when you know the pair <key,value> that you want to filter from.
+2. Filter by value: when you want to filter across keys or does not know the key
+
+:::info Matching
+
+For `key:value` filter the results would be those results where `key=value` exactly.
+:::
+
+
+### Filter by key and value
+
+You search with the format `key:value` indicating that you want to filter the resources matching the key and value.
+A couple of examples could be:
+
+- `kind:HelmRelease` to filter all helm releases.
+- `status:Failed` to find all failing resources.
+
+### Filter by value
+You search with a single term `value` indicating that you want to filter across the supported keys by values.
+The value would be search cross keys: `name`, `namespace` and `cluster` as synthatic sugar for `name:value` OR `namespace:value` OR `cluster:value`.
+
+An example cold be using `podinfo` that would translate into `name:podinfo` OR `namespace:podinfo` OR `cluster:podinfo`.
+
+### Operators
+
+#### AND
+
+You could refine filtered results by using AND semantics adding different filters.
+
+For example if you want to have all the resources within `flux-system` namespace from `management` cluster you could
+create a query like the following:
+
+![and query](imgs/explorer-query-and.png)
+
+with two sequential filters `namespace:flux-system` and `cluster:management` to achieve it.
+
+## FAQ
+
+Here a set of questions around querying to allow you get started by practice.
+
+### How can I discover resources from a cluster?
+
+You could use the single term with `clusterName` or `cluster:clusterName`
+
+For example for management cluster could be `management` or `cluster:management`
+
+![filter by cluster](imgs/explorer-query-filter-cluster.png)
+
+### How can I discover resources from a namespace?
+
+You could use the single term with `namespaceName` or `namespace:namespaceName`.
+
+### How can I discover applications?
+
+You should filter by kind where kind could be either HelmRelease or Kustomization like `kind:Kustomization` or `kind:HelmRelease`.
+You could also use the pre-built filters.
+
+![filter by kind](imgs/explorer-query-filter-kind.png)
+
+:::warning Exact Matching
+
+Remember that `key:value` is `key=value`
+- `kind:HelmRelease` returns all Helm Releases apps
+- `kind:helmrelease` wont return anything
+:::
+
+### How can I discover failed applications?
+
+You should filter by `status:Failed` to find the failing apps or use the pre-built filters.
+
+### How can I discover resources by name?
+
+You could use the single term with `resourceName` or `name:resourceName`.
