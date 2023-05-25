@@ -16,7 +16,8 @@ export const ArrowDropDown = styled(IconButton)`
   &.MuiButton-outlined {
     border-color: ${(props) => props.theme.colors.grayToPrimary};
     border-left: none;
-    &:hover {
+    &:hover,
+    &:disabled {
       border-left: none;
     }
     //2px = MUI radius
@@ -37,7 +38,7 @@ const Sync = styled(Button)<{ $hideDropdown: boolean }>`
     margin-right: 0;
     ${(props) =>
       !props.$hideDropdown &&
-      `border-radius: 2px 0 0 2px; border-right: none; &:hover {border-right: none;};`}
+      `border-radius: 2px 0 0 2px; border-right: none; &:hover, &:disabled {border-right: none;};`}
   }
 `;
 
