@@ -92,7 +92,9 @@
         "guides/deploying-capa",
         "guides/using-terraform-templates",
         "guides/delivery",
-        "guides/flagger-manual-gating"
+        "guides/flagger-manual-gating",
+        "guides/fluxga-upgrade"
+
       ]
     },
     {
