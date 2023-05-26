@@ -28,6 +28,18 @@ This page details the changes for Weave GitOps Enterprise and its associated com
   - `"weave.works/helm-version-filter": "> 1.0.0"` to filter any pre 1.0 releases
   - `"weave.works/helm-version-filter": "> 3.0.0-0"` to filter any pre 3.0 releases but include rc releases
 
+#### Explorer
+- You could now navigate by filters and enabled full-text search.
+
+### Breaking Changes
+
+(none)
+
+### Known issues
+
+#### Explorer
+
+- Full-text search with terms including special characters like dashes (-) returns more results than expected by exact match term. For example, searching by term "flux-system" is treated as two terms: "flux" & "system" so returns the results for the joint of them.  A fix for this will be part of the following releases.
 
 ### Dependency versions
 
