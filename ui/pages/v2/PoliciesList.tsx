@@ -15,6 +15,7 @@ function PoliciesList({ className }: Props) {
       error={error || data?.errors}
       loading={isLoading}
       className={className}
+      path={[{ label: "Policies" }]}
     >
       {data?.policies && <PolicyTable policies={data.policies} />}
     </Page>

@@ -5,6 +5,7 @@ import Page from "../../components/Page";
 import PolicyDetails from "../../components/Policies/PolicyDetails/PolicyDetails";
 import Parameters from "../../components/Policies/Utilis/Parameters";
 import { useGetPolicyDetails } from "../../hooks/Policies";
+import { V2Routes } from "../../lib/types";
 
 type Props = {
   className?: string;
@@ -19,7 +20,15 @@ function PolicyDetailsPage({ className, clusterName, id }: Props) {
   });
 
   return (
-    <Page error={error || []} loading={isLoading} className={className}>
+    <Page
+      error={error || []}
+      loading={isLoading}
+      className={className}
+      path={[
+        { label: "Policies", url: V2Routes.Policies },
+        { label: data?.policy?.name || "" },
+      ]}
+    >
       <Flex wide tall column gap="32">
         <PolicyDetails policy={data?.policy || {}} />
         <Parameters parameters={data?.policy?.parameters || []} />
