@@ -221,12 +221,13 @@ message PolicyValidation {
     repeated PolicyValidationParam parameters       = 16;
 }
 
-message ListPolicyValidationsRequest {
-    string     clusterName = 1;
-    Pagination pagination  = 2;
-    string     application = 3;
-    string     namespace   = 4;
-    string     kind        = 5;
+message ListPolicyValidationsRequest{
+    string clusterName = 1;
+    Pagination pagination = 2;
+    string application = 3;
+    string namespace = 4;
+    string kind = 5;
+    string policyId = 6;
 }
 message ListPolicyValidationsResponse {
     repeated PolicyValidation violations = 1;
