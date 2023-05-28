@@ -23,6 +23,8 @@
 ,
 { "level": 3, "value": "HeadersReference", "id": "templates.weave.works/v1alpha1.HeadersReference" }
 ,
+{ "level": 3, "value": "ImagePolicyGenerator", "id": "templates.weave.works/v1alpha1.ImagePolicyGenerator" }
+,
 { "level": 3, "value": "ListGenerator", "id": "templates.weave.works/v1alpha1.ListGenerator" }
 ,
 { "level": 3, "value": "MatrixGenerator", "id": "templates.weave.works/v1alpha1.MatrixGenerator" }
