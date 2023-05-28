@@ -104,6 +104,7 @@
         'guides/using-terraform-templates',
         'guides/delivery',
         'guides/flagger-manual-gating',
+        'guides/fluxga-upgrade',
       ],
     },
     {

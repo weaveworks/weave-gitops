@@ -375,6 +375,18 @@ APIClientGenerator
 <td>
 </td>
 </tr>
+<tr>
+<td>
+<code>imagePolicy</code><br />
+<em>
+<a href="#templates.weave.works/v1alpha1.ImagePolicyGenerator">
+ImagePolicyGenerator
+</a>
+</em>
+</td>
+<td>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="templates.weave.works/v1alpha1.GitOpsSetNestedGenerator">GitOpsSetNestedGenerator
@@ -393,6 +405,20 @@ This is a subset of the generators allowed by the GitOpsSetGenerator because the
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+<code>name</code><br />
+<em>
+string
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>Name is an optional field that will be used to prefix the values generated
+by the nested generators, this allows multiple generators of the same
+type in a single Matrix generator.</p>
+</td>
+</tr>
 <tr>
 <td>
 <code>list</code><br />
@@ -447,6 +473,18 @@ ClusterGenerator
 <em>
 <a href="#templates.weave.works/v1alpha1.APIClientGenerator">
 APIClientGenerator
+</a>
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>imagePolicy</code><br />
+<em>
+<a href="#templates.weave.works/v1alpha1.ImagePolicyGenerator">
+ImagePolicyGenerator
 </a>
 </em>
 </td>
@@ -800,6 +838,35 @@ string
 </td>
 <td>
 <p>Name of the resource in the same namespace to apply headers from.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="templates.weave.works/v1alpha1.ImagePolicyGenerator">ImagePolicyGenerator
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#templates.weave.works/v1alpha1.GitOpsSetGenerator">GitOpsSetGenerator</a>, 
+<a href="#templates.weave.works/v1alpha1.GitOpsSetNestedGenerator">GitOpsSetNestedGenerator</a>)
+</p>
+<p>ImagePolicyGenerator generates from the ImagePolicy.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>policyRef</code><br />
+<em>
+string
+</em>
+</td>
+<td>
+<p>PolicyRef is the name of a ImagePolicy resource to be generated from.</p>
 </td>
 </tr>
 </tbody>

@@ -9,7 +9,11 @@ type Props = {
 export default function UserInfo({ className }: Props) {
   const { userInfo, loading } = React.useContext(Auth);
   return (
-    <Page className={className} loading={loading}>
+    <Page
+      className={className}
+      loading={loading}
+      path={[{ label: "User Info" }]}
+    >
       <UserGroupsTable rows={userInfo?.groups}></UserGroupsTable>
     </Page>
   );
