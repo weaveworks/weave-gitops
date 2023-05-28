@@ -15,6 +15,7 @@ function SourcesList({ className }: Props) {
       error={error || sources?.errors}
       loading={isLoading}
       className={className}
+      path={[{ label: "Sources" }]}
     >
       <SourcesTable sources={sources?.result} />
     </Page>

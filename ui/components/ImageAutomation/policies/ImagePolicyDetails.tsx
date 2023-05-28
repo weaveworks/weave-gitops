@@ -32,7 +32,15 @@ function ImagePolicyDetails({
   );
   const rootPath = V2Routes.ImagePolicyDetails;
   return (
-    <Page error={error} loading={isLoading} className={className}>
+    <Page
+      error={error}
+      loading={isLoading}
+      className={className}
+      path={[
+        { label: "Image Policies", url: V2Routes.ImagePolicies },
+        { label: name },
+      ]}
+    >
       {!!data && (
         <ImageAutomationDetails
           data={data}

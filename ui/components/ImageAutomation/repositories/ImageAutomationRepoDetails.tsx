@@ -34,7 +34,15 @@ function ImageAutomationRepoDetails({
   );
   const rootPath = V2Routes.ImageAutomationRepositoryDetails;
   return (
-    <Page error={error} loading={isLoading} className={className}>
+    <Page
+      error={error}
+      loading={isLoading}
+      className={className}
+      path={[
+        { label: "Image Repositories", url: V2Routes.ImageRepositories },
+        { label: name },
+      ]}
+    >
       {!!data && (
         <ImageAutomationDetails
           data={data}

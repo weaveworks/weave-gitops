@@ -5,6 +5,7 @@ import Page from "../../components/Page";
 import { useGetObject } from "../../hooks/objects";
 import { Kind } from "../../lib/api/core/types.pb";
 import { Kustomization } from "../../lib/objects";
+import { V2Routes } from "../../lib/types";
 
 type Props = {
   name: string;
@@ -25,7 +26,15 @@ function KustomizationPage({ className, name, namespace, clusterName }: Props) {
     clusterName
   );
   return (
-    <Page loading={isLoading} error={error} className={className}>
+    <Page
+      loading={isLoading}
+      error={error}
+      className={className}
+      path={[
+        { label: "Applications", url: V2Routes.Automations },
+        { label: name },
+      ]}
+    >
       <KustomizationDetail kustomization={kustomization} />
     </Page>
   );

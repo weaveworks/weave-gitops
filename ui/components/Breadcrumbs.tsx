@@ -1,11 +1,6 @@
 import { Tooltip } from "@material-ui/core";
-import qs from "query-string";
 import React from "react";
-import { useLocation } from "react-router-dom";
 import styled from "styled-components";
-import useNavigation from "../hooks/navigation";
-import { getPageLabel, getParentNavValue } from "../lib/nav";
-import { V2Routes } from "../lib/types";
 import Flex from "./Flex";
 import Icon, { IconType } from "./Icon";
 import Link from "./Link";
@@ -17,37 +12,49 @@ const EllipsesText = styled(Text)<{ maxWidth?: string }>`
   overflow: hidden;
   text-overflow: ellipsis;
 `;
-
-export const Breadcrumbs = () => {
-  const { currentPage } = useNavigation();
-  const { search } = useLocation();
-  const parentValue = getParentNavValue(currentPage) as V2Routes;
-  const label = getPageLabel(parentValue);
-  const parsed = qs.parse(search);
+export interface Breadcrumb {
+  label: string;
+  url?: string;
+}
+interface Props {
+  path: Breadcrumb[];
+}
+export const Breadcrumbs = ({ path = [] }: Props) => {
   return (
     <Flex align>
-      <Link
-        to={parentValue || ""}
-        textProps={{ bold: true, size: "large", color: "neutral40" }}
-      >
-        {label}
-      </Link>
-      {parentValue !== currentPage && parsed.name && (
-        <>
-          {label && (
-            <Icon
-              type={IconType.NavigateNextIcon}
-              size="large"
-              color="neutral40"
-            />
-          )}
-          <Tooltip title={parsed.name} placement="bottom">
-            <EllipsesText size="large" color="neutral40" className="ellipsis">
-              {parsed.name}
-            </EllipsesText>
-          </Tooltip>
-        </>
-      )}
+      {path.map(({ label, url }) => {
+        return (
+          <Flex align key={label}>
+            {url ? (
+              <>
+                <Link
+                  data-testid={`link-${label}`}
+                  to={url}
+                  textProps={{ bold: true, size: "large", color: "neutral40" }}
+                >
+                  {label}
+                </Link>
+                <Icon
+                  type={IconType.NavigateNextIcon}
+                  size="large"
+                  color="neutral40"
+                />
+              </>
+            ) : (
+              <Tooltip title={label} placement="bottom">
+                <EllipsesText
+                  size="large"
+                  color="neutral40"
+                  className="ellipsis"
+                  data-testid={`text-${label}`}
+                >
+                  {label}
+                </EllipsesText>
+              </Tooltip>
+            )}
+          </Flex>
+        );
+      })}
     </Flex>
   );
 };
