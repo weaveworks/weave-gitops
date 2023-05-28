@@ -10,7 +10,7 @@ const Parameters = ({
   parameterType?: string;
 }) => {
   return (
-    <SectionWrapper title="Parameters Definition">
+    <SectionWrapper title="Parameters Definition:">
       {parameters?.map((parameter) => (
         <ParameterWrapper
           key={parameter.name}

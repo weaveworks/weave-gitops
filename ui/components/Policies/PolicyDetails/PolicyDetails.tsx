@@ -97,10 +97,10 @@ function PolicyDetails({ policy, ClusterComponent }: Props) {
       <SectionWrapper title="Description:">
         <Editor children={description || ""} />
       </SectionWrapper>
-      <SectionWrapper title="How to solve">
+      <SectionWrapper title="How to solve:">
         <Editor children={howToSolve || ""} remarkPlugins={[remarkGfm]} />
       </SectionWrapper>
-      <SectionWrapper title="Policy Code">
+      <SectionWrapper title="Policy Code:">
         <SyntaxHighlighter
           language="rego"
           style={darcula}
