@@ -80,13 +80,13 @@ function PolicyDetails({ policy, ClusterComponent }: Props) {
     {
       rowkey: "Targeted K8s Kind",
       children: (
-        <div id="policy-details-header-kinds">
+        <Flex id="policy-details-header-kinds" gap="4">
           {targets?.kinds?.length ? (
             targets?.kinds?.map((kind) => <ChipWrap key={kind} label={kind} />)
           ) : (
             <Text>There is no kinds for this policy</Text>
           )}
-        </div>
+        </Flex>
       ),
     },
   ];
