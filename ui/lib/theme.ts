@@ -184,7 +184,7 @@ export const GlobalStyle = createGlobalStyle`
 
   ::-webkit-scrollbar{
     width: 5px;
-    height: 5px;
+    height: 0px;
     background-color: transparent;
   }
   ::-webkit-scrollbar-thumb {

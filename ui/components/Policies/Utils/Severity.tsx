@@ -3,7 +3,7 @@ import Flex from "../../Flex";
 import Icon, { IconType } from "../../Icon";
 import Text from "../../Text";
 
-function Severity({ severity }: { severity: string }) {
+const Severity = ({ severity }: { severity: string }) => {
   let icon = null;
   switch (severity.toLocaleLowerCase()) {
     case "low":
@@ -26,6 +26,6 @@ function Severity({ severity }: { severity: string }) {
       </Text>
     </Flex>
   );
-}
+};
 
 export default Severity;

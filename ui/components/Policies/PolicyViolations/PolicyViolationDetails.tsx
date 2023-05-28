@@ -31,20 +31,23 @@ const SectionWrapper = ({ title, children }) => {
   );
 };
 
-interface IViolationDetailsProps {
+interface ViolationDetailsProps {
   violation: PolicyValidation;
-  kind: string;
+  entityUrl: string;
+  entityObject: FluxObject;
 }
-const ViolationDetails = ({ violation, kind }: IViolationDetailsProps) => {
+const ViolationDetails = ({
+  violation,
+  entityObject,
+  entityUrl,
+}: ViolationDetailsProps) => {
   const { setDetailModal } = React.useContext(AppContext);
   const {
-    clusterName,
     severity,
     createdAt,
     category,
     howToSolve,
     description,
-    violatingEntity,
     entity,
     namespace,
     occurrences,
@@ -52,7 +55,6 @@ const ViolationDetails = ({ violation, kind }: IViolationDetailsProps) => {
     parameters,
   } = violation || {};
 
-  const entityObject = new FluxObject({ payload: violatingEntity });
   const headers: Header[] = [
     {
       rowkey: "Policy Name",
@@ -61,18 +63,7 @@ const ViolationDetails = ({ violation, kind }: IViolationDetailsProps) => {
     {
       rowkey: "Application",
       children: (
-        <Link
-          to={formatURL(
-            Kind[kind] === Kind.Kustomization
-              ? V2Routes.Kustomization
-              : V2Routes.HelmRelease,
-            {
-              name: entity,
-              namespace: namespace,
-              clusterName,
-            }
-          )}
-        >
+        <Link to={entityUrl}>
           {namespace}/{entity}
         </Link>
       ),
@@ -135,18 +126,50 @@ const ViolationDetails = ({ violation, kind }: IViolationDetailsProps) => {
 
 interface Props {
   id: string;
+  name: string;
   clusterName?: string;
   className?: string;
   kind?: string;
 }
 
-const PolicyViolationDetails = ({ id, className, kind }: Props) => {
+const PolicyViolationDetails = ({ id, name, className, kind }: Props) => {
   const { data, error, isLoading } = useGetPolicyValidationDetails({
     violationId: id,
   });
+
+  const violation = data?.violation;
+  const entityObject = new FluxObject({
+    payload: violation?.violatingEntity,
+  });
+
+  const entityUrl = formatURL(
+    Kind[kind] === Kind.Kustomization
+      ? `${V2Routes.Kustomization}/violations`
+      : `${V2Routes.HelmRelease}/violations`,
+    {
+      name: violation?.entity,
+      namespace: violation?.namespace,
+      clusterName: violation?.clusterName,
+    }
+  );
   return (
-    <Page error={error} loading={isLoading} className={className}>
-      {data && <ViolationDetails violation={data.violation} kind={kind} />}
+    <Page
+      error={error}
+      loading={isLoading}
+      className={className}
+      path={[
+        { label: "Applications", url: V2Routes.Automations },
+        { label: violation?.entity, url: entityUrl },
+        { label: name || "" },
+      ]}
+    >
+      {data && (
+        <ViolationDetails
+          violation={data.violation}
+          entityUrl={entityUrl}
+          entityObject={entityObject}
+        />
+      )}
     </Page>
   );
 };
