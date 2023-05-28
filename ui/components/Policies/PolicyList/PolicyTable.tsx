@@ -36,7 +36,10 @@ export const PolicyTable: FC<Props> = ({ policies }) => {
     ...filterConfig(policies, "audit"),
   };
 
-  if (isFlagEnabled("WEAVE_GITOPS_FEATURE_TENANCY")) {
+  if (
+    isFlagEnabled("WEAVE_GITOPS_FEATURE_TENANCY") &&
+    isFlagEnabled("WEAVE_GITOPS_FEATURE_CLUSTER")
+  ) {
     initialFilterState = {
       ...initialFilterState,
       ...filterConfig(policies, "tenant"),
@@ -91,7 +94,8 @@ export const PolicyTable: FC<Props> = ({ policies }) => {
             <PolicyMode modeName={enforce ? "admission" : ""} />
           ),
         },
-        ...(isFlagEnabled("WEAVE_GITOPS_FEATURE_TENANCY")
+        ...(isFlagEnabled("WEAVE_GITOPS_FEATURE_TENANCY") &&
+        isFlagEnabled("WEAVE_GITOPS_FEATURE_CLUSTER")
           ? [{ label: "Tenant", value: "tenant" }]
           : []),
         {

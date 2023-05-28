@@ -45,7 +45,9 @@ function PolicyDetails({ policy, ClusterComponent }: Props) {
     {
       rowkey: "Tenant",
       value: tenant,
-      visible: isFlagEnabled("WEAVE_GITOPS_FEATURE_TENANCY"),
+      visible:
+        isFlagEnabled("WEAVE_GITOPS_FEATURE_TENANCY") &&
+        isFlagEnabled("WEAVE_GITOPS_FEATURE_CLUSTER"),
     },
     {
       rowkey: "Tags",
