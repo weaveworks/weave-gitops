@@ -20,6 +20,7 @@ function FluxRuntime({ className }: Props) {
       loading={isLoading || crdsLoading}
       error={error || crdsError}
       className={className}
+      path={[{ label: "Flux Runtime" }]}
     >
       <FluxRuntimeComponent deployments={data?.deployments} crds={crds?.crds} />
     </Page>

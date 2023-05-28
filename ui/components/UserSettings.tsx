@@ -108,7 +108,6 @@ function UserSettings({ className, darkModeEnabled = true }: Props) {
 }
 
 export default styled(UserSettings)`
-  padding-right: ${(props) => props.theme.spacing.small};
   .MuiSwitch-thumb {
     color: #fff;
     background-image: url(${(props) =>
