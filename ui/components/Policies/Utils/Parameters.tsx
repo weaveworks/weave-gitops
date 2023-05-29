@@ -1,6 +1,31 @@
 import React from "react";
+import styled from "styled-components";
 import { PolicyValidationParam } from "../../../lib/api/core/core.pb";
-import { ParameterCell, ParameterWrapper, parseValue } from "./PolicyUtils";
+import Flex from "../../Flex";
+import Text from "../../Text";
+import { parseValue } from "./PolicyUtils";
+
+export const ParameterWrapper = styled(Flex)`
+  border: 1px solid ${(props) => props.theme.colors.neutral20};
+  box-sizing: border-box;
+  border-radius: ${(props) => props.theme.spacing.xxs};
+  padding: ${(props) => props.theme.spacing.base};
+  width: 100%;
+`;
+export const ParameterCell = ({
+  label,
+  value,
+}: {
+  label: string;
+  value: string | undefined;
+}) => {
+  return (
+    <Flex wide column data-testid={label} gap="4">
+      <Text color="neutral30">{label}</Text>
+      <Text color="black">{value}</Text>
+    </Flex>
+  );
+};
 
 const Parameters = ({
   parameters,
