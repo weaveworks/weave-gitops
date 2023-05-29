@@ -1,5 +1,5 @@
 import { Drawer } from "@material-ui/core";
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import styled from "styled-components";
 import { AppContext } from "../contexts/AppContext";
 import useNavigation from "../hooks/navigation";
@@ -17,6 +17,43 @@ type Props = {
   nav?: any;
   children?: any;
 };
+
+const navItems: NavItem[] = [
+  {
+    label: "Applications",
+    link: { value: V2Routes.Automations },
+    icon: IconType.ApplicationsIcon,
+  },
+  {
+    label: "Sources",
+    link: { value: V2Routes.Sources },
+    icon: IconType.SourcesIcon,
+  },
+  {
+    label: "Image Automation",
+    link: { value: V2Routes.ImageAutomation },
+    icon: IconType.ImageAutomationIcon,
+  },
+  {
+    label: "Flux Runtime",
+    link: { value: V2Routes.FluxRuntime },
+    icon: IconType.FluxIcon,
+  },
+  {
+    label: "Notifications",
+    link: { value: V2Routes.Notifications },
+    icon: IconType.NotificationsIcon,
+  },
+  {
+    label: "Docs",
+    link: {
+      value: "docs",
+      href: "https://docs.gitops.weave.works/",
+      newTab: true,
+    },
+    icon: IconType.DocsIcon,
+  },
+];
 
 const AppContainer = styled.div`
   width: 100%;
@@ -36,6 +73,9 @@ function Layout({ className, children }: Props) {
 
   const { appState, setDetailModal } = useContext(AppContext);
   const detail = appState.detailModal;
+
+  const { currentPage } = useNavigation();
+  const value = getParentNavRouteValue(currentPage);
 
   return (
     <AppContainer className={className}>
