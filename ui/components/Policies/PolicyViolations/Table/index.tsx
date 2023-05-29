@@ -49,14 +49,14 @@ export const PolicyViolationsList = ({ req }: Props) => {
       maxWidth: 300,
     },
     ...(isFlagEnabled("WEAVE_GITOPS_FEATURE_CLUSTER")
-    ? [
-        {
-          label: "Cluster",
-          value: "clusterName",
-          sortValue: ({ clusterName }) => clusterName,
-        },
-      ]
-    : []),
+      ? [
+          {
+            label: "Cluster",
+            value: "clusterName",
+            sortValue: ({ clusterName }) => clusterName,
+          },
+        ]
+      : []),
     {
       label: "Severity",
       value: ({ severity }) => <Severity severity={severity || ""} />,
