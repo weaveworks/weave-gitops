@@ -171,7 +171,7 @@ service Core {
         };
     }
     /**
-    * ListPolicyValidations list policy validations available on the management cluster
+    * ListPolicyValidations lists policy validations
     */
     rpc ListPolicyValidations(ListPolicyValidationsRequest) returns (ListPolicyValidationsResponse) {
         option (google.api.http) = {
