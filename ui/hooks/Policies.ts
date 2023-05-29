@@ -12,7 +12,7 @@ import {
 
 const LIST_POLICIES_QUERY_KEY = "list-policy";
 
-export function useListListPolicies(
+export function useListPolicies(
   req: ListPoliciesRequest,
   opts: ReactQueryOptions<ListPoliciesResponse, RequestError> = {
     retry: false,

@@ -2,14 +2,14 @@ import * as React from "react";
 import styled from "styled-components";
 import Page from "../../components/Page";
 import { PolicyTable } from "../../components/Policies/PolicyList/PolicyTable";
-import { useListListPolicies } from "../../hooks/Policies";
+import { useListPolicies } from "../../hooks/Policies";
 
 type Props = {
   className?: string;
 };
 
 function PoliciesList({ className }: Props) {
-  const { data, isLoading, error } = useListListPolicies({});
+  const { data, isLoading, error } = useListPolicies({});
   return (
     <Page
       error={error || data?.errors}

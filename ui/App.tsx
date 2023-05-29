@@ -123,7 +123,7 @@ const App = () => {
 
           <Route
             path={V2Routes.Policies}
-            component={withSearchParams(PoliciesList)}
+            component={PoliciesList}
           />
           <Route
             path={V2Routes.PolicyDetailsPage}

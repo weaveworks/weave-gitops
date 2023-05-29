@@ -37,14 +37,12 @@ export enum V2Routes {
   ImageAutomationUpdatesDetails = "/image_update",
   ImageAutomationRepositoryDetails = "/image_repo",
   ImagePolicyDetails = "/image_policy",
-  Policies ="/policies",
-  PolicyDetailsPage="/policy_details",
+  Policies = "/policies",
+  PolicyDetailsPage = "/policy_details",
   //Image updates subRoute
   ImageRepositories = "/image_automation/repositories",
   ImagePolicies = "/image_automation/policies",
   ImageUpdates = "/image_automation/updates",
-
-  PolicyDetails="/policies/details",
 
   // Use this to allow for certain components to route to a 404 and still compile.
   // We want to keep certain components around for future use.

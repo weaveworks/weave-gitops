@@ -1,8 +1,5 @@
 import React from "react";
-
-import moment from "moment";
 import { FC } from "react";
-
 import { useFeatureFlags } from "../../../hooks/featureflags";
 import { formatURL } from "../../../lib/nav";
 import { V2Routes } from "../../../lib/types";
@@ -12,6 +9,7 @@ import Text from "../../Text";
 import PolicyMode from "../Utilis/PolicyMode";
 import Severity from "../Utilis/Severity";
 import { Policy } from "../../../lib/api/core/core.pb";
+import Timestamp from "../../Timestamp";
 
 interface CustomPolicy extends Policy {
   audit?: string;
@@ -25,9 +23,12 @@ interface Props {
 export const PolicyTable: FC<Props> = ({ policies }) => {
   const { isFlagEnabled } = useFeatureFlags();
 
-  policies.forEach((policy) => {
+  policies.map((policy) => {
     policy.audit = policy.modes?.includes("audit") ? "audit" : "";
     policy.enforce = policy.modes?.includes("admission") ? "enforce" : "";
+    policy.clusterName = isFlagEnabled("WEAVE_GITOPS_FEATURE_CLUSTER")
+      ? policy.clusterName
+      : "Default";
   });
 
   let initialFilterState = {
@@ -63,9 +64,7 @@ export const PolicyTable: FC<Props> = ({ policies }) => {
           value: ({ clusterName, id, name }) => (
             <Link
               to={formatURL(V2Routes.PolicyDetailsPage, {
-                clusterName: isFlagEnabled("WEAVE_GITOPS_FEATURE_CLUSTER")
-                  ? clusterName
-                  : "Default",
+                clusterName,
                 id: id,
                 name: name,
               })}
@@ -114,7 +113,7 @@ export const PolicyTable: FC<Props> = ({ policies }) => {
           : []),
         {
           label: "Age",
-          value: ({ createdAt }) => moment(createdAt).fromNow(),
+          value: ({ createdAt }) => <Timestamp time={createdAt} />,
           defaultSort: true,
           sortValue: ({ createdAt }) => {
             const t = createdAt && new Date(createdAt).getTime();
