@@ -110,7 +110,6 @@ func (cs *coreServer) ListPolicyValidations(ctx context.Context, m *pb.ListPolic
 }
 
 func (cs *coreServer) GetPolicyValidation(ctx context.Context, m *pb.GetPolicyValidationRequest) (*pb.GetPolicyValidationResponse, error) {
-
 	var clusterClient clustersmngr.Client
 	var err error
 
