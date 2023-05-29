@@ -475,6 +475,12 @@
             "in": "query",
             "required": false,
             "type": "string"
+          },
+          {
+            "name": "validationType",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -1149,6 +1155,9 @@
           "type": "string"
         },
         "policyId": {
+          "type": "string"
+        },
+        "validationType": {
           "type": "string"
         }
       }

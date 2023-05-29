@@ -45,6 +45,7 @@ export type ListPolicyValidationsRequest = {
   namespace?: string
   kind?: string
   policyId?: string
+  validationType?: string
 }
 
 export type ListPolicyValidationsResponse = {
@@ -57,6 +58,7 @@ export type ListPolicyValidationsResponse = {
 export type GetPolicyValidationRequest = {
   validationId?: string
   clusterName?: string
+  validationType?: string
 }
 
 export type GetPolicyValidationResponse = {

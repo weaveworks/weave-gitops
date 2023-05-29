@@ -228,6 +228,7 @@ message ListPolicyValidationsRequest {
     string namespace = 4;
     string kind = 5;
     string policyId = 6;
+    string validationType = 7;
 }
 
 message ListPolicyValidationsResponse {
@@ -240,6 +241,7 @@ message ListPolicyValidationsResponse {
 message GetPolicyValidationRequest {
     string validationId = 1;
     string clusterName = 2;
+    string validationType = 3;
 }
 
 message GetPolicyValidationResponse {

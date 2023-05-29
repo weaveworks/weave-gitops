@@ -26,9 +26,20 @@ type validationList struct {
 	Errors      []*pb.ListError
 }
 
+const DefaultValidationType = "Admission"
+
 func (cs *coreServer) ListPolicyValidations(ctx context.Context, m *pb.ListPolicyValidationsRequest) (*pb.ListPolicyValidationsResponse, error) {
 	var respErrors []*pb.ListError
-	clustersClient, err := cs.clustersManager.GetImpersonatedClient(ctx, auth.Principal(ctx))
+
+	var clustersClient clustersmngr.Client
+	var err error
+
+	if m.ClusterName != "" {
+		clustersClient, err = cs.clustersManager.GetImpersonatedClientForCluster(ctx, auth.Principal(ctx), m.ClusterName)
+	} else {
+		clustersClient, err = cs.clustersManager.GetImpersonatedClient(ctx, auth.Principal(ctx))
+	}
+
 	if err != nil {
 		if merr, ok := err.(*multierror.Error); ok {
 			for _, err := range merr.Errors {
@@ -38,8 +49,18 @@ func (cs *coreServer) ListPolicyValidations(ctx context.Context, m *pb.ListPolic
 			}
 		}
 	}
+
+	var validationType string
+
+	if m.ValidationType != "" {
+		validationType = m.ValidationType
+	} else {
+		validationType = DefaultValidationType
+	}
+
 	labelSelector, err := k8sLabels.ValidatedSelectorFromSet(map[string]string{
-		"pac.weave.works/type": "Admission"})
+		"pac.weave.works/type": validationType})
+
 	if err != nil {
 		return nil, fmt.Errorf("error building selector for events query: %v", err)
 	}
@@ -74,7 +95,7 @@ func (cs *coreServer) ListPolicyValidations(ctx context.Context, m *pb.ListPolic
 	})
 	opts = append(opts, sigsClient.InNamespace(v1.NamespaceAll))
 
-	validationsList, err := cs.listEvents(ctx, clustersClient, m.ClusterName, false, opts)
+	validationsList, err := cs.listValidationsFromEvents(ctx, clustersClient, m.ClusterName, false, opts)
 	if err != nil {
 		return nil, fmt.Errorf("error getting events: %v", err)
 	}
@@ -89,13 +110,30 @@ func (cs *coreServer) ListPolicyValidations(ctx context.Context, m *pb.ListPolic
 }
 
 func (cs *coreServer) GetPolicyValidation(ctx context.Context, m *pb.GetPolicyValidationRequest) (*pb.GetPolicyValidationResponse, error) {
-	clusterClient, err := cs.clustersManager.GetImpersonatedClient(ctx, auth.Principal(ctx))
+
+	var clusterClient clustersmngr.Client
+	var err error
+
+	if m.ClusterName != "" {
+		clusterClient, err = cs.clustersManager.GetImpersonatedClientForCluster(ctx, auth.Principal(ctx), m.ClusterName)
+	} else {
+		clusterClient, err = cs.clustersManager.GetImpersonatedClient(ctx, auth.Principal(ctx))
+	}
+
 	if err != nil {
 		return nil, fmt.Errorf("error getting impersonating client: %w", err)
 	}
 
+	var validationType string
+
+	if m.ValidationType != "" {
+		validationType = m.ValidationType
+	} else {
+		validationType = DefaultValidationType
+	}
+
 	selector, err := k8sLabels.ValidatedSelectorFromSet(map[string]string{
-		"pac.weave.works/type": "Admission",
+		"pac.weave.works/type": validationType,
 		"pac.weave.works/id":   m.ValidationId})
 
 	if err != nil {
@@ -110,7 +148,7 @@ func (cs *coreServer) GetPolicyValidation(ctx context.Context, m *pb.GetPolicyVa
 	})
 	opts = append(opts, sigsClient.InNamespace(v1.NamespaceAll))
 
-	validationsList, err := cs.listEvents(ctx, clusterClient, m.ClusterName, true, opts)
+	validationsList, err := cs.listValidationsFromEvents(ctx, clusterClient, m.ClusterName, true, opts)
 	if err != nil {
 		return nil, fmt.Errorf("error getting events: %v", err)
 	}
@@ -125,7 +163,7 @@ func (cs *coreServer) GetPolicyValidation(ctx context.Context, m *pb.GetPolicyVa
 	}, nil
 }
 
-func (cs *coreServer) listEvents(ctx context.Context, clusterClient clustersmngr.Client, clusterName string, extraDetails bool, opts []sigsClient.ListOption) (*validationList, error) {
+func (cs *coreServer) listValidationsFromEvents(ctx context.Context, clusterClient clustersmngr.Client, clusterName string, extraDetails bool, opts []sigsClient.ListOption) (*validationList, error) {
 	respErrors := []*pb.ListError{}
 	clist := clustersmngr.NewClusteredList(func() sigsClient.ObjectList {
 		return &v1.EventList{}
@@ -153,7 +191,7 @@ func (cs *coreServer) listEvents(ctx context.Context, clusterClient clustersmngr
 				continue
 			}
 			for i := range list.Items {
-				validation, err := toPolicyValidation(list.Items[i], listClusterName, extraDetails)
+				validation, err := eventToPolicyValidation(list.Items[i], listClusterName, extraDetails)
 				if err != nil {
 					return nil, fmt.Errorf("error while getting policy violation event details: %w", err)
 				}
@@ -169,7 +207,7 @@ func (cs *coreServer) listEvents(ctx context.Context, clusterClient clustersmngr
 	}, nil
 }
 
-func toPolicyValidation(item v1.Event, clusterName string, extraDetails bool) (*pb.PolicyValidation, error) {
+func eventToPolicyValidation(item v1.Event, clusterName string, extraDetails bool) (*pb.PolicyValidation, error) {
 	annotations := item.GetAnnotations()
 	policyValidation := &pb.PolicyValidation{
 		Id:          ExtractValueFromMap(item.GetLabels(), "pac.weave.works/id"),
@@ -233,11 +271,11 @@ func getPolicyValidationParam(raw []byte) ([]*pb.PolicyValidationParam, error) {
 	return parameters, nil
 }
 
-func getParamValue(in interface{}) (*any.Any, error) {
-	if in == nil {
+func getParamValue(param interface{}) (*any.Any, error) {
+	if param == nil {
 		return nil, nil
 	}
-	switch val := in.(type) {
+	switch val := param.(type) {
 	case string:
 		value := wrapperspb.String(val)
 		return anypb.New(value)
