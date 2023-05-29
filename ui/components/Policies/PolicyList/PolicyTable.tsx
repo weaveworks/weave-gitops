@@ -23,18 +23,19 @@ interface Props {
 export const PolicyTable: FC<Props> = ({ policies }) => {
   const { isFlagEnabled } = useFeatureFlags();
 
-  policies.map((policy) => {
+  const mappedPolicies = policies.map((policy) => {
     policy.audit = policy.modes?.includes("audit") ? "audit" : "";
     policy.enforce = policy.modes?.includes("admission") ? "enforce" : "";
     policy.clusterName = isFlagEnabled("WEAVE_GITOPS_FEATURE_CLUSTER")
       ? policy.clusterName
       : "Default";
+    return policy;
   });
 
   let initialFilterState = {
-    ...filterConfig(policies, "severity"),
-    ...filterConfig(policies, "enforce"),
-    ...filterConfig(policies, "audit"),
+    ...filterConfig(mappedPolicies, "severity"),
+    ...filterConfig(mappedPolicies, "enforce"),
+    ...filterConfig(mappedPolicies, "audit"),
   };
 
   if (
@@ -43,21 +44,21 @@ export const PolicyTable: FC<Props> = ({ policies }) => {
   ) {
     initialFilterState = {
       ...initialFilterState,
-      ...filterConfig(policies, "tenant"),
+      ...filterConfig(mappedPolicies, "tenant"),
     };
   }
 
   if (isFlagEnabled("WEAVE_GITOPS_FEATURE_CLUSTER")) {
     initialFilterState = {
       ...initialFilterState,
-      ...filterConfig(policies, "clusterName"),
+      ...filterConfig(mappedPolicies, "clusterName"),
     };
   }
   return (
     <DataTable
-      key={policies?.length}
+      key={mappedPolicies?.length}
       filters={initialFilterState}
-      rows={policies}
+      rows={mappedPolicies}
       fields={[
         {
           label: "Policy Name",

@@ -11,13 +11,13 @@ import HeaderRows, { Header } from "../Utilis/HeaderRows";
 import PolicyMode from "../Utilis/PolicyMode";
 import { ChipWrap, Editor, SectionWrapper } from "../Utilis/PolicyUtilis";
 import Severity from "../Utilis/Severity";
+import ClusterDashboardLink from "../../ClusterDashboardLink";
 
 type Props = {
   policy: Policy;
-  ClusterComponent?: any;
 };
 
-function PolicyDetails({ policy, ClusterComponent }: Props) {
+function PolicyDetails({ policy }: Props) {
   const {
     id,
     tenant,
@@ -39,7 +39,7 @@ function PolicyDetails({ policy, ClusterComponent }: Props) {
     },
     {
       rowkey: "Cluster",
-      value: <ClusterComponent clusterName={clusterName} />,
+      children: <ClusterDashboardLink clusterName={clusterName || ""} />,
       visible: isFlagEnabled("WEAVE_GITOPS_FEATURE_CLUSTER"),
     },
     {
