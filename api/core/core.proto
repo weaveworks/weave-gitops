@@ -22,18 +22,17 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
 
 service Core {
     /*
-    * GetObject gets data about a single primary object from a cluster.
-    */
+     * GetObject gets data about a single primary object from a cluster.
+     */
     rpc GetObject(GetObjectRequest) returns (GetObjectResponse) {
         option (google.api.http) = {
             get: "/v1/object/{name}"
         };
     }
 
-
     /*
-    * ListObjects gets data about primary objects.
-    */
+     * ListObjects gets data about primary objects.
+     */
     rpc ListObjects(ListObjectsRequest) returns (ListObjectsResponse) {
         option (google.api.http) = {
             post: "/v1/objects"
@@ -57,10 +56,10 @@ service Core {
         };
     }
 
-    /**
-    * GetReconciledObjects returns a list of objects that were created as a result a Flux automation.
-    * This list is derived by looking at the Kustomization or HelmRelease specified in the request body.
-    */
+    /*
+     * GetReconciledObjects returns a list of objects that were created as a result a Flux automation.
+     * This list is derived by looking at the Kustomization or HelmRelease specified in the request body.
+     */
     rpc GetReconciledObjects(GetReconciledObjectsRequest) returns (GetReconciledObjectsResponse) {
         option (google.api.http) = {
             post: "/v1/reconciled_objects"
@@ -68,10 +67,10 @@ service Core {
         };
     };
 
-    /**
-    * GetChildObjects returns the children of a given object, specified by a GroupVersionKind.
-    * Not all Kubernets objects have children. For example, a Deployment has a child ReplicaSet, but a Service has no child objects.
-    */
+    /*
+     * GetChildObjects returns the children of a given object, specified by a GroupVersionKind.
+     * Not all Kubernets objects have children. For example, a Deployment has a child ReplicaSet, but a Service has no child objects.
+     */
     rpc GetChildObjects(GetChildObjectsRequest) returns (GetChildObjectsResponse) {
         option (google.api.http) = {
             post: "/v1/child_objects"
@@ -154,11 +153,11 @@ service Core {
         };
     }
 
-    /**
-    * IsCRDAvailable returns with a hashmap where the keys are the names of
-    * the clusters, and the value is a boolean indicating whether given CRD is
-    * installed or not on that cluster.
-    */
+    /*
+     * IsCRDAvailable returns with a hashmap where the keys are the names of
+     * the clusters, and the value is a boolean indicating whether given CRD is
+     * installed or not on that cluster.
+     */
     rpc IsCRDAvailable(IsCRDAvailableRequest) returns (IsCRDAvailableResponse) {
         option (google.api.http) = {
             get : "/v1/crd/is_available",
