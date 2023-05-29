@@ -172,12 +172,12 @@ func (cs *coreServer) listEvents(ctx context.Context, clusterClient clustersmngr
 func toPolicyValidation(item v1.Event, clusterName string, extraDetails bool) (*pb.PolicyValidation, error) {
 	annotations := item.GetAnnotations()
 	policyValidation := &pb.PolicyValidation{
-		Id:          getAnnotation(item.GetLabels(), "pac.weave.works/id"),
-		Name:        getAnnotation(annotations, "policy_name"),
-		PolicyId:    getAnnotation(annotations, "policy_id"),
-		ClusterId:   getAnnotation(annotations, "cluster_id"),
-		Category:    getAnnotation(annotations, "category"),
-		Severity:    getAnnotation(annotations, "severity"),
+		Id:          ExtractValueFromMap(item.GetLabels(), "pac.weave.works/id"),
+		Name:        ExtractValueFromMap(annotations, "policy_name"),
+		PolicyId:    ExtractValueFromMap(annotations, "policy_id"),
+		ClusterId:   ExtractValueFromMap(annotations, "cluster_id"),
+		Category:    ExtractValueFromMap(annotations, "category"),
+		Severity:    ExtractValueFromMap(annotations, "severity"),
 		CreatedAt:   item.GetCreationTimestamp().Format(time.RFC3339),
 		Message:     item.Message,
 		Entity:      item.InvolvedObject.Name,
@@ -185,14 +185,14 @@ func toPolicyValidation(item v1.Event, clusterName string, extraDetails bool) (*
 		ClusterName: clusterName,
 	}
 	if extraDetails {
-		policyValidation.Description = getAnnotation(annotations, "description")
-		policyValidation.HowToSolve = getAnnotation(annotations, "how_to_solve")
-		policyValidation.ViolatingEntity = getAnnotation(annotations, "entity_manifest")
-		err := json.Unmarshal([]byte(getAnnotation(annotations, "occurrences")), &policyValidation.Occurrences)
+		policyValidation.Description = ExtractValueFromMap(annotations, "description")
+		policyValidation.HowToSolve = ExtractValueFromMap(annotations, "how_to_solve")
+		policyValidation.ViolatingEntity = ExtractValueFromMap(annotations, "entity_manifest")
+		err := json.Unmarshal([]byte(ExtractValueFromMap(annotations, "occurrences")), &policyValidation.Occurrences)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get occurrences from event: %w", err)
 		}
-		paramsRaw := getAnnotation(annotations, "parameters")
+		paramsRaw := ExtractValueFromMap(annotations, "parameters")
 		if paramsRaw != "" {
 			parameter, err := getPolicyValidationParam([]byte(paramsRaw))
 			if err != nil {
@@ -202,14 +202,6 @@ func toPolicyValidation(item v1.Event, clusterName string, extraDetails bool) (*
 		}
 	}
 	return policyValidation, nil
-}
-
-func getAnnotation(annotations map[string]string, key string) string {
-	value, ok := annotations[key]
-	if !ok {
-		return ""
-	}
-	return value
 }
 
 func getPolicyValidationParam(raw []byte) ([]*pb.PolicyValidationParam, error) {

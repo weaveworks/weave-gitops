@@ -18,3 +18,11 @@ func GetTenant(namespace, clusterName string, clusterUserNamespaces map[string][
 
 	return ""
 }
+
+func ExtractValueFromMap(mapName map[string]string, key string) string {
+	value, ok := mapName[key]
+	if !ok {
+		return ""
+	}
+	return value
+}
