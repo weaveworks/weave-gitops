@@ -181,7 +181,7 @@ service Core {
     }
 
     /**
-    * GetPolicyValidation gets a policy validations on the management cluster by id
+    * GetPolicyValidation gets a policy validation by id
     */
     rpc GetPolicyValidation(GetPolicyValidationRequest) returns (GetPolicyValidationResponse) {
         option (google.api.http) = {
