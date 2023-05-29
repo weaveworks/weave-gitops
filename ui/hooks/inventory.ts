@@ -57,13 +57,26 @@ export const createCanaryCondition = (objs: FluxObject[]): Condition => {
       if (!current || current.type !== "Canary") return prev;
       const condition = current.conditions[0];
       if (!condition) return prev;
-      if (
-        condition.reason === "Succeeded" ||
-        condition.reason === "Initialized"
-      )
-        prev["True"] += 1;
-      else if (condition.reason === "Failed") prev["False"] += 1;
-      else prev["Unknown"] += 1;
+      switch (condition.reason) {
+        case "Succeeded":
+        case "Ready":
+          prev["True"] += 1;
+          break;
+        case "Failed":
+        case "Terminating":
+        case "Terminated":
+          prev["False"] += 1;
+          break;
+        case "Initializing":
+        case "Initialized":
+        case "Waiting":
+        case "Progressing":
+        case "WaitingPromotion":
+        case "Promoting":
+        case "Finalising":
+          prev["Unknown"] += 1;
+          break;
+      }
       return prev;
     },
     { True: 0, False: 0, Unknown: 0 }
@@ -95,37 +108,3 @@ export const createCanaryCondition = (objs: FluxObject[]): Condition => {
     };
   return condition;
 };
-
-// Will be used later on when we change Deployments in app details to cards (workloads+canary) + list other resources in a table
-// export const mapWorkloadEntries = (entries: FluxObject[]) => {
-//   const canaries: FluxObject[] = [];
-//   const ents: FluxObject[] = [];
-//   const workloads: FluxObject[] = [];
-
-//   entries.forEach((obj) => {
-//     switch (obj.type) {
-//       case "Canary":
-//         canaries.push(obj);
-//         break;
-//       case "Deployment":
-//       case "ReplicaSet":
-//       case "StatefulSet":
-//       case "Job":
-//         workloads.push(obj);
-//         break;
-//       default:
-//         ents.push(obj);
-//         break;
-//     }
-//   });
-//   const mappedWorkloads = workloads.map((r: FluxObject) => {
-//     const dep = canaries.find((c) => {
-//       const { kind, name } = c.obj.spec.targetRef;
-//       return r.type === kind && r.name === name && r.namespace === c.namespace;
-//     });
-//     if (dep) r.canaryResource = dep;
-//     return r;
-//   });
-
-//   return { workloads: mappedWorkloads, components: ents };
-// };

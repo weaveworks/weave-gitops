@@ -31,7 +31,7 @@ class ErrorBoundaryDetail extends React.Component<any, Props> {
   render() {
     if (this.state.hasError) {
       return (
-        <Page>
+        <Page path={[]}>
           <h3>Something went wrong.</h3>
           <pre>{this.state.error?.message}</pre>
           <pre>{this.state.error?.stack}</pre>

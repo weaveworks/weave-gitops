@@ -3,9 +3,9 @@ import qs from "query-string";
 import * as React from "react";
 import { QueryClient, QueryClientProvider } from "react-query";
 import {
-  BrowserRouter as Router,
   Redirect,
   Route,
+  BrowserRouter as Router,
   Switch,
 } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
@@ -17,9 +17,13 @@ import ImageAutomationRepoDetails from "./components/ImageAutomation/repositorie
 import ImageAutomationUpdatesDetails from "./components/ImageAutomation/updates/ImageAutomationUpdatesDetails";
 import Layout from "./components/Layout";
 import PendoContainer from "./components/PendoContainer";
-import AppContextProvider from "./contexts/AppContext";
+import AppContextProvider, {
+  AppContext,
+  ThemeTypes,
+} from "./contexts/AppContext";
 import AuthContextProvider, { AuthCheck } from "./contexts/AuthContext";
 import CoreClientContextProvider from "./contexts/CoreClientContext";
+import { useInDarkMode } from "./hooks/theme";
 import { Core } from "./lib/api/core/core.pb";
 import Fonts from "./lib/fonts";
 import theme, { GlobalStyle, muiTheme } from "./lib/theme";
@@ -40,11 +44,6 @@ import OCIRepositoryPage from "./pages/v2/OCIRepositoryPage";
 import ProviderPage from "./pages/v2/ProviderPage";
 import Sources from "./pages/v2/Sources";
 import UserInfo from "./pages/v2/UserInfo";
-import Logo from "./components/Logo";
-import Nav, { NavItem } from "./components/Nav";
-import { IconType } from "./components/Icon";
-import { getParentNavRouteValue } from "./lib/nav";
-import useNavigation from "./hooks/navigation";
 
 const queryClient = new QueryClient();
 
@@ -56,61 +55,10 @@ function withSearchParams(Cmp) {
   };
 }
 
-const navItems: NavItem[] = [
-  {
-    label: "Applications",
-    link: { value: V2Routes.Automations },
-    icon: IconType.ApplicationsIcon,
-  },
-  {
-    label: "Sources",
-    link: { value: V2Routes.Sources },
-    icon: IconType.SourcesIcon,
-  },
-  {
-    label: "Image Automation",
-    link: { value: V2Routes.ImageAutomation },
-    icon: IconType.ImageAutomationIcon,
-  },
-  {
-    label: "Flux Runtime",
-    link: { value: V2Routes.FluxRuntime },
-    icon: IconType.FluxIcon,
-  },
-  {
-    label: "Notifications",
-    link: { value: V2Routes.Notifications },
-    icon: IconType.NotificationsIcon,
-  },
-  {
-    label: "Docs",
-    link: {
-      value: "docs",
-      href: "https://docs.gitops.weave.works/",
-      newTab: true,
-    },
-    icon: IconType.DocsIcon,
-  },
-];
-
 const App = () => {
-  const [collapsed, setCollapsed] = React.useState<boolean>(false);
-  const { currentPage } = useNavigation();
-  const value = getParentNavRouteValue(currentPage);
-
-  const logo = <Logo collapsed={collapsed} link={V2Routes.Automations} />;
-
-  const nav = (
-    <Nav
-      navItems={navItems}
-      collapsed={collapsed}
-      setCollapsed={setCollapsed}
-      currentPage={value}
-    />
-  );
-
+  const dark = useInDarkMode();
   return (
-    <Layout logo={logo} nav={nav}>
+    <Layout>
       <PendoContainer />
       <ErrorBoundary>
         <Switch>
@@ -180,40 +128,52 @@ const App = () => {
         position="top-center"
         autoClose={5000}
         newestOnTop={false}
+        theme={dark ? ThemeTypes.Dark : ThemeTypes.Light}
       />
     </Layout>
   );
 };
 
+const StylesProvider = ({ children }) => {
+  const { settings } = React.useContext(AppContext);
+  const mode = settings.theme;
+  const appliedTheme = theme(mode);
+  return (
+    <ThemeProvider theme={appliedTheme}>
+      <MuiThemeProvider theme={muiTheme(appliedTheme.colors, mode)}>
+        <Fonts />
+        <GlobalStyle />
+        {children}
+      </MuiThemeProvider>
+    </ThemeProvider>
+  );
+};
+
 export default function AppContainer() {
   return (
-    <MuiThemeProvider theme={muiTheme}>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider theme={theme}>
-          <Fonts />
-          <GlobalStyle />
-          <Router>
-            <AppContextProvider renderFooter>
-              <AuthContextProvider>
-                <CoreClientContextProvider api={Core}>
-                  <Switch>
-                    {/* <Signin> does not use the base page <Layout> so pull it up here */}
-                    <Route exact path="/sign_in">
-                      <SignIn />
-                    </Route>
-                    <Route path="*">
-                      {/* Check we've got a logged in user otherwise redirect back to signin */}
-                      <AuthCheck>
-                        <App />
-                      </AuthCheck>
-                    </Route>
-                  </Switch>
-                </CoreClientContextProvider>
-              </AuthContextProvider>
-            </AppContextProvider>
-          </Router>
-        </ThemeProvider>
-      </QueryClientProvider>
-    </MuiThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <Router>
+        <AppContextProvider renderFooter>
+          <StylesProvider>
+            <AuthContextProvider>
+              <CoreClientContextProvider api={Core}>
+                <Switch>
+                  {/* <Signin> does not use the base page <Layout> so pull it up here */}
+                  <Route exact path="/sign_in">
+                    <SignIn />
+                  </Route>
+                  <Route path="*">
+                    {/* Check we've got a logged in user otherwise redirect back to signin */}
+                    <AuthCheck>
+                      <App />
+                    </AuthCheck>
+                  </Route>
+                </Switch>
+              </CoreClientContextProvider>
+            </AuthContextProvider>
+          </StylesProvider>
+        </AppContextProvider>
+      </Router>
+    </QueryClientProvider>
   );
 }

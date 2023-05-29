@@ -9,11 +9,10 @@ exports[`Logo snapshots renders collapsed view 1`] = `
   -webkit-flex-direction: row;
   -ms-flex-direction: row;
   flex-direction: row;
-  -webkit-align-items: start;
-  -webkit-box-align: start;
-  -ms-flex-align: start;
-  align-items: start;
-  width: 100%;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
 }
 
 .c2 {
@@ -38,8 +37,9 @@ exports[`Logo snapshots renders collapsed view 1`] = `
 }
 
 .c1 {
-  padding-left: 20px;
-  width: 92px;
+  padding-left: 12px;
+  height: 65px;
+  width: 36px;
   -webkit-transition: width 0.5s;
   transition: width 0.5s;
 }
@@ -99,11 +99,10 @@ exports[`Logo snapshots renders open view 1`] = `
   -webkit-flex-direction: row;
   -ms-flex-direction: row;
   flex-direction: row;
-  -webkit-align-items: start;
-  -webkit-box-align: start;
-  -ms-flex-align: start;
-  align-items: start;
-  width: 100%;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
 }
 
 .c2 {
@@ -127,8 +126,9 @@ exports[`Logo snapshots renders open view 1`] = `
 }
 
 .c1 {
-  padding-left: 20px;
-  width: 228px;
+  padding-left: 12px;
+  height: 65px;
+  width: 180px;
   -webkit-transition: width 0.5s;
   transition: width 0.5s;
 }

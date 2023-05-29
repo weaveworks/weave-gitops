@@ -3,16 +3,21 @@ import {
   ListItemIcon,
   Menu,
   MenuItem,
+  Switch,
   Tooltip,
 } from "@material-ui/core";
 import * as React from "react";
 import { useHistory } from "react-router-dom";
 import styled from "styled-components";
+import { AppContext, ThemeTypes } from "../contexts/AppContext";
 import { Auth } from "../contexts/AuthContext";
+import images from "../lib/images";
 import { V2Routes } from "../lib/types";
 import Icon, { IconType } from "./Icon";
-
 const SettingsMenu = styled(Menu)`
+  .MuiPaper-root {
+    background: ${(props) => props.theme.colors.whiteToPrimary};
+  }
   .MuiList-root {
     padding: ${(props) => props.theme.spacing.small};
   }
@@ -41,10 +46,16 @@ const PersonButton = styled(IconButton)<{ open: boolean }>`
   }
 `;
 
-function UserSettings({ className }: { className?: string }) {
+type Props = {
+  className?: string;
+  darkModeEnabled?: boolean;
+};
+
+function UserSettings({ className, darkModeEnabled = true }: Props) {
   const history = useHistory();
   const [anchorEl, setAnchorEl] = React.useState(null);
   const { userInfo, logOut } = React.useContext(Auth);
+  const { toggleDarkMode, settings } = React.useContext(AppContext);
 
   const open = Boolean(anchorEl);
   const handleClick = (event) => {
@@ -56,6 +67,13 @@ function UserSettings({ className }: { className?: string }) {
 
   return (
     <div className={className}>
+      {darkModeEnabled && (
+        <Switch
+          onChange={() => toggleDarkMode()}
+          checked={settings.theme === ThemeTypes.Dark}
+          color="primary"
+        />
+      )}
       <Tooltip title="Account settings" enterDelay={500} enterNextDelay={500}>
         <PersonButton
           onClick={handleClick}
@@ -90,5 +108,13 @@ function UserSettings({ className }: { className?: string }) {
 }
 
 export default styled(UserSettings)`
-  padding-right: ${(props) => props.theme.spacing.small};
+  .MuiSwitch-thumb {
+    color: #fff;
+    background-image: url(${(props) =>
+      props.theme.mode === ThemeTypes.Dark
+        ? images.darkModeIcon
+        : images.lightModeIcon});
+  }
+  .MuiSwitch-track {
+    background-color: ${(props) => props.theme.colors.primary};
 `;

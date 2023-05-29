@@ -2,10 +2,14 @@ import { Drawer } from "@material-ui/core";
 import React, { useContext } from "react";
 import styled from "styled-components";
 import { AppContext } from "../contexts/AppContext";
-import Breadcrumbs from "./Breadcrumbs";
+import useNavigation from "../hooks/navigation";
+import { getParentNavRouteValue } from "../lib/nav";
+import { V2Routes } from "../lib/types";
 import DetailModal from "./DetailModal";
 import Flex from "./Flex";
-import UserSettings from "./UserSettings";
+import { IconType } from "./Icon";
+import Logo from "./Logo";
+import Nav, { NavItem } from "./Nav";
 
 type Props = {
   className?: string;
@@ -23,57 +27,29 @@ const AppContainer = styled.div`
   padding: 0;
 `;
 
-//top tool bar height needs to match main padding top
-const topBarHeight = "60px";
-
-const ContentContainer = styled.div`
-  width: 100%;
-  min-width: 900px;
-  max-width: 100%;
-  //without a hard value in the height property, min-height in the Page component doesn't work
-  height: 100vh;
-  min-height: 100%;
-  padding-bottom: ${(props) => props.theme.spacing.small};
-  padding-right: ${(props) => props.theme.spacing.medium};
-  padding-left: ${(props) => props.theme.spacing.medium};
-  overflow: hidden;
-  overflow-y: scroll;
-  box-sizing: border-box;
-`;
-
 const Main = styled(Flex)`
-  padding-top: ${topBarHeight};
   box-sizing: border-box;
 `;
 
-const TopToolBar = styled(Flex)`
-  position: fixed;
-  background-color: ${(props) => props.theme.colors.backGrey};
-  height: ${topBarHeight};
-  min-width: 650px;
-  width: 100%;
-  ${UserSettings} {
-    justify-self: flex-end;
-    margin-left: auto;
-  }
-  //puts it over nav text (must be an mui thing)
-  z-index: 2;
-`;
+function Layout({ className, children }: Props) {
+  const [collapsed, setCollapsed] = useState<boolean>(false);
 
-function Layout({ className, logo, nav, children }: Props) {
   const { appState, setDetailModal } = useContext(AppContext);
   const detail = appState.detailModal;
 
   return (
     <AppContainer className={className}>
-      <TopToolBar start align wide>
-        {logo}
-        <Breadcrumbs />
-        <UserSettings />
-      </TopToolBar>
       <Main wide tall>
-        {nav}
-        <ContentContainer>{children}</ContentContainer>
+        <Flex column tall>
+          <Logo collapsed={collapsed} link={V2Routes.Automations} />
+          <Nav
+            navItems={navItems}
+            collapsed={collapsed}
+            setCollapsed={setCollapsed}
+            currentPage={value}
+          />
+        </Flex>
+        {children}
       </Main>
       <Drawer
         anchor="right"

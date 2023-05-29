@@ -4,7 +4,7 @@ import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
 import { useSyncFluxObject } from "../hooks/automations";
 import { useToggleSuspend } from "../hooks/flux";
-import { useGetInventory } from "../hooks/inventory";
+import { createCanaryCondition, useGetInventory } from "../hooks/inventory";
 import { Condition, Kind, ObjectRef } from "../lib/api/core/types.pb";
 import { Automation, HelmRelease } from "../lib/objects";
 import { automationLastUpdated } from "../lib/utils";
@@ -106,7 +106,7 @@ function AutomationDetail({
   );
 
   // agreed to hide canary status agg for now as there's some concerns about the pd status ( when it's ready and when it's not)
-  // const canaryStatus = createCanaryCondition(data?.objects);
+  const canaryStatus = createCanaryCondition(data?.objects);
   const health = computeAggHealthCheck(data?.objects || []);
 
   const defaultTabs: Array<routeTab> = [
@@ -235,16 +235,16 @@ function AutomationDetail({
       />
       {health && <HealthCheckAgg health={health} />}
 
-      {/* {(customTabs || customActions) && (
+      {(customTabs || customActions) && (
         <PageStatus conditions={[canaryStatus]} suspended={false} />
-      )} */}
+      )}
 
       <Collapsible>
         <div className="collapse-wrapper ">
           <div className="grid grid-items">
             {info.map(([k, v]) => {
               return (
-                <Flex id={k} gap="8">
+                <Flex id={k} gap="8" key={k}>
                   <Text capitalize semiBold color="neutral30">
                     {k}:
                   </Text>

@@ -20,7 +20,7 @@ describe("Page", () => {
               <CoreClientContext.Provider
                 value={{ api: createCoreMockClient({}), featureFlags: {} }}
               >
-                <Page />
+                <Page path={[{ label: "test" }]} />
               </CoreClientContext.Provider>,
               "/",
               {}

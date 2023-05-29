@@ -9,7 +9,7 @@ describe("createCanaryCondition", () => {
   };
   const trueCanary = {
     type: "Canary",
-    conditions: [{ reason: "Initialized" }],
+    conditions: [{ reason: "Succeeded" }],
   };
   const unknownCanary = {
     type: "Canary",

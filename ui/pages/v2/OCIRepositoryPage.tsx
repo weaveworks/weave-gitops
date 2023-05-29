@@ -5,6 +5,7 @@ import Page from "../../components/Page";
 import { useGetObject } from "../../hooks/objects";
 import { Kind } from "../../lib/api/core/types.pb";
 import { OCIRepository } from "../../lib/objects";
+import { V2Routes } from "../../lib/types";
 
 type Props = {
   className?: string;
@@ -26,7 +27,12 @@ function OCIRepositoryPage({ className, name, namespace, clusterName }: Props) {
   );
 
   return (
-    <Page error={error} loading={isLoading} className={className}>
+    <Page
+      error={error}
+      loading={isLoading}
+      className={className}
+      path={[{ label: "Sources", url: V2Routes.Sources }, { label: name }]}
+    >
       <OCIRepositoryDetail ociRepository={ociRepository} />
     </Page>
   );

@@ -12,6 +12,7 @@ import qs from "query-string";
 import * as React from "react";
 import { useHistory, useLocation } from "react-router-dom";
 import styled from "styled-components";
+import { ThemeTypes } from "../../contexts/AppContext";
 import { IconButton } from "../Button";
 import CheckboxActions from "../CheckboxActions";
 import ChipGroup from "../ChipGroup";
@@ -25,6 +26,7 @@ import Icon, { IconType } from "../Icon";
 import SearchField from "../SearchField";
 import Spacer from "../Spacer";
 import Text from "../Text";
+import SortableLabel from "./SortableLabel";
 import {
   filterRows,
   filterSelectionsToQueryString,
@@ -34,7 +36,6 @@ import {
   sortByField,
   toPairs,
 } from "./helpers";
-import SortableLabel from "./SortableLabel";
 import { Field, FilterState } from "./types";
 
 /** DataTable Properties  */
@@ -374,7 +375,10 @@ export const DataTable = styled(UnstyledDataTable)`
     transition: background 0.5s ease-in-out;
   }
   .MuiTableRow-root:not(.MuiTableRow-head):hover {
-    background: ${(props) => props.theme.colors.neutral10};
+    background: ${(props) =>
+      props.theme.mode === ThemeTypes.Dark
+        ? props.theme.colors.blueWithOpacity
+        : props.theme.colors.neutral10};
     transition: background 0.5s ease-in-out;
   }
   table {
@@ -383,10 +387,14 @@ export const DataTable = styled(UnstyledDataTable)`
   th {
     padding: 0;
     background: ${(props) => props.theme.colors.neutralGray};
-    border-top-left-radius: 4px;
-    border-top-right-radius: 4px;
     .MuiCheckbox-root {
       padding: 4px 9px;
+    }
+    :first-child {
+      border-top-left-radius: ${(props) => props.theme.spacing.xxs};
+    }
+    :last-child {
+      border-top-right-radius: ${(props) => props.theme.spacing.xxs};
     }
   }
   td {
@@ -396,8 +404,12 @@ export const DataTable = styled(UnstyledDataTable)`
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  .filter-options-chip {
-    background-color: ${(props) => props.theme.colors.primaryLight05};
+  //override so filter dialog button stays highlighted, but color is too bright in dark mode
+  .MuiButton-contained {
+    ${(props) =>
+      props.theme.mode === ThemeTypes.Dark
+        ? `background-color: ${props.theme.colors.neutral10};`
+        : null}
   }
 `;
 

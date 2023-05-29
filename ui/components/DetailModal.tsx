@@ -62,4 +62,7 @@ export default styled(DetailModal).attrs({ className: DetailModal.name })`
   height: 100%;
   padding: ${(props) =>
     props.theme.spacing.small + " " + props.theme.spacing.medium};
+  .MuiIconButton-root {
+    color: ${(props) => props.theme.colors.black};
+  }
 `;
