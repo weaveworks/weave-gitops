@@ -21,7 +21,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-var errRequiredClusterName = errors.New("`clusterName` param is required")
+const (
+	DefaultCluster = "Default"
+)
 
 func getPolicyParamValue(param pacv2beta2.PolicyParameters, policyID string) (*anypb.Any, error) {
 	if param.Value == nil {
@@ -75,7 +77,7 @@ func getPolicyParamValue(param pacv2beta2.PolicyParameters, policyID string) (*a
 	return anyValue, nil
 }
 
-func toPolicyResponse(policyCRD pacv2beta2.Policy, clusterName string, fullDetails bool) (*pb.Policy, error) {
+func policyToPolicyRespone(policyCRD pacv2beta2.Policy, clusterName string, fullDetails bool) (*pb.Policy, error) {
 	policySpec := policyCRD.Spec
 
 	policy := &pb.Policy{
@@ -137,7 +139,16 @@ func toPolicyResponse(policyCRD pacv2beta2.Policy, clusterName string, fullDetai
 
 func (cs *coreServer) ListPolicies(ctx context.Context, m *pb.ListPoliciesRequest) (*pb.ListPoliciesResponse, error) {
 	respErrors := []*pb.ListError{}
-	clustersClient, err := cs.clustersManager.GetImpersonatedClient(ctx, auth.Principal(ctx))
+
+	var clustersClient clustersmngr.Client
+	var err error
+
+	if m.ClusterName != "" {
+		clustersClient, err = cs.clustersManager.GetImpersonatedClientForCluster(ctx, auth.Principal(ctx), m.ClusterName)
+	} else {
+		clustersClient, err = cs.clustersManager.GetImpersonatedClient(ctx, auth.Principal(ctx))
+	}
+
 	if err != nil {
 		if merr, ok := err.(*multierror.Error); ok {
 			for _, err := range merr.Errors {
@@ -191,21 +202,20 @@ func (cs *coreServer) ListPolicies(ctx context.Context, m *pb.ListPoliciesReques
 	}
 
 	var policies []*pb.Policy
-	collectedPolicies := map[string]struct{}{}
 	for clusterName, lists := range listsV2beta2 {
 		for _, l := range lists {
 			list, ok := l.(*pacv2beta2.PolicyList)
 			if !ok {
+				respErrors = append(respErrors, &pb.ListError{ClusterName: clusterName, Message: fmt.Sprintf("unexpected list type %T", l)})
 				continue
 			}
 			for i := range list.Items {
-				policy, err := toPolicyResponse(list.Items[i], clusterName, false)
+				policy, err := policyToPolicyRespone(list.Items[i], clusterName, false)
 				if err != nil {
 					return nil, err
 				}
 
 				policies = append(policies, policy)
-				collectedPolicies[getClusterPolicyKey(clusterName, list.Items[i].GetName())] = struct{}{}
 			}
 		}
 	}
@@ -219,14 +229,20 @@ func (cs *coreServer) ListPolicies(ctx context.Context, m *pb.ListPoliciesReques
 }
 
 func (cs *coreServer) GetPolicy(ctx context.Context, m *pb.GetPolicyRequest) (*pb.GetPolicyResponse, error) {
-	clustersClient, err := cs.clustersManager.GetImpersonatedClientForCluster(ctx, auth.Principal(ctx), m.ClusterName)
+	var clustersClient clustersmngr.Client
+	var err error
+
+	if m.ClusterName != "" {
+		clustersClient, err = cs.clustersManager.GetImpersonatedClientForCluster(ctx, auth.Principal(ctx), m.ClusterName)
+	} else {
+		m.ClusterName = DefaultCluster
+		clustersClient, err = cs.clustersManager.GetImpersonatedClient(ctx, auth.Principal(ctx))
+	}
+
 	if err != nil {
 		return nil, fmt.Errorf("error getting impersonating client: %w", err)
 	}
 
-	if m.ClusterName == "" {
-		return nil, errRequiredClusterName
-	}
 	policyCRv2beta2 := pacv2beta2.Policy{}
 
 	if err := clustersClient.Get(ctx, m.ClusterName, types.NamespacedName{Name: m.PolicyName}, &policyCRv2beta2); err != nil {
@@ -235,14 +251,10 @@ func (cs *coreServer) GetPolicy(ctx context.Context, m *pb.GetPolicyRequest) (*p
 
 	var policy *pb.Policy
 
-	policy, err = toPolicyResponse(policyCRv2beta2, m.ClusterName, true)
+	policy, err = policyToPolicyRespone(policyCRv2beta2, m.ClusterName, true)
 	if err != nil {
 		return nil, err
 	}
 
 	return &pb.GetPolicyResponse{Policy: policy}, nil
-}
-
-func getClusterPolicyKey(clusterName, policyId string) string {
-	return fmt.Sprintf("%s.%s", clusterName, policyId)
 }

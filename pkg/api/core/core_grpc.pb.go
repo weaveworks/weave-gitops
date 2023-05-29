@@ -56,9 +56,9 @@ type CoreClient interface {
 	// installed or not on that cluster.
 	IsCRDAvailable(ctx context.Context, in *IsCRDAvailableRequest, opts ...grpc.CallOption) (*IsCRDAvailableResponse, error)
 	GetInventory(ctx context.Context, in *GetInventoryRequest, opts ...grpc.CallOption) (*GetInventoryResponse, error)
-	// ListPolicies list policies available on the management cluster
+	// ListPolicies list policies available on the cluster
 	ListPolicies(ctx context.Context, in *ListPoliciesRequest, opts ...grpc.CallOption) (*ListPoliciesResponse, error)
-	// GetPolicy gets a policy on the management cluster by name
+	// GetPolicy gets a policy by name
 	GetPolicy(ctx context.Context, in *GetPolicyRequest, opts ...grpc.CallOption) (*GetPolicyResponse, error)
 }
 
@@ -274,9 +274,9 @@ type CoreServer interface {
 	// installed or not on that cluster.
 	IsCRDAvailable(context.Context, *IsCRDAvailableRequest) (*IsCRDAvailableResponse, error)
 	GetInventory(context.Context, *GetInventoryRequest) (*GetInventoryResponse, error)
-	// ListPolicies list policies available on the management cluster
+	// ListPolicies list policies available on the cluster
 	ListPolicies(context.Context, *ListPoliciesRequest) (*ListPoliciesResponse, error)
-	// GetPolicy gets a policy on the management cluster by name
+	// GetPolicy gets a policy by name
 	GetPolicy(context.Context, *GetPolicyRequest) (*GetPolicyResponse, error)
 	mustEmbedUnimplementedCoreServer()
 }

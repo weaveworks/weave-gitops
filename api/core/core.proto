@@ -171,17 +171,17 @@ service Core {
         };
     }
 
-    // ListPolicies list policies available on the management cluster
+    // ListPolicies list policies available on the cluster
     rpc ListPolicies(ListPoliciesRequest) returns (ListPoliciesResponse) {
         option (google.api.http) = {
         get : "/v1/policies"
         };
     }
 
-    // GetPolicy gets a policy on the management cluster by name
+    // GetPolicy gets a policy by name
     rpc GetPolicy(GetPolicyRequest) returns (GetPolicyResponse) {
         option (google.api.http) = {
-        get : "/v1/policies/{policy_name}"
+        get : "/v1/policies/{policyName}"
         };
     }
 }
@@ -372,7 +372,7 @@ message ListPoliciesResponse {
 }
 
 message GetPolicyRequest {
-    string policy_name = 1;
+    string policyName = 1;
     string clusterName = 2;
 }
 
@@ -386,15 +386,15 @@ message Policy {
     string id = 2;
     string code = 3;
     string description = 4;
-    string how_to_solve = 5;
+    string howToSolve = 5;
     string category = 6;
     repeated string tags = 7;
     string severity = 8;
     repeated PolicyStandard standards = 9;
-    string git_commit = 10;
+    string gitCommit = 10;
     repeated PolicyParam parameters = 11;
     PolicyTargets targets = 12;
-    string created_at = 13;
+    string createdAt = 13;
     string clusterName = 14;
     string tenant = 15;
     repeated string modes = 16;

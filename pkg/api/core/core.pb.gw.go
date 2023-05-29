@@ -610,7 +610,7 @@ func local_request_Core_ListPolicies_0(ctx context.Context, marshaler runtime.Ma
 }
 
 var (
-	filter_Core_GetPolicy_0 = &utilities.DoubleArray{Encoding: map[string]int{"policy_name": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
+	filter_Core_GetPolicy_0 = &utilities.DoubleArray{Encoding: map[string]int{"policyName": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
 )
 
 func request_Core_GetPolicy_0(ctx context.Context, marshaler runtime.Marshaler, client CoreClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -624,14 +624,14 @@ func request_Core_GetPolicy_0(ctx context.Context, marshaler runtime.Marshaler, 
 		_   = err
 	)
 
-	val, ok = pathParams["policy_name"]
+	val, ok = pathParams["policyName"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "policy_name")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "policyName")
 	}
 
 	protoReq.PolicyName, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "policy_name", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "policyName", err)
 	}
 
 	if err := req.ParseForm(); err != nil {
@@ -657,14 +657,14 @@ func local_request_Core_GetPolicy_0(ctx context.Context, marshaler runtime.Marsh
 		_   = err
 	)
 
-	val, ok = pathParams["policy_name"]
+	val, ok = pathParams["policyName"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "policy_name")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "policyName")
 	}
 
 	protoReq.PolicyName, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "policy_name", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "policyName", err)
 	}
 
 	if err := req.ParseForm(); err != nil {
@@ -1100,7 +1100,7 @@ func RegisterCoreHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/GetPolicy", runtime.WithHTTPPathPattern("/v1/policies/{policy_name}"))
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/GetPolicy", runtime.WithHTTPPathPattern("/v1/policies/{policyName}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1520,7 +1520,7 @@ func RegisterCoreHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/GetPolicy", runtime.WithHTTPPathPattern("/v1/policies/{policy_name}"))
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/GetPolicy", runtime.WithHTTPPathPattern("/v1/policies/{policyName}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1574,7 +1574,7 @@ var (
 
 	pattern_Core_ListPolicies_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "policies"}, ""))
 
-	pattern_Core_GetPolicy_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "policies", "policy_name"}, ""))
+	pattern_Core_GetPolicy_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "policies", "policyName"}, ""))
 )
 
 var (
