@@ -132,7 +132,7 @@
     },
     "/v1/featureflags": {
       "get": {
-        "summary": "*\nGetFeatureFlags returns configuration information about the server",
+        "summary": "GetFeatureFlags returns configuration information about the server",
         "operationId": "Core_GetFeatureFlags",
         "responses": {
           "200": {
@@ -412,9 +412,9 @@
         ]
       }
     },
-    "/v1/policyviolations": {
+    "/v1/policyvalidations": {
       "post": {
-        "summary": "*\nListPolicyValidations list policy validations available on the management cluster",
+        "summary": "ListPolicyValidations lists policy validations",
         "operationId": "Core_ListPolicyValidations",
         "responses": {
           "200": {
@@ -445,9 +445,9 @@
         ]
       }
     },
-    "/v1/policyviolations/{violationId}": {
+    "/v1/policyvalidations/{validationId}": {
       "get": {
-        "summary": "*\nGetPolicyValidation gets a policy validations on the management cluster by id",
+        "summary": "GetPolicyValidation gets a policy validation by id",
         "operationId": "Core_GetPolicyValidation",
         "responses": {
           "200": {
@@ -465,7 +465,7 @@
         },
         "parameters": [
           {
-            "name": "violationId",
+            "name": "validationId",
             "in": "path",
             "required": true,
             "type": "string"
@@ -858,7 +858,7 @@
     "v1GetPolicyValidationResponse": {
       "type": "object",
       "properties": {
-        "violation": {
+        "validation": {
           "$ref": "#/definitions/v1PolicyValidation"
         }
       }

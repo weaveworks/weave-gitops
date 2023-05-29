@@ -96,7 +96,7 @@ func (cs *coreServer) GetPolicyValidation(ctx context.Context, m *pb.GetPolicyVa
 
 	selector, err := k8sLabels.ValidatedSelectorFromSet(map[string]string{
 		"pac.weave.works/type": "Admission",
-		"pac.weave.works/id":   m.ViolationId})
+		"pac.weave.works/id":   m.ValidationId})
 
 	if err != nil {
 		return nil, fmt.Errorf("error building selector for events query: %v", err)
@@ -118,10 +118,10 @@ func (cs *coreServer) GetPolicyValidation(ctx context.Context, m *pb.GetPolicyVa
 		return nil, fmt.Errorf("error getting events: %s", validationsList.Errors[0].Message)
 	}
 	if len(validationsList.Validations) == 0 {
-		return nil, fmt.Errorf("no policy violation found with id %s and cluster: %s", m.ViolationId, m.ClusterName)
+		return nil, fmt.Errorf("no policy violation found with id %s and cluster: %s", m.ValidationId, m.ClusterName)
 	}
 	return &pb.GetPolicyValidationResponse{
-		Violation: validationsList.Validations[0],
+		Validation: validationsList.Validations[0],
 	}, nil
 }
 

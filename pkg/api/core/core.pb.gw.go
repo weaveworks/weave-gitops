@@ -608,7 +608,7 @@ func local_request_Core_ListPolicyValidations_0(ctx context.Context, marshaler r
 }
 
 var (
-	filter_Core_GetPolicyValidation_0 = &utilities.DoubleArray{Encoding: map[string]int{"violationId": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
+	filter_Core_GetPolicyValidation_0 = &utilities.DoubleArray{Encoding: map[string]int{"validationId": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
 )
 
 func request_Core_GetPolicyValidation_0(ctx context.Context, marshaler runtime.Marshaler, client CoreClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -622,14 +622,14 @@ func request_Core_GetPolicyValidation_0(ctx context.Context, marshaler runtime.M
 		_   = err
 	)
 
-	val, ok = pathParams["violationId"]
+	val, ok = pathParams["validationId"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "violationId")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "validationId")
 	}
 
-	protoReq.ViolationId, err = runtime.String(val)
+	protoReq.ValidationId, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "violationId", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "validationId", err)
 	}
 
 	if err := req.ParseForm(); err != nil {
@@ -655,14 +655,14 @@ func local_request_Core_GetPolicyValidation_0(ctx context.Context, marshaler run
 		_   = err
 	)
 
-	val, ok = pathParams["violationId"]
+	val, ok = pathParams["validationId"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "violationId")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "validationId")
 	}
 
-	protoReq.ViolationId, err = runtime.String(val)
+	protoReq.ValidationId, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "violationId", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "validationId", err)
 	}
 
 	if err := req.ParseForm(); err != nil {
@@ -1057,7 +1057,7 @@ func RegisterCoreHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/ListPolicyValidations", runtime.WithHTTPPathPattern("/v1/policyviolations"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/ListPolicyValidations", runtime.WithHTTPPathPattern("/v1/policyvalidations"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1080,7 +1080,7 @@ func RegisterCoreHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/GetPolicyValidation", runtime.WithHTTPPathPattern("/v1/policyviolations/{violationId}"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/GetPolicyValidation", runtime.WithHTTPPathPattern("/v1/policyvalidations/{validationId}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1462,7 +1462,7 @@ func RegisterCoreHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/ListPolicyValidations", runtime.WithHTTPPathPattern("/v1/policyviolations"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/ListPolicyValidations", runtime.WithHTTPPathPattern("/v1/policyvalidations"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1482,7 +1482,7 @@ func RegisterCoreHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/GetPolicyValidation", runtime.WithHTTPPathPattern("/v1/policyviolations/{violationId}"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/GetPolicyValidation", runtime.WithHTTPPathPattern("/v1/policyvalidations/{validationId}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1534,9 +1534,9 @@ var (
 
 	pattern_Core_GetInventory_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "inventory"}, ""))
 
-	pattern_Core_ListPolicyValidations_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "policyviolations"}, ""))
+	pattern_Core_ListPolicyValidations_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "policyvalidations"}, ""))
 
-	pattern_Core_GetPolicyValidation_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "policyviolations", "violationId"}, ""))
+	pattern_Core_GetPolicyValidation_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "policyvalidations", "validationId"}, ""))
 )
 
 var (

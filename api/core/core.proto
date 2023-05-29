@@ -125,7 +125,7 @@ service Core {
         };
     }
 
-    /**
+    /*
     * GetFeatureFlags returns configuration information about the server
     */
     rpc GetFeatureFlags(GetFeatureFlagsRequest) returns (GetFeatureFlagsResponse) {
@@ -170,22 +170,22 @@ service Core {
             get : "/v1/inventory",
         };
     }
-    /**
+    /*
     * ListPolicyValidations lists policy validations
     */
     rpc ListPolicyValidations(ListPolicyValidationsRequest) returns (ListPolicyValidationsResponse) {
         option (google.api.http) = {
-        post : "/v1/policyviolations"
+        post : "/v1/policyvalidations"
         body : "*"
         };
     }
 
-    /**
+    /*
     * GetPolicyValidation gets a policy validation by id
     */
     rpc GetPolicyValidation(GetPolicyValidationRequest) returns (GetPolicyValidationResponse) {
         option (google.api.http) = {
-        get : "/v1/policyviolations/{violationId}"
+        get : "/v1/policyvalidations/{validationId}"
         };
     }
 }
@@ -238,12 +238,12 @@ message ListPolicyValidationsResponse {
 }
 
 message GetPolicyValidationRequest {
-    string violationId = 1;
+    string validationId = 1;
     string clusterName = 2;
 }
 
 message GetPolicyValidationResponse {
-    PolicyValidation violation = 1;
+    PolicyValidation validation = 1;
 }
 
 message PolicyValidationOccurrence {

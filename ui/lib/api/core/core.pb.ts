@@ -55,12 +55,12 @@ export type ListPolicyValidationsResponse = {
 }
 
 export type GetPolicyValidationRequest = {
-  violationId?: string
+  validationId?: string
   clusterName?: string
 }
 
 export type GetPolicyValidationResponse = {
-  violation?: PolicyValidation
+  validation?: PolicyValidation
 }
 
 export type PolicyValidationOccurrence = {
@@ -293,9 +293,9 @@ export class Core {
     return fm.fetchReq<GetInventoryRequest, GetInventoryResponse>(`/v1/inventory?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static ListPolicyValidations(req: ListPolicyValidationsRequest, initReq?: fm.InitReq): Promise<ListPolicyValidationsResponse> {
-    return fm.fetchReq<ListPolicyValidationsRequest, ListPolicyValidationsResponse>(`/v1/policyviolations`, {...initReq, method: "POST", body: JSON.stringify(req)})
+    return fm.fetchReq<ListPolicyValidationsRequest, ListPolicyValidationsResponse>(`/v1/policyvalidations`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static GetPolicyValidation(req: GetPolicyValidationRequest, initReq?: fm.InitReq): Promise<GetPolicyValidationResponse> {
-    return fm.fetchReq<GetPolicyValidationRequest, GetPolicyValidationResponse>(`/v1/policyviolations/${req["violationId"]}?${fm.renderURLSearchParams(req, ["violationId"])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<GetPolicyValidationRequest, GetPolicyValidationResponse>(`/v1/policyvalidations/${req["validationId"]}?${fm.renderURLSearchParams(req, ["validationId"])}`, {...initReq, method: "GET"})
   }
 }
