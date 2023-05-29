@@ -8,6 +8,7 @@ import Link from "../../../Link";
 import RequestStateHandler from "../../../RequestStateHandler";
 import Timestamp from "../../../Timestamp";
 import Severity from "../../Utils/Severity";
+import { useFeatureFlags } from "../../../../hooks/featureflags";
 
 interface Props {
   req: ListPolicyValidationsRequest;
@@ -16,10 +17,17 @@ interface Props {
 
 export const PolicyViolationsList = ({ req }: Props) => {
   const { data, error, isLoading } = useListPolicyValidations(req);
-  const initialFilterState = {
+  const { isFlagEnabled } = useFeatureFlags();
+
+  let initialFilterState = {
     ...filterConfig(data?.violations, "severity"),
-    ...filterConfig(data?.violations, "name"),
   };
+  if (isFlagEnabled("WEAVE_GITOPS_FEATURE_CLUSTER")) {
+    initialFilterState = {
+      ...initialFilterState,
+      ...filterConfig(data?.violations, "clusterName"),
+    };
+  }
   const fields: Field[] = [
     {
       label: "Message",
@@ -40,6 +48,15 @@ export const PolicyViolationsList = ({ req }: Props) => {
       sortValue: ({ message }) => message,
       maxWidth: 300,
     },
+    ...(isFlagEnabled("WEAVE_GITOPS_FEATURE_CLUSTER")
+    ? [
+        {
+          label: "Cluster",
+          value: "clusterName",
+          sortValue: ({ clusterName }) => clusterName,
+        },
+      ]
+    : []),
     {
       label: "Severity",
       value: ({ severity }) => <Severity severity={severity || ""} />,
