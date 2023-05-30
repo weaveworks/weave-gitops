@@ -5,6 +5,7 @@ import Page from "../../components/Page";
 import { useGetObject } from "../../hooks/objects";
 import { Kind } from "../../lib/api/core/types.pb";
 import { HelmRepository } from "../../lib/objects";
+import { V2Routes } from "../../lib/types";
 
 type Props = {
   className?: string;
@@ -31,7 +32,12 @@ function HelmRepositoryDetail({
   );
 
   return (
-    <Page error={error} loading={isLoading} className={className}>
+    <Page
+      error={error}
+      loading={isLoading}
+      className={className}
+      path={[{ label: "Sources", url: V2Routes.Sources }, { label: name }]}
+    >
       <HelmRepositoryDetailComponent helmRepository={helmRepository} />
     </Page>
   );

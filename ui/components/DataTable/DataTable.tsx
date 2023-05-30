@@ -387,10 +387,14 @@ export const DataTable = styled(UnstyledDataTable)`
   th {
     padding: 0;
     background: ${(props) => props.theme.colors.neutralGray};
-    border-top-left-radius: 4px;
-    border-top-right-radius: 4px;
     .MuiCheckbox-root {
       padding: 4px 9px;
+    }
+    :first-child {
+      border-top-left-radius: ${(props) => props.theme.spacing.xxs};
+    }
+    :last-child {
+      border-top-right-radius: ${(props) => props.theme.spacing.xxs};
     }
   }
   td {

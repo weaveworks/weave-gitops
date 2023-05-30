@@ -21,7 +21,12 @@ function ProviderPage({ className, name, namespace, clusterName }: Props) {
     clusterName
   );
   return (
-    <Page className={className} loading={isLoading} error={error}>
+    <Page
+      className={className}
+      loading={isLoading}
+      error={error}
+      path={[{ label: name }]}
+    >
       <ProviderDetail provider={data} />
     </Page>
   );
