@@ -11,6 +11,7 @@ import Timestamp from "../../Timestamp";
 import { AppContext } from "../../../contexts/AppContext";
 import { useFeatureFlags } from "../../../hooks/featureflags";
 import { FluxObject } from "../../../lib/objects";
+import ClusterDashboardLink from "../../ClusterDashboardLink";
 import HeaderRows, { Header } from "../Utils/HeaderRows";
 import Parameters from "../Utils/Parameters";
 import Severity from "../Utils/Severity";
@@ -48,6 +49,7 @@ export const ViolationDetails = ({
     namespace,
     occurrences,
     name,
+    clusterName,
     parameters,
   } = violation || {};
 
@@ -58,7 +60,7 @@ export const ViolationDetails = ({
     },
     {
       rowkey: "Cluster",
-      value: "clusterName",
+      children: <ClusterDashboardLink clusterName={clusterName} />,
       visible: isFlagEnabled("WEAVE_GITOPS_FEATURE_CLUSTER"),
     },
     {
