@@ -1,21 +1,17 @@
 package server
 
 import (
-	"fmt"
 	"testing"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
-	"github.com/go-logr/logr"
 	"github.com/go-logr/logr/testr"
 	pacv2beta2 "github.com/weaveworks/policy-agent/api/v2beta2"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
-	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -74,31 +70,7 @@ func makePolicy(t *testing.T, opts ...func(p *pacv2beta2.Policy)) *pacv2beta2.Po
 	return policy
 }
 
-func getServer(t *testing.T, clients map[string]client.Client, namespaces map[string][]corev1.Namespace) (pb.CoreServer, error) {
-	clientsPool := &clustersmngrfakes.FakeClientsPool{}
-	clientsPool.ClientsReturns(clients)
-	clientsPool.ClientStub = func(name string) (client.Client, error) {
-		if c, found := clients[name]; found && c != nil {
-			return c, nil
-		}
-		return nil, fmt.Errorf("cluster %s not found", name)
-	}
-	clustersClient := clustersmngr.NewClient(clientsPool, namespaces, logr.Discard())
-	fakeFactory := &clustersmngrfakes.FakeClustersManager{}
-	fakeFactory.GetImpersonatedClientForClusterReturns(clustersClient, nil)
-	fakeFactory.GetImpersonatedClientReturns(clustersClient, nil)
-
-	return createServer(t, serverOptions{
-		clustersManager: fakeFactory,
-	})
-}
-
 func createServer(t *testing.T, o serverOptions) (pb.CoreServer, error) {
-	c := o.client
-	if c == nil {
-		c = createClient(t, o.clusterState...)
-	}
-
 	if o.cluster == "" {
 		o.cluster = "Default"
 	}
@@ -114,12 +86,6 @@ func createServer(t *testing.T, o serverOptions) (pb.CoreServer, error) {
 }
 
 type serverOptions struct {
-	clusterState          []runtime.Object
-	client                client.Client
-	namespace             string
-	ns                    string
-	profileHelmRepository *types.NamespacedName
-	clustersManager       clustersmngr.ClustersManager
-	capiEnabled           bool
-	cluster               string
+	clustersManager clustersmngr.ClustersManager
+	cluster         string
 }

@@ -319,7 +319,6 @@ func TestListPolicies(t *testing.T) {
 				clustersManager: fakeFactory,
 			})
 			if err != nil {
-
 				req := pb.ListPoliciesRequest{ClusterName: tt.clusterName}
 				gotResponse, err := s.ListPolicies(context.Background(), &req)
 				if err != nil {
@@ -415,17 +414,15 @@ func TestGetPolicy(t *testing.T) {
 					if diff := cmp.Diff(tt.err.Error(), err.Error()); diff != "" {
 						t.Fatalf("unexpected error while getting policy:\n%s", diff)
 					}
-				} else {
-					if !cmpPolicy(t, tt.expected.Policy, gotResponse.Policy) {
-						t.Fatalf("policies didn't match expected:\n%+v\n%+v", tt.expected, gotResponse)
-					}
+				} else if !cmpPolicy(t, tt.expected.Policy, gotResponse.Policy) {
+					t.Fatalf("policies didn't match expected:\n%+v\n%+v", tt.expected, gotResponse)
 				}
 			}
 		})
 	}
 }
 
-func cmpPoliciesResp(t *testing.T, pol1 *pb.ListPoliciesResponse, pol2 *pb.ListPoliciesResponse) bool {
+func cmpPoliciesResp(t *testing.T, pol1, pol2 *pb.ListPoliciesResponse) bool {
 	t.Helper()
 	if len(pol1.Policies) != len(pol2.Policies) {
 		return false
@@ -439,7 +436,7 @@ func cmpPoliciesResp(t *testing.T, pol1 *pb.ListPoliciesResponse, pol2 *pb.ListP
 
 	return cmp.Equal(pol1.Total, pol2.Total)
 }
-func cmpPolicy(t *testing.T, pol1 *pb.Policy, pol2 *pb.Policy) bool {
+func cmpPolicy(t *testing.T, pol1, pol2 *pb.Policy) bool {
 	t.Helper()
 
 	if !cmp.Equal(pol1.Id, pol2.Id, protocmp.Transform()) {
