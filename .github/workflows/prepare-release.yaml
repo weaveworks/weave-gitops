@@ -1,6 +1,9 @@
 name: prepare-release
 
 on:
+  concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
   workflow_dispatch:
     inputs:
       version:

@@ -9,6 +9,9 @@ on:
     branches:
       - main
       - v2
+  concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
   workflow_dispatch:
 
 jobs:
