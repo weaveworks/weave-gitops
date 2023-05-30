@@ -13,7 +13,7 @@ function Automations({ className }: Props) {
   return (
     <Page
       error={error || automations?.errors}
-      loading={!isLoading}
+      loading={isLoading}
       className={className}
       path={[{ label: "Applications" }]}
     >
