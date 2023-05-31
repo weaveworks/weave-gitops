@@ -28,7 +28,7 @@ jobs:
     - name: build
       run: make all BINARY_NAME=gitops-${{matrix.os}}-nightly
     - name: Store gitops binaries
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
           name: gitops-binaries-${{matrix.os}}-nightly
           path: bin
