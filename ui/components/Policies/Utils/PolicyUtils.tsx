@@ -40,7 +40,8 @@ export const ChipWrap = styled(Chip)`
     padding: 2px 4px;
     height: inherit;
     border-radius: 4px;
-  },
+  }
+  ,
   .MuiChip-label {
     padding: 0;
   }
@@ -54,10 +55,12 @@ export const Editor = styled(ReactMarkdown)`
   max-height: 300px;
   & a {
     color: ${(props) => props.theme.colors.primary};
-  },
+  }
+  ,
   & > *:first-child {
     margin-top: ${(props) => props.theme.spacing.none};
-  },
+  }
+  ,
   & > *:last-child {
     margin-bottom: ${(props) => props.theme.spacing.none};
   }
