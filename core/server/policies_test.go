@@ -13,7 +13,6 @@ import (
 )
 
 func TestListPolicies(t *testing.T) {
-
 	g := NewGomegaWithT(t)
 
 	ctx := context.Background()
@@ -65,7 +64,6 @@ func TestListPolicies(t *testing.T) {
 	g.Expect(len(res.Policies)).To(Equal(2))
 	g.Expect(res.Policies[0].Id).To(Equal(policy1.Spec.ID))
 	g.Expect(res.Policies[0].Severity).To(Equal(policy1.Spec.Severity))
-
 }
 
 func TestGetPolicy(t *testing.T) {
@@ -108,10 +106,9 @@ func TestGetPolicy(t *testing.T) {
 	g.Expect(res.Policy.Severity).To(Equal(policy.Spec.Severity))
 	g.Expect(res.Policy.Code).To(Equal(policy.Spec.Code))
 
-	//Test non existing policy
-	res, err = c.GetPolicy(ctx, &pb.GetPolicyRequest{
+	// Test non existing policy
+	_, err = c.GetPolicy(ctx, &pb.GetPolicyRequest{
 		PolicyName: "foo",
 	})
 	g.Expect(err).To(HaveOccurred())
-
 }
