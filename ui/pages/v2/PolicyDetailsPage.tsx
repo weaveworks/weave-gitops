@@ -6,6 +6,7 @@ import PolicyDetails from "../../components/Policies/PolicyDetails/PolicyDetails
 import Parameters from "../../components/Policies/Utils/Parameters";
 import { useGetPolicyDetails } from "../../hooks/Policies";
 import { V2Routes } from "../../lib/types";
+import { SectionWrapper } from "../../components/Policies/Utils/PolicyUtils";
 
 type Props = {
   className?: string;
@@ -31,10 +32,12 @@ function PolicyDetailsPage({ className, clusterName, id }: Props) {
     >
       <Flex wide tall column gap="32">
         <PolicyDetails policy={data?.policy || {}} />
-        <Parameters
-          parameters={data?.policy?.parameters || []}
-          parameterType="Policy"
-        />
+        <SectionWrapper title=" Parameters Values:">
+          <Parameters
+            parameters={data?.policy?.parameters || []}
+            parameterType="Policy"
+          />
+        </SectionWrapper>
       </Flex>
     </Page>
   );

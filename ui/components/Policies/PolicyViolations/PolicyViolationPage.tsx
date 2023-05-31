@@ -68,34 +68,6 @@ const PolicyViolationPage = ({
 };
 
 export default styled(PolicyViolationPage)`
-  .editor {
-    & a {
-      color: ${(props) => props.theme.colors.primary};
-    }
-    ,
-    & > *:first-child {
-      margin-top: 0;
-    }
-    ,
-    & > *:last-child {
-      margin-bottom: 0;
-    }
-
-    width: calc(100% - 24px);
-    padding: 12px;
-    overflow: scroll;
-    background: ${(props) => props.theme.colors.neutralGray};
-    max-height: 300px;
-  }
-  .code {
-    pre {
-      max-height: 300px;
-      overflow: auto;
-    }
-    code > span {
-      flex-wrap: wrap;
-    }
-  }
   ul.occurrences {
     padding-left: ${(props) => props.theme.spacing.base};
     margin: 0;

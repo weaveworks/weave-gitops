@@ -36,7 +36,7 @@ export const SectionWrapper = ({ title, children }) => {
 export const ChipWrap = styled(Chip)`
   &.MuiChip-root {
     color: ${(props) => props.theme.colors.black};
-    background-color: ${(props) => props.theme.colors.neutral10};
+    background-color: ${(props) => props.theme.colors.neutralGray};
     padding: 2px 4px;
     height: inherit;
     border-radius: 4px;
@@ -50,16 +50,14 @@ export const Editor = styled(ReactMarkdown)`
   width: calc(100% - 24px);
   padding: ${(props) => props.theme.spacing.small};
   overflow: scroll;
-  background: ${(props) => props.theme.colors.neutral10};
+  background: ${(props) => props.theme.colors.neutralGray};
   max-height: 300px;
   & a {
     color: ${(props) => props.theme.colors.primary};
   }
-  ,
   & > *:first-child {
     margin-top: ${(props) => props.theme.spacing.none};
   }
-  ,
   & > *:last-child {
     margin-bottom: ${(props) => props.theme.spacing.none};
   }

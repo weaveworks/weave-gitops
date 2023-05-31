@@ -1,7 +1,7 @@
 import React from "react";
-import Icon, { IconType } from "../../Icon";
 import styled from "styled-components";
 import Flex from "../../Flex";
+import Icon, { IconType } from "../../Icon";
 
 const ModeWrapper = styled(Flex)`
   align-items: center;
