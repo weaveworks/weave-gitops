@@ -18,17 +18,17 @@ jobs:
         os: [ubuntu-latest, macOS-latest]
     steps:
     - name: Install Go
-      uses: actions/setup-go@v2
+      uses: actions/setup-go@v4
       with:
-        go-version: 1.17.x
+        go-version: 1.20.x
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: Clean
       run: make clean
     - name: build
       run: make all BINARY_NAME=gitops-${{matrix.os}}-nightly
     - name: Store gitops binaries
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
           name: gitops-binaries-${{matrix.os}}-nightly
           path: bin
@@ -43,7 +43,7 @@ jobs:
         os: [ubuntu-latest, macOS-latest]
     steps:
     - name: Download tested gitops binaries
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: gitops-binaries-${{matrix.os}}-nightly
         path: bin

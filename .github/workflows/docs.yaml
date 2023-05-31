@@ -24,8 +24,8 @@ jobs:
       run:
         working-directory: website
     steps:
-      - uses: actions/checkout@50fbc622fc4ef5163becd7fab6573eac35f8462e
-      - uses: actions/setup-node@56899e050abffc08c2b3b61f3ec6a79a9dc3223d
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: "16.x"
       - name: Test Build
@@ -46,11 +46,11 @@ jobs:
           yarn clear
           npm run build
       - id: auth
-        uses: google-github-actions/auth@v0.4.0
+        uses: google-github-actions/auth@v1
         with:
           credentials_json: ${{ secrets.PROD_DOCS_GITOPS_UPLOAD }}
       - id: upload-file
-        uses: google-github-actions/upload-cloud-storage@v0.5.0
+        uses: google-github-actions/upload-cloud-storage@v1
         with:
           path: website/build
           destination: staging.docs.gitops.weave.works/${{ github.head_ref }}
@@ -77,8 +77,8 @@ jobs:
       run:
         working-directory: website
     steps:
-      - uses: actions/checkout@50fbc622fc4ef5163becd7fab6573eac35f8462e
-      - uses: actions/setup-node@56899e050abffc08c2b3b61f3ec6a79a9dc3223d
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: "16.x"
       - uses: weaveworks/webfactory-ssh-agent@6b2f2c5354ff41f1edbbf7a17ea9b6178c89be9f
@@ -104,11 +104,11 @@ jobs:
           yarn clear
           npm run build
       - id: auth
-        uses: google-github-actions/auth@v0.4.0
+        uses: google-github-actions/auth@v1
         with:
           credentials_json: ${{ secrets.PROD_DOCS_GITOPS_UPLOAD }}
       - id: upload-file
-        uses: google-github-actions/upload-cloud-storage@v0.4.0
+        uses: google-github-actions/upload-cloud-storage@v1
         with:
           path: website/build
           destination: production.docs.gitops.weave.works
