@@ -5,13 +5,13 @@ import remarkGfm from "remark-gfm";
 import styled from "styled-components";
 import { useFeatureFlags } from "../../../hooks/featureflags";
 import { Policy } from "../../../lib/api/core/core.pb";
-import Flex from "../../Flex";
 import Text from "../../Text";
 import HeaderRows, { Header } from "../Utilis/HeaderRows";
 import PolicyMode from "../Utilis/PolicyMode";
 import { ChipWrap, Editor, SectionWrapper } from "../Utilis/PolicyUtilis";
 import Severity from "../Utilis/Severity";
 import ClusterDashboardLink from "../../ClusterDashboardLink";
+import Flex from "../../Flex";
 
 type Props = {
   policy: Policy;

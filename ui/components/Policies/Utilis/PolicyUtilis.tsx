@@ -1,9 +1,9 @@
 import * as React from "react";
 import styled from "styled-components";
+import ReactMarkdown from "react-markdown";
+import { Chip } from "@material-ui/core";
 import Flex from "../../Flex";
 import Text from "../../Text";
-import { Chip } from "@material-ui/core";
-import ReactMarkdown from "react-markdown";
 
 export const parseValue = (parameter: {
   type?: string | undefined;

@@ -1,5 +1,4 @@
-import React from "react";
-import { FC } from "react";
+import React, { FC } from "react";
 import { useFeatureFlags } from "../../../hooks/featureflags";
 import { formatURL } from "../../../lib/nav";
 import { V2Routes } from "../../../lib/types";
