@@ -22,18 +22,17 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
 
 service Core {
     /*
-    * GetObject gets data about a single primary object from a cluster.
-    */
+     * GetObject gets data about a single primary object from a cluster.
+     */
     rpc GetObject(GetObjectRequest) returns (GetObjectResponse) {
         option (google.api.http) = {
             get: "/v1/object/{name}"
         };
     }
 
-
     /*
-    * ListObjects gets data about primary objects.
-    */
+     * ListObjects gets data about primary objects.
+     */
     rpc ListObjects(ListObjectsRequest) returns (ListObjectsResponse) {
         option (google.api.http) = {
             post: "/v1/objects"
@@ -57,10 +56,10 @@ service Core {
         };
     }
 
-    /**
-    * GetReconciledObjects returns a list of objects that were created as a result a Flux automation.
-    * This list is derived by looking at the Kustomization or HelmRelease specified in the request body.
-    */
+    /*
+     * GetReconciledObjects returns a list of objects that were created as a result a Flux automation.
+     * This list is derived by looking at the Kustomization or HelmRelease specified in the request body.
+     */
     rpc GetReconciledObjects(GetReconciledObjectsRequest) returns (GetReconciledObjectsResponse) {
         option (google.api.http) = {
             post: "/v1/reconciled_objects"
@@ -68,10 +67,10 @@ service Core {
         };
     };
 
-    /**
-    * GetChildObjects returns the children of a given object, specified by a GroupVersionKind.
-    * Not all Kubernets objects have children. For example, a Deployment has a child ReplicaSet, but a Service has no child objects.
-    */
+    /*
+     * GetChildObjects returns the children of a given object, specified by a GroupVersionKind.
+     * Not all Kubernets objects have children. For example, a Deployment has a child ReplicaSet, but a Service has no child objects.
+     */
     rpc GetChildObjects(GetChildObjectsRequest) returns (GetChildObjectsResponse) {
         option (google.api.http) = {
             post: "/v1/child_objects"
@@ -125,7 +124,7 @@ service Core {
         };
     }
 
-    /**
+    /*
     * GetFeatureFlags returns configuration information about the server
     */
     rpc GetFeatureFlags(GetFeatureFlagsRequest) returns (GetFeatureFlagsResponse) {
@@ -154,11 +153,11 @@ service Core {
         };
     }
 
-    /**
-    * IsCRDAvailable returns with a hashmap where the keys are the names of
-    * the clusters, and the value is a boolean indicating whether given CRD is
-    * installed or not on that cluster.
-    */
+    /*
+     * IsCRDAvailable returns with a hashmap where the keys are the names of
+     * the clusters, and the value is a boolean indicating whether given CRD is
+     * installed or not on that cluster.
+     */
     rpc IsCRDAvailable(IsCRDAvailableRequest) returns (IsCRDAvailableResponse) {
         option (google.api.http) = {
             get : "/v1/crd/is_available",
@@ -184,30 +183,109 @@ service Core {
         get : "/v1/policies/{policyName}"
         };
     }
+    /*
+    * ListPolicyValidations lists policy validations
+    */
+    rpc ListPolicyValidations(ListPolicyValidationsRequest) returns (ListPolicyValidationsResponse) {
+        option (google.api.http) = {
+        post : "/v1/policyvalidations"
+        body : "*"
+        };
+    }
+
+    /*
+    * GetPolicyValidation gets a policy validation by id
+    */
+    rpc GetPolicyValidation(GetPolicyValidationRequest) returns (GetPolicyValidationResponse) {
+        option (google.api.http) = {
+        get : "/v1/policyvalidations/{validationId}"
+        };
+    }
 }
 
 message GetInventoryRequest {
-    string kind = 1;
-    string name = 2;
-    string namespace = 3;
-    string clusterName = 4;
-    bool withChildren = 5;
+    string kind         = 1;
+    string name         = 2;
+    string namespace    = 3;
+    string clusterName  = 4;
+    bool   withChildren = 5;
 }
 
 message GetInventoryResponse {
     repeated InventoryEntry entries = 1;
 }
 
+message PolicyValidation {
+    string   id                                     = 1;
+    string   message                                = 2;
+    string   clusterId                              = 3;
+    string   category                               = 4;
+    string   severity                               = 5;
+    string   createdAt                              = 6;
+    string   entity                                 = 7;
+    string   namespace                              = 8;
+    string   violatingEntity                        = 9;
+    string   description                            = 10;
+    string   howToSolve                             = 11;
+    string   name                                   = 12;
+    string   clusterName                            = 13;
+    repeated PolicyValidationOccurrence occurrences = 14;
+    string   policyId                               = 15;
+    repeated PolicyValidationParam parameters       = 16;
+}
+
+message ListPolicyValidationsRequest {
+    string clusterName = 1;
+    Pagination pagination = 2;
+    string application = 3;
+    string namespace = 4;
+    string kind = 5;
+    string policyId = 6;
+    string validationType = 7;
+}
+
+message ListPolicyValidationsResponse {
+    repeated PolicyValidation violations = 1;
+    int32    total                       = 2;
+    string   nextPageToken               = 3;
+    repeated ListError errors            = 4;
+}
+
+message GetPolicyValidationRequest {
+    string validationId = 1;
+    string clusterName = 2;
+    string validationType = 3;
+}
+
+message GetPolicyValidationResponse {
+    PolicyValidation validation = 1;
+}
+
+message PolicyValidationOccurrence {
+    string message = 1;
+}
+
+message PolicyValidationParam {
+    string              name      = 1;
+    string              type      = 2;
+    google.protobuf.Any value     = 3;
+    bool                required  = 4;
+    string              configRef = 5;
+}
+
+message PolicyParamRepeatedString {
+    repeated string value = 1;
+}
 
 message Pagination {
-    int32 pageSize = 1;
+    int32  pageSize  = 1;
     string pageToken = 2;
 }
 
 message ListError {
     string clusterName = 1;
-    string namespace = 2;
-    string message = 3;
+    string namespace   = 2;
+    string message     = 3;
 }
 
 message ListFluxRuntimeObjectsRequest {
@@ -217,7 +295,7 @@ message ListFluxRuntimeObjectsRequest {
 
 message ListFluxRuntimeObjectsResponse {
     repeated Deployment deployments = 1;
-    repeated ListError errors = 2;
+    repeated ListError errors       = 2;
 }
 
 message ListFluxCrdsRequest {
@@ -225,7 +303,7 @@ message ListFluxCrdsRequest {
 }
 
 message ListFluxCrdsResponse {
-    repeated Crd crds = 1;
+    repeated Crd crds         = 1;
     repeated ListError errors = 2;
 }
 
@@ -241,23 +319,23 @@ message GetObjectResponse {
 }
 
 message ListObjectsRequest {
-    string namespace   = 1;
-    string kind        = 2;
-    string clusterName = 3;
+    string     namespace       = 1;
+    string     kind            = 2;
+    string     clusterName     = 3;
     map<string, string> labels = 4;
 }
 
 message ListObjectsResponse {
-    repeated Object objects = 1;
+    repeated Object objects   = 1;
     repeated ListError errors = 2;
 }
 
 message GetReconciledObjectsRequest {
-    string         automationName         = 1;
-    string         namespace              = 2;
-    string         automationKind         = 3;
-    repeated       GroupVersionKind kinds = 4;
-    string         clusterName            = 5;
+    string   automationName         = 1;
+    string   namespace              = 2;
+    string   automationKind         = 3;
+    repeated GroupVersionKind kinds = 4;
+    string   clusterName            = 5;
 }
 
 message GetReconciledObjectsResponse {
@@ -296,8 +374,8 @@ message ListEventsResponse {
 }
 
 message SyncFluxObjectRequest {
-    repeated ObjectRef objects    = 1;
-    bool               withSource = 2;
+    repeated ObjectRef objects = 1;
+    bool     withSource        = 2;
 }
 
 message SyncFluxObjectResponse {
@@ -306,10 +384,10 @@ message SyncFluxObjectResponse {
 message GetVersionRequest {}
 
 message GetVersionResponse {
-    string semver    = 1;
-    string commit    = 2;
-    string branch    = 3;
-    string buildTime = 4;
+    string semver      = 1;
+    string commit      = 2;
+    string branch      = 3;
+    string buildTime   = 4;
     string fluxVersion = 5;
     string kubeVersion = 6;
 }
@@ -322,7 +400,7 @@ message GetFeatureFlagsResponse {
 
 message ToggleSuspendResourceRequest {
     repeated ObjectRef objects = 1;
-    bool               suspend = 2;
+    bool     suspend           = 2;
 }
 
 message ToggleSuspendResourceResponse {
@@ -346,8 +424,8 @@ message LogEntry {
 
 message GetSessionLogsResponse {
     repeated LogEntry logs       = 1;
-    string            nextToken  = 2;
-    string            error      = 3;
+    string   nextToken           = 2;
+    string   error               = 3;
     repeated string   logSources = 4;
 }
 
@@ -421,5 +499,3 @@ message PolicyTargets {
 }
 
 message PolicyTargetLabel { map<string, string> values = 1; }
-
-message PolicyParamRepeatedString { repeated string value = 1; }

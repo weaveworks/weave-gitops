@@ -493,6 +493,82 @@
         ]
       }
     },
+    "/v1/policyvalidations": {
+      "post": {
+        "summary": "ListPolicyValidations lists policy validations",
+        "operationId": "Core_ListPolicyValidations",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListPolicyValidationsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1ListPolicyValidationsRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Core"
+        ]
+      }
+    },
+    "/v1/policyvalidations/{validationId}": {
+      "get": {
+        "summary": "GetPolicyValidation gets a policy validation by id",
+        "operationId": "Core_GetPolicyValidation",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetPolicyValidationResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "validationId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "validationType",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Core"
+        ]
+      }
+    },
     "/v1/reconciled_objects": {
       "post": {
         "summary": "GetReconciledObjects returns a list of objects that were created as a result a Flux automation.\nThis list is derived by looking at the Kustomization or HelmRelease specified in the request body.",
@@ -877,6 +953,14 @@
         }
       }
     },
+    "v1GetPolicyValidationResponse": {
+      "type": "object",
+      "properties": {
+        "validation": {
+          "$ref": "#/definitions/v1PolicyValidation"
+        }
+      }
+    },
     "v1GetReconciledObjectsRequest": {
       "type": "object",
       "properties": {
@@ -1168,6 +1252,56 @@
         }
       }
     },
+    "v1ListPolicyValidationsRequest": {
+      "type": "object",
+      "properties": {
+        "clusterName": {
+          "type": "string"
+        },
+        "pagination": {
+          "$ref": "#/definitions/v1Pagination"
+        },
+        "application": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "policyId": {
+          "type": "string"
+        },
+        "validationType": {
+          "type": "string"
+        }
+      }
+    },
+    "v1ListPolicyValidationsResponse": {
+      "type": "object",
+      "properties": {
+        "violations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1PolicyValidation"
+          }
+        },
+        "total": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "nextPageToken": {
+          "type": "string"
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ListError"
+          }
+        }
+      }
+    },
     "v1LogEntry": {
       "type": "object",
       "properties": {
@@ -1400,6 +1534,93 @@
           "items": {
             "type": "string"
           }
+        }
+      }
+    },
+    "v1PolicyValidation": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "clusterId": {
+          "type": "string"
+        },
+        "category": {
+          "type": "string"
+        },
+        "severity": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "entity": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "violatingEntity": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "howToSolve": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "clusterName": {
+          "type": "string"
+        },
+        "occurrences": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1PolicyValidationOccurrence"
+          }
+        },
+        "policyId": {
+          "type": "string"
+        },
+        "parameters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1PolicyValidationParam"
+          }
+        }
+      }
+    },
+    "v1PolicyValidationOccurrence": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "v1PolicyValidationParam": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "value": {
+          "$ref": "#/definitions/protobufAny"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "configRef": {
+          "type": "string"
         }
       }
     },

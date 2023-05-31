@@ -46,6 +46,7 @@ import Sources from "./pages/v2/Sources";
 import UserInfo from "./pages/v2/UserInfo";
 import PoliciesList from "./pages/v2/PoliciesList";
 import PolicyDetailsPage from "./pages/v2/PolicyDetailsPage";
+import PolicyViolationPage from "./components/Policies/PolicyViolations/PolicyViolationPage";
 
 const queryClient = new QueryClient();
 
@@ -118,6 +119,10 @@ const App = () => {
           <Route
             path={V2Routes.Provider}
             component={withSearchParams(ProviderPage)}
+          />
+          <Route
+            path={V2Routes.PolicyViolationDetails}
+            component={withSearchParams(PolicyViolationPage)}
           />
           <Route path={V2Routes.UserInfo} component={UserInfo} />
 

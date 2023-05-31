@@ -187,6 +187,9 @@ export const GlobalStyle = createGlobalStyle`
     height: 5px;
     background-color: transparent;
   }
+  ::-webkit-scrollbar-corner{
+    background-color: transparent;
+  }
   ::-webkit-scrollbar-thumb {
     background-color: ${(props) => props.theme.colors.neutral20};
     border-radius: 5px;

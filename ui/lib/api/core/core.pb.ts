@@ -19,28 +19,6 @@ export type GetInventoryResponse = {
   entries?: Gitops_coreV1Types.InventoryEntry[]
 }
 
-export type Pagination = {
-  pageSize?: number
-  pageToken?: string
-}
-
-export type ListError = {
-  clusterName?: string
-  namespace?: string
-  message?: string
-}
-
-export type PolicyValidationOccurrence = {
-  message?: string
-}
-
-export type PolicyValidationParam = {
-  name?: string
-  type?: string
-  value?: GoogleProtobufAny.Any
-  required?: boolean
-  configRef?: string
-}
 export type PolicyValidation = {
   id?: string
   message?: string
@@ -59,6 +37,61 @@ export type PolicyValidation = {
   policyId?: string
   parameters?: PolicyValidationParam[]
 }
+
+export type ListPolicyValidationsRequest = {
+  clusterName?: string
+  pagination?: Pagination
+  application?: string
+  namespace?: string
+  kind?: string
+  policyId?: string
+  validationType?: string
+}
+
+export type ListPolicyValidationsResponse = {
+  violations?: PolicyValidation[]
+  total?: number
+  nextPageToken?: string
+  errors?: ListError[]
+}
+
+export type GetPolicyValidationRequest = {
+  validationId?: string
+  clusterName?: string
+  validationType?: string
+}
+
+export type GetPolicyValidationResponse = {
+  validation?: PolicyValidation
+}
+
+export type PolicyValidationOccurrence = {
+  message?: string
+}
+
+export type PolicyValidationParam = {
+  name?: string
+  type?: string
+  value?: GoogleProtobufAny.Any
+  required?: boolean
+  configRef?: string
+}
+
+export type PolicyParamRepeatedString = {
+  value?: string[]
+}
+
+export type Pagination = {
+  pageSize?: number
+  pageToken?: string
+}
+
+export type ListError = {
+  clusterName?: string
+  namespace?: string
+  message?: string
+}
+
 export type ListFluxRuntimeObjectsRequest = {
   namespace?: string
   clusterName?: string
@@ -275,10 +308,6 @@ export type PolicyTargetLabel = {
   values?: {[key: string]: string}
 }
 
-export type PolicyParamRepeatedString = {
-  value?: string[]
-}
-
 export class Core {
   static GetObject(req: GetObjectRequest, initReq?: fm.InitReq): Promise<GetObjectResponse> {
     return fm.fetchReq<GetObjectRequest, GetObjectResponse>(`/v1/object/${req["name"]}?${fm.renderURLSearchParams(req, ["name"])}`, {...initReq, method: "GET"})
@@ -333,5 +362,11 @@ export class Core {
   }
   static GetPolicy(req: GetPolicyRequest, initReq?: fm.InitReq): Promise<GetPolicyResponse> {
     return fm.fetchReq<GetPolicyRequest, GetPolicyResponse>(`/v1/policies/${req["policyName"]}?${fm.renderURLSearchParams(req, ["policyName"])}`, {...initReq, method: "GET"})
+  }
+  static ListPolicyValidations(req: ListPolicyValidationsRequest, initReq?: fm.InitReq): Promise<ListPolicyValidationsResponse> {
+    return fm.fetchReq<ListPolicyValidationsRequest, ListPolicyValidationsResponse>(`/v1/policyvalidations`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
+  static GetPolicyValidation(req: GetPolicyValidationRequest, initReq?: fm.InitReq): Promise<GetPolicyValidationResponse> {
+    return fm.fetchReq<GetPolicyValidationRequest, GetPolicyValidationResponse>(`/v1/policyvalidations/${req["validationId"]}?${fm.renderURLSearchParams(req, ["validationId"])}`, {...initReq, method: "GET"})
   }
 }
