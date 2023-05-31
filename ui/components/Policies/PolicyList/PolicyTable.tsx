@@ -5,8 +5,8 @@ import { V2Routes } from "../../../lib/types";
 import DataTable, { filterConfig } from "../../DataTable";
 import Link from "../../Link";
 import Text from "../../Text";
-import PolicyMode from "../Utilis/PolicyMode";
-import Severity from "../Utilis/Severity";
+import PolicyMode from "../Utils/PolicyMode";
+import Severity from "../Utils/Severity";
 import { Policy } from "../../../lib/api/core/core.pb";
 import Timestamp from "../../Timestamp";
 

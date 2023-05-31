@@ -3,7 +3,7 @@ import styled from "styled-components";
 import Flex from "../../components/Flex";
 import Page from "../../components/Page";
 import PolicyDetails from "../../components/Policies/PolicyDetails/PolicyDetails";
-import Parameters from "../../components/Policies/Utilis/Parameters";
+import Parameters from "../../components/Policies/Utils/Parameters";
 import { useGetPolicyDetails } from "../../hooks/Policies";
 import { V2Routes } from "../../lib/types";
 

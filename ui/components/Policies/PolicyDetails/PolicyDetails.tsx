@@ -6,10 +6,10 @@ import styled from "styled-components";
 import { useFeatureFlags } from "../../../hooks/featureflags";
 import { Policy } from "../../../lib/api/core/core.pb";
 import Text from "../../Text";
-import HeaderRows, { Header } from "../Utilis/HeaderRows";
-import PolicyMode from "../Utilis/PolicyMode";
-import { ChipWrap, Editor, SectionWrapper } from "../Utilis/PolicyUtilis";
-import Severity from "../Utilis/Severity";
+import HeaderRows, { Header } from "../Utils/HeaderRows";
+import PolicyMode from "../Utils/PolicyMode";
+import { ChipWrap, Editor, SectionWrapper } from "../Utils/PolicyUtils";
+import Severity from "../Utils/Severity";
 import ClusterDashboardLink from "../../ClusterDashboardLink";
 import Flex from "../../Flex";
 

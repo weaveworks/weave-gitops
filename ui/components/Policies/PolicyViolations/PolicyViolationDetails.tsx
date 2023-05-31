@@ -15,17 +15,7 @@ import ClusterDashboardLink from "../../ClusterDashboardLink";
 import HeaderRows, { Header } from "../Utils/HeaderRows";
 import Parameters from "../Utils/Parameters";
 import Severity from "../Utils/Severity";
-
-const SectionWrapper = ({ title, children }) => {
-  return (
-    <Flex column wide gap="8" data-testid="occurrences">
-      <Text bold color="neutral30">
-        {title}
-      </Text>
-      {children}
-    </Flex>
-  );
-};
+import { SectionWrapper } from "../Utils/PolicyUtils";
 
 interface ViolationDetailsProps {
   violation: PolicyValidation;

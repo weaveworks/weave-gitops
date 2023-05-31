@@ -1,15 +1,31 @@
 import React from "react";
 import Icon, { IconType } from "../../Icon";
-import { ModeWrapper } from "./PolicyUtilis";
+import styled from "styled-components";
+import Flex from "../../Flex";
 
-interface IModeProps {
+const ModeWrapper = styled(Flex)`
+  align-items: center;
+  justify-content: flex-start;
+  display: inline-flex;
+  margin-right: ${(props) => props.theme.spacing.xs};
+  svg {
+    color: ${(props) => props.theme.colors.neutral30};
+    font-size: ${(props) => props.theme.fontSizes.large};
+    margin-right: ${(props) => props.theme.spacing.xxs};
+  }
+  span {
+    text-transform: capitalize;
+  }
+`;
+interface Props {
   modeName: string;
   showName?: boolean;
 }
+
 const capitalizeFirstLetter = (strToCapitalize: string) =>
   strToCapitalize.charAt(0).toUpperCase() + strToCapitalize.slice(1);
 
-function PolicyMode({ modeName, showName = false }: IModeProps) {
+const PolicyMode = ({ modeName, showName = false }: Props) => {
   switch (modeName.toLocaleLowerCase()) {
     case "audit":
       return ModeTooltip(
@@ -30,7 +46,7 @@ function PolicyMode({ modeName, showName = false }: IModeProps) {
         </ModeWrapper>
       );
   }
-}
+};
 
 const ModeTooltip = (mode: string, showName: boolean, icon: any) => {
   return (
