@@ -209,12 +209,12 @@ func (cs *coreServer) listValidationsFromEvents(ctx context.Context, clusterClie
 func eventToPolicyValidation(item v1.Event, clusterName string, extraDetails bool) (*pb.PolicyValidation, error) {
 	annotations := item.GetAnnotations()
 	policyValidation := &pb.PolicyValidation{
-		Id:          ExtractValueFromMap(item.GetLabels(), "pac.weave.works/id"),
-		Name:        ExtractValueFromMap(annotations, "policy_name"),
-		PolicyId:    ExtractValueFromMap(annotations, "policy_id"),
-		ClusterId:   ExtractValueFromMap(annotations, "cluster_id"),
-		Category:    ExtractValueFromMap(annotations, "category"),
-		Severity:    ExtractValueFromMap(annotations, "severity"),
+		Id:          ExtractStringValueFromMap(item.GetLabels(), "pac.weave.works/id"),
+		Name:        ExtractStringValueFromMap(annotations, "policy_name"),
+		PolicyId:    ExtractStringValueFromMap(annotations, "policy_id"),
+		ClusterId:   ExtractStringValueFromMap(annotations, "cluster_id"),
+		Category:    ExtractStringValueFromMap(annotations, "category"),
+		Severity:    ExtractStringValueFromMap(annotations, "severity"),
 		CreatedAt:   item.GetCreationTimestamp().Format(time.RFC3339),
 		Message:     item.Message,
 		Entity:      item.InvolvedObject.Name,
@@ -222,14 +222,14 @@ func eventToPolicyValidation(item v1.Event, clusterName string, extraDetails boo
 		ClusterName: clusterName,
 	}
 	if extraDetails {
-		policyValidation.Description = ExtractValueFromMap(annotations, "description")
-		policyValidation.HowToSolve = ExtractValueFromMap(annotations, "how_to_solve")
-		policyValidation.ViolatingEntity = ExtractValueFromMap(annotations, "entity_manifest")
-		err := json.Unmarshal([]byte(ExtractValueFromMap(annotations, "occurrences")), &policyValidation.Occurrences)
+		policyValidation.Description = ExtractStringValueFromMap(annotations, "description")
+		policyValidation.HowToSolve = ExtractStringValueFromMap(annotations, "how_to_solve")
+		policyValidation.ViolatingEntity = ExtractStringValueFromMap(annotations, "entity_manifest")
+		err := json.Unmarshal([]byte(ExtractStringValueFromMap(annotations, "occurrences")), &policyValidation.Occurrences)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get occurrences from event: %w", err)
 		}
-		paramsRaw := ExtractValueFromMap(annotations, "parameters")
+		paramsRaw := ExtractStringValueFromMap(annotations, "parameters")
 		if paramsRaw != "" {
 			parameter, err := getPolicyValidationParam([]byte(paramsRaw))
 			if err != nil {
