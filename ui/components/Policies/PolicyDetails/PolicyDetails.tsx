@@ -1,19 +1,17 @@
 import * as React from "react";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { darcula } from "react-syntax-highlighter/dist/esm/styles/prism";
 import remarkGfm from "remark-gfm";
 import styled from "styled-components";
 import { useFeatureFlags } from "../../../hooks/featureflags";
 import { Policy } from "../../../lib/api/core/core.pb";
+import ClusterDashboardLink from "../../ClusterDashboardLink";
+import Flex from "../../Flex";
 import Text from "../../Text";
+import YamlView from "../../YamlView";
 import HeaderRows, { Header } from "../Utils/HeaderRows";
+import Parameters from "../Utils/Parameters";
 import PolicyMode from "../Utils/PolicyMode";
 import { ChipWrap, Editor, SectionWrapper } from "../Utils/PolicyUtils";
 import Severity from "../Utils/Severity";
-import ClusterDashboardLink from "../../ClusterDashboardLink";
-import Flex from "../../Flex";
-import Parameters from "../Utils/Parameters";
-import YamlView from "../../YamlView";
 
 type Props = {
   policy: Policy;
@@ -105,19 +103,6 @@ function PolicyDetails({ policy }: Props) {
       </SectionWrapper>
       <SectionWrapper title="Policy Code:">
         <YamlView type="rego" yaml={code} />
-        {/* <SyntaxHighlighter
-          language="rego"
-          style={darcula}
-          wrapLongLines="pre-wrap"
-          showLineNumbers={true}
-          customStyle={{
-            height: "450px",
-            width: "100%",
-            padding: "1em 0 1em 1em",
-          }}
-        >
-          {code}
-        </SyntaxHighlighter> */}
       </SectionWrapper>
       <SectionWrapper title=" Parameters Values:">
         <Parameters parameters={parameters || []} parameterType="Policy" />
