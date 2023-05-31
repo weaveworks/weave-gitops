@@ -17,6 +17,7 @@ import ImageAutomationRepoDetails from "./components/ImageAutomation/repositorie
 import ImageAutomationUpdatesDetails from "./components/ImageAutomation/updates/ImageAutomationUpdatesDetails";
 import Layout from "./components/Layout";
 import PendoContainer from "./components/PendoContainer";
+import PolicyViolationPage from "./components/Policies/PolicyViolations/PolicyViolationPage";
 import AppContextProvider, {
   AppContext,
   ThemeTypes,
@@ -41,12 +42,11 @@ import ImageAutomationPage from "./pages/v2/ImageAutomationPage";
 import KustomizationPage from "./pages/v2/KustomizationPage";
 import Notifications from "./pages/v2/Notifications";
 import OCIRepositoryPage from "./pages/v2/OCIRepositoryPage";
+import PoliciesList from "./pages/v2/PoliciesList";
+import PolicyDetailsPage from "./pages/v2/PolicyDetailsPage";
 import ProviderPage from "./pages/v2/ProviderPage";
 import Sources from "./pages/v2/Sources";
 import UserInfo from "./pages/v2/UserInfo";
-import PoliciesList from "./pages/v2/PoliciesList";
-import PolicyDetailsPage from "./pages/v2/PolicyDetailsPage";
-import PolicyViolationPage from "./components/Policies/PolicyViolations/PolicyViolationPage";
 
 const queryClient = new QueryClient();
 

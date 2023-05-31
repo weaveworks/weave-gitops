@@ -4,6 +4,7 @@ import * as React from "react";
 import styled from "styled-components";
 import Alert from "../components/Alert";
 import Button from "../components/Button";
+import DarkModeSwitch from "../components/DarkModeSwitch";
 import Flex from "../components/Flex";
 import LoadingPage from "../components/LoadingPage";
 import { Auth } from "../contexts/AuthContext";
@@ -15,7 +16,6 @@ export const FormWrapper = styled(Flex)`
   background-color: ${(props) => props.theme.colors.white};
   border-radius: ${(props) => props.theme.borderRadius.soft};
   width: 500px;
-  padding-top: 40px;
   align-content: space-between;
   .MuiButton-label {
     width: 250px;
@@ -63,13 +63,20 @@ const DocsWrapper = styled(Flex)`
   }
 `;
 
+const SwitchFlex = styled(Flex)`
+  padding: ${(props) => props.theme.spacing.small};
+  box-sizing: border-box;
+`;
+
 const MarginButton = styled(Button)`
   &.MuiButtonBase-root {
     margin-top: ${(props) => props.theme.spacing.medium};
   }
 `;
-
-function SignIn() {
+type Props = {
+  darkModeEnabled?: boolean;
+};
+function SignIn({ darkModeEnabled = true }: Props) {
   const { isFlagEnabled, flags } = useFeatureFlags();
 
   const formRef = React.useRef<HTMLFormElement>();
@@ -125,6 +132,9 @@ function SignIn() {
           zIndex: 999,
         }}
       >
+        <SwitchFlex wide align end>
+          <DarkModeSwitch darkModeEnabled={darkModeEnabled} />
+        </SwitchFlex>
         <Logo wide align center>
           <img
             src={dark ? images.logoDark : images.logoLight}
