@@ -30,6 +30,35 @@ export type ListError = {
   message?: string
 }
 
+export type PolicyValidationOccurrence = {
+  message?: string
+}
+
+export type PolicyValidationParam = {
+  name?: string
+  type?: string
+  value?: GoogleProtobufAny.Any
+  required?: boolean
+  configRef?: string
+}
+export type PolicyValidation = {
+  id?: string
+  message?: string
+  clusterId?: string
+  category?: string
+  severity?: string
+  createdAt?: string
+  entity?: string
+  namespace?: string
+  violatingEntity?: string
+  description?: string
+  howToSolve?: string
+  name?: string
+  clusterName?: string
+  occurrences?: PolicyValidationOccurrence[]
+  policyId?: string
+  parameters?: PolicyValidationParam[]
+}
 export type ListFluxRuntimeObjectsRequest = {
   namespace?: string
   clusterName?: string
