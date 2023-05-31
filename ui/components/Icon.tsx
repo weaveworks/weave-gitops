@@ -26,6 +26,9 @@ import SkipNextIcon from "@material-ui/icons/SkipNext";
 import SkipPreviousIcon from "@material-ui/icons/SkipPrevious";
 import * as React from "react";
 import styled from "styled-components";
+import CallMade from "@material-ui/icons/CallMade";
+import CallReceived from "@material-ui/icons/CallReceived";
+import Remove from "@material-ui/icons/Remove";
 import images from "../lib/images";
 import DocsIcon from "./NavIcons/DocsIcon";
 // eslint-disable-next-line
@@ -102,6 +105,9 @@ export enum IconType {
   ClustersIcon,
   ExploreIcon,
   PendingActionIcon,
+  CallMade,
+  CallReceived,
+  Remove,
 }
 
 type Props = {
@@ -262,6 +268,15 @@ function getIcon(i: IconType) {
 
     case IconType.ExploreIcon:
       return ExploreIcon;
+
+    case IconType.CallMade:
+      return CallMade;
+
+    case IconType.CallReceived:
+      return CallReceived;
+
+    case IconType.Remove:
+      return Remove;
 
     default:
       break;

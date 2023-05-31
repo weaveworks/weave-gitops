@@ -10,6 +10,7 @@ import CopyToClipboard from "./CopyToCliboard";
 
 export type YamlViewProps = {
   className?: string;
+  type?: string;
   yaml: string;
   object?: ObjectRef;
   theme?: ThemeTypes;
@@ -25,11 +26,17 @@ const YamlHeader = styled.div`
   text-overflow: ellipsis;
 `;
 
-function UnstyledYamlView({ yaml, object, className, theme }: YamlViewProps) {
+function UnstyledYamlView({
+  yaml,
+  object,
+  className,
+  theme,
+  type = "yaml",
+}: YamlViewProps) {
   const headerText = createYamlCommand(
-    object.kind,
-    object.name,
-    object.namespace
+    object?.kind,
+    object?.name,
+    object?.namespace
   );
 
   const dark = theme ? theme === ThemeTypes.Dark : useInDarkMode();
@@ -53,18 +60,19 @@ function UnstyledYamlView({ yaml, object, className, theme }: YamlViewProps) {
 
   return (
     <div className={className}>
-      <YamlHeader>
-        {headerText}
-        {headerText && (
+      {headerText && (
+        <YamlHeader>
+          {headerText}
           <CopyToClipboard
             value={headerText}
             className="yaml-copy"
             size="small"
           />
-        )}
-      </YamlHeader>
+        </YamlHeader>
+      )}
+
       <SyntaxHighlighter
-        language="yaml"
+        language={type}
         {...styleProps}
         wrapLongLines
         wrapLines

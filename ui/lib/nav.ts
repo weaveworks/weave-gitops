@@ -60,6 +60,7 @@ export const getParentNavRouteValue = (
     case V2Routes.Automations:
     case V2Routes.Kustomization:
     case V2Routes.HelmRelease:
+    case V2Routes.PolicyViolationDetails:
       return V2Routes.Automations;
 
     case V2Routes.Sources:
@@ -100,6 +101,7 @@ const pageTitles = {
   [V2Routes.ImagePolicies]: "Image Policies",
   [V2Routes.ImageUpdates]: "Image Updates",
   [V2Routes.ImageRepositories]: "Image Repositories",
+  [V2Routes.PolicyViolationDetails]: "Violation Logs",
   [V2Routes.UserInfo]: "User Info",
 };
 

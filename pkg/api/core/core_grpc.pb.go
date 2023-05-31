@@ -52,6 +52,10 @@ type CoreClient interface {
 	// installed or not on that cluster.
 	IsCRDAvailable(ctx context.Context, in *IsCRDAvailableRequest, opts ...grpc.CallOption) (*IsCRDAvailableResponse, error)
 	GetInventory(ctx context.Context, in *GetInventoryRequest, opts ...grpc.CallOption) (*GetInventoryResponse, error)
+	// ListPolicyValidations lists policy validations
+	ListPolicyValidations(ctx context.Context, in *ListPolicyValidationsRequest, opts ...grpc.CallOption) (*ListPolicyValidationsResponse, error)
+	// GetPolicyValidation gets a policy validation by id
+	GetPolicyValidation(ctx context.Context, in *GetPolicyValidationRequest, opts ...grpc.CallOption) (*GetPolicyValidationResponse, error)
 }
 
 type coreClient struct {
@@ -206,6 +210,24 @@ func (c *coreClient) GetInventory(ctx context.Context, in *GetInventoryRequest, 
 	return out, nil
 }
 
+func (c *coreClient) ListPolicyValidations(ctx context.Context, in *ListPolicyValidationsRequest, opts ...grpc.CallOption) (*ListPolicyValidationsResponse, error) {
+	out := new(ListPolicyValidationsResponse)
+	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/ListPolicyValidations", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *coreClient) GetPolicyValidation(ctx context.Context, in *GetPolicyValidationRequest, opts ...grpc.CallOption) (*GetPolicyValidationResponse, error) {
+	out := new(GetPolicyValidationResponse)
+	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/GetPolicyValidation", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CoreServer is the server API for Core service.
 // All implementations must embed UnimplementedCoreServer
 // for forward compatibility
@@ -244,6 +266,10 @@ type CoreServer interface {
 	// installed or not on that cluster.
 	IsCRDAvailable(context.Context, *IsCRDAvailableRequest) (*IsCRDAvailableResponse, error)
 	GetInventory(context.Context, *GetInventoryRequest) (*GetInventoryResponse, error)
+	// ListPolicyValidations lists policy validations
+	ListPolicyValidations(context.Context, *ListPolicyValidationsRequest) (*ListPolicyValidationsResponse, error)
+	// GetPolicyValidation gets a policy validation by id
+	GetPolicyValidation(context.Context, *GetPolicyValidationRequest) (*GetPolicyValidationResponse, error)
 	mustEmbedUnimplementedCoreServer()
 }
 
@@ -298,6 +324,12 @@ func (UnimplementedCoreServer) IsCRDAvailable(context.Context, *IsCRDAvailableRe
 }
 func (UnimplementedCoreServer) GetInventory(context.Context, *GetInventoryRequest) (*GetInventoryResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetInventory not implemented")
+}
+func (UnimplementedCoreServer) ListPolicyValidations(context.Context, *ListPolicyValidationsRequest) (*ListPolicyValidationsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListPolicyValidations not implemented")
+}
+func (UnimplementedCoreServer) GetPolicyValidation(context.Context, *GetPolicyValidationRequest) (*GetPolicyValidationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPolicyValidation not implemented")
 }
 func (UnimplementedCoreServer) mustEmbedUnimplementedCoreServer() {}
 
@@ -600,6 +632,42 @@ func _Core_GetInventory_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Core_ListPolicyValidations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPolicyValidationsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CoreServer).ListPolicyValidations(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gitops_core.v1.Core/ListPolicyValidations",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CoreServer).ListPolicyValidations(ctx, req.(*ListPolicyValidationsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Core_GetPolicyValidation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPolicyValidationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CoreServer).GetPolicyValidation(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gitops_core.v1.Core/GetPolicyValidation",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CoreServer).GetPolicyValidation(ctx, req.(*GetPolicyValidationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Core_ServiceDesc is the grpc.ServiceDesc for Core service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -670,6 +738,14 @@ var Core_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetInventory",
 			Handler:    _Core_GetInventory_Handler,
+		},
+		{
+			MethodName: "ListPolicyValidations",
+			Handler:    _Core_ListPolicyValidations_Handler,
+		},
+		{
+			MethodName: "GetPolicyValidation",
+			Handler:    _Core_GetPolicyValidation_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

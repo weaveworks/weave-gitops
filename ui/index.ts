@@ -42,6 +42,8 @@ import OCIRepositoryDetail from "./components/OCIRepositoryDetail";
 import Page from "./components/Page";
 import PageStatus from "./components/PageStatus";
 import Pendo from "./components/Pendo";
+import { ViolationDetails } from "./components/Policies/PolicyViolations/PolicyViolationDetails";
+import PolicyViolationPage from "./components/Policies/PolicyViolations/PolicyViolationPage";
 import ProviderDetail from "./components/ProviderDetail";
 import ReconciledObjectsTable from "./components/ReconciledObjectsTable";
 import ReconciliationGraph, { Graph } from "./components/ReconciliationGraph";
@@ -233,4 +235,6 @@ export {
   UserGroupsTable,
   useCheckCRDInstalled,
   showInterval,
+  PolicyViolationPage,
+  ViolationDetails,
 };
