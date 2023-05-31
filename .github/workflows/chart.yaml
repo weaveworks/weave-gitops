@@ -81,7 +81,7 @@ jobs:
     needs: helm-new-version
     if: (github.event_name == 'push' && needs.helm-new-version.outputs.old-version != needs.helm-new-version.outputs.new-version) || github.event_name == 'workflow_dispatch'
     steps:
-      - uses: actions/checkout@50fbc622fc4ef5163becd7fab6573eac35f8462e
+      - uses: actions/checkout@v3
       - name: Find new version
         id: new_version
         run: |
