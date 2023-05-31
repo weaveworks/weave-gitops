@@ -172,14 +172,12 @@ Run the following command, which will create a `HelmRepository` and `HelmRelease
      --export > ./clusters/my-cluster/weave-gitops-dashboard.yaml
    ```
 
-	:::warning
-   This command stores a hash of a password. This is relatively safe for demo
-	and testing purposes, but we strongly recommend using a more secure method of storing secrets
-	(such as [Flux's SOPS integration][sops]) for production systems.
+:::warning
+This command stores a hash of a password. This is relatively safe for demo and testing purposes, but we strongly 
+recommend using a more secure method of storing secrets (such as [Flux's SOPS integration][sops]) for production systems.
 
-	Our docs on [securing access to the dashboard][dash-access] provide additional guidance and alternative login methods.
-
-	:::
+Our docs on [securing access to the dashboard][dash-access] provide additional guidance and alternative login methods.
+:::
 
 You will use the password you've just created when you've finished Weave GitOps Open Source installation and are ready to login to the dashboard UI.
 
