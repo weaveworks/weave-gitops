@@ -31,13 +31,13 @@ const PolicyMode = ({ modeName, showName = false }: Props) => {
       return ModeTooltip(
         "audit",
         showName,
-        <Icon size="medium" type={IconType.Policy} color="neutral30" />
+        <Icon size="base" type={IconType.Policy} color="neutral30" />
       );
     case "admission":
       return ModeTooltip(
         "enforce",
         showName,
-        <Icon size="medium" type={IconType.VerifiedUser} color="neutral30" />
+        <Icon size="base" type={IconType.VerifiedUser} color="neutral30" />
       );
     default:
       return (

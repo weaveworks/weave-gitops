@@ -1,7 +1,7 @@
-import * as React from "react";
-import styled from "styled-components";
-import ReactMarkdown from "react-markdown";
 import { Chip } from "@material-ui/core";
+import * as React from "react";
+import ReactMarkdown from "react-markdown/react-markdown.min";
+import styled from "styled-components";
 import Flex from "../../Flex";
 import Text from "../../Text";
 
@@ -40,7 +40,7 @@ export const ChipWrap = styled(Chip)`
     padding: 2px 4px;
     height: inherit;
     border-radius: 4px;
-  }
+  },
   .MuiChip-label {
     padding: 0;
   }
@@ -54,10 +54,10 @@ export const Editor = styled(ReactMarkdown)`
   max-height: 300px;
   & a {
     color: ${(props) => props.theme.colors.primary};
-  }
+  },
   & > *:first-child {
     margin-top: ${(props) => props.theme.spacing.none};
-  }
+  },
   & > *:last-child {
     margin-bottom: ${(props) => props.theme.spacing.none};
   }

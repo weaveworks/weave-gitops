@@ -12,6 +12,8 @@ import { ChipWrap, Editor, SectionWrapper } from "../Utils/PolicyUtils";
 import Severity from "../Utils/Severity";
 import ClusterDashboardLink from "../../ClusterDashboardLink";
 import Flex from "../../Flex";
+import Parameters from "../Utils/Parameters";
+import YamlView from "../../YamlView";
 
 type Props = {
   policy: Policy;
@@ -30,6 +32,7 @@ function PolicyDetails({ policy }: Props) {
     description,
     code,
     howToSolve,
+    parameters,
   } = policy;
   const { isFlagEnabled } = useFeatureFlags();
   const defaultHeaders: Header[] = [
@@ -101,7 +104,8 @@ function PolicyDetails({ policy }: Props) {
         <Editor children={howToSolve || ""} remarkPlugins={[remarkGfm]} />
       </SectionWrapper>
       <SectionWrapper title="Policy Code:">
-        <SyntaxHighlighter
+        <YamlView type="rego" yaml={code} />
+        {/* <SyntaxHighlighter
           language="rego"
           style={darcula}
           wrapLongLines="pre-wrap"
@@ -113,7 +117,10 @@ function PolicyDetails({ policy }: Props) {
           }}
         >
           {code}
-        </SyntaxHighlighter>
+        </SyntaxHighlighter> */}
+      </SectionWrapper>
+      <SectionWrapper title=" Parameters Values:">
+        <Parameters parameters={parameters || []} parameterType="Policy" />
       </SectionWrapper>
     </Flex>
   );

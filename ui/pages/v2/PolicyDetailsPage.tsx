@@ -1,12 +1,9 @@
 import * as React from "react";
 import styled from "styled-components";
-import Flex from "../../components/Flex";
 import Page from "../../components/Page";
 import PolicyDetails from "../../components/Policies/PolicyDetails/PolicyDetails";
-import Parameters from "../../components/Policies/Utils/Parameters";
 import { useGetPolicyDetails } from "../../hooks/Policies";
 import { V2Routes } from "../../lib/types";
-import { SectionWrapper } from "../../components/Policies/Utils/PolicyUtils";
 
 type Props = {
   className?: string;
@@ -30,15 +27,7 @@ function PolicyDetailsPage({ className, clusterName, id }: Props) {
         { label: data?.policy?.name || "" },
       ]}
     >
-      <Flex wide tall column gap="32">
-        <PolicyDetails policy={data?.policy || {}} />
-        <SectionWrapper title=" Parameters Values:">
-          <Parameters
-            parameters={data?.policy?.parameters || []}
-            parameterType="Policy"
-          />
-        </SectionWrapper>
-      </Flex>
+      <PolicyDetails policy={data?.policy || {}} />
     </Page>
   );
 }
