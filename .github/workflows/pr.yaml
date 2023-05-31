@@ -146,7 +146,7 @@ jobs:
           echo "LDFLAGS=$(make echo-ldflags)" >> $GITHUB_ENV
           echo "FLUX_VERSION=$(make echo-flux-version)" >> $GITHUB_ENV
       - name: Build and export
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3
         with:
           tags: "${{ env.CI_CONTAINER_REPOSITORY }}/${{ matrix.docker-image }}:${{ needs.ci-generate-tag.outputs.tag }}"
           outputs: type=docker,dest=/tmp/${{ matrix.docker-image }}.tar
