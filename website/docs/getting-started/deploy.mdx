@@ -6,11 +6,11 @@ hide_title: true
 # Part 2: Deploy an Application
 
 Now that you have a feel for how to navigate the dashboard, let's deploy a new
-application to explore further. In this section we will use the [podinfo](https://github.com/stefanprodan/podinfo) sample web application.
+application. In this section we will use [podinfo](https://github.com/stefanprodan/podinfo) as our sample web application.
 
 ## Deploying podinfo
 
-1. Clone or navigate back to your git repository where you have bootstrapped Flux, for example:
+1. Clone or navigate back to your Git repository where you have bootstrapped Flux. For example:
 
    ```
    git clone https://github.com/$GITHUB_USER/fleet-infra
@@ -27,7 +27,7 @@ application to explore further. In this section we will use the [podinfo](https:
      --export > ./clusters/my-cluster/podinfo-source.yaml
    ```
 
-1. Commit and push the `podinfo-source` to the `fleet-infra` repository
+1. Commit and push the `podinfo-source` to your `fleet-infra` repository
 
    ```
    git add -A && git commit -m "Add podinfo source"
@@ -46,31 +46,26 @@ application to explore further. In this section we will use the [podinfo](https:
      --export > ./clusters/my-cluster/podinfo-kustomization.yaml
    ```
 
-1. Commit and push the `podinfo-kustomization` to the `fleet-infra` repository
+1. Commit and push the `podinfo-kustomization` to your `fleet-infra` repository
 
    ```
    git add -A && git commit -m "Add podinfo kustomization"
    git push
    ```
 
-## View the application in Weave GitOps
+## View the Application in Weave GitOps
 
-Flux will detect the updated `fleet-infra` and add podinfo. If we navigate back to the [dashboard](http://localhost:9001/) you should see the podinfo application appear.
+Flux will detect the updated `fleet-infra` and add podinfo. Navigate back to the [dashboard](http://localhost:9001/) to make sure that the podinfo application appears.
 
 ![Applications summary view showing Flux System, Weave GitOps and Podinfo](/img/dashboard-applications-with-podinfo.png)
 
-Click on podinfo and you will see details about the deployment, including that there are 2 pods available.
+Click on podinfo to find details about the deployment. There should be two pods available.
 
 ![Applications details view for podinfo showing 2 pods](/img/dashboard-podinfo-details.png)
 
 :::info
-Podinfo will come with the HorizontalPodAutoscaler, which uses the `metrics-server`.
-For the purposes of this tutorial, we don't need the `metrics-server`, but it will mean
-that the HorizontalPodAutoscaler will report as `Not ready` in your Dashboard.
-
-To remove this warning, install the [`metrics-server`](https://github.com/kubernetes-sigs/metrics-server)
-(if you are using a `kind` cluster you may need to do more to get this working),
-but you can ingore the warning if you prefer.
+Podinfo comes with a HorizontalPodAutoscaler, which uses the `metrics-server`.
+We don't use the `metrics-server` in this tutorial, but note that it's the reason why HorizontalPodAutoscaler will report as `Not ready` in your dashboard. We recommend ignoring the warning.
 :::
 
 ## Customize podinfo
@@ -120,7 +115,7 @@ To customize a deployment from a repository you don’t control, you can use Flu
    git push
    ```
 
-3. Navigate back to the dashboard and you will now see a newly created pod
+3. Navigate back to the dashboard. You should see a newly created pod:
 
    ![Applications details view for podinfo showing 3 pods](/img/dashboard-podinfo-updated.png)
 
@@ -143,4 +138,4 @@ To resume updates, go back to the details page, click the resume button, and aft
 
 Congratulations 🎉🎉🎉
 
-You've now completed the getting started guide. We would welcome any and all [feedback](/feedback-and-telemetry) on your experience.
+You've now completed the getting started guide. We welcome any and all [feedback](/feedback-and-telemetry), so please let us know how we could have made your experience better.

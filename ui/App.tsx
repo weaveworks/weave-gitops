@@ -44,6 +44,7 @@ import OCIRepositoryPage from "./pages/v2/OCIRepositoryPage";
 import ProviderPage from "./pages/v2/ProviderPage";
 import Sources from "./pages/v2/Sources";
 import UserInfo from "./pages/v2/UserInfo";
+import PolicyViolationPage from "./components/Policies/PolicyViolations/PolicyViolationPage";
 
 const queryClient = new QueryClient();
 
@@ -116,6 +117,10 @@ const App = () => {
           <Route
             path={V2Routes.Provider}
             component={withSearchParams(ProviderPage)}
+          />
+          <Route
+            path={V2Routes.PolicyViolationDetails}
+            component={withSearchParams(PolicyViolationPage)}
           />
           <Route path={V2Routes.UserInfo} component={UserInfo} />
 

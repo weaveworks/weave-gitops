@@ -18,3 +18,12 @@ func GetTenant(namespace, clusterName string, clusterUserNamespaces map[string][
 
 	return ""
 }
+
+// ExtractValueFromMap gets string value from map or empty string if the value is empty
+func ExtractStringValueFromMap(mapName map[string]string, key string) string {
+	value, ok := mapName[key]
+	if !ok {
+		return ""
+	}
+	return value
+}
