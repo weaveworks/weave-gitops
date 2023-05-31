@@ -49,7 +49,7 @@ spec:
       enabled: false
       service:
         # -- Port to start the metrics exporter on
-        port: 2112
+        port: 8080
         # -- Annotations to set on the service
         annotations:
           prometheus.io/scrape: "true"
@@ -65,23 +65,23 @@ metrics are generated.
 **Request Duration:** histogram with the latency of the HTTP requests.
 
 ```
-http_request_duration_seconds_bucket{code="200",handler="/v1/query",method="POST",service="",le="0.05"} 0
-http_request_duration_seconds_sum{code="200",handler="/v1/query",method="POST",service=""} 10.088081923
-http_request_duration_seconds_count{code="200",handler="/v1/query",method="POST",service=""} 51
+http_request_duration_seconds_bucket{handler="/v1/query",method="POST",le="0.05"} 0
+http_request_duration_seconds_sum{handler="/v1/query",method="POST"} 10.088081923
+http_request_duration_seconds_count{handler="/v1/query",method="POST"} 51
 ```
 
 **Response Size:** histogram with the size of the HTTP responses in bytes
 
 ```
-http_response_size_bytes_bucket{code="200",handler="/v1/query",method="POST",service="",le="0.05"} 10
-http_response_size_bytes_sum{code="200",handler="/v1/query",method="POST",service=""} 120
-http_response_size_bytes_count{code="200",handler="/v1/query",method="POST",service=""} 10
+http_response_size_bytes_bucket{handler="/v1/query",method="POST",le="0.05"} 10
+http_response_size_bytes_sum{handler="/v1/query",method="POST"} 120
+http_response_size_bytes_count{handler="/v1/query",method="POST"} 10
 ```
 
 **Request In Flight:** gauge with the number of inflight requests being handled at the same time.
 
 ```
-http_requests_inflight{handler="/v1/query",service=""} 0
+http_requests_inflight{handler="/v1/query"} 0
 ```
 
 You could leverage [this grafana dashboard](./resources/dashboard.json) in Grafana to monitor its [golden signals](https://sre.google/sre-book/monitoring-distributed-systems/#xref_monitoring_golden-signals)
