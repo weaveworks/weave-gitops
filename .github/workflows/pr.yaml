@@ -187,7 +187,7 @@ jobs:
           path: /tmp
       - name: Authenticate to Google Cloud
         id: gcloud-auth
-        uses: google-github-actions/auth@v0
+        uses: google-github-actions/auth@v1
         with:
           service_account: ${{ secrets.service_account }}
           workload_identity_provider: ${{ secrets.workload_identity_provider }}

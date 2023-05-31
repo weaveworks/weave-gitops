@@ -95,7 +95,7 @@ jobs:
           curl -O $URL/index.yaml
           helm repo index helm-release --merge=index.yaml --url=$URL
       - id: auth
-        uses: google-github-actions/auth@v0.4.0
+        uses: google-github-actions/auth@v1
         with:
           credentials_json: ${{ secrets.PROD_DOCS_GITOPS_UPLOAD }}
       - id: upload-file
