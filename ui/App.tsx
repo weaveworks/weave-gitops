@@ -126,10 +126,7 @@ const App = () => {
           />
           <Route path={V2Routes.UserInfo} component={UserInfo} />
 
-          <Route
-            path={V2Routes.Policies}
-            component={PoliciesList}
-          />
+          <Route path={V2Routes.Policies} component={PoliciesList} />
           <Route
             path={V2Routes.PolicyDetailsPage}
             component={withSearchParams(PolicyDetailsPage)}

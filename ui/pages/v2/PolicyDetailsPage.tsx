@@ -31,7 +31,10 @@ function PolicyDetailsPage({ className, clusterName, id }: Props) {
     >
       <Flex wide tall column gap="32">
         <PolicyDetails policy={data?.policy || {}} />
-        <Parameters parameters={data?.policy?.parameters || []} parameterType="Policy" />
+        <Parameters
+          parameters={data?.policy?.parameters || []}
+          parameterType="Policy"
+        />
       </Flex>
     </Page>
   );
