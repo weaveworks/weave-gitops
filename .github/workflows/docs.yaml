@@ -46,7 +46,7 @@ jobs:
           yarn clear
           npm run build
       - id: auth
-        uses: google-github-actions/auth@v0.4.0
+        uses: google-github-actions/auth@v1
         with:
           credentials_json: ${{ secrets.PROD_DOCS_GITOPS_UPLOAD }}
       - id: upload-file
@@ -104,7 +104,7 @@ jobs:
           yarn clear
           npm run build
       - id: auth
-        uses: google-github-actions/auth@v0.4.0
+        uses: google-github-actions/auth@v1
         with:
           credentials_json: ${{ secrets.PROD_DOCS_GITOPS_UPLOAD }}
       - id: upload-file
