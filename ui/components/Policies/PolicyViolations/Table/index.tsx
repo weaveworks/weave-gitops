@@ -9,10 +9,10 @@ import RequestStateHandler from "../../../RequestStateHandler";
 import Timestamp from "../../../Timestamp";
 import Severity from "../../Utils/Severity";
 import { useFeatureFlags } from "../../../../hooks/featureflags";
+import { Kind } from "../../../../lib/api/core/types.pb";
 
 interface Props {
   req: ListPolicyValidationsRequest;
-  sourcePath?: string;
 }
 
 export const PolicyViolationsList = ({ req }: Props) => {
@@ -57,16 +57,29 @@ export const PolicyViolationsList = ({ req }: Props) => {
           },
         ]
       : []),
+    ...(req.kind === Kind.Policy
+      ? [
+          {
+            label: "Application",
+            value: ({ namespace, entity }) => `${namespace} / ${entity}`,
+            sortValue: ({ namespace, entity }) => `${namespace} / ${entity}`,
+          },
+        ]
+      : []),
     {
       label: "Severity",
       value: ({ severity }) => <Severity severity={severity || ""} />,
       sortValue: ({ severity }) => severity,
     },
-    {
-      label: "Violated Policy",
-      value: "name",
-      sortValue: ({ name }) => name,
-    },
+    ...(req.kind !== Kind.Policy
+      ? [
+          {
+            label: "Violated Policy",
+            value: "name",
+            sortValue: ({ name }) => name,
+          },
+        ]
+      : []),
     {
       label: "Violation Time",
       value: ({ createdAt }) => <Timestamp time={createdAt} />,

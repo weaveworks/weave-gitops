@@ -14,16 +14,19 @@ import HeaderRows, { Header } from "../Utils/HeaderRows";
 import Parameters from "../Utils/Parameters";
 import { Editor, SectionWrapper } from "../Utils/PolicyUtils";
 import Severity from "../Utils/Severity";
+import { Kind } from "../../../lib/api/core/types.pb";
+import { formatURL } from "../../../lib/nav";
+import { V2Routes } from "../../../lib/types";
 
 interface ViolationDetailsProps {
   violation: PolicyValidation;
-  entityUrl: string;
+  kind: string;
   entityObject: FluxObject;
 }
 export const ViolationDetails = ({
   violation,
   entityObject,
-  entityUrl,
+  kind,
 }: ViolationDetailsProps) => {
   const { isFlagEnabled } = useFeatureFlags();
   const { setDetailModal } = React.useContext(AppContext);
@@ -39,12 +42,24 @@ export const ViolationDetails = ({
     name,
     clusterName,
     parameters,
+    policyId,
   } = violation || {};
 
   const headers: Header[] = [
     {
       rowkey: "Policy Name",
-      value: name,
+      children: (
+        <Link
+          to={formatURL(V2Routes.PolicyDetailsPage, {
+            id: policyId,
+            clusterName,
+            name,
+          })}
+        >
+          {name}
+        </Link>
+      ),
+      visible: kind !== Kind.Policy,
     },
     {
       rowkey: "Cluster",
@@ -54,10 +69,22 @@ export const ViolationDetails = ({
     {
       rowkey: "Application",
       children: (
-        <Link to={entityUrl}>
+        <Link
+          to={formatURL(
+            Kind[kind] === Kind.Kustomization
+              ? V2Routes.Kustomization
+              : V2Routes.HelmRelease,
+            {
+              name: entity,
+              namespace: namespace,
+              clusterName: clusterName,
+            }
+          )}
+        >
           {namespace}/{entity}
         </Link>
       ),
+      visible: kind === Kind.Policy,
     },
     {
       rowkey: "Violation Time",
