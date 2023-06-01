@@ -20,15 +20,17 @@ import PauseIcon from "@material-ui/icons/Pause";
 import PersonIcon from "@material-ui/icons/Person";
 import PlayIcon from "@material-ui/icons/PlayArrow";
 import RemoveCircleIcon from "@material-ui/icons/RemoveCircle";
+import CallReceived from "@material-ui/icons/CallReceived";
+import CallMade from "@material-ui/icons/CallMade";
+import Remove from "@material-ui/icons/Remove";
+import VerifiedUser from "@material-ui/icons/VerifiedUser";
+import Policy from "@material-ui/icons/Policy";
 import SaveAltIcon from "@material-ui/icons/SaveAlt";
 import SearchIcon from "@material-ui/icons/Search";
 import SkipNextIcon from "@material-ui/icons/SkipNext";
 import SkipPreviousIcon from "@material-ui/icons/SkipPrevious";
 import * as React from "react";
 import styled from "styled-components";
-import CallMade from "@material-ui/icons/CallMade";
-import CallReceived from "@material-ui/icons/CallReceived";
-import Remove from "@material-ui/icons/Remove";
 import images from "../lib/images";
 import DocsIcon from "./NavIcons/DocsIcon";
 // eslint-disable-next-line
@@ -105,9 +107,11 @@ export enum IconType {
   ClustersIcon,
   ExploreIcon,
   PendingActionIcon,
-  CallMade,
   CallReceived,
+  CallMade,
   Remove,
+  VerifiedUser,
+  Policy,
 }
 
 type Props = {
@@ -269,14 +273,20 @@ function getIcon(i: IconType) {
     case IconType.ExploreIcon:
       return ExploreIcon;
 
-    case IconType.CallMade:
-      return CallMade;
-
     case IconType.CallReceived:
       return CallReceived;
 
+    case IconType.CallMade:
+      return CallMade;
+
     case IconType.Remove:
       return Remove;
+
+    case IconType.VerifiedUser:
+      return VerifiedUser;
+
+    case IconType.Policy:
+      return Policy;
 
     default:
       break;

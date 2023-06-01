@@ -1,7 +1,5 @@
 import React from "react";
-import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-
 import { PolicyValidation } from "../../../lib/api/core/core.pb";
 import Flex from "../../Flex";
 import Link from "../../Link";
@@ -14,18 +12,8 @@ import { FluxObject } from "../../../lib/objects";
 import ClusterDashboardLink from "../../ClusterDashboardLink";
 import HeaderRows, { Header } from "../Utils/HeaderRows";
 import Parameters from "../Utils/Parameters";
+import { Editor, SectionWrapper } from "../Utils/PolicyUtils";
 import Severity from "../Utils/Severity";
-
-const SectionWrapper = ({ title, children }) => {
-  return (
-    <Flex column wide gap="8" data-testid="occurrences">
-      <Text bold color="neutral30">
-        {title}
-      </Text>
-      {children}
-    </Flex>
-  );
-};
 
 interface ViolationDetailsProps {
   violation: PolicyValidation;
@@ -111,14 +99,10 @@ export const ViolationDetails = ({
         </ul>
       </SectionWrapper>
       <SectionWrapper title="Description:">
-        <ReactMarkdown children={description || ""} className="editor" />
+        <Editor children={description || ""} />
       </SectionWrapper>
       <SectionWrapper title="How to solve:">
-        <ReactMarkdown
-          children={howToSolve || ""}
-          remarkPlugins={[remarkGfm]}
-          className="editor"
-        />
+        <Editor children={howToSolve || ""} remarkPlugins={[remarkGfm]} />
       </SectionWrapper>
       <SectionWrapper title=" Parameters Values:">
         <Parameters parameters={parameters} />

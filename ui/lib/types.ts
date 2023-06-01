@@ -37,7 +37,8 @@ export enum V2Routes {
   ImageAutomationUpdatesDetails = "/image_update",
   ImageAutomationRepositoryDetails = "/image_repo",
   ImagePolicyDetails = "/image_policy",
-
+  Policies = "/policies",
+  PolicyDetailsPage = "/policy_details",
   //Image updates subRoute
   ImageRepositories = "/image_automation/repositories",
   ImagePolicies = "/image_automation/policies",

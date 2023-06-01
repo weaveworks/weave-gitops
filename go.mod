@@ -45,6 +45,7 @@ require (
 	github.com/spf13/cobra v1.6.1
 	github.com/spf13/viper v1.13.0
 	github.com/tomwright/dasel v1.22.1
+	github.com/weaveworks/policy-agent/api v1.0.5
 	github.com/weaveworks/tf-controller/tfctl v0.0.0-20230523160934-c6613bfc7fff
 	github.com/yannh/kubeconform v0.5.0
 	go.uber.org/zap v1.24.0
