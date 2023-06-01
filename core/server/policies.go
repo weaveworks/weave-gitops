@@ -143,12 +143,7 @@ func (cs *coreServer) ListPolicies(ctx context.Context, m *pb.ListPoliciesReques
 	var clustersClient clustersmngr.Client
 	var err error
 
-	if m.ClusterName != "" {
-		clustersClient, err = cs.clustersManager.GetImpersonatedClientForCluster(ctx, auth.Principal(ctx), m.ClusterName)
-	} else {
-		clustersClient, err = cs.clustersManager.GetImpersonatedClient(ctx, auth.Principal(ctx))
-	}
-
+	clustersClient, err = cs.clustersManager.GetImpersonatedClient(ctx, auth.Principal(ctx))
 	if err != nil {
 		if merr, ok := err.(*multierror.Error); ok {
 			for _, err := range merr.Errors {
@@ -168,41 +163,30 @@ func (cs *coreServer) ListPolicies(ctx context.Context, m *pb.ListPoliciesReques
 	}
 
 	var continueToken string
-	var listsV2beta2 map[string][]client.ObjectList
+	var lists map[string][]client.ObjectList
 
-	if m.ClusterName == "" {
-		clistV2beta2 := clustersmngr.NewClusteredList(func() client.ObjectList {
-			return &pacv2beta2.PolicyList{}
-		})
+	clist := clustersmngr.NewClusteredList(func() client.ObjectList {
+		return &pacv2beta2.PolicyList{}
+	})
 
-		var errsV2beta2 clustersmngr.ClusteredListError
+	var errsV2beta2 clustersmngr.ClusteredListError
 
-		if err := clustersClient.ClusteredList(ctx, clistV2beta2, false, opts...); err != nil {
-			if !errors.As(err, &errsV2beta2) {
-				return nil, fmt.Errorf("error while listing v2beta2 policies: %w", err)
-			}
+	if err := clustersClient.ClusteredList(ctx, clist, false, opts...); err != nil {
+		if !errors.As(err, &errsV2beta2) {
+			return nil, fmt.Errorf("error while listing v2beta2 policies: %w", err)
 		}
-		for _, e := range errsV2beta2.Errors {
-			if !strings.Contains(e.Err.Error(), "no matches for kind \"Policy\"") {
-				respErrors = append(respErrors, &pb.ListError{ClusterName: e.Cluster, Message: e.Err.Error()})
-			}
+	}
+	for _, e := range errsV2beta2.Errors {
+		if !strings.Contains(e.Err.Error(), "no matches for kind \"Policy\"") {
+			respErrors = append(respErrors, &pb.ListError{ClusterName: e.Cluster, Message: e.Err.Error()})
 		}
-
-		continueToken = clistV2beta2.GetContinue()
-		listsV2beta2 = clistV2beta2.Lists()
-	} else {
-		listV2beta2 := &pacv2beta2.PolicyList{}
-
-		if err := clustersClient.List(ctx, m.ClusterName, listV2beta2, opts...); err != nil {
-			return nil, fmt.Errorf("error while listing policies for cluster %s: %w", m.ClusterName, err)
-		}
-
-		continueToken = listV2beta2.GetContinue()
-		listsV2beta2 = map[string][]client.ObjectList{m.ClusterName: {listV2beta2}}
 	}
 
+	continueToken = clist.GetContinue()
+	lists = clist.Lists()
+
 	var policies []*pb.Policy
-	for clusterName, lists := range listsV2beta2 {
+	for clusterName, lists := range lists {
 		for _, l := range lists {
 			list, ok := l.(*pacv2beta2.PolicyList)
 			if !ok {
@@ -212,7 +196,7 @@ func (cs *coreServer) ListPolicies(ctx context.Context, m *pb.ListPoliciesReques
 			for i := range list.Items {
 				policy, err := policyToPolicyRespone(list.Items[i], clusterName, false)
 				if err != nil {
-					return nil, err
+					return nil, fmt.Errorf("error while converting policy %s to response: %w", list.Items[i].Name, err)
 				}
 
 				policies = append(policies, policy)
@@ -232,26 +216,24 @@ func (cs *coreServer) GetPolicy(ctx context.Context, m *pb.GetPolicyRequest) (*p
 	var clustersClient clustersmngr.Client
 	var err error
 
-	if m.ClusterName != "" {
-		clustersClient, err = cs.clustersManager.GetImpersonatedClientForCluster(ctx, auth.Principal(ctx), m.ClusterName)
-	} else {
+	if m.ClusterName == "" {
 		m.ClusterName = DefaultCluster
-		clustersClient, err = cs.clustersManager.GetImpersonatedClient(ctx, auth.Principal(ctx))
 	}
 
+	clustersClient, err = cs.clustersManager.GetImpersonatedClientForCluster(ctx, auth.Principal(ctx), m.ClusterName)
 	if err != nil {
 		return nil, fmt.Errorf("error getting impersonating client: %w", err)
 	}
 
-	policyCRv2beta2 := pacv2beta2.Policy{}
+	policyCR := pacv2beta2.Policy{}
 
-	if err := clustersClient.Get(ctx, m.ClusterName, types.NamespacedName{Name: m.PolicyName}, &policyCRv2beta2); err != nil {
+	if err := clustersClient.Get(ctx, m.ClusterName, types.NamespacedName{Name: m.PolicyName}, &policyCR); err != nil {
 		return nil, fmt.Errorf("error while getting policy %s from cluster %s: %w", m.PolicyName, m.ClusterName, err)
 	}
 
 	var policy *pb.Policy
 
-	policy, err = policyToPolicyRespone(policyCRv2beta2, m.ClusterName, true)
+	policy, err = policyToPolicyRespone(policyCR, m.ClusterName, true)
 	if err != nil {
 		return nil, err
 	}
