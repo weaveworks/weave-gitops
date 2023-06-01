@@ -192,7 +192,6 @@ function AutomationDetail({
               namespace,
               kind: type,
             }}
-            sourcePath="kustomization"
           />
         );
       },
