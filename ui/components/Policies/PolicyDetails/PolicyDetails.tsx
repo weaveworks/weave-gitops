@@ -3,7 +3,7 @@ import { useRouteMatch } from "react-router-dom";
 import remarkGfm from "remark-gfm";
 import styled from "styled-components";
 import { useFeatureFlags } from "../../../hooks/featureflags";
-import { Policy } from "../../../lib/api/core/core.pb";
+import { PolicyObj as Policy } from "../../../lib/api/core/core.pb";
 import ClusterDashboardLink from "../../ClusterDashboardLink";
 import Flex from "../../Flex";
 import SubRouterTabs, { RouterTab } from "../../SubRouterTabs";
