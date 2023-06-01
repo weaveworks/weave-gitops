@@ -443,7 +443,7 @@ message ListPoliciesRequest {
 }
 
 message ListPoliciesResponse {
-    repeated Policy policies = 1;
+    repeated PolicyObj policies = 1;
     int32 total = 2;
     string nextPageToken = 3;
     repeated ListError errors = 4;
@@ -455,11 +455,11 @@ message GetPolicyRequest {
 }
 
 message GetPolicyResponse {
-    Policy policy = 1;
+    PolicyObj policy = 1;
     string clusterName = 2;
 }
 
-message Policy {
+message PolicyObj {
     string name = 1;
     string id = 2;
     string code = 3;
