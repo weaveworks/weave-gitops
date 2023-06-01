@@ -56,7 +56,7 @@ jobs:
           destination: staging.docs.gitops.weave.works/${{ github.head_ref }}
           parent: false
           headers: |-
-            Cache-Control: no-cache
+            cache-control: no-cache
       - id: add-docs-status
         run: |
           curl --request POST \
