@@ -17,15 +17,15 @@ const PolicyMode = ({ modeName, showName = false }: Props) => {
     case "audit":
       mode = {
         name: "audit",
-        icon: (
-          <Icon type={IconType.Policy} color="neutral30" size="base" />
-        ),
+        icon: <Icon type={IconType.Policy} color="neutral30" size="base" />,
       };
       break;
     case "admission":
       mode = {
         name: "enforce",
-        icon: <Icon type={IconType.VerifiedUser} color="neutral30" size="base" />,
+        icon: (
+          <Icon type={IconType.VerifiedUser} color="neutral30" size="base" />
+        ),
       };
       break;
     default:
