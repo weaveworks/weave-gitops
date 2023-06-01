@@ -7,7 +7,9 @@ pagination_next: getting-started/ui
 # Step 1: How to Install Weave GitOps Open Source on Your Cluster
 
 :::tip
+
 These instructions only apply to Weave GitOps Open Source. To install Weave GitOps Enterprise, [go here][ee-install].
+
 :::
 
 This page covers Weave GitOps Open Source installation and is adapted from the [Flux - Getting Started](https://fluxcd.io/docs/get-started/) guide. 
@@ -67,8 +69,10 @@ Find which version is installed with `flux -v`, and use that for `flux bootstrap
 
 With Bash, you can run `sudo curl -s https://fluxcd.io/install.sh | sudo FLUX_VERSION=<VERSION> bash`.
 
-:::tip 
+:::tip
+
 If you want to install an older version of Flux CLI, you can download the binary for your OS from the [releases page](https://github.com/fluxcd/flux2/releases).
+
 :::
 
 For other installation methods, see the relevant [Flux documentation][fl-install].
@@ -173,10 +177,12 @@ Run the following command, which will create a `HelmRepository` and `HelmRelease
    ```
 
 :::warning
+
 This command stores a hash of a password. This is relatively safe for demo and testing purposes, but we strongly 
 recommend using a more secure method of storing secrets (such as [Flux's SOPS integration][sops]) for production systems.
 
 Our docs on [securing access to the dashboard][dash-access] provide additional guidance and alternative login methods.
+
 :::
 
 You will use the password you've just created when you've finished Weave GitOps Open Source installation and are ready to login to the dashboard UI.
@@ -210,9 +216,11 @@ Note: this wont be instantaneous. Give the Flux controllers a couple of minutes 
 If you wait for a while and still nothing happens, it might be that your manifests haven’t been exported to the repository. This means that Weave GitOps won't install.
 
 	:::tip
+
 	You can use the Weave GitOps Helm Chart to customize your installation.
 	Find the full Chart reference [here](../references/helm-reference.md).
-	:::
+	
+   :::
 
 ## Next steps
 
