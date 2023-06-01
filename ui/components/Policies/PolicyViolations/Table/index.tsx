@@ -21,6 +21,7 @@ export const PolicyViolationsList = ({ req }: Props) => {
 
   let initialFilterState = {
     ...filterConfig(data?.violations, "severity"),
+    ...filterConfig(data?.violations, "category"),
   };
   if (isFlagEnabled("WEAVE_GITOPS_FEATURE_CLUSTER")) {
     initialFilterState = {
@@ -61,8 +62,8 @@ export const PolicyViolationsList = ({ req }: Props) => {
       ? [
           {
             label: "Application",
-            value: ({ namespace, entity }) => `${namespace} / ${entity}`,
-            sortValue: ({ namespace, entity }) => `${namespace} / ${entity}`,
+            value: ({ namespace, entity }) => `${namespace}/${entity}`,
+            sortValue: ({ namespace, entity }) => `${namespace}/${entity}`,
           },
         ]
       : []),
@@ -70,6 +71,11 @@ export const PolicyViolationsList = ({ req }: Props) => {
       label: "Severity",
       value: ({ severity }) => <Severity severity={severity || ""} />,
       sortValue: ({ severity }) => severity,
+    },
+    {
+      label: "Category",
+      value: "category",
+      sortValue: ({ category }) => category,
     },
     ...(req.kind !== Kind.Policy
       ? [
