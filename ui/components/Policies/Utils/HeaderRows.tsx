@@ -18,7 +18,13 @@ const HeaderRows = ({ headers }: Props) => {
       {headers.map((h) => {
         return (
           h.visible !== false && (
-            <Flex center gap="8" data-testid={h.rowkey} key={h.rowkey}>
+            <Flex
+              alignItems="center"
+              center
+              gap="8"
+              data-testid={h.rowkey}
+              key={h.rowkey}
+            >
               <Text color="neutral30" semiBold size="medium">
                 {h.rowkey}:
               </Text>

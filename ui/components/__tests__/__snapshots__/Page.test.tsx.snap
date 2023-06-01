@@ -234,6 +234,15 @@ exports[`Page snapshots default 1`] = `
   border-radius: 0 0 8px 8px;
 }
 
+.c8 .MuiSwitch-thumb {
+  color: #fff;
+  background-image: url();
+}
+
+.c8 .MuiSwitch-track {
+  background-color: #00b3ec;
+}
+
 .c9 {
   height: 40px;
   width: 40px;
@@ -247,15 +256,6 @@ exports[`Page snapshots default 1`] = `
 .c9.MuiIconButton-root:hover {
   background-color: #fff;
   color: #009CCC;
-}
-
-.c8 .MuiSwitch-thumb {
-  color: #fff;
-  background-image: url();
-}
-
-.c8 .MuiSwitch-track {
-  background-color: #00b3ec;
 }
 
 .c11 {
@@ -334,10 +334,10 @@ exports[`Page snapshots default 1`] = `
       </div>
     </div>
     <div
-      className="c8"
+      className=""
     >
       <span
-        className="MuiSwitch-root"
+        className="MuiSwitch-root c8 DarkModeSwitch"
       >
         <span
           aria-disabled={false}

@@ -412,6 +412,87 @@
         ]
       }
     },
+    "/v1/policies": {
+      "get": {
+        "summary": "ListPolicies list policies available on the cluster",
+        "operationId": "Core_ListPolicies",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListPoliciesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "pagination.pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pagination.pageToken",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Core"
+        ]
+      }
+    },
+    "/v1/policies/{policyName}": {
+      "get": {
+        "summary": "GetPolicy gets a policy by name",
+        "operationId": "Core_GetPolicy",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetPolicyResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "policyName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Core"
+        ]
+      }
+    },
     "/v1/policyvalidations": {
       "post": {
         "summary": "ListPolicyValidations lists policy validations",
@@ -861,6 +942,17 @@
         }
       }
     },
+    "v1GetPolicyResponse": {
+      "type": "object",
+      "properties": {
+        "policy": {
+          "$ref": "#/definitions/v1Policy"
+        },
+        "clusterName": {
+          "type": "string"
+        }
+      }
+    },
     "v1GetPolicyValidationResponse": {
       "type": "object",
       "properties": {
@@ -1136,6 +1228,30 @@
         }
       }
     },
+    "v1ListPoliciesResponse": {
+      "type": "object",
+      "properties": {
+        "policies": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Policy"
+          }
+        },
+        "total": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "nextPageToken": {
+          "type": "string"
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ListError"
+          }
+        }
+      }
+    },
     "v1ListPolicyValidationsRequest": {
       "type": "object",
       "properties": {
@@ -1287,6 +1403,137 @@
         },
         "pageToken": {
           "type": "string"
+        }
+      }
+    },
+    "v1Policy": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "code": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "howToSolve": {
+          "type": "string"
+        },
+        "category": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "severity": {
+          "type": "string"
+        },
+        "standards": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1PolicyStandard"
+          }
+        },
+        "gitCommit": {
+          "type": "string"
+        },
+        "parameters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1PolicyParam"
+          }
+        },
+        "targets": {
+          "$ref": "#/definitions/v1PolicyTargets"
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "clusterName": {
+          "type": "string"
+        },
+        "tenant": {
+          "type": "string"
+        },
+        "modes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v1PolicyParam": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "value": {
+          "$ref": "#/definitions/protobufAny",
+          "title": "value is a generic value that can be a string, int, bool and array of\nstrings"
+        },
+        "required": {
+          "type": "boolean"
+        }
+      }
+    },
+    "v1PolicyStandard": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "controls": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v1PolicyTargetLabel": {
+      "type": "object",
+      "properties": {
+        "values": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v1PolicyTargets": {
+      "type": "object",
+      "properties": {
+        "kinds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "labels": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1PolicyTargetLabel"
+          }
+        },
+        "namespaces": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       }
     },

@@ -38,6 +38,11 @@ const navItems: NavItem[] = [
     icon: IconType.FluxIcon,
   },
   {
+    label: "Policies",
+    link: { value: V2Routes.Policies },
+    icon: IconType.PoliciesIcon,
+  },
+  {
     label: "Notifications",
     link: { value: V2Routes.Notifications },
     icon: IconType.NotificationsIcon,

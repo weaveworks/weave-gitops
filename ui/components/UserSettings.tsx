@@ -3,16 +3,14 @@ import {
   ListItemIcon,
   Menu,
   MenuItem,
-  Switch,
   Tooltip,
 } from "@material-ui/core";
 import * as React from "react";
 import { useHistory } from "react-router-dom";
 import styled from "styled-components";
-import { AppContext, ThemeTypes } from "../contexts/AppContext";
 import { Auth } from "../contexts/AuthContext";
-import images from "../lib/images";
 import { V2Routes } from "../lib/types";
+import DarkModeSwitch from "./DarkModeSwitch";
 import Icon, { IconType } from "./Icon";
 const SettingsMenu = styled(Menu)`
   .MuiPaper-root {
@@ -55,7 +53,6 @@ function UserSettings({ className, darkModeEnabled = true }: Props) {
   const history = useHistory();
   const [anchorEl, setAnchorEl] = React.useState(null);
   const { userInfo, logOut } = React.useContext(Auth);
-  const { toggleDarkMode, settings } = React.useContext(AppContext);
 
   const open = Boolean(anchorEl);
   const handleClick = (event) => {
@@ -67,13 +64,7 @@ function UserSettings({ className, darkModeEnabled = true }: Props) {
 
   return (
     <div className={className}>
-      {darkModeEnabled && (
-        <Switch
-          onChange={() => toggleDarkMode()}
-          checked={settings.theme === ThemeTypes.Dark}
-          color="primary"
-        />
-      )}
+      <DarkModeSwitch darkModeEnabled={darkModeEnabled} />
       <Tooltip title="Account settings" enterDelay={500} enterNextDelay={500}>
         <PersonButton
           onClick={handleClick}
@@ -107,14 +98,4 @@ function UserSettings({ className, darkModeEnabled = true }: Props) {
   );
 }
 
-export default styled(UserSettings)`
-  .MuiSwitch-thumb {
-    color: #fff;
-    background-image: url(${(props) =>
-      props.theme.mode === ThemeTypes.Dark
-        ? images.darkModeIcon
-        : images.lightModeIcon});
-  }
-  .MuiSwitch-track {
-    background-color: ${(props) => props.theme.colors.primary};
-`;
+export default styled(UserSettings)``;
