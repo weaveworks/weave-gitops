@@ -31,8 +31,6 @@
           items: [
             'open-source/getting-started/ui-OSS',
             'open-source/getting-started/deploy-OSS',
-              ],
-            },
           ],
         },
         {
@@ -41,14 +39,14 @@
           link: {
             type: 'doc',
             id: 'enterprise/getting-started/intro-enterprise',
-      },
+          },
           items: [
             'enterprise/getting-started/install-enterprise',
             'enterprise/getting-started/install-enterprise-airgap',
             'enterprise/getting-started/aws-marketplace',
             'enterprise/getting-started/releases-enterprise',
-      ],
-         },
+          ],
+        },
       ],
     },
     {
