@@ -28,7 +28,7 @@ import TOCInline from "@theme/TOCInline";
            })()} />
 
 :::tip
-There is no need to install Weave GitOps (OSS) before installing Weave GitOps Enterprise.
+There is no need to install the open source version of Weave GitOps before installing Weave GitOps Enterprise.
 :::
 
 ### Prep Step: Create a Repository
@@ -432,16 +432,14 @@ gitops version
 
 ## Next steps
 
-In our [Get Started document](../../getting-started/ui.mdx), we will walk you through logging into the open source version of our GitOps Dashboard and [deploying an application](../../getting-started/deploy.mdx).
+Check out:
 
-Then you can check out:
-
-- [Cluster Management - Getting started](../../cluster-management/getting-started.mdx) to create your first CAPI Cluster with `kind`/CAPD
+- [Cluster Management - Getting started](../../cluster-management/getting-started.mdx) to create your first CAPI Cluster with `kind`/CAPD.
 - [Deploying CAPA with EKS](../../guides/deploying-capa.mdx) to create your first CAPI Cluster with EKS/CAPA.
 
-### (Optional) Install the TF-Controller
+### (Optional) Install the Terraform Controller
 
-The [TF-Controller](https://weaveworks.github.io/tf-controller/) is a controller for Flux to reconcile Terraform resources in a GitOps way.
+The [Terraform Controller](https://weaveworks.github.io/tf-controller/) is a controller for Flux to reconcile Terraform resources in a GitOps way.
 
 With Flux and the TF-Controller, WGE makes it easy to add Terraform templates to clusters and continuously reconcile any changes made to the Terraform source manifest.
 
