@@ -6,7 +6,7 @@ toc_max_heading_level: 4
 
 import TierLabel from "../../_components/TierLabel";
 
-# Install in Airgap Environments <TierLabel tiers="Enterprise" />
+# Install in Air-gapped Environments <TierLabel tiers="Enterprise" />
 
 From [wikipedia](https://en.wikipedia.org/wiki/Air_gap_(networking))
 
@@ -15,11 +15,11 @@ to ensure that a secure computer network is physically isolated from unsecured n
 
 This document guides on how to install Weave Gitops Enterprise in a restricted environment.
 
-# Before Start
+# Before You Start
 
-There are multiple restrictions that could happen within an airgap environment. This guide assumes that you have egress network
+There are multiple restrictions that could happen within an air-gapped environment. This guide assumes that you have egress network
 restrictions. In order to install Weave Gitops Enterprise (WGE), the required artifacts are required to be loaded
-from a private registry. This guide helps you with the task to identity the helm charts
+from a private registry. This guide helps you with the task to identity the Helm charts
 and container images required to install WGE and to load them into your private registry.
 
 It also assumes that you could prepare the installation from a proxy host. A proxy host is defined here
@@ -36,16 +36,16 @@ that do not fit within your context.
 # Install
 
 There are different variations of the following stages and conditions. We consider that installing 
-Weave Gitops Enterprise in an airgap environment could follow the following stages.
+WGE in an air-gapped environment could follow the following stages.
 
 1. Setup a WGE install environment.
 2. Collect artifacts and publish to a private registry.
-3. Install Weave Gitops Enterprise in the airgap environment.
+3. Install Weave Gitops Enterprise in the air-gapped environment.
 
 ## Setup a WGE install environment
 
 The main goal of this stage is to recreate a local Weave Gitops Enterprise within your context, to collect
-the container images and helm charts, that will be required in your private registry for the offline installation.
+the container images and Helm charts, that will be required in your private registry for the offline installation.
 
 A three-step setup is followed.
 
@@ -61,21 +61,21 @@ There are many possible configurations for this host. This guide will assume tha
 - [kubectl and kind](https://kubernetes.io/docs/tasks/tools)
 - [helm](https://helm.sh/docs/intro/install/)
 - [skopeo](https://github.com/containers/skopeo) to manage container images
-- [flux](https://fluxcd.io/flux/cmd/) to boostrap flux in the environment.
+- [flux](https://fluxcd.io/flux/cmd/) to boostrap Flux in the environment.
 - [clusterctl](https://cluster-api.sigs.k8s.io/user/quick-start.html#install-clusterctl) to replicate the cluster management
 capabilities.
 
-#### Create Kind Cluster
+#### Create a Kind Cluster
 
 Create a kind cluster with registry following [this guide](https://kind.sigs.k8s.io/docs/user/local-registry/)
 
-#### Install flux
+#### Install Flux
 
-You could just use `flux install` to install flux into your kind cluster
+You could just use `flux install` to install Flux into your kind cluster
 
-#### Setup a helm repo
+#### Set up a Helm repo
 
-We are going to install [ChartMuseum](https://chartmuseum.com/) via flux.
+We are going to install [ChartMuseum](https://chartmuseum.com/) via Flux.
 
 Remember to also install helm plugin
 [cm-push](https://github.com/chartmuseum/helm-push).
@@ -122,7 +122,7 @@ spec:
 
 </details>
 
-Setup access from your host.
+Set up access from your host.
 
 ```bash
 #expose kubernetes svc
@@ -152,7 +152,7 @@ This step is to gather the artifacts and images in your local environment to pus
 This would vary depending on the provider, given that we target a offline environment, most likely we are in
 a private cloud environment, so we will be using [liquidmetal](https://weaveworks-liquidmetal.github.io/site/docs/tutorial-basics/capi/).
 
-Export these environment variables to configure CAPI experience. Adjust them to your context.
+Export these environment variables to configure your CAPI experience. Adjust them to your context.
 
 ```shell
 export CAPI_BASE_PATH=/tmp/capi
@@ -188,7 +188,7 @@ providers:
     type: "ControlPlaneProvider"
 EOF
 ```
-Execute `make` using the following makefile to intialise capi in your cluster:
+Execute `make` using the following makefile to intialise CAPI in your cluster:
 
 <details><summary>Expand to see Makefile contents</summary>
 
@@ -233,9 +233,9 @@ capi-cluster:
 
 </details>
 
-#### TF-Controller
+#### Deploying the Terraform Controller
 
-Apply the following example manifest to deploy the terraform controller:
+Apply the following example manifest to deploy the Terraform Controller:
 
 <details><summary>Expand to see file contents</summary>
 
@@ -375,7 +375,7 @@ spec:
 
 </details>
 
-At this stage you have a local management cluster with Weave Gitops Enterprise installed.
+At this stage you should have a local management cluster with Weave Gitops Enterprise installed.
 
 ```bash
 ➜ kubectl get pods -A
@@ -388,7 +388,7 @@ flux-system                         weave-gitops-enterprise-pipeline-controller-
 ...
 ```
 
-You can observe the installed Helm Charts with `kubectl`
+You can observe the installed Helm Charts with `kubectl`:
 
 ```bash
 kubectl get helmcharts.source.toolkit.fluxcd.io
@@ -398,7 +398,7 @@ flux-system-tf-controller             tf-controller   0.9.2     HelmRepository  
 flux-system-weave-gitops-enterprise   mccp            v0.10.2   HelmRepository   weave-gitops-enterprise-charts   13h   True    pulled 'mccp' chart with version '0.10.2'
 ```
 
-As well as the container images
+As well as the container images:
 
 ```bash
 
@@ -417,10 +417,10 @@ ghcr.io/fluxcd/notification-controller:v0.25.2
 ...
 ```
 
-## Collect and publish artifacts
+## Collect and Publish Artifacts
 
 This section guides you to push installed artifacts to your private registry.
-The following Makefile is supplied to help you with each stage.
+Here's a Makefile to help you with each stage:
 
 <details><summary>Expand to see Makefile contents</summary>
 
@@ -466,7 +466,7 @@ For example, configuring trust policies before pulling or signing containers bef
 Feel free to adapt the previous script to meet your security needs.
 
 1. Configure the environment variables to your context.
-2. Execute `make` to automatically sync helm charts and container images.
+2. Execute `make` to automatically sync Helm charts and container images.
 
 ```bash
 ➜  resources git:(docs-airgap-install) ✗ make
@@ -483,16 +483,15 @@ ghcr.io/weaveworks-liquidmetal/flintlock-kernel:5.10.77
 ## Airgap Install
 
 ### Weave Gitops Enterprise
-At this stage you have in your private registry both the helm charts and container images required to install weave gitops
-enterprise.Now you are ready to install WGE from your private registry.
+At this stage you have in your private registry both the Helm charts and container images required to install Weave GitOps
+Enterprise. Now you are ready to install WGE from your private registry.
 
-Follow the indications to [install wge](https://docs.gitops.weave.works/docs/installation/#installing-weave-gitops-enterprise)
-with the following considerations:
+Follow the indications to install WGE with the following considerations:
 
-1. Adjust Helm Releases `spec.chart.spec.sourceRef` to tell Flux to pull helm charts from your helm repo.
+1. Adjust Helm Releases `spec.chart.spec.sourceRef` to tell Flux to pull Helm charts from your Helm repo.
 2. Adjust Helm Releases `spec.values` to use the container images from your private registry.
 
-An example of how it would look like for Weave Gitops Enterprise is shown below.
+An example of how it would look for Weave Gitops Enterprise is shown below.
 
 <details><summary>Expand to view example WGE manifest</summary>
 
@@ -564,7 +563,7 @@ spec:
 
 ###  Cluster API
 
-Indicate in the cluster api configuration file `clusterctl.yaml` that you want to use images from the private repo
+Indicate in the Cluster API configuration file `clusterctl.yaml` that you want to use images from the private repo
 by leveraging [image overrides](https://cluster-api.sigs.k8s.io/clusterctl/configuration.html#image-overrides).
 
 ```yaml
