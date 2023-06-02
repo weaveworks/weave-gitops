@@ -84,6 +84,38 @@ http_response_size_bytes_count{handler="/v1/query",method="POST"} 10
 http_requests_inflight{handler="/v1/query"} 0
 ```
 
+#### Collecting
+
+The following metrics are available to monitor the collecting path
+
+**Cluster Watcher Status**
+
+The metric `collector_cluster_watcher` provides the status of the clusters that collector is watching with the following
+labels:
+- name: name of the cluster (ie: management)
+- host: api server url  (ie: host="https://F97364D6B48F2fasdf64A0272CB4D349F.gr7.eu-north-1.eks.amazonaws.com/)
+- kind: kind being watched (ie: "HelmRelease")
+- status: cluster watcher status (ie: Started, Stopped)
+
+```
+collector_cluster_watcher{name, host, kind, status}
+```
+
+**Cluster Watcher Client**
+
+The metric `rest_client_requests_total` is a counter that indicates the number of requests done to an api server with the
+following dimensions:
+- host: request url
+- verb: request http verb
+- code: http response code
+
+```
+rest_client_requests_total{host="https://127.0.0.1:64078/apis?timeout=32s",verb="GET"} 3
+rest_client_requests_total{host="https://F97364D6B48F2600864A0272CB4D349F.gr7.eu-north-1.eks.amazonaws.com/apis/acme.cert-manager.io/v1?timeout=30s",verb="GET"} 2
+```
+
+### Dashboard
+
 You could leverage [this grafana dashboard](./resources/dashboard.json) in Grafana to monitor its [golden signals](https://sre.google/sre-book/monitoring-distributed-systems/#xref_monitoring_golden-signals)
 
 ![explorer](imgs/explorer-query-metrics.png)
