@@ -92,26 +92,16 @@ The following metrics are available to monitor the collecting path
 
 The metric `collector_cluster_watcher` provides the status of the clusters that collector is watching with the following
 labels:
-- name: name of the cluster (ie: management)
-- host: api server url  (ie: host="https://F97364D6B48F2fasdf64A0272CB4D349F.gr7.eu-north-1.eks.amazonaws.com/)
-- kind: kind being watched (ie: "HelmRelease")
-- status: cluster watcher status (ie: Started, Stopped)
+- Name: name of the cluster (ie: management).
+- Host: Kubernetes API Server URL  (ie: host="https://F97364D6B48F2fasdf64A0272CB4D349F.gr7.eu-north-1.eks.amazonaws.com/).
+- Status: cluster watcher status. It could be any of the following: Started, Starting, Stopped, Stopping, Failed.
 
 ```
-collector_cluster_watcher{name, host, kind, status}
-```
-
-**Cluster Watcher Client**
-
-The metric `rest_client_requests_total` is a counter that indicates the number of requests done to an api server with the
-following dimensions:
-- host: request url
-- verb: request http verb
-- code: http response code
-
-```
-rest_client_requests_total{host="https://127.0.0.1:64078/apis?timeout=32s",verb="GET"} 3
-rest_client_requests_total{host="https://F97364D6B48F2600864A0272CB4D349F.gr7.eu-north-1.eks.amazonaws.com/apis/acme.cert-manager.io/v1?timeout=30s",verb="GET"} 2
+collector_cluster_watcher{host="https://10.96.0.1:443", name="management", status="Failed"} 0
+collector_cluster_watcher{host="https://10.96.0.1:443", name="management", status="Started"} 1
+collector_cluster_watcher{host="https://10.96.0.1:443", name="management", status="Starting"} 0
+collector_cluster_watcher{host="https://10.96.0.1:443", name="management", status="Stopped"} 0
+collector_cluster_watcher{host="https://10.96.0.1:443", name="management", status="Stopping"} 0
 ```
 
 ### Dashboard
