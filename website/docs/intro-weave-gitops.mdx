@@ -11,7 +11,7 @@ hide_title: true
 
 Weave GitOps improves developer experience—simplifying the complexities and cognitive load of deploying and managing cloud native apps on Kubernetes so that teams can go faster. It’s a powerful extension of Flux, a leading GitOps engine and [Cloud Native Computing Foundation project](https://www.cncf.io/projects/). [Weaveworks](https://weave.works) are the creators of [Flux][flux].
 
-Weave GitOps’ [intuitive user interface](./getting-started/ui.mdx) surfaces key information to help application operators easily discover and resolve issues—simplifying and scaling adoption of GitOps and continuous delivery. The UI provides a guided experience that helps users to easily discover the relationships between Flux objects and build understanding while providing insights into application deployments.
+Weave GitOps’ intuitive user interface surfaces key information to help application operators easily discover and resolve issues—simplifying and scaling adoption of GitOps and continuous delivery. The UI provides a guided experience that helps users to easily discover the relationships between Flux objects and build understanding while providing insights into application deployments.
 
 Today Weave GitOps defaults are Flux, Kustomize, Helm, SOPS, and Kubernetes Cluster API. If you use Flux already, then you can easily add Weave GitOps to create a platform management overlay.
 
@@ -19,20 +19,18 @@ Today Weave GitOps defaults are Flux, Kustomize, Helm, SOPS, and Kubernetes Clus
 Adopting GitOps can bring a number of key benefits—including faster and more frequent deployments, easy recovery from failures, and improved security and auditabiity. Check out our [GitOps for Absolute Beginners](https://go.weave.works/WebContent-EB-GitOps-for-Beginners.html) eBook and [Guide to GitOps](https://www.weave.works/technologies/gitops/) for more information.
 :::
 
-## Overview
+## Getting Started
 
-This user guide provides content that will help you to [install](./installation/index.mdx) and [get started](./getting-started/intro.mdx) with our free and paid offerings:
-- **Weave GitOps Open Source**: a simple, open source developer platform for people who don't have Kubernetes expertise but who want cloud native applications. It includes the UI and many other features that take your team beyond a simple CI/CD system. Experience how easy it is to enable GitOps and run your apps in a cluster. 
-- **Weave GitOps Enterprise**: an [enterprise version](./intro-ee.mdx) that adds automation and 100% verifiable trust to existing developer platforms, enabling faster and more frequent deployments with guardrails and golden paths for every app team.
+This user guide provides content that will help you to install and get started with our free and paid offerings:
+- **Weave GitOps Open Source**: a simple, open source developer platform for people who don't have Kubernetes expertise but who want cloud native applications. It includes the UI and many other features that take your team beyond a simple CI/CD system. Experience how easy it is to enable GitOps and run your apps in a cluster. [Go here to install](.open-source/getting-started/install-OSS.mdx).
+- **Weave GitOps Enterprise**: an [enterprise version](.enterprise/getting-started/intro-enterprise.mdx) that adds automation and 100% verifiable trust to existing developer platforms, enabling faster and more frequent deployments with guardrails and golden paths for every app team. Note that Enterprise offers a more robust UI than what you'll find in our open source version. [Go here to install](.enterprise/getting-started/install-enterprise.mdx).
 
 :::tip 
-Want to learn more about how <Link to="../intro-ee">Weave GitOps Enterprise</Link> can help your team? 
+Want to learn more about how <Link to=".enterprise/getting-started/intro-enterprise.mdx">Weave GitOps Enterprise</Link> can help your team? 
 Get in touch with sales@weave.works to discuss your needs.
 :::
 
-The next few pages will help you get started with **Weave GitOps Open Source**—first installing it, then checking out the UI before deploying an application. 
-
-But first, let's take a closer look at its features.
+To give Weave GitOps a test drive, we recommend checking out the Open Source version and its [UI](./open-source/getting-started/ui-OSS.mdx), then deploying an application. Let's take a closer look at the features it offers you, all for free.
 
 ### Weave GitOps Open Source Features
 
@@ -55,7 +53,7 @@ Some of the things you can do with it:
 - :goggles: View Kubernetes events relating to a given object to understand issues and changes.
 - :no_pedestrians: Secure access to the dashboard through the ability to integrate with an OIDC provider (such as Dex).
 
-OK, time to [get started](./getting-started/intro.mdx)!
+OK, time to [install](.open-source/getting-started/install-OSS.mdx)!
 
 [flux]: https://fluxcd.io
 
