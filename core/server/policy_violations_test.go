@@ -9,6 +9,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
@@ -20,13 +21,29 @@ func TestGetViolation(t *testing.T) {
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
 
-	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(makeValidationEvent(t)).Build()
+	client := fake.NewClientBuilder().
+		WithScheme(scheme).
+		WithRuntimeObjects(makeValidationEvent(t), makeValidationEvent(t, func(e *corev1.Event) {
+			e.ObjectMeta.Name = "Missing Owner Label - fake-event-2"
+			e.InvolvedObject.Namespace = "weave-system"
+			e.ObjectMeta.Namespace = "weave-system"
+			e.InvolvedObject.FieldPath = "weave.policies.test-policy"
+			e.Annotations["policy_name"] = "Test Policy"
+			e.Annotations["policy_id"] = "weave.policies.test-policy"
+			e.Labels["pac.weave.works/id"] = "66101548-12c1-4f79-a09a-a12979903fba"
+		})).
+		WithIndex(&corev1.Event{}, "type", client.IndexerFunc(func(o client.Object) []string {
+			event := o.(*corev1.Event)
+			return []string{event.Type}
+		})).
+		Build()
+
 	cfg := makeServerConfig(client, t, "")
 	c := makeServer(cfg, t)
-
 	// existing validation
 	res, err := c.GetPolicyValidation(ctx, &pb.GetPolicyValidationRequest{
 		ValidationId: "66101548-12c1-4f79-a09a-a12979903fba",
+		ClusterName:  "Default",
 	})
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(res.Validation).NotTo(BeNil())
@@ -62,16 +79,23 @@ func TestListApplicationValidations(t *testing.T) {
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
 
-	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(makeValidationEvent(t), makeValidationEvent(t, func(e *corev1.Event) {
-		e.ObjectMeta.Name = "Missing Owner Label - fake-event-2"
-		e.InvolvedObject.Namespace = "weave-system"
-		e.ObjectMeta.Namespace = "weave-system"
-		e.InvolvedObject.Name = "app1"
-		e.InvolvedObject.Kind = "HelmRelease"
-		e.Annotations["policy_name"] = "Missing Owner Label"
-		e.Annotations["policy_id"] = "weave.policies.missing-app-label"
-		e.Labels["pac.weave.works/id"] = "56701548-12c1-4f79-a09a-a12979904"
-	})).Build()
+	client := fake.NewClientBuilder().
+		WithScheme(scheme).
+		WithRuntimeObjects(makeValidationEvent(t), makeValidationEvent(t, func(e *corev1.Event) {
+			e.ObjectMeta.Name = "Missing Owner Label - fake-event-2"
+			e.InvolvedObject.Namespace = "weave-system"
+			e.ObjectMeta.Namespace = "weave-system"
+			e.InvolvedObject.Name = "app1"
+			e.InvolvedObject.Kind = "HelmRelease"
+			e.Annotations["policy_name"] = "Missing Owner Label"
+			e.Annotations["policy_id"] = "weave.policies.missing-app-label"
+			e.Labels["pac.weave.works/id"] = "56701548-12c1-4f79-a09a-a12979904"
+		})).
+		WithIndex(&corev1.Event{}, "type", client.IndexerFunc(func(o client.Object) []string {
+			event := o.(*corev1.Event)
+			return []string{event.Type}
+		})).
+		Build()
 
 	cfg := makeServerConfig(client, t, "")
 	c := makeServer(cfg, t)
@@ -79,11 +103,12 @@ func TestListApplicationValidations(t *testing.T) {
 		Application: "app1",
 		Kind:        "HelmRelease",
 		Namespace:   "weave-system",
+		ClusterName: "Default",
 	})
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(err).To(BeNil())
 	g.Expect(len(res.Violations)).To(Equal(1))
-	g.Expect(res.Violations[0].Id).To(Equal("56701548-12c1-4f79-a09a-a12979904"))
+	g.Expect(res.Violations[0].Id).To(Equal("66101548-12c1-4f79-a09a-a12979903fba"))
 	g.Expect(res.Violations[0].Name).To(Equal("Missing Owner Label"))
 	g.Expect(res.Violations[0].PolicyId).To(Equal("weave.policies.missing-app-label"))
 	g.Expect(res.Violations[0].ClusterId).To(Equal("cluster-1"))
@@ -104,26 +129,33 @@ func TestListPolicyValidations(t *testing.T) {
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
 
-	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(makeValidationEvent(t), makeValidationEvent(t, func(e *corev1.Event) {
-		e.ObjectMeta.Name = "Missing Owner Label - fake-event-2"
-		e.InvolvedObject.Namespace = "weave-system"
-		e.ObjectMeta.Namespace = "weave-system"
-		e.InvolvedObject.Name = "app1"
-		e.InvolvedObject.Kind = "HelmRelease"
-		e.Annotations["policy_name"] = "Test Policy"
-		e.Annotations["policy_id"] = "weave.policies.test-policy"
-		e.Labels["pac.weave.works/id"] = "56701548-12c1-4f79-a09a-a12979904"
-	})).Build()
+	client := fake.NewClientBuilder().
+		WithScheme(scheme).
+		WithRuntimeObjects(makeValidationEvent(t), makeValidationEvent(t, func(e *corev1.Event) {
+			e.ObjectMeta.Name = "Missing Owner Label - fake-event-2"
+			e.InvolvedObject.Namespace = "weave-system"
+			e.ObjectMeta.Namespace = "weave-system"
+			e.InvolvedObject.FieldPath = "weave.policies.test-policy"
+			e.Annotations["policy_name"] = "Test Policy"
+			e.Annotations["policy_id"] = "weave.policies.test-policy"
+			e.Labels["pac.weave.works/id"] = "66101548-12c1-4f79-a09a-a12979903fba"
+		})).
+		WithIndex(&corev1.Event{}, "type", client.IndexerFunc(func(o client.Object) []string {
+			event := o.(*corev1.Event)
+			return []string{event.Type}
+		})).
+		Build()
 
 	cfg := makeServerConfig(client, t, "")
 	c := makeServer(cfg, t)
 	res, err := c.ListPolicyValidations(ctx, &pb.ListPolicyValidationsRequest{
-		PolicyId: "weave.policies.test-policy",
+		PolicyId:    "weave.policies.test-policy",
+		ClusterName: "Default",
 	})
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(err).To(BeNil())
 	g.Expect(len(res.Violations)).To(Equal(1))
-	g.Expect(res.Violations[0].Id).To(Equal("56701548-12c1-4f79-a09a-a12979904"))
+	g.Expect(res.Violations[0].Id).To(Equal("66101548-12c1-4f79-a09a-a12979903fba"))
 	g.Expect(res.Violations[0].Name).To(Equal("Test Policy"))
 	g.Expect(res.Violations[0].PolicyId).To(Equal("weave.policies.test-policy"))
 	g.Expect(res.Violations[0].ClusterId).To(Equal("cluster-1"))
