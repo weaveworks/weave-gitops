@@ -163,6 +163,33 @@ jobs:
           name: ${{ matrix.docker-image }}
           path: /tmp/${{ matrix.docker-image }}.tar
 
+  ci-build-gitops-branch-image:
+    name: CI Build Gitops Docker Branch Image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: docker/setup-buildx-action@v1
+      - name: Set build-time flags
+        run: |
+          echo "LDFLAGS=$(make echo-ldflags)" >> $GITHUB_ENV
+          echo "FLUX_VERSION=$(make echo-flux-version)" >> $GITHUB_ENV
+      - name: Build and export
+        uses: docker/build-push-action@v2
+        with:
+          tags: "${{ env.CI_PR_REPOSITORY }}/gitops-server:$(./tools/image-tag)"
+          outputs: type=docker,dest=/tmp/$(./tools/image-tag).tar
+          file: gitops-server.dockerfile
+          build-args: |
+            FLUX_VERSION=${{ env.FLUX_VERSION }}
+            LDFLAGS=${{ env.LDFLAGS }}
+      - name: Load docker image
+        run: docker load --input /tmp/$(./tools/image-tag).tar
+      - name: Cache docker image
+        uses: actions/upload-artifact@v3
+        with:
+          name: $(./tools/image-tag)
+          path: /tmp/$(./tools/image-tag).tar
+
   ci-upload-images:
     name: CI Upload Images
     runs-on: ubuntu-latest
@@ -197,6 +224,33 @@ jobs:
         run: |
           docker load --input /tmp/${{ matrix.docker-image }}.tar
           docker push "${{ env.CI_CONTAINER_REPOSITORY }}/${{ matrix.docker-image }}:${{ needs.ci-generate-tag.outputs.tag }}"
+
+  ci-upload-branch-images:
+    name: CI Upload Branch Images
+    runs-on: ubuntu-latest
+    # Make sure we only upload images if tests etc have passed
+    needs: [ci-go, ci-static, ci-js, ci-build-gitops-branch-image]
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: docker/setup-buildx-action@v1
+      - name: Download cached docker image
+        uses: actions/download-artifact@v3
+        with:
+          name: $(./tools/image-tag)
+          path: /tmp
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2.1.0
+        with:
+          registry: docker.io
+          username: ${{ secrets.DOCKER_USER_PR }}
+          password: ${{ secrets.DOCKER_PASSWORD_PR }}
+      - name: Push image
+        run: |
+          docker load --input /tmp/$(./tools/image-tag).tar
+          docker push docker.io/weaveworks/gitops-oss-prs:$(./tools/image-tag)
 
   ci-upload-binary:
     name: Upload Binary
