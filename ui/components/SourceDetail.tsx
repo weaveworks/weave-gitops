@@ -48,7 +48,7 @@ function SourceDetail({ className, source, info, type, customActions }: Props) {
       ],
       suspend: !source.suspended,
     },
-    "sources"
+    "object"
   );
 
   const sync = useSyncFluxObject([

@@ -82,7 +82,7 @@ function SyncButton({
     >
       <Flex>
         <Sync
-          disabled={disabled}
+          disabled={disabled || loading}
           loading={loading}
           variant="outlined"
           onClick={() => onClick({ withSource: true })}
