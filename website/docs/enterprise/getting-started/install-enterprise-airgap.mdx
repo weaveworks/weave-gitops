@@ -486,7 +486,7 @@ ghcr.io/weaveworks-liquidmetal/flintlock-kernel:5.10.77
 At this stage you have in your private registry both the Helm charts and container images required to install Weave GitOps
 Enterprise. Now you are ready to install WGE from your private registry.
 
-Follow the indications to install WGE with the following considerations:
+Follow the instructions to install WGE with the following considerations:
 
 1. Adjust Helm Releases `spec.chart.spec.sourceRef` to tell Flux to pull Helm charts from your Helm repo.
 2. Adjust Helm Releases `spec.values` to use the container images from your private registry.
