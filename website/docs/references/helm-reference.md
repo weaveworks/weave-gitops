@@ -2,7 +2,7 @@
 <!-- The contents of this file is generated directly from the chart's values.yaml, please make any edits there -->
 
 This is a reference of all the configurable values in weave gitops's
-helm chart. This is intended for customizing your installation after
+Helm chart. This is intended for customizing your installation after
 you've gone through the [getting started](../intro-weave-gitops.mdx) guide.
 
 This reference was generated for the chart version 4.0.22 which installs weave gitops v0.24.0.
