@@ -1,6 +1,6 @@
 import { Chip } from "@material-ui/core";
 import * as React from "react";
-import ReactMarkdown from "react-markdown/react-markdown.min";
+import ReactMarkdown from "react-markdown";
 import styled from "styled-components";
 import Flex from "../../Flex";
 import Text from "../../Text";
