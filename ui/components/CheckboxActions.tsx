@@ -47,7 +47,10 @@ function CheckboxActions({ className, checked = [], rows = [] }: Props) {
         objects: reqObjects,
         suspend: suspend,
       },
-      reqObjects[0] ? reqObjects[0].kind : ""
+      reqObjects[0]?.kind === "HelmRelease" ||
+        reqObjects[0]?.kind === "Kustomization"
+        ? "automations"
+        : "sources"
     );
 
     return () => result.mutateAsync();

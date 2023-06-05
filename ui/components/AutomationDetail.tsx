@@ -103,7 +103,7 @@ function AutomationDetail({
       ],
       suspend: !automation.suspended,
     },
-    automation.type === Kind.HelmRelease ? "helmrelease" : "kustomizations"
+    "object"
   );
 
   // agreed to hide canary status agg for now as there's some concerns about the pd status ( when it's ready and when it's not)
