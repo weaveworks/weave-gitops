@@ -275,26 +275,20 @@ function AutomationDetail({
       </Collapsible>
 
       <SubRouterTabs rootPath={`${path}/details`}>
-        {defaultTabs.map(
-          (subRoute, index) =>
-            subRoute.visible && (
-              <RouterTab name={subRoute.name} path={subRoute.path} key={index}>
-                {subRoute.component()}
-              </RouterTab>
-            )
-        )}
-        {customTabs?.map(
-          (customTab, index) =>
-            customTab.visible && (
-              <RouterTab
-                name={customTab.name}
-                path={customTab.path}
-                key={index}
-              >
-                {customTab.component()}
-              </RouterTab>
-            )
-        )}
+        {defaultTabs
+          .filter((r) => r.visible)
+          .map((subRoute, index) => (
+            <RouterTab name={subRoute.name} path={subRoute.path} key={index}>
+              {subRoute.component()}
+            </RouterTab>
+          ))}
+        {customTabs
+          ?.filter((r) => r.visible)
+          .map((customTab, index) => (
+            <RouterTab name={customTab.name} path={customTab.path} key={index}>
+              {customTab.component()}
+            </RouterTab>
+          ))}
       </SubRouterTabs>
     </Flex>
   );

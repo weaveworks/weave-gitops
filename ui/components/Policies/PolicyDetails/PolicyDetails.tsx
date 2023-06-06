@@ -4,18 +4,19 @@ import remarkGfm from "remark-gfm";
 import styled from "styled-components";
 import { useFeatureFlags } from "../../../hooks/featureflags";
 import { PolicyObj as Policy } from "../../../lib/api/core/core.pb";
+import { Kind } from "../../../lib/api/core/types.pb";
 import ClusterDashboardLink from "../../ClusterDashboardLink";
 import Flex from "../../Flex";
 import SubRouterTabs, { RouterTab } from "../../SubRouterTabs";
 import Text from "../../Text";
 import YamlView from "../../YamlView";
+import { PolicyViolationsList } from "../PolicyViolations/Table";
 import HeaderRows, { Header } from "../Utils/HeaderRows";
+import { MarkdownEditor } from "../Utils/MarkdownEditor";
 import Parameters from "../Utils/Parameters";
 import PolicyMode from "../Utils/PolicyMode";
-import { ChipWrap, Editor, SectionWrapper } from "../Utils/PolicyUtils";
+import { ChipWrap, SectionWrapper } from "../Utils/PolicyUtils";
 import Severity from "../Utils/Severity";
-import { PolicyViolationsList } from "../PolicyViolations/Table";
-import { Kind } from "../../../lib/api/core/types.pb";
 
 type Props = {
   policy: Policy;
@@ -103,10 +104,13 @@ const PolicyDetails = ({ policy }: Props) => {
         <Flex wide tall column gap="32">
           <HeaderRows headers={defaultHeaders} />
           <SectionWrapper title="Description:">
-            <Editor children={description || ""} />
+            <MarkdownEditor children={description || ""} />
           </SectionWrapper>
           <SectionWrapper title="How to solve:">
-            <Editor children={howToSolve || ""} remarkPlugins={[remarkGfm]} />
+            <MarkdownEditor
+              children={howToSolve || ""}
+              remarkPlugins={[remarkGfm]}
+            />
           </SectionWrapper>
           <SectionWrapper title="Policy Code:">
             <YamlView type="rego" yaml={code} />

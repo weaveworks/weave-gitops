@@ -42,6 +42,7 @@ import OCIRepositoryDetail from "./components/OCIRepositoryDetail";
 import Page from "./components/Page";
 import PageStatus from "./components/PageStatus";
 import Pendo from "./components/Pendo";
+import PolicyDetails from "./components/Policies/PolicyDetails/PolicyDetails";
 import { ViolationDetails } from "./components/Policies/PolicyViolations/PolicyViolationDetails";
 import { PolicyViolationsList } from "./components/Policies/PolicyViolations/Table";
 import ProviderDetail from "./components/ProviderDetail";
@@ -114,6 +115,7 @@ import {
   statusSortHelper,
 } from "./lib/utils";
 import SignIn from "./pages/SignIn";
+import PoliciesList from "./pages/v2/PoliciesList";
 
 export {
   AppContext,
@@ -237,4 +239,6 @@ export {
   showInterval,
   PolicyViolationsList,
   ViolationDetails,
+  PoliciesList,
+  PolicyDetails,
 };

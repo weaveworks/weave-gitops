@@ -8,15 +8,16 @@ import Timestamp from "../../Timestamp";
 
 import { AppContext } from "../../../contexts/AppContext";
 import { useFeatureFlags } from "../../../hooks/featureflags";
-import { FluxObject } from "../../../lib/objects";
-import ClusterDashboardLink from "../../ClusterDashboardLink";
-import HeaderRows, { Header } from "../Utils/HeaderRows";
-import Parameters from "../Utils/Parameters";
-import { Editor, SectionWrapper } from "../Utils/PolicyUtils";
-import Severity from "../Utils/Severity";
 import { Kind } from "../../../lib/api/core/types.pb";
 import { formatURL } from "../../../lib/nav";
+import { FluxObject } from "../../../lib/objects";
 import { V2Routes } from "../../../lib/types";
+import ClusterDashboardLink from "../../ClusterDashboardLink";
+import HeaderRows, { Header } from "../Utils/HeaderRows";
+import { MarkdownEditor } from "../Utils/MarkdownEditor";
+import Parameters from "../Utils/Parameters";
+import { SectionWrapper } from "../Utils/PolicyUtils";
+import Severity from "../Utils/Severity";
 
 interface ViolationDetailsProps {
   violation: PolicyValidation;
@@ -126,10 +127,13 @@ export const ViolationDetails = ({
         </ul>
       </SectionWrapper>
       <SectionWrapper title="Description:">
-        <Editor children={description || ""} />
+        <MarkdownEditor children={description || ""} />
       </SectionWrapper>
       <SectionWrapper title="How to solve:">
-        <Editor children={howToSolve || ""} remarkPlugins={[remarkGfm]} />
+        <MarkdownEditor
+          children={howToSolve || ""}
+          remarkPlugins={[remarkGfm]}
+        />
       </SectionWrapper>
       <SectionWrapper title=" Parameters Values:">
         <Parameters parameters={parameters} />
