@@ -11,7 +11,7 @@ type Props = {
   id: string;
 };
 
-function PolicyDetailsPage({ className, clusterName, id }: Props) {
+const PolicyDetailsPage = ({ className, clusterName, id }: Props) => {
   const { data, isLoading, error } = useGetPolicyDetails({
     clusterName,
     policyName: id,
@@ -30,7 +30,7 @@ function PolicyDetailsPage({ className, clusterName, id }: Props) {
       <PolicyDetails policy={data?.policy || {}} />
     </Page>
   );
-}
+};
 
 export default styled(PolicyDetailsPage).attrs({
   className: PolicyDetails.name,

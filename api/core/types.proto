@@ -32,6 +32,7 @@ enum Kind {
     ImageUpdateAutomation = 11;
     ImagePolicy           = 12;
     Pod                   = 13;
+    Policy                   = 14;
 };
 
 /**

@@ -946,7 +946,7 @@
       "type": "object",
       "properties": {
         "policy": {
-          "$ref": "#/definitions/v1Policy"
+          "$ref": "#/definitions/v1PolicyObj"
         },
         "clusterName": {
           "type": "string"
@@ -1234,7 +1234,7 @@
         "policies": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/v1Policy"
+            "$ref": "#/definitions/v1PolicyObj"
           }
         },
         "total": {
@@ -1406,7 +1406,7 @@
         }
       }
     },
-    "v1Policy": {
+    "v1PolicyObj": {
       "type": "object",
       "properties": {
         "name": {
