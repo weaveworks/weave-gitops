@@ -1,3 +1,7 @@
+/**
+ * This file holds the protobuf definitions for messages and enums
+ * used in the Weave GitOps gRPC API.
+ */
 syntax = "proto3";
 
 package gitops_core.v1;
@@ -10,6 +14,9 @@ message Interval {
     int64 seconds = 3;
 }
 
+/**
+ * Kind enum defines the Kubernetes resource types used in the Core API.
+ */
 enum Kind {
     GitRepository         = 0;
     Bucket                = 1;
@@ -28,6 +35,9 @@ enum Kind {
     Policy                   = 14;
 };
 
+/**
+ * HelmRepositoryType enum defines the type of HelmRepository used.
+ */
 enum HelmRepositoryType {
     Default = 0;
     OCI     = 1;

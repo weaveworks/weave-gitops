@@ -103,7 +103,7 @@ function AutomationDetail({
       ],
       suspend: !automation.suspended,
     },
-    automation.type === Kind.HelmRelease ? "helmrelease" : "kustomizations"
+    "object"
   );
 
   const canaryStatus = createCanaryCondition(data?.objects);

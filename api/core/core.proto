@@ -1,14 +1,18 @@
+/**
+ * This file holds the protobuf definitions for the Weave GitOps gRPC API.
+ * Messages and enums are defined in types.proto.
+ */
 syntax = "proto3";
 
 package gitops_core.v1;
 
-option go_package = "github.com/weaveworks/weave-gitops/core/api";
-
 import "google/api/annotations.proto";
-import "protoc-gen-openapiv2/options/annotations.proto";
 import "google/protobuf/any.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
 
 import "api/core/types.proto";
+
+option go_package = "github.com/weaveworks/weave-gitops/core/api";
 
 option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
     info: {
@@ -20,6 +24,9 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
     produces: "application/json";
 };
 
+/**
+ * Weave GitOps Core API service definition
+ */
 service Core {
     /*
      * GetObject gets data about a single primary object from a cluster.
@@ -44,7 +51,8 @@ service Core {
     /*
      * ListFluxRuntimeObjects lists the flux runtime deployments from a cluster.
      */
-    rpc ListFluxRuntimeObjects(ListFluxRuntimeObjectsRequest) returns (ListFluxRuntimeObjectsResponse) {
+    rpc ListFluxRuntimeObjects(ListFluxRuntimeObjectsRequest)
+        returns (ListFluxRuntimeObjectsResponse) {
         option (google.api.http) = {
             get: "/v1/flux_runtime_objects"
         };
@@ -57,10 +65,13 @@ service Core {
     }
 
     /*
-     * GetReconciledObjects returns a list of objects that were created as a result a Flux automation.
-     * This list is derived by looking at the Kustomization or HelmRelease specified in the request body.
+     * GetReconciledObjects returns a list of objects that were created
+     * as a result of reconciling a Flux automation.
+     * This list is derived by looking at the Kustomization or HelmRelease
+     * specified in the request body.
      */
-    rpc GetReconciledObjects(GetReconciledObjectsRequest) returns (GetReconciledObjectsResponse) {
+    rpc GetReconciledObjects(GetReconciledObjectsRequest)
+        returns (GetReconciledObjectsResponse) {
         option (google.api.http) = {
             post: "/v1/reconciled_objects"
             body: "*"
@@ -68,10 +79,13 @@ service Core {
     };
 
     /*
-     * GetChildObjects returns the children of a given object, specified by a GroupVersionKind.
-     * Not all Kubernets objects have children. For example, a Deployment has a child ReplicaSet, but a Service has no child objects.
+     * GetChildObjects returns the children of a given object,
+     * specified by a GroupVersionKind.
+     * Not all Kubernets objects have children. For example, a Deployment
+     * has a child ReplicaSet, but a Service has no child objects.
      */
-    rpc GetChildObjects(GetChildObjectsRequest) returns (GetChildObjectsResponse) {
+    rpc GetChildObjects(GetChildObjectsRequest)
+        returns (GetChildObjectsResponse) {
         option (google.api.http) = {
             post: "/v1/child_objects"
             body: "*"
@@ -81,7 +95,8 @@ service Core {
     /*
      * GetFluxNamespace returns with a namespace with a specific label.
      */
-    rpc GetFluxNamespace(GetFluxNamespaceRequest) returns (GetFluxNamespaceResponse) {
+    rpc GetFluxNamespace(GetFluxNamespaceRequest)
+        returns (GetFluxNamespaceResponse) {
         option (google.api.http) = {
             post: "/v1/namespace/flux"
             body: "*"
@@ -127,7 +142,8 @@ service Core {
     /*
     * GetFeatureFlags returns configuration information about the server
     */
-    rpc GetFeatureFlags(GetFeatureFlagsRequest) returns (GetFeatureFlagsResponse) {
+    rpc GetFeatureFlags(GetFeatureFlagsRequest)
+        returns (GetFeatureFlagsResponse) {
         option (google.api.http) = {
             get: "/v1/featureflags"
         };
@@ -136,7 +152,8 @@ service Core {
     /*
      * ToggleSuspendResource suspends or resumes a flux object.
      */
-    rpc ToggleSuspendResource(ToggleSuspendResourceRequest) returns (ToggleSuspendResourceResponse) {
+    rpc ToggleSuspendResource(ToggleSuspendResourceRequest)
+        returns (ToggleSuspendResourceResponse) {
         option (google.api.http) = {
             post: "/v1/suspend"
             body: "*"
@@ -186,7 +203,8 @@ service Core {
     /*
     * ListPolicyValidations lists policy validations
     */
-    rpc ListPolicyValidations(ListPolicyValidationsRequest) returns (ListPolicyValidationsResponse) {
+    rpc ListPolicyValidations(ListPolicyValidationsRequest)
+        returns (ListPolicyValidationsResponse) {
         option (google.api.http) = {
         post : "/v1/policyvalidations"
         body : "*"
@@ -196,7 +214,8 @@ service Core {
     /*
     * GetPolicyValidation gets a policy validation by id
     */
-    rpc GetPolicyValidation(GetPolicyValidationRequest) returns (GetPolicyValidationResponse) {
+    rpc GetPolicyValidation(GetPolicyValidationRequest)
+        returns (GetPolicyValidationResponse) {
         option (google.api.http) = {
         get : "/v1/policyvalidations/{validationId}"
         };
