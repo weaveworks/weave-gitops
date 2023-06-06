@@ -45,6 +45,7 @@ require (
 	github.com/spf13/cobra v1.6.1
 	github.com/spf13/viper v1.13.0
 	github.com/tomwright/dasel v1.22.1
+	github.com/weaveworks/policy-agent/api v1.0.5
 	github.com/weaveworks/tf-controller/tfctl v0.0.0-20230523160934-c6613bfc7fff
 	github.com/yannh/kubeconform v0.5.0
 	go.uber.org/zap v1.24.0
@@ -154,7 +155,7 @@ require (
 	github.com/go-openapi/jsonreference v0.20.1 // indirect
 	github.com/go-openapi/swag v0.22.3 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
-	github.com/golang/protobuf v1.5.3 // indirect
+	github.com/golang/protobuf v1.5.3
 	github.com/google/btree v1.1.2 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect

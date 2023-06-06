@@ -54,7 +54,7 @@ exports[`Page snapshots default 1`] = `
   align-items: center;
 }
 
-.c11 {
+.c12 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -73,7 +73,7 @@ exports[`Page snapshots default 1`] = `
   justify-content: space-between;
 }
 
-.c14 {
+.c15 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -93,7 +93,7 @@ exports[`Page snapshots default 1`] = `
   justify-content: flex-start;
 }
 
-.c16 {
+.c17 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -112,7 +112,7 @@ exports[`Page snapshots default 1`] = `
   justify-content: space-between;
 }
 
-.c18 {
+.c19 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -135,7 +135,7 @@ exports[`Page snapshots default 1`] = `
   color: #1a1a1a;
 }
 
-.c19 {
+.c20 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 400;
@@ -144,7 +144,7 @@ exports[`Page snapshots default 1`] = `
   white-space: nowrap;
 }
 
-.c22 {
+.c23 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 400;
@@ -153,72 +153,79 @@ exports[`Page snapshots default 1`] = `
   color: #00b3ec;
 }
 
-.c9 svg {
+.c10 svg {
   height: 24px;
   width: 24px;
 }
 
-.c9 svg path.path-fill,
-.c9 svg line.path-fill,
-.c9 svg polygon.path-fill,
-.c9 svg rect.path-fill,
-.c9 svg circle.path-fill,
-.c9 svg polyline.path-fill {
+.c10 svg path.path-fill,
+.c10 svg line.path-fill,
+.c10 svg polygon.path-fill,
+.c10 svg rect.path-fill,
+.c10 svg circle.path-fill,
+.c10 svg polyline.path-fill {
   fill: !important;
   -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
-.c9 svg path.stroke-fill,
-.c9 svg line.stroke-fill,
-.c9 svg polygon.stroke-fill,
-.c9 svg rect.stroke-fill,
-.c9 svg circle.stroke-fill,
-.c9 svg polyline.stroke-fill {
+.c10 svg path.stroke-fill,
+.c10 svg line.stroke-fill,
+.c10 svg polygon.stroke-fill,
+.c10 svg rect.stroke-fill,
+.c10 svg circle.stroke-fill,
+.c10 svg polyline.stroke-fill {
   stroke: !important;
   -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
-.c9 svg rect.rect-height {
+.c10 svg rect.rect-height {
   height: 24px;
   width: 24px;
 }
 
-.c9.downward {
+.c10.downward {
   -webkit-transform: rotate(180deg);
   -ms-transform: rotate(180deg);
   transform: rotate(180deg);
 }
 
-.c9.upward {
+.c10.upward {
   -webkit-transform: initial;
   -ms-transform: initial;
   transform: initial;
 }
 
-.c9 .c5 {
+.c10 .c5 {
   margin-left: 4px;
 }
 
-.c9 img {
+.c10 img {
   width: 24px;
 }
 
-.c20 {
+.c21 {
   padding: 4px;
 }
 
-.c21 {
+.c22 {
   -webkit-text-decoration: none;
   text-decoration: none;
 }
 
-.c23 {
+.c7 {
+  max-width: 400px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.c24 {
   padding-right: 24px;
 }
 
-.c17 {
+.c18 {
   max-width: 100%;
   box-sizing: border-box;
   background: #F6F7F9;
@@ -227,31 +234,31 @@ exports[`Page snapshots default 1`] = `
   border-radius: 0 0 8px 8px;
 }
 
-.c8 {
-  height: 40px;
-  width: 40px;
-}
-
-.c8.MuiIconButton-root {
-  background-color: #F6F7F9;
-  color: #737373;
-}
-
-.c8.MuiIconButton-root:hover {
-  background-color: #fff;
-  color: #009CCC;
-}
-
-.c7 .MuiSwitch-thumb {
+.c8 .MuiSwitch-thumb {
   color: #fff;
   background-image: url();
 }
 
-.c7 .MuiSwitch-track {
+.c8 .MuiSwitch-track {
   background-color: #00b3ec;
 }
 
-.c10 {
+.c9 {
+  height: 40px;
+  width: 40px;
+}
+
+.c9.MuiIconButton-root {
+  background-color: #F6F7F9;
+  color: #737373;
+}
+
+.c9.MuiIconButton-root:hover {
+  background-color: #fff;
+  color: #009CCC;
+}
+
+.c11 {
   height: 100%;
   width: calc(100% - 48px);
   padding: 0 24px;
@@ -270,7 +277,7 @@ exports[`Page snapshots default 1`] = `
   overflow: hidden;
 }
 
-.c12 {
+.c13 {
   background-color: #fff;
   border-radius: 10px;
   box-sizing: border-box;
@@ -278,7 +285,7 @@ exports[`Page snapshots default 1`] = `
   min-height: 100%;
 }
 
-.c15 {
+.c16 {
   width: calc(100% - 48px);
   padding: 24px;
   height: 100%;
@@ -292,7 +299,7 @@ exports[`Page snapshots default 1`] = `
   padding: 0 32px;
 }
 
-.c13 .MuiAlert-root {
+.c14 .MuiAlert-root {
   width: 100%;
 }
 
@@ -309,20 +316,28 @@ exports[`Page snapshots default 1`] = `
         className="c4"
       >
         <span
-          className="c5 c6"
+          aria-describedby={null}
+          className="c5 c6 c7 ellipsis"
           color="neutral40"
           data-testid="text-test"
+          onBlur={[Function]}
+          onFocus={[Function]}
+          onMouseLeave={[Function]}
+          onMouseOver={[Function]}
+          onTouchEnd={[Function]}
+          onTouchStart={[Function]}
           size="large"
+          title="test"
         >
           test
         </span>
       </div>
     </div>
     <div
-      className="c7"
+      className=""
     >
       <span
-        className="MuiSwitch-root"
+        className="MuiSwitch-root c8 DarkModeSwitch"
       >
         <span
           aria-disabled={false}
@@ -364,7 +379,7 @@ exports[`Page snapshots default 1`] = `
       <button
         aria-describedby={null}
         aria-haspopup="true"
-        className="MuiButtonBase-root MuiIconButton-root c8"
+        className="MuiButtonBase-root MuiIconButton-root c9"
         disabled={false}
         onBlur={[Function]}
         onClick={[Function]}
@@ -388,7 +403,7 @@ exports[`Page snapshots default 1`] = `
           className="MuiIconButton-label"
         >
           <div
-            className="c4 c9"
+            className="c4 c10"
           >
             <svg
               aria-hidden={true}
@@ -409,38 +424,38 @@ exports[`Page snapshots default 1`] = `
     </div>
   </div>
   <div
-    className="c10"
+    className="c11"
   >
     <div
-      className="c11 c12 c13"
+      className="c12 c13 c14"
     >
       <div
-        className="c14 c15"
+        className="c15 c16"
       />
       <footer
-        className="c16 c17 Footer"
+        className="c17 c18 Footer"
         role="footer"
       >
         <div
-          className="c18"
+          className="c19"
         >
           <span
-            className="c5 c19"
+            className="c5 c20"
             size="medium"
           >
             Need help? Contact us at
           </span>
           <div
-            className="c20"
+            className="c21"
           />
           <a
-            className="c21 Link"
+            className="c22 Link"
             href="mailto:sales@weave.works"
             rel="noreferrer"
             target="_blank"
           >
             <span
-              className="c5 c22"
+              className="c5 c23"
               color="primary"
               size="medium"
             >
@@ -449,13 +464,13 @@ exports[`Page snapshots default 1`] = `
           </a>
         </div>
         <div
-          className="c18 c23"
+          className="c19 c24"
         >
           <div
-            className="c20"
+            className="c21"
           />
           <span
-            className="c5 c19"
+            className="c5 c20"
             size="medium"
           >
             © 

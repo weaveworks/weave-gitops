@@ -1,9 +1,17 @@
+import { Tooltip } from "@material-ui/core";
 import React from "react";
 import styled from "styled-components";
 import Flex from "./Flex";
 import Icon, { IconType } from "./Icon";
 import Link from "./Link";
 import Text from "./Text";
+
+const EllipsesText = styled(Text)<{ maxWidth?: string }>`
+  max-width: ${(prop) => prop.maxWidth || "400px"};
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
 export interface Breadcrumb {
   label: string;
   url?: string;
@@ -33,13 +41,16 @@ export const Breadcrumbs = ({ path = [] }: Props) => {
                 />
               </>
             ) : (
-              <Text
-                size="large"
-                color="neutral40"
-                data-testid={`text-${label}`}
-              >
-                {label}
-              </Text>
+              <Tooltip title={label} placement="bottom">
+                <EllipsesText
+                  size="large"
+                  color="neutral40"
+                  className="ellipsis"
+                  data-testid={`text-${label}`}
+                >
+                  {label}
+                </EllipsesText>
+              </Tooltip>
             )}
           </Flex>
         );
@@ -48,4 +59,4 @@ export const Breadcrumbs = ({ path = [] }: Props) => {
   );
 };
 
-export default styled(Breadcrumbs)``;
+export default styled(Breadcrumbs).attrs({ className: Breadcrumbs.name })``;
