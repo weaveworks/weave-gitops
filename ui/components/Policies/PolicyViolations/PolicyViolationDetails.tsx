@@ -84,7 +84,7 @@ export const ViolationDetails = ({
           {namespace}/{entity}
         </Link>
       ),
-      visible: kind === Kind.Policy,
+      visible: kind !== Kind.Kustomization && kind !== Kind.HelmRelease,
     },
     {
       rowkey: "Violation Time",

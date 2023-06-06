@@ -106,7 +106,6 @@ function AutomationDetail({
     automation.type === Kind.HelmRelease ? "helmrelease" : "kustomizations"
   );
 
-  // agreed to hide canary status agg for now as there's some concerns about the pd status ( when it's ready and when it's not)
   const canaryStatus = createCanaryCondition(data?.objects);
   const health = computeAggHealthCheck(data?.objects || []);
 
@@ -195,7 +194,7 @@ function AutomationDetail({
           />
         );
       },
-      visible: !customTabs?.find((c) => c.name === "Violations"),
+      visible: true,
     },
   ];
   return (

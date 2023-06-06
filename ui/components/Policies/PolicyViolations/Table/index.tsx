@@ -58,7 +58,7 @@ export const PolicyViolationsList = ({ req }: Props) => {
           },
         ]
       : []),
-    ...(req.kind === Kind.Policy
+    ...(!req.kind || req.kind === Kind.Policy
       ? [
           {
             label: "Application",
@@ -77,7 +77,7 @@ export const PolicyViolationsList = ({ req }: Props) => {
       value: "category",
       sortValue: ({ category }) => category,
     },
-    ...(req.kind !== Kind.Policy
+    ...(!req.kind || req.kind !== Kind.Policy
       ? [
           {
             label: "Violated Policy",
