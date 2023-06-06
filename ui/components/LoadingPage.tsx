@@ -7,11 +7,16 @@ type Props = {
   className?: string;
 };
 
+const Box = styled(Flex)`
+  margin-top: ${(props) => props.theme.spacing.base};
+  margin-bottom: ${(props) => props.theme.spacing.base};
+`;
+
 function LoadingPage({ className }: Props) {
   return (
-    <Flex className={className} center wide align>
+    <Box className={className} center wide align>
       <CircularProgress color="primary" />
-    </Flex>
+    </Box>
   );
 }
 

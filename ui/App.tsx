@@ -47,6 +47,11 @@ import PolicyDetailsPage from "./pages/v2/PolicyDetailsPage";
 import ProviderPage from "./pages/v2/ProviderPage";
 import Sources from "./pages/v2/Sources";
 import UserInfo from "./pages/v2/UserInfo";
+import useNavigation from "./hooks/navigation";
+import { getParentNavRouteValue } from "./lib/nav";
+import Logo from "./components/Logo";
+import Nav, { NavItem } from "./components/Nav";
+import { IconType } from "./components/Icon";
 
 const queryClient = new QueryClient();
 
@@ -58,10 +63,63 @@ function withSearchParams(Cmp) {
   };
 }
 
+const navItems: NavItem[] = [
+  {
+    label: "Applications",
+    link: { value: V2Routes.Automations },
+    icon: IconType.ApplicationsIcon,
+  },
+  {
+    label: "Sources",
+    link: { value: V2Routes.Sources },
+    icon: IconType.SourcesIcon,
+  },
+  {
+    label: "Image Automation",
+    link: { value: V2Routes.ImageAutomation },
+    icon: IconType.ImageAutomationIcon,
+  },
+  {
+    label: "Flux Runtime",
+    link: { value: V2Routes.FluxRuntime },
+    icon: IconType.FluxIcon,
+  },
+  {
+    label: "Notifications",
+    link: { value: V2Routes.Notifications },
+    icon: IconType.NotificationsIcon,
+  },
+  {
+    label: "Docs",
+    link: {
+      value: "docs",
+      href: "https://docs.gitops.weave.works/",
+      newTab: true,
+    },
+    icon: IconType.DocsIcon,
+  },
+];
+
 const App = () => {
   const dark = useInDarkMode();
+
+  const [collapsed, setCollapsed] = React.useState<boolean>(false);
+  const { currentPage } = useNavigation();
+  const value = getParentNavRouteValue(currentPage);
+
+  const logo = <Logo collapsed={collapsed} link={V2Routes.Automations} />;
+
+  const nav = (
+    <Nav
+      navItems={navItems}
+      collapsed={collapsed}
+      setCollapsed={setCollapsed}
+      currentPage={value}
+    />
+  );
+
   return (
-    <Layout>
+    <Layout logo={logo} nav={nav}>
       <PendoContainer />
       <ErrorBoundary>
         <Switch>
