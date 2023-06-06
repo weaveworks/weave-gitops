@@ -24,11 +24,8 @@
           type: 'category',
           label: 'Weave GitOps Open Source',
           collapsed: false,
-          link: {
-            type: 'doc',
-            id: 'open-source/getting-started/install-OSS',
-          },
           items: [
+            'open-source/getting-started/install-OSS',
             'open-source/getting-started/ui-OSS',
             'open-source/getting-started/deploy-OSS',
           ],
