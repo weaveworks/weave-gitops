@@ -42,6 +42,9 @@ import OCIRepositoryDetail from "./components/OCIRepositoryDetail";
 import Page from "./components/Page";
 import PageStatus from "./components/PageStatus";
 import Pendo from "./components/Pendo";
+import PolicyDetails from "./components/Policies/PolicyDetails/PolicyDetails";
+import { ViolationDetails } from "./components/Policies/PolicyViolations/PolicyViolationDetails";
+import { PolicyViolationsList } from "./components/Policies/PolicyViolations/Table";
 import ProviderDetail from "./components/ProviderDetail";
 import ReconciledObjectsTable from "./components/ReconciledObjectsTable";
 import ReconciliationGraph, { Graph } from "./components/ReconciliationGraph";
@@ -51,11 +54,15 @@ import SourcesTable from "./components/SourcesTable";
 import Spacer from "./components/Spacer";
 import SubRouterTabs, { RouterTab } from "./components/SubRouterTabs";
 import SyncButton from "./components/SyncButton";
+import Text from "./components/Text";
 import Timestamp from "./components/Timestamp";
 import UserGroupsTable from "./components/UserGroupsTable";
 import UserSettings from "./components/UserSettings";
 import YamlView, { DialogYamlView } from "./components/YamlView";
-import AppContextProvider, { AppContext } from "./contexts/AppContext";
+import AppContextProvider, {
+  AppContext,
+  ThemeTypes,
+} from "./contexts/AppContext";
 import AuthContextProvider, { Auth, AuthCheck } from "./contexts/AuthContext";
 import CoreClientContextProvider, {
   CoreClientContext,
@@ -97,7 +104,7 @@ import {
   OCIRepository,
   Provider,
 } from "./lib/objects";
-import { muiTheme, theme } from "./lib/theme";
+import { baseTheme, muiTheme, theme } from "./lib/theme";
 import { showInterval } from "./lib/time";
 import { V2Routes } from "./lib/types";
 import {
@@ -108,7 +115,7 @@ import {
   statusSortHelper,
 } from "./lib/utils";
 import SignIn from "./pages/SignIn";
-import Text from "./components/Text";
+import PoliciesList from "./pages/v2/PoliciesList";
 
 export {
   AppContext,
@@ -119,6 +126,7 @@ export {
   Automation,
   AutomationsTable,
   Alert,
+  baseTheme,
   Bucket,
   BucketDetail,
   Button,
@@ -204,6 +212,7 @@ export {
   SyncButton,
   Spacer,
   theme,
+  ThemeTypes,
   Text,
   Timestamp,
   useDebounce,
@@ -228,4 +237,8 @@ export {
   UserGroupsTable,
   useCheckCRDInstalled,
   showInterval,
+  PolicyViolationsList,
+  ViolationDetails,
+  PoliciesList,
+  PolicyDetails,
 };

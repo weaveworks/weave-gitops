@@ -14,23 +14,38 @@ type Props = {
 
 export const ArrowDropDown = styled(IconButton)`
   &.MuiButton-outlined {
-    border-color: ${(props) => props.theme.colors.neutral20};
+    border-color: ${(props) => props.theme.colors.grayToPrimary};
+    border-left: none;
+    &:hover,
+    &:disabled {
+      border-left: none;
+    }
+    //2px = MUI radius
+    border-radius: 0 2px 2px 0;
   }
   &.MuiButton-root {
-    border-radius: 0;
     min-width: 0;
-    height: initial;
-    padding: 7px 0px;
+    height: 32px;
+    padding: 8px 4px;
   }
   &.MuiButton-text {
     padding: 0;
   }
 `;
 
+const Sync = styled(Button)<{ $hideDropdown: boolean }>`
+  &.MuiButton-outlined {
+    margin-right: 0;
+    ${(props) =>
+      !props.$hideDropdown &&
+      `border-radius: 2px 0 0 2px; border-right: none; &:hover, &:disabled {border-right: none;};`}
+  }
+`;
+
 export const DropDown = styled(Flex)`
   position: absolute;
   overflow: hidden;
-  background: white;
+  background: ${(props) => props.theme.colors.white};
   height: ${(props) => (props.open ? "100%" : "0px")};
   transition-property: height;
   transition-duration: 0.2s;
@@ -66,15 +81,16 @@ function SyncButton({
       style={{ position: "relative", display: open ? "block" : "inline-block" }}
     >
       <Flex>
-        <Button
-          disabled={disabled}
+        <Sync
+          disabled={disabled || loading}
           loading={loading}
           variant="outlined"
           onClick={() => onClick({ withSource: true })}
-          style={{ marginRight: 0 }}
+          //$ - transient prop that is not passed to DOM https://styled-components.com/docs/api#transient-props
+          $hideDropdown={hideDropdown}
         >
           Sync
-        </Button>
+        </Sync>
         {arrowDropDown}
       </Flex>
       <DropDown open={open} absolute={true}>

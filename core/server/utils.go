@@ -37,3 +37,12 @@ func GetClusterUserNamespacesNames(clusterUserNamespaces map[string][]v1.Namespa
 
 	return namespaces
 }
+
+// ExtractValueFromMap gets string value from map or empty string if the value is empty
+func ExtractStringValueFromMap(mapName map[string]string, key string) string {
+	value, ok := mapName[key]
+	if !ok {
+		return ""
+	}
+	return value
+}

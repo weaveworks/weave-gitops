@@ -1,0 +1,204 @@
+---
+title: Weave GitOps OSS
+hide_title: true
+pagination_next: getting-started/ui
+---
+
+## Installing Weave GitOps on your Cluster
+
+:::tip
+These are the instructions to install the OSS tier Weave GitOps. To install Enterprise
+Weave GitOps, follow the instructions [here][ee-install].
+:::
+
+### Before you begin
+
+To follow along, you will need the following:
+- A Kubernetes cluster - such as [Kind][kind]
+- A [GitHub][github] account and [personal access token with repo permissions][pat]
+- [kubectl][kubectl]
+
+### Install Flux
+
+Weave GitOps is an extension to Flux and therefore requires that Flux 0.32 or
+later has already been installed on your Kubernetes cluster. Full documentation
+is available [here][fl-install].
+
+This version of Weave GitOps is tested against the following Flux releases:
+* 0.36
+* 0.35
+* 0.34
+* 0.33
+* 0.32
+
+In this section we are going to do the following:
+
+- Create a git repository `fleet-infra` in your Git account
+- Add Flux component manifests to the repository
+- Deploy Flux Components to your Kubernetes Cluster
+- Configure Flux components to track the path `./clusters/my-cluster/` in the repository
+
+Let's get into it... :sparkles:
+
+1. Install the flux CLI
+
+   ```
+   brew install fluxcd/tap/flux
+   ```
+
+   For other installation methods, see the relevant [Flux documentation][fl-install].
+
+1. Export your credentials (ensure your PAT has `repo` scope)
+
+   ```
+   export GITHUB_TOKEN=<your-token>
+   export GITHUB_USER=<your-username>
+   ```
+
+1. Check your Kubernetes cluster
+
+   ```
+   flux check --pre
+   ```
+
+   The output is similar to:
+   ```
+   ► checking prerequisites
+   ✔ kubernetes 1.22.2 >=1.20.6
+   ✔ prerequisites checks passed
+   ```
+
+1. Install Flux onto your cluster with the `flux bootstrap` command. The command
+	below assumes the Git provider to be `github`, alter this if you would rather use
+	`gitlab`.
+
+   ```
+   flux bootstrap github \
+     --owner=$GITHUB_USER \
+     --repository=fleet-infra \
+     --branch=main \
+     --path=./clusters/my-cluster \
+     --personal
+   ```
+
+	:::info
+	Full installation documentation including how to work with other Git providers is available [here][fl-install].
+	:::
+
+1. If you navigate to your Git provider, you will see that the `fleet-infra`
+	repository has been created.
+
+### Install the `gitops` CLI
+
+Weave GitOps includes a command-line interface to help users create and manage resources.
+
+:::note Installation options
+The `gitops` CLI is currently supported on Mac (x86 and Arm), and Linux - including Windows Subsystem for Linux (WSL).
+
+Windows support is a [planned enhancement](https://github.com/weaveworks/weave-gitops/issues/663).
+:::
+
+There are multiple ways to install the `gitops` CLI:
+
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
+<Tabs groupId="installation" default>
+<TabItem value="curl" label="curl">
+
+```bash
+curl --silent --location "https://github.com/weaveworks/weave-gitops/releases/download/v0.24.0/gitops-$(uname)-$(uname -m).tar.gz" | tar xz -C /tmp
+sudo mv /tmp/gitops /usr/local/bin
+gitops version
+```
+
+</TabItem>
+<TabItem value="homebrew" label="Homebrew">
+
+```console
+brew tap weaveworks/tap
+brew install weaveworks/tap/gitops
+```
+
+</TabItem>
+</Tabs>
+
+### Deploy Weave GitOps
+
+In this section we will do the following:
+
+- Use the GitOps CLI tool to generate [`HelmRelease`][helm-rel] and [`HelmRepository`][helm-repo] objects.
+- Create some login credentials to access the dashboard. This is a simple but **insecure**
+  method of protecting and accessing your GitOps dashboard.
+- Commit the generated yamls to our `fleet-infra` repo.
+- Observe as they are synced to the cluster.
+
+1. Clone your git repository where Flux has been bootstrapped.
+
+   ```
+   git clone https://github.com/$GITHUB_USER/fleet-infra
+   cd fleet-infra
+   ```
+
+1. Run the following command which will create a `HelmRepository` and `HelmRelease` to deploy Weave GitOps
+
+   ```
+   PASSWORD="<your password>"
+   gitops create dashboard ww-gitops \
+     --password=$PASSWORD \
+     --export > ./clusters/my-cluster/weave-gitops-dashboard.yaml
+   ```
+
+	:::warning
+	This command stores a hash of a password.  While this is relatively safe for demo
+	and testing purposes it is recommended that you look at more secure methods of storing secrets
+	(such as [Flux's SOPS integration][sops]) for production systems.
+
+	More guidance and alternative login methods can be found in [Securing access to the dashboard][dash-access].
+	:::
+
+1. Commit and push the `weave-gitops-dashboard.yaml` to the `fleet-infra` repository
+
+   ```
+   git add -A && git commit -m "Add Weave GitOps Dashboard"
+   git push
+   ```
+
+1. Validate that Weave GitOps and Flux are installed. _Note: this wont be instantaneous,
+	give the Flux controllers a couple of minutes to pull the latest commit._
+
+   ```
+   kubectl get pods -n flux-system
+   ```
+
+   You should see something similar to:
+
+   ```
+   NAME                                       READY   STATUS    RESTARTS   AGE
+   helm-controller-5bfd65cd5f-gj5sz           1/1     Running   0          10m
+   kustomize-controller-6f44c8d499-s425n      1/1     Running   0          10m
+   notification-controller-844df5f694-2pfcs   1/1     Running   0          10m
+   source-controller-6b6c7bc4bb-ng96p         1/1     Running   0          10m
+   ww-gitops-weave-gitops-86b645c9c6-k9ftg    1/1     Running   0          5m
+   ```
+
+	:::tip
+	There are many other things you can configure in the Weave GitOps Helm Chart.
+	The full Chart reference can be found [here](../references/helm-reference.md).
+	:::
+
+## Next steps
+
+In the following [Get Started document](../getting-started/ui.mdx), we will walk you
+through logging into the GitOps Dashboard and deploying an application.
+
+[ee-install]: ../weave-gitops-enterprise
+[kind]: https://kind.sigs.k8s.io/docs/user/quick-start/
+[github]: https://github.com
+[pat]: https://help.github.com/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line
+[kubectl]: https://kubernetes.io/docs/tasks/tools/#kubectl
+[fl-install]: https://fluxcd.io/docs/installation/
+[dash-access]: ../configuration/securing-access-to-the-dashboard.mdx
+[sops]: https://fluxcd.io/docs/guides/mozilla-sops/
+[helm-repo]: https://fluxcd.io/flux/components/source/helmrepositories/#writing-a-helmrepository-spec
+[helm-rel]: https://fluxcd.io/flux/components/helm/helmreleases/

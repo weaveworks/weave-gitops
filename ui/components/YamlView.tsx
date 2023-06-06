@@ -1,25 +1,23 @@
 import * as React from "react";
-import styled from "styled-components";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { darcula } from "react-syntax-highlighter/dist/cjs/styles/prism";
+import styled from "styled-components";
+import { ThemeTypes } from "../contexts/AppContext";
+import { useInDarkMode } from "../hooks/theme";
 import { ObjectRef } from "../lib/api/core/types.pb";
 import { createYamlCommand } from "../lib/utils";
 import CopyToClipboard from "./CopyToCliboard";
 
-export enum UiMode {
-  Light = "Light",
-  Dark = "Dark",
-}
-
 export type YamlViewProps = {
   className?: string;
+  type?: string;
   yaml: string;
   object?: ObjectRef;
-  mode?: UiMode;
+  theme?: ThemeTypes;
 };
 
 const YamlHeader = styled.div`
-  background: ${(props) => props.theme.colors.neutral10};
+  background: ${(props) => props.theme.colors.neutralGray};
   padding: ${(props) => props.theme.spacing.small};
   width: 100%;
   border-bottom: 1px solid ${(props) => props.theme.colors.neutral20};
@@ -28,44 +26,53 @@ const YamlHeader = styled.div`
   text-overflow: ellipsis;
 `;
 
-function UnstyledYamlView({ yaml, object, mode, className }: YamlViewProps) {
+function UnstyledYamlView({
+  yaml,
+  object,
+  className,
+  theme,
+  type = "yaml",
+}: YamlViewProps) {
   const headerText = createYamlCommand(
-    object.kind,
-    object.name,
-    object.namespace
+    object?.kind,
+    object?.name,
+    object?.namespace
   );
 
-  const useDarkMode = mode === UiMode.Dark;
+  const dark = theme ? theme === ThemeTypes.Dark : useInDarkMode();
 
   const styleProps = {
     customStyle: {
       margin: 0,
-      ...(!useDarkMode && { backgroundColor: "transparent" }),
+      ...(!dark && { backgroundColor: "transparent" }),
     },
 
     codeTagProps: {
-      wordBreak: "break-word",
+      style: {
+        wordBreak: "break-word",
+      },
     },
 
     lineProps: { style: { flexWrap: "wrap" } },
 
-    ...(useDarkMode && { style: darcula }),
+    ...(dark && { style: darcula }),
   };
 
   return (
     <div className={className}>
-      <YamlHeader>
-        {headerText}
-        {headerText && (
+      {headerText && (
+        <YamlHeader>
+          {headerText}
           <CopyToClipboard
             value={headerText}
             className="yaml-copy"
             size="small"
           />
-        )}
-      </YamlHeader>
+        </YamlHeader>
+      )}
+
       <SyntaxHighlighter
-        language="yaml"
+        language={type}
         {...styleProps}
         wrapLongLines
         wrapLines
@@ -92,10 +99,6 @@ const YamlView = styled(UnstyledYamlView).attrs({
       ${(props) => props.theme.spacing.small} !important;
   }
 `;
-
-YamlView.defaultProps = {
-  mode: UiMode.Light,
-};
 
 export const DialogYamlView = styled(YamlView)`
   margin-bottom: 0;

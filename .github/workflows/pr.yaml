@@ -20,7 +20,7 @@ jobs:
       matrix:
         node-version: [16.X]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Node modules cache
         uses: actions/cache@v2
         env:
@@ -34,7 +34,7 @@ jobs:
             ${{ runner.os }}-build-
             ${{ runner.os }}-
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
       - run: make node_modules
@@ -57,17 +57,9 @@ jobs:
       matrix:
         go-version: [1.20.X]
     steps:
-      - uses: actions/checkout@v2
-      - name: Go modules cache
-        uses: actions/cache@v1
-        with:
-          path: ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
-
+      - uses: actions/checkout@v3
       - name: Setup Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v4
         with:
           go-version: ${{ matrix.go-version }}
       - name: Setup Flux CLI
@@ -85,9 +77,9 @@ jobs:
         go-version: [1.20.X]
         node-version: [16.X]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Setup Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v4
         with:
           go-version: ${{ matrix.go-version }}
       - run: make check-format
@@ -147,7 +139,7 @@ jobs:
           - gitops
           - gitops-server
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: docker/setup-buildx-action@v1
       - name: Set build-time flags
         run: |
@@ -166,7 +158,7 @@ jobs:
       - name: Load docker image
         run: docker load --input /tmp/${{ matrix.docker-image }}.tar
       - name: Cache docker image
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.docker-image }}
           path: /tmp/${{ matrix.docker-image }}.tar
@@ -189,13 +181,13 @@ jobs:
       - uses: docker/setup-buildx-action@v1
       - uses: google-github-actions/setup-gcloud@v0
       - name: Download cached docker image
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: ${{ matrix.docker-image }}
           path: /tmp
       - name: Authenticate to Google Cloud
         id: gcloud-auth
-        uses: google-github-actions/auth@v0
+        uses: google-github-actions/auth@v1
         with:
           service_account: ${{ secrets.service_account }}
           workload_identity_provider: ${{ secrets.workload_identity_provider }}
@@ -216,11 +208,11 @@ jobs:
     if: github.event_name == 'push'
     steps:
     - name: Install Go
-      uses: actions/setup-go@v2
+      uses: actions/setup-go@v4
       with:
         go-version: 1.20.X
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: Clean
       run: make clean
     - id: gitsha
@@ -250,7 +242,7 @@ jobs:
       js-version: ${{ steps.package-version.outputs.js-version }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           # avoid the merge commit that on.pull_request creates
           # fallback to github.sha if not present (e.g. on.push(main))
@@ -258,7 +250,7 @@ jobs:
           # We want the correct sha so we can tag the npm package correctly
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v3
         with:
           node-version: "16.X"
           registry-url: "https://npm.pkg.github.com"

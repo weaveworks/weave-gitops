@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
+import { useInDarkMode } from "../hooks/theme";
 import images from "../lib/images";
 import { V2Routes } from "../lib/types";
 import { Fade } from "../lib/utils";
@@ -12,15 +13,16 @@ type Props = {
   link?: string;
 };
 
-function Logo({ className, link, collapsed }: Props) {
+function Logo({ className, link = V2Routes.Automations, collapsed }: Props) {
+  const dark = useInDarkMode();
   return (
-    <Flex className={className} wide>
-      <Link to={link || V2Routes.Automations}>
-        <img src={images.logoLight} />
+    <Flex className={className} alignItems="center">
+      <Link to={link}>
+        <img src={dark ? images.logoDark : images.logoLight} />
       </Link>
       <Fade fade={collapsed}>
-        <Link to={link || V2Routes.Automations}>
-          <img src={images.logotype} />
+        <Link to={link}>
+          <img src={dark ? images.logotypeLight : images.logotype} />
         </Link>
       </Fade>
     </Flex>
@@ -39,8 +41,8 @@ export default styled(Logo)`
     width: auto;
     height: 32px;
   }
-  padding-left: 20px;
-  //nav width: 200px - space btwn nav and content: 24px - content padding: 24px. All together 248px - 20 for left padding to line up with detail page titles.
-  width: ${(props) => (props.collapsed ? "92px" : "228px")};
+  padding-left: 12px;
+  height: 65px;
+  width: ${(props) => (props.collapsed ? "36px" : "180px")};
   transition: width 0.5s;
 `;

@@ -10,8 +10,14 @@ type AppState = {
   detailModal: DetailViewProps;
 };
 
+export enum ThemeTypes {
+  Light = "light",
+  Dark = "dark",
+}
+
 type AppSettings = {
   renderFooter: boolean;
+  theme: ThemeTypes;
 };
 
 export type AppContextType = {
@@ -19,6 +25,7 @@ export type AppContextType = {
   doAsyncError: (message: string, detail: string) => void;
   clearAsyncError: () => void;
   setDetailModal: (props: DetailViewProps | null) => void;
+  toggleDarkMode: () => void;
   appState: AppState;
   settings: AppSettings;
   navigate: {
@@ -45,6 +52,14 @@ export default function AppContextProvider({ ...props }: AppProps) {
     error: null,
     detailModal: null,
   });
+  const [appSettings, setAppSettings] = React.useState<AppSettings>({
+    renderFooter: props.renderFooter,
+    theme:
+      window.matchMedia("(prefers-color-scheme: dark)").matches ||
+      localStorage.getItem("mode") === ThemeTypes.Dark
+        ? ThemeTypes.Dark
+        : ThemeTypes.Light,
+  });
 
   const clearAsyncError = () => {
     setAppState({
@@ -70,16 +85,27 @@ export default function AppContextProvider({ ...props }: AppProps) {
     setAppState({ ...appState, detailModal: props });
   };
 
+  const toggleDarkMode = () => {
+    const newMode =
+      appSettings.theme === ThemeTypes.Light
+        ? ThemeTypes.Dark
+        : ThemeTypes.Light;
+    localStorage.setItem("mode", newMode);
+    return setAppSettings({
+      ...appSettings,
+      theme: newMode,
+    });
+  };
+
   const value: AppContextType = {
     userConfigRepoName: "wego-github-jlw-config-repo",
     doAsyncError,
     clearAsyncError,
     setDetailModal,
+    toggleDarkMode,
     appState,
     notifySuccess: props.notifySuccess || notifySuccess,
-    settings: {
-      renderFooter: props.renderFooter,
-    },
+    settings: appSettings,
     navigate: {
       internal: (page: PageRoute, query?: any) => {
         const u = formatURL(page, query);

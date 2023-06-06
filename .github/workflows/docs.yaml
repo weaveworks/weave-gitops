@@ -11,6 +11,7 @@ on:
       - 'main'
     paths:
       - 'website/**'
+  workflow_dispatch:
 
 jobs:
 
@@ -23,14 +24,15 @@ jobs:
       run:
         working-directory: website
     steps:
-      - uses: actions/checkout@50fbc622fc4ef5163becd7fab6573eac35f8462e
-      - uses: actions/setup-node@56899e050abffc08c2b3b61f3ec6a79a9dc3223d
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: "16.x"
       - name: Test Build
         env:
           GA_KEY: "dummy"
           ALGOLIA_API_KEY: ${{ secrets.ALGOLIA_API_KEY }}
+          NODE_OPTIONS: "--max-old-space-size=4096"
         run: |
           if [ -e yarn.lock ]; then
           yarn install --frozen-lockfile
@@ -41,19 +43,20 @@ jobs:
           fi
           sed -i 's#url:.*$#url: "https://staging.docs.gitops.weave.works",#' docusaurus.config.js
           sed -i 's#baseUrl:.*$#baseUrl: "/${{ github.head_ref }}/",#' docusaurus.config.js
+          yarn clear
           npm run build
       - id: auth
-        uses: google-github-actions/auth@v0.4.0
+        uses: google-github-actions/auth@v1
         with:
           credentials_json: ${{ secrets.PROD_DOCS_GITOPS_UPLOAD }}
       - id: upload-file
-        uses: google-github-actions/upload-cloud-storage@v0.5.0
+        uses: google-github-actions/upload-cloud-storage@v1
         with:
           path: website/build
           destination: staging.docs.gitops.weave.works/${{ github.head_ref }}
           parent: false
           headers: |-
-            Cache-Control: no-cache
+            cache-control: no-cache
       - id: add-docs-status
         run: |
           curl --request POST \
@@ -74,8 +77,8 @@ jobs:
       run:
         working-directory: website
     steps:
-      - uses: actions/checkout@50fbc622fc4ef5163becd7fab6573eac35f8462e
-      - uses: actions/setup-node@56899e050abffc08c2b3b61f3ec6a79a9dc3223d
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: "16.x"
       - uses: weaveworks/webfactory-ssh-agent@6b2f2c5354ff41f1edbbf7a17ea9b6178c89be9f
@@ -87,6 +90,7 @@ jobs:
           GIT_USER: git
           GA_KEY: ${{ secrets.GA_KEY }}
           ALGOLIA_API_KEY: ${{ secrets.ALGOLIA_API_KEY }}
+          NODE_OPTIONS: "--max-old-space-size=4096"
         run: |
           git config --global user.email "corporate-it+weaveworks-docs-bot@weave.works"
           git config --global user.name "weaveworks-docs-bot"
@@ -97,13 +101,14 @@ jobs:
           else
           npm i
           fi
+          yarn clear
           npm run build
       - id: auth
-        uses: google-github-actions/auth@v0.4.0
+        uses: google-github-actions/auth@v1
         with:
           credentials_json: ${{ secrets.PROD_DOCS_GITOPS_UPLOAD }}
       - id: upload-file
-        uses: google-github-actions/upload-cloud-storage@v0.4.0
+        uses: google-github-actions/upload-cloud-storage@v1
         with:
           path: website/build
           destination: production.docs.gitops.weave.works

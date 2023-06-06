@@ -91,8 +91,12 @@ exports[`Footer snapshots default 1`] = `
 }
 
 .c1 {
+  max-width: 100%;
+  box-sizing: border-box;
+  background: #F6F7F9;
   color: #737373;
-  padding-top: 12px;
+  padding: 24px;
+  border-radius: 0 0 8px 8px;
 }
 
 <footer
@@ -111,7 +115,7 @@ exports[`Footer snapshots default 1`] = `
       class="c4"
     />
     <a
-      class="c5"
+      class="c5 Link"
       href="mailto:sales@weave.works"
       rel="noreferrer"
       target="_blank"
@@ -185,7 +189,7 @@ exports[`Footer snapshots default 1`] = `
         class="c4"
       />
       <a
-        class="c5"
+        class="c5 Link"
         href="https://github.com/weaveworks/weave-gitops/commit/123abcd"
         rel="noreferrer"
         target="_blank"
@@ -307,8 +311,12 @@ exports[`Footer snapshots no api version 1`] = `
 }
 
 .c1 {
+  max-width: 100%;
+  box-sizing: border-box;
+  background: #F6F7F9;
   color: #737373;
-  padding-top: 12px;
+  padding: 24px;
+  border-radius: 0 0 8px 8px;
 }
 
 <footer
@@ -327,7 +335,7 @@ exports[`Footer snapshots no api version 1`] = `
       class="c4"
     />
     <a
-      class="c5"
+      class="c5 Link"
       href="mailto:sales@weave.works"
       rel="noreferrer"
       target="_blank"
@@ -401,8 +409,8 @@ exports[`Footer snapshots no api version 1`] = `
         class="c4"
       />
       <a
-        class="c5"
-        href="https://github.com/weaveworks/weave-gitops/releases/tag/v0.22.0"
+        class="c5 Link"
+        href="https://github.com/weaveworks/weave-gitops/releases/tag/v0.24.0"
         rel="noreferrer"
         target="_blank"
       >
@@ -413,7 +421,7 @@ exports[`Footer snapshots no api version 1`] = `
           <span
             class="c10"
           >
-            v0.22.0
+            v0.24.0
           </span>
         </span>
       </a>

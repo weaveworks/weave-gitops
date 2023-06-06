@@ -1,3 +1,4 @@
+import { Tooltip } from "@material-ui/core";
 import * as React from "react";
 import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
@@ -14,7 +15,7 @@ import DependenciesView from "./DependenciesView";
 import EventsTable from "./EventsTable";
 import Flex from "./Flex";
 import HealthCheckAgg, { computeAggHealthCheck } from "./HealthCheckAgg";
-import InfoList, { InfoField } from "./InfoList";
+import { InfoField } from "./InfoList";
 import { routeTab } from "./KustomizationDetail";
 import Metadata from "./Metadata";
 import PageStatus from "./PageStatus";
@@ -27,6 +28,7 @@ import SyncButton from "./SyncButton";
 import Text from "./Text";
 import Timestamp from "./Timestamp";
 import YamlView from "./YamlView";
+import { PolicyViolationsList } from "./Policies/PolicyViolations/Table";
 
 type Props = {
   automation: Automation;
@@ -77,11 +79,7 @@ function AutomationDetail({
     name,
     clusterName,
     namespace,
-    false,
-    {
-      retry: false,
-      refetchInterval: 5000,
-    }
+    false
   );
 
   const sync = useSyncFluxObject([
@@ -97,39 +95,32 @@ function AutomationDetail({
     {
       objects: [
         {
-          name: automation.name,
-          namespace: automation.namespace,
-          clusterName: automation.clusterName,
-          kind: automation.type,
+          name,
+          namespace,
+          clusterName,
+          kind: Kind[type],
         },
       ],
       suspend: !automation.suspended,
     },
-    automation.type === Kind.HelmRelease ? "helmrelease" : "kustomizations"
+    "object"
   );
+
   const canaryStatus = createCanaryCondition(data?.objects);
   const health = computeAggHealthCheck(data?.objects || []);
+
   const defaultTabs: Array<routeTab> = [
     {
       name: "Details",
       path: `${path}/details`,
       component: () => {
         return (
-          <>
-            <Collapsible>
-              <InfoList items={info} />
-              <Metadata
-                metadata={automation.metadata}
-                labels={automation.labels}
-              />
-            </Collapsible>
-            <RequestStateHandler loading={isLoading} error={error}>
-              <ReconciledObjectsTable
-                className={className}
-                objects={data?.objects}
-              />
-            </RequestStateHandler>
-          </>
+          <RequestStateHandler loading={isLoading} error={error}>
+            <ReconciledObjectsTable
+              className={className}
+              objects={data?.objects}
+            />
+          </RequestStateHandler>
         );
       },
       visible: true,
@@ -142,10 +133,10 @@ function AutomationDetail({
           <EventsTable
             namespace={automation.namespace}
             involvedObject={{
-              kind: automation.type,
-              name: automation.name,
-              namespace: automation.namespace,
-              clusterName: automation.clusterName,
+              name,
+              namespace,
+              clusterName,
+              kind: Kind[type],
             }}
           />
         );
@@ -188,80 +179,116 @@ function AutomationDetail({
       },
       visible: true,
     },
+    {
+      name: "Violations",
+      path: `${path}/violations`,
+      component: () => {
+        return (
+          <PolicyViolationsList
+            req={{
+              application: name,
+              clusterName,
+              namespace,
+              kind: type,
+            }}
+          />
+        );
+      },
+      visible: true,
+    },
   ];
   return (
-    <Flex wide tall column className={className}>
-      <Flex wide end gap="14">
-        {automation?.type === "HelmRelease" ? (
+    <Flex wide tall column className={className} gap="16">
+      <Flex wide>
+        <Flex start>
+          <SyncButton
+            onClick={(opts) => sync.mutateAsync(opts)}
+            loading={sync.isLoading}
+            disabled={automation.suspended}
+          />
+          <Spacer padding="xs" />
+          <Button
+            onClick={() => suspend.mutateAsync()}
+            loading={suspend.isLoading}
+          >
+            {automation.suspended ? "Resume" : "Suspend"}
+          </Button>
+          <CustomActions actions={customActions} />
+        </Flex>
+        <Flex wide end gap="14">
+          {automation?.type === "HelmRelease" ? (
+            <Text capitalize semiBold color="neutral30">
+              Chart Version:{" "}
+              <Text size="large" color="neutral40">
+                {(automation as HelmRelease).helmChart?.version || "-"}
+              </Text>
+            </Text>
+          ) : (
+            <Flex gap="4" alignItems="baseline">
+              <Text capitalize semiBold color="neutral30">
+                Applied Revision:
+              </Text>
+              <Tooltip
+                title={automation?.lastAppliedRevision || "-"}
+                placement="top"
+              >
+                <Text size="large" color="neutral40" className="trim-text">
+                  {automation?.lastAppliedRevision || "-"}
+                </Text>
+              </Tooltip>
+            </Flex>
+          )}
           <Text capitalize semiBold color="neutral30">
-            Chart Version:{" "}
+            Last Updated:{" "}
             <Text size="large" color="neutral40">
-              {(automation as HelmRelease).helmChart?.version || "-"}
+              <Timestamp time={automationLastUpdated(automation)} />
             </Text>
           </Text>
-        ) : (
-          <Text capitalize semiBold color="neutral30">
-            Applied Revision:{" "}
-            <Text size="large" color="neutral40">
-              {automation?.lastAppliedRevision || "-"}
-            </Text>
-          </Text>
-        )}
-        <Text capitalize semiBold color="neutral30">
-          Last Updated:{" "}
-          <Text size="large" color="neutral40">
-            <Timestamp time={automationLastUpdated(automation)} />
-          </Text>
-        </Text>
+        </Flex>
       </Flex>
-      <Spacer m={["base", "none"]} />
-      {health && <HealthCheckAgg health={health} />}
-      <Spacer m={["base", "none"]} />
-
       <PageStatus
         conditions={automation.conditions}
         suspended={automation.suspended}
       />
+      {health && <HealthCheckAgg health={health} />}
+
       {(customTabs || customActions) && (
         <PageStatus conditions={[canaryStatus]} suspended={false} />
       )}
-      <Flex wide start>
-        <SyncButton
-          onClick={(opts) => sync.mutateAsync(opts)}
-          loading={sync.isLoading}
-          disabled={automation.suspended}
-        />
-        <Spacer padding="xs" />
-        <Button
-          onClick={() => suspend.mutateAsync()}
-          loading={suspend.isLoading}
-        >
-          {automation.suspended ? "Resume" : "Suspend"}
-        </Button>
-        <CustomActions actions={customActions} />
-      </Flex>
+
+      <Collapsible>
+        <div className="collapse-wrapper ">
+          <div className="grid grid-items">
+            {info.map(([k, v]) => {
+              return (
+                <Flex id={k} gap="8" key={k}>
+                  <Text capitalize semiBold color="neutral30">
+                    {k}:
+                  </Text>
+                  {v || "-"}
+                </Flex>
+              );
+            })}
+          </div>
+          <Metadata metadata={automation.metadata} labels={automation.labels} />
+        </div>
+      </Collapsible>
 
       <SubRouterTabs rootPath={`${path}/details`}>
-        {defaultTabs.map(
-          (subRoute, index) =>
-            subRoute.visible && (
-              <RouterTab name={subRoute.name} path={subRoute.path} key={index}>
-                {subRoute.component()}
-              </RouterTab>
-            )
-        )}
-        {customTabs?.map(
-          (customTab, index) =>
-            customTab.visible && (
-              <RouterTab
-                name={customTab.name}
-                path={customTab.path}
-                key={index}
-              >
-                {customTab.component()}
-              </RouterTab>
-            )
-        )}
+        {defaultTabs
+          .filter((r) => r.visible)
+          .map((subRoute, index) => (
+            <RouterTab name={subRoute.name} path={subRoute.path} key={index}>
+              {subRoute.component()}
+            </RouterTab>
+          ))}
+        {customTabs
+          ?.filter((r) => r.visible)
+          .map((customTab, index) => (
+            <RouterTab name={customTab.name} path={customTab.path} key={index}>
+              {customTab.component()}
+            </RouterTab>
+          ))}
       </SubRouterTabs>
     </Flex>
   );
@@ -270,10 +297,28 @@ function AutomationDetail({
 export default styled(AutomationDetail).attrs({
   className: AutomationDetail.name,
 })`
+  ${Collapsible} {
+    width: 100%;
+  }
   ${PageStatus} {
     padding: ${(props) => props.theme.spacing.small} 0px;
   }
-  ${SubRouterTabs} {
-    margin-top: ${(props) => props.theme.spacing.medium};
+  .collapse-wrapper {
+    padding: 16px 44px;
+    width: 100%;
+  }
+  .grid {
+    width: 100%;
+    display: grid;
+    gap: 8px;
+  }
+  .grid-items {
+    grid-template-columns: repeat(auto-fit, minmax(calc(50% - 8px), 1fr));
+  }
+  .trim-text {
+    max-width: 150px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 `;

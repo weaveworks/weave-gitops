@@ -16,6 +16,7 @@ function Automations({ className }: Props) {
       error={error || automations?.errors}
       loading={isLoading}
       className={className}
+      path={[{ label: "Applications" }]}
     >
       <AutomationsTable
         automations={automations?.result}

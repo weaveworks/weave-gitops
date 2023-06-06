@@ -75,7 +75,7 @@ exports[`YamlView snapshots renders 1`] = `
 }
 
 .c3.MuiButton-outlinedPrimary {
-  border: 1px solid #f5f5f5;
+  margin-left: 4px;
   padding: 4px;
 }
 
@@ -86,7 +86,7 @@ exports[`YamlView snapshots renders 1`] = `
 }
 
 .c1 {
-  background: #f5f5f5;
+  background: #F6F7F9;
   padding: 12px;
   width: 100%;
   border-bottom: 1px solid #d8d8d8;
@@ -185,9 +185,9 @@ exports[`YamlView snapshots renders 1`] = `
       style={
         Object {
           "whiteSpace": "pre-wrap",
+          "wordBreak": "break-word",
         }
       }
-      wordBreak="break-word"
     >
       <span
         style={

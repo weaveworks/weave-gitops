@@ -1,8 +1,10 @@
 import React from "react";
+import styled from "styled-components";
 import { FluxObject } from "../lib/objects";
 import Flex from "./Flex";
 import { HealthStatusType } from "./HealthCheckStatusIndicator";
 import Icon, { IconType } from "./Icon";
+import Text from "./Text";
 
 export interface AggHealth {
   healthy: number;
@@ -36,40 +38,35 @@ export function computeAggHealthCheck(objects: FluxObject[]): AggHealth {
   });
   return healthAgg;
 }
+
 interface Prop {
   health: AggHealth;
 }
+
 const HealthCheckAgg = ({ health }: Prop) => {
   return (
-    <Flex wide gap="14">
-      {health.progressing > 0 && (
-        <Icon
-          size="base"
-          type={IconType.ReconcileIcon}
-          color="primary"
-          text={`Progressing: ${health.progressing}`}
-        />
+    <Flex wide align gap="16">
+      {health.unhealthy > 0 ? (
+        <>
+          <Icon
+            type={IconType.FailedIcon}
+            color="alertOriginal"
+            size="medium"
+          />
+          <Text color="neutral30">{`${health.unhealthy} workload(s) are failing health checks`}</Text>
+        </>
+      ) : (
+        <>
+          <Icon
+            type={IconType.CheckCircleIcon}
+            color="successOriginal"
+            size="medium"
+          />
+          <Text color="neutral30">All workloads are passing health checks</Text>
+        </>
       )}
-      <Icon
-        size="base"
-        type={IconType.FailedIcon}
-        color="alertOriginal"
-        text={`Unhealthy: ${health.unhealthy}`}
-      />
-      <Icon
-        size="base"
-        type={IconType.CheckCircleIcon}
-        color="successOriginal"
-        text={`Healthy: ${health.healthy}`}
-      />
-      <Icon
-        size="base"
-        type={IconType.SuspendedIcon}
-        color="feedbackOriginal"
-        text={`NA: ${health.NA}`}
-      />
     </Flex>
   );
 };
 
-export default HealthCheckAgg;
+export default styled(HealthCheckAgg).attrs({})``;

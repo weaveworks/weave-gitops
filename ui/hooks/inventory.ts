@@ -57,13 +57,26 @@ export const createCanaryCondition = (objs: FluxObject[]): Condition => {
       if (!current || current.type !== "Canary") return prev;
       const condition = current.conditions[0];
       if (!condition) return prev;
-      if (
-        condition.reason === "Succeeded" ||
-        condition.reason === "Initialized"
-      )
-        prev["True"] += 1;
-      else if (condition.reason === "Failed") prev["False"] += 1;
-      else prev["Unknown"] += 1;
+      switch (condition.reason) {
+        case "Succeeded":
+        case "Ready":
+          prev["True"] += 1;
+          break;
+        case "Failed":
+        case "Terminating":
+        case "Terminated":
+          prev["False"] += 1;
+          break;
+        case "Initializing":
+        case "Initialized":
+        case "Waiting":
+        case "Progressing":
+        case "WaitingPromotion":
+        case "Promoting":
+        case "Finalising":
+          prev["Unknown"] += 1;
+          break;
+      }
       return prev;
     },
     { True: 0, False: 0, Unknown: 0 }
