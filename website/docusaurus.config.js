@@ -39,7 +39,7 @@ module.exports = {
         redirects: [
           // /docs/oldDoc -> /docs/newDoc
           {
-            to: '/docs/getting-started/intro-weave-gitops/',
+            to: '/docs/intro-weave-gitops/',
             from: ['/docs/getting-started'],
           },
         ],
