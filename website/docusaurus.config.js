@@ -42,10 +42,6 @@ module.exports = {
             to: '/docs/getting-started/intro/',
             from: ['/docs/getting-started'],
           },
-          {
-            to: '/docs/intro-weave-gitops/',
-            from: ['/docs/getting-started/intro/'],
-          },
         ],
       },
     ],
@@ -60,7 +56,7 @@ module.exports = {
       items: [
         {
           type: "doc",
-          docId: "intro-weave-gitops",
+          docId: "intro",
           position: "left",
           label: "Docs",
         },
