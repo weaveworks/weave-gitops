@@ -218,6 +218,7 @@ func eventToPolicyValidation(item v1.Event, clusterName string, extraDetails boo
 		CreatedAt:   item.GetCreationTimestamp().Format(time.RFC3339),
 		Message:     item.Message,
 		Entity:      item.InvolvedObject.Name,
+		EntityKind:  item.InvolvedObject.Kind,
 		Namespace:   item.InvolvedObject.Namespace,
 		ClusterName: clusterName,
 	}
