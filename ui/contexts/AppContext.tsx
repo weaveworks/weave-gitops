@@ -55,7 +55,7 @@ export default function AppContextProvider({ ...props }: AppProps) {
   const [appSettings, setAppSettings] = React.useState<AppSettings>({
     renderFooter: props.renderFooter,
     theme:
-      window.matchMedia("prefers-color-scheme: dark").matches ||
+      window.matchMedia("(prefers-color-scheme: dark)").matches ||
       localStorage.getItem("mode") === ThemeTypes.Dark
         ? ThemeTypes.Dark
         : ThemeTypes.Light,

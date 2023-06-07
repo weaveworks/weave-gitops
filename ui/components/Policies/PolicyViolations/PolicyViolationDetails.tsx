@@ -8,22 +8,26 @@ import Timestamp from "../../Timestamp";
 
 import { AppContext } from "../../../contexts/AppContext";
 import { useFeatureFlags } from "../../../hooks/featureflags";
+import { Kind } from "../../../lib/api/core/types.pb";
+import { formatURL } from "../../../lib/nav";
 import { FluxObject } from "../../../lib/objects";
+import { V2Routes } from "../../../lib/types";
 import ClusterDashboardLink from "../../ClusterDashboardLink";
 import HeaderRows, { Header } from "../Utils/HeaderRows";
+import { MarkdownEditor } from "../Utils/MarkdownEditor";
 import Parameters from "../Utils/Parameters";
-import { Editor, SectionWrapper } from "../Utils/PolicyUtils";
+import { SectionWrapper } from "../Utils/PolicyUtils";
 import Severity from "../Utils/Severity";
 
 interface ViolationDetailsProps {
   violation: PolicyValidation;
-  entityUrl: string;
+  kind: string;
   entityObject: FluxObject;
 }
 export const ViolationDetails = ({
   violation,
   entityObject,
-  entityUrl,
+  kind,
 }: ViolationDetailsProps) => {
   const { isFlagEnabled } = useFeatureFlags();
   const { setDetailModal } = React.useContext(AppContext);
@@ -39,12 +43,24 @@ export const ViolationDetails = ({
     name,
     clusterName,
     parameters,
+    policyId,
   } = violation || {};
 
   const headers: Header[] = [
     {
       rowkey: "Policy Name",
-      value: name,
+      children: (
+        <Link
+          to={formatURL(V2Routes.PolicyDetailsPage, {
+            id: policyId,
+            clusterName,
+            name,
+          })}
+        >
+          {name}
+        </Link>
+      ),
+      visible: kind !== Kind.Policy,
     },
     {
       rowkey: "Cluster",
@@ -54,10 +70,22 @@ export const ViolationDetails = ({
     {
       rowkey: "Application",
       children: (
-        <Link to={entityUrl}>
+        <Link
+          to={formatURL(
+            Kind[kind] === Kind.Kustomization
+              ? V2Routes.Kustomization
+              : V2Routes.HelmRelease,
+            {
+              name: entity,
+              namespace: namespace,
+              clusterName: clusterName,
+            }
+          )}
+        >
           {namespace}/{entity}
         </Link>
       ),
+      visible: kind !== Kind.Kustomization && kind !== Kind.HelmRelease,
     },
     {
       rowkey: "Violation Time",
@@ -99,10 +127,13 @@ export const ViolationDetails = ({
         </ul>
       </SectionWrapper>
       <SectionWrapper title="Description:">
-        <Editor children={description || ""} />
+        <MarkdownEditor children={description || ""} />
       </SectionWrapper>
       <SectionWrapper title="How to solve:">
-        <Editor children={howToSolve || ""} remarkPlugins={[remarkGfm]} />
+        <MarkdownEditor
+          children={howToSolve || ""}
+          remarkPlugins={[remarkGfm]}
+        />
       </SectionWrapper>
       <SectionWrapper title=" Parameters Values:">
         <Parameters parameters={parameters} />

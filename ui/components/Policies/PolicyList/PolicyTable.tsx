@@ -7,7 +7,7 @@ import Link from "../../Link";
 import Text from "../../Text";
 import PolicyMode from "../Utils/PolicyMode";
 import Severity from "../Utils/Severity";
-import { Policy } from "../../../lib/api/core/core.pb";
+import { PolicyObj as Policy } from "../../../lib/api/core/core.pb";
 import Timestamp from "../../Timestamp";
 
 interface CustomPolicy extends Policy {

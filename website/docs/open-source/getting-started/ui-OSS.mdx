@@ -1,13 +1,14 @@
 ---
-title: 1. Explore the Weave GitOps Open Source UI
+title: Step 2 - Explore the Open Source UI
 hide_title: true
+pagination_next: open-source/getting-started/deploy-OSS
 ---
 
-# Step 1: Explore the Weave GitOps Open Source UI
+# Step 2: Explore the Weave GitOps Open Source UI
 
-The Weave GitOps user interface enables you to manage and view all of your applications in one place. This documentation gives you an overview of the Weave GitOps Open Source UI. 
+The Weave GitOps user interface enables you to manage and view all of your applications in one place. This documentation gives you an overview of the Weave GitOps Open Source UI.
 
-:::tip 
+:::tip
 To check out Weave GitOps Enterprise's UI, which provides an even richer user experience, please contact sales@weave.works.
 :::
 
@@ -23,7 +24,7 @@ It also enables you to:
 * sync your latest Git commits directly from the UI
 * leverage Kubernetes RBAC to control permissions in the dashboard
 
-Let's dive in. 
+Let's dive in.
 
 ## Login to the GitOps Dashboard
 
@@ -33,8 +34,8 @@ First, expose the service running on the cluster with this command:
    kubectl port-forward svc/ww-gitops-weave-gitops -n flux-system 9001:9001
    ```
 
-Next, [open the dashboard](http://localhost:9001/) and login using either the [emergency cluster user](../configuration/emergency-user.mdx)
-	or OIDC, based on your [configuration](../configuration/securing-access-to-the-dashboard.mdx). 
+Next, [open the dashboard](http://localhost:9001/) and login using either the [emergency cluster user](../../configuration/emergency-user.mdx)
+	or OIDC, based on your [configuration](../../configuration/securing-access-to-the-dashboard.mdx).
 	If you followed the example above, the emergency user will be configured with the username set to `admin`. This means that you can use “admin” as your user name, and the password that you set earlier during installation as `$PASSWORD`.
 
    ![Weave GitOps login screen](/img/dashboard-login.png)
@@ -51,12 +52,12 @@ In the above screenshot you can see:
 
 The table view shows you the reported status so you can understand whether a reconciliation has been successful, and when it was last updated. You can also see where the Flux objects are deployed, and which `Source` object they are reconciling from. Clicking the name of the Source will take you to a detail view for the given Source object. The view automatically updates every few seconds so you know the current state of your system.
 
-:::tip 
+:::tip
 For more information about Sources, please take a look at the [Flux documentation](https://fluxcd.io/flux/concepts/#sources).
 :::
 
 More actions you can take:
-* Click the magnifying glass icon to search for and filter objects by `Name`. 
+* Click the magnifying glass icon to search for and filter objects by `Name`.
 * Filter by `Type` by clicking the strawberry icon to its right.
 * Click the `Name` of an object to get a detailed view for the given `Kustomization` or `HelmRelease`. (You'll see this again in the Sources view.)
 
@@ -66,7 +67,7 @@ Let's explore the `flux-system` Kustomization. Navigate back to the `Application
 
 ![Application detail view for the flux system kustomization](/img/dashboard-application-flux.png)
 
-It might take a few moments for the data to load. Once it does, you should get a result that resembles the above screenshot. Here you can find key information about how the resource is defined: 
+It might take a few moments for the data to load. Once it does, you should get a result that resembles the above screenshot. Here you can find key information about how the resource is defined:
 * which `Source` it is reading from
 * the latest applied commit
 * the exact path with the Source repository that is being deployed
@@ -91,7 +92,7 @@ Underneath the summary information you'll find:
 
 ## The Sources view
 
-In the left-hand menu of the UI, click on the Sources view. This will show you where Flux pulls its application definitions from—for example, Git repositories—and the current state of that synchronization. Sources shows summary information from `GitRepository`, `HelmRepository`, `HelmChart`, and `Bucket` objects. 
+In the left-hand menu of the UI, click on the Sources view. This will show you where Flux pulls its application definitions from—for example, Git repositories—and the current state of that synchronization. Sources shows summary information from `GitRepository`, `HelmRepository`, `HelmChart`, and `Bucket` objects.
 
 ![Sources summary view showing Flux System and Weave GitOps sources](/img/dashboard-sources.png)
 
@@ -100,7 +101,7 @@ In the above screenshot you can see:
 - a `HelmChart` called `flux-system-ww-gitops`. This is automatically created by Flux when you define a `HelmRelease` to deploy a Helm Chart from a given source.
 - a `HelmRepository` called `ww-gitops`. This pulls from the Helm Repository where the Weave GitOps Helm Chart is published.
 
-The Sources table view displays information about status so that you can see whether Flux has been able to successfully pull from a given source, and which specific commit was last detected. It shows you key information like the `Interval`—namely, how frequently Flux will check for updates in a given source location. 
+The Sources table view displays information about status so that you can see whether Flux has been able to successfully pull from a given source, and which specific commit was last detected. It shows you key information like the `Interval`—namely, how frequently Flux will check for updates in a given source location.
 
 Actions you can take:
 * Apply filtering as you did the Applications view.
@@ -138,4 +139,4 @@ The CRD tab lists the custom resources that the GitOps Toolkit Controllers use. 
 
 ## Moving On
 
-Now that we are familiar with the dashboard, let's deploy a new application :sparkles:.
+Now that we are familiar with the dashboard, let's [deploy a new application](./deploy-OSS.mdx) :sparkles:.
