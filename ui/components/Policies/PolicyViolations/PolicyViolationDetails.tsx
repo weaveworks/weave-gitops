@@ -44,6 +44,7 @@ export const ViolationDetails = ({
     clusterName,
     parameters,
     policyId,
+    entityKind,
   } = violation || {};
 
   const headers: Header[] = [
@@ -72,7 +73,7 @@ export const ViolationDetails = ({
       children: (
         <Link
           to={formatURL(
-            Kind[kind] === Kind.Kustomization
+            entityKind === Kind.Kustomization
               ? V2Routes.Kustomization
               : V2Routes.HelmRelease,
             {

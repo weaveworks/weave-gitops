@@ -1561,6 +1561,9 @@
         "entity": {
           "type": "string"
         },
+        "entityKind": {
+          "type": "string"
+        },
         "namespace": {
           "type": "string"
         },

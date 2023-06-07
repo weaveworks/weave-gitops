@@ -27,6 +27,7 @@ export type PolicyValidation = {
   severity?: string
   createdAt?: string
   entity?: string
+  entityKind?: string
   namespace?: string
   violatingEntity?: string
   description?: string
