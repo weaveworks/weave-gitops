@@ -31,7 +31,7 @@ export default function HomepageFeatures() {
       <div className="text--center padding-horiz--md">
         <h1>Main Features</h1>
         <h3>
-            Available on <Link to="/docs/intro-weave-gitop">all Tiers</Link>
+            Available on <Link to="/docs/intro-weave-gitops">all Tiers</Link>
         </h3>
       </div>
       <CoreFeatures/>
