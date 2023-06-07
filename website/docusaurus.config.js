@@ -56,7 +56,7 @@ module.exports = {
       items: [
         {
           type: "doc",
-          docId: "intro",
+          docId: "intro-weave-gitops",
           position: "left",
           label: "Docs",
         },
