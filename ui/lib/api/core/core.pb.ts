@@ -251,7 +251,7 @@ export type ListPoliciesRequest = {
 }
 
 export type ListPoliciesResponse = {
-  policies?: Policy[]
+  policies?: PolicyObj[]
   total?: number
   nextPageToken?: string
   errors?: ListError[]
@@ -263,11 +263,11 @@ export type GetPolicyRequest = {
 }
 
 export type GetPolicyResponse = {
-  policy?: Policy
+  policy?: PolicyObj
   clusterName?: string
 }
 
-export type Policy = {
+export type PolicyObj = {
   name?: string
   id?: string
   code?: string

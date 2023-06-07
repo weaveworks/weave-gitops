@@ -19,7 +19,7 @@
   "paths": {
     "/v1/child_objects": {
       "post": {
-        "summary": "GetChildObjects returns the children of a given object, specified by a GroupVersionKind.\nNot all Kubernets objects have children. For example, a Deployment has a child ReplicaSet, but a Service has no child objects.",
+        "summary": "GetChildObjects returns the children of a given object,\nspecified by a GroupVersionKind.\nNot all Kubernets objects have children. For example, a Deployment\nhas a child ReplicaSet, but a Service has no child objects.",
         "operationId": "Core_GetChildObjects",
         "responses": {
           "200": {
@@ -571,7 +571,7 @@
     },
     "/v1/reconciled_objects": {
       "post": {
-        "summary": "GetReconciledObjects returns a list of objects that were created as a result a Flux automation.\nThis list is derived by looking at the Kustomization or HelmRelease specified in the request body.",
+        "summary": "GetReconciledObjects returns a list of objects that were created\nas a result of reconciling a Flux automation.\nThis list is derived by looking at the Kustomization or HelmRelease\nspecified in the request body.",
         "operationId": "Core_GetReconciledObjects",
         "responses": {
           "200": {
@@ -946,7 +946,7 @@
       "type": "object",
       "properties": {
         "policy": {
-          "$ref": "#/definitions/v1Policy"
+          "$ref": "#/definitions/v1PolicyObj"
         },
         "clusterName": {
           "type": "string"
@@ -1234,7 +1234,7 @@
         "policies": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/v1Policy"
+            "$ref": "#/definitions/v1PolicyObj"
           }
         },
         "total": {
@@ -1406,7 +1406,7 @@
         }
       }
     },
-    "v1Policy": {
+    "v1PolicyObj": {
       "type": "object",
       "properties": {
         "name": {

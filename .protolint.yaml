@@ -1,0 +1,39 @@
+---
+# Lint directives.
+lint:
+  # Linter rules.
+  # Run `protolint list` to see all available rules.
+  rules:
+    # Determines whether or not to include the default set of linters.
+    no_default: true
+
+    # The specific linters to add.
+    add:
+      - MESSAGE_NAMES_UPPER_CAMEL_CASE
+      - MAX_LINE_LENGTH
+      - INDENT 4
+      - SERVICE_NAMES_END_WITH
+      - FILE_NAMES_LOWER_SNAKE_CASE
+      - IMPORTS_SORTED
+      - PACKAGE_NAME_LOWER_CASE
+      - ORDER
+      - SERVICES_HAVE_COMMENT
+      - PROTO3_FIELDS_AVOID_REQUIRED
+      - PROTO3_GROUPS_AVOID
+      - ENUMS_HAVE_COMMENT
+      - SYNTAX_CONSISTENT
+      - RPC_NAMES_CASE
+      - FILE_HAS_COMMENT
+      - QUOTE_CONSISTENT
+
+    # The specific linters to remove.
+    remove:
+      - REPEATED_FIELD_NAMES_PLURALIZED
+      - RPCS_HAVE_COMMENT
+      - RPC_NAMES_UPPER_CAMEL_CASE
+      - FIELD_NAMES_EXCLUDE_PREPOSITIONS
+      - FIELDS_HAVE_COMMENT
+      - ENUM_FIELDS_HAVE_COMMENT
+      - FIELD_NAMES_LOWER_SNAKE_CASE
+      - MESSAGE_NAMES_EXCLUDE_PREPOSITIONS
+      - MESSAGES_HAVE_COMMENT
