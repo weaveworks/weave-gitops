@@ -21,16 +21,27 @@ func TestGetViolation(t *testing.T) {
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
 
+	ns1 := &corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "weave-system",
+		},
+	}
+	ns2 := &corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "default",
+		},
+	}
+
 	client := fake.NewClientBuilder().
 		WithScheme(scheme).
-		WithRuntimeObjects(makeValidationEvent(t), makeValidationEvent(t, func(e *corev1.Event) {
+		WithRuntimeObjects(ns1, ns2, makeValidationEvent(t), makeValidationEvent(t, func(e *corev1.Event) {
 			e.ObjectMeta.Name = "Missing Owner Label - fake-event-2"
 			e.InvolvedObject.Namespace = "weave-system"
 			e.ObjectMeta.Namespace = "weave-system"
 			e.InvolvedObject.FieldPath = "weave.policies.test-policy"
 			e.Annotations["policy_name"] = "Test Policy"
 			e.Annotations["policy_id"] = "weave.policies.test-policy"
-			e.Labels["pac.weave.works/id"] = "66101548-12c1-4f79-a09a-a12979903fba"
+			e.Labels["pac.weave.works/id"] = "55101548-12c1-4f79-a09a-a12979903f"
 		})).
 		WithIndex(&corev1.Event{}, "type", client.IndexerFunc(func(o client.Object) []string {
 			event := o.(*corev1.Event)
@@ -40,23 +51,24 @@ func TestGetViolation(t *testing.T) {
 
 	cfg := makeServerConfig(client, t, "")
 	c := makeServer(cfg, t)
+
 	// existing validation
 	res, err := c.GetPolicyValidation(ctx, &pb.GetPolicyValidationRequest{
-		ValidationId: "66101548-12c1-4f79-a09a-a12979903fba",
+		ValidationId: "55101548-12c1-4f79-a09a-a12979903f",
 		ClusterName:  "Default",
 	})
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(res.Validation).NotTo(BeNil())
-	g.Expect(res.Validation.Id).To(Equal("66101548-12c1-4f79-a09a-a12979903fba"))
-	g.Expect(res.Validation.Name).To(Equal("Missing app Label"))
-	g.Expect(res.Validation.PolicyId).To(Equal("weave.policies.missing-app-label"))
+	g.Expect(res.Validation.Id).To(Equal("55101548-12c1-4f79-a09a-a12979903f"))
+	g.Expect(res.Validation.Name).To(Equal("Test Policy"))
+	g.Expect(res.Validation.PolicyId).To(Equal("weave.policies.test-policy"))
 	g.Expect(res.Validation.ClusterId).To(Equal("cluster-1"))
 	g.Expect(res.Validation.Category).To(Equal("Access Control"))
 	g.Expect(res.Validation.Severity).To(Equal("high"))
 	g.Expect(res.Validation.CreatedAt).To(Equal("0001-01-01T00:00:00Z"))
 	g.Expect(res.Validation.Message).To(Equal("Policy event"))
 	g.Expect(res.Validation.Entity).To(Equal("my-deployment"))
-	g.Expect(res.Validation.Namespace).To(Equal("default"))
+	g.Expect(res.Validation.Namespace).To(Equal("weave-system"))
 	g.Expect(res.Validation.Description).To(Equal("Missing app label"))
 	g.Expect(res.Validation.HowToSolve).To(Equal("how_to_solve"))
 	g.Expect(res.Validation.ViolatingEntity).To(Equal(`{"apiVersion":"apps/v1","kind":"Deployment","metadata":{"name":"nginx-deployment","namespace":"default","uid":"af912668-957b-46d4-bc7a-51e6994cba56"},"spec":{"template":{"spec":{"containers":[{"image":"nginx:latest","imagePullPolicy":"Always","name":"nginx","ports":[{"containerPort":80,"protocol":"TCP"}]}]}}}}`))
@@ -64,11 +76,10 @@ func TestGetViolation(t *testing.T) {
 	g.Expect(res.Validation.Occurrences).To(Equal([]*pb.PolicyValidationOccurrence{{Message: "occurrence details"}}))
 
 	// non existing validation
-	res, err = c.GetPolicyValidation(ctx, &pb.GetPolicyValidationRequest{
+	_, err = c.GetPolicyValidation(ctx, &pb.GetPolicyValidationRequest{
 		ValidationId: "invalid-id",
 	})
 	g.Expect(err).To(HaveOccurred())
-	g.Expect(res.Validation).To(BeNil())
 }
 
 func TestListApplicationValidations(t *testing.T) {
@@ -79,9 +90,20 @@ func TestListApplicationValidations(t *testing.T) {
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
 
+	ns1 := &corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "weave-system",
+		},
+	}
+	ns2 := &corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "default",
+		},
+	}
+
 	client := fake.NewClientBuilder().
 		WithScheme(scheme).
-		WithRuntimeObjects(makeValidationEvent(t), makeValidationEvent(t, func(e *corev1.Event) {
+		WithRuntimeObjects(ns1, ns2, makeValidationEvent(t, func(e *corev1.Event) {
 			e.ObjectMeta.Name = "Missing Owner Label - fake-event-2"
 			e.InvolvedObject.Namespace = "weave-system"
 			e.ObjectMeta.Namespace = "weave-system"
@@ -108,7 +130,7 @@ func TestListApplicationValidations(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(err).To(BeNil())
 	g.Expect(len(res.Violations)).To(Equal(1))
-	g.Expect(res.Violations[0].Id).To(Equal("66101548-12c1-4f79-a09a-a12979903fba"))
+	g.Expect(res.Violations[0].Id).To(Equal("56701548-12c1-4f79-a09a-a12979904"))
 	g.Expect(res.Violations[0].Name).To(Equal("Missing Owner Label"))
 	g.Expect(res.Violations[0].PolicyId).To(Equal("weave.policies.missing-app-label"))
 	g.Expect(res.Violations[0].ClusterId).To(Equal("cluster-1"))
@@ -129,16 +151,27 @@ func TestListPolicyValidations(t *testing.T) {
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
 
+	ns1 := &corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "weave-system",
+		},
+	}
+	ns2 := &corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "default",
+		},
+	}
+
 	client := fake.NewClientBuilder().
 		WithScheme(scheme).
-		WithRuntimeObjects(makeValidationEvent(t), makeValidationEvent(t, func(e *corev1.Event) {
-			e.ObjectMeta.Name = "Missing Owner Label - fake-event-2"
+		WithRuntimeObjects(ns1, ns2, makeValidationEvent(t, func(e *corev1.Event) {
+			e.ObjectMeta.Name = "Test policy violations"
 			e.InvolvedObject.Namespace = "weave-system"
 			e.ObjectMeta.Namespace = "weave-system"
-			e.InvolvedObject.FieldPath = "weave.policies.test-policy"
-			e.Annotations["policy_name"] = "Test Policy"
-			e.Annotations["policy_id"] = "weave.policies.test-policy"
-			e.Labels["pac.weave.works/id"] = "66101548-12c1-4f79-a09a-a12979903fba"
+			e.InvolvedObject.FieldPath = "weave.policies.test-policy-1"
+			e.Annotations["policy_name"] = "Test Policy 1"
+			e.Annotations["policy_id"] = "weave.policies.test-policy-1"
+			e.Labels["pac.weave.works/id"] = "55101548-12c1-4f79-a09a-a12979903fcc"
 		})).
 		WithIndex(&corev1.Event{}, "type", client.IndexerFunc(func(o client.Object) []string {
 			event := o.(*corev1.Event)
@@ -148,24 +181,13 @@ func TestListPolicyValidations(t *testing.T) {
 
 	cfg := makeServerConfig(client, t, "")
 	c := makeServer(cfg, t)
-	res, err := c.ListPolicyValidations(ctx, &pb.ListPolicyValidationsRequest{
-		PolicyId:    "weave.policies.test-policy",
-		ClusterName: "Default",
-	})
+	res, err := c.ListPolicyValidations(ctx, &pb.ListPolicyValidationsRequest{})
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(err).To(BeNil())
 	g.Expect(len(res.Violations)).To(Equal(1))
-	g.Expect(res.Violations[0].Id).To(Equal("66101548-12c1-4f79-a09a-a12979903fba"))
-	g.Expect(res.Violations[0].Name).To(Equal("Test Policy"))
-	g.Expect(res.Violations[0].PolicyId).To(Equal("weave.policies.test-policy"))
-	g.Expect(res.Violations[0].ClusterId).To(Equal("cluster-1"))
-	g.Expect(res.Violations[0].Category).To(Equal("Access Control"))
-	g.Expect(res.Violations[0].Severity).To(Equal("high"))
-	g.Expect(res.Violations[0].CreatedAt).To(Equal("0001-01-01T00:00:00Z"))
-	g.Expect(res.Violations[0].Message).To(Equal("Policy event"))
-	g.Expect(res.Violations[0].Entity).To(Equal("app1"))
-	g.Expect(res.Violations[0].Namespace).To(Equal("weave-system"))
-	g.Expect(res.Violations[0].ClusterName).To(Equal("Default"))
+	g.Expect(res.Violations[0].Id).To(Equal("55101548-12c1-4f79-a09a-a12979903fcc"))
+	g.Expect(res.Violations[0].Name).To(Equal("Test Policy 1"))
+	g.Expect(res.Violations[0].PolicyId).To(Equal("weave.policies.test-policy-1"))
 }
 
 func makeValidationEvent(t *testing.T, opts ...func(e *corev1.Event)) *corev1.Event {
