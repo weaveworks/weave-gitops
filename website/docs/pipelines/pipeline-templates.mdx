@@ -11,7 +11,7 @@ import BrowserOnly from "@docusaurus/BrowserOnly";
 # Using GitOpsTemplates for Pipelines <TierLabel tiers="Enterprise" />
 
 To create new Pipelines and their required resources from within Weave GitOps
-Enterprise, you can leverage [GitOpsTemplates](../../gitops-templates/intro) to help platform teams scale for developer self-service. 
+Enterprise, you can leverage [GitOpsTemplates](../gitops-templates/intro.mdx) to help platform teams scale for developer self-service.
 
 This document will provide example configuration which could be adapted for use within your own organization, based on your [tenancy model](https://kubernetes.io/blog/2021/04/15/three-tenancy-models-for-kubernetes/) of choice.
 
@@ -45,7 +45,7 @@ This section provides examples to help you build your own templates for Pipeline
 This template is shipped by default with Weave GitOps Enterprise to help you get started with Pipelines.
 :::
 
-For flexibility, this allows the user of the template to specify the names of the Clusters where the application is deployed, and to vary the namespace per cluster. This means it would even work in a tenancy model where environments co-exist on the same cluster and use namespaces for isolation. 
+For flexibility, this allows the user of the template to specify the names of the Clusters where the application is deployed, and to vary the namespace per cluster. This means it would even work in a tenancy model where environments co-exist on the same cluster and use namespaces for isolation.
 
 <details><summary>Expand to view example template</summary>
 
@@ -245,7 +245,7 @@ metadata:
 spec:
   description: Creates flux notification controller resources for a cluster, required for promoting applications via pipelines.
   params:
-    - name: RESOURCE_NAME 
+    - name: RESOURCE_NAME
       description: Name for the generated objects, should match the target Application (HelmRelease) name.
     - name: RESOURCE_NAMESPACE
       description: Namespace for the generated objects, should match the target Application (HelmRelease) namespace.
@@ -289,12 +289,9 @@ spec:
 ## Summary
 GitOpsTemplates provide a highly flexible way for platform and application teams to work together with Pipelines.
 
-You can hard-code values, offer a range of accepted values, or leave open to the consumer of the template to provide input based on your organization's requirements. 
+You can hard-code values, offer a range of accepted values, or leave open to the consumer of the template to provide input based on your organization's requirements.
 
 Templates are subject to RBAC as with any Kubernetes resource, enabling you to easily control which tenants have access to which templates.
 
 For full details on GitOpsTemplates, be sure to read our
-[documentation](../../gitops-templates/intro).
-
-
-
+[documentation](../gitops-templates/intro.mdx).
