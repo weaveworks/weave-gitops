@@ -9,7 +9,7 @@ to configure the use of Let's Encrypt to issue TLS certificates.
 
 - A Kubernetes cluster such as [Kind](https://kind.sigs.k8s.io/docs/user/quick-start/) cluster running a
 [Flux-supported version of Kubernetes](https://fluxcd.io/docs/installation/#prerequisites)
-- Weave GitOps is [installed](../installation/index.mdx)
+- Weave GitOps is [installed](../open-source/getting-started/install-OSS.mdx).
 
 ## What is cert-manager?
 

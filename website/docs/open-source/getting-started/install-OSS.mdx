@@ -1,25 +1,25 @@
 ---
-title: Weave GitOps OSS
+title: Step 1 - Install Weave GitOps Open Source
 hide_title: true
-pagination_next: getting-started/ui
+pagination_next: open-source/getting-started/ui-OSS
 ---
 
-# Step 1: How to Install Weave GitOps Open Source on Your Cluster
+# Step 1: Install Weave GitOps Open Source on Your Cluster
 
 :::tip
 These instructions only apply to Weave GitOps Open Source. To install Weave GitOps Enterprise, [go here][ee-install].
 :::
 
-This page covers Weave GitOps Open Source installation and is adapted from the [Flux - Getting Started](https://fluxcd.io/docs/get-started/) guide. 
+This page covers Weave GitOps Open Source installation and is adapted from the [Flux - Getting Started](https://fluxcd.io/docs/get-started/) guide.
 
-If you haven't already, please check out our [Introduction to Weave GitOps](../intro.mdx) page for additional information about Weave GitOps Open Source as well as our Enterprise version.
+If you haven't already, please check out our [Introduction to Weave GitOps](../../intro-weave-gitops.mdx) page for additional information about Weave GitOps Open Source as well as our Enterprise version.
 
 ## Prerequisites
 
 Before you can install Weave GitOps Open Source, you will need:
 - A [GitHub][github] account and [personal access token with repo permissions](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token)
-- Your Git client configured properly (if using GitHub, for example, 
-then review their docs on [setting your username](https://docs.github.com/en/get-started/getting-started-with-git/setting-your-username-in-git#setting-your-git-username-for-every-repository-on-your-computer) and 
+- Your Git client configured properly (if using GitHub, for example,
+then review their docs on [setting your username](https://docs.github.com/en/get-started/getting-started-with-git/setting-your-username-in-git#setting-your-git-username-for-every-repository-on-your-computer) and
 [your email address](https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-personal-account-on-github/managing-email-preferences/setting-your-commit-email-address#setting-your-email-address-for-every-repository-on-your-computer))
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 - A Kubernetes cluster such as [Kind][kind]
@@ -39,7 +39,7 @@ Note that the version of [Flux](https://fluxcd.io/docs/installation/#prerequisit
 
 Weave GitOps is an extension to Flux. Therefore, it requires that Flux 0.32 or a
 later version has already been installed on your Kubernetes cluster. Full documentation
-is available [here][fl-install]. 
+is available [here][fl-install].
 
 In this section we are going to do the following:
 
@@ -53,9 +53,9 @@ Let's get into it... :sparkles:
 
    ```
    brew install fluxcd/tap/flux
-   ```   
+   ```
 
-To upgrade to the latest version, run this command: 
+To upgrade to the latest version, run this command:
 
 ```
 brew upgrade fluxcd/tap/flux
@@ -67,7 +67,7 @@ Find which version is installed with `flux -v`, and use that for `flux bootstrap
 
 With Bash, you can run `sudo curl -s https://fluxcd.io/install.sh | sudo FLUX_VERSION=<VERSION> bash`.
 
-:::tip 
+:::tip
 If you want to install an older version of Flux CLI, you can download the binary for your OS from the [releases page](https://github.com/fluxcd/flux2/releases).
 :::
 
@@ -107,7 +107,7 @@ The command below assumes the Git provider is `github`. If you would rather use 
      --repository=fleet-infra \
      --branch=main \
      --path=./clusters/my-cluster \
-     --personal
+     --personal \
      --components-extra image-reflector-controller,image-automation-controller
    ```
 
@@ -173,7 +173,7 @@ Run the following command, which will create a `HelmRepository` and `HelmRelease
    ```
 
 :::warning
-This command stores a hash of a password. This is relatively safe for demo and testing purposes, but we strongly 
+This command stores a hash of a password. This is relatively safe for demo and testing purposes, but we strongly
 recommend using a more secure method of storing secrets (such as [Flux's SOPS integration][sops]) for production systems.
 
 Our docs on [securing access to the dashboard][dash-access] provide additional guidance and alternative login methods.
@@ -188,7 +188,7 @@ You will use the password you've just created when you've finished Weave GitOps 
    git push
    ```
 
-#### Validate that Weave GitOps and Flux are installed 
+#### Validate that Weave GitOps and Flux are installed
 
 Note: this wont be instantaneous. Give the Flux controllers a couple of minutes to pull the latest commit.
 
@@ -209,22 +209,22 @@ Note: this wont be instantaneous. Give the Flux controllers a couple of minutes 
 
 If you wait for a while and still nothing happens, it might be that your manifests haven’t been exported to the repository. This means that Weave GitOps won't install.
 
-	:::tip
-	You can use the Weave GitOps Helm Chart to customize your installation.
-	Find the full Chart reference [here](../references/helm-reference.md).
-	:::
+:::tip
+You can use the Weave GitOps Helm Chart to customize your installation.
+Find the full Chart reference [here](../../references/helm-reference.md).
+:::
 
 ## Next steps
 
-Now let's [Explore the GitOps UI](../getting-started/ui.mdx). Then, we'll deploy an application.
+Now let's [explore the Weave GitOps Open Source UI](./ui-OSS.mdx). Then, we'll deploy an application.
 
-[ee-install]: ../weave-gitops-enterprise
+[ee-install]: ../../enterprise/getting-started/install-enterprise.mdx
 [kind]: https://kind.sigs.k8s.io/docs/user/quick-start/
 [github]: https://github.com
 [pat]: https://help.github.com/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line
 [kubectl]: https://kubernetes.io/docs/tasks/tools/#kubectl
 [fl-install]: https://fluxcd.io/docs/installation/
-[dash-access]: ../configuration/securing-access-to-the-dashboard.mdx
+[dash-access]: ../../configuration/securing-access-to-the-dashboard.mdx
 [sops]: https://fluxcd.io/docs/guides/mozilla-sops/
 [helm-repo]: https://fluxcd.io/flux/components/source/helmrepositories/#writing-a-helmrepository-spec
 [helm-rel]: https://fluxcd.io/flux/components/helm/helmreleases/

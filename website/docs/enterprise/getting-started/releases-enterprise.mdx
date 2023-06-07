@@ -1,8 +1,8 @@
 ---
-title: Releases
+title: Enterprise Releases
 hide_title: true
 ---
-import TierLabel from "./_components/TierLabel";
+import TierLabel from "../../_components/TierLabel";
 
 # Releases <TierLabel tiers="Enterprise" />
 
@@ -15,7 +15,7 @@ This page details the changes for Weave GitOps Enterprise and its associated com
 
 ### Highlights
 
-#### GitOpsSets 
+#### GitOpsSets
 
 - GitOpsSets can now generate from [Flux Image Automation](https://fluxcd.io/flux/components/image/)'s `ImagePolicy`. This allows you to include the latest version of an image in your templates, for example to keep a `Deployment` up to date.
 - Cross namespace support lands, create resources in multiple namespaces, they'll also be cleaned up properly via finalizers.
@@ -101,7 +101,7 @@ This page details the changes for Weave GitOps Enterprise and its associated com
 
 - Explorer supports now Flux sources.
 - Applications UI and Sources UI could be configured to use Explorer backend to improve UI experience.
-- Explorer collector uses impersonation. Ensure you [configure collector](../explorer/configuration/#authentication-and-authorization-for-collecting) for your leaf clusters.
+- Explorer collector uses impersonation. Ensure you [configure collector](../../explorer/configuration.mdx/#authentication-and-authorization-for-collecting) for your leaf clusters.
 
 #### GitopsSets
 
@@ -322,7 +322,7 @@ No breaking changes
 	paths in the Git repository. This feature allows complex scenarios, like for
 	example creating a self-service for an application that requires an RDS
 	database. We’ve provided
-	[documentation](./gitops-templates/repo-rendered-paths.mdx) which has a example.
+	[documentation](../../gitops-templates/repo-rendered-paths.mdx) which has a example.
 
 ```yaml
 spec:
@@ -388,7 +388,7 @@ No breaking changes
 #### GitOps Templates
 
 - Support to specify Helm charts inside the CRD, instead of annotations. We’ve
-	provided [documentation](./gitops-templates/profiles.mdx) which has a example.
+	provided [documentation](../../gitops-templates/profiles.mdx) which has a example.
 
 ```yaml
 spec:
@@ -431,7 +431,7 @@ config
 - Weave GitOps default admin user can now “read” all objects. Why is this important? As users are trying out Weave GitOps they will most likely try it out with some of their favorite Cloud Native tools such as Crossplane, Tekton, Istio, etc. This enables them to see all of those resources and explore the full power of Weave GitOps. We still do not recommend this user for “production-use” cases, and customers should always be pushed towards implementing OIDC with scoped roles.
 
 #### Pipelines - adding Pipelines through Templates
-- From the Pipelines view you can add new Pipelines in a way which leverages GitOpsTemplates, additionally - to help users configure these, we’ve provided [documentation](./pipelines/pipeline-templates.mdx) which has some samples.
+- From the Pipelines view you can add new Pipelines in a way which leverages GitOpsTemplates, additionally - to help users configure these, we’ve provided [documentation](../../pipelines/pipeline-templates.mdx) which has some samples.
 
 #### Support for multiple Flux instances on a single cluster
 - Support for running multiple flux instances in different namespaces on a single cluster for resource isolation.
@@ -463,9 +463,9 @@ cluster-bootstrap-controller v0.3.0
 - We are working towards unifying CAPI and GitOps Templates under a single umbrella. For those already using CAPITemplates, we will ensure a smooth transition is possible by making use of a conversion hooks. There are some breaking changes for GitOpsTemplates as part of this transitionary period, so be sure to check the guidance under [Breaking Changes](#breaking-changes).
 - We now retain the ordering of parameters in the template instead of sorting them alphabetically. Providing to the author control in what sequence the parameters are rendered in the form and thus present a more logically grouped set of parameters to the end consumer.
 - You can control what
-	[delimiters](./gitops-templates/supported-langs.mdx#custom-delimiters) you
+	[delimiters](../../gitops-templates/supported-langs.mdx#custom-delimiters) you
 	want to use in a template. This provides flexibility for if you want to use
-	the syntax for dynamic functions like the [helper functions](./gitops-templates/supported-langs.mdx#supported-functions-1) we support.
+	the syntax for dynamic functions like the [helper functions](../../gitops-templates/supported-langs.mdx#supported-functions-1) we support.
 
 #### Pipelines
 - This [feature](pipelines/intro.mdx) is now enabled by default when you install the Weave GitOps Enterprise Helm Chart. You can toggle this with the `enablePipelines` flag.
