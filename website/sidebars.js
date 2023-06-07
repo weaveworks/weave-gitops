@@ -13,61 +13,37 @@
   docs: [
     {
       type: 'category',
-      label: 'Introducing GitOps',
+      label: 'Introducing Weave GitOps',
       collapsed: false,
       link: {
         type: 'doc',
-        id: 'intro',
+        id: 'intro-weave-gitops',
       },
       items: [
         {
           type: 'category',
-          label: 'Getting Started',
+          label: 'Weave GitOps Open Source',
           collapsed: false,
-          link: {
-            type: 'doc',
-            id: 'getting-started/intro',
-          },
           items: [
-            {
-              type: 'category',
-              label: '0. Install Weave GitOps',
-              collapsed: true,
-              link: {
-                type: 'doc',
-                id: 'installation/index',
-              },
-              items: [
-                'installation/weave-gitops',
-                {
-                  type: 'category',
-                  label: 'Weave GitOps Enterprise',
-                  link: {
-                    type: 'doc',
-                    id: 'installation/weave-gitops-enterprise/index',
-                  },
-                  items: [
-                    'installation/weave-gitops-enterprise/airgap',
-                  ],
-                },
-                'installation/aws-marketplace',
-              ],
-            },
-            'getting-started/ui',
-            'getting-started/deploy',
+            'open-source/getting-started/install-OSS',
+            'open-source/getting-started/ui-OSS',
+            'open-source/getting-started/deploy-OSS',
           ],
         },
-      ],
-    },
-    {
-      type: 'category',
-      label: 'Enterprise Edition',
-      link: {
-        type: 'doc',
-        id: 'intro-ee',
-      },
-      items: [
-        'releases',
+        {
+          type: 'category',
+          label: 'Weave GitOps Enterprise',
+          link: {
+            type: 'doc',
+            id: 'enterprise/getting-started/intro-enterprise',
+          },
+          items: [
+            'enterprise/getting-started/install-enterprise',
+            'enterprise/getting-started/install-enterprise-airgap',
+            'enterprise/getting-started/aws-marketplace',
+            'enterprise/getting-started/releases-enterprise',
+          ],
+        },
       ],
     },
     {

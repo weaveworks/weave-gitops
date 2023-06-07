@@ -10,12 +10,12 @@ This example uses [Dex][tool-dex] and its GitHub connector, and assumes Weave Gi
 
 - A Kubernetes cluster such as [Kind](https://kind.sigs.k8s.io/docs/user/quick-start/) cluster running a
 [Flux-supported version of Kubernetes](https://fluxcd.io/docs/installation/#prerequisites)
-- Weave GitOps is [installed](../installation/index.mdx) and [TLS has been enabled](../configuration/tls.md).
+- Weave GitOps is [installed](../open-source/getting-started/install-OSS.mdx) and [TLS has been enabled](../configuration/tls.md).
 
 ## What is Dex?
 
 [Dex][tool-dex] is an identity service that uses [OpenID Connect][oidc] to
-drive authentication for other apps.  
+drive authentication for other apps.
 
 Alternative solutions for identity and access management exist such as [Keycloak](https://www.keycloak.org/).
 
@@ -83,7 +83,7 @@ spec:
   chart:
     spec:
       chart: dex
-      version: 0.6.5 
+      version: 0.6.5
       sourceRef:
         kind: HelmRepository
         name: dex
