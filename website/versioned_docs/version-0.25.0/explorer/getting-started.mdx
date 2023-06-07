@@ -1,0 +1,86 @@
+---
+title: Getting started
+hide_title: true
+---
+
+import TierLabel from "./../_components/TierLabel";
+import AlphaWarning from "../_components/_alpha_warning.mdx";
+
+# Getting started  <TierLabel tiers="Enterprise" />
+<AlphaWarning/>
+
+
+This guide shows you the basics steps to start using Explorer.
+
+## Pre-requisites
+
+Before using Explorer, please ensure that:
+
+- You have Weave Gitops Enterprise [v0.23.0 or later version](../enterprise/getting-started/releases-enterprise.mdx)
+- You have deployed an application.
+
+## Setup
+
+Explorer is enabled via configuration through the feature flag  `enableExplorer` that you could
+configure in your Weave Gitops Enterprise HelmRelease values:
+
+
+```yaml
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: weave-gitops-enterprise
+  namespace: flux-system
+spec:
+  # ... other spec components
+  values:
+    enableExplorer: true
+```
+
+For a complete overview on the configuration you could see [configuration](./configuration.mdx).
+
+## Explorer UI
+
+Login to Weave Gitops and Explorer will be shown in the navigation menu `Explorer`.
+
+Explorer UI looks as follows:
+
+![explorer](imgs/explorer-ui.png)
+
+It has two main components:
+
+- A search dialog with filter to querying the platform resources
+- A table with the filtered resources.
+
+For a more detailed view on the UI you could see [querying](./querying.mdx).
+
+## Discovering Applications
+
+For this example we are using the application `podinfo` but you could use any other app that suits your scenario.
+
+There are two main ways to discover data:
+
+- Querying via the search dialog.
+- Filtering via the pre-built filter list.
+
+### Querying
+
+Just typing `podinfo` in the search dialog returns the applications that matches the term
+
+![podinfo app found](imgs/getting-started-querying-app.png)
+
+For more info on how querying works to query and advanced queries see [querying](./querying.mdx).
+
+### Filtering
+
+A set of queries are set as filters. For example, just select the filter `Failed` to get all the apps that are failing in
+a moment in time.
+
+![failed apps](imgs/getting-started-failed.png)
+
+## Next Steps
+Once you have an initial experience using explorer, you could
+
+- Deep dive in [querying](./querying.mdx) to see how it works and advanced queries.
+- See [configuration](./configuration.mdx) for the options that you could configure in explorer.
