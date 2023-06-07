@@ -64,6 +64,7 @@ func TestListPolicies(t *testing.T) {
 	g.Expect(len(res.Policies)).To(Equal(2))
 	g.Expect(res.Policies[0].Id).To(Equal(policy1.Spec.ID))
 	g.Expect(res.Policies[0].Severity).To(Equal(policy1.Spec.Severity))
+	g.Expect(res.Policies[0].ClusterName).To(Equal("Default"))
 }
 
 func TestGetPolicy(t *testing.T) {
@@ -105,6 +106,7 @@ func TestGetPolicy(t *testing.T) {
 	g.Expect(res.Policy.Name).To(Equal(policy.Spec.Name))
 	g.Expect(res.Policy.Severity).To(Equal(policy.Spec.Severity))
 	g.Expect(res.Policy.Code).To(Equal(policy.Spec.Code))
+	g.Expect(res.Policy.ClusterName).To(Equal("Default"))
 
 	// Test non existing policy
 	_, err = c.GetPolicy(ctx, &pb.GetPolicyRequest{
