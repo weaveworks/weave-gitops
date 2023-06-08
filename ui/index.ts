@@ -117,7 +117,6 @@ import {
   statusSortHelper,
 } from "./lib/utils";
 import SignIn from "./pages/SignIn";
-import PoliciesList from "./pages/v2/PoliciesList";
 
 export {
   AppContext,
