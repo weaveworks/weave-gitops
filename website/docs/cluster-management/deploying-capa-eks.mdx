@@ -47,6 +47,14 @@ export EXP_CLUSTER_RESOURCE_SET=true
 clusterctl init --infrastructure aws
 ```
 
+### Multitenancy
+
+Some Cluster API providers allow you to choose the account or identity that the new cluster will be created with. This is often referred to as _Multi-tenancy_ in the CAPI world. Weave GitOps currently supports:
+
+- [**AWS** multi-tenancy](https://cluster-api-aws.sigs.k8s.io/topics/multitenancy.html)
+- [**Azure** multi-tenancy](https://capz.sigs.k8s.io/topics/multitenancy.html)
+- [**vSphere** multi-tenancy](https://github.com/kubernetes-sigs/cluster-api-provider-vsphere/blob/master/docs/identity_management.md)
+
 ## 2. Add Common RBAC to Your Repository
 
 When a cluster is provisioned, by default it will reconcile all the manifests in `./clusters/<cluster-namespace>/<cluster-name>` and `./clusters/bases`.
