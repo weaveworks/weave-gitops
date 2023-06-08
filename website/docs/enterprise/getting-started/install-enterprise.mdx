@@ -36,11 +36,25 @@ Create a new private GitHub repository and give it a name. We'll call our repo `
 
 Set up a Git client for your private repo. For GitHub, see their docs on [setting your username](https://docs.github.com/en/get-started/getting-started-with-git/setting-your-username-in-git#setting-your-git-username-for-every-repository-on-your-computer) and [setting your email address](https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-personal-account-on-github/managing-email-preferences/setting-your-commit-email-address#setting-your-email-address-for-every-repository-on-your-computer).
 
-## Example: Set up a Management Cluster with `flux`
+## Example: Set up a Management Cluster with CAPA and EKS
+
+To get you started, we'll cover EKS as our management cluster with the _CAPA_ provider. Please note again that Weave GitOps Enterprise supports [clusters without Cluster API](../../cluster-management/managing-existing-clusters/), as well as any combination of management cluster and CAPI provider.
+
+[Cluster API](https://cluster-api.sigs.k8s.io/introduction.html) provides declarative APIs, controllers, and tooling to manage the lifecycle of Kubernetes clusters, across a large number of [infrastructure providers](https://cluster-api.sigs.k8s.io/reference/providers.html#infrastructure).
+The CAPI custom resource definitions are platform-independent as each provider implementation handles the creation of virtual machines,
+VPCs, networks, and other required infrastructure parts, enabling consistent and repeatable cluster deployments.
 
 The following example and steps reflect Flux’s architecture and operations. Go [here](https://fluxcd.io/docs/cmd/) for more detailed documentation about Flux.
 
-To get you started, we'll cover EKS as our management cluster with the _CAPA_ provider. Please note again that Weave GitOps Enterprise supports [clusters without Cluster API](../../cluster-management/managing-existing-clusters/), as well as any combination of management cluster and CAPI provider.
+### 1. CAPA Setup
+
+Cluster API requires kubectl access to an existing Kubernetes cluster. For this example, configure kubectl to use the management cluster:
+
+```bash
+export KUBECONFIG=/path/to/kubeconfig
+```
+
+After having configured kubectl, deploy the CAPA components by following the [steps provided by Cluster API documentation](https://cluster-api-aws.sigs.k8s.io/getting-started.html#install-clusterctl).
 
 ### 1. Prepare IAM for Installation
 
