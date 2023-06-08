@@ -106,7 +106,6 @@ function AutomationDetail({
     "object"
   );
 
-  // agreed to hide canary status agg for now as there's some concerns about the pd status ( when it's ready and when it's not)
   const canaryStatus = createCanaryCondition(data?.objects);
   const health = computeAggHealthCheck(data?.objects || []);
 
@@ -192,11 +191,10 @@ function AutomationDetail({
               namespace,
               kind: type,
             }}
-            sourcePath="kustomization"
           />
         );
       },
-      visible: !customTabs?.find((c) => c.name === "Violations"),
+      visible: true,
     },
   ];
   return (
@@ -277,26 +275,20 @@ function AutomationDetail({
       </Collapsible>
 
       <SubRouterTabs rootPath={`${path}/details`}>
-        {defaultTabs.map(
-          (subRoute, index) =>
-            subRoute.visible && (
-              <RouterTab name={subRoute.name} path={subRoute.path} key={index}>
-                {subRoute.component()}
-              </RouterTab>
-            )
-        )}
-        {customTabs?.map(
-          (customTab, index) =>
-            customTab.visible && (
-              <RouterTab
-                name={customTab.name}
-                path={customTab.path}
-                key={index}
-              >
-                {customTab.component()}
-              </RouterTab>
-            )
-        )}
+        {defaultTabs
+          .filter((r) => r.visible)
+          .map((subRoute, index) => (
+            <RouterTab name={subRoute.name} path={subRoute.path} key={index}>
+              {subRoute.component()}
+            </RouterTab>
+          ))}
+        {customTabs
+          ?.filter((r) => r.visible)
+          .map((customTab, index) => (
+            <RouterTab name={customTab.name} path={customTab.path} key={index}>
+              {customTab.component()}
+            </RouterTab>
+          ))}
       </SubRouterTabs>
     </Flex>
   );
