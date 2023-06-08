@@ -11,77 +11,85 @@ import TierLabel from "../_components/TierLabel";
 The following instructions require you to make minor changes to the content of your own hosted Helm repository.
 :::
 
-When provisioning new clusters it is often useful to install selected software packages to them as part of their bootstrap process. Weave GitOps Enterprise enables this by installing standard Helm charts to the newly provisioned clusters. This feature lowers the ongoing operational overhead and allows for the clusters to be immediately usable after being provisioned. To set this up you need to:
+To put it simply, Profiles are [Helm charts](https://helm.sh/docs/topics/charts/). To create a Profile, you need to add an [annotation](https://helm.sh/docs/topics/charts/#the-chartyaml-file) to a Helm chart.
 
-1. Annotate a Helm chart to make it available for installation
-2. Select which profiles you want installed when creating a cluster
-
-### 1. Annotate a Helm chart to make it available for installation
-
-In order for a chart to become available for installation, it needs to include a `weave.works/profile` annotation. For example:
-
-```yaml title="Chart.yaml"
+A very simple Helm chart marked up as a Profile looks like this:
+```yaml
+name: demo-profile
+version: 0.0.1
 annotations:
-  weave.works/profile: observability-profile
-apiVersion: v1
-appVersion: 1.0.0
-description: Observability Helm chart for Kubernetes
-home: https://github.com/weaveworks/observability-profile
-kubeVersion: ">=1.19.0-0"
-name: observability
-sources:
-  - https://github.com/weaveworks/observability-profile
-version: 1.0.0
+  weave.works/profile: "A Demo Profile"
 ```
+The chart can use either [subcharts](https://helm.sh/docs/chart_template_guide/subcharts_and_globals/) or [dependencies](https://helm.sh/docs/chart_best_practices/dependencies/#helm) to include other charts. These other charts do not need the annotation, and they will not show up as Profiles.
 
-The annotation value is not important and can be left blank i.e. `""`. Helm charts with the `weave.works/profile` annotation are called _Profiles_.
+## Mark a HelmRepository as Containing Profiles
 
-Annotations can also be used to determine the order in which profiles will be installed.
-
-```
-annotations:
-  weave.works/profile: observability-profile
-  weave.works/layer: layer-0
-```
-
-```
-annotations:
-  weave.works/profile: podinfo-profile
-  weave.works/layer: layer-1
-```
-
-The profiles will be sorted lexicographically by their layer and those at a higher layer will only be installed after lower layers have been successfully installed and started.
-
-In this example, `observability-profile` will be installed prior to `podinfo-profile`. In the corresponding HelmReleases, the dependencies can be observed under the `dependsOn` field.
-
-```
-apiVersion: helm.toolkit.fluxcd.io/v2beta1
-kind: HelmRelease
+Alternatively, you can annotate a Flux `HelmRepository`
+```yaml
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: HelmRepository
 metadata:
-  labels:
-    weave.works/applied-layer: layer-0
-  name: cluster-name-observability
-  namespace: wego-system
-...
----
-apiVersion: helm.toolkit.fluxcd.io/v2beta1
-kind: HelmRelease
-metadata:
-  labels:
-    weave.works/applied-layer: layer-1
-  name: cluster-name-podinfo
-  namespace: wego-system
+  name: podinfo
+  namespace: default
+  annotations:
+    weave.works/profiles: "true" # this identifies all charts as profiles
 spec:
-...
-  dependsOn:
-  - name: cluster-name-observability
-...
+  interval: 5m0s
+  url: https://stefanprodan.github.io/podinfo
+```  
+
+This will ensure that all charts in the `HelmRepository` are identified as Profiles.
+
+## Add Layers to Define Dependencies Between Your Profiles
+
+Profile layers are a mechanism for loosely defining dependencies between Profiles.
+
+To add a layer to a Profile chart:
+```yaml
+name: demo-profile
+version: 0.0.1
+annotations:
+  weave.works/profile: "A Demo Profile"
+  weave.works/layer: "demo"
 ```
 
-#### (Optional) Using a helm chart from a remote public/private repository
-The helm releases with the profiles can be added in a remote repository which can be referenced using a HelmRepository resource.The repository can be either public or private, although extra steps are required to use the private repo.
+When multiple Profiles are specified in an API call, with layers in the API request then the set of layers is sorted, reversed, and configured as dependencies using Flux's [dependsOn](https://fluxcd.io/docs/components/helm/helmreleases/#helmrelease-dependencies) mechanism.
+```
+┌─────────┐      ┌─────────┐      ┌─────────┐
+│         │      │         │      │         │
+│ layer-3 ├──────► layer-2 ├──────► layer-1 │
+│         │      │         │      │         │
+└─────────┘      └─────────┘      └─────────┘
+ dependsOn        dependsOn
+```
 
-In this example a public repo and branch is referenced directly where the helm releases are
+The scope of the `dependsOn` calculation is limited to the set of Profiles in the API call.
+
+If only one chart is being installed, obviously no `dependsOn` is configured.
+
+If several charts are installed in the same layer, then the preceeding layer charts will be configured to depend on _all_ the charts in the succeeding layer.
+```
+┌──────────┐     ┌─────────┐      ┌─────────┐
+│          │     │         │      │         │
+│ layer-3  ├─────► layer-2 ├──────► layer-1 │
+│          │     │         │      │         │
+└──────────┤     └─────────┘      └─▲───────┘
+ dependsOn │      dependsOn         │
+           │                        │
+           │     ┌─────────┐        │
+           │     │         │        │
+           └─────► layer-2 ├────────┘
+                 │         │
+                 └─────────┘
+                  dependsOn
+```
+If a chart with no layer specified is installed with a chart that has a layer specified, the service will configure the `dependsOn` for the chart without a layer to depend on the charts with layer.
+
+## (Optional) Use a Helm Chart from a Remote Public/Private Repository
+
+You can add your Profiles to a remote repository that can be referenced using a HelmRepository resource. The repository can be either public or private. Using a private repo requires a few extra steps.
+
+In this example, a public repo and branch is referenced directly where the Helm releases are:
 ```yaml title="HelmRepository.yaml"
 apiVersion: source.toolkit.fluxcd.io/v1beta1
 kind: HelmRepository
@@ -93,9 +101,7 @@ spec:
   url: https://weaveworks.github.io/weave-gitops-profile-examples/
 ```
 
-To be able to use private repositories with restricted access, a secret can be used and synced to the target leaf cluster using [SecretSync](../secrets/bootstraping-secrets.mdx). 
-
-The secret is referenced in the SecretSync as `spec.secretRef` and the labels of the target leaf cluster are added for the syncer to match clusters against those labels using  `spec.clusterSelector.matchLabels`.
+To use private repositories with restricted access, you can use a [secret synced](../secrets/bootstraping-secrets.mdx) to the target leaf cluster. SecretSync references the secret as `spec.secretRef`. The labels of your target leaf cluster are added for the syncer to match clusters against those labels using `spec.clusterSelector.matchLabels`.
 ```yaml title="SecretSync.yaml"
 apiVersion: capi.weave.works/v1alpha1
 kind: SecretSync
@@ -111,7 +117,7 @@ spec:
   targetNamespace: flux-system
 ```
 
-Once the SecretSync and Secret are available, the secret can be directly referenced in the HelmRepsitory object directly
+Once the SecretSync and Secret are available, the secret can be directly referenced in the HelmRepsitory object:
 ```yaml title="PrivateHelmRepository.yaml"
 apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
@@ -126,17 +132,17 @@ spec:
   ```
 **note**: The `HelmRepoSecret`, `SecretSync`, and the `GitopsCluster` should all be in the same namespace.
 
-### 2. Select which profiles you want installed when creating a cluster
+### Select the Profiles You Want Installed at Cluster Creation
 
-Currently WGE inspects the current namespace that it is deployed in (in the management cluster) for a `HelmRepository` object named `weaveworks-charts`. This Kubernetes object should be pointing to a Helm chart repository that includes the profiles that are available for installation.
+WGE inspects the namespace in the management cluster where it is deployed, and looks for a `HelmRepository` object named `weaveworks-charts`. This Kubernetes object should point to a Helm chart repository that includes the Profiles available for installation.
 
-When creating a cluster from the UI using a CAPI template, these profiles should be available for selection in the `Profiles` section of the template. For example:
+When creating a cluster from the UI using a CAPI template, these Profiles are available for selection in the `Profiles` section of the template. For example:
 
 ![Profiles Selection](./img/profile-selection.png)
 
-As shown above, some profiles will be optional whereas some profiles will be required. This is determined when the template is authored and allows for operation teams to control which Helm packages should be installed on new clusters by default.
+As shown above, some Profiles are optional, while others are required. This is determined when the template is authored and allows for operations teams to control which Helm packages should be installed on new clusters by default.
 
-To allow editing of the yaml values for required profiles, the `editable` flag can be added in the annotation describing the required profile in the template. For example: 
+To enable editing of the yaml values for required Profiles, add the `editable` flag in the annotation and describe the required Profile in the template. For example: 
 
 ```
 apiVersion: templates.weave.works/v1alpha2
