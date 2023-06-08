@@ -43,8 +43,10 @@ import Page from "./components/Page";
 import PageStatus from "./components/PageStatus";
 import Pendo from "./components/Pendo";
 import PolicyDetails from "./components/Policies/PolicyDetails/PolicyDetails";
+import { PolicyTable } from "./components/Policies/PolicyList/PolicyTable";
 import { ViolationDetails } from "./components/Policies/PolicyViolations/PolicyViolationDetails";
 import { PolicyViolationsList } from "./components/Policies/PolicyViolations/Table";
+import Severity from "./components/Policies/Utils/Severity";
 import ProviderDetail from "./components/ProviderDetail";
 import ReconciledObjectsTable from "./components/ReconciledObjectsTable";
 import ReconciliationGraph, { Graph } from "./components/ReconciliationGraph";
@@ -115,7 +117,6 @@ import {
   statusSortHelper,
 } from "./lib/utils";
 import SignIn from "./pages/SignIn";
-import PoliciesList from "./pages/v2/PoliciesList";
 
 export {
   AppContext,
@@ -239,6 +240,7 @@ export {
   showInterval,
   PolicyViolationsList,
   ViolationDetails,
-  PoliciesList,
+  PolicyTable,
   PolicyDetails,
+  Severity,
 };
