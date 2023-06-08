@@ -1,5 +1,5 @@
 ---
-title: Introduction
+title: Cluster Management: Introduction
 hide_title: true
 ---
 
@@ -9,6 +9,18 @@ import TierLabel from "../_components/TierLabel";
   {frontMatter.title} <TierLabel tiers="Enterprise" />
 </h1>
 
-## Cluster management 
+# Cluster Management: Introduction
 
-Weave GitOps Enterprise (WGE) can provision Kubernetes clusters using any of the CAPI providers installed. The lifecycle management of these clusters is done declaratively via GitOps and WGE simplifies this process by providing both a Web UI and a CLI to interact with and manage these clusters.
+Weave GitOps Enterprise (WGE) makes it possible for you to deploy the same application into many different clusters across cloud and hybrid environments. Cluster lifecycle management is done declaratively via GitOps, and WGE simplifies this process by providing both a user interface (UI) and a command line interface (CLI) to interact with and manage these clusters. You can even use our UI to delete clusters—all it takes is the press of a button that spins up a pull request.
+
+WGE fully supports a range of options, including:
+- [Crossplane](https://www.crossplane.io/) integration
+- Terraform integration, with a [Terraform Controller](https://docs.gitops.weave.works/docs/terraform/overview/) that follows the patterns established by Flux
+- Cluster API 
+
+Our user guide pages cover two options:
+
+- One path that shows you how to manage clusters [without adding Cluster API](../../cluster-management/managing-existing-clusters/). Join a cluster by hooking WGE to it, then install an application on that cluster.
+- An **optional** path that shows you how to create, provision, and delete your first API cluster with [EKS/CAPA](../../guides/deploying-capa.mdx).
+
+Just click the option you want to get started with, and let's go.
