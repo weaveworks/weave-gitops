@@ -7,8 +7,8 @@ import Flex from "./Flex";
 
 type Props = {
   className?: string;
-  logo?: any;
-  nav?: any;
+  logo?: JSX.Element;
+  nav?: JSX.Element;
   children?: any;
 };
 
