@@ -119,7 +119,6 @@ import {
 import SignIn from "./pages/SignIn";
 import Layout from "./components/Layout";
 import useNavigation from "./hooks/navigation";
-import PoliciesList from "./pages/v2/PoliciesList";
 
 export {
   AppContext,
