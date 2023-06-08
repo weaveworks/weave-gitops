@@ -12,7 +12,7 @@ import oauthBitbucket from '/img/oauth-bitbucket.png';
 import oauthAzureDevOps from '/img/oauth-azure-devops.png';
 import oauthAzureDevOpsSuccess from '/img/oauth-azure-devops-success.png';
 
-## Install Weave GitOps Enterprise<TierLabel tiers="Enterprise" />
+# Install Weave GitOps Enterprise<TierLabel tiers="Enterprise" />
 
 :::info
 To purchase an entitlement to Weave GitOps Enterprise, please contact [sales@weave.works](mailto:sales@weave.works).
@@ -31,49 +31,18 @@ import TOCInline from "@theme/TOCInline";
 There is no need to install the open source version of Weave GitOps before installing Weave GitOps Enterprise.
 :::
 
-### Prep Step: Create a Repository
+## Prep Step: Create a Repository
 Create a new private GitHub repository and give it a name. We'll call our repo `fleet-infra`.
 
 Set up a Git client for your private repo. For GitHub, see their docs on [setting your username](https://docs.github.com/en/get-started/getting-started-with-git/setting-your-username-in-git#setting-your-git-username-for-every-repository-on-your-computer) and [setting your email address](https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-personal-account-on-github/managing-email-preferences/setting-your-commit-email-address#setting-your-email-address-for-every-repository-on-your-computer).
 
-### 1. Set up a Management Cluster with `flux`
+## 1. Set up a Management Cluster with `flux`
 
 These steps reflect [Flux](https://fluxcd.io/flux/)’s architecture and operations. 
 
-To get you started, we'll cover:
+To get you started, we'll cover **EKS** as our management cluster with the _CAPA_ provider. Please not again that Weave GitOps Enterprise supports any combination of management cluster and CAPI provider, as well as [clusters without Cluster API](../../cluster-management/managing-existing-clusters/).
 
-- `kind` as our management cluster with the _CAPD_ provider
-- **EKS** as our management cluster with the _CAPA_ provider
-
-Note that Weave GitOps Enterprise supports any combination of management cluster and CAPI provider.
-
-<Tabs groupId="infrastructure" default>
-<TabItem value="kind" label="kind">
-
-##### 1.1 We start by creating a kind-config
-
-```yaml title="kind-config.yaml"
-kind: Cluster
-apiVersion: kind.x-k8s.io/v1alpha4
-nodes:
-  - role: control-plane
-    extraMounts:
-      - hostPath: /var/run/docker.sock
-        containerPath: /var/run/docker.sock
-```
-
-The `extraMounts` enable the Docker CAPI provider (CAPD) to talk to the host docker.
-
-##### 1.2 Start your kind cluster using the configuration above and Kubernetes v1.23.6
-
-```bash
-kind create cluster --config kind-config.yaml --image=kindest/node:v1.23.6
-```
-
-</TabItem>
-<TabItem value="eks" label="EKS">
-
-##### 1.1 Prepare IAM for installation
+### 1.1 Prepare IAM for installation
 
 Cluster API needs special permissions in AWS. Use the `clusterawsadm` command below to roll out a CloudStack and install the permissions into your AWS account. Although the CloudStack is bound to a region, the resulting permissions are globally scoped. You can use any AWS Region that you have access to. 
 
@@ -403,7 +372,7 @@ PASSWORD="<Make up and insert a brand-new password here>"
 echo -n $PASSWORD | gitops get bcrypt-hash | kubectl create secret generic cluster-user-auth -n flux-system --from-literal=username=wego-admin --from-file=password=/dev/stdin
 ```
 
-A validation step to know it’s working:
+A validation to know it’s working:
 
 ```bash
 `kubectl get pods -A`
