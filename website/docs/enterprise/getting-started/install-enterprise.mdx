@@ -6,7 +6,7 @@ pagination_next: enterprise/getting-started/releases-enterprise
 
 import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
-import TierLabel from "../../_components/TierLabel";
+import TierLabel from "@site/docs/_components/TierLabel";
 import CurlCodeBlock from "../../_components/CurlCodeBlock";
 import oauthBitbucket from '/img/oauth-bitbucket.png';
 import oauthAzureDevOps from '/img/oauth-azure-devops.png';
@@ -51,7 +51,7 @@ The following example and steps reflect Flux’s architecture and operations. Go
 Cluster API requires kubectl access to an existing Kubernetes cluster. For this example, configure kubectl to use the management cluster:
 
 ```bash
-export KUBECONFIG=/path/to/kubeconfig
+  export KUBECONFIG=/path/to/kubeconfig
 ```
 
 After having configured kubectl, deploy the CAPA components by following the [steps provided by Cluster API documentation](https://cluster-api-aws.sigs.k8s.io/getting-started.html#install-clusterctl).
@@ -89,11 +89,8 @@ eksctl create cluster -n "$CLUSTERNAME" -r "$REGION" --nodegroup-name workers -t
 Once you've created your cluster, add it to your `kubeconfig`:
 
 ```bash
-aws eks --region "$REGION" update-kubeconfig --name "$CLUSTERNAME"
+  aws eks --region "$REGION" update-kubeconfig --name "$CLUSTERNAME"
 ```
-
-</TabItem>
-</Tabs>
 
 ### 4. Install Flux Onto Your Cluster with the `flux bootstrap` Command
 
@@ -130,7 +127,7 @@ flux bootstrap gitlab \
 
 Your private GitHub repo should have a clusters/management folder that includes the manifests Flux needs to operate, and that also generates a key value pair for Flux to access the repo. 
 
-* **owner**: The username (or organization) of the git repository
+* **owner**: The username (or organization) of the Git repository
 * **repository**: Git repository name
 * **branch**: Git branch (default "main")
 * **path**: Path relative to the repository root; when specified, the cluster sync will be scoped to this path
@@ -250,6 +247,7 @@ If BitBucket Server is running on the default port (7990), make sure you include
 :::
 
 </TabItem>
+
 <TabItem value="azure-devops" label="Azure DevOps">
 
 Navigate to [VisualStudio](https://app.vsaex.visualstudio.com/app/register) and register a new application, as explained in the [docs](https://learn.microsoft.com/en-us/azure/devops/integrate/get-started/authentication/oauth?view=azure-devops#1-register-your-app). Set the authorization callback URL and select which scopes to grant. Set the callback URL to `<WGE dashboard URL>/oauth/azuredevops`. 
@@ -360,8 +358,10 @@ A validation to know it’s working:
 ```
 
 ## Install the Weave GitOps Enterprise CLI Tool
+
 To do this, you can use either brew or curl.
 
+<Tabs groupId="weave-gitops-cli" default="homebrew">
 <TabItem value="homebrew" label="Homebrew">
 ```console
 brew install weaveworks/tap/gitops-ee
