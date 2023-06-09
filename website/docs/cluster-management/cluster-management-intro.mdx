@@ -3,7 +3,7 @@ title: Cluster Management: Introduction
 hide_title: true
 ---
 
-import TierLabel from "../_components/TierLabel";
+import TierLabel from "@site/docs/_components/TierLabel";
 
 <h1>
   {frontMatter.title} <TierLabel tiers="Enterprise" />
@@ -11,7 +11,9 @@ import TierLabel from "../_components/TierLabel";
 
 # Cluster Management: Introduction
 
-Weave GitOps Enterprise (WGE) makes it possible for you to deploy the same application into many different clusters across cloud and hybrid environments. Cluster lifecycle management is done declaratively via GitOps, and WGE simplifies this process by providing both a user interface (UI) and a command line interface (CLI) to interact with and manage these clusters. You can even use our UI to delete clusters—all it takes is the press of a button that spins up a pull request.
+In line with the mantra “cattle, not pets,” Weave GitOps Enterprise (WGE) simplifies managing cluster lifecycle at scale—even massive scale. Through pull requests, which make every action recorded and auditable, WGE makes it possible for teams to create, update, and delete clusters across entire fleets. WGE further simplifies the cluster lifecycle management process by providing both a user interface (UI) and a command line interface (CLI) to interact with and manage clusters on-prem, across clouds, and in hybrid environments. You can even use our UI to delete clusters—all it takes is the press of a button that spins up a pull request.
+
+Through Git pull requests, every action is recorded and auditable, which allows small teams to create, update and delete clusters across whole fleets. In short, it makes things harder to break and easier to recover.
 
 WGE fully supports a range of options, including:
 - [Crossplane](https://www.crossplane.io/) integration

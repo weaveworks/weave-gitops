@@ -16,7 +16,9 @@ import BrowserOnly from "@docusaurus/BrowserOnly";
 
 # Deploying CAPA with EKS
 
-Weave GitOps leverages [Cluster API](https://cluster-api.sigs.k8s.io/introduction.html) providers to enable leaf cluster creation. Cluster API provides declarative APIs, controllers, and tooling to manage the lifecycle of Kubernetes clusters across a large number of [infrastructure providers](https://cluster-api.sigs.k8s.io/reference/providers.html#infrastructure). Cluster API custom resource definitions (CRDs) are platform-independent as each provider implementation handles the creation of virtual machines, VPCs, networks, and other required infrastructure parts—enabling consistent and repeatable cluster deployments.
+Weave GitOps Enterprise can leverage [Cluster API](https://cluster-api.sigs.k8s.io/introduction.html) providers to enable leaf cluster creation. Cluster API provides declarative APIs, controllers, and tooling to manage the lifecycle of Kubernetes clusters across a large number of [infrastructure providers](https://cluster-api.sigs.k8s.io/reference/providers.html#infrastructure). Cluster API custom resource definitions (CRDs) are platform-independent as each provider implementation handles the creation of virtual machines, VPCs, networks, and other required infrastructure parts—enabling consistent and repeatable cluster deployments.
+
+As an AWS advanced technology partner, Weaveworks has been working tirelessly to ensure that deploying EKS **anywhere** is smooth and removes the barriers to application modernization.
 
 ## Prerequisites
 
@@ -93,7 +95,7 @@ See [CAPI Templates](gitops-templates/intro.mdx) page for more details on this t
 
 import CapaTemplate from "!!raw-loader!./assets/templates/capa-template.yaml";
 
-Download the template below to your config repository path, then commit and push to your git origin.
+Download the template below to your config repository path, then commit and push to your Git origin.
 
 <BrowserOnly>
   {() => (
@@ -122,7 +124,7 @@ This step ensures that Flux gets installed into your cluster. Create a cluster 
 
 import CapiGitopsCDC from "!!raw-loader!./assets/bootstrap/capi-gitops-cluster-bootstrap-config.yaml";
 
-Download the config with
+Download the config with:
 
 <BrowserOnly>
   {() => (
