@@ -1,14 +1,18 @@
 import { Drawer } from "@material-ui/core";
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import styled from "styled-components";
 import { AppContext } from "../contexts/AppContext";
 import DetailModal from "./DetailModal";
 import Flex from "./Flex";
+import useNavigation from "../hooks/navigation";
+import { getParentNavRouteValue } from "../lib/nav";
+import Nav, { NavItem } from "./Nav";
+import Logo from "./Logo";
 
 type Props = {
   className?: string;
-  logo?: JSX.Element;
-  nav?: JSX.Element;
+  logoLink?: string;
+  navItems?: NavItem[];
   children?: any;
 };
 
@@ -25,16 +29,24 @@ const Main = styled(Flex)`
   box-sizing: border-box;
 `;
 
-function Layout({ className, logo, nav, children }: Props) {
+function Layout({ className, logoLink, navItems, children }: Props) {
+  const [collapsed, setCollapsed] = useState<boolean>(false);
   const { appState, setDetailModal } = useContext(AppContext);
   const detail = appState.detailModal;
+  const { currentPage } = useNavigation();
+  const value = getParentNavRouteValue(currentPage);
 
   return (
     <AppContainer className={className}>
       <Main wide tall>
         <Flex column tall>
-          {logo}
-          {nav}
+          <Logo collapsed={collapsed} link={logoLink} />
+          <Nav
+            navItems={navItems}
+            collapsed={collapsed}
+            setCollapsed={setCollapsed}
+            currentPage={value}
+          />
         </Flex>
         {children}
       </Main>
