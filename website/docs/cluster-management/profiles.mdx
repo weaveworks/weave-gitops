@@ -101,7 +101,7 @@ spec:
   url: https://weaveworks.github.io/weave-gitops-profile-examples/
 ```
 
-To use private repositories with restricted access, you can use a [secret synced](../secrets/bootstraping-secrets.mdx) to the target leaf cluster. SecretSync references the secret as `spec.secretRef`. The labels of your target leaf cluster are added for the syncer to match clusters against those labels using `spec.clusterSelector.matchLabels`.
+To use private repositories with restricted access, you can use a [secret synced](../secrets/bootstrapping-secrets.mdx) to the target leaf cluster. SecretSync references the secret as `spec.secretRef`. The labels of your target leaf cluster are added for the syncer to match clusters against those labels using `spec.clusterSelector.matchLabels`.
 ```yaml title="SecretSync.yaml"
 apiVersion: capi.weave.works/v1alpha1
 kind: SecretSync

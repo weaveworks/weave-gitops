@@ -52,7 +52,7 @@ spec:
 
 ### Clusters
 
-Explorer watches the [GitopsClusters](https://docs.gitops.weave.works/docs/next/cluster-management/managing-existing-clusters/#connect-a-cluster)
+Explorer watches the [GitopsClusters](https://docs.gitops.weave.works/docs/next/cluster-management/managing-clusters-without-capi/#connect-a-cluster)
 that you have connected to Weave Gitops Enterprise, as well as your Management cluster.
 
 ### Kinds
@@ -93,7 +93,7 @@ Query results are filtered honouring the access determined via RBAC.
 
 ## Authentication and Authorization for collecting
 
-[GitopsClusters](../cluster-management/managing-existing-clusters.mdx#connect-a-cluster)
+[GitopsClusters](../cluster-management/managing-clusters-without-capi.mdx#connect-a-cluster)
 define the connection and security context that Explorer leverages to collect data from leaf clusters. Given that you have followed the indications
 in [setup RBAC](../configuration/service-account-permissions.mdx), the GitopsCluster service account is able to impersonate any user or group.
 

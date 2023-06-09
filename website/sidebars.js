@@ -222,7 +222,7 @@
       items: [
         'secrets/intro',
         'secrets/getting-started',
-        'secrets/bootstraping-secrets',
+        'secrets/bootstrapping-secrets',
         'secrets/setup-eso',
         'secrets/setup-sops',
         'secrets/manage-secrets-ui',
@@ -266,7 +266,6 @@
             'gitops-templates/params',
             'gitops-templates/supported-langs',
             'gitops-templates/create-cluster-example',
-            'gitops-templates/capd-example',
           ],
         },
         'gitops-templates/cli',

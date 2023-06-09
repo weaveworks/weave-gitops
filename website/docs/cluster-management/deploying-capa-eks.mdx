@@ -30,25 +30,11 @@ You'll need to install the following software before continuing with these instr
 - the AWS Command Line Interface/`aws cli` [(source)](https://aws.amazon.com/cli/)
 - `clusterctl` >= v1.0.1 [(source)](https://github.com/kubernetes-sigs/cluster-api/releases); follow [these steps](https://cluster-api-aws.sigs.k8s.io/getting-started.html#install-clusterctl) to initialise the cluster and enable feature gates
 - `clusterawsadm` >= v1.1.0, following [Cluster API's instructions](https://github.com/kubernetes-sigs/cluster-api-provider-aws/releases)
-- Make sure you have a management cluster. If you followed the Weave GitOps Enterprise [installation guide](../../enterprise/getting-started/install-enterprise.mdx), you'll have done this already.
+- Make sure you have a management cluster. If you followed the Weave GitOps Enterprise [installation guide](../enterprise/getting-started/install-enterprise.mdx), you'll have done this already.
 - Configure your `AWS_ACCESS_KEY_ID`and `AWS_SECRET_ACCESS_KEY` with either `aws configure` or by exporting it in the current shell.
 - Set the `GITHUB_TOKEN` as an environment variable in the current shell. It should have permissions to create Pull Requests against the cluster config repo.
 
-## 1. Configure CAPA
-
-Here we'll continue with our example, using `eks` and `capa`. (See the [Cluster API Providers](cluster-management/cluster-api-providers.mdx) page for more details on providers.)
-
-```bash
-# Enable support for `ClusterResourceSet`s for automatically installing CNIs
-export EXP_EKS=true
-export EXP_MACHINE_POOL=true
-export CAPA_EKS_IAM=true
-export EXP_CLUSTER_RESOURCE_SET=true
-
-clusterctl init --infrastructure aws
-```
-
-### Multitenancy
+## Multitenancy
 
 Some Cluster API providers allow you to choose the account or identity that the new cluster will be created with. This is often referred to as _Multi-tenancy_ in the CAPI world. Weave GitOps currently supports:
 
