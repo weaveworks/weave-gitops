@@ -1,30 +1,29 @@
 import AddIcon from "@material-ui/icons/Add";
-import ArrowDropDownIcon from "@material-ui/icons/ArrowDropDown";
 import ArrowDownwardRoundedIcon from "@material-ui/icons/ArrowDownwardRounded";
-import ArrowUpwardRoundedIcon from "@material-ui/icons/ArrowUpwardRounded";
+import ArrowDropDownIcon from "@material-ui/icons/ArrowDropDown";
 import ArrowUpwardIcon from "@material-ui/icons/ArrowUpward";
-import KeyboardArrowRightIcon from "@material-ui/icons/KeyboardArrowRight";
-import KeyboardArrowDownIcon from "@material-ui/icons/KeyboardArrowDown";
+import ArrowUpwardRoundedIcon from "@material-ui/icons/ArrowUpwardRounded";
+import CallMade from "@material-ui/icons/CallMade";
+import CallReceived from "@material-ui/icons/CallReceived";
 import CheckCircleIcon from "@material-ui/icons/CheckCircle";
 import ClearIcon from "@material-ui/icons/Clear";
 import DeleteIcon from "@material-ui/icons/Delete";
+import EditIcon from "@material-ui/icons/Edit";
 import ErrorIcon from "@material-ui/icons/Error";
 import LogoutIcon from "@material-ui/icons/ExitToApp";
 import FileCopyIcon from "@material-ui/icons/FileCopyOutlined";
 import FilterIcon from "@material-ui/icons/FilterList";
 import HourglassFullIcon from "@material-ui/icons/HourglassFull";
+import KeyboardArrowDownIcon from "@material-ui/icons/KeyboardArrowDown";
+import KeyboardArrowRightIcon from "@material-ui/icons/KeyboardArrowRight";
 import LaunchIcon from "@material-ui/icons/Launch";
 import NavigateBeforeIcon from "@material-ui/icons/NavigateBefore";
 import NavigateNextIcon from "@material-ui/icons/NavigateNext";
 import PauseIcon from "@material-ui/icons/Pause";
 import PersonIcon from "@material-ui/icons/Person";
 import PlayIcon from "@material-ui/icons/PlayArrow";
-import RemoveCircleIcon from "@material-ui/icons/RemoveCircle";
-import CallReceived from "@material-ui/icons/CallReceived";
-import CallMade from "@material-ui/icons/CallMade";
 import Remove from "@material-ui/icons/Remove";
-import VerifiedUser from "@material-ui/icons/VerifiedUser";
-import Policy from "@material-ui/icons/Policy";
+import RemoveCircleIcon from "@material-ui/icons/RemoveCircle";
 import SaveAltIcon from "@material-ui/icons/SaveAlt";
 import SearchIcon from "@material-ui/icons/Search";
 import SkipNextIcon from "@material-ui/icons/SkipNext";
@@ -110,8 +109,7 @@ export enum IconType {
   CallReceived,
   CallMade,
   Remove,
-  VerifiedUser,
-  Policy,
+  EditIcon,
 }
 
 type Props = {
@@ -282,11 +280,8 @@ function getIcon(i: IconType) {
     case IconType.Remove:
       return Remove;
 
-    case IconType.VerifiedUser:
-      return VerifiedUser;
-
-    case IconType.Policy:
-      return Policy;
+    case IconType.EditIcon:
+      return EditIcon;
 
     default:
       break;
