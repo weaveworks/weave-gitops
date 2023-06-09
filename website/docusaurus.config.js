@@ -39,7 +39,7 @@ module.exports = {
         redirects: [
           // /docs/oldDoc -> /docs/newDoc
           {
-            to: '/docs/getting-started/intro/',
+            to: '/docs/intro-weave-gitops/',
             from: ['/docs/getting-started'],
           },
         ],
@@ -56,7 +56,7 @@ module.exports = {
       items: [
         {
           type: "doc",
-          docId: "intro",
+          docId: "intro-weave-gitops",
           position: "left",
           label: "Docs",
         },

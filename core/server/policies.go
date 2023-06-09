@@ -81,14 +81,15 @@ func policyToPolicyRespone(policyCRD pacv2beta2.Policy, clusterName string, full
 	policySpec := policyCRD.Spec
 
 	policy := &pb.PolicyObj{
-		Name:      policySpec.Name,
-		Id:        policySpec.ID,
-		Category:  policySpec.Category,
-		Tags:      policySpec.Tags,
-		Severity:  policySpec.Severity,
-		CreatedAt: policyCRD.CreationTimestamp.Format(time.RFC3339),
-		Tenant:    policyCRD.GetLabels()["toolkit.fluxcd.io/tenant"],
-		Modes:     policyCRD.Status.Modes,
+		Name:        policySpec.Name,
+		Id:          policySpec.ID,
+		Category:    policySpec.Category,
+		Tags:        policySpec.Tags,
+		Severity:    policySpec.Severity,
+		CreatedAt:   policyCRD.CreationTimestamp.Format(time.RFC3339),
+		Tenant:      policyCRD.GetLabels()["toolkit.fluxcd.io/tenant"],
+		Modes:       policyCRD.Status.Modes,
+		ClusterName: clusterName,
 	}
 
 	if fullDetails {
@@ -131,7 +132,6 @@ func policyToPolicyRespone(policyCRD pacv2beta2.Policy, clusterName string, full
 			Labels:     policyLabels,
 		}
 		policy.Parameters = policyParams
-		policy.ClusterName = clusterName
 	}
 
 	return policy, nil

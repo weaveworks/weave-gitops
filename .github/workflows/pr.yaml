@@ -140,13 +140,13 @@ jobs:
           - gitops-server
     steps:
       - uses: actions/checkout@v3
-      - uses: docker/setup-buildx-action@v1
+      - uses: docker/setup-buildx-action@v2
       - name: Set build-time flags
         run: |
           echo "LDFLAGS=$(make echo-ldflags)" >> $GITHUB_ENV
           echo "FLUX_VERSION=$(make echo-flux-version)" >> $GITHUB_ENV
       - name: Build and export
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3
         with:
           tags: "${{ env.CI_CONTAINER_REPOSITORY }}/${{ matrix.docker-image }}:${{ needs.ci-generate-tag.outputs.tag }}"
           outputs: type=docker,dest=/tmp/${{ matrix.docker-image }}.tar
@@ -178,8 +178,8 @@ jobs:
           - gitops
           - gitops-server
     steps:
-      - uses: docker/setup-buildx-action@v1
-      - uses: google-github-actions/setup-gcloud@v0
+      - uses: docker/setup-buildx-action@v2
+      - uses: google-github-actions/setup-gcloud@v1
       - name: Download cached docker image
         uses: actions/download-artifact@v3
         with:
@@ -223,7 +223,7 @@ jobs:
       run: |
         make gitops
     - name: publish to s3
-      uses: aws-actions/configure-aws-credentials@v1
+      uses: aws-actions/configure-aws-credentials@v2
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
