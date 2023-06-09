@@ -92,16 +92,15 @@ The following metrics are available to monitor the collecting path
 
 The metric `collector_cluster_watcher` provides the status of the clusters that collector is watching with the following
 labels:
-- Name: name of the cluster (ie: management).
-- Host: Kubernetes API Server URL  (ie: host="https://F97364D6B48F2fasdf64A0272CB4D349F.gr7.eu-north-1.eks.amazonaws.com/).
+- Cluster: name of the cluster (ie: management).
 - Status: cluster watcher status. It could be any of the following: Started, Starting, Stopped, Stopping, Failed.
 
 ```
-collector_cluster_watcher{host="https://10.96.0.1:443", name="management", status="Failed"} 0
-collector_cluster_watcher{host="https://10.96.0.1:443", name="management", status="Started"} 1
-collector_cluster_watcher{host="https://10.96.0.1:443", name="management", status="Starting"} 0
-collector_cluster_watcher{host="https://10.96.0.1:443", name="management", status="Stopped"} 0
-collector_cluster_watcher{host="https://10.96.0.1:443", name="management", status="Stopping"} 0
+collector_cluster_watcher{cluster="management", status="Failed"} 0
+collector_cluster_watcher{cluster="management", status="Started"} 1
+collector_cluster_watcher{cluster="management", status="Starting"} 0
+collector_cluster_watcher{cluster="management", status="Stopped"} 0
+collector_cluster_watcher{cluster="management", status="Stopping"} 0
 ```
 
 ### Dashboard
