@@ -2,10 +2,10 @@ import { Drawer } from "@material-ui/core";
 import React, { useContext, useState } from "react";
 import styled from "styled-components";
 import { AppContext } from "../contexts/AppContext";
-import DetailModal from "./DetailModal";
-import Flex from "./Flex";
 import useNavigation from "../hooks/navigation";
 import { getParentNavRouteValue } from "../lib/nav";
+import DetailModal from "./DetailModal";
+import Flex from "./Flex";
 import Nav, { NavItem } from "./Nav";
 import Logo from "./Logo";
 
