@@ -279,7 +279,7 @@ function UnstyledDataTable({
       </TopBar>
       <Flex wide tall>
         <TableContainer>
-          <Table aria-label="simple table">
+          <Table id={id} aria-label="simple table">
             <TableHead>
               <TableRow>
                 {checkboxes && (
