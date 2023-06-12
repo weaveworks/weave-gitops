@@ -33,6 +33,8 @@ import styled from "styled-components";
 import images from "../lib/images";
 import DocsIcon from "./NavIcons/DocsIcon";
 // eslint-disable-next-line
+import Policy from "@material-ui/icons/Policy";
+import VerifiedUser from "@material-ui/icons/VerifiedUser";
 import { colors, fontSizes, spacing } from "../typedefs/styled";
 import Flex from "./Flex";
 import ApplicationsIcon from "./NavIcons/ApplicationsIcon";
@@ -110,6 +112,8 @@ export enum IconType {
   CallMade,
   Remove,
   EditIcon,
+  VerifiedUser,
+  Policy,
 }
 
 type Props = {
@@ -255,6 +259,12 @@ function getIcon(i: IconType) {
 
     case IconType.PolicyConfigsIcon:
       return PolicyConfigsIcon;
+
+    case IconType.VerifiedUser:
+      return VerifiedUser;
+
+    case IconType.Policy:
+      return Policy;
 
     case IconType.SecretsIcon:
       return SecretsIcon;
