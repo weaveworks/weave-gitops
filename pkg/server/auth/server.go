@@ -13,6 +13,7 @@ import (
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/go-logr/logr"
+	"github.com/weaveworks/weave-gitops/core/logger"
 	"github.com/weaveworks/weave-gitops/pkg/featureflags"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/oauth2"
@@ -365,11 +366,14 @@ func (s *AuthServer) Callback(rw http.ResponseWriter, r *http.Request) {
 func (s *AuthServer) setCookies(rw http.ResponseWriter, idToken, accessToken, refreshToken string) {
 	// Issue ID token cookie
 	baseExpiry := s.cookieExpiryTime()
+	s.Log.V(logger.LogLevelDebug).Info("setting ID token cookie", "size", len(idToken))
 	http.SetCookie(rw, s.createCookie(IDTokenCookieName, idToken, baseExpiry))
+	s.Log.V(logger.LogLevelDebug).Info("setting access token cookie", "size", len(accessToken))
 	http.SetCookie(rw, s.createCookie(AccessTokenCookieName, accessToken, baseExpiry))
 	// Make the Refresh token expire after the ID token so that we have a
 	// token we can refresh with.
 
+	s.Log.V(logger.LogLevelDebug).Info("setting refresh token cookie", "size", len(refreshToken))
 	http.SetCookie(rw, s.createCookie(RefreshTokenCookieName, refreshToken, baseExpiry.Add(time.Hour)))
 }
 
@@ -449,7 +453,7 @@ func (s *AuthServer) UserInfo(rw http.ResponseWriter, r *http.Request) {
 
 	c, err := r.Cookie(IDTokenCookieName)
 	if err != nil {
-		s.Log.Error(err, "Failed to get cookie from request")
+		s.Log.Error(err, "failed to get ID Token cookie from request")
 		rw.WriteHeader(http.StatusBadRequest)
 
 		return
@@ -475,7 +479,7 @@ func (s *AuthServer) UserInfo(rw http.ResponseWriter, r *http.Request) {
 
 	info, err := s.verifier().Verify(r.Context(), c.Value)
 	if err != nil {
-		s.Log.Error(err, "failed to parse user id token")
+		s.Log.Error(err, "failed to parse user ID token")
 		JSONError(s.Log, rw, fmt.Sprintf("failed to parse id token: %v", err), http.StatusUnauthorized)
 
 		return
