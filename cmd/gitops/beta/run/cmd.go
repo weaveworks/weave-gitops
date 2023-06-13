@@ -358,6 +358,9 @@ func dashboardStep(ctx context.Context, log logger.Logger, kubeClient *kube.Kube
 	dashboardType, dashboardName, err := install.GetInstalledDashboard(ctx, kubeClient, flags.Namespace, map[install.DashboardType]bool{
 		install.DashboardTypeOSS: true, install.DashboardTypeEnterprise: true,
 	})
+	if err != nil {
+		return dashboardType, nil, "", fmt.Errorf("error getting installed dashboard: %w", err)
+	}
 
 	shouldReconcileDashboard := false
 	var dashboardManifests []byte
