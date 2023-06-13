@@ -176,8 +176,7 @@ var _ = Describe("GetInstalledDashboard", func() {
 		dashboardType, dashboardName, err := GetInstalledDashboard(fakeContext, fakeClientWithHelmReleases, testNamespace, map[DashboardType]bool{
 			DashboardTypeOSS: true,
 		})
-		Expect(err).To(HaveOccurred())
-		Expect(errors.Is(err, ErrDashboardInstalled)).To(BeTrue())
+		Expect(err).ToNot(HaveOccurred())
 		Expect(dashboardType).To(Equal(DashboardTypeOSS))
 		Expect(dashboardName).To(Equal("dashboard-2"))
 	})
@@ -186,8 +185,7 @@ var _ = Describe("GetInstalledDashboard", func() {
 		dashboardType, dashboardName, err := GetInstalledDashboard(fakeContext, fakeClientWithHelmReleases, testNamespace, map[DashboardType]bool{
 			DashboardTypeEnterprise: true,
 		})
-		Expect(err).To(HaveOccurred())
-		Expect(errors.Is(err, ErrDashboardInstalled)).To(BeTrue())
+		Expect(err).ToNot(HaveOccurred())
 		Expect(dashboardType).To(Equal(DashboardTypeEnterprise))
 		Expect(dashboardName).To(Equal("dashboard-3"))
 	})
@@ -197,8 +195,7 @@ var _ = Describe("GetInstalledDashboard", func() {
 			DashboardTypeOSS:        true,
 			DashboardTypeEnterprise: true,
 		})
-		Expect(err).To(HaveOccurred())
-		Expect(errors.Is(err, ErrDashboardInstalled)).To(BeTrue())
+		Expect(err).ToNot(HaveOccurred())
 		Expect(dashboardType).To(Equal(DashboardTypeEnterprise))
 		Expect(dashboardName).To(Equal("dashboard-3"))
 	})
@@ -207,8 +204,7 @@ var _ = Describe("GetInstalledDashboard", func() {
 		dashboardType, dashboardName, err := GetInstalledDashboard(fakeContext, fakeClientWithDeployments, testNamespace, map[DashboardType]bool{
 			DashboardTypeOSS: true,
 		})
-		Expect(err).To(HaveOccurred())
-		Expect(errors.Is(err, ErrDashboardInstalled)).To(BeTrue())
+		Expect(err).ToNot(HaveOccurred())
 		Expect(dashboardType).To(Equal(DashboardTypeOSS))
 		Expect(dashboardName).To(BeEmpty())
 	})
@@ -217,8 +213,7 @@ var _ = Describe("GetInstalledDashboard", func() {
 		dashboardType, dashboardName, err := GetInstalledDashboard(fakeContext, fakeClientWithDeployments, testNamespace, map[DashboardType]bool{
 			DashboardTypeEnterprise: true,
 		})
-		Expect(err).To(HaveOccurred())
-		Expect(errors.Is(err, ErrDashboardInstalled)).To(BeTrue())
+		Expect(err).ToNot(HaveOccurred())
 		Expect(dashboardType).To(Equal(DashboardTypeEnterprise))
 		Expect(dashboardName).To(BeEmpty())
 	})
@@ -228,8 +223,7 @@ var _ = Describe("GetInstalledDashboard", func() {
 			DashboardTypeOSS:        true,
 			DashboardTypeEnterprise: true,
 		})
-		Expect(err).To(HaveOccurred())
-		Expect(errors.Is(err, ErrDashboardInstalled)).To(BeTrue())
+		Expect(err).ToNot(HaveOccurred())
 		Expect(dashboardType).To(Equal(DashboardTypeEnterprise))
 		Expect(dashboardName).To(BeEmpty())
 	})
