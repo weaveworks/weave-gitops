@@ -92,7 +92,7 @@ function Page({ children, loading, error, className, path }: PageProps) {
                 <Errors error={error} />
                 {children}
               </Children>
-              {settings.renderFooter && <Footer />}
+              {settings.footer}
             </>
           )}
         </Content>

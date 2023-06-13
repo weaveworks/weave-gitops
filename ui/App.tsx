@@ -49,6 +49,7 @@ import Sources from "./pages/v2/Sources";
 import UserInfo from "./pages/v2/UserInfo";
 import { NavItem } from "./components/Nav";
 import { IconType } from "./components/Icon";
+import Footer from "./components/Footer";
 
 const queryClient = new QueryClient();
 
@@ -206,7 +207,7 @@ export default function AppContainer() {
   return (
     <QueryClientProvider client={queryClient}>
       <Router>
-        <AppContextProvider renderFooter>
+        <AppContextProvider footer={<Footer />}>
           <StylesProvider>
             <AuthContextProvider>
               <CoreClientContextProvider api={Core}>
