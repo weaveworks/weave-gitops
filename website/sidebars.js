@@ -28,6 +28,7 @@
             'open-source/getting-started/install-OSS',
             'open-source/getting-started/ui-OSS',
             'open-source/getting-started/deploy-OSS',
+            'enterprise/getting-started/aws-marketplace',
           ],
         },
         {
@@ -40,7 +41,6 @@
           items: [
             'enterprise/getting-started/install-enterprise',
             'enterprise/getting-started/install-enterprise-airgap',
-            'enterprise/getting-started/aws-marketplace',
             'enterprise/getting-started/releases-enterprise',
           ],
         },
