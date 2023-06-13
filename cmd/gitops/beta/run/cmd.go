@@ -328,9 +328,9 @@ func fluxStep(log logger.Logger, kubeClient *kube.KubeHTTP) (fluxVersion *instal
 		}, true, nil
 	} else {
 		if guessed {
-			log.Warningf("Flux version could not be determined, assuming %s by mapping from the version of the Source controller", fluxVersion)
+			log.Warningf("Flux version could not be determined, assuming %s and namespace %s by mapping from the version of the Source controller %s", fluxVersion.FluxVersion, fluxVersion.FluxNamespace, fluxVersion.SourceControllerVersion)
 		} else {
-			log.Successf("Flux %s is already installed", fluxVersion)
+			log.Successf("Flux %s is already installed on the %s namespace.", fluxVersion.FluxVersion, fluxVersion.FluxNamespace)
 		}
 	}
 
