@@ -3,6 +3,7 @@ package dashboard
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -197,10 +198,10 @@ func createDashboardCommandRunE(opts *config.Options) func(*cobra.Command, []str
 			return cmderrors.ErrGetKubeClient
 		}
 
-		log.Actionf("Checking if Flux is already installed ...")
-
 		ctx, cancel := context.WithTimeout(context.Background(), flags.Timeout)
 		defer cancel()
+
+		log.Actionf("Checking if Flux is already installed ...")
 
 		if fluxVersion, guessed, err := install.GetFluxVersion(ctx, log, kubeClient); err != nil {
 			log.Failuref("Flux is not found")
@@ -211,6 +212,19 @@ func createDashboardCommandRunE(opts *config.Options) func(*cobra.Command, []str
 			} else {
 				log.Successf("Flux %s is already installed", fluxVersion)
 			}
+		}
+
+		if dashboardType, _, err := install.GetInstalledDashboard(ctx, kubeClient, flags.Namespace, map[install.DashboardType]bool{
+			install.DashboardTypeOSS: true, install.DashboardTypeEnterprise: true,
+		}); err != nil && !errors.Is(err, install.ErrDashboardInstalled) {
+			log.Failuref("Error getting installed dashboard")
+			return err
+		} else if dashboardType == install.DashboardTypeEnterprise {
+			log.Warningf("GitOps Enterprise Dashboard was found. GitOps OSS Dashboard will not be installed")
+			return install.ErrDashboardInstalled
+		} else if dashboardType == install.DashboardTypeOSS {
+			log.Warningf("GitOps Dashboard was found. GitOps Dashboard will not be installed")
+			return install.ErrDashboardInstalled
 		}
 
 		log.Actionf("Applying GitOps Dashboard manifests")
