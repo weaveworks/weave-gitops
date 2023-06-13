@@ -6,7 +6,6 @@ import { MultiRequestError, RequestError } from "../lib/types";
 import Alert from "./Alert";
 import Breadcrumbs, { Breadcrumb } from "./Breadcrumbs";
 import Flex from "./Flex";
-import Footer from "./Footer";
 import LoadingPage from "./LoadingPage";
 import Spacer from "./Spacer";
 import UserSettings from "./UserSettings";
