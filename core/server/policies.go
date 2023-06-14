@@ -77,18 +77,19 @@ func getPolicyParamValue(param pacv2beta2.PolicyParameters, policyID string) (*a
 	return anyValue, nil
 }
 
-func policyToPolicyRespone(policyCRD pacv2beta2.Policy, clusterName string, fullDetails bool) (*pb.Policy, error) {
+func policyToPolicyRespone(policyCRD pacv2beta2.Policy, clusterName string, fullDetails bool) (*pb.PolicyObj, error) {
 	policySpec := policyCRD.Spec
 
-	policy := &pb.Policy{
-		Name:      policySpec.Name,
-		Id:        policySpec.ID,
-		Category:  policySpec.Category,
-		Tags:      policySpec.Tags,
-		Severity:  policySpec.Severity,
-		CreatedAt: policyCRD.CreationTimestamp.Format(time.RFC3339),
-		Tenant:    policyCRD.GetLabels()["toolkit.fluxcd.io/tenant"],
-		Modes:     policyCRD.Status.Modes,
+	policy := &pb.PolicyObj{
+		Name:        policySpec.Name,
+		Id:          policySpec.ID,
+		Category:    policySpec.Category,
+		Tags:        policySpec.Tags,
+		Severity:    policySpec.Severity,
+		CreatedAt:   policyCRD.CreationTimestamp.Format(time.RFC3339),
+		Tenant:      policyCRD.GetLabels()["toolkit.fluxcd.io/tenant"],
+		Modes:       policyCRD.Status.Modes,
+		ClusterName: clusterName,
 	}
 
 	if fullDetails {
@@ -131,7 +132,6 @@ func policyToPolicyRespone(policyCRD pacv2beta2.Policy, clusterName string, full
 			Labels:     policyLabels,
 		}
 		policy.Parameters = policyParams
-		policy.ClusterName = clusterName
 	}
 
 	return policy, nil
@@ -185,7 +185,7 @@ func (cs *coreServer) ListPolicies(ctx context.Context, m *pb.ListPoliciesReques
 	continueToken = clist.GetContinue()
 	lists = clist.Lists()
 
-	var policies []*pb.Policy
+	var policies []*pb.PolicyObj
 	for clusterName, lists := range lists {
 		for _, l := range lists {
 			list, ok := l.(*pacv2beta2.PolicyList)
@@ -231,7 +231,7 @@ func (cs *coreServer) GetPolicy(ctx context.Context, m *pb.GetPolicyRequest) (*p
 		return nil, fmt.Errorf("error while getting policy %s from cluster %s: %w", m.PolicyName, m.ClusterName, err)
 	}
 
-	var policy *pb.Policy
+	var policy *pb.PolicyObj
 
 	policy, err = policyToPolicyRespone(policyCR, m.ClusterName, true)
 	if err != nil {

@@ -242,15 +242,16 @@ message PolicyValidation {
     string   severity                               = 5;
     string   createdAt                              = 6;
     string   entity                                 = 7;
-    string   namespace                              = 8;
-    string   violatingEntity                        = 9;
-    string   description                            = 10;
-    string   howToSolve                             = 11;
-    string   name                                   = 12;
-    string   clusterName                            = 13;
-    repeated PolicyValidationOccurrence occurrences = 14;
-    string   policyId                               = 15;
-    repeated PolicyValidationParam parameters       = 16;
+    string   entityKind                             = 8;
+    string   namespace                              = 9;
+    string   violatingEntity                        = 10;
+    string   description                            = 11;
+    string   howToSolve                             = 12;
+    string   name                                   = 13;
+    string   clusterName                            = 14;
+    repeated PolicyValidationOccurrence occurrences = 15;
+    string   policyId                               = 16;
+    repeated PolicyValidationParam parameters       = 17;
 }
 
 message ListPolicyValidationsRequest {
@@ -462,7 +463,7 @@ message ListPoliciesRequest {
 }
 
 message ListPoliciesResponse {
-    repeated Policy policies = 1;
+    repeated PolicyObj policies = 1;
     int32 total = 2;
     string nextPageToken = 3;
     repeated ListError errors = 4;
@@ -474,11 +475,11 @@ message GetPolicyRequest {
 }
 
 message GetPolicyResponse {
-    Policy policy = 1;
+    PolicyObj policy = 1;
     string clusterName = 2;
 }
 
-message Policy {
+message PolicyObj {
     string name = 1;
     string id = 2;
     string code = 3;
