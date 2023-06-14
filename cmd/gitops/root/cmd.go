@@ -19,6 +19,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/beta"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/beta/run"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/breakglass"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/check"
 	cfg "github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/create"
@@ -168,6 +169,7 @@ func RootCmd() *cobra.Command {
 	rootCmd.AddCommand(resume.Command(options))
 	rootCmd.AddCommand(run.RunCommand(options))
 	rootCmd.AddCommand(suspend.Command(options))
+	rootCmd.AddCommand(breakglass.Command(options))
 
 	return rootCmd
 }
