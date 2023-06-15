@@ -33,7 +33,7 @@ const PolicyMode = ({ modeName, showName = false }: Props) => {
   }
   return (
     <Flex alignItems="center" start gap="4">
-      <span title={!showName && capitalizeFirstLetter(mode.name)}>
+      <span title={!showName ? capitalizeFirstLetter(mode.name) : undefined}>
         {mode.icon}
       </span>
       {showName && (
