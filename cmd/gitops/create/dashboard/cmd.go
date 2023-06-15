@@ -3,7 +3,6 @@ package dashboard
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -210,21 +209,25 @@ func createDashboardCommandRunE(opts *config.Options) func(*cobra.Command, []str
 			if guessed {
 				log.Warningf("Flux version could not be determined, assuming %s by mapping from the version of the Source controller", fluxVersion)
 			} else {
-				log.Successf("Flux %s is already installed", fluxVersion)
+				log.Successf("Flux %s is already installed on the %s namespace.", fluxVersion.FluxVersion, fluxVersion.FluxNamespace)
 			}
 		}
 
-		if dashboardType, _, err := install.GetInstalledDashboard(ctx, kubeClient, flags.Namespace, map[install.DashboardType]bool{
+		dashboardType, _, err := install.GetInstalledDashboard(ctx, kubeClient, flags.Namespace, map[install.DashboardType]bool{
 			install.DashboardTypeOSS: true, install.DashboardTypeEnterprise: true,
-		}); err != nil && !errors.Is(err, install.ErrDashboardInstalled) {
+		})
+		if err != nil {
 			log.Failuref("Error getting installed dashboard")
 			return err
-		} else if dashboardType == install.DashboardTypeEnterprise {
+		}
+
+		switch dashboardType {
+		case install.DashboardTypeEnterprise:
 			log.Warningf("GitOps Enterprise Dashboard was found. GitOps OSS Dashboard will not be installed")
-			return install.ErrDashboardInstalled
-		} else if dashboardType == install.DashboardTypeOSS {
+			return nil
+		case install.DashboardTypeOSS:
 			log.Warningf("GitOps Dashboard was found. GitOps Dashboard will not be installed")
-			return install.ErrDashboardInstalled
+			return nil
 		}
 
 		log.Actionf("Applying GitOps Dashboard manifests")

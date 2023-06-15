@@ -139,7 +139,7 @@ func GetInstalledDashboard(ctx context.Context, kubeClient client.Client, namesp
 
 		if shouldDetectEnterpriseDashboard && chartSpec.Chart == enterpriseDashboardHelmChartName &&
 			chartSpec.SourceRef.Name == enterpriseDashboardHelmRepositoryName {
-			return DashboardTypeEnterprise, helmRelease.Name, ErrDashboardInstalled
+			return DashboardTypeEnterprise, helmRelease.Name, nil
 		}
 
 		if shouldDetectOSSDashboard && chartSpec.Chart == ossDashboardHelmChartName {
@@ -149,7 +149,7 @@ func GetInstalledDashboard(ctx context.Context, kubeClient client.Client, namesp
 	}
 
 	if ossDashboardInstalled {
-		return DashboardTypeOSS, dashboardName, ErrDashboardInstalled
+		return DashboardTypeOSS, dashboardName, nil
 	}
 
 	// Look for dashboard Deployments.
@@ -172,7 +172,7 @@ func GetInstalledDashboard(ctx context.Context, kubeClient client.Client, namesp
 		labels := deployment.GetLabels()
 
 		if shouldDetectEnterpriseDashboard && labels[coretypes.DashboardAppLabel] == enterpriseDashboardAppName {
-			return DashboardTypeEnterprise, "", ErrDashboardInstalled
+			return DashboardTypeEnterprise, "", nil
 		}
 
 		if shouldDetectOSSDashboard && labels[coretypes.DashboardAppLabel] == ossDashboardAppName {
@@ -181,7 +181,7 @@ func GetInstalledDashboard(ctx context.Context, kubeClient client.Client, namesp
 	}
 
 	if ossDashboardInstalled {
-		return DashboardTypeOSS, "", ErrDashboardInstalled
+		return DashboardTypeOSS, "", nil
 	}
 
 	return DashboardTypeNone, "", nil
