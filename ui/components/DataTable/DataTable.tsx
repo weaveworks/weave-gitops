@@ -40,6 +40,8 @@ import { Field, FilterState } from "./types";
 
 /** DataTable Properties  */
 export interface Props {
+  /** The ID of the table. */
+  id?: string;
   /** CSS MUI Overrides or other styling. */
   className?: string;
   /** A list of objects with four fields: `label`, which is a string representing the column header, `value`, which can be a string, or a function that extracts the data needed to fill the table cell, and `sortValue`, which customizes your input to the search function */
@@ -72,6 +74,7 @@ const IconFlex = styled(Flex)`
 
 /** Form DataTable */
 function UnstyledDataTable({
+  id,
   className,
   fields,
   rows,
@@ -275,7 +278,7 @@ function UnstyledDataTable({
         )}
       </TopBar>
       <Flex wide tall>
-        <TableContainer>
+        <TableContainer id={id}>
           <Table aria-label="simple table">
             <TableHead>
               <TableRow>

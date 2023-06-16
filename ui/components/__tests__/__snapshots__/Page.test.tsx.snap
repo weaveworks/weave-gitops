@@ -93,39 +93,6 @@ exports[`Page snapshots default 1`] = `
   justify-content: flex-start;
 }
 
-.c17 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
-  flex-direction: row;
-  -webkit-align-items: start;
-  -webkit-box-align: start;
-  -ms-flex-align: start;
-  align-items: start;
-  width: 100%;
-  -webkit-box-pack: justify;
-  -webkit-justify-content: space-between;
-  -ms-flex-pack: justify;
-  justify-content: space-between;
-}
-
-.c19 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
-  flex-direction: row;
-  -webkit-align-items: start;
-  -webkit-box-align: start;
-  -ms-flex-align: start;
-  align-items: start;
-}
-
 .c6 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 20px;
@@ -133,24 +100,6 @@ exports[`Page snapshots default 1`] = `
   text-transform: none;
   font-style: normal;
   color: #1a1a1a;
-}
-
-.c20 {
-  font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 400;
-  text-transform: none;
-  font-style: normal;
-  white-space: nowrap;
-}
-
-.c23 {
-  font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  font-weight: 400;
-  text-transform: none;
-  font-style: normal;
-  color: #00b3ec;
 }
 
 .c10 svg {
@@ -205,33 +154,11 @@ exports[`Page snapshots default 1`] = `
   width: 24px;
 }
 
-.c21 {
-  padding: 4px;
-}
-
-.c22 {
-  -webkit-text-decoration: none;
-  text-decoration: none;
-}
-
 .c7 {
   max-width: 400px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.c24 {
-  padding-right: 24px;
-}
-
-.c18 {
-  max-width: 100%;
-  box-sizing: border-box;
-  background: #F6F7F9;
-  color: #737373;
-  padding: 24px;
-  border-radius: 0 0 8px 8px;
 }
 
 .c8 .MuiSwitch-thumb {
@@ -432,53 +359,6 @@ exports[`Page snapshots default 1`] = `
       <div
         className="c15 c16"
       />
-      <footer
-        className="c17 c18 Footer"
-        role="footer"
-      >
-        <div
-          className="c19"
-        >
-          <span
-            className="c5 c20"
-            size="medium"
-          >
-            Need help? Contact us at
-          </span>
-          <div
-            className="c21"
-          />
-          <a
-            className="c22 Link"
-            href="mailto:sales@weave.works"
-            rel="noreferrer"
-            target="_blank"
-          >
-            <span
-              className="c5 c23"
-              color="primary"
-              size="medium"
-            >
-              sales@weave.works
-            </span>
-          </a>
-        </div>
-        <div
-          className="c19 c24"
-        >
-          <div
-            className="c21"
-          />
-          <span
-            className="c5 c20"
-            size="medium"
-          >
-            © 
-            2023
-             Weaveworks
-          </span>
-        </div>
-      </footer>
     </div>
   </div>
 </div>

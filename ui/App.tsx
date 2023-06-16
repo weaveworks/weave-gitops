@@ -47,6 +47,9 @@ import PolicyDetailsPage from "./pages/v2/PolicyDetailsPage";
 import ProviderPage from "./pages/v2/ProviderPage";
 import Sources from "./pages/v2/Sources";
 import UserInfo from "./pages/v2/UserInfo";
+import { NavItem } from "./components/Nav";
+import { IconType } from "./components/Icon";
+import Footer from "./components/Footer";
 
 const queryClient = new QueryClient();
 
@@ -58,10 +61,48 @@ function withSearchParams(Cmp) {
   };
 }
 
+const navItems: NavItem[] = [
+  {
+    label: "Applications",
+    link: { value: V2Routes.Automations },
+    icon: IconType.ApplicationsIcon,
+  },
+  {
+    label: "Sources",
+    link: { value: V2Routes.Sources },
+    icon: IconType.SourcesIcon,
+  },
+  {
+    label: "Image Automation",
+    link: { value: V2Routes.ImageAutomation },
+    icon: IconType.ImageAutomationIcon,
+  },
+  {
+    label: "Flux Runtime",
+    link: { value: V2Routes.FluxRuntime },
+    icon: IconType.FluxIcon,
+  },
+  {
+    label: "Notifications",
+    link: { value: V2Routes.Notifications },
+    icon: IconType.NotificationsIcon,
+  },
+  {
+    label: "Docs",
+    link: {
+      value: "docs",
+      href: "https://docs.gitops.weave.works/",
+      newTab: true,
+    },
+    icon: IconType.DocsIcon,
+  },
+];
+
 const App = () => {
   const dark = useInDarkMode();
+
   return (
-    <Layout>
+    <Layout logoLink={V2Routes.Automations} navItems={navItems}>
       <PendoContainer />
       <ErrorBoundary>
         <Switch>
@@ -166,7 +207,7 @@ export default function AppContainer() {
   return (
     <QueryClientProvider client={queryClient}>
       <Router>
-        <AppContextProvider renderFooter>
+        <AppContextProvider footer={<Footer />}>
           <StylesProvider>
             <AuthContextProvider>
               <CoreClientContextProvider api={Core}>
