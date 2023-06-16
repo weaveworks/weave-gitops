@@ -117,7 +117,7 @@ spec:
   targetNamespace: flux-system
 ```
 
-Once the SecretSync and Secret are available, the secret can be directly referenced in the HelmRepsitory object:
+Once the SecretSync and Secret are available, the secret can be directly referenced in the HelmRepository object:
 ```yaml title="PrivateHelmRepository.yaml"
 apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
@@ -130,7 +130,7 @@ spec:
     name: weave-gitops-enterprise-credentials
   url: https://charts.dev.wkp.weave.works/releases/charts-v3
   ```
-**note**: The `HelmRepoSecret`, `SecretSync`, and the `GitopsCluster` should all be in the same namespace.
+**Note**: The `HelmRepoSecret`, `SecretSync`, and the `GitopsCluster` should all be in the same namespace.
 
 ### Select the Profiles You Want Installed at Cluster Creation
 
