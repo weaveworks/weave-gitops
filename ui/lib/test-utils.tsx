@@ -86,7 +86,7 @@ export function withContext(
   window.matchMedia.mockReturnValue({ matches: false });
   return (
     <Router history={history}>
-      <AppContextProvider renderFooter {...appProps}>
+      <AppContextProvider footer={<></>} {...appProps}>
         <QueryClientProvider client={queryClient}>
           <CoreClientContext.Provider
             value={{ api, featureFlags: featureFlags || {} }}
