@@ -2,17 +2,17 @@ import React from "react";
 import remarkGfm from "remark-gfm";
 import { PolicyValidation } from "../../../lib/api/core/core.pb";
 import Flex from "../../Flex";
-// import Link from "../../Link";
 import Text from "../../Text";
 import Timestamp from "../../Timestamp";
 
 import { AppContext } from "../../../contexts/AppContext";
 import { useFeatureFlags } from "../../../hooks/featureflags";
 import { Kind } from "../../../lib/api/core/types.pb";
-// import { formatURL } from "../../../lib/nav";
+import { formatURL } from "../../../lib/nav";
 import { FluxObject } from "../../../lib/objects";
-// import { V2Routes } from "../../../lib/types";
+import { V2Routes } from "../../../lib/types";
 import ClusterDashboardLink from "../../ClusterDashboardLink";
+import Link from "../../Link";
 import HeaderRows, { Header } from "../Utils/HeaderRows";
 import { MarkdownEditor } from "../Utils/MarkdownEditor";
 import Parameters from "../Utils/Parameters";
@@ -43,24 +43,22 @@ export const ViolationDetails = ({
     name,
     clusterName,
     parameters,
-    // policyId,
-    // entityKind,
+    policyId,
   } = violation || {};
-
   const headers: Header[] = [
     {
       rowkey: "Policy Name",
-      // children: (
-      //   <Link
-      //     to={formatURL(V2Routes.PolicyDetailsPage, {
-      //       id: policyId,
-      //       clusterName,
-      //       name,
-      //     })}
-      //   >
-      //     {name}
-      //   </Link>
-      // ),
+      children: (
+        <Link
+          to={formatURL(V2Routes.PolicyDetailsPage, {
+            id: policyId,
+            clusterName,
+            name,
+          })}
+        >
+          {name}
+        </Link>
+      ),
       value: name,
       visible: kind !== Kind.Policy,
     },
@@ -72,22 +70,6 @@ export const ViolationDetails = ({
     {
       rowkey: "Application",
       value: `${namespace}/${entity}`,
-      // children: (
-      //   <Link
-      //     to={formatURL(
-      //       kind[entityKind] === Kind.Kustomization
-      //         ? V2Routes.Kustomization
-      //         : V2Routes.HelmRelease,
-      //       {
-      //         name: entity,
-      //         namespace: namespace,
-      //         clusterName: clusterName,
-      //       }
-      //     )}
-      //   >
-      //     {namespace}/{entity}
-      //   </Link>
-      // ),
       visible: kind !== Kind.Kustomization && kind !== Kind.HelmRelease,
     },
     {
