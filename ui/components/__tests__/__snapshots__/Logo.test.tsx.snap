@@ -37,8 +37,8 @@ exports[`Logo snapshots renders collapsed view 1`] = `
 }
 
 .c1 {
-  padding-left: 12px;
-  height: 65px;
+  padding-left: 16px;
+  height: 60px;
   width: 36px;
   -webkit-transition: width 0.5s;
   transition: width 0.5s;
@@ -126,8 +126,8 @@ exports[`Logo snapshots renders open view 1`] = `
 }
 
 .c1 {
-  padding-left: 12px;
-  height: 65px;
+  padding-left: 16px;
+  height: 60px;
   width: 180px;
   -webkit-transition: width 0.5s;
   transition: width 0.5s;

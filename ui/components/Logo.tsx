@@ -6,6 +6,7 @@ import images from "../lib/images";
 import { V2Routes } from "../lib/types";
 import { Fade } from "../lib/utils";
 import Flex from "./Flex";
+import { topBarHeight } from "./Page";
 
 type Props = {
   className?: string;
@@ -41,8 +42,8 @@ export default styled(Logo)`
     width: auto;
     height: 32px;
   }
-  padding-left: 12px;
-  height: 65px;
+  padding-left: 16px;
+  height: ${topBarHeight};
   width: ${(props) => (props.collapsed ? "36px" : "180px")};
   transition: width 0.5s;
 `;
