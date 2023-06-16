@@ -266,7 +266,7 @@ spec:
     name: demo-01-kubeconfig
 ```
 
-To use the Weave GitOps Enterprise user interface (UI) to inspect the Applications and Sources running on the new cluster, you'll need permissions. We took care of this above when we stored your RBAC rules in `./clusters/bases`. In the following step, we'll create a kustomziation to add these common resources onto our new cluster:
+To use the Weave GitOps Enterprise user interface (UI) to inspect the Applications and Sources running on the new cluster, you'll need permissions. We took care of this above when we stored your RBAC rules in `./clusters/bases`. In the following step, we'll create a kustomization to add these common resources onto our new cluster:
 
 ```yaml title="./clusters/demo-01/clusters-bases-kustomization.yaml"
 apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
