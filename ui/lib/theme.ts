@@ -300,9 +300,9 @@ export const muiTheme = (colors, mode) =>
         },
       },
       MuiInputBase: {
-        input: {
-          border: `1px solid ${colors.neutral20}`,
-        },
+        // input: {
+        //   border: `1px solid ${colors.neutral20}`,
+        // },
       },
     },
   });
