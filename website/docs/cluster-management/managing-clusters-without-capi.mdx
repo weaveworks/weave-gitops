@@ -7,6 +7,8 @@ import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 
 import TierLabel from "../_components/TierLabel";
+import CodeBlock from "@theme/CodeBlock";
+import BrowserOnly from "@docusaurus/BrowserOnly";
 
 # Managing Clusters Without Cluster API <TierLabel tiers="Enterprise" />
 
@@ -84,17 +86,18 @@ Here's how to create a kubeconfig secret.
 
 3. Retrieve the token from the service account. First, run this command to get the list of secrets of the service accounts:
 
-	```sh
+	```bash
 	kubectl get secrets --field-selector type=kubernetes.io/service-account-token
 	NAME                      TYPE                                  DATA   AGE
 	default-token-lsjz4       kubernetes.io/service-account-token   3      13d
 	demo-01-token-gqz7p       kubernetes.io/service-account-token   3      99m
 	```
-(`demo-01-token-gqz7p` is the secret that holds the token for `demo-01` service account.)
 
-Then, run the following command to get the service account token:
+	(`demo-01-token-gqz7p` is the secret that holds the token for `demo-01` service account.)
 
-	```sh
+	Then, run the following command to get the service account token:
+
+	```bash
 	TOKEN=$(kubectl get secret demo-01-token-gqz7p -o jsonpath={.data.token} | base64 -d)
 	```
 
@@ -153,7 +156,7 @@ Then, run the following command to get the service account token:
 
 5. Obtain the cluster certificate (CA). How you do this depends on your cluster. If you're using GKE, for example, you can view the CA on the GCP Console: Cluster->Details->Endpoint->”Show cluster certificate”. You'll need to copy the contents of the certificate into the `ca.crt` file used below.
 
-	```sh
+	```bash
 	CLUSTER_NAME=demo-01 \
 	CA_CERTIFICATE=ca.crt \
 	ENDPOINT=<control-plane-ip-address> \
@@ -169,7 +172,7 @@ Then, run the following command to get the service account token:
 
 7. Finally, create a secret for the generated kubeconfig:
 
-	```sh
+	```bash
 	kubectl create secret generic demo-01-kubeconfig \
 	--from-file=value=./demo-01-kubeconfig
 	```
