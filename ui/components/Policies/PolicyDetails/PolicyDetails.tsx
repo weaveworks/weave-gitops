@@ -115,7 +115,7 @@ const PolicyDetails = ({ policy }: Props) => {
           <SectionWrapper title="Policy Code:">
             <YamlView type="rego" yaml={code} />
           </SectionWrapper>
-          <SectionWrapper title=" Parameters Values:">
+          <SectionWrapper title="Parameters Definition:">
             <Parameters parameters={parameters || []} parameterType="Policy" />
           </SectionWrapper>
         </Flex>

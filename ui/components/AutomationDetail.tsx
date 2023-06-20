@@ -196,6 +196,7 @@ function AutomationDetail({
       },
       visible: true,
     },
+    ...(customTabs?.length ? customTabs : []),
   ];
   return (
     <Flex wide tall column className={className} gap="16">
@@ -280,13 +281,6 @@ function AutomationDetail({
           .map((subRoute, index) => (
             <RouterTab name={subRoute.name} path={subRoute.path} key={index}>
               {subRoute.component()}
-            </RouterTab>
-          ))}
-        {customTabs
-          ?.filter((r) => r.visible)
-          .map((customTab, index) => (
-            <RouterTab name={customTab.name} path={customTab.path} key={index}>
-              {customTab.component()}
             </RouterTab>
           ))}
       </SubRouterTabs>

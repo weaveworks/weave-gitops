@@ -328,9 +328,9 @@ func fluxStep(log logger.Logger, kubeClient *kube.KubeHTTP) (fluxVersion *instal
 		}, true, nil
 	} else {
 		if guessed {
-			log.Warningf("Flux version could not be determined, assuming %s by mapping from the version of the Source controller", fluxVersion)
+			log.Warningf("Flux version could not be determined, assuming %s and namespace %s by mapping from the version of the Source controller %s", fluxVersion.FluxVersion, fluxVersion.FluxNamespace, fluxVersion.SourceControllerVersion)
 		} else {
-			log.Successf("Flux %s is already installed", fluxVersion)
+			log.Successf("Flux %s is already installed on the %s namespace.", fluxVersion.FluxVersion, fluxVersion.FluxNamespace)
 		}
 	}
 
@@ -358,6 +358,9 @@ func dashboardStep(ctx context.Context, log logger.Logger, kubeClient *kube.Kube
 	dashboardType, dashboardName, err := install.GetInstalledDashboard(ctx, kubeClient, flags.Namespace, map[install.DashboardType]bool{
 		install.DashboardTypeOSS: true, install.DashboardTypeEnterprise: true,
 	})
+	if err != nil {
+		return dashboardType, nil, "", fmt.Errorf("error getting installed dashboard: %w", err)
+	}
 
 	shouldReconcileDashboard := false
 	var dashboardManifests []byte
