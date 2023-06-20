@@ -18,7 +18,7 @@ export type PageProps = {
   error?: RequestError | RequestError[] | MultiRequestError[];
 };
 
-const topBarHeight = "60px";
+export const topBarHeight = "60px";
 
 const ContentContainer = styled.div`
   height: 100%;

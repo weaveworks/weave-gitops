@@ -12,6 +12,7 @@ import { colors } from "../typedefs/styled";
 import Flex from "./Flex";
 import Icon, { IconType } from "./Icon";
 import Link from "./Link";
+import { topBarHeight } from "./Page";
 import Spacer from "./Spacer";
 import Text from "./Text";
 
@@ -36,6 +37,7 @@ const NavContainer = styled.div<{ collapsed: boolean }>`
   width: ${(props) => (props.collapsed ? collapsedWidth : fullWidth)};
   min-width: ${(props) => (props.collapsed ? collapsedWidth : fullWidth)};
   height: 100%;
+  max-height: calc(100% - ${topBarHeight});
   transition: all 0.5s;
 `;
 
