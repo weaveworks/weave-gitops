@@ -42,7 +42,7 @@ Some Cluster API providers allow you to choose the account or identity that the 
 - [**Azure** multi-tenancy](https://capz.sigs.k8s.io/topics/multitenancy.html)
 - [**vSphere** multi-tenancy](https://github.com/kubernetes-sigs/cluster-api-provider-vsphere/blob/master/docs/identity_management.md)
 
-## 2. Add Common RBAC to Your Repository
+## 1. Add Common RBAC to Your Repository
 
 When a cluster is provisioned, by default it will reconcile all the manifests in `./clusters/<cluster-namespace>/<cluster-name>` and `./clusters/bases`.
 
@@ -73,7 +73,7 @@ import WegoAdmin from "!!raw-loader!./assets/rbac/wego-admin.yaml";
 
 </details>
 
-## 3. Build a Kubernetes Platform with Built-in Components Preconfigured for Your Organization
+## 2. Build a Kubernetes Platform with Built-in Components Preconfigured for Your Organization
 
 To do this, go to Weaveworks' [Profiles Catalog](https://github.com/weaveworks/profiles-catalog).
 
@@ -100,7 +100,7 @@ Download the template below to your config repository path, then commit and push
   {CapaTemplate}
 </CodeBlock>
 
-## 4. Add a Cluster Bootstrap Config
+## 3. Add a Cluster Bootstrap Config
 
 This step ensures that Flux gets installed into your cluster. Create a cluster bootstrap config as follows:
 
@@ -140,7 +140,7 @@ Then update the `GITOPS_REPO` variable to point to your cluster
 
 </details>
 
-## 5. Delete a Cluster with the Weave GitOps Enterprise UI
+## 4. Delete a Cluster with the Weave GitOps Enterprise UI
 
 Here are the steps:
 - Select the clusters you want to delete
@@ -152,7 +152,7 @@ Here are the steps:
 Note that you can't apply an _empty_ repository to a cluster. If you have Cluster API clusters and other manifests committed to this repository, and then _delete all of them_ so there are zero manifests left, then the apply will fail and the resources will not be removed from the cluster.
 A workaround is to add a dummy _ConfigMap_ back to the Git repository after deleting everything else so that there is at least one manifest to apply.
 
-## 6. Disabling CAPI Support
+## 5. Disable CAPI Support
 
 If you do not need CAPI-based cluster management support, you can disable CAPI
 via the Helm Chart values.
