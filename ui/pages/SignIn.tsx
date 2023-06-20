@@ -23,9 +23,6 @@ export const FormWrapper = styled(Flex)`
   .MuiInputBase-root {
     width: 275px;
   }
-  .MuiInputBase-input {
-    border: 0;
-  }
   #email,
   #password {
     padding-bottom: ${(props) => props.theme.spacing.xs};
