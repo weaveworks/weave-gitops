@@ -28,7 +28,7 @@
             'open-source/getting-started/install-OSS',
             'open-source/getting-started/ui-OSS',
             'open-source/getting-started/deploy-OSS',
-            'enterprise/getting-started/aws-marketplace',
+            'open-source/getting-started/aws-marketplace',
           ],
         },
         {
@@ -105,9 +105,14 @@
         'cluster-management/deploying-capa-eks',
         'cluster-management/profiles',
         'cluster-management/cluster-management-troubleshooting',
-          {type: 'doc',
-          id: 'cluster-management/advanced-cluster-management-topics/howto-inject-credentials-into-template',
-          }],
+        {
+          type: 'category',
+          label: 'Advanced Cluster Management',
+          items: [
+            'cluster-management/advanced-cluster-management-topics/howto-inject-credentials-into-template'
+          ],
+        },
+      ],
     },
     {
       type: 'category',
