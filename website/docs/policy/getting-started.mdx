@@ -32,7 +32,7 @@ To install the policy agent on a leaf cluster, you should select the `weave-poli
 
 ![Policy Profile](./img/weave-policy-profile.png)
 
-You should then configure the `values.yaml` to pull the policies from your repo into the cluster. This is done by configuring the `policySource` section. If your policy library repo is private, you will also need to reference the `Secret` that contains the repo credentials. This is usually the [secret](../cluster-management/getting-started.mdx#add-a-cluster-bootstrap-config) you created while bootstrapping flux on the management cluster and is copied to your leaf cluster during creation.
+You should then configure the `values.yaml` to pull the policies from your repo into the cluster. This is done by configuring the `policySource` section. If your policy library repo is private, you will also need to reference the `Secret` that contains the repo credentials. This is usually the secret you created while bootstrapping Flux on the management cluster and is copied to your leaf cluster during creation.
 
 <details><summary>Expand to see an example that creates a new git source</summary>
 

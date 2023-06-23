@@ -28,6 +28,7 @@
             'open-source/getting-started/install-OSS',
             'open-source/getting-started/ui-OSS',
             'open-source/getting-started/deploy-OSS',
+            'open-source/getting-started/aws-marketplace',
           ],
         },
         {
@@ -40,7 +41,6 @@
           items: [
             'enterprise/getting-started/install-enterprise',
             'enterprise/getting-started/install-enterprise-airgap',
-            'enterprise/getting-started/aws-marketplace',
             'enterprise/getting-started/releases-enterprise',
           ],
         },
@@ -76,7 +76,6 @@
         'guides/setting-up-dex',
         'guides/cert-manager',
         'guides/displaying-custom-metadata',
-        'guides/deploying-capa',
         'guides/using-terraform-templates',
         'guides/delivery',
         'guides/flagger-manual-gating',
@@ -99,18 +98,20 @@
       label: 'Cluster Management',
       link: {
         type: 'doc',
-        id: 'cluster-management/intro',
+        id: 'cluster-management/cluster-management-intro',
       },
       items: [
-        'cluster-management/getting-started',
-        'cluster-management/cluster-api-providers',
-        'cluster-management/managing-existing-clusters',
-        'cluster-management/provider-identities',
-        'cluster-management/deleting-a-cluster',
+        'cluster-management/managing-clusters-without-capi',
+        'cluster-management/deploying-capa-eks',
         'cluster-management/profiles',
-        'cluster-management/add-applications',
-        'cluster-management/gitrepo-selection',
-        'cluster-management/disable-capi',
+        'cluster-management/cluster-management-troubleshooting',
+        {
+          type: 'category',
+          label: 'Advanced Cluster Management',
+          items: [
+            'cluster-management/advanced-cluster-management-topics/howto-inject-credentials-into-template'
+          ],
+        },
       ],
     },
     {
@@ -226,7 +227,7 @@
       items: [
         'secrets/intro',
         'secrets/getting-started',
-        'secrets/bootstraping-secrets',
+        'secrets/bootstrapping-secrets',
         'secrets/setup-eso',
         'secrets/setup-sops',
         'secrets/manage-secrets-ui',
@@ -270,7 +271,6 @@
             'gitops-templates/params',
             'gitops-templates/supported-langs',
             'gitops-templates/create-cluster-example',
-            'gitops-templates/capd-example',
           ],
         },
         'gitops-templates/cli',

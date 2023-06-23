@@ -18,7 +18,10 @@ A quick preview of what the Weave GitOps Open Source UI provides:
 * an **Applications view** that shows summary information from `Kustomization` and `HelmRelease` objects so that you can quickly understand the state of your deployments across a cluster.
 * a **Sources view** that shows summary information from gitrepository, helmrepository and bucket objects and tells you the current status of resources that are synchronizing content from where you’ve declared the desired state of your system—for example, Git repositories.
 * a **Flux Runtime view** that provides the status of the GitOps engine that continuously reconciles your desired and live state. It shows your installed [GitOps Toolkit Controllers](https://fluxcd.io/flux/components/) and version.
+* an **Image Automation view** that reduces GitOps friction, particularly in non-production environments, by enabling you to discover repositories, policies, and updates on your cluster. Deploy the latest image in a dev or staging environment with minimal fuss, and keep your platform updated with the latest approved versions—for example, patch releases to reduce exposure to CVEs. Auto-deploy when approval is gated before the image is added to an internal registry.
+* A **Notifications View** that makes it easy to understand which notifications are already configured within the UI, so that you can simply set up and receive notifications from Weave GitOps. If you’re a platform operator, this view will help you to understand your egress topology across clusters so you’ll know where events are being sent beyond your clusters.
 * multiple views for debugging
+* a dark mode option
 
 It also enables you to:
 * sync your latest Git commits directly from the UI
@@ -42,7 +45,7 @@ Next, [open the dashboard](http://localhost:9001/) and login using either the [e
 
 ## The Applications View
 
-Upon login you're taken to the Applications view, which allows you to quickly understand the state of your deployments and shows summary information from [`Kustomization`](https://fluxcd.io/flux/components/kustomize/kustomization/) and [`HelmRelease`](https://fluxcd.io/flux/components/helm/helmreleases/) objects.
+Upon login you're taken to the Applications view, which allows you to quickly understand the state of your deployments and shows summary information from [`Kustomization`](https://fluxcd.io/flux/components/kustomize/kustomization/) and [`HelmRelease`](https://fluxcd.io/flux/components/helm/helmreleases/) objects. You can apply dark mode using the toggle switch in the top right corner.
 
 ![Applications summary view showing Flux System and Weave GitOps deployments](/img/dashboard-applications-overview.png)
 

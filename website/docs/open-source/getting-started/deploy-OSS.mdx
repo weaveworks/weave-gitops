@@ -17,15 +17,19 @@ application. In this section we will use [podinfo](https://github.com/stefanprod
    cd fleet-infra
    ```
 
-1. Create a `GitRepository` Source for podinfo
+1. Create a `GitRepository` Source for podinfo. This will allow you to use different authentication methods for different repositories.
 
    ```
    flux create source git podinfo \
      --url=https://github.com/stefanprodan/podinfo \
      --branch=master \
      --interval=30s \
-     --export > ./clusters/my-cluster/podinfo-source.yaml
+     --export > ./clusters/management/podinfo-source.yaml
    ```
+
+More information about `GitRepository` is available [here](https://fluxcd.io/flux/components/source/gitrepositories/). 
+
+If you get stuck here, try the `ls` command to list your files and directories. If that doesn’t work, try `ls -l ./clusters`.
 
 1. Commit and push the `podinfo-source` to your `fleet-infra` repository
 
@@ -43,7 +47,7 @@ application. In this section we will use [podinfo](https://github.com/stefanprod
      --path="./kustomize" \
      --prune=true \
      --interval=5m \
-     --export > ./clusters/my-cluster/podinfo-kustomization.yaml
+     --export > ./clusters/management/podinfo-kustomization.yaml
    ```
 
 1. Commit and push the `podinfo-kustomization` to your `fleet-infra` repository
@@ -76,7 +80,7 @@ To customize a deployment from a repository you don’t control, you can use Flu
 
 	<details><summary>Expand to see Kustomization patches</summary>
 
-   ```yaml title="./clusters/my-cluster/podinfo-kustomization.yaml"
+   ```yaml title="./clusters/management/podinfo-kustomization.yaml"
    ---
    apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
    kind: Kustomization
