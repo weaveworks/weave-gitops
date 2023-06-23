@@ -47,9 +47,12 @@ import PolicyDetailsPage from "./pages/v2/PolicyDetailsPage";
 import ProviderPage from "./pages/v2/ProviderPage";
 import Sources from "./pages/v2/Sources";
 import UserInfo from "./pages/v2/UserInfo";
-import { NavItem } from "./components/Nav";
+import Nav, { NavItem } from "./components/Nav";
 import { IconType } from "./components/Icon";
 import Footer from "./components/Footer";
+import useNavigation from "./hooks/navigation";
+import { getParentNavRouteValue } from "./lib/nav";
+import Logo from "./components/Logo";
 
 const queryClient = new QueryClient();
 
@@ -100,9 +103,23 @@ const navItems: NavItem[] = [
 
 const App = () => {
   const dark = useInDarkMode();
+  const [collapsed, setCollapsed] = React.useState<boolean>(false);
+  const { currentPage } = useNavigation();
+  const value = getParentNavRouteValue(currentPage);
+
+  const logo = <Logo collapsed={collapsed} link={V2Routes.Automations} />;
+
+  const nav = (
+    <Nav
+      navItems={navItems}
+      collapsed={collapsed}
+      setCollapsed={setCollapsed}
+      currentPage={value}
+    />
+  );
 
   return (
-    <Layout logoLink={V2Routes.Automations} navItems={navItems}>
+    <Layout logo={logo} nav={nav}>
       <PendoContainer />
       <ErrorBoundary>
         <Switch>
