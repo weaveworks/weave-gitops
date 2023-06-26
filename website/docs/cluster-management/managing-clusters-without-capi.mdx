@@ -1,5 +1,5 @@
 ---
-title: Managing existing clusters
+title: Managing Clusters Without Cluster API
 hide_title: true
 ---
 
@@ -7,12 +7,12 @@ import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 
 import TierLabel from "../_components/TierLabel";
+import CodeBlock from "@theme/CodeBlock";
+import BrowserOnly from "@docusaurus/BrowserOnly";
 
-# Managing existing clusters <TierLabel tiers="Enterprise" />
+# Managing Clusters Without Cluster API <TierLabel tiers="Enterprise" />
 
-### Managing non-capi clusters {#how-to-connect-a-cluster}
-
-Any kubernetes cluster whether capi or not can be added to Weave Gitops Enterprise. The only thing we need is a secret containing a valid `kubeconfig`.
+You do **not** need Cluster API to add your Kubernetes cluster to Weave Gitops Enterprise. The only thing you need is a secret containing a valid `kubeconfig`.
 
 import TOCInline from "@theme/TOCInline";
 <TOCInline />;
@@ -20,9 +20,11 @@ import TOCInline from "@theme/TOCInline";
 <Tabs groupId="have-a-secret" default>
 <TabItem value="existing-kubeconfig-secret" label="Existing kubeconfig">
 
-If you already have a `kubeconfig` stored in a secret in your management cluster, continue below to create a `GitopsCluster`.
+## Adding kubeconfig to Your Management Cluster
 
-If you have a kubeconfig, you can load in into the cluster like so:
+If you already have a `kubeconfig` stored in a secret in your management cluster, continue with the "Create a `GitopsCluster`" step below.
+
+If you have a kubeconfig, but it is not yet stored in your management cluster, load it into the cluster using this command:
 
 ```
 kubectl create secret generic demo-01-kubeconfig \
@@ -30,9 +32,9 @@ kubectl create secret generic demo-01-kubeconfig \
 ```
 
 </TabItem>
-<TabItem value="service-account-secret" label="Create a kubeconfig for a ServiceAccount">
+<TabItem value="service-account-secret" label="How to create a kubeconfig for a ServiceAccount">
 
-### How to create a kubeconfig secret using a service account
+Here's how to create a kubeconfig secret.
 
 1. Create a new service account on the remote cluster:
 
@@ -44,7 +46,7 @@ kubectl create secret generic demo-01-kubeconfig \
 		namespace: default
 	```
 
-1. Add RBAC permissions for the service account
+2. Add RBAC permissions for the service account:
 
 	<details><summary>Expand to see role manifests</summary>
 
@@ -82,28 +84,24 @@ kubectl create secret generic demo-01-kubeconfig \
 
 	Once we know what namespaces are available we can test whether the logged in user can access them via impersonation.
 
-1. Get the token of the service account
+3. Retrieve the token from the service account. First, run this command to get the list of secrets of the service accounts:
 
-	First get the list of secrets of the service accounts by running the following command:
-
-	```sh
+	```bash
 	kubectl get secrets --field-selector type=kubernetes.io/service-account-token
 	NAME                      TYPE                                  DATA   AGE
 	default-token-lsjz4       kubernetes.io/service-account-token   3      13d
 	demo-01-token-gqz7p       kubernetes.io/service-account-token   3      99m
 	```
 
-	`demo-01-token-gqz7p` is the secret that holds the token for `demo-01` service account
+	(`demo-01-token-gqz7p` is the secret that holds the token for `demo-01` service account.)
 
-	To get the token of the service account run the following command:
+	Then, run the following command to get the service account token:
 
-	```sh
+	```bash
 	TOKEN=$(kubectl get secret demo-01-token-gqz7p -o jsonpath={.data.token} | base64 -d)
 	```
 
-1. Create a kubeconfig secret
-
-	We'll use a helper script to generate the kubeconfig, save this into `static-kubeconfig.sh`:
+4. Create a kubeconfig secret. We'll use a helper script to generate the kubeconfig, and then save it into `static-kubeconfig.sh`:
 
 	<details><summary>Expand to see script</summary>
 
@@ -156,25 +154,25 @@ kubectl create secret generic demo-01-kubeconfig \
 
 	</details>
 
-	For the next step, the cluster certificate (CA) is needed. How you get hold of the certificate depends on the cluster. For GKE you can view it on the GCP Console: Cluster->Details->Endpoint->”Show cluster certificate”. You will need to copy the contents of the certificate into the `ca.crt` file used below.
+5. Obtain the cluster certificate (CA). How you do this depends on your cluster. If you're using GKE, for example, you can view the CA on the GCP Console: Cluster->Details->Endpoint->”Show cluster certificate”. You'll need to copy the contents of the certificate into the `ca.crt` file used below.
 
-	```sh
+	```bash
 	CLUSTER_NAME=demo-01 \
 	CA_CERTIFICATE=ca.crt \
 	ENDPOINT=<control-plane-ip-address> \
 	TOKEN=<token> ./static-kubeconfig.sh > demo-01-kubeconfig
 	```
 
-	Replace the following:
+6. Update the following fields:
 
-	- CLUSTER_NAME: the name of your cluster i.e. `demo-01`
-	- ENDPOINT: the API server endpoint i.e. `34.218.72.31`
-	- CA_CERTIFICATE: path to the CA certificate file of the cluster
-	- TOKEN: the token of the service account retrieved in the previous step
+	- CLUSTER_NAME: insert the name of your cluster—i.e., `demo-01`
+	- ENDPOINT: add the API server endpoint i.e. `34.218.72.31`
+	- CA_CERTIFICATE: include the path to the CA certificate file of the cluster
+	- TOKEN: add the token of the service account retrieved in the previous step
 
-	Finally create a secret for the generated kubeconfig:
+7. Finally, create a secret for the generated kubeconfig:
 
-	```sh
+	```bash
 	kubectl create secret generic demo-01-kubeconfig \
 	--from-file=value=./demo-01-kubeconfig
 	```
@@ -182,18 +180,80 @@ kubectl create secret generic demo-01-kubeconfig \
 </TabItem>
 </Tabs>
 
-### Connect a cluster
+## Add a Cluster Bootstrap Config
 
-:::tip Before you start!
+This step ensures that Flux gets installed into your cluster. Create a cluster bootstrap config as follows:
 
-Make sure you've
+```bash
+ kubectl create secret generic my-pat --from-literal GITHUB_TOKEN=$GITHUB_TOKEN
+```
 
-1. Added some common RBAC rules into the `clusters/bases` folder, as described in [Getting started](./getting-started.mdx).
-2. Configured the cluster bootstrap controller as described in [Getting started](./getting-started.mdx).
+import CapiGitopsCDC from "!!raw-loader!./assets/bootstrap/capi-gitops-cluster-bootstrap-config.yaml";
 
-:::
+Download the config with:
 
-Create a `GitopsCluster`
+<BrowserOnly>
+  {() => (
+    <CodeBlock className="language-bash">
+      curl -o
+      clusters/management/capi/bootstrap/capi-gitops-cluster-bootstrap-config.yaml{" "}
+      {window.location.protocol}
+      //{window.location.host}
+      {
+        require("./assets/bootstrap/capi-gitops-cluster-bootstrap-config.yaml")
+          .default
+      }
+    </CodeBlock>
+  )}
+</BrowserOnly>
+
+Then update the `GITHUB_USER` variable to point to your repository
+
+<details><summary>Expand to see full yaml</summary>
+
+<CodeBlock
+  title="clusters/management/capi/boostrap/capi-gitops-cluster-bootstrap-config.yaml"
+  className="language-yaml"
+>
+  {CapiGitopsCDC}
+</CodeBlock>
+
+</details>
+
+## Connect a Cluster
+
+To connect your cluster, you need to add some common RBAC rules into the `clusters/bases` folder. When a cluster is provisioned, by default it will reconcile all the manifests in `./clusters/<cluster-namespace>/<cluster-name>` and `./clusters/bases`.
+
+To display Applications and Sources in the UI we need to give the logged in user permissions to inspect the new cluster.
+
+Adding common RBAC rules to `./clusters/bases/rbac` is an easy way to configure this!
+
+import WegoAdmin from "!!raw-loader!./assets/rbac/wego-admin.yaml";
+
+<BrowserOnly>
+  {() => (
+    <CodeBlock className="language-bash">
+      curl -o clusters/bases/rbac/wego-admin.yaml {window.location.protocol}//
+      {window.location.host}
+      {require("./assets/rbac/wego-admin.yaml").default}
+    </CodeBlock>
+  )}
+</BrowserOnly>
+
+<details><summary>Expand to see full template yaml</summary>
+
+<CodeBlock
+  title="clusters/bases/rbac/wego-admin.yaml"
+  className="language-yaml"
+>
+  {WegoAdmin}
+</CodeBlock>
+
+</details>
+
+## Create a `GitopsCluster`
+
+When a `GitopsCluster` appears in the cluster, the Cluster Bootstrap Controller will install Flux on it and by default start reconciling the `./clusters/demo-01` path in your management cluster's Git repository:
 
 ```yaml title="./clusters/management/clusters/demo-01.yaml"
 apiVersion: gitops.weave.works/v1alpha1
@@ -209,7 +269,7 @@ spec:
     name: demo-01-kubeconfig
 ```
 
-When the `GitopsCluster` appears in the cluster, the Cluster Bootstrap Controller will install flux on it and by default start reconciling the `./clusters/demo-01` path in your management cluster's git repository. To inspect the Applications and Sources running on the new cluster we need to give permissions to the user accessing the UI. Common RBAC rules like this should be stored in `./clusters/bases`. Here we create a kustomziation to add these common resources onto our new cluster:
+To use the Weave GitOps Enterprise user interface (UI) to inspect the Applications and Sources running on the new cluster, you'll need permissions. We took care of this above when we stored your RBAC rules in `./clusters/bases`. In the following step, we'll create a kustomization to add these common resources onto our new cluster:
 
 ```yaml title="./clusters/demo-01/clusters-bases-kustomization.yaml"
 apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
@@ -227,15 +287,13 @@ spec:
     name: flux-system
 ```
 
-Save these 2 files into your git repository. Commit and push.
+Save these two files in your Git repository, then commit and push.
 
-Once flux has reconciled the cluster you can inspect your flux resources via the UI!
+Once Flux has reconciled the cluster, you can inspect your Flux resources via the UI!
 
-## Debugging
+## Debugging Tip: Checking that Your kubeconfig Secret Is in Your Cluster
 
-### How to test a kubeconfig secret in a cluster
-
-To test a kubeconfig secret has been correctly setup apply the following manifest and check the logs after the job completes:
+To test that your kubeconfig secret is correctly set up, apply the following manifest and check the logs after the job completes:
 
 <details><summary>Expand to see manifest</summary>
 
@@ -275,11 +333,13 @@ spec:
 
 </details>
 
-In the manifest above `demo-01-kubeconfig` is the name of the secret that contains the kubeconfig for the remote cluster.
+In the manifest above, `demo-01-kubeconfig` is the name of the secret that contains the kubeconfig for the remote cluster.
 
 ---
 
-# Background
+## Additional Resources
+
+Other documentation that you might find useful:
 
 - [Authentication strategies](https://kubernetes.io/docs/reference/access-authn-authz/authentication/#authentication-strategies)
   - [X509 client certificates](https://kubernetes.io/docs/reference/access-authn-authz/authentication/#x509-client-certs): can be used across different namespaces
