@@ -1,22 +1,18 @@
 ---
-title: Overview
+title: Introduction to Terraform Controller
 hide_title: true
 ---
 
 # Overview
 
-TF-controller is a controller for Weave GitOps that follows the patterns established
-by [Flux](https://fluxcd.io). It is a reliable tool for managing your infrastructure using the GitOps approach.
-With its support for Terraform and integration with Weave GitOps,
-you can trust that it will help you effectively GitOps-ify your infrastructure and application
-resources in the Kubernetes and Terraform universe at your own pace.
+]Weave GitOps Terraform Controller](https://github.com/weaveworks/tf-controller) is a reliable tool for managing your infrastructure and application resources using the GitOps approach, and at your own pace. It follows the patterns established by [Flux](https://fluxcd.io) and integrates with Weave GitOps. 
 
 The following GitOps models are available to suit your specific needs:
 
-  1. **GitOps Automation Model:** Fully automate the GitOps process for all of your Terraform resources, including the provisioning and enforcement steps.
-  2. **Hybrid GitOps Automation Model:** Choose to GitOps-ify certain parts of your existing infrastructure resources, such as a nodegroup or security group in an existing EKS cluster.
-  3. **State Enforcement Model:** Use GitOps to enforce an existing `tfstate` without making any other changes.
-  4. **Drift Detection Model:** Use GitOps for drift detection, so you can decide what actions to take when a drift occurs.
+  * **Drift Detection Model:** Use GitOps for drift detection, so you can decide what actions to take when a drift occurs.
+  * **GitOps Automation Model:** Fully automate the GitOps process for all of your Terraform resources, including provisioning and enforcement steps.
+  * **Hybrid GitOps Automation Model:** Choose to GitOps-ify certain parts of your existing infrastructure resources, such as a nodegroup or security group in an existing EKS cluster.
+  * **State Enforcement Model:** Use GitOps to enforce an existing `tfstate` without making any other changes.
 
 To get started with TF-controller, simply follow the provided [getting started](../get-started) guide.
 
