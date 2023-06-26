@@ -5,57 +5,43 @@ hide_title: true
 
 # Overview
 
-]Weave GitOps Terraform Controller](https://github.com/weaveworks/tf-controller) is a reliable tool for managing your infrastructure and application resources using the GitOps approach, and at your own pace. It follows the patterns established by [Flux](https://fluxcd.io) and integrates with Weave GitOps. 
+[Terraform Controller](https://github.com/weaveworks/tf-controller) (TF-Controller) is a reliable tool for managing your infrastructure and application resources using the GitOps approach, all at your own pace. An open source project created by Weaveworks, the makers of [Flux](https://fluxcd.io), TF-Controller follows patterns established by Flux and integrates with Weave GitOps. 
 
-The following GitOps models are available to suit your specific needs:
+TF-Controller makes the following GitOps models available to suit your specific needs:
 
-  * **Drift Detection Model:** Use GitOps for drift detection, so you can decide what actions to take when a drift occurs.
-  * **GitOps Automation Model:** Fully automate the GitOps process for all of your Terraform resources, including provisioning and enforcement steps.
-  * **Hybrid GitOps Automation Model:** Choose to GitOps-ify certain parts of your existing infrastructure resources, such as a nodegroup or security group in an existing EKS cluster.
-  * **State Enforcement Model:** Use GitOps to enforce an existing `tfstate` without making any other changes.
+  * **Drift Detection:** Use GitOps for drift detection so that you can decide which actions to take when drift occurs.
+  * **GitOps Automation:** Fully automate the GitOps process, including provisioning and enforcement, for all of your Terraform resources.
+  * **Hybrid GitOps Automation:** GitOps-ify certain parts of your existing infrastructure resources, such as a nodegroup or security group in an existing EKS cluster.
+  * **State Enforcement:** Use GitOps to enforce an existing `tfstate` without making any other changes.
 
-To get started with TF-controller, simply follow the provided [getting started](../get-started) guide.
+To get started with TF-controller, simply follow the provided [getting started](../get-started) guide. You can also find [extensive documentation here](https://weaveworks.github.io/tf-controller/)—it covers API references, CLI references, and [how-to's](https://weaveworks.github.io/tf-controller/use_tf_controller/) for common situations.
+
+With Weave GitOps Enterprise, you can manage `Terraform` objects the same way you can with `Kustomization` and `HelmReleases`:
+
+![WGE Enterprise dashboard showing Terraform view](/img/dashboard-terraform-png)
 
 ## Features
 
   * **Multi-Tenancy**: TF-controller supports multi-tenancy by running Terraform `plan` and `apply` inside Runner Pods.
     When specifying `.metadata.namespace` and `.spec.serviceAccountName`, the Runner Pod uses the specified ServiceAccount
-    and runs inside the specified Namespace. These settings enable the soft multi-tenancy model, which can be used within
-    the Flux multi-tenancy setup. _This feature is available since v0.9.0._
-  * **GitOps Automation for Terraform**: With setting `.spec.approvePlan=auto`, it allows a `Terraform` object
-    to be reconciled and act as the representation of your Terraform resources. The TF-controller uses the spec of
-    the `Terraform` object to perform `plan`, `apply` its associated Terraform resources. It then stores
+    and runs inside the specified Namespace. These settings enable the soft multi-tenancy model, usable within
+    the Flux multi-tenancy setup.
+  * **GitOps Automation for Terraform**: Setting `.spec.approvePlan=auto` allows a `Terraform` object
+    to be reconciled and act as the representation of your Terraform resources. TF-controller uses the spec of
+    the `Terraform` object to `plan` and `apply` its associated Terraform resources. It then stores
     the `TFSTATE` of the applied resources as a `Secret` inside the Kubernetes cluster. After `.spec.interval` passes,
-    the controller performs drift detection to check if there is a drift occurred between your live system,
-    and your Terraform resources. If a drift occurs, the plan to fix that drift will be generated and applied automatically.
-    _This feature is available since v0.3.0._
-  * **Drift detection**: This feature is a part of the GitOps automation feature. The controller detects and fixes drift
-    for your infrastructures, based on the Terraform resources and their `TFSTATE`. _This feature is available since v0.5.0._
-    * Drift detection is enabled by default. You can use the field `.spec.disableDriftDetection` to disable this behaviour.
-      _This feature is available since v0.7.0._
-    * The Drift detection only mode, without plan or apply steps, allows you to perform read-only drift detection.
-      _This feature is available since v0.8.0._
-  * **Plan and Manual Approve**: This feature allows you to separate the `plan`, out of the `apply` step, just like
-    the Terraform workflow you are familiar with. A good thing about this is that it is done in a GitOps way. When a plan
-    is generated, the controller shows you a message like **'set approvePlan: "plan-main-123" to apply this plan.'**.
-    You make change to the field `.spec.approvePlan`, commit and push to tell the TF-controller to apply the plan for you.
-    With this GitOps workflow, you can optionally create and push this change to a new branch for your team member to
-    review and approve too. _This feature is available since v0.6.0._
+    TF-Controller checks for drift between your live system and your Terraform resources and, if affirmative, automatically generates and applies a plan to correct it.
+  * **Drift detection**: Enabled by default, and part of the GitOps automation feature, the controller detects and fixes infrastructure drift based on the Terraform resources and their `TFSTATE`. You can use the field `.spec.disableDriftDetection` to disable this behaviour. Drift detection-only mode, without `plan` or `apply` steps, allows you to perform read-only drift detection.
+  * **Plan and Manual Approve**: Separate the `plan` from the `apply` step, just like in the Terraform workflow you are familiar with—but in a GitOps way. When a plan is generated, the controller shows you a message asking if you want to apply it. Pptionally create and push the change to a new branch for your team member to review and approve too.
   * **YAML-based Terraform**: The `Terraform` object in v0.13.0+ allows you to better configure your
-    Terraform resources via YAMLs, but without introducing any extra CRDs to your cluster. Together with a new generator
-    called **Tofu-Jet**, we'll now be able to ship pre-generated primitive Terraform modules for all major cloud providers.
-    A primitive Terraform module is a module that only contains a single primitive resource, like `aws_iam_role`, or `aws_iam_policy`.
-    With this concept, we would be able to use Terraform without writing Terraform codes, and make it more GitOps-friendly at the same time.
-    _This feature is available since v0.13.0._
-  * **Enterprise Dashboard Support:** with Weave GitOps Enterprise v0.9.6 and later, you are now able to manage `Terraform` objects the same way you can
-    with `Kustomization` and `HelmReleases`.
-  * **First-class Terraform Cloud Support:** `Terraform` objects can now be configured to use Terraform Cloud as the backend
-    for storing the state with `spec.cloud`. _This feature is available since v0.14.0._
+    Terraform resources via YAMLs, but without introducing any extra CRDs to your cluster.
+  * **First-class Terraform Cloud Support:** Use `spec.cloud` to configure `Terraform` objects to use Terraform Cloud as the backend
+    for storing the state.
 
 ## Dependencies
 
 TF-controller has its own versioning system that is separate from the versioning system used by Weave GitOps.
-This means that you can install and use TF-controller independently of Weave GitOps and it will not be affected
+This means that you can install and use TF-controller independently of Weave GitOps—it will not be affected
 by the version of Weave GitOps that you are using.
 
 Here is the dependency matrix:
