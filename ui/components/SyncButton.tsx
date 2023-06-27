@@ -14,9 +14,7 @@ type Props = {
 
 export const ArrowDropDown = styled(IconButton)`
   &.MuiButton-outlined {
-    border-color: ${(props) => props.theme.colors.grayToPrimary};
-    border-left: none;
-    &:hover,
+    border-color: ${(props) => props.theme.colors.neutral20};
     &:disabled {
       border-left: none;
     }
@@ -37,8 +35,7 @@ const Sync = styled(Button)<{ $hideDropdown: boolean }>`
   &.MuiButton-outlined {
     margin-right: 0;
     ${(props) =>
-      !props.$hideDropdown &&
-      `border-radius: 2px 0 0 2px; border-right: none; &:hover, &:disabled {border-right: none;};`}
+      !props.$hideDropdown && `border-radius: 2px 0 0 2px; border-right: none`}
   }
 `;
 
