@@ -221,6 +221,15 @@ export const GlobalStyle = createGlobalStyle`
       background-color: ${(props) => props.theme.colors.primary};
     }
   }
+//prevents white autofill background in dark mode
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus {
+    ${(props) =>
+      props.theme.mode === ThemeTypes.Dark &&
+      `background-color: ${props.theme.colors.blueWithOpacity};`}
+  }
+
 `;
 
 export const muiTheme = (colors, mode) =>
