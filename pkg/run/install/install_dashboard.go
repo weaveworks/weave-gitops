@@ -206,6 +206,7 @@ func ReconcileDashboard(ctx context.Context, kubeClient client.Client, dashboard
 
 	var sourceRequestedAt string
 
+	//nolint:staticcheck
 	if err := wait.Poll(interval, timeout, func() (bool, error) {
 		var err error
 		sourceRequestedAt, err = run.RequestReconciliation(ctx, kubeClient,
@@ -217,6 +218,7 @@ func ReconcileDashboard(ctx context.Context, kubeClient client.Client, dashboard
 	}
 
 	// wait for the reconciliation of dashboard to be done
+	//nolint:staticcheck
 	if err := wait.Poll(interval, timeout, func() (bool, error) {
 		dashboard := &sourcev1.HelmChart{}
 		if err := kubeClient.Get(ctx, types.NamespacedName{
@@ -232,6 +234,7 @@ func ReconcileDashboard(ctx context.Context, kubeClient client.Client, dashboard
 	}
 
 	// wait for dashboard to be ready
+	//nolint:staticcheck
 	if err := wait.Poll(interval, timeout, func() (bool, error) {
 		namespacedName := types.NamespacedName{Namespace: namespace, Name: podName}
 

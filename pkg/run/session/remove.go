@@ -42,6 +42,7 @@ func Remove(kubeClient client.Client, session *InternalSession) error {
 		result = multierror.Append(result, err)
 	}
 
+	//nolint:staticcheck
 	if err := wait.Poll(2*time.Second, 5*time.Minute, func() (bool, error) {
 		instance := appsv1.StatefulSet{}
 		if err := kubeClient.Get(
@@ -61,6 +62,7 @@ func Remove(kubeClient client.Client, session *InternalSession) error {
 		result = multierror.Append(result, err)
 	}
 
+	//nolint:staticcheck
 	if err := wait.Poll(2*time.Second, 5*time.Minute, func() (bool, error) {
 		pvc := corev1.PersistentVolumeClaim{}
 		if err := kubeClient.Get(
