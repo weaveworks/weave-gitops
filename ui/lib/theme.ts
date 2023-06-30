@@ -80,6 +80,7 @@ export const theme = (mode: ThemeTypes = ThemeTypes.Light): DefaultTheme => {
         neutral40: "#ffffff",
         whiteToPrimary: "#32324B",
         grayToPrimary: "#009CCC",
+        neutral20ToPrimary: "#32324B",
         backGray: "#32324B",
         blueWithOpacity: "rgba(0, 179, 236, 0.1)",
         feedbackLight: "#8A460A",
@@ -121,6 +122,7 @@ export const theme = (mode: ThemeTypes = ThemeTypes.Light): DefaultTheme => {
         neutral40: "#1a1a1a",
         whiteToPrimary: "#fff",
         grayToPrimary: "#737373",
+        neutral20ToPrimary: "#d8d8d8",
         backGray: "#eef0f4",
         blueWithOpacity: "rgba(0, 179, 236, 0.1)",
         feedbackLight: "#FCE6D2",
@@ -221,6 +223,15 @@ export const GlobalStyle = createGlobalStyle`
       background-color: ${(props) => props.theme.colors.primary};
     }
   }
+//prevents white autofill background in dark mode
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus {
+    ${(props) =>
+      props.theme.mode === ThemeTypes.Dark &&
+      `background-color: ${props.theme.colors.blueWithOpacity};`}
+  }
+
 `;
 
 export const muiTheme = (colors, mode) =>
