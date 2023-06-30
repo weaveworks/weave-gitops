@@ -37,6 +37,7 @@ func StartPortForwardingWithRestart(config *rest.Config, address, pod, namespace
 			log.Actionf("Restarting port forwarding")
 
 			// wait for loft pod to start
+			//nolint:staticcheck
 			err := wait.PollImmediate(time.Second, time.Minute*10, func() (done bool, err error) {
 				pod, err := kubeClient.CoreV1().Pods(namespace).Get(context.Background(), pod, metav1.GetOptions{})
 				if err != nil {
