@@ -84,6 +84,29 @@ http_response_size_bytes_count{handler="/v1/query",method="POST"} 10
 http_requests_inflight{handler="/v1/query"} 0
 ```
 
-You could leverage [this grafana dashboard](./resources/dashboard.json) in Grafana to monitor its [golden signals](https://sre.google/sre-book/monitoring-distributed-systems/#xref_monitoring_golden-signals)
+#### Collecting
+
+The following metrics are available to monitor the collecting path
+
+**Cluster Watcher Status**
+
+The metric `collector_cluster_watcher` provides the number of the cluster watchers it the following state:
+- Starting: a cluster watcher is starting at the back of detecting that a new cluster has been registered.
+- Started: cluster watcher has been started and collecting events from the remote cluster. This is the stable state.
+- Stopping: a cluster has been deregistered so its cluster watcher is no longer required. In the process of stopping it.
+- Failed: a cluster watcher has failed during the creation or starting process and cannot collect events from the remote clusters. This is the unstable state.
+
+```
+collector_cluster_watcher{status="Starting"} 0
+collector_cluster_watcher{status="Started"} 1
+collector_cluster_watcher{status="Stopping"} 0
+collector_cluster_watcher{status="Failed"} 0
+```
+
+A sum on `collector_cluster_watcher` gives the total number of cluster watchers that should be equal to the number of clusters
+
+### Dashboard
+
+You could leverage [this grafana dashboard](../assets/dashboards/explorer.json) in Grafana to monitor its [golden signals](https://sre.google/sre-book/monitoring-distributed-systems/#xref_monitoring_golden-signals)
 
 ![explorer](imgs/explorer-query-metrics.png)
