@@ -76,29 +76,6 @@
     },
     {
       type: 'category',
-      label: 'Guides',
-      items: [
-        'guides/setting-up-dex',
-        'guides/cert-manager',
-        'guides/displaying-custom-metadata',
-        'guides/delivery',
-        'guides/flagger-manual-gating',
-        'guides/fluxga-upgrade',
-      ],
-    },
-    {
-      type: 'category',
-      label: 'GitOps Run',
-      link: {
-        type: 'doc',
-        id: 'gitops-run/overview',
-      },
-      items: [
-        'gitops-run/get-started',
-      ],
-    },
-    {
-      type: 'category',
       label: 'Cluster Management',
       link: {
         type: 'doc',
@@ -134,11 +111,36 @@
     },
     {
       type: 'category',
-      label: 'Terraform',
+      label: 'GitOps Run',
+      link: {
+        type: 'doc',
+        id: 'gitops-run/overview',
+      },
       items: [
-        'terraform/terraform-intro',
-        'terraform/get-started-terraform',
-        'terraform/using-terraform-templates',
+        'gitops-run/get-started',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'GitOpsSets',
+      items: [
+        'gitopssets/intro',
+        'gitopssets/installation',
+        'gitopssets/guide',
+        'gitopssets/api-reference',
+        'gitopssets/releases'
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Guides',
+      items: [
+        'guides/setting-up-dex',
+        'guides/cert-manager',
+        'guides/displaying-custom-metadata',
+        'guides/delivery',
+        'guides/flagger-manual-gating',
+        'guides/fluxga-upgrade',
       ],
     },
     {
@@ -172,18 +174,6 @@
     },
     {
       type: 'category',
-      label: 'Workspaces',
-      link: {
-        type: 'doc',
-        id: 'workspaces/intro',
-      },
-      items: [
-        'workspaces/multi-tenancy',
-        'workspaces/view-workspaces',
-      ],
-    },
-    {
-      type: 'category',
       label: 'Policy',
       link: {
         type: 'doc',
@@ -198,6 +188,17 @@
         'policy/policy-configuration',
         'policy/releases',
         'policy/commit-time-checks',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Progressive Delivery',
+      link: {
+        type: 'doc',
+        id: 'progressive-delivery/progressive-delivery-flagger-install',
+      },
+      items: [
+        'progressive-delivery/flagger-manual-gating',
       ],
     },
     {
@@ -262,13 +263,23 @@
     },
     {
       type: 'category',
-      label: 'GitOpsSets',
+      label: 'Terraform',
       items: [
-        'gitopssets/intro',
-        'gitopssets/installation',
-        'gitopssets/guide',
-        'gitopssets/api-reference',
-        'gitopssets/releases'
+        'terraform/terraform-intro',
+        'terraform/get-started-terraform',
+        'terraform/using-terraform-templates',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Workspaces',
+      link: {
+        type: 'doc',
+        id: 'workspaces/intro',
+      },
+      items: [
+        'workspaces/multi-tenancy',
+        'workspaces/view-workspaces',
       ],
     }
   ],
