@@ -1,6 +1,8 @@
 ---
 title: Operations
 hide_title: true
+toc_max_heading_level: 5
+
 ---
 
 import TierLabel from "./../_components/TierLabel";
@@ -22,7 +24,6 @@ the `Query` tab.
 
 You could discover by `Cluster` and `Subject` the `Kinds` it is allowed to read. These are the rules that
 will be the source of truth doing authorization when a user does a query.
-
 
 ## Monitoring
 
@@ -46,7 +47,7 @@ spec:
     #### Metrics - Prometheus metrics configuration
     metrics:
       # Enables metrics generation and prometheus endpoint
-      enabled: false
+      enabled: true
       service:
         # -- Port to start the metrics exporter on
         port: 8080
@@ -58,6 +59,14 @@ spec:
 ```
 
 #### Querying
+
+Explorer querying path is composed of three components exporting metrics:
+
+- API server
+- Datastore (read operations)
+- Indexer (read operations)
+
+##### API Server
 
 Based on [go-http-metrics](https://github.com/slok/go-http-metrics/blob/master/metrics/prometheus/prometheus.go), the following
 metrics are generated.
@@ -78,29 +87,100 @@ http_response_size_bytes_sum{handler="/v1/query",method="POST"} 120
 http_response_size_bytes_count{handler="/v1/query",method="POST"} 10
 ```
 
-**Request In Flight:** gauge with the number of inflight requests being handled at the same time.
+**Requests In Flight:** gauge with the number of inflight requests being handled at the same time.
 
 ```
 http_requests_inflight{handler="/v1/query"} 0
 ```
 
+##### Datastore
+
+**Request Latency:** histogram with the latency of the datastore read requests.
+
+- `action` is the index read operation that could be either `GetObjects`, `GetAccessRules`, `GetObjectByID`, `GetRoles` or `GetRoleBindings`
+- `status` is the result of the operation. It could be either  read operation that couild be either `success` or `error`
+
+```
+datastore_latency_seconds_bucket{action="GetObjectByID", le="+Inf", status="success"} 1175
+datastore_latency_seconds_bucket{action="GetObjectByID", le="0.01", status="success"} 1174
+```
+```
+datastore_latency_seconds_count{action="GetObjectByID",  status="success"} 1175
+datastore_latency_seconds_count{action="GetRoleBindings",  status="success"} 47
+datastore_latency_seconds_count{action="GetRoles",  status="success"} 47
+```
+```
+datastore_latency_seconds_sum{action="GetObjectByID",  status="success"} 0.6924557999999995
+datastore_latency_seconds_sum{action="GetRoleBindings",  status="success"} 1.329158916
+datastore_latency_seconds_sum{action="GetRoles",  status="success"} 3.942473879999999
+```
+
+**Requests In Flight:** gauge with the number of inflight requests being handled at the same time.
+
+- `action` is the index read operation that could be either `GetObjects`, `GetAccessRules`, `GetObjectByID`, `GetRoles` or `GetRoleBindings`
+
+```
+datastore_inflight_requests{action="GetObjectByID"} 0
+datastore_inflight_requests{action="GetRoleBindings"} 0
+datastore_inflight_requests{action="GetRoles"} 0
+```
+
+##### Indexer
+
+**Request Latency:** histogram with the latency of the indexer read requests.
+
+- `action` is the index read operation that could be either `ListFacets` or `Search`
+- `status` is the result of the operation. It could be either  read operation that couild be either `success` or `error`
+
+```
+indexer_latency_seconds_bucket{action="ListFacets", le="+Inf", status="success"} 1
+indexer_latency_seconds_bucket{action="Search", le="+Inf", status="success"} 47
+```
+```
+indexer_latency_seconds_sum{action="ListFacets", status="success"} 0.008928666
+indexer_latency_seconds_sum{action="Search", status="success"} 0.06231312599999999
+```
+```
+indexer_latency_seconds_count{action="ListFacets", status="success"} 1
+indexer_latency_seconds_count{action="Search", status="success"} 47
+```
+
+**Requests In Flight:** gauge with the number of inflight requests being handled at the same time.
+
+- `action` is the index read operation that couild be either `ListFacets` or `Search`
+
+```
+indexer_inflight_requests{action="ListFacets"} 0
+indexer_inflight_requests{action="Search"} 0
+```
+
 #### Collecting
 
-The following metrics are available to monitor the collecting path
+Explorer collecting path is composed of three components exporting metrics:
 
-**Cluster Watcher Status**
+- Cluster Watcher Manager
+- Datastore (write operations)
+- Indexer (write operations)
 
-The metric `collector_cluster_watcher` provides the number of the cluster watchers it the following state:
+The following metrics are available to monitor its health.
+
+##### Cluster Watcher
+
+The metric `collector_cluster_watcher` provides the number of the cluster watchers it the following `status`:
 - Starting: a cluster watcher is starting at the back of detecting that a new cluster has been registered.
 - Started: cluster watcher has been started and collecting events from the remote cluster. This is the stable state.
 - Stopping: a cluster has been deregistered so its cluster watcher is no longer required. In the process of stopping it.
 - Failed: a cluster watcher has failed during the creation or starting process and cannot collect events from the remote clusters. This is the unstable state.
 
+Where `collector` is the type of collector, it could be
+- rbac: for collecting RBAC resources (ie roles)
+- objects: for collecting non-rbac resources (ie kustomizations)
+
 ```
-collector_cluster_watcher{status="Starting"} 0
-collector_cluster_watcher{status="Started"} 1
-collector_cluster_watcher{status="Stopping"} 0
-collector_cluster_watcher{status="Failed"} 0
+collector_cluster_watcher{collector="objects", status="started"} 1
+collector_cluster_watcher{collector="objects", status="starting"} 0
+collector_cluster_watcher{collector="rbac", status="started"} 1
+collector_cluster_watcher{collector="rbac", status="starting"} 0
 ```
 
 A sum on `collector_cluster_watcher` gives the total number of cluster watchers that should be equal to the number of clusters
