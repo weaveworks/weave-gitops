@@ -13,9 +13,7 @@ Built upon the core tenets of continuous integration and continuous delivery (CI
 
 [Flagger](https://docs.flagger.app/) is a progressive delivery operator for Kubernetes and part of the Flux family of open source projects. It reduces the risk of introducing new software versions and automates production releases to improve your time to delivery. Flagger implements deployment strategies—canary releases, A/B testing, Blue/Green mirroring—using a service mesh (App Mesh, Istio, Linkerd, Kuma, Open Service Mesh) or an ingress controller (Contour, Gloo, NGINX, Skipper, Traefik, APISIX) for traffic routing. For release analysis, Flagger can query Prometheus, InfluxDB, Datadog, New Relic, CloudWatch, Stackdriver, or Graphite. For alerting it uses Slack, MS Teams, Discord, and Rocket. Using Flux allows us to manage our cluster applications in a declarative way through changes in a Git repository.
 
-The Applications > Delivery view of the Weave GitOps Enterprise UI enables you to view the status of
-progressive delivery rollouts and how they're configured, leveraging Flagger's
-[canary](https://docs.flagger.app/usage/how-it-works#canary-resource) object. View near-to-realtime data on any summary or details page.
+If you're using Weave GitOps Enterprise, the Applications > Delivery view of the UI provides an "at a glance" view so that you can understand the status of your progressive delivery rollouts across a fleet of connected clusters. This removes the cognitive overhead of having to know which objects to query and where they are located. You can also drill down into each rollout to understand its status and configuration, and view near-to-realtime data on any summary or details page. Lastly, it includes a flagger-nginx [Profile](https://docs.gitops.weave.works/docs/next/cluster-management/profiles/) to help you quickly get started without having to configure a service mesh.
 
 ![Applications Delivery view](/img/dashboard-applications-delivery.png)
 
