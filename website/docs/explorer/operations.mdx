@@ -105,6 +105,43 @@ collector_cluster_watcher{status="Failed"} 0
 
 A sum on `collector_cluster_watcher` gives the total number of cluster watchers that should be equal to the number of clusters
 
+#### Datastore
+
+The metric `datastore_latency_seconds_bucket` is a histogram metrics to track latency of a datasore per action.
+
+where `action` is the read/write action performed. It could be one of the following:
+
+- StoreRoles
+- StoreRoleBindings
+- StoreObjects
+- DeleteObjects
+- DeleteAllObjects
+- DeleteRoles
+- DeleteAllRoles
+- DeleteRoleBindings
+- DeleteAllRoleBindings
+
+`status` represent the status of a request. It could be:
+
+- success
+- error
+
+```
+datastore_latency_seconds_bucket{action="StoreObjects",status="success",le="0.01"} 914
+datastore_latency_seconds_bucket{action="StoreObjects",status="success",le="0.02"} 979
+datastore_latency_seconds_bucket{action="StoreObjects",status="success",le="0.03"} 984
+datastore_latency_seconds_bucket{action="StoreObjects",status="success",le="0.04"} 985
+datastore_latency_seconds_bucket{action="StoreObjects",status="success",le="0.05"} 985
+datastore_latency_seconds_bucket{action="StoreObjects",status="success",le="0.060000000000000005"} 987
+datastore_latency_seconds_bucket{action="StoreObjects",status="success",le="0.07"} 987
+datastore_latency_seconds_bucket{action="StoreObjects",status="success",le="0.08"} 988
+datastore_latency_seconds_bucket{action="StoreObjects",status="success",le="0.09"} 989
+datastore_latency_seconds_bucket{action="StoreObjects",status="success",le="0.09999999999999999"} 989
+datastore_latency_seconds_bucket{action="StoreObjects",status="success",le="+Inf"} 990
+datastore_latency_seconds_sum{action="StoreObjects",status="success"} 6.261003531999998
+datastore_latency_seconds_count{action="StoreObjects",status="success"} 990
+```
+
 ### Dashboard
 
 You could leverage [this grafana dashboard](../assets/dashboards/explorer.json) in Grafana to monitor its [golden signals](https://sre.google/sre-book/monitoring-distributed-systems/#xref_monitoring_golden-signals)
