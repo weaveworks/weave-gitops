@@ -112,7 +112,9 @@ func makeVClusterHelmRelease(name, namespace, fluxNamespace, command string, por
 func installVCluster(kubeClient client.Client, name, namespace, fluxNamespace string, portForwards []string, automationKind string) error {
 	helmRepo := makeVClusterHelmRepository(namespace)
 
-	if err := kubeClient.Create(context.Background(), helmRepo); err != nil {
+	ctx := context.Background()
+
+	if err := kubeClient.Create(ctx, helmRepo); err != nil {
 		if apierrors.IsAlreadyExists(err) {
 			// do nothing
 		} else {
@@ -125,7 +127,7 @@ func installVCluster(kubeClient client.Client, name, namespace, fluxNamespace st
 
 	helmRelease := makeVClusterHelmRelease(name, namespace, fluxNamespace, command, portForwards, automationKind)
 
-	if err := kubeClient.Create(context.Background(), helmRelease); err != nil {
+	if err := kubeClient.Create(ctx, helmRelease); err != nil {
 		if apierrors.IsAlreadyExists(err) {
 			// do nothing
 		} else {
@@ -133,11 +135,14 @@ func installVCluster(kubeClient client.Client, name, namespace, fluxNamespace st
 		}
 	}
 
-	//nolint:staticcheck // deprecated, tracking issue: https://github.com/weaveworks/weave-gitops/issues/3812
-	if err := wait.Poll(2*time.Second, 5*time.Minute, func() (bool, error) {
+	timeout := 5 * time.Minute
+	timeoutCtx, timeoutCancel := context.WithTimeout(ctx, timeout)
+	defer timeoutCancel()
+
+	if err := wait.PollUntilContextTimeout(timeoutCtx, 2*time.Second, timeout, false, func(ctx context.Context) (bool, error) {
 		instance := appsv1.StatefulSet{}
 		if err := kubeClient.Get(
-			context.Background(),
+			ctx,
 			types.NamespacedName{
 				Name:      name,
 				Namespace: namespace,
