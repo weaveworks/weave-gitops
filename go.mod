@@ -11,15 +11,15 @@ require (
 	github.com/cheshir/ttlcache v1.0.1-0.20220504185148-8ceeff21b789
 	github.com/coreos/go-oidc/v3 v3.1.0
 	github.com/fluxcd/flux2 v0.40.2
-	github.com/fluxcd/go-git-providers v0.16.0
-	github.com/fluxcd/helm-controller/api v0.30.0
-	github.com/fluxcd/image-automation-controller/api v0.30.0
-	github.com/fluxcd/image-reflector-controller/api v0.25.0
-	github.com/fluxcd/kustomize-controller/api v1.0.0-rc.4
+	github.com/fluxcd/go-git-providers v0.18.0
+	github.com/fluxcd/helm-controller/api v0.35.0
+	github.com/fluxcd/image-automation-controller/api v0.35.0
+	github.com/fluxcd/image-reflector-controller/api v0.29.0
+	github.com/fluxcd/kustomize-controller/api v1.0.0
 	github.com/fluxcd/pkg/apis/meta v1.1.1
 	github.com/fluxcd/pkg/runtime v0.39.0
 	github.com/fluxcd/pkg/ssa v0.23.1
-	github.com/fluxcd/source-controller/api v1.0.0-rc.5
+	github.com/fluxcd/source-controller/api v1.0.0
 	github.com/go-git/go-git/v5 v5.6.1
 	github.com/go-logr/logr v1.2.4
 	github.com/go-logr/zapr v1.2.4
@@ -60,11 +60,11 @@ require (
 	k8s.io/api v0.27.3
 	k8s.io/apiextensions-apiserver v0.27.3
 	k8s.io/apimachinery v0.27.3
-	k8s.io/cli-runtime v0.26.1
+	k8s.io/cli-runtime v0.27.3
 	k8s.io/client-go v0.27.3
 	sigs.k8s.io/cli-utils v0.34.0
 	sigs.k8s.io/controller-runtime v0.15.0
-	sigs.k8s.io/kustomize/api v0.12.1
+	sigs.k8s.io/kustomize/api v0.13.2
 	sigs.k8s.io/yaml v1.3.0
 )
 
@@ -142,9 +142,9 @@ require (
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/evanphx/json-patch v5.6.0+incompatible // indirect
 	github.com/exponent-io/jsonpath v0.0.0-20210407135951-1de76d718b3f // indirect
-	github.com/fluxcd/notification-controller/api v1.0.0-rc.4
+	github.com/fluxcd/notification-controller/api v1.0.0
 	github.com/fluxcd/pkg/apis/acl v0.1.0 // indirect
-	github.com/fluxcd/pkg/apis/kustomize v1.1.0 // indirect
+	github.com/fluxcd/pkg/apis/kustomize v1.1.1 // indirect
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/go-errors/errors v1.4.2 // indirect
 	github.com/go-git/gcfg v1.5.0 // indirect
@@ -225,7 +225,7 @@ require (
 	k8s.io/kubectl v0.26.1
 	k8s.io/utils v0.0.0-20230505201702-9f6742963106 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
-	sigs.k8s.io/kustomize/kyaml v0.13.9
+	sigs.k8s.io/kustomize/kyaml v0.14.1
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
 )
 
