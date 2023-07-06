@@ -50,7 +50,7 @@ Docusaurus site, check [their docs](https://docusaurus.io/).
 Not all the below will apply, take them as hints.
 
 - An intro explaining why they would want this thing
-- A summary of what the tutorial will acheive
+- A summary of what the tutorial will achieve
 - Prerequisites
 - Notes on assumed knowledge
 - Screenshots (ones you can actually read)
@@ -69,7 +69,7 @@ Do not add `sidebar_position` at the top of files.
 
 #### How to do internal links
 
-Because we version our docs, all links refering to another doc must be
+Because we version our docs, all links referring to another doc must be
 **relative paths**. For example if in `docs/intro.mdx` you want to link to
 `docs/releases.mdx`, you would write this as `[link to releases](../releases)`.
 
