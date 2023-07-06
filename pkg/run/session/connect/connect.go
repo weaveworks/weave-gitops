@@ -314,7 +314,7 @@ func (conn *Connection) waitForVCluster(vKubeConfig api.Config, errorChan chan e
 		return err
 	}
 
-	//nolint:staticcheck // deprecated, tracking issue: https://github.com/weaveworks/weave-gitops/issues/3812
+	//nolint:staticcheck
 	err = wait.PollImmediate(time.Millisecond*200, time.Minute*3, func() (bool, error) {
 		select {
 		case err := <-errorChan:
@@ -336,7 +336,7 @@ func (conn *Connection) getVClusterKubeConfig(vclusterName string, command []str
 	var err error
 	podName := conn.PodName
 	if podName == "" {
-		//nolint:staticcheck // deprecated, tracking issue: https://github.com/weaveworks/weave-gitops/issues/3812
+		//nolint:staticcheck
 		waitErr := wait.PollImmediate(time.Second, time.Second*6, func() (bool, error) {
 			// get vcluster pod name
 			var pods *corev1.PodList
@@ -456,7 +456,7 @@ func (conn *Connection) getVClusterKubeConfig(vclusterName string, command []str
 
 func (conn *Connection) setServerIfExposed(vClusterName string, vClusterConfig *api.Config) error {
 	printedWaiting := false
-	//nolint:staticcheck // deprecated, tracking issue: https://github.com/weaveworks/weave-gitops/issues/3812
+	//nolint:staticcheck
 	err := wait.PollImmediate(time.Second*2, time.Minute*5, func() (done bool, err error) {
 		service, err := conn.kubeClient.CoreV1().Services(conn.Namespace).Get(context.TODO(), vClusterName, metav1.GetOptions{})
 		if err != nil {
@@ -605,7 +605,7 @@ func (conn *Connection) createServiceAccountToken(vKubeConfig api.Config) (strin
 	}
 	token := ""
 	conn.Log.Actionf("Create service account token for %s/%s", serviceAccountNamespace, serviceAccount)
-	//nolint:staticcheck // deprecated, tracking issue: https://github.com/weaveworks/weave-gitops/issues/3812
+	//nolint:staticcheck
 	err = wait.Poll(time.Second, time.Minute*3, func() (bool, error) {
 		// check if namespace exists
 		_, err := vKubeClient.CoreV1().Namespaces().Get(context.TODO(), serviceAccountNamespace, metav1.GetOptions{})

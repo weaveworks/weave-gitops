@@ -47,7 +47,7 @@ func GetKubeConfig(ctx context.Context, kubeClient *kubernetes.Clientset, vclust
 	var kubeConfig *api.Config
 
 	printedWaiting := false
-	//nolint:staticcheck // deprecated, tracking issue: https://github.com/weaveworks/weave-gitops/issues/3812
+	//nolint:staticcheck
 	err := wait.PollImmediate(time.Second, time.Minute*10, func() (done bool, err error) {
 		podList, err := kubeClient.CoreV1().Pods(namespace).List(ctx, metav1.ListOptions{
 			LabelSelector: "app=vcluster,release=" + vclusterName,

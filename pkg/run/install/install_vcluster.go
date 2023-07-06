@@ -133,7 +133,7 @@ func installVCluster(kubeClient client.Client, name, namespace, fluxNamespace st
 		}
 	}
 
-	//nolint:staticcheck // deprecated, tracking issue: https://github.com/weaveworks/weave-gitops/issues/3812
+	//nolint:staticcheck
 	if err := wait.Poll(2*time.Second, 5*time.Minute, func() (bool, error) {
 		instance := appsv1.StatefulSet{}
 		if err := kubeClient.Get(

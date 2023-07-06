@@ -270,7 +270,7 @@ func InstallFluentBit(ctx context.Context, log logger.Logger, kubeClient client.
 
 	log.Actionf("waiting for HelmRelease %s/%s to be ready", helmRelease.Namespace, helmRelease.Name)
 
-	//nolint:staticcheck // deprecated, tracking issue: https://github.com/weaveworks/weave-gitops/issues/3812
+	//nolint:staticcheck
 	if err := wait.Poll(2*time.Second, 5*time.Minute, func() (bool, error) {
 		instance := appsv1.DaemonSet{}
 		if err := kubeClient.Get(
