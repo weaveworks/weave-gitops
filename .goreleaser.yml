@@ -10,9 +10,11 @@ release:
   prerelease: auto
 archives:
   - format: tar.gz
-    replacements:
-      amd64: x86_64
-    name_template: "gitops-{{.Os}}-{{.Arch}}"
+    name_template: >-
+      gitops-
+      {{- title .Os }}-
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else }}{{ .Arch }}{{ end }}
 builds:
   - <<: &build_defaults
       binary: "gitops"
