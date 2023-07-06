@@ -42,11 +42,14 @@ func Remove(kubeClient client.Client, session *InternalSession) error {
 		result = multierror.Append(result, err)
 	}
 
-	//nolint:staticcheck // deprecated, tracking issue: https://github.com/weaveworks/weave-gitops/issues/3812
-	if err := wait.Poll(2*time.Second, 5*time.Minute, func() (bool, error) {
+	timeout := 5 * time.Minute
+	timeoutCtx, timeoutCancel := context.WithTimeout(context.Background(), timeout)
+	defer timeoutCancel()
+
+	if err := wait.PollUntilContextTimeout(timeoutCtx, 2*time.Second, timeout, false, func(ctx context.Context) (bool, error) {
 		instance := appsv1.StatefulSet{}
 		if err := kubeClient.Get(
-			context.Background(),
+			ctx,
 			types.NamespacedName{
 				Namespace: session.SessionNamespace,
 				Name:      session.SessionName},
@@ -62,8 +65,9 @@ func Remove(kubeClient client.Client, session *InternalSession) error {
 		result = multierror.Append(result, err)
 	}
 
-	//nolint:staticcheck // deprecated, tracking issue: https://github.com/weaveworks/weave-gitops/issues/3812
-	if err := wait.Poll(2*time.Second, 5*time.Minute, func() (bool, error) {
+	defer timeoutCancel()
+
+	if err := wait.PollUntilContextTimeout(timeoutCtx, 2*time.Second, timeout, false, func(ctx context.Context) (bool, error) {
 		pvc := corev1.PersistentVolumeClaim{}
 		if err := kubeClient.Get(
 			context.Background(),
