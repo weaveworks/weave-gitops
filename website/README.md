@@ -36,6 +36,8 @@ Below are some things to be aware of when adding content, such as where we store
 things and how we manage the sidebar. For general info on how to build a
 Docusaurus site, check [their docs](https://docusaurus.io/).
 
+Generally if you need to add new content to the documentation website you need to add changes to the `/docs` folder.
+
 #### Directory layout
 
 - The docs are kept in `docs/`
@@ -63,23 +65,16 @@ Not all the below will apply, take them as hints.
 
 #### How to add a new page to a sidebar
 
-All our sidebars (2 at the time of writing) are managed in the `sidebars.js`
-file. When you want to add a new file, simply slot it in where it fits best.
-Do not add `sidebar_position` at the top of files.
+Sidebars are managed in the `sidebars.js` file.
+More information on how to add/modify sidebars can be found [here](https://docusaurus.io/docs/sidebar)
 
 #### How to do internal links
 
-Because we version our docs, all links referring to another doc must be
-**relative paths**. For example if in `docs/intro.mdx` you want to link to
-`docs/releases.mdx`, you would write this as `[link to releases](../releases)`.
-
-If paths are absolute (eg `[link to release](/docs/releases)`), then the links
-are not prepended with their version information. This means they will link to
-the latest instance of the page, which in some cases may not exist.
-Relative paths ensure that they point to the version and location of the page
-which existed at that moment in time.
+Please find guidance from Docusaurus [here](https://docusaurus.io/docs/markdown-features/links)
+and [here](https://docusaurus.io/docs/versioning#link-docs-by-file-paths).
 
 #### Making changes to older versions
+**NOTE** DO NOT edit old versions in `versioned_docs/` folders unless its absolutely required.
 
 Most of the time you will not need to touch the contents of `versioned_docs/`
 but occasionally you may need to backfill fixes or missing feature
