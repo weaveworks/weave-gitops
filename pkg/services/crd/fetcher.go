@@ -43,7 +43,6 @@ type defaultFetcher struct {
 }
 
 func (s *defaultFetcher) watchCRDs() {
-	//nolint:staticcheck // deprecated, tracking issue: https://github.com/weaveworks/weave-gitops/issues/3812
 	_ = wait.PollImmediateInfinite(watchCRDsFrequency, func() (bool, error) {
 		s.UpdateCRDList()
 

@@ -37,7 +37,6 @@ func StartPortForwardingWithRestart(config *rest.Config, address, pod, namespace
 			log.Actionf("Restarting port forwarding")
 
 			// wait for loft pod to start
-			//nolint:staticcheck // deprecated, tracking issue: https://github.com/weaveworks/weave-gitops/issues/3812
 			err := wait.PollImmediate(time.Second, time.Minute*10, func() (done bool, err error) {
 				pod, err := kubeClient.CoreV1().Pods(namespace).Get(context.Background(), pod, metav1.GetOptions{})
 				if err != nil {

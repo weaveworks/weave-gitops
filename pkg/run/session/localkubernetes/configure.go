@@ -106,7 +106,6 @@ func minikubeProxy(vClusterName, vClusterNamespace string, rawConfig, vRawConfig
 				}
 
 				// test local connection
-				//nolint:staticcheck // deprecated, tracking issue: https://github.com/weaveworks/weave-gitops/issues/3812
 				waitErr := wait.PollImmediate(time.Second, timeout, func() (bool, error) {
 					err = testConnectionWithServer(testvConfig, server)
 					if err != nil {
@@ -189,7 +188,6 @@ func directConnection(vRawConfig *clientcmdapi.Config, service *corev1.Service, 
 
 	server := fmt.Sprintf("https://127.0.0.1:%v", service.Spec.Ports[0].NodePort)
 	var err error
-	//nolint:staticcheck // deprecated, tracking issue: https://github.com/weaveworks/weave-gitops/issues/3812
 	waitErr := wait.PollImmediate(time.Second, timeout, func() (bool, error) {
 		err = testConnectionWithServer(vRawConfig, server)
 		if err != nil {
@@ -233,7 +231,6 @@ func createProxyContainer(vClusterName, vClusterNamespace string, rawConfig, vRa
 	}
 
 	server := fmt.Sprintf("https://127.0.0.1:%v", localPort)
-	//nolint:staticcheck // deprecated, tracking issue: https://github.com/weaveworks/weave-gitops/issues/3812
 	waitErr := wait.PollImmediate(time.Second, timeout, func() (bool, error) {
 		err = testConnectionWithServer(vRawConfig, server)
 		if err != nil {
@@ -303,7 +300,6 @@ func CreateBackgroundProxyContainer(vClusterName, vClusterNamespace string, rawC
 		return "", errors.Errorf("error starting background proxy : %s %v", string(out), err)
 	}
 	server := fmt.Sprintf("https://127.0.0.1:%v", localPort)
-	//nolint:staticcheck // deprecated, tracking issue: https://github.com/weaveworks/weave-gitops/issues/3812
 	waitErr := wait.PollImmediate(time.Second, time.Second*60, func() (bool, error) {
 		err = testConnectionWithServer(vRawConfig, server)
 		if err != nil {
@@ -370,7 +366,6 @@ func getServerFromExistingProxyContainer(vClusterName, vClusterNamespace string,
 		localPort, err := strconv.Atoi(strings.TrimSpace(string(out)))
 		if err == nil && localPort != 0 {
 			server := fmt.Sprintf("https://127.0.0.1:%v", localPort)
-			//nolint:staticcheck // deprecated, tracking issue: https://github.com/weaveworks/weave-gitops/issues/3812
 			waitErr := wait.PollImmediate(time.Second, time.Second*5, func() (bool, error) {
 				err = testConnectionWithServer(vRawConfig, server)
 				if err != nil {

@@ -55,12 +55,7 @@ func (c *singleCluster) GetHost() string {
 }
 
 func getClientFromConfig(config *rest.Config, scheme *apiruntime.Scheme) (client.Client, error) {
-	httpClient, err := rest.HTTPClientFor(config)
-	if err != nil {
-		return nil, fmt.Errorf("could not create http.Client from config: %w", err)
-	}
-
-	mapper, err := apiutil.NewDiscoveryRESTMapper(config, httpClient)
+	mapper, err := apiutil.NewDiscoveryRESTMapper(config)
 	if err != nil {
 		return nil, fmt.Errorf("could not create RESTMapper from config: %w", err)
 	}
@@ -90,11 +85,21 @@ func (c *singleCluster) GetUserClient(user *auth.UserPrincipal) (client.Client, 
 		return nil, err
 	}
 
-	return getClientFromConfig(cfg, c.scheme)
+	client, err := getClientFromConfig(cfg, c.scheme)
+	if err != nil {
+		return nil, err
+	}
+
+	return client, nil
 }
 
 func (c *singleCluster) GetServerClient() (client.Client, error) {
-	return getClientFromConfig(c.restConfig, c.scheme)
+	client, err := getClientFromConfig(c.restConfig, c.scheme)
+	if err != nil {
+		return nil, err
+	}
+
+	return client, nil
 }
 
 func (c *singleCluster) GetUserClientset(user *auth.UserPrincipal) (kubernetes.Interface, error) {

@@ -44,13 +44,11 @@ func RequestReconciliation(ctx context.Context, k client.Client, name client.Obj
 
 // WaitForSync polls the k8s API until the resources is sync'd, and times out eventually.
 func WaitForSync(ctx context.Context, c client.Client, key client.ObjectKey, obj Reconcilable) error {
-	//nolint:staticcheck // deprecated, tracking issue: https://github.com/weaveworks/weave-gitops/issues/3812
 	if err := wait.PollImmediate(
 		k8sPollInterval,
 		k8sTimeout,
 		checkResourceSync(ctx, c, key, obj, obj.GetLastHandledReconcileRequest()),
 	); err != nil {
-		//nolint:staticcheck // deprecated, tracking issue: https://github.com/weaveworks/weave-gitops/issues/3812
 		if errors.Is(err, wait.ErrWaitTimeout) {
 			return errors.New("sync request timed out. The sync operation may still be in progress")
 		}
