@@ -43,7 +43,6 @@ type defaultFetcher struct {
 }
 
 func (s *defaultFetcher) watchCRDs() {
-	//nolint:staticcheck
 	_ = wait.PollImmediateInfinite(watchCRDsFrequency, func() (bool, error) {
 		s.UpdateCRDList()
 

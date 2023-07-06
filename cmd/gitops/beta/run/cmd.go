@@ -1045,7 +1045,6 @@ func runCommandInnerProcess(cmd *cobra.Command, args []string) error {
 							podErr error
 						)
 
-						//nolint:staticcheck
 						if pollErr := wait.PollImmediate(2*time.Second, flags.Timeout, func() (bool, error) {
 							pod, podErr = run.GetPodFromResourceDescription(thisCtx, kubeClient, namespacedName, specMap.Kind, nil)
 							if pod != nil && podErr == nil {
