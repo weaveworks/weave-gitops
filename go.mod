@@ -12,14 +12,14 @@ require (
 	github.com/coreos/go-oidc/v3 v3.1.0
 	github.com/fluxcd/flux2 v0.40.2
 	github.com/fluxcd/go-git-providers v0.16.0
-	github.com/fluxcd/helm-controller/api v0.30.0
-	github.com/fluxcd/image-automation-controller/api v0.30.0
-	github.com/fluxcd/image-reflector-controller/api v0.25.0
-	github.com/fluxcd/kustomize-controller/api v0.34.0
+	github.com/fluxcd/helm-controller/api v0.33.0
+	github.com/fluxcd/image-automation-controller/api v0.33.1
+	github.com/fluxcd/image-reflector-controller/api v0.27.2
+	github.com/fluxcd/kustomize-controller/api v1.0.0-rc.3
 	github.com/fluxcd/pkg/apis/meta v1.0.0
-	github.com/fluxcd/pkg/runtime v0.29.0
-	github.com/fluxcd/pkg/ssa v0.23.1
-	github.com/fluxcd/source-controller/api v1.0.0-rc.1
+	github.com/fluxcd/pkg/runtime v0.35.0
+	github.com/fluxcd/pkg/ssa v0.27.0
+	github.com/fluxcd/source-controller/api v1.0.0-rc.3
 	github.com/go-git/go-git/v5 v5.6.1
 	github.com/go-logr/logr v1.2.4
 	github.com/go-logr/zapr v1.2.3
@@ -147,7 +147,7 @@ require (
 	github.com/exponent-io/jsonpath v0.0.0-20210407135951-1de76d718b3f // indirect
 	github.com/fluxcd/notification-controller/api v0.32.1
 	github.com/fluxcd/pkg/apis/acl v0.1.0 // indirect
-	github.com/fluxcd/pkg/apis/kustomize v0.8.0 // indirect
+	github.com/fluxcd/pkg/apis/kustomize v1.0.0 // indirect
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/go-errors/errors v1.4.2 // indirect
 	github.com/go-git/gcfg v1.5.0 // indirect
@@ -223,7 +223,7 @@ require (
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	k8s.io/component-base v0.26.3 // indirect
-	k8s.io/klog/v2 v2.90.0 // indirect
+	k8s.io/klog/v2 v2.90.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20230109183929-3758b55a6596 // indirect
 	k8s.io/kubectl v0.26.1
 	k8s.io/utils v0.0.0-20230406110748-d93618cff8a2 // indirect
