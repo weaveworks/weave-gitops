@@ -314,14 +314,17 @@ func (conn *Connection) waitForVCluster(vKubeConfig api.Config, errorChan chan e
 		return err
 	}
 
-	//nolint:staticcheck // deprecated, tracking issue: https://github.com/weaveworks/weave-gitops/issues/3812
-	err = wait.PollImmediate(time.Millisecond*200, time.Minute*3, func() (bool, error) {
+	timeout := time.Minute * 3
+	timeoutCtx, timeoutCancel := context.WithTimeout(context.TODO(), timeout)
+	defer timeoutCancel()
+
+	err = wait.PollUntilContextTimeout(timeoutCtx, time.Millisecond*200, timeout, true, func(ctx context.Context) (bool, error) {
 		select {
 		case err := <-errorChan:
 			return false, err
 		default:
 			// check if service account exists
-			_, err = vKubeClient.CoreV1().ServiceAccounts("default").Get(context.TODO(), "default", metav1.GetOptions{})
+			_, err = vKubeClient.CoreV1().ServiceAccounts("default").Get(ctx, "default", metav1.GetOptions{})
 			return err == nil, nil
 		}
 	})
@@ -336,11 +339,14 @@ func (conn *Connection) getVClusterKubeConfig(vclusterName string, command []str
 	var err error
 	podName := conn.PodName
 	if podName == "" {
-		//nolint:staticcheck // deprecated, tracking issue: https://github.com/weaveworks/weave-gitops/issues/3812
-		waitErr := wait.PollImmediate(time.Second, time.Second*6, func() (bool, error) {
+		timeout := time.Second * 6
+		timeoutCtx, timeoutCancel := context.WithTimeout(context.Background(), timeout)
+		defer timeoutCancel()
+
+		waitErr := wait.PollUntilContextTimeout(timeoutCtx, time.Second, timeout, true, func(ctx context.Context) (bool, error) {
 			// get vcluster pod name
 			var pods *corev1.PodList
-			pods, err = conn.kubeClient.CoreV1().Pods(conn.Namespace).List(context.Background(), metav1.ListOptions{
+			pods, err = conn.kubeClient.CoreV1().Pods(conn.Namespace).List(ctx, metav1.ListOptions{
 				LabelSelector: "app=vcluster,release=" + vclusterName,
 			})
 			if err != nil {
@@ -456,9 +462,12 @@ func (conn *Connection) getVClusterKubeConfig(vclusterName string, command []str
 
 func (conn *Connection) setServerIfExposed(vClusterName string, vClusterConfig *api.Config) error {
 	printedWaiting := false
-	//nolint:staticcheck // deprecated, tracking issue: https://github.com/weaveworks/weave-gitops/issues/3812
-	err := wait.PollImmediate(time.Second*2, time.Minute*5, func() (done bool, err error) {
-		service, err := conn.kubeClient.CoreV1().Services(conn.Namespace).Get(context.TODO(), vClusterName, metav1.GetOptions{})
+	timeout := time.Minute * 5
+	timeoutCtx, timeoutCancel := context.WithTimeout(context.TODO(), timeout)
+	defer timeoutCancel()
+
+	err := wait.PollUntilContextTimeout(timeoutCtx, time.Second*2, timeout, true, func(ctx context.Context) (bool, error) {
+		service, err := conn.kubeClient.CoreV1().Services(conn.Namespace).Get(ctx, vClusterName, metav1.GetOptions{})
 		if err != nil {
 			if kerrors.IsNotFound(err) {
 				return true, nil
@@ -605,10 +614,14 @@ func (conn *Connection) createServiceAccountToken(vKubeConfig api.Config) (strin
 	}
 	token := ""
 	conn.Log.Actionf("Create service account token for %s/%s", serviceAccountNamespace, serviceAccount)
-	//nolint:staticcheck // deprecated, tracking issue: https://github.com/weaveworks/weave-gitops/issues/3812
-	err = wait.Poll(time.Second, time.Minute*3, func() (bool, error) {
+
+	timeout := time.Minute * 3
+	timeoutCtx, timeoutCancel := context.WithTimeout(context.TODO(), timeout)
+	defer timeoutCancel()
+
+	err = wait.PollUntilContextTimeout(timeoutCtx, time.Second, timeout, false, func(ctx context.Context) (bool, error) {
 		// check if namespace exists
-		_, err := vKubeClient.CoreV1().Namespaces().Get(context.TODO(), serviceAccountNamespace, metav1.GetOptions{})
+		_, err := vKubeClient.CoreV1().Namespaces().Get(ctx, serviceAccountNamespace, metav1.GetOptions{})
 		if err != nil {
 			if kerrors.IsNotFound(err) || kerrors.IsForbidden(err) {
 				return false, err
@@ -618,7 +631,7 @@ func (conn *Connection) createServiceAccountToken(vKubeConfig api.Config) (strin
 		}
 
 		// check if service account exists
-		_, err = vKubeClient.CoreV1().ServiceAccounts(serviceAccountNamespace).Get(context.TODO(), serviceAccount, metav1.GetOptions{})
+		_, err = vKubeClient.CoreV1().ServiceAccounts(serviceAccountNamespace).Get(ctx, serviceAccount, metav1.GetOptions{})
 		if err != nil {
 			if kerrors.IsNotFound(err) {
 				if serviceAccount == "default" {
@@ -627,7 +640,7 @@ func (conn *Connection) createServiceAccountToken(vKubeConfig api.Config) (strin
 
 				if conn.ServiceAccountClusterRole != "" {
 					// create service account
-					_, err = vKubeClient.CoreV1().ServiceAccounts(serviceAccountNamespace).Create(context.TODO(), &corev1.ServiceAccount{
+					_, err = vKubeClient.CoreV1().ServiceAccounts(serviceAccountNamespace).Create(ctx, &corev1.ServiceAccount{
 						ObjectMeta: metav1.ObjectMeta{
 							Name:      serviceAccount,
 							Namespace: serviceAccountNamespace,
@@ -651,11 +664,11 @@ func (conn *Connection) createServiceAccountToken(vKubeConfig api.Config) (strin
 		// create service account cluster role binding
 		if conn.ServiceAccountClusterRole != "" {
 			clusterRoleBindingName := SafeConcatName("vcluster", "sa", serviceAccount, serviceAccountNamespace)
-			clusterRoleBinding, err := vKubeClient.RbacV1().ClusterRoleBindings().Get(context.TODO(), clusterRoleBindingName, metav1.GetOptions{})
+			clusterRoleBinding, err := vKubeClient.RbacV1().ClusterRoleBindings().Get(ctx, clusterRoleBindingName, metav1.GetOptions{})
 			if err != nil {
 				if kerrors.IsNotFound(err) {
 					// create cluster role binding
-					_, err = vKubeClient.RbacV1().ClusterRoleBindings().Create(context.TODO(), &rbacv1.ClusterRoleBinding{
+					_, err = vKubeClient.RbacV1().ClusterRoleBindings().Create(ctx, &rbacv1.ClusterRoleBinding{
 						ObjectMeta: metav1.ObjectMeta{
 							Name: clusterRoleBindingName,
 						},
@@ -685,7 +698,7 @@ func (conn *Connection) createServiceAccountToken(vKubeConfig api.Config) (strin
 			} else {
 				// if cluster role differs, recreate it
 				if clusterRoleBinding.RoleRef.Name != conn.ServiceAccountClusterRole {
-					err = vKubeClient.RbacV1().ClusterRoleBindings().Delete(context.TODO(), clusterRoleBindingName, metav1.DeleteOptions{})
+					err = vKubeClient.RbacV1().ClusterRoleBindings().Delete(ctx, clusterRoleBindingName, metav1.DeleteOptions{})
 					if err != nil {
 						return false, err
 					}
@@ -698,7 +711,7 @@ func (conn *Connection) createServiceAccountToken(vKubeConfig api.Config) (strin
 		}
 
 		// create service account token
-		result, err := vKubeClient.CoreV1().ServiceAccounts(serviceAccountNamespace).CreateToken(context.TODO(), serviceAccount, &authenticationv1.TokenRequest{Spec: authenticationv1.TokenRequestSpec{
+		result, err := vKubeClient.CoreV1().ServiceAccounts(serviceAccountNamespace).CreateToken(ctx, serviceAccount, &authenticationv1.TokenRequest{Spec: authenticationv1.TokenRequestSpec{
 			Audiences:         audiences,
 			ExpirationSeconds: &expirationSeconds,
 		}}, metav1.CreateOptions{})
