@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
+	imagev1_reflect "github.com/fluxcd/image-reflector-controller/api/v1beta2"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
@@ -55,6 +56,8 @@ func NewReconcileable(obj client.Object) Reconcilable {
 		return HelmChartAdapter{HelmChart: o}
 	case *sourcev1.OCIRepository:
 		return OCIRepositoryAdapter{OCIRepository: o}
+	case *imagev1_reflect.ImageRepository:
+		return ImageRepositoryAdapter{ImageRepository: o}
 	}
 
 	return nil
@@ -248,6 +251,30 @@ func (obj KustomizationAdapter) DeepCopyClientObject() client.Object {
 	return obj.DeepCopy()
 }
 
+type ImageRepositoryAdapter struct {
+	*imagev1_reflect.ImageRepository
+}
+
+func (obj ImageRepositoryAdapter) GetLastHandledReconcileRequest() string {
+	return obj.Status.GetLastHandledReconcileRequest()
+}
+
+func (obj ImageRepositoryAdapter) AsClientObject() client.Object {
+	return obj.ImageRepository
+}
+
+func (obj ImageRepositoryAdapter) GroupVersionKind() schema.GroupVersionKind {
+	return imagev1_reflect.GroupVersion.WithKind(imagev1_reflect.ImageRepositoryKind)
+}
+
+func (obj ImageRepositoryAdapter) SetSuspended(suspend bool) {
+	obj.Spec.Suspend = suspend
+}
+
+func (obj ImageRepositoryAdapter) DeepCopyClientObject() client.Object {
+	return obj.DeepCopy()
+}
+
 type sRef struct {
 	apiVersion string
 	name       string
@@ -293,6 +320,9 @@ func ToReconcileable(kind string) (client.ObjectList, Reconcilable, error) {
 
 	case sourcev1.OCIRepositoryKind:
 		return &sourcev1.OCIRepositoryList{}, NewReconcileable(&sourcev1.OCIRepository{}), nil
+
+	case imagev1_reflect.ImageRepositoryKind:
+		return &imagev1_reflect.ImageRepositoryList{}, NewReconcileable(&imagev1_reflect.ImageRepository{}), nil
 	}
 
 	return nil, nil, errors.New("could not find source type")
