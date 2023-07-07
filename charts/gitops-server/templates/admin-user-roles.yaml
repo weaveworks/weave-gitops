@@ -71,6 +71,18 @@ rules:
   - apiGroups: [ "notification.toolkit.fluxcd.io" ]
     resources: [ "providers", "alerts" ]
     verbs: [ "get", "list", "watch", "patch" ]
+  
+  - apiGroups: ["image.toolkit.fluxcd.io"]
+    resources: [ "imagepolicies" ]
+    verbs: [ "get", "list", "watch", "patch" ]
+  
+  - apiGroups: ["image.toolkit.fluxcd.io"]
+    resources: [ "imagerepositories" ]
+    verbs: [ "get", "list", "watch", "patch" ]
+
+  - apiGroups: ["image.toolkit.fluxcd.io"]
+    resources: [ "imageupdateautomations" ]
+    verbs: [ "get", "list", "watch", "patch" ]
 
 {{- if gt (len $.Values.rbac.additionalRules) 0 -}}
 {{- toYaml $.Values.rbac.additionalRules | nindent 2 -}}
