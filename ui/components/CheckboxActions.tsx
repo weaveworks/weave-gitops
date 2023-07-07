@@ -79,7 +79,7 @@ const DefaultSuspend: React.FC<{
   );
 };
 
-type Action = {
+export type Action = {
   element: React.ReactElement;
   additionalProps?: { [key: string]: any };
 };
