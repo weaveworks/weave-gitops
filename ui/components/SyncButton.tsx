@@ -14,10 +14,7 @@ type Props = {
 
 export const ArrowDropDown = styled(IconButton)`
   &.MuiButton-outlined {
-    border-color: ${(props) => props.theme.colors.neutral20};
-    &:disabled {
-      border-left: none;
-    }
+    border-color: ${(props) => props.theme.colors.grayToPrimary};
     //2px = MUI radius
     border-radius: 0 2px 2px 0;
   }

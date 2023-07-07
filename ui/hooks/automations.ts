@@ -6,14 +6,13 @@ import {
   SyncFluxObjectRequest,
   SyncFluxObjectResponse,
 } from "../lib/api/core/core.pb";
-import { Kind } from "../lib/api/core/types.pb";
+import { Kind, ObjectRef } from "../lib/api/core/types.pb";
 import { Automation } from "../lib/objects";
 import {
   MultiRequestError,
   NoNamespace,
   ReactQueryOptions,
   RequestError,
-  Syncable,
 } from "../lib/types";
 import { notifyError, notifySuccess } from "../lib/utils";
 import { convertResponse } from "./objects";
@@ -61,7 +60,7 @@ export function useListAutomations(
   );
 }
 
-export function useSyncFluxObject(objs: Syncable[]) {
+export function useSyncFluxObject(objs: ObjectRef[]) {
   const { api } = useContext(CoreClientContext);
   const mutation = useMutation<
     SyncFluxObjectResponse,
