@@ -66,13 +66,6 @@ export interface Source {
   lastUpdatedAt?: string;
 }
 
-export interface Syncable {
-  name?: string;
-  kind?: Kind;
-  namespace?: string;
-  clusterName?: string;
-}
-
 export type MultiRequestError = ListError & {
   kind?: Kind;
 };
