@@ -80,7 +80,7 @@ const DefaultSuspend: React.FC<{
 };
 
 export type Action = {
-  element: React.ReactElement;
+  component: React.FC;
   additionalProps?: { [key: string]: any };
 };
 
@@ -105,18 +105,21 @@ function CheckboxActions({
   }, [checked, rows]);
 
   const defaultActions = [
-    { element: DefaultSync },
-    { element: DefaultSuspend, additionalProps: { suspend: true } },
-    { element: DefaultSuspend, additionalProps: { suspend: false } },
+    { component: DefaultSync },
+    { component: DefaultSuspend, additionalProps: { suspend: true } },
+    { component: DefaultSuspend, additionalProps: { suspend: false } },
   ];
   const hasActions = actions || defaultActions;
 
   return (
     <Flex start align className={className} gap="8">
-      {hasActions.map((action) => {
-        return React.createElement(action.element, {
+      {hasActions.map((action: Action) => {
+        const elementProps: any = {
           ...action.additionalProps,
           reqObjects: reqObjects,
+        };
+        return React.createElement(action.component, {
+          ...elementProps,
         });
       })}
     </Flex>
