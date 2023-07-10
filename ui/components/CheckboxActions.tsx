@@ -80,7 +80,7 @@ const DefaultSuspend: React.FC<{
 };
 
 export type Action = {
-  element: React.FC;
+  component: React.FC;
   additionalProps?: { [key: string]: any };
 };
 
@@ -105,9 +105,9 @@ function CheckboxActions({
   }, [checked, rows]);
 
   const defaultActions = [
-    { element: DefaultSync },
-    { element: DefaultSuspend, additionalProps: { suspend: true } },
-    { element: DefaultSuspend, additionalProps: { suspend: false } },
+    { component: DefaultSync },
+    { component: DefaultSuspend, additionalProps: { suspend: true } },
+    { component: DefaultSuspend, additionalProps: { suspend: false } },
   ];
   const hasActions = actions || defaultActions;
 
@@ -118,7 +118,7 @@ function CheckboxActions({
           ...action.additionalProps,
           reqObjects: reqObjects,
         };
-        return React.createElement(action.element, {
+        return React.createElement(action.component, {
           ...elementProps,
         });
       })}
