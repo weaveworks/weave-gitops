@@ -80,7 +80,7 @@ const DefaultSuspend: React.FC<{
 };
 
 export type Action = {
-  element: React.ReactElement;
+  element: React.FC;
   additionalProps?: { [key: string]: any };
 };
 
@@ -113,10 +113,13 @@ function CheckboxActions({
 
   return (
     <Flex start align className={className} gap="8">
-      {hasActions.map((action) => {
-        return React.createElement(action.element, {
+      {hasActions.map((action: Action) => {
+        const elementProps: any = {
           ...action.additionalProps,
           reqObjects: reqObjects,
+        };
+        return React.createElement(action.element, {
+          ...elementProps,
         });
       })}
     </Flex>
