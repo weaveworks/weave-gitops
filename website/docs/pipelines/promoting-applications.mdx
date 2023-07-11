@@ -162,7 +162,7 @@ of these scenarios are:
 - In the case of a [monorepo](https://fluxcd.io/flux/guides/repository-structure/#monorepo): you want to ensure that a compromised token doing a change in test
         cannot end up doing a promotion in prod without a pull request review, for example, leveraging [Codeonwers](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners).
 - In the case of [repo per environment](https://fluxcd.io/flux/guides/repository-structure/#repo-per-environment) you want to ensure that a pipeline is configured with your
-        test environment repo url. You also want to ensure that you have seggregation of tokens per environment over allowing a token to access any envirionment repo.
+        test environment repo url. You also want to ensure that you have seggregation of tokens per environment over allowing a token to access any environment repo.
 
 #### RBAC
 
@@ -242,9 +242,8 @@ spec:
 ```
 :::warning
 
-Policies could have exclusion features to accommodate privileged workloads like Flux.
-
-Remind the rule of not allowing users to create RBAC resources without the right compliance review, otherwise they could create RBAC resources that
+Policies could have exclusion features to accommodate privileged workloads like Flux. Remind the rule of not allowing
+users to create RBAC resources without the right compliance review, otherwise they could create RBAC resources that
 could escape this runtime control.
 :::
 
@@ -291,10 +290,10 @@ resources:
 
 #### Service Account
 
-At this stage none-but admins can read the secret. Attempts to break this contract will be blocked via Policy. To enable Pipeline Controller
-to read the secret, we need to grant access via RBAC. Given that the promotion credentials secret needs to reside
-in the same Namespace as the Pipeline resource on the management cluster, you should create a RoleBinding
-for Pipeline Controller Service Account in the pipeline namespace:
+To enable Pipeline Controller to read the secret, we need to grant access via RBAC. Given that the promotion credentials
+secret needs to reside in the same Namespace as the Pipeline resource on the management cluster, you should create a RoleBinding
+for Pipeline Controller Service Account in the pipeline namespace. For a pipeline in namespace `podinfo`, it would look like
+as follows:
 
 ```yaml
 ---
@@ -302,12 +301,12 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: read-app-promotion-credentials
-  namespace: podinfo
+  namespace: podinfo # change for the pipeline namespace
 rules:
   - apiGroups:
       - ""
     resourceNames:
-      - "app-promotion-credentials"
+      - "app-promotion-credentials" # change for the secret name holding the pull requests secret
     resources:
       - "secrets"
     verbs:
@@ -330,7 +329,7 @@ subjects:
 
 #### Verify Security Context
 
-Use [pipeline-promotions-security](https://github.com/weaveworks/weave-gitops-quickstart/tree/pipelines-promotions-security/pipelines-promotions-security)
+Use [pipeline promotions security](https://github.com/weaveworks/weave-gitops-quickstart/tree/pipelines-promotions-security/pipelines-promotions-security)
 to verify that your environments meets the security context described earlier.
 
 Once deployed you could see how the different resources are being rejected. See those rejections via Violations UI:
@@ -380,10 +379,12 @@ and for security and auditing perspective, you don't want to impersonate a real 
 For example, if the case of GitHub, use [fine-grained tokens](https://github.blog/2022-10-18-introducing-fine-grained-personal-access-tokens-for-github/) to only
 allow access to the single repo that your configuration manifests exist.
 
-![create token least priviledge](img/fine-grained-token.png)
+![create least privileged token](img/fine-grained-token.png)
  </details>
 
-4. **Review active access tokens on a regular basis**: to ensure that only the ones that are required are present at all times.
+4. **Review the tokens on a regular basis following your git provider recommendations**. Ensure that:
+    - Only the ones that are required are present.
+    - Tokens close to its expiration date are managed accordingly.
 
 <details><summary>Expand to see example</summary>
 
@@ -395,7 +396,6 @@ For example, using github and fine-grained tokens you [could do so](https://gith
 5. **Review git provider recommendations and examples**
 - [GitHub](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token)
 - [GitLab](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html)
-
 
 
 ### Add markers to app manifests
