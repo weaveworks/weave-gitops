@@ -44,6 +44,11 @@
             'enterprise/getting-started/releases-enterprise',
           ],
         },
+        {
+            type: 'link',
+            label: 'Version Archives',
+            href: '/archives',
+        },
       ],
     },
     {
