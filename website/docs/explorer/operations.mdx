@@ -219,35 +219,6 @@ datastore_inflight_requests{action="StoreRoleBindings"} 0
 datastore_inflight_requests{action="DeleteAllRoleBindings"} 0
 ```
 
-##### Indexer Writes
-
-**Request Latency:** histogram with the latency of the indexer read requests.
-
-- `action` is the index write operation that could be either `Add`, `Remove`, `RemoveByQuery`
-- `status` is the result of the operation. It could be either write operation that could be either `success` or `error`
-
-```
-indexer_latency_seconds_bucket{action="Add", le="+Inf", status="success"} 1
-indexer_latency_seconds_bucket{action="Remove", le="+Inf", status="success"} 47
-```
-```
-indexer_latency_seconds_sum{action="Add", status="success"} 0.008928666
-indexer_latency_seconds_sum{action="Remove", status="success"} 0.06231312599999999
-```
-```
-indexer_latency_seconds_count{action="Add", status="success"} 1
-indexer_latency_seconds_count{action="Remove", status="success"} 47
-```
-
-**Requests In Flight:** gauge with the number of inflight requests being handled at the same time.
-
-- `action` is the index write operation that could be either `Add`, `Remove`, `RemoveByQuery`
-
-```
-indexer_inflight_requests{action="Add"} 0
-indexer_inflight_requests{action="Remove"} 0
-```
-
 
 ### Dashboard
 
