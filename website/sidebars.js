@@ -138,8 +138,6 @@
         'guides/setting-up-dex',
         'guides/cert-manager',
         'guides/displaying-custom-metadata',
-        'guides/delivery',
-        'guides/flagger-manual-gating',
         'guides/fluxga-upgrade',
       ],
     },
