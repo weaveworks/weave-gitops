@@ -136,6 +136,14 @@ Now as soon as the `HelmRelease` on the first environment defined in the pipelin
 
 ## Pull request
 
+:::danger
+
+Creating pull requests requires write access to your git repo. In case your pull request secret is compromised (and you could assume
+it as a likely scenario), it could end up, for example, in deleting your production applications.
+
+Please make sure you understand the Security section below before enabling automated pull requests.
+:::
+
 This section covers adding a promotion by pull request (PR) strategy, so that whenever the application defined in a pipeline
 is upgraded in one of the pipeline's environments, a PR is created that updates the manifest file setting the application version in the next environment.
 
@@ -144,30 +152,20 @@ how to authenticate with the repository and the Git provider API, and which file
 
 ### Security
 
-:::danger
-
-Create pull requests requires write access to your git repo. In case your pull request secret is compromised (and you could assume
-it as a likely scenario), it could end up, for example, in deleting your production applications.
-
-This section should not be read as best practices but as baseline to enable automated pull requests.
-
-It targets platform admins before enabling the capability.
-:::
-
 #### Environments and Repositories
 
-1. Use it in low risk environments not in production: it is an alpha feature so no yet production-ready.
-2. Use it in an environments after understood that you have control in place for attack vectors to production. Some
+1. Use it in low-risk environments and not in production: pipelines is an alpha feature and not yet production-ready.
+2. Make sure you have considered possible attack vectors to production, and put controls in place. Some
 of these scenarios are:
-- In the case of a [monorepo](https://fluxcd.io/flux/guides/repository-structure/#monorepo): you want to ensure that a compromised token doing a change in test
-        cannot end up doing a promotion in prod without a pull request review, for example, leveraging [Codeonwers](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners).
-- In the case of [repo per environment](https://fluxcd.io/flux/guides/repository-structure/#repo-per-environment) you want to ensure that a pipeline is configured with your
-        test environment repo url. You also want to ensure that you have seggregation of tokens per environment over allowing a token to access any environment repo.
+- In the case of a [monorepo](https://fluxcd.io/flux/guides/repository-structure/#monorepo): you want to ensure that a compromised token doing a change in test cannot end up doing a promotion in production without a pull request review, for example, leveraging [Codeowners](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners).
+- In the case of [repo per environment](https://fluxcd.io/flux/guides/repository-structure/#repo-per-environment) you want to ensure that a pipeline is configured with your test environment repo URL. You also want to ensure that you have seggregation of tokens per environment rather than allowing a token to access any environment repo.
 
 #### RBAC
 
-1. You have configured Least privilege RBAC following [Kubernetes RBAC Good Practices](https://kubernetes.io/docs/concepts/security/rbac-good-practices/)
-with emphasis in the following:
+1. Only allow creation of RBAC resources from paths where compliance controls are in place. For example, do not
+allow regular users to create or update RBAC resources; or, if users must create RBAC resources, restrict them by namespace.
+
+2. You have configured "Least Privilege" RBAC following [Kubernetes RBAC Good Practices](https://kubernetes.io/docs/concepts/security/rbac-good-practices/) with emphasis on the following:
 
 > Assign permissions at the namespace level where possible. Use RoleBindings as opposed to ClusterRoleBindings
 > to give users rights only within a specific namespace.
@@ -176,29 +174,25 @@ with emphasis in the following:
 > As Kubernetes is an extensible system, providing wildcard access gives rights not just to
 > all object types that currently exist in the cluster, but also to all object types which are created in the future.
 
-2. Avoid list and watch on secrets as:
+3. Prefer granting access to specific secrets, rather than granting `list` and `watch` on secrets as:
 
 > It is also important to note that list and watch access also effectively allow for users to reveal the Secret contents.
 
-3. Only allow creation of RBAC resources from paths where compliance controls are in place. For example, do not
-allow regular users creating RBAC resources using `Kubectl` or `Kubernetes API`.
-
 #### Policy
 
-After configured RBAC, you have a static configuration. However,
-given there are no deny semantics in [RBAC](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#role-and-clusterrole).
+By following the guidelines above, you can have a safe initial configuration. However, given there are no deny semantics in [RBAC](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#role-and-clusterrole), you need to guard future changes.
 
 >An RBAC Role or ClusterRole contains rules that represent a set of permissions.
 > Permissions are purely additive (there are no "deny" rules).
 
 You should ensure that attempts to break this contract are blocked and detected. You could achieve it
-by leveraging [Policy capabilities](../../policy/intro/). Policy Agent acts in two complementary modes:
+by using Weave GitOps' [Policy capabilities](../../policy/intro/). Policy Agent acts in two complementary modes:
 - [Admission Controller](../../policy/intro#admission-controller) protects from any attempt to create non-compliant RBAC resources that would end granting access to the secret.
 - [Audit](../../policy/intro#audit) helps you identify already existing resources that are out of compliance. For example,
 roles created before policy agent was introduced as admission controller.
 
-Once enabled Policy, [Policy Library](../../policy/weave-policy-profile/) gives you have a set of policies to
-help you with the task. `RBACProhibitWildcards` and `RBACProhibitVerbsOnResources` are the building blocks
+Once you have enabled Policy, the [Policy Library](../../policy/weave-policy-profile/) gives you have a set of policies to
+help you with the task. `RBACProhibitWildcards` and `RBACProhibitVerbsOnResources` are building blocks
 that you could use to implement RBAC least privilege. Providing values to the policy parameters to restrict
 wildcards and access to secrets:
 
