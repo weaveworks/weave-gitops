@@ -7,6 +7,7 @@ import (
 	"time"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
+	imagev1_reflect "github.com/fluxcd/image-reflector-controller/api/v1beta2"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
@@ -51,8 +52,11 @@ func TestSync(t *testing.T) {
 	bucket := makeBucket(name, *ns)
 	ociRepo := makeOCIRepo(name, *ns)
 
+	ir := makeImageRepository(name, *ns)
+
 	g.Expect(k.Create(ctx, kust)).Should(Succeed())
 	g.Expect(k.Create(ctx, hr)).Should(Succeed())
+	g.Expect(k.Create(ctx, ir)).Should(Succeed())
 
 	g.Expect(k.Create(ctx, bucket)).Should(Succeed())
 	g.Expect(k.Create(ctx, chart)).Should(Succeed())
@@ -139,6 +143,21 @@ func TestSync(t *testing.T) {
 			WithSource: false,
 		},
 		reconcilable: fluxsync.OCIRepositoryAdapter{OCIRepository: ociRepo},
+	}, {
+		name: "image repo no source",
+		msg: &pb.SyncFluxObjectRequest{
+			Objects: []*pb.ObjectRef{{ClusterName: "Default",
+				Kind: imagev1_reflect.ImageRepositoryKind}},
+		},
+		reconcilable: fluxsync.ImageRepositoryAdapter{ImageRepository: ir},
+	}, {
+		name: "image repo with source",
+		msg: &pb.SyncFluxObjectRequest{
+			Objects: []*pb.ObjectRef{{ClusterName: "Default",
+				Kind: imagev1_reflect.ImageRepositoryKind}},
+		},
+		reconcilable: fluxsync.ImageRepositoryAdapter{ImageRepository: ir},
+		source:       fluxsync.NewReconcileable(gitRepo),
 	}, {
 		name: "multiple objects",
 		msg: &pb.SyncFluxObjectRequest{
@@ -261,6 +280,15 @@ func simulateReconcile(ctx context.Context, k client.Client, name types.Namespac
 		return k.Status().Update(ctx, obj)
 
 	case *sourcev1.OCIRepository:
+		if err := k.Get(ctx, name, obj); err != nil {
+			return err
+		}
+
+		obj.Status.SetLastHandledReconcileRequest(time.Now().Format(time.RFC3339Nano))
+
+		return k.Status().Update(ctx, obj)
+
+	case *imagev1_reflect.ImageRepository:
 		if err := k.Get(ctx, name, obj); err != nil {
 			return err
 		}
@@ -406,6 +434,21 @@ func makeOCIRepo(name string, ns corev1.Namespace) *sourcev1.OCIRepository {
 			URL: "oci://ghcr.io/some/chart",
 		},
 		Status: sourcev1.OCIRepositoryStatus{
+			ReconcileRequestStatus: meta.ReconcileRequestStatus{
+				LastHandledReconcileAt: time.Now().Format(time.RFC3339Nano),
+			},
+		},
+	}
+}
+
+func makeImageRepository(name string, ns corev1.Namespace) *imagev1_reflect.ImageRepository {
+	return &imagev1_reflect.ImageRepository{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: ns.Name,
+		},
+		Spec: imagev1_reflect.ImageRepositorySpec{},
+		Status: imagev1_reflect.ImageRepositoryStatus{
 			ReconcileRequestStatus: meta.ReconcileRequestStatus{
 				LastHandledReconcileAt: time.Now().Format(time.RFC3339Nano),
 			},

@@ -33,15 +33,6 @@ const ImageAutomationDetails = ({
       <Spacer margin="xs" />
       <PageStatus conditions={conditions} suspended={suspended} />
       <Spacer margin="xs" />
-      {/* ImageUpdateAutomation sync is not supported yet and it'll be added in future PR */}
-      {/* <SyncActions
-          name={name}
-          namespace={namespace}
-          clusterName={clusterName}
-          kind={kind}
-        />
-        <Spacer margin="xs" /> */}
-
       <SubRouterTabs rootPath={`${rootPath}/details`}>
         <RouterTab name="Details" path={`${rootPath}/details`}>
           <>
