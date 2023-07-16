@@ -265,10 +265,10 @@ function getIcon(i: IconType) {
       return PlayIcon;
 
     case IconType.PoliciesIcon:
-      return PoliciesIcon;
+      return () => <PoliciesIcon filled={false} />;
 
     case IconType.Policy:
-      return Policy;
+      return () => <PoliciesIcon filled />;
 
     case IconType.PolicyConfigsIcon:
       return PolicyConfigsIcon;
