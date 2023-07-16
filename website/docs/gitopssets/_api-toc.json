@@ -5,6 +5,8 @@
 ,
 { "level": 3, "value": "ClusterGenerator", "id": "templates.weave.works/v1alpha1.ClusterGenerator" }
 ,
+{ "level": 3, "value": "ConfigGenerator", "id": "templates.weave.works/v1alpha1.ConfigGenerator" }
+,
 { "level": 3, "value": "GitOpsSetGenerator", "id": "templates.weave.works/v1alpha1.GitOpsSetGenerator" }
 ,
 { "level": 3, "value": "GitOpsSetNestedGenerator", "id": "templates.weave.works/v1alpha1.GitOpsSetNestedGenerator" }
