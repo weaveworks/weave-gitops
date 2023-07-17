@@ -32,28 +32,31 @@ type JWTCookiePrincipalGetter struct {
 	verifier     tokenVerifier
 	cookieName   string
 	claimsConfig *ClaimsConfig
+	sm           SessionManager
 }
 
 // NewJWTCookiePrincipalGetter looks for a cookie in the provided name and
 // treats that as a JWT token that can be decoded to a Principal.
-func NewJWTCookiePrincipalGetter(log logr.Logger, verifier tokenVerifier, cookieName string, config *ClaimsConfig) PrincipalGetter {
+func NewJWTCookiePrincipalGetter(log logr.Logger, verifier tokenVerifier, config *ClaimsConfig, cookieName string, sm SessionManager) PrincipalGetter {
 	return &JWTCookiePrincipalGetter{
 		log:          log,
 		verifier:     verifier,
 		cookieName:   cookieName,
 		claimsConfig: config,
+		sm:           sm,
 	}
 }
 
 func (pg *JWTCookiePrincipalGetter) Principal(r *http.Request) (*UserPrincipal, error) {
-	cookie, err := r.Cookie(pg.cookieName)
-	if err == http.ErrNoCookie {
+	cookieValue := pg.sm.GetString(r.Context(), pg.cookieName)
+	if cookieValue == "" {
+		pg.log.V(logger.LogLevelDebug).Info("no cookie in session", "cookieName", pg.cookieName)
 		return nil, nil
 	}
 
 	pg.log.V(logger.LogLevelDebug).Info("parsing cookie JWT token", "claimsConfig", pg.claimsConfig)
 
-	return parseJWTToken(r.Context(), pg.verifier, cookie.Value, pg.claimsConfig, pg.log)
+	return parseJWTToken(r.Context(), pg.verifier, cookieValue, pg.claimsConfig, pg.log)
 }
 
 // JWTAuthorizationHeaderPrincipalGetter inspects the Authorization
@@ -113,23 +116,26 @@ type JWTAdminCookiePrincipalGetter struct {
 	log        logr.Logger
 	verifier   TokenSignerVerifier
 	cookieName string
+	sm         SessionManager
 }
 
-func NewJWTAdminCookiePrincipalGetter(log logr.Logger, verifier TokenSignerVerifier, cookieName string) PrincipalGetter {
+func NewJWTAdminCookiePrincipalGetter(log logr.Logger, verifier TokenSignerVerifier, cookieName string, sm SessionManager) PrincipalGetter {
 	return &JWTAdminCookiePrincipalGetter{
 		log:        log,
 		verifier:   verifier,
 		cookieName: cookieName,
+		sm:         sm,
 	}
 }
 
 func (pg *JWTAdminCookiePrincipalGetter) Principal(r *http.Request) (*UserPrincipal, error) {
-	cookie, err := r.Cookie(pg.cookieName)
-	if err == http.ErrNoCookie {
+	cookieValue := pg.sm.GetString(r.Context(), pg.cookieName)
+	if cookieValue == "" {
+		pg.log.V(logger.LogLevelDebug).Info("no cookie in session", "cookieName", pg.cookieName)
 		return nil, nil
 	}
 
-	return parseJWTAdminToken(pg.verifier, cookie.Value)
+	return parseJWTAdminToken(pg.verifier, cookieValue)
 }
 
 func parseJWTAdminToken(verifier TokenSignerVerifier, rawIDToken string) (*UserPrincipal, error) {

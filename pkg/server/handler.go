@@ -25,14 +25,14 @@ type Config struct {
 
 // NewHandlers creates and returns a new server configured to serve the core
 // application.
-func NewHandlers(ctx context.Context, log logr.Logger, cfg *Config) (http.Handler, error) {
+func NewHandlers(ctx context.Context, log logr.Logger, cfg *Config, sm auth.SessionManager) (http.Handler, error) {
 	mux := runtime.NewServeMux(middleware.WithGrpcErrorLogging(log))
 
 	if err := core.Hydrate(ctx, mux, cfg.CoreServerConfig); err != nil {
 		return nil, fmt.Errorf("could not start up core servers: %w", err)
 	}
 
-	httpHandler := auth.WithAPIAuth(mux, cfg.AuthServer, PublicRoutes)
+	httpHandler := auth.WithAPIAuth(mux, cfg.AuthServer, PublicRoutes, sm)
 
 	return httpHandler, nil
 }
