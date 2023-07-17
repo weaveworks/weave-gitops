@@ -14,7 +14,7 @@ import { useHistory, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import { ThemeTypes } from "../../contexts/AppContext";
 import { IconButton } from "../Button";
-import CheckboxActions from "../CheckboxActions";
+import CheckboxActions, { Action } from "../CheckboxActions";
 import ChipGroup from "../ChipGroup";
 import FilterDialog, {
   FilterConfig,
@@ -37,9 +37,10 @@ import {
   toPairs,
 } from "./helpers";
 import { Field, FilterState } from "./types";
-
 /** DataTable Properties  */
 export interface Props {
+  /** The ID of the table. */
+  id?: string;
   /** CSS MUI Overrides or other styling. */
   className?: string;
   /** A list of objects with four fields: `label`, which is a string representing the column header, `value`, which can be a string, or a function that extracts the data needed to fill the table cell, and `sortValue`, which customizes your input to the search function */
@@ -48,7 +49,7 @@ export interface Props {
   rows?: any[];
   filters?: FilterConfig;
   dialogOpen?: boolean;
-  hasCheckboxes?: boolean;
+  hasCheckboxes?: Action[] | boolean;
   hideSearchAndFilters?: boolean;
   emptyMessagePlaceholder?: React.ReactNode;
   onColumnHeaderClick?: (field: Field) => void;
@@ -72,6 +73,7 @@ const IconFlex = styled(Flex)`
 
 /** Form DataTable */
 function UnstyledDataTable({
+  id,
   className,
   fields,
   rows,
@@ -249,7 +251,13 @@ function UnstyledDataTable({
   return (
     <Flex wide tall column className={className}>
       <TopBar wide align end>
-        {checkboxes && <CheckboxActions checked={checked} rows={filtered} />}
+        {checkboxes && (
+          <CheckboxActions
+            checked={checked}
+            rows={filtered}
+            actions={typeof checkboxes !== "boolean" && checkboxes}
+          />
+        )}
         {filters && !hideSearchAndFilters && (
           <>
             <ChipGroup
@@ -275,7 +283,7 @@ function UnstyledDataTable({
         )}
       </TopBar>
       <Flex wide tall>
-        <TableContainer>
+        <TableContainer id={id}>
           <Table aria-label="simple table">
             <TableHead>
               <TableRow>

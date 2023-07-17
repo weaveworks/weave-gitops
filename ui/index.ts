@@ -117,6 +117,8 @@ import {
   statusSortHelper,
 } from "./lib/utils";
 import SignIn from "./pages/SignIn";
+import Layout from "./components/Layout";
+import useNavigation from "./hooks/navigation";
 
 export {
   AppContext,
@@ -179,6 +181,7 @@ export {
   KubeStatusIndicator,
   KustomizationDetail,
   Kustomization,
+  Layout,
   Link,
   LinkResolverProvider,
   LoadingPage,
@@ -231,6 +234,7 @@ export {
   useSyncFluxObject,
   useRequestState,
   useToggleSuspend,
+  useNavigation,
   UserSettings,
   V2Routes,
   YamlView,

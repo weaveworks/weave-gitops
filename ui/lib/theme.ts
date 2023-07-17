@@ -64,10 +64,10 @@ export const theme = (mode: ThemeTypes = ThemeTypes.Light): DefaultTheme => {
         primaryLight10: "#98E0F7",
         primary10: "#00b3ec",
         primary20: "#006B8E",
-        successLight: "#C9EBD7",
+        successLight: "#156034",
         successMedium: "#78CC9C",
         successOriginal: "#27AE60",
-        successDark: "#156034",
+        successDark: "#C9EBD7",
         alertLight: "#9F3119",
         alertMedium: "#D58572",
         alertOriginal: "#BC3B1D",
@@ -80,12 +80,13 @@ export const theme = (mode: ThemeTypes = ThemeTypes.Light): DefaultTheme => {
         neutral40: "#ffffff",
         whiteToPrimary: "#32324B",
         grayToPrimary: "#009CCC",
+        neutral20ToPrimary: "#32324B",
         backGray: "#32324B",
         blueWithOpacity: "rgba(0, 179, 236, 0.1)",
-        feedbackLight: "#FCE6D2",
+        feedbackLight: "#8A460A",
         feedbackMedium: "#F7BF8E",
         feedbackOriginal: "#F2994A",
-        feedbackDark: "#8A460A",
+        feedbackDark: "#FCE6D2",
         defaultLight: "#FCE6D2",
         defaultMedium: "#F7BF8E",
         defaultOriginal: "#F2994A",
@@ -121,6 +122,7 @@ export const theme = (mode: ThemeTypes = ThemeTypes.Light): DefaultTheme => {
         neutral40: "#1a1a1a",
         whiteToPrimary: "#fff",
         grayToPrimary: "#737373",
+        neutral20ToPrimary: "#d8d8d8",
         backGray: "#eef0f4",
         blueWithOpacity: "rgba(0, 179, 236, 0.1)",
         feedbackLight: "#FCE6D2",
@@ -221,6 +223,15 @@ export const GlobalStyle = createGlobalStyle`
       background-color: ${(props) => props.theme.colors.primary};
     }
   }
+//prevents white autofill background in dark mode
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus {
+    ${(props) =>
+      props.theme.mode === ThemeTypes.Dark &&
+      `background-color: ${props.theme.colors.blueWithOpacity};`}
+  }
+
 `;
 
 export const muiTheme = (colors, mode) =>

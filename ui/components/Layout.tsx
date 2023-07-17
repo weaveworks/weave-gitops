@@ -1,62 +1,16 @@
 import { Drawer } from "@material-ui/core";
-import React, { useContext, useState } from "react";
+import React, { useContext } from "react";
 import styled from "styled-components";
 import { AppContext } from "../contexts/AppContext";
-import useNavigation from "../hooks/navigation";
-import { getParentNavRouteValue } from "../lib/nav";
-import { V2Routes } from "../lib/types";
 import DetailModal from "./DetailModal";
 import Flex from "./Flex";
-import { IconType } from "./Icon";
-import Logo from "./Logo";
-import Nav, { NavItem } from "./Nav";
 
 type Props = {
   className?: string;
+  logo?: JSX.Element;
+  nav?: JSX.Element;
   children?: any;
 };
-
-const navItems: NavItem[] = [
-  {
-    label: "Applications",
-    link: { value: V2Routes.Automations },
-    icon: IconType.ApplicationsIcon,
-  },
-  {
-    label: "Sources",
-    link: { value: V2Routes.Sources },
-    icon: IconType.SourcesIcon,
-  },
-  {
-    label: "Image Automation",
-    link: { value: V2Routes.ImageAutomation },
-    icon: IconType.ImageAutomationIcon,
-  },
-  {
-    label: "Flux Runtime",
-    link: { value: V2Routes.FluxRuntime },
-    icon: IconType.FluxIcon,
-  },
-  {
-    label: "Policies",
-    link: { value: V2Routes.Policies },
-    icon: IconType.PoliciesIcon,
-  },
-  {
-    label: "Notifications",
-    link: { value: V2Routes.Notifications },
-    icon: IconType.NotificationsIcon,
-  },
-  {
-    label: "Docs",
-    link: {
-      value: "docs",
-      href: "https://docs.gitops.weave.works/",
-      newTab: true,
-    },
-    icon: IconType.DocsIcon,
-  },
-];
 
 const AppContainer = styled.div`
   width: 100%;
@@ -71,26 +25,16 @@ const Main = styled(Flex)`
   box-sizing: border-box;
 `;
 
-function Layout({ className, children }: Props) {
-  const [collapsed, setCollapsed] = useState<boolean>(false);
-
+function Layout({ className, logo, nav, children }: Props) {
   const { appState, setDetailModal } = useContext(AppContext);
   const detail = appState.detailModal;
-
-  const { currentPage } = useNavigation();
-  const value = getParentNavRouteValue(currentPage);
 
   return (
     <AppContainer className={className}>
       <Main wide tall>
         <Flex column tall>
-          <Logo collapsed={collapsed} link={V2Routes.Automations} />
-          <Nav
-            navItems={navItems}
-            collapsed={collapsed}
-            setCollapsed={setCollapsed}
-            currentPage={value}
-          />
+          {logo}
+          {nav}
         </Flex>
         {children}
       </Main>

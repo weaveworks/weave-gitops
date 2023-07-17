@@ -288,6 +288,47 @@ Kubernetes meta/v1.LabelSelector
 </tr>
 </tbody>
 </table>
+<h3 id="templates.weave.works/v1alpha1.ConfigGenerator">ConfigGenerator
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#templates.weave.works/v1alpha1.GitOpsSetGenerator">GitOpsSetGenerator</a>, 
+<a href="#templates.weave.works/v1alpha1.GitOpsSetNestedGenerator">GitOpsSetNestedGenerator</a>)
+</p>
+<p>ConfigGenerator loads a referenced ConfigMap or
+Secret from the Cluster and makes it available as a resource.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>kind</code><br />
+<em>
+string
+</em>
+</td>
+<td>
+<p>Kind of the referent.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>name</code><br />
+<em>
+string
+</em>
+</td>
+<td>
+<p>Name of the referent.</p>
+</td>
+</tr>
+</tbody>
+</table>
 <h3 id="templates.weave.works/v1alpha1.GitOpsSetGenerator">GitOpsSetGenerator
 </h3>
 <p>
@@ -381,6 +422,18 @@ APIClientGenerator
 <em>
 <a href="#templates.weave.works/v1alpha1.ImagePolicyGenerator">
 ImagePolicyGenerator
+</a>
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>config</code><br />
+<em>
+<a href="#templates.weave.works/v1alpha1.ConfigGenerator">
+ConfigGenerator
 </a>
 </em>
 </td>
@@ -485,6 +538,18 @@ APIClientGenerator
 <em>
 <a href="#templates.weave.works/v1alpha1.ImagePolicyGenerator">
 ImagePolicyGenerator
+</a>
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>config</code><br />
+<em>
+<a href="#templates.weave.works/v1alpha1.ConfigGenerator">
+ConfigGenerator
 </a>
 </em>
 </td>

@@ -16,7 +16,7 @@ export enum ThemeTypes {
 }
 
 type AppSettings = {
-  renderFooter: boolean;
+  footer: JSX.Element;
   theme: ThemeTypes;
 };
 
@@ -42,7 +42,7 @@ export const AppContext = React.createContext<AppContextType>(
 
 export interface AppProps {
   children?: any;
-  renderFooter?: boolean;
+  footer?: JSX.Element;
   notifySuccess?: typeof notifySuccess;
 }
 
@@ -53,7 +53,7 @@ export default function AppContextProvider({ ...props }: AppProps) {
     detailModal: null,
   });
   const [appSettings, setAppSettings] = React.useState<AppSettings>({
-    renderFooter: props.renderFooter,
+    footer: props.footer,
     theme:
       window.matchMedia("(prefers-color-scheme: dark)").matches ||
       localStorage.getItem("mode") === ThemeTypes.Dark

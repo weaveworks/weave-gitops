@@ -1,0 +1,66 @@
+---
+title: Policy
+hide_title: true
+---
+
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
+import TierLabel from "../_components/TierLabel";
+
+# Policy <TierLabel tiers="Enterprise" />
+
+## Policy CRD
+The Policy CRD is used to define policies which are then consumed and used by the agent to validate entities.
+
+It uses [OPA Rego Language](https://www.openpolicyagent.org/docs/latest/policy-language) to evaluate the entities.
+
+## Policy Library
+
+You should have a policy library repo set up which includes your policies resources as CRDs.
+
+:::info
+Enterprise customers should have access to fork policy library repo into their local repositories.
+:::
+
+## Tenant Policy
+
+Tenant policies are special policies that are used by the [Multi Tenancy](https://docs.gitops.weave.works/docs/enterprise/multi-tenancy/) feature in [Weave GitOps Enterprise](https://docs.gitops.weave.works/docs/intro-ee/)
+
+Tenant policies have a special tag `tenancy`.
+
+
+## Mutating Resources
+
+Starting from version `v2.2.0`, the policy agent will support mutating resources.
+
+To enable mutating resources, policies must have field `mutate` set to `true` and the rego code should return the `violating_key` and the `recommended_value` in the violation response. The mutation webhook will use the `violating_key` and `recommended_value` to mutate the resource and return the new mutated resource.
+
+Example
+
+```
+result = {
+    "issue_detected": true,
+    "msg": sprintf("Replica count must be greater than or equal to '%v'; found '%v'.", [min_replica_count, replicas]),
+    "violating_key": "spec.replicas",
+    "recommended_value": min_replica_count
+}
+```
+
+
+## Policy Validation
+
+The policy validation object is the result of validating an entity against a policy. It contains all the necessary information to give the user a clear idea on what caused this violation or compliance.
+
+```yaml
+id: string # identifier for the violation
+account_id: string # organization identifier
+cluster_id: string # cluster identifier
+policy: object # contains related policy data
+entity: object # contains related resource data
+status: string # Violation or Compliance
+message: string # message that summarizes the policy validation
+type: string # the mode that produced this object. one of: Admission, Audit, TFAdmission
+trigger: string # what triggered the validation, create request or initial audit,..
+created_at: string # time that the validation occurred in
+```
