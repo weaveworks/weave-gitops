@@ -183,7 +183,7 @@ allow regular users to create or update RBAC resources; or, if users must create
 
 By following the guidelines above, you can have a safe initial configuration. However, given there are no deny semantics in [RBAC](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#role-and-clusterrole), you need to guard future changes.
 
->An RBAC Role or ClusterRole contains rules that represent a set of permissions.
+> An RBAC Role or ClusterRole contains rules that represent a set of permissions.
 > Permissions are purely additive (there are no "deny" rules).
 
 You should ensure that attempts to break this contract are blocked and detected. You could achieve it
@@ -194,7 +194,7 @@ roles created before policy agent was introduced as admission controller.
 
 Once you have enabled Policy, the [Policy Library](../../policy/weave-policy-profile/) gives you have a set of policies to
 help you with the task. `RBACProhibitWildcards` and `RBACProhibitVerbsOnResources` are building blocks
-that you could use to implement RBAC least privilege.
+you can use to enforce RBAC least privilege.
 
 Create using `RBACProhibitWildcards` the following policies by providing values to the parameters:
 
@@ -205,7 +205,7 @@ metadata:
   name: no-wildcard-on-resources-policy
 spec:
   id: no-wildcard-on-resources-policy
-  # omitted for simplicity
+  # spec copied from <Policy Library>/RBACProhibitWildcards/policy.yaml omitted
   parameters:
     - name: attributes
       type: string
@@ -310,8 +310,8 @@ you should consider the escalation path through workloads:
 > Permission to create workloads (either Pods, or workload resources that manage Pods) in a namespace implicitly grants access
 > to many other resources in that namespace, such as Secrets, ConfigMaps, and PersistentVolumes that can be mounted in Pods
 
-Given that a pipeline namespace is for segregating resources not for running workloads, we need to block this capability.
-Policy library includes `weave.policies.containers-should-not-run-in-namespace` policy for that purpose:
+You should consider segregating the namespace with pipelines from namespaces with workloads, to block this escalation path.
+The Policy Library includes `weave.policies.containers-should-not-run-in-namespace` policy for that purpose:
 
 :::tip
 Add an instance of this policy when onboarding a new pipeline.
@@ -335,10 +335,10 @@ spec:
 
 #### Service Account
 
-To enable Pipeline Controller to read the secret, we need to grant access via RBAC. Given that the promotion credentials
-secret needs to reside in the same Namespace as the Pipeline resource on the management cluster, you should create a RoleBinding
-for Pipeline Controller Service Account in the pipeline namespace. For a pipeline in namespace `podinfo`, it would look like
-as follows:
+To enable the Pipeline Controller to read the secret, we need to grant access via RBAC. The promotion credentials
+secret needs to be in the same namespace as the `Pipeline` resource on the management cluster. You should create a `RoleBinding`
+for the Pipeline Controller `ServiceAccount` in the pipeline namespace. For a pipeline in namespace `podinfo`, it would look like
+the following:
 
 ```yaml
 ---
@@ -377,7 +377,7 @@ subjects:
 Use [pipeline promotions security](https://github.com/weaveworks/weave-gitops-quickstart/tree/pipelines-promotions-security/pipelines-promotions-security)
 to verify that your environments meets the security context described earlier.
 
-Once deployed you could see how the different resources are being rejected. See those rejections via Violations UI:
+Once deployed you could see how the different resources are being rejected. See those rejections in the Violations UI:
 
 ![privilege escalation blocked](img/pipeline-security-violations.png)
 
@@ -386,7 +386,7 @@ In addition, verify that Pipeline Controller could just read the secret by the f
 List access is denied:
 
 ```bash
-kubectl get secret -n podinfo  --as=system:serviceaccount:flux-system:chart-pipeline-controller
+$ kubectl get secret -n podinfo  --as=system:serviceaccount:flux-system:chart-pipeline-controller
 
 Error from server (Forbidden): secrets is forbidden: User "system:serviceaccount:flux-system:chart-pipeline-controller" cannot list resource "secrets" in API group "" in the namespace "podinfo"
 ```
@@ -394,11 +394,11 @@ Error from server (Forbidden): secrets is forbidden: User "system:serviceaccount
 Get access is allowed:
 
 ```bash
-kubectl get secret -n podinfo  --as=system:serviceaccount:flux-system:chart-pipeline-controller app-promotion-credentials
+$ kubectl get secret -n podinfo  --as=system:serviceaccount:flux-system:chart-pipeline-controller app-promotion-credentials
 
 NAME                        TYPE     DATA   AGE
 app-promotion-credentials   Opaque   1      21m
-````
+```
 
 #### Tokens
 
