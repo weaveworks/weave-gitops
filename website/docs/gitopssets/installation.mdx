@@ -30,14 +30,15 @@ kind: Namespace
 metadata:
   name: gitopssets-system
 ---
-apiVersion: source.toolkit.fluxcd.io/v1beta1
+apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
-  name: weaveworks-artifacts-charts
+  name: weaveworks-oci-charts
   namespace: gitopssets-system
 spec:
   interval: 1m
-  url: https://artifacts.wge.dev.weave.works/dev/charts
+  type: oci
+  url: oci://ghcr.io/weaveworks/charts
 ---
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
@@ -51,9 +52,9 @@ spec:
       chart: gitopssets-controller
       sourceRef:
         kind: HelmRepository
-        name: weaveworks-artifacts-charts
+        name: weaveworks-oci-charts
         namespace: gitopssets-system
-      version: 0.6.1
+      version: 0.14.0
   install:
     crds: CreateReplace
   upgrade:
