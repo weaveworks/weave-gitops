@@ -46,7 +46,7 @@ This guide uses Flux manifests to install Flagger and [Linkerd](https://github.c
 
 ## Installing Linkerd Using Flux
 
-To install Linkerd we'll use a Kustomization file. It will allow us to specify the order and default namespace for the installed resources, and to easily generate Secrets from certificate files via the use of a `secretGenerator`.
+To install Linkerd we'll use a Kustomization file. It will allow us to specify the order and default namespace for the installed resources, and to generate Secrets from certificate files via the use of a `secretGenerator`.
 
 To support mTLS connections between meshed pods, Linkerd requires a trust anchor
 certificate and an issuer certificate with its corresponding key. These certificates are
