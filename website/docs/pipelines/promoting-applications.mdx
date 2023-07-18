@@ -7,6 +7,7 @@ toc_max_heading_level: 4
 import TierLabel from "./../_components/TierLabel";
 import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
+import CodeBlock from "@theme/CodeBlock";
 
 import AlphaWarning from "../_components/_alpha_warning.mdx";
 import ManualPromotionUI from "./img/manual-promotion-ui.png";
@@ -141,7 +142,7 @@ Now as soon as the `HelmRelease` on the first environment defined in the pipelin
 Creating pull requests requires write access to your git repo. In case your pull request secret is compromised (and you could assume
 it as a likely scenario), it could end up, for example, in deleting your production applications.
 
-Please make sure you understand the Security section below before enabling automated pull requests.
+Please make sure you understand [Security](#security) section below before enabling automated pull requests.
 :::
 
 This section covers adding a promotion by pull request (PR) strategy, so that whenever the application defined in a pipeline
@@ -193,10 +194,100 @@ roles created before policy agent was introduced as admission controller.
 
 Once you have enabled Policy, the [Policy Library](../../policy/weave-policy-profile/) gives you have a set of policies to
 help you with the task. `RBACProhibitWildcards` and `RBACProhibitVerbsOnResources` are building blocks
-that you could use to implement RBAC least privilege. Providing values to the policy parameters to restrict
-wildcards and access to secrets:
+that you could use to implement RBAC least privilege.
+
+Create using `RBACProhibitWildcards` the following policies by providing values to the parameters:
 
 ```yaml
+apiVersion: pac.weave.works/v2beta2
+kind: Policy
+metadata:
+  name: no-wildcard-on-resources-policy
+spec:
+  id: no-wildcard-on-resources-policy
+  # omitted for simplicity
+  parameters:
+    - name: attributes
+      type: string
+      required: true
+      value: "resources"
+```
+
+```yaml
+apiVersion: pac.weave.works/v2beta2
+kind: Policy
+metadata:
+  name: no-wildcard-on-verbs-policy
+spec:
+  id: no-wildcard-on-verbs-policy
+  # omitted for simplicity
+  parameters:
+    - name: attributes
+      type: string
+      required: true
+      value: "verbs"
+```
+
+Create using `RBACProhibitVerbsOnResources` the following policies by providing values to the parameters:
+
+```yaml
+apiVersion: pac.weave.works/v2beta2
+kind: Policy
+metadata:
+  name: no-list-secrets-policy
+spec:
+  id: no-list-secrets-policy
+  # omitted for simplicity
+  parameters:
+    - name: resource
+      type: string
+      required: true
+      value: "secrets"
+    - name: verb
+      type: string
+      required: true
+      value: "list"
+```
+```yaml
+apiVersion: pac.weave.works/v2beta2
+kind: Policy
+metadata:
+  name: no-watch-secrets-policy
+spec:
+  id: no-watch-secrets-policy
+  # omitted for simplicity
+  parameters:
+    - name: resource
+      type: string
+      required: true
+      value: "secrets"
+    - name: verb
+      type: string
+      required: true
+      value: "watch"
+```
+```yaml
+apiVersion: pac.weave.works/v2beta2
+kind: Policy
+metadata:
+  name: no-wildcard-secrets-policy
+spec:
+  id: no-wildcard-secrets-policy
+  # omitted for simplicity
+  parameters:
+    - name: resource
+      type: string
+      required: true
+      value: "secrets"
+    - name: verb
+      type: string
+      required: true
+      value: "*"
+```
+
+Add them to your configuration repo bases `./clusters/bases/policies`:
+
+```yaml abc
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
@@ -205,34 +296,6 @@ resources:
 - policies/RBACProhibitVerbsOnResources/no-list-secrets-policy.yaml
 - policies/RBACProhibitVerbsOnResources/no-watch-secrets-policy.yaml
 - policies/RBACProhibitVerbsOnResources/no-wildcard-secrets-policy.yaml
-```
-
-An example of policy to reject using wildcards (in this case using wildcards on verbs) is shown below:
-
-```yaml
-apiVersion: pac.weave.works/v2beta2
-kind: Policy
-metadata:
-  name: weave.templates.rbac-prohibit-wildcards-verbs
-spec:
-  id: weave.templates.rbac-prohibit-wildcards-verbs
-  name: Rbac Prohibit Wildcards on Verbs
-  ...
-  category: weave.categories.access-control
-  severity: high
-  parameters:
-    - name: attributes
-      type: string
-      required: true
-      value: "verbs"
-    - name: exclude_label_key
-      type: string
-      required: false
-      value: "app.kubernetes.io/part-of"
-    - name: exclude_label_value
-      type: string
-      required: false
-      value: "flux"
 ```
 :::warning
 
@@ -250,6 +313,10 @@ you should consider the escalation path through workloads:
 Given that a pipeline namespace is for segregating resources not for running workloads, we need to block this capability.
 Policy library includes `weave.policies.containers-should-not-run-in-namespace` policy for that purpose:
 
+:::tip
+Add an instance of this policy when onboarding a new pipeline.
+:::
+
 ```yaml
 apiVersion: pac.weave.works/v2beta2
 kind: Policy
@@ -263,23 +330,7 @@ spec:
     - name: custom_namespace
       type: string
       required: true
-      value: podinfo
-```
-
-An instance of this policy should be part of the resources when onboarding a new pipeline.
-
-The following set of policies harden your security context:
-
-```yaml
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-resources:
-- policies/RBACProhibitWildcards/no-wildcard-on-resources-policy.yaml
-- policies/RBACProhibitWildcards/no-wildcard-on-verbs-policy.yaml
-- policies/RBACProhibitVerbsOnResources/no-list-secrets-policy.yaml
-- policies/RBACProhibitVerbsOnResources/no-watch-secrets-policy.yaml
-- policies/RBACProhibitVerbsOnResources/no-wildcard-secrets-policy.yaml
-- policies/ControllerProhibitNamespace/no-allow-pipeline-namespace.yaml
+      value: podinfo # changeme to the pipeline namespace
 ```
 
 #### Service Account
