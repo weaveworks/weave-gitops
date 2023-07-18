@@ -14,9 +14,9 @@ There are now multiple published versions of the template CRD.
 ### `v1alpha1` to `v1alpha2`
 
 When manually migrating a template from `v1alpha1` to `v1alpha2` (for example in git) you will need to:
-1. Update the `apiVersion` to either:
-  1. `GitopsTemplate`: `templates.weave.works/v1alpha2`
-  1. `CAPITemplate`: `capi.weave.works/v1alpha2`
+1. Update the `apiVersion`:
+    1. for `GitopsTemplate` update the apiVersion to `templates.weave.works/v1alpha2`
+    1. for `CAPITemplate` update the apiVersion to `capi.weave.works/v1alpha2`
 1. Move the `spec.resourcetemplates` field to `spec.resourcetemplates[0].content`
 1. Either leave the `spec.resourcetemplates[0].path` field empty or give it a sensible value.
 
@@ -50,7 +50,7 @@ spec:
 
 ## `v1alpha1` notes
 
-The original version of the template. This version is deprecated and will be removed in a future release.
+The original version of the template. This version is no longer works with Weave Gitops Enterprise 0.28.0 and above.
 
 It uses `spec.resourcetemplates` as a list of resources to render.
 
