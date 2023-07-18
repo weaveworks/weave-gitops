@@ -1,0 +1,35 @@
+version: 2
+updates:
+  # Maintain dependencies for frontend
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    reviewers:
+      - "weaveworks/timber-wolf"
+      - "weaveworks/pesto"
+      - "weaveworks/wild-watermelon"
+      - "weaveworks/tangerine"
+
+  # Maintain dependencies for backend
+  - package-ecosystem: "gomod"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    reviewers:
+      - "weaveworks/timber-wolf"
+      - "weaveworks/pesto"
+      - "weaveworks/wild-watermelon"
+      - "weaveworks/tangerine"
+
+  # Maintain dependencies for website
+  - package-ecosystem: "npm"
+    directory: "/website"
+    schedule:
+      interval: "daily"
+    reviewers:
+      - "weaveworks/timber-wolf"
+      - "weaveworks/pesto"
+      - "weaveworks/wild-watermelon"
+      - "weaveworks/tangerine"
+
