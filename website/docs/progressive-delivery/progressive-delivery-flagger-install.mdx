@@ -257,8 +257,8 @@ Now add under this directory the three resource manifests for Flagger:
 - A `HelmRepository` resource to make the Flagger Helm repo available on the
 	cluster
 - A `HelmRelease` resource to install the latest version of Flagger and the load
-	tester app (which generates synthetic traffic from the `HelmRepository` during the
-	analysis phase)
+	tester app (which generates synthetic traffic during the
+	analysis phase), from that `HelmRepository`
 
 <details><summary>Expand to see the three Flagger resource manifests</summary>
 
