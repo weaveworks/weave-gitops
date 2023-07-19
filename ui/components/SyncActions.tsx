@@ -1,11 +1,12 @@
 import React from "react";
-import { useSyncFluxObject } from "../../hooks/automations";
-import { useToggleSuspend } from "../../hooks/flux";
-import { Kind } from "../../lib/api/core/types.pb";
-import Button from "../Button";
-import Flex from "../Flex";
-import Spacer from "../Spacer";
-import SyncButton from "../SyncButton";
+import { useSyncFluxObject } from "../hooks/automations";
+import { useToggleSuspend } from "../hooks/flux";
+import { Kind } from "../lib/api/core/types.pb";
+import Button from "./Button";
+import CustomActions from "./CustomActions";
+import Flex from "./Flex";
+import Spacer from "./Spacer";
+import SyncButton from "./SyncButton";
 
 interface Props {
   name?: string;
@@ -15,6 +16,7 @@ interface Props {
   suspended?: boolean;
   wide?: boolean;
   hideDropdown?: boolean;
+  customActions?: JSX.Element[];
 }
 
 const SyncActions = ({
@@ -25,6 +27,7 @@ const SyncActions = ({
   suspended,
   wide,
   hideDropdown,
+  customActions,
 }: Props) => {
   const suspend = useToggleSuspend(
     {
@@ -66,6 +69,7 @@ const SyncActions = ({
       <Button onClick={() => suspend.mutateAsync()} loading={suspend.isLoading}>
         {suspended ? "Resume" : "Suspend"}
       </Button>
+      <CustomActions actions={customActions} />
     </Flex>
   );
 };
