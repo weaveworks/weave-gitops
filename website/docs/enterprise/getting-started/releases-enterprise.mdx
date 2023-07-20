@@ -10,8 +10,35 @@ import TierLabel from "../../_components/TierLabel";
 This page details the changes for Weave GitOps Enterprise and its associated components. For Weave GitOps OSS - please see the release notes on [GitHub](https://github.com/weaveworks/weave-gitops/releases).
 :::
 
+## v0.28.0
+2023-07-20
+
+### Highlights
+
+- This release drops the requirement to install cert-manager
+
+#### UI
+
+- Better support for organising your clusters and templates in the UI via namespaces
+- Better support for Azure and Bitbucket Repositories in the UI, you can now click through to Open Pull Requests from these providers
+- Dark Mode support for Policy Config
+
+#### Explorer
+
+- Adds support for Kubernetes Events 
+
+### Dependency versions
+
+- weave-gitops v0.28.0
+- cluster-controller v1.5.2
+- cluster-bootstrap-controller v0.6.0
+- templates-controller v0.3.0
+- (optional) pipeline-controller v0.21.0
+- (optional) policy-agent v2.5.0
+- (optional) gitopssets-controller v0.13.4
+
 ## v0.27.0
-2023-07-7
+2023-07-07
 
 ### Highlights
 
