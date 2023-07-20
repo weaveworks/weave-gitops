@@ -192,111 +192,33 @@ by using Weave GitOps' [Policy capabilities](../../policy/intro/). Policy Agent 
 - [Audit](../../policy/intro#audit) helps you identify already existing resources that are out of compliance. For example,
 roles created before policy agent was introduced as admission controller.
 
-Once you have enabled Policy, the [Policy Library](../../policy/weave-policy-profile/) gives you have a set of policies to
-help you with the task. `RBACProhibitWildcards` and `RBACProhibitVerbsOnResources` are building blocks
-you can use to enforce RBAC least privilege.
-
-Create using `RBACProhibitWildcards` the following policies by providing values to the parameters:
+Once you have enabled Policy, the [Policy Library](../../policy/weave-policy-profile/) gives you a set of
+good practices policies that will help you securing your pipeline secrets according to previous RBAC recommendations:
 
 ```yaml
-apiVersion: pac.weave.works/v2beta2
-kind: Policy
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
 metadata:
-  name: no-wildcard-on-resources-policy
+  name: policy-library
+  namespace: flux-system
 spec:
-  id: no-wildcard-on-resources-policy
-  # spec copied from <Policy Library>/RBACProhibitWildcards/policy.yaml omitted
-  parameters:
-    - name: attributes
-      type: string
-      required: true
-      value: "resources"
-```
-
-```yaml
-apiVersion: pac.weave.works/v2beta2
-kind: Policy
-metadata:
-  name: no-wildcard-on-verbs-policy
-spec:
-  id: no-wildcard-on-verbs-policy
-  # omitted for simplicity
-  parameters:
-    - name: attributes
-      type: string
-      required: true
-      value: "verbs"
-```
-
-Create using `RBACProhibitVerbsOnResources` the following policies by providing values to the parameters:
-
-```yaml
-apiVersion: pac.weave.works/v2beta2
-kind: Policy
-metadata:
-  name: no-list-secrets-policy
-spec:
-  id: no-list-secrets-policy
-  # omitted for simplicity
-  parameters:
-    - name: resource
-      type: string
-      required: true
-      value: "secrets"
-    - name: verb
-      type: string
-      required: true
-      value: "list"
-```
-```yaml
-apiVersion: pac.weave.works/v2beta2
-kind: Policy
-metadata:
-  name: no-watch-secrets-policy
-spec:
-  id: no-watch-secrets-policy
-  # omitted for simplicity
-  parameters:
-    - name: resource
-      type: string
-      required: true
-      value: "secrets"
-    - name: verb
-      type: string
-      required: true
-      value: "watch"
-```
-```yaml
-apiVersion: pac.weave.works/v2beta2
-kind: Policy
-metadata:
-  name: no-wildcard-secrets-policy
-spec:
-  id: no-wildcard-secrets-policy
-  # omitted for simplicity
-  parameters:
-    - name: resource
-      type: string
-      required: true
-      value: "secrets"
-    - name: verb
-      type: string
-      required: true
-      value: "*"
-```
-
-Add them to your configuration repo bases `./clusters/bases/policies`:
-
-```yaml abc
-apiVersion: kustomize.config.k8s.io/v1beta1
+  interval: 10m0s
+  url: https://github.com/weaveworks/policy-library.git
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
-resources:
-- policies/RBACProhibitWildcards/no-wildcard-on-resources-policy.yaml
-- policies/RBACProhibitWildcards/no-wildcard-on-verbs-policy.yaml
-- policies/RBACProhibitVerbsOnResources/no-list-secrets-policy.yaml
-- policies/RBACProhibitVerbsOnResources/no-watch-secrets-policy.yaml
-- policies/RBACProhibitVerbsOnResources/no-wildcard-secrets-policy.yaml
+metadata:
+  name: rbac-secrets-good-practices
+  namespace: flux-system
+spec:
+  interval: 1m0s
+  sourceRef:
+    kind: GitRepository
+    name: policy-library
+  path: ./goodpractices/kubernetes/rbac/secrets
+  prune: true
 ```
+
 :::warning
 
 Policies could have exclusion features to accommodate privileged workloads like Flux. Remind the rule of not allowing
