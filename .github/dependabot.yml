@@ -10,6 +10,8 @@ updates:
       - "weaveworks/pesto"
       - "weaveworks/wild-watermelon"
       - "weaveworks/tangerine"
+    # Only do security updates not version updates.
+    open-pull-requests-limit: 0
 
   # Maintain dependencies for backend
   - package-ecosystem: "gomod"
@@ -21,6 +23,8 @@ updates:
       - "weaveworks/pesto"
       - "weaveworks/wild-watermelon"
       - "weaveworks/tangerine"
+    # Only do security updates not version updates.
+    open-pull-requests-limit: 0
 
   # Maintain dependencies for website
   - package-ecosystem: "npm"
@@ -32,4 +36,5 @@ updates:
       - "weaveworks/pesto"
       - "weaveworks/wild-watermelon"
       - "weaveworks/tangerine"
-
+    # Only do security updates not version updates.
+    open-pull-requests-limit: 0
