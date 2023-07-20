@@ -1,4 +1,3 @@
-import { Tooltip } from "@material-ui/core";
 import * as React from "react";
 import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
@@ -17,8 +16,10 @@ import Flex from "./Flex";
 import HealthCheckAgg, { computeAggHealthCheck } from "./HealthCheckAgg";
 import { InfoField } from "./InfoList";
 import { routeTab } from "./KustomizationDetail";
+import LargeInfo from "./LargeInfo";
 import Metadata from "./Metadata";
 import PageStatus from "./PageStatus";
+import { PolicyViolationsList } from "./Policies/PolicyViolations/Table";
 import ReconciledObjectsTable from "./ReconciledObjectsTable";
 import ReconciliationGraph from "./ReconciliationGraph";
 import RequestStateHandler from "./RequestStateHandler";
@@ -28,7 +29,6 @@ import SyncButton from "./SyncButton";
 import Text from "./Text";
 import Timestamp from "./Timestamp";
 import YamlView from "./YamlView";
-import { PolicyViolationsList } from "./Policies/PolicyViolations/Table";
 
 type Props = {
   automation: Automation;
@@ -218,33 +218,20 @@ function AutomationDetail({
         </Flex>
         <Flex wide end gap="14">
           {automation?.type === "HelmRelease" ? (
-            <Text capitalize semiBold color="neutral30">
-              Chart Version:{" "}
-              <Text size="large" color="neutral40">
-                {(automation as HelmRelease).helmChart?.version || "-"}
-              </Text>
-            </Text>
+            <LargeInfo
+              title={"Chart Version"}
+              info={(automation as HelmRelease).helmChart?.version}
+            />
           ) : (
-            <Flex gap="4" alignItems="baseline">
-              <Text capitalize semiBold color="neutral30">
-                Applied Revision:
-              </Text>
-              <Tooltip
-                title={automation?.lastAppliedRevision || "-"}
-                placement="top"
-              >
-                <Text size="large" color="neutral40" className="trim-text">
-                  {automation?.lastAppliedRevision || "-"}
-                </Text>
-              </Tooltip>
-            </Flex>
+            <LargeInfo
+              title={"Applied Revision"}
+              info={automation?.lastAppliedRevision}
+            />
           )}
-          <Text capitalize semiBold color="neutral30">
-            Last Updated:{" "}
-            <Text size="large" color="neutral40">
-              <Timestamp time={automationLastUpdated(automation)} />
-            </Text>
-          </Text>
+          <LargeInfo
+            title={"Last Updated"}
+            component={<Timestamp time={automationLastUpdated(automation)} />}
+          />
         </Flex>
       </Flex>
       <PageStatus
@@ -308,11 +295,5 @@ export default styled(AutomationDetail).attrs({
   }
   .grid-items {
     grid-template-columns: repeat(auto-fit, minmax(calc(50% - 8px), 1fr));
-  }
-  .trim-text {
-    max-width: 150px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
 `;
