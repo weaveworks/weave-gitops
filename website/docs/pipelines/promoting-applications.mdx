@@ -224,8 +224,44 @@ spec:
 
 :::caution
 
-Policies have exclusion features to accommodate privileged workloads like Flux. Make sure that you review them and remind
-not allowing users to create RBAC resources without compliance checks. Otherwise, they could create RBAC resources that could escape this runtime control.
+Policies might have exclusion features to accommodate privileged workloads like Flux. You could manage them via [PolicyConfig](https://docs.gitops.weave.works/docs/policy/policy-configuration/).
+For example, in order to allow Flux you could use the following `PolicyConfig`:
+
+```yaml
+apiVersion: pac.weave.works/v2beta2
+kind: PolicyConfig
+metadata:
+  name: allow-flux
+spec:
+  match:
+    apps:
+      - kind: Kustomization
+        name: flux-system
+        namespace: flux-system
+  config:
+    weave.templates.rbac-prohibit-wildcards-policyrule-resources:
+      parameters:
+        exclude_label_key: "app.kubernetes.io/part-of"
+        exclude_label_value: "flux"
+    weave.templates.rbac-prohibit-wildcards-policyrule-verbs:
+      parameters:
+        exclude_label_key: "app.kubernetes.io/part-of"
+        exclude_label_value: "flux"
+    weave.policies.rbac-protect-list-secrets:
+      parameters:
+        exclude_label_key: "app.kubernetes.io/part-of"
+        exclude_label_value: "flux"
+    weave.policies.rbac-protect-watch-secrets:
+      parameters:
+        exclude_label_key: "app.kubernetes.io/part-of"
+        exclude_label_value: "flux"
+    weave.policies.rbac-protect-wildcard-secrets:
+      parameters:
+        exclude_label_key: "app.kubernetes.io/part-of"
+        exclude_label_value: "flux"
+```
+
+Remind not allowing users to create RBAC resources without compliance checks. Otherwise, they could create RBAC resources that could escape this runtime control.
 :::
 
 In addition to escalation via RBAC, you should protect the escalation path [through workloads](https://kubernetes.io/docs/concepts/security/rbac-good-practices/#workload-creation):
