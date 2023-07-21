@@ -235,28 +235,27 @@ In addition to escalation via RBAC, you should protect the escalation path [thro
 
 You could do that by creating pipeline namespaces to hold the CR and secret without permission to run workloads. You
 could enforce the latter one by using the Policy [Containers Should Not Run In Namespace](https://github.com/weaveworks/policy-library/blob/main/policies/ControllerProhibitNamespace/policy.yaml)
-from the Policy Library:
+from the Policy Library and [PolicyConfig](https://docs.gitops.weave.works/docs/policy/policy-configuration/) as follow:
 
 :::tip
-Add an instance of this policy when onboarding a new pipeline with the correct namespace. Think on using Weave Gitops
-self-service capabilities [GitOps Templates](https://docs.gitops.weave.works/docs/gitops-templates/intro/) or [GitOpsSets](https://docs.gitops.weave.works/docs/gitopssets/intro/)
+Update updates when onboarding a new pipeline. Think on using Weave Gitops self-service capabilities
+[GitOps Templates](https://docs.gitops.weave.works/docs/gitops-templates/intro/) or [GitOpsSets](https://docs.gitops.weave.works/docs/gitopssets/intro/)
 to help you with the task.
 :::
 
 ```yaml
 apiVersion: pac.weave.works/v2beta2
-kind: Policy
+kind: PolicyConfig
 metadata:
-  name: weave.policies.containers-should-not-run-in-namespace
+  name: reject-workloads-pipeline-namespace
 spec:
-  id: weave.policies.containers-should-not-run-in-namespace
-  name: Containers Should Not Run In Namespace
-...
-  parameters:
-    - name: custom_namespace
-      type: string
-      required: true
-      value: podinfo # changeme to the pipeline namespace
+  match:
+    namespaces:
+      - podinfo
+  config:
+    weave.policies.containers-should-not-run-in-namespace:
+      parameters:
+        custom_namespace: "podinfo"
 ```
 
 #### Service Account
