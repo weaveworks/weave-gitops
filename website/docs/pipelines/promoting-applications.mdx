@@ -193,7 +193,8 @@ by using Weave GitOps' [Policy capabilities](../../policy/intro/). Policy Agent 
 roles created before policy agent was introduced as admission controller.
 
 Once you have enabled Policy, the [Policy Library](../../policy/weave-policy-profile/) gives you a set of
-good practices policies that will help you securing your pipeline secrets according to previous RBAC recommendations:
+good practices policies that will help you securing your pipeline secrets according to previous RBAC recommendations. Deploy
+them as Kustomization based on the following example:
 
 ```yaml
 apiVersion: source.toolkit.fluxcd.io/v1
@@ -204,6 +205,8 @@ metadata:
 spec:
   interval: 10m0s
   url: https://github.com/weaveworks/policy-library.git
+  secretRef:
+    name: policy-library-github-credentials
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
@@ -219,24 +222,25 @@ spec:
   prune: true
 ```
 
-:::warning
+:::caution
 
-Policies could have exclusion features to accommodate privileged workloads like Flux. Remind the rule of not allowing
-users to create RBAC resources without the right compliance review, otherwise they could create RBAC resources that
-could escape this runtime control.
+Policies have exclusion features to accommodate privileged workloads like Flux. Make sure that you review them and remind
+not allowing users to create RBAC resources without compliance checks. Otherwise, they could create RBAC resources that could escape this runtime control.
 :::
 
-In addition to RBAC mitigation, from [RBAC Good practices](https://kubernetes.io/docs/concepts/security/rbac-good-practices/#workload-creation)
-you should consider the escalation path through workloads:
+In addition to escalation via RBAC, you should protect the escalation path [through workloads](https://kubernetes.io/docs/concepts/security/rbac-good-practices/#workload-creation):
 
 > Permission to create workloads (either Pods, or workload resources that manage Pods) in a namespace implicitly grants access
 > to many other resources in that namespace, such as Secrets, ConfigMaps, and PersistentVolumes that can be mounted in Pods
 
-You should consider segregating the namespace with pipelines from namespaces with workloads, to block this escalation path.
-The Policy Library includes `weave.policies.containers-should-not-run-in-namespace` policy for that purpose:
+You could do that by creating pipeline namespaces to hold the CR and secret without permission to run workloads. You
+could enforce the latter one by using the Policy [Containers Should Not Run In Namespace](https://github.com/weaveworks/policy-library/blob/main/policies/ControllerProhibitNamespace/policy.yaml)
+from the Policy Library:
 
 :::tip
-Add an instance of this policy when onboarding a new pipeline.
+Add an instance of this policy when onboarding a new pipeline with the correct namespace. Think on using Weave Gitops
+self-service capabilities [GitOps Templates](https://docs.gitops.weave.works/docs/gitops-templates/intro/) or [GitOpsSets](https://docs.gitops.weave.works/docs/gitopssets/intro/)
+to help you with the task.
 :::
 
 ```yaml
