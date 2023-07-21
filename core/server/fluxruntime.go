@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 	"sync"
 
 	"github.com/hashicorp/go-multierror"
@@ -14,7 +15,9 @@ import (
 	coretypes "github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -29,6 +32,7 @@ import (
 
 const (
 	FluxNamespacePartOf = "flux"
+	watchLabelSelector  = "--watch-label-selector="
 )
 
 var (
@@ -41,6 +45,10 @@ var (
 	ErrFluxNamespaceNotFound = errors.New("could not find flux namespace in cluster")
 	// ErrListingDeployments no deployments found
 	ErrListingDeployments = errors.New("could not list deployments in namespace")
+	// ErrRetrievingLabelSelector no label selector found
+	ErrRetrievingWatchLabelSelector = errors.New("could not get --watch-label-selector args")
+	// ErrParsingLabelSelector
+	ErrParsingLabelSelector = errors.New("could not parse label selector")
 
 	DefaultFluxNamespace = lookupEnv("WEAVE_GITOPS_FALLBACK_NAMESPACE", "flux-system")
 )
@@ -111,12 +119,57 @@ func (cs *coreServer) ListFluxRuntimeObjects(ctx context.Context, msg *pb.ListFl
 					r.Images = append(r.Images, img.Image)
 				}
 
+				deploymentWatchLabelSelector, err := getDeploymenWatchLabelSelector(&d)
+				if err != nil {
+					if !strings.Contains(err.Error(), "no watch label selector found in container args") {
+						respErrors = append(respErrors, &pb.ListError{ClusterName: clusterName, Namespace: fluxNs.Name, Message: fmt.Sprintf("%s, %s", ErrRetrievingWatchLabelSelector.Error(), err)})
+						continue
+					}
+				}
+				if deploymentWatchLabelSelector != "" {
+					parsedLabelSelector, err := parseLabelSelector(deploymentWatchLabelSelector)
+					if err != nil {
+						respErrors = append(respErrors, &pb.ListError{ClusterName: clusterName, Namespace: fluxNs.Name, Message: fmt.Sprintf("%s, %s", ErrParsingLabelSelector.Error(), err)})
+						continue
+					}
+					r.WatchLabelSelector = parsedLabelSelector.String()
+				}
+
 				results = append(results, r)
 			}
 		}
 	}
 
 	return &pb.ListFluxRuntimeObjectsResponse{Deployments: results, Errors: respErrors}, nil
+}
+
+func getDeploymenWatchLabelSelector(deploy *appsv1.Deployment) (string, error) {
+	for i := range deploy.Spec.Template.Spec.Containers {
+		container := deploy.Spec.Template.Spec.Containers[i]
+		for _, arg := range container.Args {
+			if strings.Contains(arg, watchLabelSelector) {
+				labelSelectorStr := strings.TrimPrefix(arg, watchLabelSelector)
+				return labelSelectorStr, nil
+			}
+		}
+	}
+
+	return "", fmt.Errorf("no watch label selector found in container args")
+}
+
+func parseLabelSelector(labelSelectorStr string) (labels.Selector, error) {
+	labelSelector, err := metav1.ParseToLabelSelector(labelSelectorStr)
+	if err != nil {
+		return nil, err
+	}
+
+	labelSelectorMap, err := metav1.LabelSelectorAsMap(labelSelector)
+	if err != nil {
+		return nil, err
+	}
+	labelSelectorObj := labels.SelectorFromSet(labelSelectorMap)
+
+	return labelSelectorObj, nil
 }
 
 func (cs *coreServer) ListFluxCrds(ctx context.Context, msg *pb.ListFluxCrdsRequest) (*pb.ListFluxCrdsResponse, error) {

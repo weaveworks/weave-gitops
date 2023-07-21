@@ -109,6 +109,7 @@ message Deployment {
     string   clusterName          = 6;
     string   uid                  = 7;
     map<string, string> labels    = 8;
+    string  watchLabelSelector    = 9;
 }
 
 message Crd {

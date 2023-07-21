@@ -110,7 +110,7 @@ func TestGetObjectOtherKinds(t *testing.T) {
 	}
 	appName := "myapp"
 
-	dep := newDeployment(appName, ns.Name, map[string]string{})
+	dep := newDeployment(appName, ns.Name, map[string]string{}, nil)
 
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())

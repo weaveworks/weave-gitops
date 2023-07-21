@@ -354,8 +354,8 @@ func TestListFluxRuntimeObjects(t *testing.T) {
 				&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "flux-ns", Labels: map[string]string{
 					coretypes.PartOfLabel: server.FluxNamespacePartOf,
 				}}},
-				newDeployment("random-flux-controller", "flux-ns", map[string]string{coretypes.PartOfLabel: server.FluxNamespacePartOf}),
-				newDeployment("other-controller-in-flux-ns", "flux-ns", map[string]string{}),
+				newDeployment("random-flux-controller", "flux-ns", map[string]string{coretypes.PartOfLabel: server.FluxNamespacePartOf}, nil),
+				newDeployment("other-controller-in-flux-ns", "flux-ns", map[string]string{}, nil),
 			},
 			func(res *pb.ListFluxRuntimeObjectsResponse) {
 				g.Expect(res.Deployments).To(HaveLen(1), "expected deployments in the flux namespace to be returned")
@@ -366,12 +366,63 @@ func TestListFluxRuntimeObjects(t *testing.T) {
 			"use flux-system namespace when no namespace label available",
 			[]runtime.Object{
 				&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "flux-system"}},
-				newDeployment("random-flux-controller", "flux-system", map[string]string{coretypes.PartOfLabel: server.FluxNamespacePartOf}),
-				newDeployment("other-controller-in-flux-ns", "flux-system", map[string]string{}),
+				newDeployment("random-flux-controller", "flux-system", map[string]string{coretypes.PartOfLabel: server.FluxNamespacePartOf}, nil),
+				newDeployment("other-controller-in-flux-ns", "flux-system", map[string]string{}, nil),
 			},
 			func(res *pb.ListFluxRuntimeObjectsResponse) {
 				g.Expect(res.Deployments).To(HaveLen(1), "expected deployments in the default flux namespace to be returned")
 				g.Expect(res.Deployments[0].Name).To(Equal("random-flux-controller"))
+			},
+		},
+		{
+			"watch label selector args string returned in deployment object",
+			[]runtime.Object{
+				&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "flux-ns", Labels: map[string]string{
+					coretypes.PartOfLabel: server.FluxNamespacePartOf,
+				}}},
+				newDeployment("random-flux-controller", "flux-ns", map[string]string{coretypes.PartOfLabel: server.FluxNamespacePartOf}, []string{"--watch-label-selector=sharding.fluxcd.io/key=random-flux-controller"}),
+			},
+			func(res *pb.ListFluxRuntimeObjectsResponse) {
+				g.Expect(res.Deployments).To(HaveLen(1), "expected deployments in the flux namespace to be returned")
+				g.Expect(res.Deployments[0].Name).To(Equal("random-flux-controller"))
+				g.Expect(res.Deployments[0].WatchLabelSelector).To(Equal("sharding.fluxcd.io/key=random-flux-controller"))
+			},
+		},
+		{
+			"watch label selector args string with wrong key not returned in deployment object",
+			[]runtime.Object{
+				&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "flux-ns", Labels: map[string]string{
+					coretypes.PartOfLabel: server.FluxNamespacePartOf,
+				}}},
+				newDeployment("random-flux-controller", "flux-ns", map[string]string{coretypes.PartOfLabel: server.FluxNamespacePartOf}, []string{"--watch-label-selectorsharding.fluxcd.io/key=random-flux-controller"}),
+			},
+			func(res *pb.ListFluxRuntimeObjectsResponse) {
+				g.Expect(res.Deployments[0].WatchLabelSelector).To(BeEmpty())
+			},
+		},
+		{
+			"watch label selector args refactored string returned in deployment object",
+			[]runtime.Object{
+				&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "flux-ns", Labels: map[string]string{
+					coretypes.PartOfLabel: server.FluxNamespacePartOf,
+				}}},
+				newDeployment("random-flux-controller", "flux-ns", map[string]string{coretypes.PartOfLabel: server.FluxNamespacePartOf}, []string{"--watch-label-selector=  sharding.fluxcd.io/key==random-flux-controller"}),
+			},
+			func(res *pb.ListFluxRuntimeObjectsResponse) {
+				g.Expect(res.Deployments[0].WatchLabelSelector).To(Equal("sharding.fluxcd.io/key=random-flux-controller"))
+			},
+		},
+		{
+			"label selector args invalid",
+			[]runtime.Object{
+				&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "flux-ns", Labels: map[string]string{
+					coretypes.PartOfLabel: server.FluxNamespacePartOf,
+				}}},
+				newDeployment("random-flux-controller", "flux-ns", map[string]string{coretypes.PartOfLabel: server.FluxNamespacePartOf}, []string{"--watch-label-selector=key_=random-flux-controller"}),
+			},
+			func(res *pb.ListFluxRuntimeObjectsResponse) {
+				g.Expect(res.Deployments).To(HaveLen(0))
+				g.Expect(res.Errors[0].Message).To(HavePrefix(server.ErrParsingLabelSelector.Error()))
 			},
 		},
 	}
@@ -391,8 +442,8 @@ func TestListFluxRuntimeObjects(t *testing.T) {
 	}
 }
 
-func newDeployment(name, ns string, labels map[string]string) *appsv1.Deployment {
-	return &appsv1.Deployment{
+func newDeployment(name, ns string, labels map[string]string, containerArgs []string) *appsv1.Deployment {
+	dep := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: ns,
@@ -412,11 +463,14 @@ func newDeployment(name, ns string, labels map[string]string) *appsv1.Deployment
 					Containers: []corev1.Container{{
 						Name:  "nginx",
 						Image: "nginx",
+						Args:  containerArgs,
 					}},
 				},
 			},
 		},
 	}
+
+	return dep
 }
 
 func TestListFluxCrds(t *testing.T) {

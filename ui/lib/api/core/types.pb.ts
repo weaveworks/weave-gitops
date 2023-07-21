@@ -98,6 +98,7 @@ export type Deployment = {
   clusterName?: string
   uid?: string
   labels?: {[key: string]: string}
+  watchLabelSelector?: string
 }
 
 export type CrdName = {
