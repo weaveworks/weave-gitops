@@ -511,7 +511,7 @@ func (s *AuthServer) RefreshHandler(rw http.ResponseWriter, r *http.Request) {
 
 	_, err := s.Refresh(rw, r)
 	if err != nil {
-		s.Log.V(logger.LogLevelWarn).Info("refreshing token failed", "err", err, "principal")
+		s.Log.V(logger.LogLevelWarn).Info("refreshing token failed", "err", err)
 		JSONError(s.Log, rw, "failed to refresh", http.StatusUnauthorized)
 		return
 	}

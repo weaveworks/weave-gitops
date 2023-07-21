@@ -776,6 +776,51 @@ func TestRefresh(t *testing.T) {
 	g.Expect(refreshTokenExpires).To(Equal(idTokenExpires.Add(time.Hour)))
 }
 
+func TestRefreshSucceedsReturns200(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	s, m := makeAuthServer(t, nil, tokenSignerVerifier, []auth.AuthMethod{auth.OIDC})
+
+	tokens := getVerifyTokens(t, m)
+
+	tf := tokens["refresh_token"].(string)
+
+	req := httptest.NewRequest(http.MethodPost, "https://example.com/test", nil)
+	req.AddCookie(&http.Cookie{
+		Name:  auth.RefreshTokenCookieName,
+		Value: tf,
+	})
+
+	w := httptest.NewRecorder()
+	s.RefreshHandler(w, req)
+	g.Expect(w.Result().StatusCode).To(Equal(200))
+}
+
+func TestRefreshHandlerRejectsMethodGet(t *testing.T) {
+	g := NewGomegaWithT(t)
+	s, _ := makeAuthServer(t, nil, nil, []auth.AuthMethod{auth.OIDC})
+
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "https://example.com/test", nil)
+
+	s.RefreshHandler(w, req)
+	g.Expect(w.Result().StatusCode).To(Equal(http.StatusMethodNotAllowed))
+}
+
+func TestRefreshFailsReturns401(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	s, _ := makeAuthServer(t, nil, nil, []auth.AuthMethod{auth.OIDC})
+
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodPost, "https://example.com/test", nil)
+	s.RefreshHandler(w, req)
+	g.Expect(w.Result().StatusCode).To(Equal(http.StatusUnauthorized))
+}
+
 func TestRefreshNoToken(t *testing.T) {
 	g := NewGomegaWithT(t)
 	s, _ := makeAuthServer(t, nil, nil, []auth.AuthMethod{auth.OIDC})
