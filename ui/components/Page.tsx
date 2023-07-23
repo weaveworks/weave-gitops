@@ -26,9 +26,10 @@ const ContentContainer = styled.div`
   padding: 0 ${(props) => props.theme.spacing.medium};
   max-height: calc(100vh - ${topBarHeight});
   overflow-wrap: normal;
-  overflow-x: scroll;
+  overflow-x: hidden;
   margin: 0px auto;
 `;
+
 const PageLayout = styled(Flex)`
   width: 100%;
   flex-grow: 1;
@@ -46,6 +47,7 @@ const Children = styled(Flex)`
   width: calc(100% - 48px);
   padding: ${(props) => props.theme.spacing.medium};
   height: 100%;
+  overflow-x: hidden;
 `;
 
 const TopToolBar = styled(Flex)`

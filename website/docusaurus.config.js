@@ -2,7 +2,7 @@ const versions = require("./versions.json");
 /** @type {import('@docusaurus/types').DocusaurusConfig} */
 module.exports = {
   title: "Weave GitOps",
-  tagline: "The official Flux expansion pack.",
+  tagline: "The Flux expansion pack from the founders of Flux",
   url: "https://docs.gitops.weave.works",
   baseUrl: "/",
   onBrokenLinks: "throw",

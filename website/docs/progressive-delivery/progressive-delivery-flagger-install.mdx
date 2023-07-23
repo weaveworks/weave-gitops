@@ -1,5 +1,5 @@
 ---
-title: Progressive Delivery using Flagger
+title: Progressive Delivery Using Flagger
 hide_title: true
 ---
 
@@ -9,88 +9,75 @@ import TierLabel from "../_components/TierLabel";
   {frontMatter.title} <TierLabel tiers="Enterprise" />
 </h1>
 
-[Flagger](https://docs.flagger.app/) is a progressive delivery operator for Kubernetes. It is
-designed to reduce risks when introducing new software versions and to improve time to delivery
-through automating production releases. Weave GitOps Enterprise's UI allows you to view the state of
-these progressive delivery rollouts, and how they are configured using Flagger's
-[canary](https://docs.flagger.app/usage/how-it-works#canary-resource) object, through the
-Applications > Delivery view.
+Built upon the core tenets of continuous integration and continuous delivery (CI/CD), [progressive delivery](https://www.weave.works/blog/progressive-delivery-checklist) involves gradually rolling out features to small groups of select users to balance performance with speed. Developers and DevOps teams use fine-grained controls to minimize the risks of pushing new features to the production environment. If the newly released feature proves to be stable and performant, it can then be released to all users.
+
+[Flagger](https://docs.flagger.app/) is a progressive delivery operator for Kubernetes and part of the Flux family of open source projects. It reduces the risk of introducing new software versions and automates production releases to improve your time to delivery. Flagger implements deployment strategies—canary releases, A/B testing, Blue/Green mirroring—using a service mesh (App Mesh, Istio, Linkerd, Kuma, Open Service Mesh) or an ingress controller (Contour, Gloo, NGINX, Skipper, Traefik, APISIX) for traffic routing. For release analysis, Flagger can query Prometheus, InfluxDB, Datadog, New Relic, CloudWatch, Stackdriver, or Graphite. For alerting it uses Slack, MS Teams, Discord, and Rocket. Using Flux allows us to manage our cluster applications in a declarative way through changes in a Git repository.
+
+If you're using Weave GitOps Enterprise, the Applications > Delivery view of the UI provides an "at a glance" view so that you can understand the status of your progressive delivery rollouts across a fleet of connected clusters. This removes the cognitive overhead of having to know which objects to query and where they are located. You can also drill down into each rollout to understand its status and configuration, and view near-to-realtime data on any summary or details page. Lastly, it includes a flagger-nginx [Profile](https://docs.gitops.weave.works/docs/next/cluster-management/profiles/) to help you quickly get started without having to configure a service mesh.
 
 ![Applications Delivery view](/img/dashboard-applications-delivery.png)
 
-This guide uses Flux manifests to install Flagger and Linkerd. Flagger can work with a number of
-service meshes and ingress controllers, to support various progressive delivery [deployment
-strategies](https://docs.flagger.app/usage/deployment-strategies):
+How to use WGE's progressive delivery offering:
+- if you don’t have Flagger installed on any clusters, you'll receive an onboarding message about installing it
+- click on the delivery tab on the menu bar to retrieve a table view of canaries with key summary information regarding their location and state
+- click on a canary to see more detailed information about status, gates, and other elements
+- click on the events tab on the detail page to see the most recent Kubernetes events for that canary and learn more about deployment history
+- click on the yaml tab on the detail page to see the raw yaml of the canary
+- view objects from any cluster/namespace that you have the appropriate permissions for, and nothing else
+- if you choose, enable the progressive delivery feature through a feature flag
 
-![canary release icon](/img/canary.svg)  **Canary Release** - where traffic is gradually shifted to
-the new version and its performance is assessed. Based on this analysis of KPIs a release is either
-promoted or the update abandoned.  
-![a b testing icon](/img/ab.svg)  **A/B Testing** - uses HTTP headers or cookies to ensure users
-  stay on the same version of an application during the canary analysis.  
-![blue green testing icon](/img/blue-green.svg)  **Blue/Green** - where tests are run against the
-  new version, and if successful, traffic is then switched from the current service.  
-![blue green mirroring icon](/img/mirroring.svg)  **Blue/Green with Traffic Mirroring** - sends
-  copies of incoming requests to the new version. The user receives the response from the current
-  service and the other is discarded. The new version is promoted only if metrics are healthy.
+Supported deployment strategies include: 
+![canary release icon](/img/canary.svg)  **Canary Release**: the user gradually shifts traffic to
+a new version of an application and assesses performance—either promoting the release or abandoning it, based on performance.  
+![a b testing icon](/img/ab.svg)  **A/B Testing**: uses HTTP headers or cookies to ensure users remain on the same version of an application during a canary analysis.
+![blue green testing icon](/img/blue-green.svg)  **Blue/Green**: Traffic is switched from the current application to a new version based on the success of testing.
+![blue green mirroring icon](/img/mirroring.svg)  **Blue/Green with Traffic Mirroring**: sends copies of incoming requests to the new version of an application. The user receives the response from the current application and the other is discarded. The new version is promoted only if metrics are healthy.
 
-Using Flux allows us to manage our cluster applications in a declarative way through changes in a
-Git repository.
-
-In this guide, we will walk you through a full end-to-end scenario where you will:
+This guide uses Flux manifests to install Flagger and [Linkerd](https://github.com/linkerd), a [CNCF](https://www.cncf.io/) project and service mesh for Kubernetes and beyond. We will walk you through a full end-to-end scenario where you will:
 - [Install the Linkerd service mesh](#installing-linkerd-using-flux)
 - [Install Flagger](#installing-flagger-using-flux)
 - [Deploy a sample application using a canary release strategy based on metrics provided through
   Linkerd's in-built Prometheus instance](#deploy-a-canary-release)
 
 ## Prerequisites
-- This guide assumes you already have a Kubernetes cluster running and have bootstrapped Flux. To
-  apply the manifests listed in this guide, you will need to commit them to a repository being
-  reconciled with Flux. For help installing Flux, you can follow their [getting
-  started](https://fluxcd.io/docs/get-started/) documentation.
-- Flagger requires the `autoscaling/v2` or `autoscaling/v2beta2` API to be installed on the cluster, you can use `kubectl
-  api-resources` to check which API versions are supported.
-- The [step](https://smallstep.com/cli/) CLI installed to generate certificates in order to support
-  mTLS connections.
+- This guide assumes you already have a Kubernetes cluster running and have [bootstrapped Flux](https://fluxcd.io/docs/get-started/). To apply the manifests listed here, you will need to commit them to a repository being reconciled with Flux.
+- Flagger requires the [`autoscaling/v2`](https://github.com/kubernetes/api/tree/master/autoscaling/v2) or [`autoscaling/v2beta2`](https://github.com/kubernetes/api/tree/master/autoscaling/v2beta2) API to be installed on your cluster. You can use `kubectl api-resources` to check which API versions are supported.
+- The [step](https://smallstep.com/cli/) CLI installed to generate certificates that support mTLS connections.
 
-## Installing Linkerd using Flux
+## Installing Linkerd Using Flux
 
-For the Linkerd installation, a Kustomization file will be used. This will allow us to specify the
-installation order and the default namespace for the installed resources but also to easily generate
-Secrets from certificate files via the use of a `secretGenerator`.
+To install Linkerd we'll use a Kustomization file. It will allow us to specify the order and default namespace for the installed resources, and to generate Secrets from certificate files via the use of a `secretGenerator`.
 
-In order to support mTLS connections between meshed pods, Linkerd requires a trust anchor
+To support mTLS connections between meshed pods, Linkerd requires a trust anchor
 certificate and an issuer certificate with its corresponding key. These certificates are
-automatically created when the `linkerd install` command is used but when using a Helm chart to
-install Linkerd, these certificates need to be provided. The `step` CLI allows us to generate these
+automatically created via the `linkerd install` command. However, when using a Helm chart to
+install Linkerd, you must provide these certificates deliberately. The `step` CLI, listed above, allows us to generate these
 certificates.
 
-To generate the trust anchor certificate run:
+To generate the trust anchor certificate, run:
 ```bash
 step certificate create root.linkerd.cluster.local ca.crt ca.key \
 --profile root-ca --no-password --insecure
 ```
 
-To generate the issuer certificate run:
+To generate the issuer certificate, run:
 ```bash
 step certificate create identity.linkerd.cluster.local issuer.crt issuer.key \
 --profile intermediate-ca --not-after 8760h --no-password --insecure \
 --ca ca.crt --ca-key ca.key
 ```
 
-Add the `ca.crt`, `issuer.crt` and `issuer.key` files to the cluster repository under a `linkerd`
+Add the `ca.crt`, `issuer.crt`, and `issuer.key` files to the cluster repository under a `linkerd`
 directory.
 
-To control where the Linkerd components get installed, we need to add a Namespace resource:
-
-Now let's add the resources for Linkerd components under the `./linkerd`
-directory. These are:
+Let's add the three manifests for Linkerd components under the `./linkerd` directory:
 - A `Namespace` resource to control where the components are installed
-- A `HelmRepository` resource to make the Linkerd helm repo available on the
+- A `HelmRepository` resource to make the Linkerd Helm repo available on the
 	cluster
-- A `HelmRelease` resource to install the latest version of Linkerd from that
+- A `HelmRelease` resource to install the latest version of Linkerd from the
 	`HelmRepository`
 
-<details><summary>Expand to see the Linkerd manifests</summary>
+<details><summary>Expand to see and copy-paste the three Linkerd manifests to add</summary>
 
 ```yaml title="linkerd/namespace.yaml"
 ---
@@ -115,8 +102,8 @@ spec:
 
 :::tip
 The value for the `spec.values.identity.issuer.crtExpiry` field below depends on the parameter value
-used during the creation of the issuer certificate previously. In this example, it should be set to
-1 year from the certificate creation.
+used during the creation of the issuer certificate. In this example, it should be set to
+one year from the certificate creation.
 :::
 
 ```yaml title="linkerd/releases.yaml" {35}
@@ -176,11 +163,11 @@ spec:
 
 </details>
 
-Next, add the following file to instruct Kustomize to patch any `Secrets` that are referenced in
-`HelmRelease` manifests, and add a `Kustomization` which references all the
+Next, add the following manifests. The first file instructs Kustomize to patch any `Secrets` that are referenced in
+`HelmRelease` manifests. The second file is a `Kustomization` that references all the
 other `linkerd` resource files.
 
-<details><summary>Expand to see the linkerd Kustomization manifests</summary>
+<details><summary>Expand to see the Linkerd Kustomization manifests</summary>
 
 ```yaml title="linkerd/kustomizeconfig.yaml"
 nameReference:
@@ -210,13 +197,13 @@ secretGenerator:
       - issuer.key
 ```
 
-:::tip
-The `secretGenerator` is used to generate Secrets from the generated files.
+:::info Note
+The `secretGenerator` generates Secrets from the files you've just created.
 :::
 
 </details>
 
-At this point `linkerd` directory in the cluster repository should look like this:
+At this point the `linkerd` directory in your cluster repository should look like this:
 
 ```bash
 > tree linkerd
@@ -253,28 +240,27 @@ web-6b6f65dbc7-wltdg            2/2     Running   0          10m
 ```
 
 :::info Note
-Make sure that any new directories that you add to the cluster repository as part of this guide, 
-are included in a path that Flux reconciles.
+Any new directories that you add to the cluster repository while following this guide must 
+be included in a path that Flux reconciles.
 :::
 
 
-## Installing Flagger using Flux
+## Installing Flagger Using Flux
 
-For the Flagger installation, a Kustomization file will be used to define the installation order and
+To install Flagger, you'll use a Kustomization file that will define the installation order and
 provide a default namespace for the installed resources.
 
-Create a new `flagger` directory and make sure it is under a repository path that Flux reconciles. 
+Create a new `flagger` directory. Make sure to locate it under a repository path that Flux reconciles. 
 
-We'll add the resources for Flagger under this directory.
-These are:
+Now add under this directory the three resource manifests for Flagger:
 - A `Namespace` resource to control where the components are installed
-- A `HelmRepository` resource to make the Flagger helm repo available on the
+- A `HelmRepository` resource to make the Flagger Helm repo available on the
 	cluster
 - A `HelmRelease` resource to install the latest version of Flagger and the load
-	tester app, which is used to generate from that synthetic traffic during the
-	analysis phase, from that `HelmRepository`
+	tester app (which generates synthetic traffic during the
+	analysis phase), from that `HelmRepository`
 
-<details><summary>Expand to see the Flagger resource manifests</summary>
+<details><summary>Expand to see the three Flagger resource manifests</summary>
 
 ```yaml title="flagger/namespace.yaml"
 ---
@@ -336,7 +322,7 @@ spec:
 
 </details>
 
-Finally,  add the following Kustomization file that references all the previous files that were
+Now add the following Kustomization file. It references all of the previous files that you've
 added:
 
 <details><summary>Expand to see the Flagger Kustomization manifest</summary>
@@ -365,10 +351,10 @@ flagger
 └── source.yaml
 ```
 
-Once Flux reconciles this directory to the cluster, Flagger and the load tester app should get
+Once Flux reconciles this directory to the cluster, Flagger and the load tester app should be
 installed.
 
-Before proceeding to the next step, check that all the Flagger pods have started successfully:
+Before proceeding to the next step, check that all of your Flagger pods have started successfully:
 
 ```bash
 > kubectl get pods -n flagger
@@ -377,28 +363,26 @@ flagger-7d456d4fc7-knf2g      1/1     Running   0          4m
 loadtester-855b4d77f6-scl6r   1/1     Running   0          4m
 ```
 
-## Deploy a canary release
+## Deploy a Canary Release
 
-To demonstrate the progressive rollout of an application,
-[podinfo](https://github.com/stefanprodan/podinfo) will be used.
+To demonstrate the progressive rollout of an application, we'll use a tiny sample web app called
+[podinfo](https://github.com/stefanprodan/podinfo) and configure a [canary release
+strategy](https://docs.flagger.app/usage/deployment-strategies#canary-release). 
 
-We will configure a [Canary release
-strategy](https://docs.flagger.app/usage/deployment-strategies#canary-release), where Flagger will
-scale up a new version of the application (the canary), alongside the existing version (the
-primary), and gradually increase traffic to the new version in increments of 5%, up to a maximum of
-50%. It will continuously monitor the new version for an acceptable request response rate and
+In our example, Flagger will scale up a new version of podinfo (the canary) alongside the existing version (the
+primary). It will gradually increase traffic to the new version in increments of 5%, up to a maximum of
+50%. Flagger will continuously monitor the new version for an acceptable request response rate and
 average request duration. Based on this analysis, Flagger will either update the primary to the new
-version, or abandon the promotion; then scale the canary back down to zero.
+version or abandon the promotion, then scale the canary back down to zero.
 
-Create a new `test` directory and add the following Canary resources under it:
+Create a new `test` directory and add these three canary resource manifests under it:
 - A `Namespace` resource to control where the components are installed
 - A `Deployment` and `HorizontalPodAutoscaler` for the `podinfo` application
-- A `Canary` resource which references the `Deployment` and
-	`HorizontalPodAutoscaler` resources (note that we do not need to define a
-	service resource, instead this is specified within the Canary definition and
-	created by Flagger)
+- A `Canary` resource which references the `Deployment` and `HorizontalPodAutoscaler` resources
 
-<details><summary>Expand to see the Canary resource manifests</summary>
+We don't need to define a service resource. This is specified within the canary definition and created by Flagger.
+
+<details><summary>Expand to see the three canary resource manifests</summary>
 
 ```yaml title="test/namespace.yaml"
 ---
@@ -580,7 +564,7 @@ spec:
 
 </details>
 
-Finally, add a Kustomization file to apply all resources to the `test` namespace:
+Add a Kustomization file to apply all resources to the `test` namespace:
 
 <details><summary>Expand to see the Canary Kustomization manifest</summary>
 
@@ -597,7 +581,7 @@ resources:
 
 </details>
 
-At this point `test` directory in the cluster repository should look like this:
+At this point, the `test` directory in the cluster repository should look like this:
 
 ```bash
 > tree test
@@ -618,7 +602,7 @@ NAME      STATUS        WEIGHT   LASTTRANSITIONTIME
 podinfo   Initialized   0        2022-07-22T12:37:58Z
 ```
 
-Now trigger a new rollout by bumping the version of `podinfo`:
+Trigger a new rollout by bumping the version of `podinfo`:
 
 ```bash
 > kubectl set image deployment/podinfo podinfod=ghcr.io/stefanprodan/podinfo:6.0.1 -n test
@@ -648,9 +632,9 @@ podinfo   Succeeded   0        2022-07-22T12:47:58Z
 
 ## Summary
 
-Congratulations, you have now completed a progressive delivery rollout with Flagger and Linkerd
+Congratulations, you have now completed a progressive delivery rollout with Flagger and Linkerd!
 :tada:
 
 Next steps:
-- Explore more of what [Flagger](https://flagger.app/) can offer
-- Configure [manual approving](flagger-manual-gating.mdx) for progressive delivery deployments
+- Explore more of what [Flagger](https://flagger.app/) offers
+- Configure [manual approvals](flagger-manual-gating.mdx) for progressive delivery deployments
