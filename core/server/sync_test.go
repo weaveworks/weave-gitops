@@ -61,10 +61,10 @@ func TestSync(t *testing.T) {
 	g.Expect(k.Create(ctx, ociRepo)).Should(Succeed())
 
 	tests := []struct {
-		name       string
-		msg        *pb.SyncFluxObjectRequest
-		automation fluxsync.Reconcilable
-		source     fluxsync.Reconcilable
+		name         string
+		msg          *pb.SyncFluxObjectRequest
+		reconcilable fluxsync.Reconcilable
+		source       fluxsync.Reconcilable
 	}{{
 		name: "helm release no source",
 		msg: &pb.SyncFluxObjectRequest{
@@ -72,7 +72,7 @@ func TestSync(t *testing.T) {
 				Kind: helmv2.HelmReleaseKind}},
 			WithSource: false,
 		},
-		automation: fluxsync.HelmReleaseAdapter{HelmRelease: hr},
+		reconcilable: fluxsync.HelmReleaseAdapter{HelmRelease: hr},
 	}, {
 		name: "helm release with source",
 		msg: &pb.SyncFluxObjectRequest{
@@ -80,8 +80,8 @@ func TestSync(t *testing.T) {
 				Kind: helmv2.HelmReleaseKind}},
 			WithSource: true,
 		},
-		automation: fluxsync.HelmReleaseAdapter{HelmRelease: hr},
-		source:     fluxsync.NewReconcileable(helmRepo),
+		reconcilable: fluxsync.HelmReleaseAdapter{HelmRelease: hr},
+		source:       fluxsync.NewReconcileable(helmRepo),
 	}, {
 		name: "kustomization no source",
 		msg: &pb.SyncFluxObjectRequest{
@@ -89,7 +89,7 @@ func TestSync(t *testing.T) {
 				Kind: kustomizev1.KustomizationKind}},
 			WithSource: false,
 		},
-		automation: fluxsync.KustomizationAdapter{Kustomization: kust},
+		reconcilable: fluxsync.KustomizationAdapter{Kustomization: kust},
 	}, {
 		name: "kustomization with source",
 		msg: &pb.SyncFluxObjectRequest{
@@ -97,8 +97,8 @@ func TestSync(t *testing.T) {
 				Kind: kustomizev1.KustomizationKind}},
 			WithSource: true,
 		},
-		automation: fluxsync.KustomizationAdapter{Kustomization: kust},
-		source:     fluxsync.NewReconcileable(gitRepo),
+		reconcilable: fluxsync.KustomizationAdapter{Kustomization: kust},
+		source:       fluxsync.NewReconcileable(gitRepo),
 	}, {
 		name: "gitrepository",
 		msg: &pb.SyncFluxObjectRequest{
@@ -106,7 +106,7 @@ func TestSync(t *testing.T) {
 				Kind: sourcev1.GitRepositoryKind}},
 			WithSource: false,
 		},
-		automation: fluxsync.GitRepositoryAdapter{GitRepository: gitRepo},
+		reconcilable: fluxsync.GitRepositoryAdapter{GitRepository: gitRepo},
 	}, {
 		name: "bucket",
 		msg: &pb.SyncFluxObjectRequest{
@@ -114,7 +114,7 @@ func TestSync(t *testing.T) {
 				Kind: sourcev1.BucketKind}},
 			WithSource: false,
 		},
-		automation: fluxsync.BucketAdapter{Bucket: bucket},
+		reconcilable: fluxsync.BucketAdapter{Bucket: bucket},
 	}, {
 		name: "helmchart",
 		msg: &pb.SyncFluxObjectRequest{
@@ -122,7 +122,7 @@ func TestSync(t *testing.T) {
 				Kind: sourcev1.HelmChartKind}},
 			WithSource: false,
 		},
-		automation: fluxsync.HelmChartAdapter{HelmChart: chart},
+		reconcilable: fluxsync.HelmChartAdapter{HelmChart: chart},
 	}, {
 		name: "helmrepository",
 		msg: &pb.SyncFluxObjectRequest{
@@ -130,7 +130,7 @@ func TestSync(t *testing.T) {
 				Kind: sourcev1.HelmRepositoryKind}},
 			WithSource: false,
 		},
-		automation: fluxsync.HelmRepositoryAdapter{HelmRepository: helmRepo},
+		reconcilable: fluxsync.HelmRepositoryAdapter{HelmRepository: helmRepo},
 	}, {
 		name: "ocirepository",
 		msg: &pb.SyncFluxObjectRequest{
@@ -138,7 +138,7 @@ func TestSync(t *testing.T) {
 				Kind: sourcev1.OCIRepositoryKind}},
 			WithSource: false,
 		},
-		automation: fluxsync.OCIRepositoryAdapter{OCIRepository: ociRepo},
+		reconcilable: fluxsync.OCIRepositoryAdapter{OCIRepository: ociRepo},
 	}, {
 		name: "multiple objects",
 		msg: &pb.SyncFluxObjectRequest{
@@ -147,16 +147,16 @@ func TestSync(t *testing.T) {
 				Kind: helmv2.HelmReleaseKind}},
 			WithSource: true,
 		},
-		automation: fluxsync.HelmReleaseAdapter{HelmRelease: hr},
-		source:     fluxsync.NewReconcileable(helmRepo),
+		reconcilable: fluxsync.HelmReleaseAdapter{HelmRelease: hr},
+		source:       fluxsync.NewReconcileable(helmRepo),
 	}}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			msg := tt.msg
 			for _, msg := range msg.Objects {
-				msg.Name = tt.automation.GetName()
-				msg.Namespace = tt.automation.GetNamespace()
+				msg.Name = tt.reconcilable.GetName()
+				msg.Namespace = tt.reconcilable.GetNamespace()
 			}
 
 			done := make(chan error)
@@ -189,7 +189,7 @@ func TestSync(t *testing.T) {
 					}
 
 					an := types.NamespacedName{Name: name, Namespace: ns.Name}
-					if err := simulateReconcile(ctx, k, an, tt.automation.AsClientObject()); err != nil {
+					if err := simulateReconcile(ctx, k, an, tt.reconcilable.AsClientObject()); err != nil {
 						t.Fatal(err)
 					}
 
