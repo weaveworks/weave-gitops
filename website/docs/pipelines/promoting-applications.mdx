@@ -139,10 +139,10 @@ Now as soon as the `HelmRelease` on the first environment defined in the pipelin
 
 :::danger
 
-Creating pull requests requires write access to your git repo. In case your pull request secret is compromised (and you could assume
-it as a likely scenario), it could end up, for example, in deleting your production applications.
+Creating pull requests requires a personal access token with write access to your git repo. If the secret containing the token is compromised (and you could assume
+it as a likely scenario), it could in principle allow someone to delete your production applications.
 
-Please make sure you understand [Security](#security) section below before enabling automated pull requests.
+Please make sure you understand the [Security](#security) section below before taking the steps to enable automated pull requests.
 :::
 
 This section covers adding a promotion by pull request (PR) strategy, so that whenever the application defined in a pipeline
@@ -158,7 +158,7 @@ how to authenticate with the repository and the Git provider API, and which file
 1. Use it in low-risk environments and not in production: pipelines is an alpha feature and not yet production-ready.
 2. Make sure you have considered possible attack vectors to production, and put controls in place. Some
 of these scenarios are:
-- In the case of a [monorepo](https://fluxcd.io/flux/guides/repository-structure/#monorepo): you want to ensure that a compromised token doing a change in test cannot end up doing a promotion in production without a pull request review, for example, leveraging [Codeowners](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners).
+- In the case of a [monorepo](https://fluxcd.io/flux/guides/repository-structure/#monorepo): you want to ensure that a compromised token for a test cluster cannot end up doing a promotion in production, without at least a pull request review; for example, by using [Codeowners](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners).
 - In the case of [repo per environment](https://fluxcd.io/flux/guides/repository-structure/#repo-per-environment) you want to ensure that a pipeline is configured with your test environment repo URL. You also want to ensure that you have segregation of tokens per environment rather than allowing a token to access any environment repo.
 
 #### RBAC
@@ -166,7 +166,7 @@ of these scenarios are:
 1. Only allow creation of RBAC resources from paths where compliance controls are in place. For example, do not
 allow regular users to create or update RBAC resources; or, if users must create RBAC resources, restrict them by namespace.
 
-2. You have configured "Least Privilege" RBAC following [Kubernetes RBAC Good Practices](https://kubernetes.io/docs/concepts/security/rbac-good-practices/) with emphasis on the following:
+2. Follow the principle of "Least Privilege" RBAC as explained in [Kubernetes RBAC Good Practices](https://kubernetes.io/docs/concepts/security/rbac-good-practices/), with emphasis on the following:
 
 > Assign permissions at the namespace level where possible. Use RoleBindings as opposed to ClusterRoleBindings
 > to give users rights only within a specific namespace.
@@ -177,7 +177,7 @@ allow regular users to create or update RBAC resources; or, if users must create
 
 3. Prefer granting access to specific secrets, rather than granting `list` and `watch` on secrets as:
 
-> It is also important to note that list and watch access also effectively allow for users to reveal the Secret contents.
+> It is also important to note that list and watch access also effectively allow users to read Secret contents.
 
 #### Policy
 
@@ -187,7 +187,7 @@ By following the guidelines above, you can have a safe initial configuration. Ho
 > Permissions are purely additive (there are no "deny" rules).
 
 You should ensure that attempts to break this contract are blocked and detected. You could achieve it
-by using Weave GitOps' [Policy capabilities](../../policy/intro/). Policy Agent acts in two complementary modes:
+by using Weave GitOps' [Policy capabilities](../../policy/intro/). The Policy Agent acts in two complementary modes:
 - [Admission Controller](../../policy/intro#admission-controller) protects from any attempt to create non-compliant RBAC resources that would end granting access to the secret.
 - [Audit](../../policy/intro#audit) helps you identify already existing resources that are out of compliance. For example,
 roles created before policy agent was introduced as admission controller.
@@ -224,7 +224,7 @@ spec:
 
 :::caution
 
-Policies might have exclusion features to accommodate privileged workloads like Flux. You could manage them via [PolicyConfig](https://docs.gitops.weave.works/docs/policy/policy-configuration/).
+Policies typically allow exclusions, to accommodate privileged workloads like Flux. You can manage them via [PolicyConfig](https://docs.gitops.weave.works/docs/policy/policy-configuration/).
 For example, in order to allow Flux you could use the following `PolicyConfig`:
 
 ```yaml
@@ -264,17 +264,17 @@ spec:
 Remind not allowing users to create RBAC resources without compliance checks. Otherwise, they could create RBAC resources that could escape this runtime control.
 :::
 
-In addition to escalation via RBAC, you should protect the escalation path [through workloads](https://kubernetes.io/docs/concepts/security/rbac-good-practices/#workload-creation):
+In addition to guarding against privilege escalation via RBAC, you should guard against privilege escalation [through workloads](https://kubernetes.io/docs/concepts/security/rbac-good-practices/#workload-creation):
 
 > Permission to create workloads (either Pods, or workload resources that manage Pods) in a namespace implicitly grants access
 > to many other resources in that namespace, such as Secrets, ConfigMaps, and PersistentVolumes that can be mounted in Pods
 
-You could do that by creating pipeline namespaces to hold the CR and secret without permission to run workloads. You
+You could do that by creating pipeline namespaces to hold the Pipeline and its Secret, without permission to run workloads. You
 could enforce the latter one by using the Policy [Containers Should Not Run In Namespace](https://github.com/weaveworks/policy-library/blob/main/policies/ControllerProhibitNamespace/policy.yaml)
-from the Policy Library and [PolicyConfig](https://docs.gitops.weave.works/docs/policy/policy-configuration/) as follow:
+from the Policy Library and [PolicyConfig](https://docs.gitops.weave.works/docs/policy/policy-configuration/) as follows:
 
 :::tip
-Update updates when onboarding a new pipeline. Think on using Weave Gitops self-service capabilities
+Update updates when onboarding a new pipeline. Consider using Weave Gitops self-service capabilities
 [GitOps Templates](https://docs.gitops.weave.works/docs/gitops-templates/intro/) or [GitOpsSets](https://docs.gitops.weave.works/docs/gitopssets/intro/)
 to help you with the task.
 :::
@@ -342,7 +342,7 @@ Once deployed you could see how the different resources are being rejected. See 
 
 ![privilege escalation blocked](img/pipeline-security-violations.png)
 
-In addition, verify that Pipeline Controller could just read the secret by the following tests:
+In addition, verify that the Pipeline controller can only get the secret by the following tests:
 
 List access is denied:
 
@@ -364,7 +364,7 @@ app-promotion-credentials   Opaque   1      21m
 #### Tokens
 
 1. **Create a user account for pull request changes**: this user context would be used to do any git provider operation,
-and for security and auditing perspective, you don't want to impersonate a real user for it.
+and from the security and auditing perspectives, you don't want to impersonate a real user for it.
 
 <details><summary>Expand to see example</summary>
 
