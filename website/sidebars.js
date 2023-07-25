@@ -146,7 +146,7 @@
       label: 'Pipelines',
       link: {
         type: 'doc',
-        id: 'pipelines/intro',
+        id: 'pipelines/pipelines-intro',
       },
       items: [
         'pipelines/getting-started',
