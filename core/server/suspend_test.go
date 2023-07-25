@@ -2,11 +2,12 @@ package server_test
 
 import (
 	"context"
+	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"testing"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
-	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	. "github.com/onsi/gomega"
 	api "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
@@ -41,11 +42,11 @@ func TestSuspend_Suspend(t *testing.T) {
 			obj:  makeGitRepo("git-repo-1", *ns),
 		},
 		{
-			kind: sourcev1.HelmRepositoryKind,
+			kind: sourcev1b2.HelmRepositoryKind,
 			obj:  makeHelmRepo("repo-1", *ns),
 		},
 		{
-			kind: sourcev1.BucketKind,
+			kind: sourcev1b2.BucketKind,
 			obj:  makeBucket("bucket-1", *ns),
 		},
 		{
@@ -144,14 +145,14 @@ func checkSpec(t *testing.T, k client.Client, name types.NamespacedName, obj cli
 
 		return v.Spec.Suspend
 
-	case *sourcev1.Bucket:
+	case *sourcev1b2.Bucket:
 		if err := k.Get(context.Background(), name, v); err != nil {
 			t.Error(err)
 		}
 
 		return v.Spec.Suspend
 
-	case *sourcev1.HelmRepository:
+	case *sourcev1b2.HelmRepository:
 		if err := k.Get(context.Background(), name, v); err != nil {
 			t.Error(err)
 		}
