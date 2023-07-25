@@ -34,6 +34,7 @@ const DefaultSync: React.FC<{ reqObjects: ObjectRef[] }> = ({ reqObjects }) => {
   const location = useLocation();
   const noSource = {
     [V2Routes.Sources]: true,
+    [V2Routes.ImageRepositories]: true,
   };
   return (
     <SyncButton
