@@ -48,42 +48,31 @@ func TestSync(t *testing.T) {
 	helmRepo := makeHelmRepo(name, *ns)
 	hr := makeHelmRelease(name, *ns, helmRepo, chart)
 
-	g.Expect(k.Create(ctx, gitRepo)).Should(Succeed())
+	bucket := makeBucket(name, *ns)
+	ociRepo := makeOCIRepo(name, *ns)
+
 	g.Expect(k.Create(ctx, kust)).Should(Succeed())
-	g.Expect(k.Create(ctx, chart)).Should(Succeed())
-	g.Expect(k.Create(ctx, helmRepo)).Should(Succeed())
 	g.Expect(k.Create(ctx, hr)).Should(Succeed())
 
+	g.Expect(k.Create(ctx, bucket)).Should(Succeed())
+	g.Expect(k.Create(ctx, chart)).Should(Succeed())
+	g.Expect(k.Create(ctx, helmRepo)).Should(Succeed())
+	g.Expect(k.Create(ctx, gitRepo)).Should(Succeed())
+	g.Expect(k.Create(ctx, ociRepo)).Should(Succeed())
+
 	tests := []struct {
-		name       string
-		msg        *pb.SyncFluxObjectRequest
-		automation fluxsync.Automation
-		source     fluxsync.Reconcilable
+		name         string
+		msg          *pb.SyncFluxObjectRequest
+		reconcilable fluxsync.Reconcilable
+		source       fluxsync.Reconcilable
 	}{{
-		name: "kustomization no source",
-		msg: &pb.SyncFluxObjectRequest{
-			Objects: []*pb.ObjectRef{{ClusterName: "Default",
-				Kind: kustomizev1.KustomizationKind}},
-			WithSource: false,
-		},
-		automation: fluxsync.KustomizationAdapter{Kustomization: kust},
-	}, {
-		name: "kustomization with source",
-		msg: &pb.SyncFluxObjectRequest{
-			Objects: []*pb.ObjectRef{{ClusterName: "Default",
-				Kind: kustomizev1.KustomizationKind}},
-			WithSource: true,
-		},
-		automation: fluxsync.KustomizationAdapter{Kustomization: kust},
-		source:     fluxsync.NewReconcileable(gitRepo),
-	}, {
 		name: "helm release no source",
 		msg: &pb.SyncFluxObjectRequest{
 			Objects: []*pb.ObjectRef{{ClusterName: "Default",
 				Kind: helmv2.HelmReleaseKind}},
 			WithSource: false,
 		},
-		automation: fluxsync.HelmReleaseAdapter{HelmRelease: hr},
+		reconcilable: fluxsync.HelmReleaseAdapter{HelmRelease: hr},
 	}, {
 		name: "helm release with source",
 		msg: &pb.SyncFluxObjectRequest{
@@ -91,27 +80,83 @@ func TestSync(t *testing.T) {
 				Kind: helmv2.HelmReleaseKind}},
 			WithSource: true,
 		},
-		automation: fluxsync.HelmReleaseAdapter{HelmRelease: hr},
-		source:     fluxsync.NewReconcileable(helmRepo),
-	},
-		{
-			name: "multiple objects",
-			msg: &pb.SyncFluxObjectRequest{
-				Objects: []*pb.ObjectRef{{ClusterName: "Default",
-					Kind: helmv2.HelmReleaseKind}, {ClusterName: "Default",
-					Kind: helmv2.HelmReleaseKind}},
-				WithSource: true,
-			},
-			automation: fluxsync.HelmReleaseAdapter{HelmRelease: hr},
-			source:     fluxsync.NewReconcileable(helmRepo),
-		}}
+		reconcilable: fluxsync.HelmReleaseAdapter{HelmRelease: hr},
+		source:       fluxsync.NewReconcileable(helmRepo),
+	}, {
+		name: "kustomization no source",
+		msg: &pb.SyncFluxObjectRequest{
+			Objects: []*pb.ObjectRef{{ClusterName: "Default",
+				Kind: kustomizev1.KustomizationKind}},
+			WithSource: false,
+		},
+		reconcilable: fluxsync.KustomizationAdapter{Kustomization: kust},
+	}, {
+		name: "kustomization with source",
+		msg: &pb.SyncFluxObjectRequest{
+			Objects: []*pb.ObjectRef{{ClusterName: "Default",
+				Kind: kustomizev1.KustomizationKind}},
+			WithSource: true,
+		},
+		reconcilable: fluxsync.KustomizationAdapter{Kustomization: kust},
+		source:       fluxsync.NewReconcileable(gitRepo),
+	}, {
+		name: "gitrepository",
+		msg: &pb.SyncFluxObjectRequest{
+			Objects: []*pb.ObjectRef{{ClusterName: "Default",
+				Kind: sourcev1.GitRepositoryKind}},
+			WithSource: false,
+		},
+		reconcilable: fluxsync.GitRepositoryAdapter{GitRepository: gitRepo},
+	}, {
+		name: "bucket",
+		msg: &pb.SyncFluxObjectRequest{
+			Objects: []*pb.ObjectRef{{ClusterName: "Default",
+				Kind: sourcev1.BucketKind}},
+			WithSource: false,
+		},
+		reconcilable: fluxsync.BucketAdapter{Bucket: bucket},
+	}, {
+		name: "helmchart",
+		msg: &pb.SyncFluxObjectRequest{
+			Objects: []*pb.ObjectRef{{ClusterName: "Default",
+				Kind: sourcev1.HelmChartKind}},
+			WithSource: false,
+		},
+		reconcilable: fluxsync.HelmChartAdapter{HelmChart: chart},
+	}, {
+		name: "helmrepository",
+		msg: &pb.SyncFluxObjectRequest{
+			Objects: []*pb.ObjectRef{{ClusterName: "Default",
+				Kind: sourcev1.HelmRepositoryKind}},
+			WithSource: false,
+		},
+		reconcilable: fluxsync.HelmRepositoryAdapter{HelmRepository: helmRepo},
+	}, {
+		name: "ocirepository",
+		msg: &pb.SyncFluxObjectRequest{
+			Objects: []*pb.ObjectRef{{ClusterName: "Default",
+				Kind: sourcev1.OCIRepositoryKind}},
+			WithSource: false,
+		},
+		reconcilable: fluxsync.OCIRepositoryAdapter{OCIRepository: ociRepo},
+	}, {
+		name: "multiple objects",
+		msg: &pb.SyncFluxObjectRequest{
+			Objects: []*pb.ObjectRef{{ClusterName: "Default",
+				Kind: helmv2.HelmReleaseKind}, {ClusterName: "Default",
+				Kind: helmv2.HelmReleaseKind}},
+			WithSource: true,
+		},
+		reconcilable: fluxsync.HelmReleaseAdapter{HelmRelease: hr},
+		source:       fluxsync.NewReconcileable(helmRepo),
+	}}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			msg := tt.msg
 			for _, msg := range msg.Objects {
-				msg.Name = tt.automation.GetName()
-				msg.Namespace = tt.automation.GetNamespace()
+				msg.Name = tt.reconcilable.GetName()
+				msg.Namespace = tt.reconcilable.GetNamespace()
 			}
 
 			done := make(chan error)
@@ -144,7 +189,7 @@ func TestSync(t *testing.T) {
 					}
 
 					an := types.NamespacedName{Name: name, Namespace: ns.Name}
-					if err := simulateReconcile(ctx, k, an, tt.automation.AsClientObject()); err != nil {
+					if err := simulateReconcile(ctx, k, an, tt.reconcilable.AsClientObject()); err != nil {
 						t.Fatal(err)
 					}
 
@@ -161,6 +206,33 @@ func TestSync(t *testing.T) {
 
 func simulateReconcile(ctx context.Context, k client.Client, name types.NamespacedName, o client.Object) error {
 	switch obj := o.(type) {
+	case *helmv2.HelmRelease:
+		if err := k.Get(ctx, name, obj); err != nil {
+			return err
+		}
+
+		obj.Status.SetLastHandledReconcileRequest(time.Now().Format(time.RFC3339Nano))
+
+		return k.Status().Update(ctx, obj)
+
+	case *kustomizev1.Kustomization:
+		if err := k.Get(ctx, name, obj); err != nil {
+			return err
+		}
+
+		obj.Status.SetLastHandledReconcileRequest(time.Now().Format(time.RFC3339Nano))
+
+		return k.Status().Update(ctx, obj)
+
+	case *sourcev1.Bucket:
+		if err := k.Get(ctx, name, obj); err != nil {
+			return err
+		}
+
+		obj.Status.SetLastHandledReconcileRequest(time.Now().Format(time.RFC3339Nano))
+
+		return k.Status().Update(ctx, obj)
+
 	case *sourcev1.GitRepository:
 		if err := k.Get(ctx, name, obj); err != nil {
 			return err
@@ -169,7 +241,8 @@ func simulateReconcile(ctx context.Context, k client.Client, name types.Namespac
 		obj.Status.SetLastHandledReconcileRequest(time.Now().Format(time.RFC3339Nano))
 
 		return k.Status().Update(ctx, obj)
-	case *kustomizev1.Kustomization:
+
+	case *sourcev1.HelmChart:
 		if err := k.Get(ctx, name, obj); err != nil {
 			return err
 		}
@@ -187,16 +260,7 @@ func simulateReconcile(ctx context.Context, k client.Client, name types.Namespac
 
 		return k.Status().Update(ctx, obj)
 
-	case *helmv2.HelmRelease:
-		if err := k.Get(ctx, name, obj); err != nil {
-			return err
-		}
-
-		obj.Status.SetLastHandledReconcileRequest(time.Now().Format(time.RFC3339Nano))
-
-		return k.Status().Update(ctx, obj)
-
-	case *sourcev1.HelmChart:
+	case *sourcev1.OCIRepository:
 		if err := k.Get(ctx, name, obj); err != nil {
 			return err
 		}
@@ -325,6 +389,23 @@ func makeHelmRelease(name string, ns corev1.Namespace, repo *sourcev1.HelmReposi
 			},
 		},
 		Status: helmv2.HelmReleaseStatus{
+			ReconcileRequestStatus: meta.ReconcileRequestStatus{
+				LastHandledReconcileAt: time.Now().Format(time.RFC3339Nano),
+			},
+		},
+	}
+}
+
+func makeOCIRepo(name string, ns corev1.Namespace) *sourcev1.OCIRepository {
+	return &sourcev1.OCIRepository{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: ns.Name,
+		},
+		Spec: sourcev1.OCIRepositorySpec{
+			URL: "oci://ghcr.io/some/chart",
+		},
+		Status: sourcev1.OCIRepositoryStatus{
 			ReconcileRequestStatus: meta.ReconcileRequestStatus{
 				LastHandledReconcileAt: time.Now().Format(time.RFC3339Nano),
 			},

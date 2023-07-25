@@ -31,6 +31,9 @@ type SourceRef interface {
 	Namespace() string
 }
 
+// Automation objects are Kustomizations and HelmReleases.
+// These are the only object types that can be triggered
+// to be reconciled with their source.
 type Automation interface {
 	Reconcilable
 	SourceRef() SourceRef

@@ -128,6 +128,8 @@ func getFluxObject(kind string) (fluxsync.Reconcilable, error) {
 		return &fluxsync.GitRepositoryAdapter{GitRepository: &sourcev1.GitRepository{}}, nil
 	case sourcev1.BucketKind:
 		return &fluxsync.BucketAdapter{Bucket: &sourcev1.Bucket{}}, nil
+	case sourcev1.HelmChartKind:
+		return &fluxsync.HelmChartAdapter{HelmChart: &sourcev1.HelmChart{}}, nil
 	case sourcev1.HelmRepositoryKind:
 		return &fluxsync.HelmRepositoryAdapter{HelmRepository: &sourcev1.HelmRepository{}}, nil
 	case sourcev1.OCIRepositoryKind:

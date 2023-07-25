@@ -161,27 +161,6 @@ exports[`Footer snapshots default 1`] = `
       <span
         class="c8"
       >
-        Flux
-        :
-      </span>
-      <div
-        class="c4"
-      />
-      <span
-        class="c9"
-      >
-        -
-      </span>
-    </div>
-    <div
-      class="c4"
-    />
-    <div
-      class="c2 Version"
-    >
-      <span
-        class="c8"
-      >
         Weave GitOps
         :
       </span>
@@ -361,27 +340,6 @@ exports[`Footer snapshots no api version 1`] = `
         class="c8"
       >
         Kubernetes
-        :
-      </span>
-      <div
-        class="c4"
-      />
-      <span
-        class="c9"
-      >
-        -
-      </span>
-    </div>
-    <div
-      class="c4"
-    />
-    <div
-      class="c2 Version"
-    >
-      <span
-        class="c8"
-      >
-        Flux
         :
       </span>
       <div
