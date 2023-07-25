@@ -335,7 +335,6 @@ describe("utils lib", () => {
       commit: "commit",
       branch: "branch",
       buildTime: "buildTime",
-      fluxVersion: "flux-version",
       kubeVersion: "kube-version",
     };
     const defaultVersion = "default version";

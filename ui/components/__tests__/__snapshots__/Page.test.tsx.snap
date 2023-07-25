@@ -191,7 +191,7 @@ exports[`Page snapshots default 1`] = `
   padding: 0 24px;
   max-height: calc(100vh - 60px);
   overflow-wrap: normal;
-  overflow-x: scroll;
+  overflow-x: hidden;
   margin: 0px auto;
 }
 
@@ -216,6 +216,7 @@ exports[`Page snapshots default 1`] = `
   width: calc(100% - 48px);
   padding: 24px;
   height: 100%;
+  overflow-x: hidden;
 }
 
 .c3 {

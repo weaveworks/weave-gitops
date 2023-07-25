@@ -1,10 +1,12 @@
 import { Tooltip } from "@material-ui/core";
 import _ from "lodash";
 import * as React from "react";
+import { useLocation } from "react-router-dom";
 import styled from "styled-components";
 import { useSyncFluxObject } from "../hooks/automations";
 import { useToggleSuspend } from "../hooks/flux";
 import { ObjectRef } from "../lib/api/core/types.pb";
+import { V2Routes } from "../lib/types";
 import Button from "./Button";
 import Flex from "./Flex";
 import Icon, { IconType } from "./Icon";
@@ -29,11 +31,16 @@ export const makeObjects = (checked: string[], rows: any[]): ObjectRef[] => {
 
 const DefaultSync: React.FC<{ reqObjects: ObjectRef[] }> = ({ reqObjects }) => {
   const defaultSync = useSyncFluxObject(reqObjects);
+  const location = useLocation();
+  const noSource = {
+    [V2Routes.Sources]: true,
+  };
   return (
     <SyncButton
       disabled={reqObjects[0] ? false : true}
       loading={defaultSync.isLoading}
       onClick={(opts) => defaultSync.mutateAsync(opts)}
+      hideDropdown={noSource[location.pathname]}
     />
   );
 };
