@@ -14,9 +14,11 @@ type Props = {
 
 export const ArrowDropDown = styled(IconButton)`
   &.MuiButton-outlined {
-    border-color: ${(props) => props.theme.colors.grayToPrimary};
     //2px = MUI radius
     border-radius: 0 2px 2px 0;
+  }
+  &.MuiButton-outlinedPrimary {
+    border-color: ${(props) => props.theme.colors.neutral20};
   }
   &.MuiButton-root {
     min-width: 0;
@@ -60,6 +62,7 @@ function SyncButton({
     arrowDropDown = (
       <ArrowDropDown
         variant="outlined"
+        color="primary"
         onClick={() => setOpen(!open)}
         disabled={disabled}
       >

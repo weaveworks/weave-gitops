@@ -34,6 +34,7 @@ const DefaultSync: React.FC<{ reqObjects: ObjectRef[] }> = ({ reqObjects }) => {
   const location = useLocation();
   const noSource = {
     [V2Routes.Sources]: true,
+    [V2Routes.ImageRepositories]: true,
   };
   return (
     <SyncButton
@@ -86,49 +87,26 @@ const DefaultSuspend: React.FC<{
   );
 };
 
-export type Action = {
-  component: React.FC;
-  additionalProps?: { [key: string]: any };
-};
-
 type Props = {
   className?: string;
   checked?: string[];
   rows?: any[];
-  actions?: Action[];
 };
 
-function CheckboxActions({
-  className,
-  checked = [],
-  rows = [],
-  actions,
-}: Props) {
+function CheckboxActions({ className, checked = [], rows = [] }: Props) {
   const [reqObjects, setReqObjects] = React.useState([]);
   const hasChecked = checked.length > 0;
 
   React.useEffect(() => {
     if (hasChecked && rows.length) setReqObjects(makeObjects(checked, rows));
+    else setReqObjects([]);
   }, [checked, rows]);
-
-  const defaultActions = [
-    { component: DefaultSync },
-    { component: DefaultSuspend, additionalProps: { suspend: true } },
-    { component: DefaultSuspend, additionalProps: { suspend: false } },
-  ];
-  const hasActions = actions || defaultActions;
 
   return (
     <Flex start align className={className} gap="8">
-      {hasActions.map((action: Action) => {
-        const elementProps: any = {
-          ...action.additionalProps,
-          reqObjects: reqObjects,
-        };
-        return React.createElement(action.component, {
-          ...elementProps,
-        });
-      })}
+      <DefaultSync reqObjects={reqObjects} />
+      <DefaultSuspend reqObjects={reqObjects} suspend={true} />
+      <DefaultSuspend reqObjects={reqObjects} suspend={false} />
     </Flex>
   );
 }
