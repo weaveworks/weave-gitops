@@ -10,7 +10,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
-	automationv1 "github.com/fluxcd/image-automation-controller/api/v1beta1"
+	imgautomationv1 "github.com/fluxcd/image-automation-controller/api/v1beta1"
 	reflectorv1 "github.com/fluxcd/image-reflector-controller/api/v1beta2"
 	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	notificationv2 "github.com/fluxcd/notification-controller/api/v1beta1"
@@ -37,9 +37,9 @@ func CreateScheme() (*apiruntime.Scheme, error) {
 		rbacv1.AddToScheme,
 		authv1.AddToScheme,
 		notificationv2.AddToScheme,
-		automationv1.AddToScheme,
 		pacv2beta2.AddToScheme,
 		reflectorv1.AddToScheme,
+		imgautomationv1.AddToScheme,
 	}
 
 	err := builder.AddToScheme(scheme)
