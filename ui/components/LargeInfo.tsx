@@ -19,7 +19,7 @@ function LargeInfo({ className, title, info, component }: Props) {
       </Text>
       <Tooltip title={info || ""} placement="top">
         <Text size="large" color="neutral40">
-          {component ? component : info || ""}
+          {component ? component : info || "-"}
         </Text>
       </Tooltip>
     </Flex>
