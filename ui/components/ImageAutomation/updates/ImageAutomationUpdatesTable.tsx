@@ -21,6 +21,7 @@ const ImageAutomationUpdatesTable = () => {
   return (
     <RequestStateHandler loading={isLoading} error={error}>
       <DataTable
+        hasCheckboxes
         filters={initialFilterState}
         rows={data?.objects}
         fields={[

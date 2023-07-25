@@ -95,10 +95,10 @@ type Props = {
 
 function CheckboxActions({ className, checked = [], rows = [] }: Props) {
   const [reqObjects, setReqObjects] = React.useState([]);
-  const hasChecked = checked.length > 0;
 
   React.useEffect(() => {
-    if (hasChecked && rows.length) setReqObjects(makeObjects(checked, rows));
+    if (checked.length > 0 && rows.length)
+      setReqObjects(makeObjects(checked, rows));
     else setReqObjects([]);
   }, [checked, rows]);
 
