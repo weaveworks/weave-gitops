@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
-	imagev1_reflect "github.com/fluxcd/image-reflector-controller/api/v1beta2"
+	reflectorv1 "github.com/fluxcd/image-reflector-controller/api/v1beta2"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/hashicorp/go-multierror"
@@ -135,8 +135,8 @@ func getFluxObject(kind string) (fluxsync.Reconcilable, error) {
 		return &fluxsync.HelmRepositoryAdapter{HelmRepository: &sourcev1.HelmRepository{}}, nil
 	case sourcev1.OCIRepositoryKind:
 		return &fluxsync.OCIRepositoryAdapter{OCIRepository: &sourcev1.OCIRepository{}}, nil
-	case imagev1_reflect.ImageRepositoryKind:
-		return &fluxsync.ImageRepositoryAdapter{ImageRepository: &imagev1_reflect.ImageRepository{}}, nil
+	case reflectorv1.ImageRepositoryKind:
+		return &fluxsync.ImageRepositoryAdapter{ImageRepository: &reflectorv1.ImageRepository{}}, nil
 	}
 
 	return nil, fmt.Errorf("not supported kind: %s", kind)

@@ -73,15 +73,7 @@ rules:
     verbs: [ "get", "list", "watch", "patch" ]
   
   - apiGroups: ["image.toolkit.fluxcd.io"]
-    resources: [ "imagepolicies" ]
-    verbs: [ "get", "list", "watch", "patch" ]
-  
-  - apiGroups: ["image.toolkit.fluxcd.io"]
-    resources: [ "imagerepositories" ]
-    verbs: [ "get", "list", "watch", "patch" ]
-
-  - apiGroups: ["image.toolkit.fluxcd.io"]
-    resources: [ "imageupdateautomations" ]
+    resources: [ "imagepolicies", "imagerepositories", "imageupdateautomations" ]
     verbs: [ "get", "list", "watch", "patch" ]
 
 {{- if gt (len $.Values.rbac.additionalRules) 0 -}}

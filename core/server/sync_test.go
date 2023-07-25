@@ -7,7 +7,7 @@ import (
 	"time"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
-	imagev1_reflect "github.com/fluxcd/image-reflector-controller/api/v1beta2"
+	reflectorv1 "github.com/fluxcd/image-reflector-controller/api/v1beta2"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
@@ -144,20 +144,13 @@ func TestSync(t *testing.T) {
 		},
 		reconcilable: fluxsync.OCIRepositoryAdapter{OCIRepository: ociRepo},
 	}, {
-		name: "image repo no source",
+		name: "image repository",
 		msg: &pb.SyncFluxObjectRequest{
 			Objects: []*pb.ObjectRef{{ClusterName: "Default",
-				Kind: imagev1_reflect.ImageRepositoryKind}},
+				Kind: reflectorv1.ImageRepositoryKind}},
+			WithSource: false,
 		},
 		reconcilable: fluxsync.ImageRepositoryAdapter{ImageRepository: ir},
-	}, {
-		name: "image repo with source",
-		msg: &pb.SyncFluxObjectRequest{
-			Objects: []*pb.ObjectRef{{ClusterName: "Default",
-				Kind: imagev1_reflect.ImageRepositoryKind}},
-		},
-		reconcilable: fluxsync.ImageRepositoryAdapter{ImageRepository: ir},
-		source:       fluxsync.NewReconcileable(gitRepo),
 	}, {
 		name: "multiple objects",
 		msg: &pb.SyncFluxObjectRequest{
@@ -288,7 +281,7 @@ func simulateReconcile(ctx context.Context, k client.Client, name types.Namespac
 
 		return k.Status().Update(ctx, obj)
 
-	case *imagev1_reflect.ImageRepository:
+	case *reflectorv1.ImageRepository:
 		if err := k.Get(ctx, name, obj); err != nil {
 			return err
 		}
@@ -441,14 +434,14 @@ func makeOCIRepo(name string, ns corev1.Namespace) *sourcev1.OCIRepository {
 	}
 }
 
-func makeImageRepository(name string, ns corev1.Namespace) *imagev1_reflect.ImageRepository {
-	return &imagev1_reflect.ImageRepository{
+func makeImageRepository(name string, ns corev1.Namespace) *reflectorv1.ImageRepository {
+	return &reflectorv1.ImageRepository{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: ns.Name,
 		},
-		Spec: imagev1_reflect.ImageRepositorySpec{},
-		Status: imagev1_reflect.ImageRepositoryStatus{
+		Spec: reflectorv1.ImageRepositorySpec{},
+		Status: reflectorv1.ImageRepositoryStatus{
 			ReconcileRequestStatus: meta.ReconcileRequestStatus{
 				LastHandledReconcileAt: time.Now().Format(time.RFC3339Nano),
 			},
