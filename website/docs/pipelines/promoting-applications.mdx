@@ -159,7 +159,7 @@ how to authenticate with the repository and the Git provider API, and which file
 2. Make sure you have considered possible attack vectors to production, and put controls in place. Some
 of these scenarios are:
 - In the case of a [monorepo](https://fluxcd.io/flux/guides/repository-structure/#monorepo): you want to ensure that a compromised token doing a change in test cannot end up doing a promotion in production without a pull request review, for example, leveraging [Codeowners](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners).
-- In the case of [repo per environment](https://fluxcd.io/flux/guides/repository-structure/#repo-per-environment) you want to ensure that a pipeline is configured with your test environment repo URL. You also want to ensure that you have seggregation of tokens per environment rather than allowing a token to access any environment repo.
+- In the case of [repo per environment](https://fluxcd.io/flux/guides/repository-structure/#repo-per-environment) you want to ensure that a pipeline is configured with your test environment repo URL. You also want to ensure that you have segregation of tokens per environment rather than allowing a token to access any environment repo.
 
 #### RBAC
 
