@@ -16,6 +16,7 @@ require (
 	github.com/fluxcd/image-automation-controller/api v0.33.0
 	github.com/fluxcd/image-reflector-controller/api v0.27.1
 	github.com/fluxcd/kustomize-controller/api v1.0.0-rc.2
+	github.com/fluxcd/notification-controller/api v1.0.0-rc.2
 	github.com/fluxcd/pkg/apis/meta v1.1.1
 	github.com/fluxcd/pkg/runtime v0.35.0
 	github.com/fluxcd/pkg/ssa v0.27.0
@@ -57,14 +58,14 @@ require (
 	gopkg.in/square/go-jose.v2 v2.6.0
 	gopkg.in/yaml.v3 v3.0.1
 	gotest.tools v2.2.0+incompatible
-	k8s.io/api v0.26.3
-	k8s.io/apiextensions-apiserver v0.26.3
-	k8s.io/apimachinery v0.26.3
-	k8s.io/cli-runtime v0.26.1
-	k8s.io/client-go v0.26.3
+	k8s.io/api v0.27.3
+	k8s.io/apiextensions-apiserver v0.27.3
+	k8s.io/apimachinery v0.27.3
+	k8s.io/cli-runtime v0.27.3
+	k8s.io/client-go v0.27.3
 	sigs.k8s.io/cli-utils v0.34.0
 	sigs.k8s.io/controller-runtime v0.14.6
-	sigs.k8s.io/kustomize/api v0.12.1
+	sigs.k8s.io/kustomize/api v0.13.2
 	sigs.k8s.io/yaml v1.3.0
 )
 
@@ -81,7 +82,7 @@ require (
 	github.com/emicklei/go-restful/v3 v3.10.0 // indirect
 	github.com/evanphx/json-patch/v5 v5.6.0 // indirect
 	github.com/fatih/color v1.13.0 // indirect
-	github.com/fluxcd/pkg/kustomize v0.13.1 // indirect
+	github.com/fluxcd/pkg/kustomize v1.1.1 // indirect
 	github.com/fluxcd/pkg/untar v0.2.0 // indirect
 	github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
@@ -115,7 +116,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/skeema/knownhosts v1.1.1 // indirect
 	github.com/theckman/yacspin v0.13.12 // indirect
-	github.com/weaveworks/tf-controller/api v0.0.0-20230725065120-6f5ec65fe66d // indirect
+	github.com/weaveworks/tf-controller/api v0.0.0-20230416092146-4a7dfa5b6cc4 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
