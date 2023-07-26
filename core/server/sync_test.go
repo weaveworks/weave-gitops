@@ -54,7 +54,7 @@ func TestSync(t *testing.T) {
 	ociRepo := makeOCIRepo(name, *ns)
 
 	ir := makeImageRepository(name, *ns)
-	iua := makeImageUpdateAutomation(name, *ns, gitRepo)
+	iua := makeImageUpdateAutomation(name, *ns)
 
 	g.Expect(k.Create(ctx, kust)).Should(Succeed())
 	g.Expect(k.Create(ctx, hr)).Should(Succeed())
@@ -161,15 +161,6 @@ func TestSync(t *testing.T) {
 			WithSource: false,
 		},
 		reconcilable: fluxsync.ImageUpdateAutomationAdapter{ImageUpdateAutomation: iua},
-	}, {
-		name: "image update automation with source",
-		msg: &pb.SyncFluxObjectRequest{
-			Objects: []*pb.ObjectRef{{ClusterName: "Default",
-				Kind: imgautomationv1.ImageUpdateAutomationKind}},
-			WithSource: true,
-		},
-		reconcilable: fluxsync.ImageUpdateAutomationAdapter{ImageUpdateAutomation: iua},
-		source:       fluxsync.NewReconcileable(gitRepo),
 	}, {
 		name: "multiple objects",
 		msg: &pb.SyncFluxObjectRequest{
@@ -477,7 +468,7 @@ func makeImageRepository(name string, ns corev1.Namespace) *reflectorv1.ImageRep
 	}
 }
 
-func makeImageUpdateAutomation(name string, ns corev1.Namespace, source *sourcev1.GitRepository) *imgautomationv1.ImageUpdateAutomation {
+func makeImageUpdateAutomation(name string, ns corev1.Namespace) *imgautomationv1.ImageUpdateAutomation {
 	iua := &imgautomationv1.ImageUpdateAutomation{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -489,14 +480,6 @@ func makeImageUpdateAutomation(name string, ns corev1.Namespace, source *sourcev
 				LastHandledReconcileAt: time.Now().Format(time.RFC3339Nano),
 			},
 		},
-	}
-
-	if source != nil {
-		iua.Spec.SourceRef = imgautomationv1.CrossNamespaceSourceReference{
-			Kind:      sourcev1.GitRepositoryKind,
-			Name:      name,
-			Namespace: ns.Name,
-		}
 	}
 
 	return iua
