@@ -16,7 +16,6 @@ require (
 	github.com/fluxcd/image-automation-controller/api v0.33.0
 	github.com/fluxcd/image-reflector-controller/api v0.27.1
 	github.com/fluxcd/kustomize-controller/api v1.0.0-rc.2
-	github.com/fluxcd/notification-controller/api v1.0.0
 	github.com/fluxcd/pkg/apis/meta v1.1.1
 	github.com/fluxcd/pkg/runtime v0.35.0
 	github.com/fluxcd/pkg/ssa v0.27.0
@@ -47,7 +46,7 @@ require (
 	github.com/spf13/viper v1.13.0
 	github.com/tomwright/dasel v1.22.1
 	github.com/weaveworks/policy-agent/api v1.0.5
-	github.com/weaveworks/tf-controller/tfctl v0.0.0-20230725065120-6f5ec65fe66d
+	github.com/weaveworks/tf-controller/tfctl v0.0.0-20230523160934-c6613bfc7fff
 	github.com/yannh/kubeconform v0.5.0
 	go.uber.org/zap v1.24.0
 	golang.org/x/crypto v0.10.0
@@ -82,7 +81,7 @@ require (
 	github.com/emicklei/go-restful/v3 v3.10.0 // indirect
 	github.com/evanphx/json-patch/v5 v5.6.0 // indirect
 	github.com/fatih/color v1.13.0 // indirect
-	github.com/fluxcd/pkg/kustomize v1.3.4 // indirect
+	github.com/fluxcd/pkg/kustomize v0.13.1 // indirect
 	github.com/fluxcd/pkg/untar v0.2.0 // indirect
 	github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
