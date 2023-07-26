@@ -124,7 +124,6 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
       value: (a: Automation) => (
         <SourceIsVerifiedStatus sourceRef={getSourceRefForAutomation(a)} />
       ),
-      // sortValue: (a: Automation) => getSourceRefForAutomation(a)?.name,
     },
     {
       label: "Status",

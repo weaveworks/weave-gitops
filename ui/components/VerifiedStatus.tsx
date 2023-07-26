@@ -1,13 +1,7 @@
 import React from "react";
 import { Tooltip } from "@material-ui/core";
 import { Condition, ObjectRef } from "../lib/api/core/types.pb";
-import {
-  Automation,
-  GitRepository,
-  HelmRepository,
-  OCIRepository,
-  Source,
-} from "../lib/objects";
+import { GitRepository, OCIRepository } from "../lib/objects";
 import { useListSources } from "../hooks/sources";
 import Icon, { IconType } from "./Icon";
 
@@ -36,7 +30,7 @@ export const findVerificationCondition = (
 export const VerifiedStatus = ({
   source,
 }: {
-  source: GitRepository | OCIRepository;
+  source: VerifiableSource;
 }): JSX.Element | null => {
   if (!source.isVerifiable) return null;
 
