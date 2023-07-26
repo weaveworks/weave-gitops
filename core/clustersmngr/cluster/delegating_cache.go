@@ -41,12 +41,7 @@ func (c *delegatingCacheCluster) GetHost() string {
 }
 
 func (c *delegatingCacheCluster) makeCachingClient(leafClient client.Client) (client.Client, error) {
-	httpCli, err := rest.HTTPClientFor(c.restConfig)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create http client: %w", err)
-	}
-
-	mapper, err := apiutil.NewDiscoveryRESTMapper(c.restConfig, httpCli)
+	mapper, err := apiutil.NewDiscoveryRESTMapper(c.restConfig)
 	if err != nil {
 		return nil, fmt.Errorf("could not create RESTMapper from config: %w", err)
 	}
@@ -63,12 +58,14 @@ func (c *delegatingCacheCluster) makeCachingClient(leafClient client.Client) (cl
 	// https://github.com/kubernetes-sigs/controller-runtime/pull/2150
 	delegatingCache := newDelegatingCache(leafClient, cache, c.scheme)
 
-	delegatingClient, err := client.New(c.restConfig, client.Options{
-		Cache: &client.CacheOptions{
-			Reader:       delegatingCache,
-			DisableFor:   []client.Object{&v1.Event{}},
-			Unstructured: true,
-		},
+	delegatingClient, err := client.NewDelegatingClient(client.NewDelegatingClientInput{
+		CacheReader: delegatingCache,
+		Client:      leafClient,
+		// Non-exact field matches are not supported by the cache.
+		// https://github.com/kubernetes-sigs/controller-runtime/issues/612
+		// TODO: Research if we can change the way we query those events so we can enable the cache for it.
+		UncachedObjects:   []client.Object{&v1.Event{}},
+		CacheUnstructured: true,
 	})
 
 	if err != nil {
