@@ -154,7 +154,7 @@ func TestSync(t *testing.T) {
 		},
 		reconcilable: fluxsync.ImageRepositoryAdapter{ImageRepository: ir},
 	}, {
-		name: "image update automation no source",
+		name: "image update automation",
 		msg: &pb.SyncFluxObjectRequest{
 			Objects: []*pb.ObjectRef{{ClusterName: "Default",
 				Kind: imgautomationv1.ImageUpdateAutomationKind}},
