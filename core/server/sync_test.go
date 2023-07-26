@@ -474,7 +474,7 @@ func makeImageUpdateAutomation(name string, ns corev1.Namespace) *imgautomationv
 			Name:      name,
 			Namespace: ns.Name,
 		},
-		Spec: imgautomationv1.ImageUpdateAutomationSpec{},
+		Spec: imgautomationv1.ImageUpdateAutomationSpec{SourceRef: imgautomationv1.CrossNamespaceSourceReference{Kind: sourcev1.GitRepositoryKind}},
 		Status: imgautomationv1.ImageUpdateAutomationStatus{
 			ReconcileRequestStatus: meta.ReconcileRequestStatus{
 				LastHandledReconcileAt: time.Now().Format(time.RFC3339Nano),
