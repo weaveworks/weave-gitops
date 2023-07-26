@@ -10,16 +10,17 @@ require (
 	github.com/charmbracelet/lipgloss v0.6.0
 	github.com/cheshir/ttlcache v1.0.1-0.20220504185148-8ceeff21b789
 	github.com/coreos/go-oidc/v3 v3.1.0
-	github.com/fluxcd/flux2/v2 v2.0.1
-	github.com/fluxcd/go-git-providers v0.18.0
-	github.com/fluxcd/helm-controller/api v0.35.0
-	github.com/fluxcd/image-automation-controller/api v0.35.0
-	github.com/fluxcd/image-reflector-controller/api v0.29.0
-	github.com/fluxcd/kustomize-controller/api v1.0.0
+	github.com/fluxcd/flux2/v2 v2.0.0-rc.2
+	github.com/fluxcd/go-git-providers v0.15.3
+	github.com/fluxcd/helm-controller/api v0.32.2
+	github.com/fluxcd/image-automation-controller/api v0.33.0
+	github.com/fluxcd/image-reflector-controller/api v0.27.1
+	github.com/fluxcd/kustomize-controller/api v1.0.0-rc.2
+	github.com/fluxcd/notification-controller/api v1.0.0
 	github.com/fluxcd/pkg/apis/meta v1.1.1
-	github.com/fluxcd/pkg/runtime v0.40.0
-	github.com/fluxcd/pkg/ssa v0.28.2
-	github.com/fluxcd/source-controller/api v1.0.0
+	github.com/fluxcd/pkg/runtime v0.35.0
+	github.com/fluxcd/pkg/ssa v0.27.0
+	github.com/fluxcd/source-controller/api v1.0.0-rc.4
 	github.com/go-git/go-git/v5 v5.7.0
 	github.com/go-logr/logr v1.2.4
 	github.com/go-logr/zapr v1.2.4
@@ -82,13 +83,13 @@ require (
 	github.com/evanphx/json-patch/v5 v5.6.0 // indirect
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/fluxcd/pkg/kustomize v1.3.4 // indirect
-	github.com/fluxcd/pkg/tar v0.2.0 // indirect
+	github.com/fluxcd/pkg/untar v0.2.0 // indirect
 	github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/golang/glog v1.0.0 // indirect
 	github.com/google/gnostic v0.6.9 // indirect
-	github.com/google/go-github/v52 v52.0.0 // indirect
+	github.com/google/go-github/v49 v49.1.0 // indirect
 	github.com/google/pprof v0.0.0-20210720184732-4bb14d4b1be1 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/hako/durafmt v0.0.0-20210608085754-5c1018a4e16b // indirect
@@ -142,7 +143,6 @@ require (
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/evanphx/json-patch v5.6.0+incompatible // indirect
 	github.com/exponent-io/jsonpath v0.0.0-20210407135951-1de76d718b3f // indirect
-	github.com/fluxcd/notification-controller/api v1.0.0
 	github.com/fluxcd/pkg/apis/acl v0.1.0 // indirect
 	github.com/fluxcd/pkg/apis/kustomize v1.1.1 // indirect
 	github.com/fsnotify/fsnotify v1.6.0
