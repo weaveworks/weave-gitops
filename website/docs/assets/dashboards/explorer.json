@@ -25,7 +25,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 30,
+  "id": 31,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -37,6 +37,84 @@
         "x": 0,
         "y": 0
       },
+      "id": 16,
+      "panels": [],
+      "title": "SLOs",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 99
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 24,
+        "x": 0,
+        "y": 1
+      },
+      "id": 17,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "9.5.2",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
+          },
+          "editorMode": "code",
+          "expr": "sum(rate(http_request_duration_seconds_count{handler=\"/v1/query\", code=\"200\"}[30m])) * 100 / sum(rate(http_request_duration_seconds_count{handler=\"/v1/query\"}[30m]))",
+          "legendFormat": "total",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Availability",
+      "type": "stat"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 6
+      },
       "id": 6,
       "panels": [],
       "title": "Query",
@@ -47,25 +125,30 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
         "h": 5,
-        "w": 21,
+        "w": 12,
         "x": 0,
-        "y": 1
+        "y": 7
       },
       "hiddenSeries": false,
       "id": 2,
       "legend": {
-        "avg": false,
+        "alignAsTable": true,
+        "avg": true,
         "current": false,
-        "max": false,
-        "min": false,
+        "max": true,
+        "min": true,
+        "rightSide": false,
         "show": true,
         "total": false,
-        "values": false
+        "values": true
       },
       "lines": true,
       "linewidth": 1,
@@ -89,15 +172,27 @@
             "uid": "P1809F7CD0C75ACF3"
           },
           "editorMode": "code",
-          "expr": "sum(irate(http_request_duration_seconds_count{handler=\"/v1/query\"}[1m])) by (code)",
-          "legendFormat": "Traffic",
+          "expr": "sum(rate(http_request_duration_seconds_count{handler=\"/v1/query\"}[1m]))",
+          "legendFormat": "total",
           "range": true,
           "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(rate(http_request_duration_seconds_count{handler=\"/v1/query\",code!~\"2..\"}[1m]))",
+          "hide": false,
+          "legendFormat": "errors",
+          "range": true,
+          "refId": "B"
         }
       ],
       "thresholds": [],
       "timeRegions": [],
-      "title": "Rate",
+      "title": "Query Requests Rate",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -111,10 +206,15 @@
       },
       "yaxes": [
         {
-          "format": "short"
+          "$$hashKey": "object:1215",
+          "format": "short",
+          "logBase": 1,
+          "show": true
         },
         {
-          "format": "short"
+          "$$hashKey": "object:1216",
+          "format": "short",
+          "logBase": 1
         }
       ],
       "yaxis": {
@@ -126,25 +226,30 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
-        "h": 6,
-        "w": 21,
-        "x": 0,
-        "y": 6
+        "h": 5,
+        "w": 12,
+        "x": 12,
+        "y": 7
       },
       "hiddenSeries": false,
       "id": 1,
       "legend": {
-        "avg": false,
+        "alignAsTable": true,
+        "avg": true,
         "current": false,
-        "max": false,
-        "min": false,
+        "max": true,
+        "min": true,
+        "rightSide": false,
         "show": true,
         "total": false,
-        "values": false
+        "values": true
       },
       "lines": true,
       "linewidth": 1,
@@ -169,14 +274,14 @@
           },
           "editorMode": "code",
           "expr": "sum(rate(http_request_duration_seconds_sum{code=\"200\",handler=\"/v1/query\",method=\"POST\"}[1m])) / sum(rate(http_request_duration_seconds_count{code=\"200\",handler=\"/v1/query\",method=\"POST\"}[1m]))",
-          "legendFormat": "Latency",
+          "legendFormat": "200s",
           "range": true,
           "refId": "A"
         }
       ],
       "thresholds": [],
       "timeRegions": [],
-      "title": "Duration",
+      "title": "Query Requests Duration",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -190,8 +295,95 @@
       },
       "yaxes": [
         {
-          "format": "ms",
-          "label": "Latency"
+          "$$hashKey": "object:923",
+          "format": "s",
+          "label": "Latency",
+          "show": true
+        },
+        {
+          "$$hashKey": "object:924",
+          "format": "short"
+        }
+      ],
+      "yaxis": {
+        "align": true
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 5,
+        "w": 12,
+        "x": 0,
+        "y": 12
+      },
+      "hiddenSeries": false,
+      "id": 10,
+      "legend": {
+        "alignAsTable": true,
+        "avg": true,
+        "current": false,
+        "max": false,
+        "min": false,
+        "rightSide": true,
+        "show": true,
+        "total": false,
+        "values": true
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "9.5.2",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
+          },
+          "editorMode": "code",
+          "expr": "sum(rate(datastore_latency_seconds_count{action=~\"Get.*\"}[1m])) by (action)",
+          "legendFormat": "{{action}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeRegions": [],
+      "title": "Datastore Read Request Rate",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "mode": "time",
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short"
         },
         {
           "format": "short"
@@ -208,18 +400,467 @@
       "dashes": false,
       "datasource": {
         "type": "prometheus",
-        "uid": "P1809F7CD0C75ACF3"
+        "uid": "prometheus"
       },
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
         "h": 5,
-        "w": 21,
-        "x": 0,
+        "w": 12,
+        "x": 12,
         "y": 12
       },
       "hiddenSeries": false,
-      "id": 5,
+      "id": 11,
+      "legend": {
+        "alignAsTable": true,
+        "avg": true,
+        "current": false,
+        "max": true,
+        "min": true,
+        "show": true,
+        "total": false,
+        "values": true
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "9.5.2",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
+          },
+          "editorMode": "code",
+          "expr": "sum(rate(datastore_latency_seconds_sum{action=~\"Get.*\",status=\"success\"}[1m])) / sum(rate(datastore_latency_seconds_count{action=~\"Get.*\",status=\"success\"}[1m]))\n",
+          "legendFormat": "success",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeRegions": [],
+      "title": "Datastore Read Requests Duration",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "mode": "time",
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:725",
+          "format": "s",
+          "label": "Latency",
+          "show": true
+        },
+        {
+          "$$hashKey": "object:726",
+          "format": "short"
+        }
+      ],
+      "yaxis": {
+        "align": true
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 5,
+        "w": 12,
+        "x": 0,
+        "y": 17
+      },
+      "hiddenSeries": false,
+      "id": 13,
+      "legend": {
+        "alignAsTable": true,
+        "avg": true,
+        "current": false,
+        "max": false,
+        "min": false,
+        "rightSide": true,
+        "show": true,
+        "total": false,
+        "values": true
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "9.5.2",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
+          },
+          "editorMode": "code",
+          "expr": "sum(irate(indexer_latency_seconds_count[1m])) by (action)",
+          "legendFormat": "{{action}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeRegions": [],
+      "title": "Indexer Read Request Rate",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "mode": "time",
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short"
+        },
+        {
+          "format": "short"
+        }
+      ],
+      "yaxis": {
+        "align": true
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 5,
+        "w": 12,
+        "x": 12,
+        "y": 17
+      },
+      "hiddenSeries": false,
+      "id": 19,
+      "legend": {
+        "alignAsTable": true,
+        "avg": true,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": true
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "9.5.2",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
+          },
+          "editorMode": "code",
+          "expr": "sum(rate(indexer_latency_seconds_sum{status=\"success\"}[1m])) / sum(rate(indexer_latency_seconds_count{status=\"success\"}[1m]))\n",
+          "legendFormat": "success",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeRegions": [],
+      "title": "Indexer Read Requests Duration",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "mode": "time",
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:725",
+          "format": "s",
+          "label": "Latency",
+          "show": true
+        },
+        {
+          "$$hashKey": "object:726",
+          "format": "short"
+        }
+      ],
+      "yaxis": {
+        "align": true
+      }
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 22
+      },
+      "id": 7,
+      "panels": [],
+      "title": "Collector",
+      "type": "row"
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 5,
+        "w": 12,
+        "x": 0,
+        "y": 23
+      },
+      "hiddenSeries": false,
+      "id": 20,
+      "legend": {
+        "alignAsTable": true,
+        "avg": false,
+        "current": true,
+        "max": false,
+        "min": false,
+        "rightSide": true,
+        "show": true,
+        "total": false,
+        "values": true
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "9.5.2",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
+          },
+          "editorMode": "code",
+          "expr": "collector_cluster_watcher{collector=\"objects\"}",
+          "legendFormat": "{{status}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeRegions": [],
+      "title": "Objects Cluster Watchers ",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "mode": "time",
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:1215",
+          "format": "short",
+          "logBase": 1,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:1216",
+          "format": "short",
+          "logBase": 1
+        }
+      ],
+      "yaxis": {
+        "align": true
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 5,
+        "w": 12,
+        "x": 12,
+        "y": 23
+      },
+      "hiddenSeries": false,
+      "id": 21,
+      "legend": {
+        "alignAsTable": true,
+        "avg": false,
+        "current": true,
+        "max": false,
+        "min": false,
+        "rightSide": true,
+        "show": true,
+        "total": false,
+        "values": true
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "9.5.2",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "P1809F7CD0C75ACF3"
+          },
+          "editorMode": "code",
+          "expr": "collector_cluster_watcher{collector=\"roles\"}",
+          "legendFormat": "{{status}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeRegions": [],
+      "title": "RBAC Cluster Watchers",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "mode": "time",
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:1215",
+          "format": "short",
+          "logBase": 1,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:1216",
+          "format": "short",
+          "logBase": 1
+        }
+      ],
+      "yaxis": {
+        "align": true
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 5,
+        "w": 12,
+        "x": 0,
+        "y": 28
+      },
+      "hiddenSeries": false,
+      "id": 12,
       "legend": {
         "avg": false,
         "current": false,
@@ -251,15 +892,15 @@
             "uid": "P1809F7CD0C75ACF3"
           },
           "editorMode": "code",
-          "expr": "sum(irate(http_request_duration_seconds_count{handler=\"/v1/query\", code=~\"5..\"}[1m]))",
-          "legendFormat": "Traffic",
+          "expr": "sum(irate(datastore_latency_seconds_count{action=~\"Store.*\"}[1m])) by (action)",
+          "legendFormat": "{{action}}",
           "range": true,
           "refId": "A"
         }
       ],
       "thresholds": [],
       "timeRegions": [],
-      "title": "Errors",
+      "title": "Datastore Write Request Rate",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -273,9 +914,11 @@
       },
       "yaxes": [
         {
+          "$$hashKey": "object:384",
           "format": "short"
         },
         {
+          "$$hashKey": "object:385",
           "format": "short"
         }
       ],
@@ -284,147 +927,90 @@
       }
     },
     {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 17
-      },
-      "id": 7,
-      "panels": [],
-      "title": "Collector",
-      "type": "row"
-    },
-    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
+      "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
-        "h": 7,
-        "w": 8,
-        "x": 0,
-        "y": 18
+        "h": 5,
+        "w": 12,
+        "x": 12,
+        "y": 28
       },
-      "id": 8,
+      "hiddenSeries": false,
+      "id": 14,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
       "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "auto"
+        "alertThreshold": true
       },
+      "percentage": false,
       "pluginVersion": "9.5.2",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "builder",
-          "expr": "collector_cluster_watcher{status=\"Started\"}",
-          "legendFormat": "__auto",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "Started Cluster Watchers",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 7,
-        "w": 8,
-        "x": 8,
-        "y": 18
-      },
-      "id": 9,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "auto"
-      },
-      "pluginVersion": "9.5.2",
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "P1809F7CD0C75ACF3"
           },
           "editorMode": "code",
-          "expr": "sum(collector_cluster_watcher)",
-          "legendFormat": "__auto",
+          "expr": "sum(rate(datastore_latency_seconds_sum{action=~\"Store.*\",status=\"success\"}[1m])) / sum(rate(datastore_latency_seconds_count{action=~\"Store.*\",status=\"success\"}[1m]))\n",
+          "legendFormat": "success",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "Total Cluster Watchers",
-      "type": "stat"
+      "thresholds": [],
+      "timeRegions": [],
+      "title": "Datastore Write Requests Duration",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "mode": "time",
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:725",
+          "format": "s",
+          "label": "Latency",
+          "show": true
+        },
+        {
+          "$$hashKey": "object:726",
+          "format": "short"
+        }
+      ],
+      "yaxis": {
+        "align": true
+      }
     }
   ],
   "refresh": "5s",
@@ -440,8 +1026,8 @@
   },
   "timepicker": {},
   "timezone": "",
-  "title": "explorer",
+  "title": "Explorer",
   "uid": "Lp7_c9UVk",
-  "version": 2,
+  "version": 14,
   "weekStart": ""
 }
