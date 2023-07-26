@@ -44,7 +44,7 @@ const ImageAutomationDetails = ({
           kind={kind}
           suspended={suspended}
           wide
-          hideDropdown={kind === Kind.ImageRepository ? true : false}
+          hideDropdown
         />
       )}
 

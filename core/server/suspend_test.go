@@ -68,7 +68,7 @@ func TestSuspend_Suspend(t *testing.T) {
 		},
 		{
 			kind: imgautomationv1.ImageUpdateAutomationKind,
-			obj:  makeImageUpdateAutomation("iua-1", *ns, gr),
+			obj:  makeImageUpdateAutomation("iua-1", *ns),
 		},
 	}
 
