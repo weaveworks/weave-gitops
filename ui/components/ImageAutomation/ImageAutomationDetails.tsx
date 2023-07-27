@@ -36,7 +36,7 @@ const ImageAutomationDetails = ({
         {name}
       </Text>
       <PageStatus conditions={conditions} suspended={suspended} />
-      {kind == Kind.ImageRepository && (
+      {kind !== Kind.ImagePolicy && (
         <SyncActions
           name={name}
           namespace={namespace}

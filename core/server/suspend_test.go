@@ -5,6 +5,8 @@ import (
 	"testing"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
+	imgautomationv1 "github.com/fluxcd/image-automation-controller/api/v1beta1"
+	reflectorv1 "github.com/fluxcd/image-reflector-controller/api/v1beta2"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	. "github.com/onsi/gomega"
@@ -32,17 +34,21 @@ func TestSuspend_Suspend(t *testing.T) {
 
 	ns := newNamespace(ctx, k, g)
 
+	gr := makeGitRepo("git-repo-1", *ns)
+
+	hr := makeHelmRepo("repo-1", *ns)
+
 	tests := []struct {
 		kind string
 		obj  client.Object
 	}{
 		{
 			kind: sourcev1.GitRepositoryKind,
-			obj:  makeGitRepo("git-repo-1", *ns),
+			obj:  gr,
 		},
 		{
 			kind: sourcev1.HelmRepositoryKind,
-			obj:  makeHelmRepo("repo-1", *ns),
+			obj:  hr,
 		},
 		{
 			kind: sourcev1.BucketKind,
@@ -50,11 +56,19 @@ func TestSuspend_Suspend(t *testing.T) {
 		},
 		{
 			kind: kustomizev1.KustomizationKind,
-			obj:  makeKustomization("kust-1", *ns, makeGitRepo("somerepo", *ns)),
+			obj:  makeKustomization("kust-1", *ns, gr),
 		},
 		{
 			kind: helmv2.HelmReleaseKind,
-			obj:  makeHelmRelease("hr-1", *ns, makeHelmRepo("somerepo", *ns), makeHelmChart("somechart", *ns)),
+			obj:  makeHelmRelease("hr-1", *ns, hr, makeHelmChart("somechart", *ns)),
+		},
+		{
+			kind: reflectorv1.ImageRepositoryKind,
+			obj:  makeImageRepository("ir-1", *ns),
+		},
+		{
+			kind: imgautomationv1.ImageUpdateAutomationKind,
+			obj:  makeImageUpdateAutomation("iua-1", *ns),
 		},
 	}
 
@@ -157,13 +171,23 @@ func checkSpec(t *testing.T, k client.Client, name types.NamespacedName, obj cli
 		}
 
 		return v.Spec.Suspend
+
+	case *reflectorv1.ImageRepository:
+		if err := k.Get(context.Background(), name, v); err != nil {
+			t.Error(err)
+		}
+
+		return v.Spec.Suspend
+
+	case *imgautomationv1.ImageUpdateAutomation:
+		if err := k.Get(context.Background(), name, v); err != nil {
+			t.Error(err)
+		}
+
+		return v.Spec.Suspend
 	}
 
 	t.Errorf("unsupported object %T", obj)
 
 	return false
-}
-
-func TestSuspend_Resume(t *testing.T) {
-
 }

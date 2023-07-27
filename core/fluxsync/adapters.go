@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
+	imgautomationv1 "github.com/fluxcd/image-automation-controller/api/v1beta1"
 	reflectorv1 "github.com/fluxcd/image-reflector-controller/api/v1beta2"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/fluxcd/pkg/apis/meta"
@@ -58,8 +59,9 @@ func NewReconcileable(obj client.Object) Reconcilable {
 		return OCIRepositoryAdapter{OCIRepository: o}
 	case *reflectorv1.ImageRepository:
 		return ImageRepositoryAdapter{ImageRepository: o}
+	case *imgautomationv1.ImageUpdateAutomation:
+		return ImageUpdateAutomationAdapter{ImageUpdateAutomation: o}
 	}
-
 	return nil
 }
 
@@ -275,6 +277,30 @@ func (obj ImageRepositoryAdapter) DeepCopyClientObject() client.Object {
 	return obj.DeepCopy()
 }
 
+type ImageUpdateAutomationAdapter struct {
+	*imgautomationv1.ImageUpdateAutomation
+}
+
+func (obj ImageUpdateAutomationAdapter) GetLastHandledReconcileRequest() string {
+	return obj.Status.GetLastHandledReconcileRequest()
+}
+
+func (obj ImageUpdateAutomationAdapter) AsClientObject() client.Object {
+	return obj.ImageUpdateAutomation
+}
+
+func (obj ImageUpdateAutomationAdapter) GroupVersionKind() schema.GroupVersionKind {
+	return imgautomationv1.GroupVersion.WithKind(imgautomationv1.ImageUpdateAutomationKind)
+}
+
+func (obj ImageUpdateAutomationAdapter) SetSuspended(suspend bool) {
+	obj.Spec.Suspend = suspend
+}
+
+func (obj ImageUpdateAutomationAdapter) DeepCopyClientObject() client.Object {
+	return obj.DeepCopy()
+}
+
 type sRef struct {
 	apiVersion string
 	name       string
@@ -323,6 +349,9 @@ func ToReconcileable(kind string) (client.ObjectList, Reconcilable, error) {
 
 	case reflectorv1.ImageRepositoryKind:
 		return &reflectorv1.ImageRepositoryList{}, NewReconcileable(&reflectorv1.ImageRepository{}), nil
+
+	case imgautomationv1.ImageUpdateAutomationKind:
+		return &imgautomationv1.ImageUpdateAutomationList{}, NewReconcileable(&imgautomationv1.ImageUpdateAutomation{}), nil
 	}
 
 	return nil, nil, errors.New("could not find source type")
