@@ -13,11 +13,11 @@ export interface VerifiableSource {
 const getVerifiedStatusColor = (status?: string) => {
   let color;
   if (status === "True") {
-    color = "#27AE60";
+    color = "successOriginal";
   } else if (status === "False") {
-    color = "#BC3B1D";
+    color = "alertOriginal";
   } else if (!status) {
-    color = "#FEF071";
+    color = "feedbackOriginal";
   }
   return color;
 };
@@ -25,7 +25,7 @@ const getVerifiedStatusColor = (status?: string) => {
 export const findVerificationCondition = (
   a: VerifiableSource
 ): Condition | undefined =>
-  a.conditions.find((condition) => condition.type === "SourceVerified");
+  a?.conditions?.find((condition) => condition.type === "SourceVerified");
 
 export const VerifiedStatus = ({
   source,
@@ -54,6 +54,8 @@ export const SourceIsVerifiedStatus: React.FC<{ sourceRef: ObjectRef }> = ({
   const resourceSource = verifiableSources?.find(
     (source) => sourceRef?.name === source.name
   ) as GitRepository | OCIRepository | undefined;
+
+  if (!resourceSource) return null;
 
   const condition = findVerificationCondition(resourceSource);
   const color = getVerifiedStatusColor(condition?.status);
