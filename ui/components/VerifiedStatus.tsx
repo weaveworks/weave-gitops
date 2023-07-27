@@ -39,7 +39,9 @@ export const VerifiedStatus = ({
 
   return (
     <Tooltip title={condition?.message || "pending verification"}>
-      <Icon type={IconType.VerifiedUser} color={color} size="base" />
+      <div>
+        <Icon type={IconType.VerifiedUser} color={color} size="base" />
+      </div>
     </Tooltip>
   );
 };
@@ -62,7 +64,9 @@ export const SourceIsVerifiedStatus: React.FC<{ sourceRef: ObjectRef }> = ({
 
   return (
     <Tooltip title={condition?.message || "pending verification"}>
-      <Icon type={IconType.VerifiedUser} color={color} size="base" />
+      <div>
+        <Icon type={IconType.VerifiedUser} color={color} size="base" />
+      </div>
     </Tooltip>
   );
 };
