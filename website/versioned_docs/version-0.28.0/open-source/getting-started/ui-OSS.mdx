@@ -50,8 +50,8 @@ Upon login you're taken to the Applications view, which allows you to quickly un
 ![Applications summary view showing Flux System and Weave GitOps deployments](/img/dashboard-applications-overview.png)
 
 In the above screenshot you can see:
--  a `Kustomization` called `flux-system`. This was created when Flux was bootstrapped onto the cluster, and deploys the [GitOps Toolkit controllers](https://fluxcd.io/flux/components/). It also deploys other Flux objects defined in the same repo, so that Flux will deploy additional workloads—including our [Helm Chart for Weave GitOps](https://docs.gitops.weave.works/docs/references/helm-reference/).
-- a `HelmRelease` called `ww-gitops`, which deploys the Helm Chart.
+- a `Kustomization` called `podinfo` corresponding to the application with the same name. The source referenced by this application is `shipping-service-podinfo` which has been verified.
+- two `HelmReleases` called `weave-gitops-enterprise` and `tf-controller`, which deploys the respective Helm Charts.
 
 The table view shows you the reported status so you can understand whether a reconciliation has been successful, and when it was last updated. You can also see where the Flux objects are deployed, which `Source` object they are reconciling from and whether or not that `Source` is verified (this requires verification to have been set up for the source). Clicking the name of the Source will take you to a detail view for the given Source object. The view automatically updates every few seconds so you know the current state of your system.
 
