@@ -579,8 +579,8 @@ github.com/weaveworks/policy-agent/api v1.0.5 h1:4pqzzta8xPUsE9h9YhGJVg5XQ2NuAU/
 github.com/weaveworks/policy-agent/api v1.0.5/go.mod h1:LlhTiipsV5GSHkL/q7Wa7qrJPZGR9Xtoq2npXTWp9bI=
 github.com/weaveworks/tf-controller/api v0.0.0-20230416092146-4a7dfa5b6cc4 h1:+IkLtnXzCkhJzojbadPd+UxwaTa6K/Eb2grY6LcYfeo=
 github.com/weaveworks/tf-controller/api v0.0.0-20230416092146-4a7dfa5b6cc4/go.mod h1:LUBkwqS7FHz/QTNuYzvWj6svehhh1djnV0Gj3OTc87E=
-github.com/weaveworks/tf-controller/tfctl v0.0.0-20230523160934-c6613bfc7fff h1:7W9BOtaeNX4vka2mZelcMCv8BMBmzVPAlBO9iUZQ4qM=
-github.com/weaveworks/tf-controller/tfctl v0.0.0-20230523160934-c6613bfc7fff/go.mod h1:9RFuqlMWSGaFs6qBST17YltvzNIhcTb8A+VKJ5qJnLY=
+github.com/weaveworks/tf-controller/tfctl v0.0.0-20230728124123-d0a010c4e700 h1:qvbTVh7zMZ4OSFHDcILuiGhFelisDypxoYuF/3h7TyE=
+github.com/weaveworks/tf-controller/tfctl v0.0.0-20230728124123-d0a010c4e700/go.mod h1:iaf0ebFsFFOTiXk7IYRfINN2z+b85oV5rq+n2ve02rk=
 github.com/xanzy/go-gitlab v0.83.0 h1:37p0MpTPNbsTMKX/JnmJtY8Ch1sFiJzVF342+RvZEGw=
 github.com/xanzy/go-gitlab v0.83.0/go.mod h1:5ryv+MnpZStBH8I/77HuQBsMbBGANtVpLWC15qOjWAw=
 github.com/xanzy/ssh-agent v0.3.3 h1:+/15pJfg/RsTxqYcX6fHqOXZwwMP+2VyYWJeWM2qQFM=
@@ -613,8 +613,8 @@ go.opentelemetry.io/proto/otlp v0.7.0/go.mod h1:PqfVotwruBrMGOCsRd/89rSnXhoiJIqe
 go.starlark.net v0.0.0-20221028183056-acb66ad56dd2 h1:5/KzhcSqd4UgY51l17r7C5g/JiE6DRw1Vq7VJfQHuMc=
 go.starlark.net v0.0.0-20221028183056-acb66ad56dd2/go.mod h1:kIVgS18CjmEC3PqMd5kaJSGEifyV/CeB9x506ZJ1Vbk=
 go.uber.org/atomic v1.7.0/go.mod h1:fEN4uk6kAWBTFdckzkM89CLk9XfWZrxpCo0nPH17wJc=
-go.uber.org/atomic v1.10.0 h1:9qC72Qh0+3MqyJbAn8YU5xVq1frD8bn3JtD2oXtafVQ=
-go.uber.org/atomic v1.10.0/go.mod h1:LUxbIzbOniOlMKjJjyPfpl4v+PKK2cNJn91OQbhoJI0=
+go.uber.org/atomic v1.11.0 h1:ZvwS0R+56ePWxUNi+Atn9dWONBPp/AUETXlHW0DxSjE=
+go.uber.org/atomic v1.11.0/go.mod h1:LUxbIzbOniOlMKjJjyPfpl4v+PKK2cNJn91OQbhoJI0=
 go.uber.org/goleak v1.1.11/go.mod h1:cwTWslyiVhfpKIDGSZEM2HlOvcqm+tG4zioyIeLoqMQ=
 go.uber.org/goleak v1.2.1 h1:NBol2c7O1ZokfZ0LEU9K6Whx/KnwvepVetCUhtKja4A=
 go.uber.org/multierr v1.6.0/go.mod h1:cdWPpRnG4AhwMwsgIHip0KRBQjJy5kYEpYjJxpXp9iU=

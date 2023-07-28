@@ -46,7 +46,7 @@ require (
 	github.com/spf13/viper v1.13.0
 	github.com/tomwright/dasel v1.22.1
 	github.com/weaveworks/policy-agent/api v1.0.5
-	github.com/weaveworks/tf-controller/tfctl v0.0.0-20230523160934-c6613bfc7fff
+	github.com/weaveworks/tf-controller/tfctl v0.0.0-20230728124123-d0a010c4e700
 	github.com/yannh/kubeconform v0.5.0
 	go.uber.org/zap v1.24.0
 	golang.org/x/crypto v0.8.0
@@ -201,7 +201,7 @@ require (
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
 	github.com/xlab/treeprint v1.1.0 // indirect
 	go.starlark.net v0.0.0-20221028183056-acb66ad56dd2 // indirect
-	go.uber.org/atomic v1.10.0
+	go.uber.org/atomic v1.11.0
 	go.uber.org/multierr v1.8.0 // indirect
 	golang.org/x/mod v0.10.0 // indirect
 	golang.org/x/net v0.10.0
