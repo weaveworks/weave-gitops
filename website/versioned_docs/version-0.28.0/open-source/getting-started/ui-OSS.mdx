@@ -106,9 +106,10 @@ In the left-hand menu of the UI, click on the Sources view. This will show you w
 ![Sources summary view showing Flux System and Weave GitOps sources](/img/dashboard-sources.png)
 
 In the above screenshot you can see:
-- a `GitRepository` called `flux-system`, which was created when Flux was bootstrapped onto the cluster. It contains the manifests for the GitOps Toolkit and Weave GitOps, and also various Flux objects.
-- a `HelmChart` called `flux-system-ww-gitops`. This is automatically created by Flux when you define a `HelmRelease` to deploy a Helm Chart from a given source.
-- a `HelmRepository` called `ww-gitops`. This pulls from the Helm Repository where the Weave GitOps Helm Chart is published.
+- a `GitRepository` called `shipping-service-podinfo`
+- an `OCIRepository` called `podinfo-oci`
+
+These have both had verification set up on them which has been completed successfully.
 
 The Sources table view displays information about status so that you can see whether Flux has been able to successfully pull from a given source, and which specific commit was last detected. It shows you key information like the `Interval`—namely, how frequently Flux will check for updates in a given source location.
 You can also see whether or not that source is verified (if this is something that you have set up for the specific source).
