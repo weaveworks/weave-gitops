@@ -12,7 +12,7 @@ require (
 	github.com/coreos/go-oidc/v3 v3.1.0
 	github.com/fluxcd/go-git-providers v0.16.0
 	github.com/fluxcd/helm-controller/api v0.35.0
-	github.com/fluxcd/image-automation-controller/api v0.33.1
+	github.com/fluxcd/image-automation-controller/api v0.35.0
 	github.com/fluxcd/image-reflector-controller/api v0.27.2
 	github.com/fluxcd/kustomize-controller/api v1.0.0
 	github.com/fluxcd/notification-controller/api v1.0.0
@@ -46,7 +46,7 @@ require (
 	github.com/spf13/viper v1.13.0
 	github.com/tomwright/dasel v1.22.1
 	github.com/weaveworks/policy-agent/api v1.0.5
-	github.com/weaveworks/tf-controller/tfctl v0.0.0-20230523160934-c6613bfc7fff
+	github.com/weaveworks/tf-controller/tfctl v0.0.0-20230728124123-d0a010c4e700
 	github.com/yannh/kubeconform v0.5.0
 	go.uber.org/zap v1.24.0
 	golang.org/x/crypto v0.8.0

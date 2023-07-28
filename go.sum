@@ -166,8 +166,8 @@ github.com/fluxcd/go-git-providers v0.16.0 h1:egDN1uv0jyHyvtFNHE1FQ1Slj5Xu7QEFxW
 github.com/fluxcd/go-git-providers v0.16.0/go.mod h1:dIUEy97GuCKAYHkDQS39Jqb6Pfg1mnGnqA5y2mp3wR4=
 github.com/fluxcd/helm-controller/api v0.35.0 h1:UyhKXPni5z69DzPW7GtECGGdUwKsB+OTI0A/wc7HmFY=
 github.com/fluxcd/helm-controller/api v0.35.0/go.mod h1:CdHMtr5wM0xgDt/PS147H7QQS+zDxAFgDW3ZN8MnUlU=
-github.com/fluxcd/image-automation-controller/api v0.33.1 h1:yvdNCHDOTpxp/QGj203EnO0Tr4GhZnRIfo1JHTTm12I=
-github.com/fluxcd/image-automation-controller/api v0.33.1/go.mod h1:65BqKNpHQ+FfNH79WhmrTgqoetGAEBlr0aRvHLr9oug=
+github.com/fluxcd/image-automation-controller/api v0.35.0 h1:B7yJdAbnx0hwI6ffVu0YAyc3d3sqjXrv6ySK++g3t28=
+github.com/fluxcd/image-automation-controller/api v0.35.0/go.mod h1:67HbnrXDy550zJKZZbzAZ0yfzL0Ge1O18yn/shcgy0Y=
 github.com/fluxcd/image-reflector-controller/api v0.27.2 h1:SqziaPXmF4mmPS5NGCIutRMaqrrUDhHdi0JSLz77gOo=
 github.com/fluxcd/image-reflector-controller/api v0.27.2/go.mod h1:TNn1Y3XuinlCRiohmjUtwvjWurTspPg0U0cCvMI5Q3E=
 github.com/fluxcd/kustomize-controller/api v1.0.0 h1:BVz6lEpfGbny0ppQ82LloLSK0OoEGC51YQaw31j4vT8=
@@ -579,8 +579,8 @@ github.com/weaveworks/policy-agent/api v1.0.5 h1:4pqzzta8xPUsE9h9YhGJVg5XQ2NuAU/
 github.com/weaveworks/policy-agent/api v1.0.5/go.mod h1:LlhTiipsV5GSHkL/q7Wa7qrJPZGR9Xtoq2npXTWp9bI=
 github.com/weaveworks/tf-controller/api v0.0.0-20230416092146-4a7dfa5b6cc4 h1:+IkLtnXzCkhJzojbadPd+UxwaTa6K/Eb2grY6LcYfeo=
 github.com/weaveworks/tf-controller/api v0.0.0-20230416092146-4a7dfa5b6cc4/go.mod h1:LUBkwqS7FHz/QTNuYzvWj6svehhh1djnV0Gj3OTc87E=
-github.com/weaveworks/tf-controller/tfctl v0.0.0-20230523160934-c6613bfc7fff h1:7W9BOtaeNX4vka2mZelcMCv8BMBmzVPAlBO9iUZQ4qM=
-github.com/weaveworks/tf-controller/tfctl v0.0.0-20230523160934-c6613bfc7fff/go.mod h1:9RFuqlMWSGaFs6qBST17YltvzNIhcTb8A+VKJ5qJnLY=
+github.com/weaveworks/tf-controller/tfctl v0.0.0-20230728124123-d0a010c4e700 h1:qvbTVh7zMZ4OSFHDcILuiGhFelisDypxoYuF/3h7TyE=
+github.com/weaveworks/tf-controller/tfctl v0.0.0-20230728124123-d0a010c4e700/go.mod h1:iaf0ebFsFFOTiXk7IYRfINN2z+b85oV5rq+n2ve02rk=
 github.com/xanzy/go-gitlab v0.83.0 h1:37p0MpTPNbsTMKX/JnmJtY8Ch1sFiJzVF342+RvZEGw=
 github.com/xanzy/go-gitlab v0.83.0/go.mod h1:5ryv+MnpZStBH8I/77HuQBsMbBGANtVpLWC15qOjWAw=
 github.com/xanzy/ssh-agent v0.3.3 h1:+/15pJfg/RsTxqYcX6fHqOXZwwMP+2VyYWJeWM2qQFM=
