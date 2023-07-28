@@ -54,7 +54,7 @@ func (c *delegatingCacheCluster) makeCachingClient(leafClient client.Client) (cl
 		return nil, fmt.Errorf("failed creating client cache: %w", err)
 	}
 
-	// Remove DelegatedClient, move Options in client.New
+	// TODO Remove DelegatedClient, move Options in client.New
 	// https://github.com/kubernetes-sigs/controller-runtime/pull/2150
 	delegatingCache := newDelegatingCache(leafClient, cache, c.scheme)
 
