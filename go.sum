@@ -131,8 +131,6 @@ github.com/cpuguy83/go-md2man/v2 v2.0.2 h1:p1EgwI/C7NhT0JmVkwCD2ZBK8j4aeHQX2pMHH
 github.com/cpuguy83/go-md2man/v2 v2.0.2/go.mod h1:tgQtvFlXSQOSOSIRvRPT7W67SCa46tRHOmNcaadrF8o=
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
 github.com/creack/pty v1.1.18 h1:n56/Zwd5o6whRC5PMGretI4IdRLlmBXYNjScPaBgsbY=
-github.com/cyphar/filepath-securejoin v0.2.3 h1:YX6ebbZCZP7VkM3scTTokDgBL2TY741X51MTk3ycuNI=
-github.com/cyphar/filepath-securejoin v0.2.3/go.mod h1:aPGpWjXOXUn2NCNjFvBE6aRxGGx79pTxQpKOJNYHHl4=
 github.com/danwakefield/fnmatch v0.0.0-20160403171240-cbb64ac3d964 h1:y5HC9v93H5EPKqaS1UYVg1uYah5Xf51mBfIoWehClUQ=
 github.com/danwakefield/fnmatch v0.0.0-20160403171240-cbb64ac3d964/go.mod h1:Xd9hchkHSWYkEqJwUGisez3G1QY8Ryz0sdWrLPMGjLk=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
@@ -164,8 +162,6 @@ github.com/exponent-io/jsonpath v0.0.0-20210407135951-1de76d718b3f/go.mod h1:OSY
 github.com/fatih/color v1.13.0 h1:8LOYc1KYPPmyKMuN8QV2DNRWNbLo6LZ0iLs8+mlH53w=
 github.com/fatih/color v1.13.0/go.mod h1:kLAiJbzzSOZDVNGyDpeOxJ47H46qBXwg5ILebYFFOfk=
 github.com/flowstack/go-jsonschema v0.1.1/go.mod h1:yL7fNggx1o8rm9RlgXv7hTBWxdBM0rVwpMwimd3F3N0=
-github.com/fluxcd/flux2/v2 v2.0.0-rc.3 h1:0NUQSKLXjyGXYWFE7y3JP5FnwdPqL0oLaFrDrtZqnB0=
-github.com/fluxcd/flux2/v2 v2.0.0-rc.3/go.mod h1:OnRdfKaBn/E3XibcPkO8ZxoTXHZ+fOBUOrB6qmP8280=
 github.com/fluxcd/go-git-providers v0.16.0 h1:egDN1uv0jyHyvtFNHE1FQ1Slj5Xu7QEFxWj1shqYYGk=
 github.com/fluxcd/go-git-providers v0.16.0/go.mod h1:dIUEy97GuCKAYHkDQS39Jqb6Pfg1mnGnqA5y2mp3wR4=
 github.com/fluxcd/helm-controller/api v0.35.0 h1:UyhKXPni5z69DzPW7GtECGGdUwKsB+OTI0A/wc7HmFY=
@@ -184,14 +180,10 @@ github.com/fluxcd/pkg/apis/kustomize v1.1.1 h1:MSGn4z0R9PptmoPFHnx2nEZ8Jtl1sKfw0
 github.com/fluxcd/pkg/apis/kustomize v1.1.1/go.mod h1:0pCu0ecIY+ZM0iE/hOHYwCMZ3b0SpBrjJ1SH3FFyYdE=
 github.com/fluxcd/pkg/apis/meta v1.1.1 h1:sLAKLbEu7rRzJ+Mytffu3NcpfdbOBTa6hcpOQzFWm+M=
 github.com/fluxcd/pkg/apis/meta v1.1.1/go.mod h1:soCfzjFWbm1mqybDcOywWKTCEYlH3skpoNGTboVk234=
-github.com/fluxcd/pkg/kustomize v1.1.1 h1:hYFJGi+fiaecY4gXvx52fumlvDEq/1RdFbaev67oBhE=
-github.com/fluxcd/pkg/kustomize v1.1.1/go.mod h1:i+Z9iPAoSz28oH0FmDI73iqZ3oXZxQR2O3HfhdsWhfo=
 github.com/fluxcd/pkg/runtime v0.35.0 h1:9PYLcul8qdfLYQArcYpHe/QuMqyhAGGFN9F7uY/QVX4=
 github.com/fluxcd/pkg/runtime v0.35.0/go.mod h1:sAaSTH8RHj3Y99xj0AtAndDTe5cv0DP4enyLV62EO78=
 github.com/fluxcd/pkg/ssa v0.27.0 h1:BJnWDy3xDtYD2U+sVZPkoh6PfnQKoXsklO0pzojU8XU=
 github.com/fluxcd/pkg/ssa v0.27.0/go.mod h1:fxvmVf4FxodJi5lTglMcL8JsF6hfJLG99C56/CgchH0=
-github.com/fluxcd/pkg/untar v0.2.0 h1:sJXU+FbJcNUb2ffLJNjeR3hwt3X2loVpOMlCUjyFw6E=
-github.com/fluxcd/pkg/untar v0.2.0/go.mod h1:33AyoWaPpjX/xXpczcfhQh2AkB63TFwiR2YwROtv23E=
 github.com/fluxcd/source-controller/api v1.0.0 h1:lPjmCXmEiI3tY4pReeVQBMuyLgdH8462W5ewUa9kgYM=
 github.com/fluxcd/source-controller/api v1.0.0/go.mod h1:rAY5FRFGZUKpIFNyYANHIgPgJPvbALBHWsq/zHw/cXQ=
 github.com/frankban/quicktest v1.14.3 h1:FJKSZTDHjyhriyC81FLQ0LY93eSai0ZyR/ZIkd3ZUKE=

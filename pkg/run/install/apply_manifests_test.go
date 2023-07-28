@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 
-	"github.com/fluxcd/flux2/v2/pkg/manifestgen/install"
 	"github.com/fluxcd/pkg/ssa"
 	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo/v2"
@@ -53,16 +52,17 @@ func (man *mockResourceManagerForApply) WaitForSet(set object.ObjMetadataSet, op
 
 var _ = Describe("apply", func() {
 	var fakeContext context.Context
-	var fakeInstallOptions install.Options
 	var fakeManifestsContent []byte
 
 	BeforeEach(func() {
 		fakeContext = context.Background()
-		fakeInstallOptions = install.MakeDefaultOptions()
-
-		fakeManifests, err := install.Generate(fakeInstallOptions, "")
-		Expect(err).NotTo(HaveOccurred())
-		fakeManifestsContent = []byte(fakeManifests.Content)
+		fakeManifestsContent = []byte(`
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: fake-manifests-namespace
+`)
 	})
 
 	It("should apply manifests successfully", func() {

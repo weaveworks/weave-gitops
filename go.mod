@@ -10,7 +10,6 @@ require (
 	github.com/charmbracelet/lipgloss v0.6.0
 	github.com/cheshir/ttlcache v1.0.1-0.20220504185148-8ceeff21b789
 	github.com/coreos/go-oidc/v3 v3.1.0
-	github.com/fluxcd/flux2/v2 v2.0.0-rc.3
 	github.com/fluxcd/go-git-providers v0.16.0
 	github.com/fluxcd/helm-controller/api v0.35.0
 	github.com/fluxcd/image-automation-controller/api v0.33.1
@@ -82,8 +81,6 @@ require (
 	github.com/emicklei/go-restful/v3 v3.10.0 // indirect
 	github.com/evanphx/json-patch/v5 v5.6.0 // indirect
 	github.com/fatih/color v1.13.0 // indirect
-	github.com/fluxcd/pkg/kustomize v1.1.1 // indirect
-	github.com/fluxcd/pkg/untar v0.2.0 // indirect
 	github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
@@ -136,7 +133,6 @@ require (
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/clbanning/mxj/v2 v2.3.3-0.20201214204241-e937bdee5a3e // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
-	github.com/cyphar/filepath-securejoin v0.2.3 // indirect
 	github.com/danwakefield/fnmatch v0.0.0-20160403171240-cbb64ac3d964 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dlclark/regexp2 v1.4.0 // indirect
