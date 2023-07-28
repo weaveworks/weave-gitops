@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"reflect"
 	"regexp"
 	"strconv"
 
@@ -99,16 +100,28 @@ func compareGVK(gvk1, gvk2 schema.GroupVersionKind) (int, error) {
 	}
 }
 
+type KnownTypes interface {
+	AllKnownTypes() map[schema.GroupVersionKind]reflect.Type
+}
+
 // DefaultPrimaryKinds generates a new PrimaryKinds object which contains
 // the highest version of each kind of known types from a Kubernetes scheme.
 // It returns the PrimaryKinds object and any error that occurred.
 func DefaultPrimaryKinds() (*PrimaryKinds, error) {
-	kinds := New()
 	scheme, err := kube.CreateScheme()
-
 	if err != nil {
 		return nil, err
 	}
+
+	return getPrimaryKinds(scheme)
+}
+
+// getPrimaryKinds generates a new PrimaryKinds object which contains
+// the highest version of each kind of known types from a Kubernetes scheme.
+// It is used internally by DefaultPrimaryKinds
+// to return the PrimaryKinds object and any error that occurred.
+func getPrimaryKinds(scheme KnownTypes) (*PrimaryKinds, error) {
+	kinds := New()
 
 	for gvk := range scheme.AllKnownTypes() {
 		existedGvk, exist := kinds.kinds[gvk.Kind]
