@@ -4,11 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"strings"
 	"time"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	coretypes "github.com/weaveworks/weave-gitops/core/server/types"
 	"github.com/weaveworks/weave-gitops/pkg/config"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
@@ -71,7 +72,7 @@ func GeneratePasswordHash(log logger.Logger, password string) (string, error) {
 
 type DashboardObjects struct {
 	Manifests      []byte
-	HelmRepository *sourcev1.HelmRepository
+	HelmRepository *sourcev1b2.HelmRepository
 	HelmRelease    *helmv2.HelmRelease
 }
 
@@ -201,11 +202,12 @@ func ReconcileDashboard(ctx context.Context, kubeClient client.Client, dashboard
 	gvk := schema.GroupVersionKind{
 		Group:   "source.toolkit.fluxcd.io",
 		Version: "v1beta2",
-		Kind:    sourcev1.HelmChartKind,
+		Kind:    sourcev1b2.HelmChartKind,
 	}
 
 	var sourceRequestedAt string
 
+	//nolint:staticcheck // deprecated, tracking issue: https://github.com/weaveworks/weave-gitops/issues/3812
 	if err := wait.Poll(interval, timeout, func() (bool, error) {
 		var err error
 		sourceRequestedAt, err = run.RequestReconciliation(ctx, kubeClient,
@@ -217,8 +219,9 @@ func ReconcileDashboard(ctx context.Context, kubeClient client.Client, dashboard
 	}
 
 	// wait for the reconciliation of dashboard to be done
+	//nolint:staticcheck // deprecated, tracking issue: https://github.com/weaveworks/weave-gitops/issues/3812
 	if err := wait.Poll(interval, timeout, func() (bool, error) {
-		dashboard := &sourcev1.HelmChart{}
+		dashboard := &sourcev1b2.HelmChart{}
 		if err := kubeClient.Get(ctx, types.NamespacedName{
 			Namespace: namespace,
 			Name:      helmChartName,
@@ -232,6 +235,7 @@ func ReconcileDashboard(ctx context.Context, kubeClient client.Client, dashboard
 	}
 
 	// wait for dashboard to be ready
+	//nolint:staticcheck // deprecated, tracking issue: https://github.com/weaveworks/weave-gitops/issues/3812
 	if err := wait.Poll(interval, timeout, func() (bool, error) {
 		namespacedName := types.NamespacedName{Namespace: namespace, Name: podName}
 
@@ -258,7 +262,7 @@ func ReconcileDashboard(ctx context.Context, kubeClient client.Client, dashboard
 }
 
 // generateManifestsForDashboard generates dashboard manifests from objects.
-func generateManifestsForDashboard(log logger.Logger, helmRepository *sourcev1.HelmRepository, helmRelease *helmv2.HelmRelease) ([]byte, error) {
+func generateManifestsForDashboard(log logger.Logger, helmRepository *sourcev1b2.HelmRepository, helmRelease *helmv2.HelmRelease) ([]byte, error) {
 	helmRepositoryData, err := yaml.Marshal(helmRepository)
 	if err != nil {
 		log.Failuref("Error generating HelmRepository manifest from object")
@@ -293,10 +297,10 @@ func generateManifestsForDashboard(log logger.Logger, helmRepository *sourcev1.H
 }
 
 // makeHelmRepository creates a HelmRepository object for installing the GitOps Dashboard.
-func makeHelmRepository(name, namespace string) *sourcev1.HelmRepository {
-	helmRepository := &sourcev1.HelmRepository{
+func makeHelmRepository(name, namespace string) *sourcev1b2.HelmRepository {
+	helmRepository := &sourcev1b2.HelmRepository{
 		TypeMeta: metav1.TypeMeta{
-			Kind:       sourcev1.HelmRepositoryKind,
+			Kind:       sourcev1b2.HelmRepositoryKind,
 			APIVersion: sourcev1.GroupVersion.Identifier(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
@@ -312,7 +316,7 @@ func makeHelmRepository(name, namespace string) *sourcev1.HelmRepository {
 				"metadata.weave.works/description": "This is the source location for the Weave GitOps Dashboard's helm chart.",
 			},
 		},
-		Spec: sourcev1.HelmRepositorySpec{
+		Spec: sourcev1b2.HelmRepositorySpec{
 			URL:  helmRepositoryURL,
 			Type: "oci",
 			Interval: metav1.Duration{
@@ -346,7 +350,7 @@ func makeHelmRelease(log logger.Logger, name, namespace, username, passwordHash,
 				Spec: helmv2.HelmChartTemplateSpec{
 					Chart: ossDashboardHelmChartName,
 					SourceRef: helmv2.CrossNamespaceObjectReference{
-						Kind: sourcev1.HelmRepositoryKind,
+						Kind: sourcev1b2.HelmRepositoryKind,
 						Name: name,
 					},
 				},
