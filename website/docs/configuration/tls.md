@@ -41,9 +41,3 @@ helm release should look like:
       enabled: true
       ... other parameters specific to the ingress type ...
 ```
-
-## cert-manager
-
-Install [cert-manager](../guides/cert-manager.md) and request a `Certificate` in
-the `flux-system` namespace. Provide the name of secret associated with the
-certificate to the weave-gitops-enterprise HelmRelease as described above.
