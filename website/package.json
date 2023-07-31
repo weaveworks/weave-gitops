@@ -23,7 +23,7 @@
     "@docusaurus/theme-search-algolia": "^2.4.1",
     "@fortawesome/fontawesome-svg-core": "^6.3.0",
     "@fortawesome/free-regular-svg-icons": "^6.3.0",
-    "@fortawesome/free-solid-svg-icons": "^6.3.0",
+    "@fortawesome/free-solid-svg-icons": "^6.4.0",
     "@fortawesome/react-fontawesome": "^0.2.0",
     "file-loader": "^6.2.0",
     "raw-loader": "^4.0.2",
