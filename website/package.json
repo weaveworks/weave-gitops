@@ -47,7 +47,7 @@
     ]
   },
   "devDependencies": {
-    "yarn-audit-fix": "^9.2.1"
+    "yarn-audit-fix": "^9.3.12"
   },
   "resolutions": {
     "ua-parser-js": "^0.7.33",
