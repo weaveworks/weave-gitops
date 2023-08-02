@@ -12,6 +12,7 @@ import { Auth } from "../contexts/AuthContext";
 import { V2Routes } from "../lib/types";
 import DarkModeSwitch from "./DarkModeSwitch";
 import Icon, { IconType } from "./Icon";
+
 const SettingsMenu = styled(Menu)`
   .MuiPaper-root {
     background: ${(props) => props.theme.colors.whiteToPrimary};
