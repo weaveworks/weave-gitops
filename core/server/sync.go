@@ -5,8 +5,11 @@ import (
 	"fmt"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
-	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	imgautomationv1 "github.com/fluxcd/image-automation-controller/api/v1beta1"
+	reflectorv1 "github.com/fluxcd/image-reflector-controller/api/v1beta2"
+	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1"
+	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/hashicorp/go-multierror"
 	"github.com/weaveworks/weave-gitops/core/fluxsync"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
@@ -123,15 +126,20 @@ func getFluxObject(kind string) (fluxsync.Reconcilable, error) {
 		return &fluxsync.KustomizationAdapter{Kustomization: &kustomizev1.Kustomization{}}, nil
 	case helmv2.HelmReleaseKind:
 		return &fluxsync.HelmReleaseAdapter{HelmRelease: &helmv2.HelmRelease{}}, nil
-
 	case sourcev1.GitRepositoryKind:
 		return &fluxsync.GitRepositoryAdapter{GitRepository: &sourcev1.GitRepository{}}, nil
-	case sourcev1.BucketKind:
-		return &fluxsync.BucketAdapter{Bucket: &sourcev1.Bucket{}}, nil
-	case sourcev1.HelmRepositoryKind:
-		return &fluxsync.HelmRepositoryAdapter{HelmRepository: &sourcev1.HelmRepository{}}, nil
-	case sourcev1.OCIRepositoryKind:
-		return &fluxsync.OCIRepositoryAdapter{OCIRepository: &sourcev1.OCIRepository{}}, nil
+	case sourcev1b2.BucketKind:
+		return &fluxsync.BucketAdapter{Bucket: &sourcev1b2.Bucket{}}, nil
+	case sourcev1b2.HelmChartKind:
+		return &fluxsync.HelmChartAdapter{HelmChart: &sourcev1b2.HelmChart{}}, nil
+	case sourcev1b2.HelmRepositoryKind:
+		return &fluxsync.HelmRepositoryAdapter{HelmRepository: &sourcev1b2.HelmRepository{}}, nil
+	case sourcev1b2.OCIRepositoryKind:
+		return &fluxsync.OCIRepositoryAdapter{OCIRepository: &sourcev1b2.OCIRepository{}}, nil
+	case reflectorv1.ImageRepositoryKind:
+		return &fluxsync.ImageRepositoryAdapter{ImageRepository: &reflectorv1.ImageRepository{}}, nil
+	case imgautomationv1.ImageUpdateAutomationKind:
+		return &fluxsync.ImageUpdateAutomationAdapter{ImageUpdateAutomation: &imgautomationv1.ImageUpdateAutomation{}}, nil
 	}
 
 	return nil, fmt.Errorf("not supported kind: %s", kind)

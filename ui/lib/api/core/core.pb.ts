@@ -196,7 +196,6 @@ export type GetVersionResponse = {
   commit?: string
   branch?: string
   buildTime?: string
-  fluxVersion?: string
   kubeVersion?: string
 }
 

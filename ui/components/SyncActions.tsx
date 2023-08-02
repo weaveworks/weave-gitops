@@ -1,11 +1,12 @@
 import React from "react";
-import { useSyncFluxObject } from "../../hooks/automations";
-import { useToggleSuspend } from "../../hooks/flux";
-import { Kind } from "../../lib/api/core/types.pb";
-import Button from "../Button";
-import Flex from "../Flex";
-import Spacer from "../Spacer";
-import SyncButton from "../SyncButton";
+import { useSyncFluxObject } from "../hooks/automations";
+import { useToggleSuspend } from "../hooks/flux";
+import { Kind } from "../lib/api/core/types.pb";
+import Button from "./Button";
+import CustomActions from "./CustomActions";
+import Flex from "./Flex";
+import Spacer from "./Spacer";
+import SyncButton from "./SyncButton";
 
 interface Props {
   name?: string;
@@ -13,13 +14,20 @@ interface Props {
   clusterName?: string;
   kind?: Kind;
   suspended?: boolean;
+  wide?: boolean;
+  hideDropdown?: boolean;
+  customActions?: JSX.Element[];
 }
+
 const SyncActions = ({
   name,
   namespace,
   clusterName,
   kind,
   suspended,
+  wide,
+  hideDropdown,
+  customActions,
 }: Props) => {
   const suspend = useToggleSuspend(
     {
@@ -28,12 +36,12 @@ const SyncActions = ({
           name,
           namespace,
           clusterName,
-          kind,
+          kind: kind,
         },
       ],
       suspend: !suspended,
     },
-    "sources"
+    "object"
   );
 
   const sync = useSyncFluxObject([
@@ -41,21 +49,27 @@ const SyncActions = ({
       name,
       namespace,
       clusterName,
-      kind,
+      kind: kind,
     },
   ]);
+
+  const syncHandler = hideDropdown
+    ? () => sync.mutateAsync({ withSource: false })
+    : (opts) => sync.mutateAsync(opts);
+
   return (
-    <Flex wide start>
+    <Flex wide={wide} start>
       <SyncButton
-        onClick={() => sync.mutateAsync({ withSource: false })}
+        onClick={syncHandler}
         loading={sync.isLoading}
         disabled={suspended}
-        hideDropdown={true}
+        hideDropdown={hideDropdown}
       />
       <Spacer padding="xs" />
       <Button onClick={() => suspend.mutateAsync()} loading={suspend.isLoading}>
         {suspended ? "Resume" : "Suspend"}
       </Button>
+      <CustomActions actions={customActions} />
     </Flex>
   );
 };

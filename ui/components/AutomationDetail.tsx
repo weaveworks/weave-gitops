@@ -1,15 +1,11 @@
 import * as React from "react";
 import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
-import { useSyncFluxObject } from "../hooks/automations";
-import { useToggleSuspend } from "../hooks/flux";
 import { createCanaryCondition, useGetInventory } from "../hooks/inventory";
 import { Condition, Kind, ObjectRef } from "../lib/api/core/types.pb";
 import { Automation, HelmRelease } from "../lib/objects";
 import { automationLastUpdated } from "../lib/utils";
-import Button from "./Button";
 import Collapsible from "./Collapsible";
-import CustomActions from "./CustomActions";
 import DependenciesView from "./DependenciesView";
 import EventsTable from "./EventsTable";
 import Flex from "./Flex";
@@ -23,9 +19,8 @@ import { PolicyViolationsList } from "./Policies/PolicyViolations/Table";
 import ReconciledObjectsTable from "./ReconciledObjectsTable";
 import ReconciliationGraph from "./ReconciliationGraph";
 import RequestStateHandler from "./RequestStateHandler";
-import Spacer from "./Spacer";
 import SubRouterTabs, { RouterTab } from "./SubRouterTabs";
-import SyncButton from "./SyncButton";
+import SyncActions from "./SyncActions";
 import Text from "./Text";
 import Timestamp from "./Timestamp";
 import YamlView from "./YamlView";
@@ -80,30 +75,6 @@ function AutomationDetail({
     clusterName,
     namespace,
     false
-  );
-
-  const sync = useSyncFluxObject([
-    {
-      name,
-      namespace,
-      clusterName,
-      kind: Kind[type],
-    },
-  ]);
-
-  const suspend = useToggleSuspend(
-    {
-      objects: [
-        {
-          name,
-          namespace,
-          clusterName,
-          kind: Kind[type],
-        },
-      ],
-      suspend: !automation.suspended,
-    },
-    "object"
   );
 
   const canaryStatus = createCanaryCondition(data?.objects);
@@ -201,21 +172,14 @@ function AutomationDetail({
   return (
     <Flex wide tall column className={className} gap="16">
       <Flex wide>
-        <Flex start>
-          <SyncButton
-            onClick={(opts) => sync.mutateAsync(opts)}
-            loading={sync.isLoading}
-            disabled={automation.suspended}
-          />
-          <Spacer padding="xs" />
-          <Button
-            onClick={() => suspend.mutateAsync()}
-            loading={suspend.isLoading}
-          >
-            {automation.suspended ? "Resume" : "Suspend"}
-          </Button>
-          <CustomActions actions={customActions} />
-        </Flex>
+        <SyncActions
+          name={name}
+          namespace={namespace}
+          clusterName={clusterName}
+          kind={Kind[type]}
+          suspended={suspended}
+          customActions={customActions}
+        />
         <Flex wide end gap="14">
           {automation?.type === "HelmRelease" ? (
             <LargeInfo

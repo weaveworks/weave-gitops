@@ -14,7 +14,7 @@ import { useHistory, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import { ThemeTypes } from "../../contexts/AppContext";
 import { IconButton } from "../Button";
-import CheckboxActions, { Action } from "../CheckboxActions";
+import CheckboxActions from "../CheckboxActions";
 import ChipGroup from "../ChipGroup";
 import FilterDialog, {
   FilterConfig,
@@ -49,7 +49,7 @@ export interface Props {
   rows?: any[];
   filters?: FilterConfig;
   dialogOpen?: boolean;
-  hasCheckboxes?: Action[] | boolean;
+  hasCheckboxes?: boolean;
   hideSearchAndFilters?: boolean;
   emptyMessagePlaceholder?: React.ReactNode;
   onColumnHeaderClick?: (field: Field) => void;
@@ -251,13 +251,7 @@ function UnstyledDataTable({
   return (
     <Flex wide tall column className={className}>
       <TopBar wide align end>
-        {checkboxes && (
-          <CheckboxActions
-            checked={checked}
-            rows={filtered}
-            actions={typeof checkboxes !== "boolean" && checkboxes}
-          />
-        )}
+        {checkboxes && <CheckboxActions checked={checked} rows={filtered} />}
         {filters && !hideSearchAndFilters && (
           <>
             <ChipGroup

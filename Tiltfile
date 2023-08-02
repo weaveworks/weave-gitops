@@ -61,8 +61,9 @@ k8s_yaml(helm('./tools/charts/dev', name='dev', values='./tools/charts/dev/value
 
 deps = ['gitops-server'] if advanced_go_dev_mode else []
 
-if not skip_ui_build:
-    deps.append('ui-server')
+if advanced_go_dev_mode:
+    if not skip_ui_build:
+        deps.append('ui-server')
 
 
 k8s_resource('dev-weave-gitops', port_forwards='9001', resource_deps=deps)

@@ -5,50 +5,35 @@ hide_title: true
 
 # Upgrade to Flux GA
 
-We are very excited for the release of the [Flux GA!](https://github.com/fluxcd/flux2/releases)
+We are very excited for the release of the [Flux v2.0 GA!](https://github.com/fluxcd/flux2/releases)
 
-This guide aims to answer some [common questions](#faq) before starting the upgrade, as well as providing step-by-step
-instructions for the [upgrade](#upgrade).
+This guide aims to answer some [common questions](#faq) before starting the upgrade, and provides step-by-step
+instructions.
 
+## Before Starting the Upgrade
 
-## Before Starting
-
-Here there are some useful terms that are used in this guide:
+Useful terms used in this guide:
 
 - `Flux Beta or Flux v0.x` as the [latest Flux Beta Release](https://github.com/fluxcd/flux2/releases/tag/v0.41.2).
 - `Flux GA` as the [latest Flux GA Release Candidate](https://github.com/fluxcd/flux2/releases/tag/v2.0.0-rc.3)
-- `Weave Gitops` as the [latest Weave Gitops Enterprise release](https://github.com/weaveworks/weave-gitops-enterprise/releases/tag/v0.23.0)
-
-## Important events during this period
-
-_Dates for these events are not finalized and will depend on when the releases are made_
-
-- The release of a version of Weave Gitops OSS/EE that will require Flux GA be installed (in the weeks after Flux GA is released).
-- The release of a version of Flux GA that will drop support for `< v1` Custom Resources (~6-12 months after Flux GA is released).
-
-You can take steps today to address both these events.
+- `Weave GitOps` as the [latest Weave GitOps Enterprise release](https://github.com/weaveworks/weave-gitops-enterprise/releases/latest)
 
 ## FAQ
 
-Here you could find the most common questions around upgrading.
+Here you can find the most common questions around upgrading.
 
-### Why upgrade to Flux GA
+### Why Upgrade to Flux GA
 
-Flux Beta APIs have been stable and used in production for quite some time now. However, with Flux GA there is big reason to move to v1:
-it is the main supported API version for new features and developments. Features like [horizontal scaling](https://fluxcd.io/flux/cheatsheets/sharding/)
-are only available in Flux GA. Also, have into consideration that beta APIs will be removed after 6 months.
+Although Flux Beta APIs have been stable and used in production for quite some time, Flux GA is the main supported API version for new features and development. Features like [horizontal scaling](https://fluxcd.io/flux/cheatsheets/sharding/)
+are only available in Flux GA. Also, beta APIs will be removed after six months.
 
-For more information about the Flux GA roadmap see [here](https://fluxcd.io/roadmap/#the-road-to-flux-v2-ga)
+### Can I Use Weave GitOps with Flux GA?
 
-### Can I use Weave Gitops with Flux GA Release Candidates?
+Yes. This has been possible since Weave Gitops v0.22.0. Use the [latest available release](https://github.com/weaveworks/weave-gitops/releases) for the best experience.
 
-Yes, since Weave Gitops v0.22.0, you could use it with Flux GA Release Candidates. It is recommended
-you use the [latest available release](https://github.com/weaveworks/weave-gitops/releases) for the best experience.
+### Can I Use Weave GitOps Enterprise with Flux GA?
 
-### Can I use Weave Gitops Enterprise with Flux GA Release Candidates?
-
-Yes, since Weave Gitops Enterprise v0.22.0, you could use it with Flux GA Release Candidates. It is recommended
-you use the [latest available release](https://docs.gitops.weave.works/docs/releases/) for the best experience.
+Yes. This has been possible since Weave GitOps Enterprise v0.22.0. Use the [latest available release](https://docs.gitops.weave.works/docs/enterprise/getting-started/releases-enterprise/) for the best experience.
 
 The following limitations are knowns by version:
 
@@ -58,8 +43,8 @@ No limitations
 
 #### v0.22.0
 
-If you are using gitopssets we can upgrade that component to gitopssets v0.10.0 for Flux GA compatibility.
-Update the Weave Gitops Enterprise HelmRelease values to use the new version.
+If you are using GitOpsSets, upgrade that component to v0.10.0 for Flux GA compatibility.
+Update the Weave GitOps Enterprise HelmRelease values to use the new version.
 
 ```yaml
 gitopssets-controller:
@@ -69,75 +54,50 @@ gitopssets-controller:
         tag: v0.10.0
 ```
 
-### I am using Weave Gitops v0.22 (or later) with Flux Beta, what is the impact?
+### Can I Use Weave GitOps with Flux v2 0.x (pre-GA versions)?
 
-Latest Weave Gitops is compatible with Flux Beta so no impact is expected.
+As of Weave GitOps v0.29, only Flux v2.0 GA is supported. Please follow the [Upgrade](#upgrade) section to help you with the process.
 
-### I am using Weave Gitops EE v0.22 (or later) with Flux Beta, what is the impact?
-
-Latest Weave Gitops Enterprise is compatible with Flux Beta so no impact is expected.
-
-### What is the support strategy and timelines?
-
-Weave Gitops currently supports both Flux Beta and Flux GA v2.0.0 release candidates. It means that features,
-bugs and security patches are compatible with both API versions.
-
-We expect this to change once Flux GA v2.0.0 is released. At that moment only Flux GA will be fully supported. Flux Beta
-support will be deprecated, only releasing patches for CVEs impacting Weave Gitops for Flux Beta.
-
-Looking to timelines, we expect Flux Beta deprecation right after Flux GA is released.
-
-### When support for Flux Beta will be dropped?
-
-Once Flux GA is released. A concrete date will be given after that event that we expect to be in the range of weeks
-after the release.
-
-### Will be able to use Flux Beta once Flux GA is released?
-
-It is encouraged you to plan upgrading to Flux GA using its release candidates train. However, if for reasons
-you are not able to, you will be able to use Weave Gitops with Flux Beta, but we expect you could find increasing limitations
-as new features would design with Flux GA APIs in mind.
+Earlier versions of Weave GitOps work with both Flux v2 GA and Flux v2 0.x (the pre-GA ones), but it is encouraged that you upgrade to the latest version for the best experience.
 
 ## Upgrade
 
-:::info Note
-_Flux GA release candidates have the same Kubernetes compatibility as Flux 0.41.2_
-:::
-
 :::info Hosted flux?
 If you are using a hosted Flux version, please check with your provider if they support Flux GA before upgrading following this guide.
-Known hosted flux providers:
+Known hosted Flux providers:
 
 - EKS Anywhere
 - [Azure AKS Flux-Gitops extension](https://learn.microsoft.com/en-us/azure/azure-arc/kubernetes/extensions-release#flux-gitops)
 
-As of writing they do not yet support the new version so please wait before upgrading to Flux GA.
+As of writing they do not yet support the new version, so please wait before upgrading to Flux GA.
 :::
 
 Below, we'll take you through the multiple steps required to migrate to your system to Flux GA. After each step the cluster will be
 in a working state, so you can take your time to complete the migration.
 
-1. Upgrade to [latest Weave Gitops](https://docs.gitops.weave.works/docs/releases/)
-2. Upgrade to Flux GA in `ClusterBootstrapConfig`s
-3. Upgrade to Flux GA on your leaf clusters and management clusters
-4. Upgrade GitopsTemplates, GitopsSets and ClusterBootstrapConfigs
+1. Upgrade to Flux GA on your existing leaf clusters and management clusters
+2. Upgrade to Flux GA in `ClusterBootstrapConfig`s.
+3. Upgrade to [latest Weave Gitops](https://docs.gitops.weave.works/docs/enterprise/getting-started/releases-enterprise/).
+4. Upgrade GitopsTemplates, GitopsSets and ClusterBootstrapConfigs.
 
-### 1. Upgrade to latest WGE
+### 1. Upgrade to Flux GA on your existing leaf clusters and management clusters
 
-Use your regular WGE upgrade procedure to bring it to the [latest](https://docs.gitops.weave.works/docs/releases/)
+Follow the upgrade instructions from the [Flux v2.0.0 release notes](https://github.com/fluxcd/flux2/releases/tag/v2.0.0).
 
-:::warning upgrading to Flux GA with WGE v0.22.0?
+At minimum, you'll need to rerun the `flux bootstrap` command on your leaf clusters and management clusters.
 
-Ensure that you address [this](#v0220)
-:::
+You'll also need to bump API versions in your manifests to `v1` as described in the Flux upgrade instructions:
 
-At this stage you have Weave Gitops running Flux Beta.
+> Bumping the APIs version in manifests can be done gradually. It is advised to not delay this procedure as the beta
+> versions will be removed after 6 months.
+
+At this stage all clusters are running Flux GA.
 
 ### 2. Upgrade to Flux GA in ClusterBootstrapConfigs
 
-First we ensure any new clusters are bootstrapped with Flux GA, then we'll upgrade the existing clusters.
+First, we ensure any new clusters are bootstrapped with Flux GA. Then we'll upgrade the existing clusters.
 
-`ClusterBootstrapConfig` will most often contain an invocation of `flux bootstrap`, make sure the image is using `v2`.
+`ClusterBootstrapConfig` will most often contain an invocation of `flux bootstrap`. Make sure the image is using `v2`.
 
 <details><summary>Expand to see an example</summary>
 
@@ -161,55 +121,36 @@ index bd41ec036..1b21df860 100644
      spec:
        containers:
 -        - image: ghcr.io/fluxcd/flux-cli:v0.34.0
-+        - image: ghcr.io/fluxcd/flux-cli:v2
++        - image: ghcr.io/fluxcd/flux-cli:v2.0.0
            name: flux-bootstrap
            ...
 ```
 </details>
+
 At this stage, your new bootstrapped clusters will run Flux GA.
 
-### 3. Upgrade to Flux GA on your existing leaf clusters and management clusters
+### 3. Upgrade to latest WGE
 
-Follow the upgrade instructions from the [Flux v2.0.0-rc.1 release notes](https://github.com/fluxcd/flux2/releases/tag/v2.0.0-rc.1).
+Use your regular WGE upgrade procedure to bring it to the [latest version](https://docs.gitops.weave.works/docs/enterprise/getting-started/releases-enterprise/)
 
-At minimum, you'll need to rerun the `flux bootstrap` command on your leaf clusters and management clusters.
+At this stage you have Weave GitOps running Flux GA.
 
-You'll also need to bump APIs version in your manifests to `v1` as described in the flux upgrade instructions:
+### 4. Upgrade GitOpsTemplates, GitOpsSets, and ClusterBootstrapConfigs
 
-> Bumping the APIs version in manifests can be done gradually. It is advised to not delay this procedure as the beta
-> versions will be removed after 6 months.
+Bumping the APIs version in manifests can be done gradually. We advise against delaying this procedure as the Beta versions will be removed after six months.
 
-At this stage all clusters are running Flux GA.
-
-### 4. Upgrade GitopsTemplates, GitopsSets and ClusterBootstrapConfigs
-
-Bumping the APIs version in manifests can be done gradually. It is advised to not delay this procedure as the beta versions will be removed after 6 months.
-
-#### `GitopsTemplate` and `CAPITemplate`
+#### `GitOpsTemplate` and `CAPITemplate`
 
 Update `GitRepository` and `Kustomization` CRs in the `spec.resourcetemplates` to `v1` as described in the flux upgrade instructions.
 
-#### `GitopsSets`
+#### `GitOpsSets`
 
-Update `GitRepository` and `Kustomization` CRs in the `spec.template` of your `GitopsSet` resources to `v1` as described in the flux upgrade instructions.
+Update `GitRepository` and `Kustomization` CRs in the `spec.template` of your `GitOpsSet` resources to `v1` as described in the Flux upgrade instructions.
 
 ### 5. Future steps
 
-At this stage all clusters are running Flux GA. This will allow you to seamlessly upgrade to the upcoming release of Weave Gitops that will drop support for Flux Beta.
-
-If you have updated your `Kustomization` and `GitRepository` resources to `v1` you will also be able to upgrade to the future release of Flux that will drop support for `< v1` apis.
-
-:::info
-
-Weave Gitops Enterprise 0.23.0 generates v1beta2 `Kustomization` Custom Resources when using the _Add app_ and _Cluster Template_ features.
-
-This is to support installations still using Flux Beta.
-
-After upgrading to the release of Weave Gitops that drops support for Flux Beta, Weave Gitops Enterprise will create `v1` Resources.
-However, you will have to manually update any `Kustomization` resources that have been created to `v1`.
-:::
-
+If you haven't done it yet, plan to update your  `Kustomization` , `GitRepository` and `Receiver` resources to `v1`, you can also upgrade to the future release of Flux that will drop support for `< v1` APIs.
 
 ## Contact us
 
-In case you find any issue, please let us know via [support](https://docs.gitops.weave.works/help-and-support/).
+If you find any issues, please let us know via [support](https://docs.gitops.weave.works/help-and-support/).
