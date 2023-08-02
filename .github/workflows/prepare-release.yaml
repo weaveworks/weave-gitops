@@ -96,19 +96,7 @@ jobs:
           branch: ${{ env.BRANCH }}
           base: main
           title: "Updates for ${{ env.GITOPS_VERSION }}"
-          body: |                  
-           ## Flux compatibility  
-            | Flux version | Minimum required |
-            |--------------------|------------------|
-            | `v2.0`            | `>= 2.0.0-rc.1`   |
-            | `v0.41`            | `>= 0.41.0`      |
-            | `v0.40`            | `>= 0.40.0`      |
-            
-            For migrations from v0.4x to v2.0 see this [documentation](https://docs.gitops.weave.works/docs/next/guides/fluxga-upgrade/).
-            
-            Note that Weave GitOps may work on older versions of Flux e.g. 0.39, but we don't recommend running [end-of-life versions](https://fluxcd.io/flux/releases/#supported-releases) 
-            in production nor do we offer support for these.
-            
+          body: |                            
            ## ⚠️ Breaking changes
            Describe any breaking changes here, or delete this block
 
@@ -123,7 +111,14 @@ jobs:
              - Bug fixes
              - Any changes in behaviour
              - Changes requiring upgrade notices or deprecation warning
-
+            
+            ## Flux compatibility  
+             | Flux version | Minimum required |
+             |--------------------|------------------|
+             | `v2.0`            | `>= 2.0.0`   |
+            
+             For Flux migrations to v2.0 see [flux](https://github.com/fluxcd/flux2/releases/tag/v2.0.0) or [weave gitops](https://docs.gitops.weave.works/docs/next/guides/fluxga-upgrade/) documentation.
+            
            ${{ steps.github_release.outputs.changelog }}
           token: ${{ secrets.WEAVE_GITOPS_BOT_ACCESS_TOKEN }}
           labels: "exclude from release notes"
