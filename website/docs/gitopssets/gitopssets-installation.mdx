@@ -9,16 +9,14 @@ import TierLabel from "../_components/TierLabel";
 
 The gitopssets-controller can be installed in two ways:
 
-- As part of the Weave Gitops Enterprise installation. (installed by default)
+- As part of the Weave GitOps Enterprise installation. (installed by default)
 - As a standalone installation using a Helm chart.
 
-The standalone installation can be useful for leaf clusters that don't have Weave Gitops Enterprise installed.
+The standalone installation can be useful for leaf clusters that don't have Weave GitOps Enterprise installed.
 
 ## Prerequisites
 
-Before installing the gitopssets-controller, ensure that the following is installed:
-
-- flux
+Before installing the gitopssets-controller, ensure that you've installed [Flux](https://github.com/fluxcd/flux2).
 
 ## Installing the gitopssets-controller
 
@@ -60,4 +58,4 @@ spec:
     crds: CreateReplace
 ```
 
-After adding the Namespace, HelmRepository and HelmRelease to a git repository synced by flux, commit the changes to complete the installation process.
+After adding the Namespace, HelmRepository and HelmRelease to a Git repository synced by Flux, commit the changes to complete the installation process.
