@@ -25,7 +25,7 @@ cluster.
 - This guide uses [kubectl](https://kubernetes.io/docs/tasks/tools/#kubectl) for demonstrations, but it is not required to use GitOps Run
 - The [Flux CLI](https://fluxcd.io/flux/installation/) is the quickest way to generate resource definitions, but the files can also be created manually
 
-## Create a local Kubernetes cluster
+## Create a Local Kubernetes Cluster
 
 To get started with GitOps Run, you need a Kubernetes cluster. There
 are many tools to set up a local cluster for test and development
@@ -89,7 +89,7 @@ Then, for any `gitops beta run` command in this guide, you'll have to add the fl
 
 Before you continue, make sure `kubectl get nodes` returns a node which is `Ready`.
 
-## Create a GitOps repository
+## Create a GitOps Repository
 
 You need to set up a Git repository to put your GitOps manifests
 in. Any Git repository will do, for example create a new
@@ -132,7 +132,7 @@ The username is `admin` and the password will be the one you set above.
 In your dashboard you will be able to see what is in your cluster, including
 the resources that GitOps Run is operating.
 
-## Start modifying your deploment
+## Start Modifying Your Deployment
 
 In your local GitOps repo, you will see that GitOps Run has created a new
 directory called `podinfo`. Inside there is a single, mostly empty, `kustomization.yaml`.
@@ -250,7 +250,7 @@ reconciled, and when they're Ready you will be able to see podinfo
 [here](http://localhost:9898).
 
 
-## Update your app
+## Update Your App
 
 Now that GitOps Run is continuously watching and reconciling your
 local files onto your cluster, we can start modifying the resources.
@@ -289,7 +289,7 @@ spec:
 When you hit save, you'll see GitOps Run upload new files, and once
 it's reconciled the `podinfo` background will have been changed to a bright red.
 
-## Next steps: GitOps Mode
+## Next Steps: GitOps Mode
 
 Now that we've used this interactive environment to set up the
 resources we want, we can switch over to full GitOps mode, where Flux
