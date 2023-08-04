@@ -31,7 +31,7 @@ export default function HomepageFeatures() {
       <div className="text--center padding-horiz--md">
         <h1>Main Features</h1>
         <h3>
-            Available on <Link to="/docs/intro">all Tiers</Link>
+            Available on <Link to="/docs/intro-weave-gitops">all Tiers</Link>
         </h3>
       </div>
       <CoreFeatures/>
@@ -39,7 +39,7 @@ export default function HomepageFeatures() {
       <div className="text--center padding-horiz--md">
         <h1>Enterprise Features</h1>
         <h3>
-            Available only on the <Link to="/docs/intro-ee">Enterprise Tier</Link>
+            Available only on the <Link to="/docs/enterprise/getting-started/intro-enterprise">Enterprise Tier</Link>
         </h3>
       </div>
       <EEFeatures col={clsx('col--4')}/>

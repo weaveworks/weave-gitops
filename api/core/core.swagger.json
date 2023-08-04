@@ -1053,9 +1053,6 @@
         "buildTime": {
           "type": "string"
         },
-        "fluxVersion": {
-          "type": "string"
-        },
         "kubeVersion": {
           "type": "string"
         }
@@ -1576,6 +1573,9 @@
           "type": "string"
         },
         "entity": {
+          "type": "string"
+        },
+        "entityKind": {
           "type": "string"
         },
         "namespace": {

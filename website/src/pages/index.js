@@ -17,7 +17,7 @@ function HomepageHeader() {
         <div className={styles.buttons}>
           <Link
             className="button button--secondary button--lg"
-            to="/docs/installation/weave-gitops">
+            to="/docs/open-source/getting-started/install-OSS">
             Quickstart Tutorial - 5min ⏱️
           </Link>
         </div>

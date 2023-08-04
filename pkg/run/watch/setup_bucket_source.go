@@ -3,10 +3,10 @@ package watch
 import (
 	"context"
 	"fmt"
+	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"time"
 
 	"github.com/fluxcd/pkg/apis/meta"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/run/constants"
 	corev1 "k8s.io/api/core/v1"
@@ -15,7 +15,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func createBucketAndSecretObjects(params SetupRunObjectParams) (corev1.Secret, sourcev1.Bucket) {
+func createBucketAndSecretObjects(params SetupRunObjectParams) (corev1.Secret, sourcev1b2.Bucket) {
 	// create a secret
 	secret := corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
@@ -28,7 +28,7 @@ func createBucketAndSecretObjects(params SetupRunObjectParams) (corev1.Secret, s
 		},
 		Type: "Opaque",
 	}
-	source := sourcev1.Bucket{
+	source := sourcev1b2.Bucket{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      constants.RunDevBucketName,
 			Namespace: params.Namespace,
@@ -38,7 +38,7 @@ func createBucketAndSecretObjects(params SetupRunObjectParams) (corev1.Secret, s
 				"metadata.weave.works/username":    params.Username,
 			},
 		},
-		Spec: sourcev1.BucketSpec{
+		Spec: sourcev1b2.BucketSpec{
 			Interval:   metav1.Duration{Duration: 30 * 24 * time.Hour}, // 30 days
 			Provider:   "generic",
 			BucketName: constants.RunDevBucketName,
@@ -52,7 +52,7 @@ func createBucketAndSecretObjects(params SetupRunObjectParams) (corev1.Secret, s
 	return secret, source
 }
 
-func reconcileBucketAndSecretObjects(ctx context.Context, log logger.Logger, kubeClient client.Client, secret corev1.Secret, source sourcev1.Bucket) error {
+func reconcileBucketAndSecretObjects(ctx context.Context, log logger.Logger, kubeClient client.Client, secret corev1.Secret, source sourcev1b2.Bucket) error {
 	// create secret
 	log.Actionf("Checking secret %s ...", secret.Name)
 
@@ -110,7 +110,7 @@ func cleanupBucketAndSecretObjects(ctx context.Context, log logger.Logger, kubeC
 	}
 
 	// delete source
-	source := sourcev1.Bucket{
+	source := sourcev1b2.Bucket{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      constants.RunDevBucketName,
 			Namespace: namespace,

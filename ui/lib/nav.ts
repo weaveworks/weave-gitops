@@ -50,6 +50,11 @@ export const getParentNavValue = (
     case V2Routes.PolicyDetailsPage:
       return V2Routes.Policies;
 
+    case V2Routes.PolicyViolationDetails:
+      return location.search.includes("kind=Policy")
+        ? V2Routes.Policies
+        : V2Routes.Automations;
+
     default:
       // The "Tabs" component of material-ui wants a bool
       return false;
@@ -60,11 +65,11 @@ export const getParentNavRouteValue = (
   path: string
 ): V2Routes | PageRoute | boolean => {
   const [, currentPage] = _.split(path, "/");
+
   switch (`/${currentPage}`) {
     case V2Routes.Automations:
     case V2Routes.Kustomization:
     case V2Routes.HelmRelease:
-    case V2Routes.PolicyViolationDetails:
       return V2Routes.Automations;
 
     case V2Routes.Sources:
@@ -94,6 +99,11 @@ export const getParentNavRouteValue = (
     case V2Routes.Policies:
     case V2Routes.PolicyDetailsPage:
       return V2Routes.Policies;
+
+    case V2Routes.PolicyViolationDetails:
+      return location.search.includes("kind=Policy")
+        ? V2Routes.Policies
+        : V2Routes.Automations;
 
     default:
       // The "Tabs" component of material-ui wants a bool

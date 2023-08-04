@@ -77,62 +77,60 @@ func getPolicyParamValue(param pacv2beta2.PolicyParameters, policyID string) (*a
 	return anyValue, nil
 }
 
-func policyToPolicyRespone(policyCRD pacv2beta2.Policy, clusterName string, fullDetails bool) (*pb.PolicyObj, error) {
+func policyToPolicyRespone(policyCRD pacv2beta2.Policy, clusterName string) (*pb.PolicyObj, error) {
 	policySpec := policyCRD.Spec
 
 	policy := &pb.PolicyObj{
-		Name:      policySpec.Name,
-		Id:        policySpec.ID,
-		Category:  policySpec.Category,
-		Tags:      policySpec.Tags,
-		Severity:  policySpec.Severity,
-		CreatedAt: policyCRD.CreationTimestamp.Format(time.RFC3339),
-		Tenant:    policyCRD.GetLabels()["toolkit.fluxcd.io/tenant"],
-		Modes:     policyCRD.Status.Modes,
+		Name:        policySpec.Name,
+		Id:          policySpec.ID,
+		Category:    policySpec.Category,
+		Tags:        policySpec.Tags,
+		Severity:    policySpec.Severity,
+		CreatedAt:   policyCRD.CreationTimestamp.Format(time.RFC3339),
+		Tenant:      policyCRD.GetLabels()["toolkit.fluxcd.io/tenant"],
+		Modes:       policyCRD.Status.Modes,
+		ClusterName: clusterName,
+		Code:        policySpec.Code,
+		Description: policySpec.Description,
+		HowToSolve:  policySpec.HowToSolve,
 	}
 
-	if fullDetails {
-		var policyLabels []*pb.PolicyTargetLabel
-		for i := range policySpec.Targets.Labels {
-			policyLabels = append(policyLabels, &pb.PolicyTargetLabel{
-				Values: policySpec.Targets.Labels[i],
-			})
-		}
-
-		var policyParams []*pb.PolicyParam
-		for _, param := range policySpec.Parameters {
-			policyParam := &pb.PolicyParam{
-				Name:     param.Name,
-				Required: param.Required,
-				Type:     param.Type,
-			}
-			value, err := getPolicyParamValue(param, policySpec.ID)
-			if err != nil {
-				return nil, err
-			}
-			policyParam.Value = value
-			policyParams = append(policyParams, policyParam)
-		}
-		var policyStandards []*pb.PolicyStandard
-		for _, standard := range policySpec.Standards {
-			policyStandards = append(policyStandards, &pb.PolicyStandard{
-				Id:       standard.ID,
-				Controls: standard.Controls,
-			})
-		}
-
-		policy.Code = policySpec.Code
-		policy.Description = policySpec.Description
-		policy.HowToSolve = policySpec.HowToSolve
-		policy.Standards = policyStandards
-		policy.Targets = &pb.PolicyTargets{
-			Kinds:      policySpec.Targets.Kinds,
-			Namespaces: policySpec.Targets.Namespaces,
-			Labels:     policyLabels,
-		}
-		policy.Parameters = policyParams
-		policy.ClusterName = clusterName
+	var policyLabels []*pb.PolicyTargetLabel
+	for i := range policySpec.Targets.Labels {
+		policyLabels = append(policyLabels, &pb.PolicyTargetLabel{
+			Values: policySpec.Targets.Labels[i],
+		})
 	}
+
+	var policyParams []*pb.PolicyParam
+	for _, param := range policySpec.Parameters {
+		policyParam := &pb.PolicyParam{
+			Name:     param.Name,
+			Required: param.Required,
+			Type:     param.Type,
+		}
+		value, err := getPolicyParamValue(param, policySpec.ID)
+		if err != nil {
+			return nil, err
+		}
+		policyParam.Value = value
+		policyParams = append(policyParams, policyParam)
+	}
+	var policyStandards []*pb.PolicyStandard
+	for _, standard := range policySpec.Standards {
+		policyStandards = append(policyStandards, &pb.PolicyStandard{
+			Id:       standard.ID,
+			Controls: standard.Controls,
+		})
+	}
+
+	policy.Targets = &pb.PolicyTargets{
+		Kinds:      policySpec.Targets.Kinds,
+		Namespaces: policySpec.Targets.Namespaces,
+		Labels:     policyLabels,
+	}
+	policy.Parameters = policyParams
+	policy.Standards = policyStandards
 
 	return policy, nil
 }
@@ -194,7 +192,7 @@ func (cs *coreServer) ListPolicies(ctx context.Context, m *pb.ListPoliciesReques
 				continue
 			}
 			for i := range list.Items {
-				policy, err := policyToPolicyRespone(list.Items[i], clusterName, false)
+				policy, err := policyToPolicyRespone(list.Items[i], clusterName)
 				if err != nil {
 					return nil, fmt.Errorf("error while converting policy %s to response: %w", list.Items[i].Name, err)
 				}
@@ -233,7 +231,7 @@ func (cs *coreServer) GetPolicy(ctx context.Context, m *pb.GetPolicyRequest) (*p
 
 	var policy *pb.PolicyObj
 
-	policy, err = policyToPolicyRespone(policyCR, m.ClusterName, true)
+	policy, err = policyToPolicyRespone(policyCR, m.ClusterName)
 	if err != nil {
 		return nil, err
 	}

@@ -6,7 +6,6 @@ import { MultiRequestError, RequestError } from "../lib/types";
 import Alert from "./Alert";
 import Breadcrumbs, { Breadcrumb } from "./Breadcrumbs";
 import Flex from "./Flex";
-import Footer from "./Footer";
 import LoadingPage from "./LoadingPage";
 import Spacer from "./Spacer";
 import UserSettings from "./UserSettings";
@@ -19,7 +18,7 @@ export type PageProps = {
   error?: RequestError | RequestError[] | MultiRequestError[];
 };
 
-const topBarHeight = "60px";
+export const topBarHeight = "60px";
 
 const ContentContainer = styled.div`
   height: 100%;
@@ -27,9 +26,10 @@ const ContentContainer = styled.div`
   padding: 0 ${(props) => props.theme.spacing.medium};
   max-height: calc(100vh - ${topBarHeight});
   overflow-wrap: normal;
-  overflow-x: scroll;
+  overflow-x: hidden;
   margin: 0px auto;
 `;
+
 const PageLayout = styled(Flex)`
   width: 100%;
   flex-grow: 1;
@@ -47,6 +47,7 @@ const Children = styled(Flex)`
   width: calc(100% - 48px);
   padding: ${(props) => props.theme.spacing.medium};
   height: 100%;
+  overflow-x: hidden;
 `;
 
 const TopToolBar = styled(Flex)`
@@ -92,7 +93,7 @@ function Page({ children, loading, error, className, path }: PageProps) {
                 <Errors error={error} />
                 {children}
               </Children>
-              {settings.renderFooter && <Footer />}
+              {settings.footer}
             </>
           )}
         </Content>

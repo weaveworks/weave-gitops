@@ -13,61 +13,42 @@
   docs: [
     {
       type: 'category',
-      label: 'Introducing GitOps',
+      label: 'Introducing Weave GitOps',
       collapsed: false,
       link: {
         type: 'doc',
-        id: 'intro',
+        id: 'intro-weave-gitops',
       },
       items: [
         {
           type: 'category',
-          label: 'Getting Started',
+          label: 'Weave GitOps Open Source',
           collapsed: false,
-          link: {
-            type: 'doc',
-            id: 'getting-started/intro',
-          },
           items: [
-            {
-              type: 'category',
-              label: '0. Install Weave GitOps',
-              collapsed: true,
-              link: {
-                type: 'doc',
-                id: 'installation/index',
-              },
-              items: [
-                'installation/weave-gitops',
-                {
-                  type: 'category',
-                  label: 'Weave GitOps Enterprise',
-                  link: {
-                    type: 'doc',
-                    id: 'installation/weave-gitops-enterprise/index',
-                  },
-                  items: [
-                    'installation/weave-gitops-enterprise/airgap',
-                  ],
-                },
-                'installation/aws-marketplace',
-              ],
-            },
-            'getting-started/ui',
-            'getting-started/deploy',
+            'open-source/getting-started/install-OSS',
+            'open-source/getting-started/ui-OSS',
+            'open-source/getting-started/deploy-OSS',
+            'open-source/getting-started/aws-marketplace',
           ],
         },
-      ],
-    },
-    {
-      type: 'category',
-      label: 'Enterprise Edition',
-      link: {
-        type: 'doc',
-        id: 'intro-ee',
-      },
-      items: [
-        'releases',
+        {
+          type: 'category',
+          label: 'Weave GitOps Enterprise',
+          link: {
+            type: 'doc',
+            id: 'enterprise/getting-started/intro-enterprise',
+          },
+          items: [
+            'enterprise/getting-started/install-enterprise',
+            'enterprise/getting-started/install-enterprise-airgap',
+            'enterprise/getting-started/releases-enterprise',
+          ],
+        },
+        {
+            type: 'link',
+            label: 'Version Archives',
+            href: '/archives',
+        },
       ],
     },
     {
@@ -95,46 +76,23 @@
     },
     {
       type: 'category',
-      label: 'Guides',
-      items: [
-        'guides/setting-up-dex',
-        'guides/cert-manager',
-        'guides/displaying-custom-metadata',
-        'guides/deploying-capa',
-        'guides/using-terraform-templates',
-        'guides/delivery',
-        'guides/flagger-manual-gating',
-        'guides/fluxga-upgrade',
-      ],
-    },
-    {
-      type: 'category',
-      label: 'GitOps Run',
-      link: {
-        type: 'doc',
-        id: 'gitops-run/overview',
-      },
-      items: [
-        'gitops-run/get-started',
-      ],
-    },
-    {
-      type: 'category',
       label: 'Cluster Management',
       link: {
         type: 'doc',
-        id: 'cluster-management/intro',
+        id: 'cluster-management/cluster-management-intro',
       },
       items: [
-        'cluster-management/getting-started',
-        'cluster-management/cluster-api-providers',
-        'cluster-management/managing-existing-clusters',
-        'cluster-management/provider-identities',
-        'cluster-management/deleting-a-cluster',
+        'cluster-management/managing-clusters-without-capi',
+        'cluster-management/deploying-capa-eks',
         'cluster-management/profiles',
-        'cluster-management/add-applications',
-        'cluster-management/gitrepo-selection',
-        'cluster-management/disable-capi',
+        'cluster-management/cluster-management-troubleshooting',
+        {
+          type: 'category',
+          label: 'Advanced Cluster Management',
+          items: [
+            'cluster-management/advanced-cluster-management-topics/howto-inject-credentials-into-template'
+          ],
+        },
       ],
     },
     {
@@ -153,32 +111,34 @@
     },
     {
       type: 'category',
-      label: 'Terraform',
+      label: 'GitOps Run',
+      link: {
+        type: 'doc',
+        id: 'gitops-run/overview',
+      },
       items: [
-        'terraform/overview',
-        'terraform/get-started',
-        {
-          type: 'category',
-          label: 'Using Terraform CR',
-          items: [
-            'terraform/using-terraform-cr/provision-resources-and-auto-approve',
-            'terraform/using-terraform-cr/plan-and-manually-apply-terraform-resources',
-            'terraform/using-terraform-cr/provision-resources-and-write-output-data',
-            'terraform/using-terraform-cr/detect-drifts-only-without-plan-or-apply',
-            'terraform/using-terraform-cr/drift-detection-disabled',
-            'terraform/using-terraform-cr/set-variables-for-trraform-resources',
-            'terraform/using-terraform-cr/custom-backend',
-            'terraform/using-terraform-cr/depends-on',
-            'terraform/using-terraform-cr/modules',
-            'terraform/using-terraform-cr/customize-runner',
-          ],
-        },
-        'terraform/backup-and-restore',
-        'terraform/oci-artifact',
-        'terraform/aws-eks',
-        'terraform/terraform-enterprise',
-        'terraform/tfctl',
-        'terraform/environment-variables',
+        'gitops-run/get-started',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'GitOpsSets',
+      items: [
+        'gitopssets/intro',
+        'gitopssets/installation',
+        'gitopssets/guide',
+        'gitopssets/api-reference',
+        'gitopssets/releases'
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Guides',
+      items: [
+        'guides/setting-up-dex',
+        'guides/cert-manager',
+        'guides/displaying-custom-metadata',
+        'guides/fluxga-upgrade',
       ],
     },
     {
@@ -186,7 +146,7 @@
       label: 'Pipelines',
       link: {
         type: 'doc',
-        id: 'pipelines/intro',
+        id: 'pipelines/pipelines-intro',
       },
       items: [
         'pipelines/getting-started',
@@ -212,18 +172,6 @@
     },
     {
       type: 'category',
-      label: 'Workspaces',
-      link: {
-        type: 'doc',
-        id: 'workspaces/intro',
-      },
-      items: [
-        'workspaces/multi-tenancy',
-        'workspaces/view-workspaces',
-      ],
-    },
-    {
-      type: 'category',
       label: 'Policy',
       link: {
         type: 'doc',
@@ -242,6 +190,17 @@
     },
     {
       type: 'category',
+      label: 'Progressive Delivery',
+      link: {
+        type: 'doc',
+        id: 'progressive-delivery/progressive-delivery-flagger-install',
+      },
+      items: [
+        'progressive-delivery/flagger-manual-gating',
+      ],
+    },
+    {
+      type: 'category',
       label: 'Secrets',
       link: {
         type: 'doc',
@@ -250,7 +209,7 @@
       items: [
         'secrets/intro',
         'secrets/getting-started',
-        'secrets/bootstraping-secrets',
+        'secrets/bootstrapping-secrets',
         'secrets/setup-eso',
         'secrets/setup-sops',
         'secrets/manage-secrets-ui',
@@ -294,7 +253,6 @@
             'gitops-templates/params',
             'gitops-templates/supported-langs',
             'gitops-templates/create-cluster-example',
-            'gitops-templates/capd-example',
           ],
         },
         'gitops-templates/cli',
@@ -303,13 +261,23 @@
     },
     {
       type: 'category',
-      label: 'GitOpsSets',
+      label: 'Terraform',
       items: [
-        'gitopssets/intro',
-        'gitopssets/installation',
-        'gitopssets/guide',
-        'gitopssets/api-reference',
-        'gitopssets/releases'
+        'terraform/terraform-intro',
+        'terraform/get-started-terraform',
+        'terraform/using-terraform-templates',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Workspaces',
+      link: {
+        type: 'doc',
+        id: 'workspaces/intro',
+      },
+      items: [
+        'workspaces/multi-tenancy',
+        'workspaces/view-workspaces',
       ],
     }
   ],

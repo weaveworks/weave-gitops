@@ -3,13 +3,13 @@ package install
 import (
 	"context"
 	"fmt"
+	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
 	coretypes "github.com/weaveworks/weave-gitops/core/server/types"
 	"github.com/weaveworks/weave-gitops/pkg/run/constants"
@@ -23,13 +23,13 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func makeVClusterHelmRepository(namespace string) *sourcev1.HelmRepository {
-	helmRepository := &sourcev1.HelmRepository{
+func makeVClusterHelmRepository(namespace string) *sourcev1b2.HelmRepository {
+	helmRepository := &sourcev1b2.HelmRepository{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "loft-sh",
 			Namespace: namespace,
 		},
-		Spec: sourcev1.HelmRepositorySpec{
+		Spec: sourcev1b2.HelmRepositorySpec{
 			URL: "https://charts.loft.sh",
 		},
 	}
@@ -133,6 +133,7 @@ func installVCluster(kubeClient client.Client, name, namespace, fluxNamespace st
 		}
 	}
 
+	//nolint:staticcheck // deprecated, tracking issue: https://github.com/weaveworks/weave-gitops/issues/3812
 	if err := wait.Poll(2*time.Second, 5*time.Minute, func() (bool, error) {
 		instance := appsv1.StatefulSet{}
 		if err := kubeClient.Get(

@@ -93,32 +93,6 @@ jobs:
       - run: make fakes
       - name: Check that make fakes has been run
         run: git diff --no-ext-diff --exit-code
-      - uses: snyk/actions/setup@master
-      - name: Setup snyk prerequisities
-        run: |
-          npm install --global snyk-delta
-      - name: Look for new insecure dependencies or bad licenses
-        run: |
-          snyk test --org=product-engineering-ly9 --json --file=go.mod | snyk-delta
-          snyk test --org=product-engineering-ly9 --json --file=package-lock.json | snyk-delta
-          snyk test --org=product-engineering-ly9 --json --file=website/yarn.lock | snyk-delta
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
-        if: github.event_name == 'pull_request' && github.repository_owner == 'weaveworks'
-      - name: Monitor dependencies & license problems with Snyk
-        # Throw an error if the error is "snyk couldn't run".
-        # Don't throw an error on "there are vulnerabilities", those
-        # are notified separately
-        run: |
-          exit_code=0
-          snyk monitor --all-projects --org=product-engineering-ly9 || exit_code=$?
-          if [ $exit_code -gt 1 ]; then
-            exit $exit_code
-          fi
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
-        if: github.event_name == 'push'
-
 
   ci-generate-tag:
     name: CI Generate Image Tag
@@ -140,13 +114,13 @@ jobs:
           - gitops-server
     steps:
       - uses: actions/checkout@v3
-      - uses: docker/setup-buildx-action@v1
+      - uses: docker/setup-buildx-action@v2
       - name: Set build-time flags
         run: |
           echo "LDFLAGS=$(make echo-ldflags)" >> $GITHUB_ENV
           echo "FLUX_VERSION=$(make echo-flux-version)" >> $GITHUB_ENV
       - name: Build and export
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v3
         with:
           tags: "${{ env.CI_CONTAINER_REPOSITORY }}/${{ matrix.docker-image }}:${{ needs.ci-generate-tag.outputs.tag }}"
           outputs: type=docker,dest=/tmp/${{ matrix.docker-image }}.tar
@@ -178,8 +152,8 @@ jobs:
           - gitops
           - gitops-server
     steps:
-      - uses: docker/setup-buildx-action@v1
-      - uses: google-github-actions/setup-gcloud@v0
+      - uses: docker/setup-buildx-action@v2
+      - uses: google-github-actions/setup-gcloud@v1
       - name: Download cached docker image
         uses: actions/download-artifact@v3
         with:
@@ -223,7 +197,7 @@ jobs:
       run: |
         make gitops
     - name: publish to s3
-      uses: aws-actions/configure-aws-credentials@v1
+      uses: aws-actions/configure-aws-credentials@v2
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

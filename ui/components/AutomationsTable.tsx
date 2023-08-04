@@ -16,6 +16,7 @@ import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
 import SourceLink from "./SourceLink";
 import Timestamp from "./Timestamp";
+import { SourceIsVerifiedStatus } from "./VerifiedStatus";
 
 type Props = {
   className?: string;
@@ -123,6 +124,12 @@ function AutomationsTable({
         );
       },
       sortValue: (a: Automation) => getSourceRefForAutomation(a)?.name,
+    },
+    {
+      label: "Verified",
+      value: (a: Automation) => (
+        <SourceIsVerifiedStatus sourceRef={getSourceRefForAutomation(a)} />
+      ),
     },
     {
       label: "Status",

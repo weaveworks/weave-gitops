@@ -2,7 +2,7 @@ const versions = require("./versions.json");
 /** @type {import('@docusaurus/types').DocusaurusConfig} */
 module.exports = {
   title: "Weave GitOps",
-  tagline: "The official Flux expansion pack.",
+  tagline: "The Flux expansion pack from the founders of Flux",
   url: "https://docs.gitops.weave.works",
   baseUrl: "/",
   onBrokenLinks: "throw",
@@ -37,9 +37,8 @@ module.exports = {
       {
         fromExtensions: ['html', 'htm'], // /myPage.html -> /myPage
         redirects: [
-          // /docs/oldDoc -> /docs/newDoc
-          {
-            to: '/docs/getting-started/intro/',
+          { 
+            to: '/docs/intro-weave-gitops/',
             from: ['/docs/getting-started'],
           },
         ],
@@ -47,6 +46,7 @@ module.exports = {
     ],
   ],
   themeConfig: {
+    metadata: [{ name: "robots", content: "noindex, nofollow" }],
     navbar: {
       title: "Weave GitOps",
       logo: {
@@ -56,7 +56,7 @@ module.exports = {
       items: [
         {
           type: "doc",
-          docId: "intro",
+          docId: "intro-weave-gitops",
           position: "left",
           label: "Docs",
         },
@@ -80,11 +80,6 @@ module.exports = {
           to: 'security',
           label: 'Security',
           position: 'left',
-        },
-        {
-          type: "docsVersionDropdown",
-          position: "right",
-          dropdownActiveClassDisabled: true,
         },
         {
           href: "https://github.com/weaveworks/weave-gitops",
@@ -173,19 +168,12 @@ module.exports = {
       "@docusaurus/preset-classic",
       {
         docs: {
+          id: 'default',
           sidebarPath: require.resolve("./sidebars.js"),
-          // Please change this to your repo.
           editUrl: "https://github.com/weaveworks/weave-gitops/edit/main/website",
-          lastVersion: versions[0],
-          versions: {
-            current: {
-              label: "main",
-            },
-          },
         },
         blog: {
           showReadingTime: true,
-          // Please change this to your repo.
           editUrl:
             "https://github.com/weaveworks/weave-gitops/edit/main/website/blog",
         },

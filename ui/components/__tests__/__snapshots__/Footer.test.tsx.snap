@@ -161,27 +161,6 @@ exports[`Footer snapshots default 1`] = `
       <span
         class="c8"
       >
-        Flux
-        :
-      </span>
-      <div
-        class="c4"
-      />
-      <span
-        class="c9"
-      >
-        -
-      </span>
-    </div>
-    <div
-      class="c4"
-    />
-    <div
-      class="c2 Version"
-    >
-      <span
-        class="c8"
-      >
         Weave GitOps
         :
       </span>
@@ -381,27 +360,6 @@ exports[`Footer snapshots no api version 1`] = `
       <span
         class="c8"
       >
-        Flux
-        :
-      </span>
-      <div
-        class="c4"
-      />
-      <span
-        class="c9"
-      >
-        -
-      </span>
-    </div>
-    <div
-      class="c4"
-    />
-    <div
-      class="c2 Version"
-    >
-      <span
-        class="c8"
-      >
         Weave GitOps
         :
       </span>
@@ -410,7 +368,7 @@ exports[`Footer snapshots no api version 1`] = `
       />
       <a
         class="c5 Link"
-        href="https://github.com/weaveworks/weave-gitops/releases/tag/v0.24.0"
+        href="https://github.com/weaveworks/weave-gitops/releases/tag/v0.29.0"
         rel="noreferrer"
         target="_blank"
       >
@@ -421,7 +379,7 @@ exports[`Footer snapshots no api version 1`] = `
           <span
             class="c10"
           >
-            v0.24.0
+            v0.29.0
           </span>
         </span>
       </a>

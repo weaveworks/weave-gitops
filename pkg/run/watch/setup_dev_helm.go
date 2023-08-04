@@ -3,12 +3,12 @@ package watch
 import (
 	"context"
 	"fmt"
+	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"path/filepath"
 	"time"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/fluxcd/pkg/apis/meta"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/run"
 	"github.com/weaveworks/weave-gitops/pkg/run/constants"
@@ -41,7 +41,7 @@ func SetupBucketSourceAndHelm(ctx context.Context, log logger.Logger, kubeClient
 					Chart:             params.Path,
 					ReconcileStrategy: "Revision",
 					SourceRef: helmv2.CrossNamespaceObjectReference{
-						Kind: sourcev1.BucketKind,
+						Kind: sourcev1b2.BucketKind,
 						Name: constants.RunDevBucketName,
 					},
 					// relative to the root of SourceRef
@@ -116,9 +116,9 @@ func ReconcileDevBucketSourceAndHelm(ctx context.Context, log logger.Logger, kub
 			Name:      constants.RunDevBucketName,
 			Namespace: namespace,
 		}, schema.GroupVersionKind{
-			Group:   sourcev1.GroupVersion.Group,
-			Version: sourcev1.GroupVersion.Version,
-			Kind:    sourcev1.BucketKind,
+			Group:   sourcev1b2.GroupVersion.Group,
+			Version: sourcev1b2.GroupVersion.Version,
+			Kind:    sourcev1b2.BucketKind,
 		})
 	if err != nil {
 		return err
@@ -134,7 +134,7 @@ func ReconcileDevBucketSourceAndHelm(ctx context.Context, log logger.Logger, kub
 		Steps:    10,
 		Cap:      timeout,
 	}, func() (done bool, err error) {
-		devBucket := &sourcev1.Bucket{}
+		devBucket := &sourcev1b2.Bucket{}
 		if err := kubeClient.Get(ctx, types.NamespacedName{
 			Name:      constants.RunDevBucketName,
 			Namespace: namespace,
@@ -157,7 +157,7 @@ func ReconcileDevBucketSourceAndHelm(ctx context.Context, log logger.Logger, kub
 		Steps:    10,
 		Cap:      timeout,
 	}, func() (done bool, err error) {
-		devBucket := &sourcev1.Bucket{}
+		devBucket := &sourcev1b2.Bucket{}
 		if err := kubeClient.Get(ctx, types.NamespacedName{
 			Name:      constants.RunDevBucketName,
 			Namespace: namespace,

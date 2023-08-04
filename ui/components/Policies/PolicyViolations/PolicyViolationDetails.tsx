@@ -2,7 +2,6 @@ import React from "react";
 import remarkGfm from "remark-gfm";
 import { PolicyValidation } from "../../../lib/api/core/core.pb";
 import Flex from "../../Flex";
-import Link from "../../Link";
 import Text from "../../Text";
 import Timestamp from "../../Timestamp";
 
@@ -13,6 +12,7 @@ import { formatURL } from "../../../lib/nav";
 import { FluxObject } from "../../../lib/objects";
 import { V2Routes } from "../../../lib/types";
 import ClusterDashboardLink from "../../ClusterDashboardLink";
+import Link from "../../Link";
 import HeaderRows, { Header } from "../Utils/HeaderRows";
 import { MarkdownEditor } from "../Utils/MarkdownEditor";
 import Parameters from "../Utils/Parameters";
@@ -45,7 +45,6 @@ export const ViolationDetails = ({
     parameters,
     policyId,
   } = violation || {};
-
   const headers: Header[] = [
     {
       rowkey: "Policy Name",
@@ -60,6 +59,7 @@ export const ViolationDetails = ({
           {name}
         </Link>
       ),
+      value: name,
       visible: kind !== Kind.Policy,
     },
     {
@@ -69,22 +69,7 @@ export const ViolationDetails = ({
     },
     {
       rowkey: "Application",
-      children: (
-        <Link
-          to={formatURL(
-            Kind[kind] === Kind.Kustomization
-              ? V2Routes.Kustomization
-              : V2Routes.HelmRelease,
-            {
-              name: entity,
-              namespace: namespace,
-              clusterName: clusterName,
-            }
-          )}
-        >
-          {namespace}/{entity}
-        </Link>
-      ),
+      value: `${namespace}/${entity}`,
       visible: kind !== Kind.Kustomization && kind !== Kind.HelmRelease,
     },
     {

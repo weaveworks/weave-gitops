@@ -17,8 +17,8 @@ import (
 	"time"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
-	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	"github.com/fsnotify/fsnotify"
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
@@ -328,9 +328,9 @@ func fluxStep(log logger.Logger, kubeClient *kube.KubeHTTP) (fluxVersion *instal
 		}, true, nil
 	} else {
 		if guessed {
-			log.Warningf("Flux version could not be determined, assuming %s by mapping from the version of the Source controller", fluxVersion)
+			log.Warningf("Flux version could not be determined, assuming %s and namespace %s by mapping from the version of the Source controller %s", fluxVersion.FluxVersion, fluxVersion.FluxNamespace, fluxVersion.SourceControllerVersion)
 		} else {
-			log.Successf("Flux %s is already installed", fluxVersion)
+			log.Successf("Flux %s is already installed on the %s namespace.", fluxVersion.FluxVersion, fluxVersion.FluxNamespace)
 		}
 	}
 
@@ -358,6 +358,9 @@ func dashboardStep(ctx context.Context, log logger.Logger, kubeClient *kube.Kube
 	dashboardType, dashboardName, err := install.GetInstalledDashboard(ctx, kubeClient, flags.Namespace, map[install.DashboardType]bool{
 		install.DashboardTypeOSS: true, install.DashboardTypeEnterprise: true,
 	})
+	if err != nil {
+		return dashboardType, nil, "", fmt.Errorf("error getting installed dashboard: %w", err)
+	}
 
 	shouldReconcileDashboard := false
 	var dashboardManifests []byte
@@ -1042,6 +1045,7 @@ func runCommandInnerProcess(cmd *cobra.Command, args []string) error {
 							podErr error
 						)
 
+						//nolint:staticcheck // deprecated, tracking issue: https://github.com/weaveworks/weave-gitops/issues/3812
 						if pollErr := wait.PollImmediate(2*time.Second, flags.Timeout, func() (bool, error) {
 							pod, podErr = run.GetPodFromResourceDescription(thisCtx, kubeClient, namespacedName, specMap.Kind, nil)
 							if pod != nil && podErr == nil {
