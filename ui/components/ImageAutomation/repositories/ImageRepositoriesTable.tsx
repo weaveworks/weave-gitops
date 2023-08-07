@@ -20,6 +20,7 @@ const ImageRepositoriesTable = () => {
     <RequestStateHandler loading={isLoading} error={error}>
       <DataTable
         filters={initialFilterState}
+        hasCheckboxes
         rows={data?.objects}
         fields={[
           {

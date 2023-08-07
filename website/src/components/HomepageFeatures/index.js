@@ -25,7 +25,7 @@ export default function HomepageFeatures() {
           <ReactPlayer
             class={styles.reactPlayer}
             controls="true" width="100%" height="100%"
-            url="https://www.youtube.com/watch?v=2TJz7RhDtAc" />
+            url="https://www.youtube.com/watch?v=FAnUE9_Ehgo" />
         </div>
       </div>
       <div className="text--center padding-horiz--md">

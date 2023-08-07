@@ -189,6 +189,10 @@ export class GitRepository extends FluxObject {
   get reference(): GitRepositoryRef {
     return this.obj.spec?.ref || {};
   }
+
+  get isVerifiable(): boolean {
+    return Boolean(this.obj.spec.verify);
+  }
 }
 
 export class OCIRepository extends FluxObject {
@@ -210,6 +214,10 @@ export class OCIRepository extends FluxObject {
       return "";
     }
     return metadata["org.opencontainers.image.revision"] || "";
+  }
+
+  get isVerifiable(): boolean {
+    return Boolean(this.obj.spec.verify);
   }
 }
 

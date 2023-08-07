@@ -4,9 +4,12 @@ import (
 	"errors"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
-	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
+	imgautomationv1 "github.com/fluxcd/image-automation-controller/api/v1beta1"
+	reflectorv1 "github.com/fluxcd/image-reflector-controller/api/v1beta2"
+	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
 	"github.com/fluxcd/pkg/apis/meta"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1"
+	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -31,6 +34,9 @@ type SourceRef interface {
 	Namespace() string
 }
 
+// Automation objects are Kustomizations and HelmReleases.
+// These are the only object types that can be triggered
+// to be reconciled with their source.
 type Automation interface {
 	Reconcilable
 	SourceRef() SourceRef
@@ -44,16 +50,19 @@ func NewReconcileable(obj client.Object) Reconcilable {
 		return HelmReleaseAdapter{HelmRelease: o}
 	case *sourcev1.GitRepository:
 		return GitRepositoryAdapter{GitRepository: o}
-	case *sourcev1.HelmRepository:
+	case *sourcev1b2.HelmRepository:
 		return HelmRepositoryAdapter{HelmRepository: o}
-	case *sourcev1.Bucket:
+	case *sourcev1b2.Bucket:
 		return BucketAdapter{Bucket: o}
-	case *sourcev1.HelmChart:
+	case *sourcev1b2.HelmChart:
 		return HelmChartAdapter{HelmChart: o}
-	case *sourcev1.OCIRepository:
+	case *sourcev1b2.OCIRepository:
 		return OCIRepositoryAdapter{OCIRepository: o}
+	case *reflectorv1.ImageRepository:
+		return ImageRepositoryAdapter{ImageRepository: o}
+	case *imgautomationv1.ImageUpdateAutomation:
+		return ImageUpdateAutomationAdapter{ImageUpdateAutomation: o}
 	}
-
 	return nil
 }
 
@@ -82,7 +91,7 @@ func (obj GitRepositoryAdapter) DeepCopyClientObject() client.Object {
 }
 
 type BucketAdapter struct {
-	*sourcev1.Bucket
+	*sourcev1b2.Bucket
 }
 
 func (obj BucketAdapter) GetLastHandledReconcileRequest() string {
@@ -94,7 +103,7 @@ func (obj BucketAdapter) AsClientObject() client.Object {
 }
 
 func (obj BucketAdapter) GroupVersionKind() schema.GroupVersionKind {
-	return sourcev1.GroupVersion.WithKind(sourcev1.BucketKind)
+	return sourcev1b2.GroupVersion.WithKind(sourcev1b2.BucketKind)
 }
 
 func (obj BucketAdapter) SetSuspended(suspend bool) {
@@ -106,7 +115,7 @@ func (obj BucketAdapter) DeepCopyClientObject() client.Object {
 }
 
 type HelmChartAdapter struct {
-	*sourcev1.HelmChart
+	*sourcev1b2.HelmChart
 }
 
 func (obj HelmChartAdapter) GetLastHandledReconcileRequest() string {
@@ -118,7 +127,7 @@ func (obj HelmChartAdapter) AsClientObject() client.Object {
 }
 
 func (obj HelmChartAdapter) GroupVersionKind() schema.GroupVersionKind {
-	return sourcev1.GroupVersion.WithKind(sourcev1.HelmChartKind)
+	return sourcev1b2.GroupVersion.WithKind(sourcev1b2.HelmChartKind)
 }
 
 func (obj HelmChartAdapter) SetSuspended(suspend bool) {
@@ -130,7 +139,7 @@ func (obj HelmChartAdapter) DeepCopyClientObject() client.Object {
 }
 
 type HelmRepositoryAdapter struct {
-	*sourcev1.HelmRepository
+	*sourcev1b2.HelmRepository
 }
 
 func (obj HelmRepositoryAdapter) GetLastHandledReconcileRequest() string {
@@ -142,7 +151,7 @@ func (obj HelmRepositoryAdapter) AsClientObject() client.Object {
 }
 
 func (obj HelmRepositoryAdapter) GroupVersionKind() schema.GroupVersionKind {
-	return sourcev1.GroupVersion.WithKind(sourcev1.HelmRepositoryKind)
+	return sourcev1b2.GroupVersion.WithKind(sourcev1b2.HelmRepositoryKind)
 }
 
 func (obj HelmRepositoryAdapter) SetSuspended(suspend bool) {
@@ -154,7 +163,7 @@ func (obj HelmRepositoryAdapter) DeepCopyClientObject() client.Object {
 }
 
 type OCIRepositoryAdapter struct {
-	*sourcev1.OCIRepository
+	*sourcev1b2.OCIRepository
 }
 
 func (obj OCIRepositoryAdapter) GetLastHandledReconcileRequest() string {
@@ -166,7 +175,7 @@ func (obj OCIRepositoryAdapter) AsClientObject() client.Object {
 }
 
 func (obj OCIRepositoryAdapter) GroupVersionKind() schema.GroupVersionKind {
-	return sourcev1.GroupVersion.WithKind(sourcev1.OCIRepositoryKind)
+	return sourcev1b2.GroupVersion.WithKind(sourcev1b2.OCIRepositoryKind)
 }
 
 func (obj OCIRepositoryAdapter) SetSuspended(suspend bool) {
@@ -245,6 +254,54 @@ func (obj KustomizationAdapter) DeepCopyClientObject() client.Object {
 	return obj.DeepCopy()
 }
 
+type ImageRepositoryAdapter struct {
+	*reflectorv1.ImageRepository
+}
+
+func (obj ImageRepositoryAdapter) GetLastHandledReconcileRequest() string {
+	return obj.Status.GetLastHandledReconcileRequest()
+}
+
+func (obj ImageRepositoryAdapter) AsClientObject() client.Object {
+	return obj.ImageRepository
+}
+
+func (obj ImageRepositoryAdapter) GroupVersionKind() schema.GroupVersionKind {
+	return reflectorv1.GroupVersion.WithKind(reflectorv1.ImageRepositoryKind)
+}
+
+func (obj ImageRepositoryAdapter) SetSuspended(suspend bool) {
+	obj.Spec.Suspend = suspend
+}
+
+func (obj ImageRepositoryAdapter) DeepCopyClientObject() client.Object {
+	return obj.DeepCopy()
+}
+
+type ImageUpdateAutomationAdapter struct {
+	*imgautomationv1.ImageUpdateAutomation
+}
+
+func (obj ImageUpdateAutomationAdapter) GetLastHandledReconcileRequest() string {
+	return obj.Status.GetLastHandledReconcileRequest()
+}
+
+func (obj ImageUpdateAutomationAdapter) AsClientObject() client.Object {
+	return obj.ImageUpdateAutomation
+}
+
+func (obj ImageUpdateAutomationAdapter) GroupVersionKind() schema.GroupVersionKind {
+	return imgautomationv1.GroupVersion.WithKind(imgautomationv1.ImageUpdateAutomationKind)
+}
+
+func (obj ImageUpdateAutomationAdapter) SetSuspended(suspend bool) {
+	obj.Spec.Suspend = suspend
+}
+
+func (obj ImageUpdateAutomationAdapter) DeepCopyClientObject() client.Object {
+	return obj.DeepCopy()
+}
+
 type sRef struct {
 	apiVersion string
 	name       string
@@ -279,17 +336,23 @@ func ToReconcileable(kind string) (client.ObjectList, Reconcilable, error) {
 	case sourcev1.GitRepositoryKind:
 		return &sourcev1.GitRepositoryList{}, NewReconcileable(&sourcev1.GitRepository{}), nil
 
-	case sourcev1.BucketKind:
-		return &sourcev1.GitRepositoryList{}, NewReconcileable(&sourcev1.Bucket{}), nil
+	case sourcev1b2.BucketKind:
+		return &sourcev1b2.BucketList{}, NewReconcileable(&sourcev1b2.Bucket{}), nil
 
-	case sourcev1.HelmRepositoryKind:
-		return &sourcev1.GitRepositoryList{}, NewReconcileable(&sourcev1.HelmRepository{}), nil
+	case sourcev1b2.HelmRepositoryKind:
+		return &sourcev1b2.HelmRepositoryList{}, NewReconcileable(&sourcev1b2.HelmRepository{}), nil
 
-	case sourcev1.HelmChartKind:
-		return &sourcev1.GitRepositoryList{}, NewReconcileable(&sourcev1.HelmChart{}), nil
+	case sourcev1b2.HelmChartKind:
+		return &sourcev1b2.HelmChartList{}, NewReconcileable(&sourcev1b2.HelmChart{}), nil
 
-	case sourcev1.OCIRepositoryKind:
-		return &sourcev1.OCIRepositoryList{}, NewReconcileable(&sourcev1.OCIRepository{}), nil
+	case sourcev1b2.OCIRepositoryKind:
+		return &sourcev1b2.OCIRepositoryList{}, NewReconcileable(&sourcev1b2.OCIRepository{}), nil
+
+	case reflectorv1.ImageRepositoryKind:
+		return &reflectorv1.ImageRepositoryList{}, NewReconcileable(&reflectorv1.ImageRepository{}), nil
+
+	case imgautomationv1.ImageUpdateAutomationKind:
+		return &imgautomationv1.ImageUpdateAutomationList{}, NewReconcileable(&imgautomationv1.ImageUpdateAutomation{}), nil
 	}
 
 	return nil, nil, errors.New("could not find source type")

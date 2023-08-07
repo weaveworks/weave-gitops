@@ -2,23 +2,19 @@ import _ from "lodash";
 import * as React from "react";
 import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
-import { useListAutomations, useSyncFluxObject } from "../hooks/automations";
-import { useToggleSuspend } from "../hooks/flux";
+import { useListAutomations } from "../hooks/automations";
 import { Kind } from "../lib/api/core/types.pb";
 import { HelmRelease, Source } from "../lib/objects";
 import { getSourceRefForAutomation } from "../lib/utils";
 import AutomationsTable from "./AutomationsTable";
-import Button from "./Button";
-import CustomActions from "./CustomActions";
 import EventsTable from "./EventsTable";
 import Flex from "./Flex";
 import InfoList, { InfoField } from "./InfoList";
 import LoadingPage from "./LoadingPage";
 import Metadata from "./Metadata";
 import PageStatus from "./PageStatus";
-import Spacer from "./Spacer";
 import SubRouterTabs, { RouterTab } from "./SubRouterTabs";
-import SyncButton from "./SyncButton";
+import SyncActions from "./SyncActions";
 import Text from "./Text";
 import YamlView from "./YamlView";
 
@@ -32,33 +28,11 @@ type Props = {
 };
 
 function SourceDetail({ className, source, info, type, customActions }: Props) {
+  const { name, namespace, clusterName, suspended } = source;
+
   const { data: automations, isLoading: automationsLoading } =
     useListAutomations();
   const { path } = useRouteMatch();
-
-  const suspend = useToggleSuspend(
-    {
-      objects: [
-        {
-          name: source.name,
-          namespace: source.namespace,
-          clusterName: source.clusterName,
-          kind: type,
-        },
-      ],
-      suspend: !source.suspended,
-    },
-    "object"
-  );
-
-  const sync = useSyncFluxObject([
-    {
-      name: source.name,
-      namespace: source.namespace,
-      clusterName: source.clusterName,
-      kind: type,
-    },
-  ]);
 
   if (automationsLoading) {
     return <LoadingPage />;
@@ -95,22 +69,16 @@ function SourceDetail({ className, source, info, type, customActions }: Props) {
         {source.name}
       </Text>
       <PageStatus conditions={source.conditions} suspended={source.suspended} />
-      <Flex wide start>
-        <SyncButton
-          onClick={() => sync.mutateAsync({ withSource: false })}
-          loading={sync.isLoading}
-          disabled={source.suspended}
-          hideDropdown={true}
-        />
-        <Spacer padding="xs" />
-        <Button
-          onClick={() => suspend.mutateAsync()}
-          loading={suspend.isLoading}
-        >
-          {source?.suspended ? "Resume" : "Suspend"}
-        </Button>
-        <CustomActions actions={customActions} />
-      </Flex>
+      <SyncActions
+        name={name}
+        namespace={namespace}
+        clusterName={clusterName}
+        kind={type}
+        suspended={suspended}
+        wide
+        hideDropdown
+        customActions={customActions}
+      />
 
       <SubRouterTabs rootPath={`${path}/details`}>
         <RouterTab name="Details" path={`${path}/details`}>

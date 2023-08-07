@@ -35,12 +35,6 @@ function Footer({ className }: Props) {
           },
         },
         {
-          productName: "Flux",
-          appVersion: {
-            versionText: versionData.fluxVersion,
-          },
-        },
-        {
           productName: "Weave GitOps",
           appVersion: appVersion,
         },
