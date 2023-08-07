@@ -12,7 +12,7 @@ import BrowserOnly from "@docusaurus/BrowserOnly";
 
 # Managing Clusters Without Cluster API <TierLabel tiers="Enterprise" />
 
-You do **not** need Cluster API to add your Kubernetes cluster to Weave Gitops Enterprise. The only thing you need is a secret containing a valid `kubeconfig`.
+You do **not** need Cluster API to add your Kubernetes cluster to Weave GitOps Enterprise. The only thing you need is a secret containing a valid `kubeconfig`.
 
 import TOCInline from "@theme/TOCInline";
 <TOCInline />;
@@ -58,7 +58,7 @@ Here's how to create a kubeconfig secret.
 		name: impersonate-user-groups
 	subjects:
 		- kind: ServiceAccount
-			name: demo-01
+			name: wgesa
 			namespace: default
 	roleRef:
 		kind: ClusterRole
@@ -154,7 +154,13 @@ Here's how to create a kubeconfig secret.
 
 	</details>
 
-5. Obtain the cluster certificate (CA). How you do this depends on your cluster. If you're using GKE, for example, you can view the CA on the GCP Console: Cluster->Details->Endpoint->”Show cluster certificate”. You'll need to copy the contents of the certificate into the `ca.crt` file used below.
+5. Obtain the cluster certificate (CA). How you do this depends on your cluster. 
+
+- **AKS**: Visit the [Azure user docs](https://learn.microsoft.com/en-us/azure/aks/certificate-rotation) for more information.
+- **EKS**: Visit the [EKS docs](https://docs.aws.amazon.com/eks/latest/userguide/cert-signing.html) for more information.
+- **GKE**: You can view the CA on the GCP Console: Cluster->Details->Endpoint->”Show cluster certificate”.
+
+You'll need to copy the contents of the certificate into the `ca.crt` file used below.
 
 	```bash
 	CLUSTER_NAME=demo-01 \
@@ -170,7 +176,7 @@ Here's how to create a kubeconfig secret.
 	- CA_CERTIFICATE: include the path to the CA certificate file of the cluster
 	- TOKEN: add the token of the service account retrieved in the previous step
 
-7. Finally, create a secret for the generated kubeconfig:
+7. Finally, create a secret for the generated kubeconfig in the WGE management cluster:
 
 	```bash
 	kubectl create secret generic demo-01-kubeconfig \
@@ -224,9 +230,7 @@ Then update the `GITHUB_USER` variable to point to your repository
 
 To connect your cluster, you need to add some common RBAC rules into the `clusters/bases` folder. When a cluster is provisioned, by default it will reconcile all the manifests in `./clusters/<cluster-namespace>/<cluster-name>` and `./clusters/bases`.
 
-To display Applications and Sources in the UI we need to give the logged in user permissions to inspect the new cluster.
-
-Adding common RBAC rules to `./clusters/bases/rbac` is an easy way to configure this!
+To display Applications and Sources in the UI, we need to give the logged-in user permissions to inspect the new cluster. Adding common RBAC rules to `./clusters/bases/rbac` is an easy way to configure this.
 
 import WegoAdmin from "!!raw-loader!./assets/rbac/wego-admin.yaml";
 
