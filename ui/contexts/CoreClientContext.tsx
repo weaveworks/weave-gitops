@@ -43,6 +43,11 @@ export async function refreshToken() {
           redirect: location.pathname + location.search,
         })
     );
+
+    // Return a promse that does not resolve.
+    // This stops any more API requests or refreshToken requests from being
+    // made during the few seconds the browser is redirecting.
+    return new Promise<void>(() => null);
   }
 }
 
