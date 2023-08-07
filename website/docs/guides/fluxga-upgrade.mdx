@@ -67,7 +67,7 @@ If you are using a hosted Flux version, please check with your provider if they 
 Known hosted Flux providers:
 
 - EKS Anywhere
-- [Azure AKS Flux-Gitops extension](https://learn.microsoft.com/en-us/azure/azure-arc/kubernetes/extensions-release#flux-gitops)
+- [Azure AKS Flux-GitOps extension](https://learn.microsoft.com/en-us/azure/azure-arc/kubernetes/extensions-release#flux-gitops)
 
 As of writing they do not yet support the new version, so please wait before upgrading to Flux GA.
 :::
@@ -77,7 +77,7 @@ in a working state, so you can take your time to complete the migration.
 
 1. Upgrade to Flux GA on your existing leaf clusters and management clusters
 2. Upgrade to Flux GA in `ClusterBootstrapConfig`s.
-3. Upgrade to [latest Weave Gitops](https://docs.gitops.weave.works/docs/enterprise/getting-started/releases-enterprise/).
+3. Upgrade to [latest Weave GitOps](https://docs.gitops.weave.works/docs/enterprise/getting-started/releases-enterprise/).
 4. Upgrade GitopsTemplates, GitopsSets and ClusterBootstrapConfigs.
 
 ### 1. Upgrade to Flux GA on your existing leaf clusters and management clusters

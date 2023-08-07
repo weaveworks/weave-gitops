@@ -1,11 +1,13 @@
 ---
 title: Promoting applications
 hide_title: true
+toc_max_heading_level: 4
 ---
 
 import TierLabel from "./../_components/TierLabel";
 import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
+import CodeBlock from "@theme/CodeBlock";
 
 import AlphaWarning from "../_components/_alpha_warning.mdx";
 import ManualPromotionUI from "./img/manual-promotion-ui.png";
@@ -95,7 +97,7 @@ annotations:
 The Provider address can then be set as `https://promotions.example.org/pipeline-01/my-app/dev`.
 
 :::tip
-You may also use the [generic webhook provider type that supports HMAC verification](https://fluxcd.io/flux/components/notification/provider/#generic-webhook-with-hmac) to ensure incoming notifications originate from authenticated sources. 
+You may also use the [generic webhook provider type that supports HMAC verification](https://fluxcd.io/flux/components/notification/provider/#generic-webhook-with-hmac) to ensure incoming notifications originate from authenticated sources.
 :::
 
 The `address` field's URL path is comprised of 3 components again:
@@ -107,6 +109,7 @@ The `address` field's URL path is comprised of 3 components again:
 Weave GitOps Enterprise can then parse the incoming URL path to identify the pipeline resource and look up the next environment for the defined promotion action.
 
 An example Alert might look like this:
+
 
 ```yaml
 ---
@@ -130,9 +133,17 @@ Be sure to create the Provider/Alert tuple on **each of the leaf clusters
 targeted by a pipeline**.
 :::
 
-Now as soon as the `HelmRelease` on the first environment defined in the pipeline is bumped (e.g. by Flux discovering a new version in the Helm repository), an event is sent to the promotion webhook which will determine the next action based on the pipeline definition and chosen strategy. The rest of this guide describes how to setup up any of the available strategies depending on your requirements. 
+Now as soon as the `HelmRelease` on the first environment defined in the pipeline is bumped (e.g. by Flux discovering a new version in the Helm repository), an event is sent to the promotion webhook which will determine the next action based on the pipeline definition and chosen strategy. The rest of this guide describes how to setup up any of the available strategies depending on your requirements.
 
 ## Pull request
+
+:::danger
+
+Creating pull requests requires a personal access token with write access to your git repo. If the secret containing the token is compromised (and you could assume
+it as a likely scenario), it could in principle allow someone to delete your production applications.
+
+Please make sure you understand the [Security](#security) section below before taking the steps to enable automated pull requests.
+:::
 
 This section covers adding a promotion by pull request (PR) strategy, so that whenever the application defined in a pipeline
 is upgraded in one of the pipeline's environments, a PR is created that updates the manifest file setting the application version in the next environment.
@@ -140,14 +151,285 @@ is upgraded in one of the pipeline's environments, a PR is created that updates 
 The dynamic nature of GitOps deployments requires you to assist Weave GitOps a little with information on which repository hosts the manifest files,
 how to authenticate with the repository and the Git provider API, and which file hosts the version definition for each environment.
 
+### Security
+
+#### Environments and Repositories
+
+1. Use it in low-risk environments and not in production: pipelines is an alpha feature and not yet production-ready.
+2. Make sure you have considered possible attack vectors to production, and put controls in place. Some
+of these scenarios are:
+- In the case of a [monorepo](https://fluxcd.io/flux/guides/repository-structure/#monorepo): you want to ensure that a compromised token for a test cluster cannot end up doing a promotion in production, without at least a pull request review; for example, by using [Codeowners](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners).
+- In the case of [repo per environment](https://fluxcd.io/flux/guides/repository-structure/#repo-per-environment) you want to ensure that a pipeline is configured with your test environment repo URL. You also want to ensure that you have segregation of tokens per environment rather than allowing a token to access any environment repo.
+
+#### RBAC
+
+1. Only allow creation of RBAC resources from paths where compliance controls are in place. For example, do not
+allow regular users to create or update RBAC resources; or, if users must create RBAC resources, restrict them by namespace.
+
+2. Follow the principle of "Least Privilege" RBAC as explained in [Kubernetes RBAC Good Practices](https://kubernetes.io/docs/concepts/security/rbac-good-practices/), with emphasis on the following:
+
+> Assign permissions at the namespace level where possible. Use RoleBindings as opposed to ClusterRoleBindings
+> to give users rights only within a specific namespace.
+
+> Avoid providing wildcard permissions when possible, especially to all resources.
+> As Kubernetes is an extensible system, providing wildcard access gives rights not just to
+> all object types that currently exist in the cluster, but also to all object types which are created in the future.
+
+3. Prefer granting access to specific secrets, rather than granting `list` and `watch` on secrets as:
+
+> It is also important to note that list and watch access also effectively allow users to read Secret contents.
+
+#### Policy
+
+By following the guidelines above, you can have a safe initial configuration. However, given there are no deny semantics in [RBAC](https://kubernetes.io/docs/reference/access-authn-authz/rbac/#role-and-clusterrole), you need to guard future changes.
+
+> An RBAC Role or ClusterRole contains rules that represent a set of permissions.
+> Permissions are purely additive (there are no "deny" rules).
+
+You should ensure that attempts to break this contract are blocked and detected. You could achieve it
+by using Weave GitOps' [Policy capabilities](../../policy/intro/). The Policy Agent acts in two complementary modes:
+- [Admission Controller](../../policy/intro#admission-controller) protects from any attempt to create non-compliant RBAC resources that would end granting access to the secret.
+- [Audit](../../policy/intro#audit) helps you identify already existing resources that are out of compliance. For example,
+roles created before policy agent was introduced as admission controller.
+
+Once you have enabled Policy, the [Policy Library](../../policy/weave-policy-profile/) gives you a set of
+good practices policies that will help you keep pipeline secrets secure according to the previous RBAC recommendations. Deploy
+them as Kustomization based on the following example:
+
+:::tip
+In case you don't have access to the Policy Library, work with your Weaveworks Technical Account Manager (TAM) or
+Weaveworks Customer Reliability Engineer (CRE) to help with this step.
+:::
+
+```yaml
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: policy-library
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  url: https://github.com/weaveworks/policy-library.git
+  secretRef:
+    name: policy-library-github-credentials
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: rbac-secrets-good-practices
+  namespace: flux-system
+spec:
+  interval: 1m0s
+  sourceRef:
+    kind: GitRepository
+    name: policy-library
+  path: ./goodpractices/kubernetes/rbac/secrets
+  prune: true
+```
+
 :::caution
 
-Creating pull requests requires read and write access in your git repo.
-A compromised token could lead to changing the git repository and creation of legitimate looking changes/pull requests.
+Policies typically allow exclusions, to accommodate privileged workloads like Flux. You can manage them via [PolicyConfig](https://docs.gitops.weave.works/docs/policy/policy-configuration/).
+For example, in order to allow Flux you could use the following `PolicyConfig`:
 
-Ensure you understand and adopt [security recommendations](./#security-recommendations) before using the feature.
+```yaml
+apiVersion: pac.weave.works/v2beta2
+kind: PolicyConfig
+metadata:
+  name: allow-flux
+spec:
+  match:
+    apps:
+      - kind: Kustomization
+        name: flux-system
+        namespace: flux-system
+  config:
+    weave.templates.rbac-prohibit-wildcards-policyrule-resources:
+      parameters:
+        exclude_label_key: "app.kubernetes.io/part-of"
+        exclude_label_value: "flux"
+    weave.templates.rbac-prohibit-wildcards-policyrule-verbs:
+      parameters:
+        exclude_label_key: "app.kubernetes.io/part-of"
+        exclude_label_value: "flux"
+    weave.policies.rbac-prohibit-list-secrets:
+      parameters:
+        exclude_label_key: "app.kubernetes.io/part-of"
+        exclude_label_value: "flux"
+    weave.policies.rbac-prohibit-watch-secrets:
+      parameters:
+        exclude_label_key: "app.kubernetes.io/part-of"
+        exclude_label_value: "flux"
+    weave.policies.rbac-prohibit-wildcard-secrets:
+      parameters:
+        exclude_label_key: "app.kubernetes.io/part-of"
+        exclude_label_value: "flux"
+```
 
+Remind not allowing users to create RBAC resources without compliance checks. Otherwise, they could create RBAC resources that could escape this runtime control.
 :::
+
+In addition to guarding against privilege escalation via RBAC, you should guard against privilege escalation [through workloads](https://kubernetes.io/docs/concepts/security/rbac-good-practices/#workload-creation):
+
+> Permission to create workloads (either Pods, or workload resources that manage Pods) in a namespace implicitly grants access
+> to many other resources in that namespace, such as Secrets, ConfigMaps, and PersistentVolumes that can be mounted in Pods
+
+You could do that by creating pipeline namespaces to hold the Pipeline and its Secret, without permission to run workloads. You
+could enforce the latter one by using the Policy [Containers Should Not Run In Namespace](https://github.com/weaveworks/policy-library/blob/main/policies/ControllerProhibitNamespace/policy.yaml)
+from the Policy Library and [PolicyConfig](https://docs.gitops.weave.works/docs/policy/policy-configuration/) as follows:
+
+:::tip
+Update updates when onboarding a new pipeline. Consider using Weave Gitops self-service capabilities
+[GitOps Templates](https://docs.gitops.weave.works/docs/gitops-templates/intro/) or [GitOpsSets](https://docs.gitops.weave.works/docs/gitopssets/intro/)
+to help you with the task.
+:::
+
+```yaml
+apiVersion: pac.weave.works/v2beta2
+kind: PolicyConfig
+metadata:
+  name: reject-workloads-pipeline-namespace
+spec:
+  match:
+    namespaces:
+      - podinfo
+  config:
+    weave.policies.containers-should-not-run-in-namespace:
+      parameters:
+        custom_namespace: "podinfo"
+```
+
+#### Service Account
+
+To enable the Pipeline Controller to read the secret, we need to grant access via RBAC. The promotion credentials
+secret needs to be in the same namespace as the `Pipeline` resource on the management cluster. You should create a `RoleBinding`
+for the Pipeline Controller `ServiceAccount` in the pipeline namespace. For a pipeline in namespace `podinfo`, it would look like
+the following:
+
+```yaml
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: read-app-promotion-credentials
+  namespace: podinfo # change for the pipeline namespace
+rules:
+  - apiGroups:
+      - ""
+    resourceNames:
+      - "app-promotion-credentials" # change for the secret name holding the pull requests secret
+    resources:
+      - "secrets"
+    verbs:
+      - "get"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pipeline-controller-read-app-promotion-credentials
+  namespace: podinfo
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: read-app-promotion-credentials
+subjects:
+  - kind: ServiceAccount
+    name: chart-pipeline-controller # change in case pipeline controller service account has a different name in your context
+    namespace: flux-system
+```
+
+#### Verify Security Context
+
+Use [pipeline promotions security](https://github.com/weaveworks/weave-gitops-quickstart/tree/main/pipelines-promotions-security)
+to verify that your environments meets the security context described earlier.
+
+Once deployed you could see how the different resources are being rejected. See those rejections in the Violations UI:
+
+![privilege escalation blocked](img/pipeline-security-violations.png)
+
+In addition, verify that the Pipeline controller can only get the secret by the following tests:
+
+List access is denied:
+
+```bash
+$ kubectl get secret -n podinfo  --as=system:serviceaccount:flux-system:chart-pipeline-controller
+
+Error from server (Forbidden): secrets is forbidden: User "system:serviceaccount:flux-system:chart-pipeline-controller" cannot list resource "secrets" in API group "" in the namespace "podinfo"
+```
+
+Get access is allowed:
+
+```bash
+$ kubectl get secret -n podinfo  --as=system:serviceaccount:flux-system:chart-pipeline-controller app-promotion-credentials
+
+NAME                        TYPE     DATA   AGE
+app-promotion-credentials   Opaque   1      21m
+```
+
+#### Tokens
+
+1. **Create a user account for pull request changes**: this user context would be used to do any git provider operation,
+and from the security and auditing perspectives, you don't want to impersonate a real user for it.
+
+<details><summary>Expand to see example</summary>
+
+![using bot account](img/bot-account.png)
+</details>
+
+2. **Do not use long-live tokens**: set an expiration date and rotate them according to your security policy.
+
+<details><summary>Expand to see example</summary>
+
+![create token with expiration](img/create-token-with-expiration.png)
+</details>
+
+3. **Honour the least privilege principle**: avoid having high privilege tokens. Restrict the token to your just your repo and to just the operations required.
+
+<details><summary>Expand to see example</summary>
+
+For example, if the case of GitHub, use [fine-grained tokens](https://github.blog/2022-10-18-introducing-fine-grained-personal-access-tokens-for-github/) to only
+allow access to the single repo that your configuration manifests exist.
+
+![create least privileged token](img/fine-grained-token.png)
+ </details>
+
+4. **Review the tokens on a regular basis following your git provider recommendations**. Ensure that:
+    - Only the ones that are required are present.
+    - Tokens close to their expiration date are cycled.
+
+<details><summary>Expand to see example</summary>
+
+For example, using github and fine-grained tokens you [could do so](https://github.blog/2022-10-18-introducing-fine-grained-personal-access-tokens-for-github/#approving-and-auditing-personal-access-tokens).
+
+![review tokens](img/manage-fine-grained.png)
+</details>
+
+5. **Review git provider recommendations and examples**
+- [GitHub](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token)
+- [GitLab](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html)
+
+
+### Add markers to app manifests
+
+The discovery of the version field is done using deterministic markers in a YAML manifest file. An example `HelmRelease` manifest with such a marker looks like this:
+
+```yaml {7}
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+spec:
+  chart:
+    spec:
+      version: 0.13.7 # {"$promotion": "pipeline-01:my-app:prod"}
+```
+
+The value of the `$promotion` field in the comment is comprised of 3 components separated by colons:
+
+1. The first field is the Namespace of the pipeline resource that the app is part of. In the example above this is `pipeline-01`.
+1. The second field denotes the name of the pipeline resource.
+1. The third field is the name of the environment that this specific HelmRelease targets. The environment name in the marker needs to match with the `name` field of one of the environments defined in the pipeline's `.spec.environments` array.
+
+Weave GitOps Enterprise will look for this marker whenever it receives an event from the respective HelmRelease of one of the leaf clusters and patch the file with the version denoted in the event (see the section above for instructions on setting up notification events from leaf clusters). Finally, it will create a Git provider PR to update the version of the application for the next environment in the pipeline.
 
 ### Supported Git Providers
 The following Git providers are currently support by this promotion strategy:
@@ -175,7 +457,7 @@ More info in the [spec](../spec/v1alpha1/pipeline/#pipeline).
 
 In the journey of creating a pull request, there are different secrets involved:
 
-1. Pipeline controller receives events via [webhook from leaf clusters](./#setup-notifications-from-leaf-clusters). Hmac is used for authN/authZ so an hmac key should be provided in this case.
+1. Pipeline controller receives events via [webhook from leaf clusters](./#setup-notifications-from-leaf-clusters). An [HMAC](https://en.wikipedia.org/wiki/HMAC) is used for verification so a shared key should be provided in this case.
 2. Pipeline controller clones and patches manifests to promote from the pipeline configuration repo. A set of [git credentials](https://fluxcd.io/flux/components/source/gitrepositories/#secret-reference) are required.
 3. Pipeline controller uses git provider api to create the pull request with the promoted manifests. A Personal Access Token (PAT) needs to be created to interact with pipelines git provider API. This PAT is also used to list pull requests from the configured repository.
 
@@ -224,118 +506,12 @@ If using the `generic-hmac` Provider from leaf clusters, also set the `.spec.pro
 
 More info in the [spec](../spec/v1alpha1/pipeline/#pipeline)
 
-### Security Recommendations
-
-:::tip
-
-Adopt as much of the recommendations in this section to reduce the risks associated with the secrets involved in pull requests.
-
-:::
-
-1. **Create a user account for pull request changes**: this user context would be used to do any git provider operation,
-and for security and auditing perspective, you don't want to impersonate a real user for it.
-
-<details><summary>Expand to see example</summary>
-
-![using bot account](img/bot-account.png)
-</details>
-
-2. **Restrict access to the secret**: the promotion credentials needs to reside in the same Namespace as the Pipeline resource on the management cluster. Restrict
-via RBAC that only `pipeline-controller` service account is able to read it.
-
-<details><summary>Expand to see example</summary>
-
-```yaml
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: read-app-promotion-credentials
-  namespace: app
-rules:
-  - apiGroups:
-      - ""
-    resourceNames:
-      - "app-promotion-credentials"
-    resources:
-      - "secrets"
-    verbs:
-      - "get"
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: pipeline-controller-read-app-promotion-credentials
-  namespace: app
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: read-app-promotion-credentials
-subjects:
-  - kind: ServiceAccount
-    name: pipeline-controller
-    namespace: pipeline-system
-```
-</details>
-
-3. **Do not use long-live tokens**: set an expiration date and rotate them according to your security policy.
-
-<details><summary>Expand to see example</summary>
-
-![create token with expiration](img/create-token-with-expiration.png)
-</details>
-
-4. **Honour the least privilege principle**: avoid having high privilege tokens. Restrict the token to your just your repo and to just the operations required.
-
-<details><summary>Expand to see example</summary>
-
-For example, if the case of GitHub, use [fine-grained tokens](https://github.blog/2022-10-18-introducing-fine-grained-personal-access-tokens-for-github/) to only
-allow access to the single repo that your configuration manifests exist.
-
-![create token least priviledge](img/fine-grained-token.png)
- </details>
-
-5. **Review active access tokens on a regular basis**: to ensure that only the ones that are required are present at all times.
-
-<details><summary>Expand to see example</summary>
-
-For example, using github and fine-grained tokens you [could do so](https://github.blog/2022-10-18-introducing-fine-grained-personal-access-tokens-for-github/#approving-and-auditing-personal-access-tokens).
-
-![review tokens](img/manage-fine-grained.png)
-</details>
-
-6. **Review git provider recommendations and examples**
-- [GitHub](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token)
-- [GitLab](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html)
-
-
-### Add markers to app manifests
-
-The discovery of the version field is done using deterministic markers in a YAML manifest file. An example `HelmRelease` manifest with such a marker looks like this:
-
-```yaml {7}
----
-apiVersion: helm.toolkit.fluxcd.io/v2beta1
-kind: HelmRelease
-spec:
-  chart:
-    spec:
-      version: 0.13.7 # {"$promotion": "pipeline-01:my-app:prod"}
-```
-
-The value of the `$promotion` field in the comment is comprised of 3 components separated by colons:
-
-1. The first field is the Namespace of the pipeline resource that the app is part of. In the example above this is `pipeline-01`.
-1. The second field denotes the name of the pipeline resource.
-1. The third field is the name of the environment that this specific HelmRelease targets. The environment name in the marker needs to match with the `name` field of one of the environments defined in the pipeline's `.spec.environments` array.
-
-Weave GitOps Enterprise will look for this marker whenever it receives an event from the respective HelmRelease of one of the leaf clusters and patch the file with the version denoted in the event (see the section above for instructions on setting up notification events from leaf clusters). Finally, it will create a Git provider PR to update the version of the application for the next environment in the pipeline.
 
 ## Notification
 
 This section explains how to configure pipelines to work with external CI systems that are responsible for application promotions.
 
-This strategy uses the notification controller running on the management cluster, to forward any notifications received by the promotion webhook, from leaf clusters to external CI systems. This requires to [patch](https://fluxcd.io/flux/cheatsheets/bootstrap/#enable-notifications-for-third-party-controllers) the Flux manifests of the management cluster, in order to allow objects of type `Pipeline` to be used as event sources. An example of a patch applied to enable this is shown below: 
+This strategy uses the notification controller running on the management cluster, to forward any notifications received by the promotion webhook, from leaf clusters to external CI systems. This requires to [patch](https://fluxcd.io/flux/cheatsheets/bootstrap/#enable-notifications-for-third-party-controllers) the Flux manifests of the management cluster, in order to allow objects of type `Pipeline` to be used as event sources. An example of a patch applied to enable this is shown below:
 
 ```yaml
 ---
@@ -354,7 +530,7 @@ patches:
     name:  alerts.notification.toolkit.fluxcd.io
 ```
 
-You can now create Provider/Alert resources on the management cluster to forward notifications to external systems. For example, the Provider resource shown below is used to invoke a GitHub Actions workflow on a repository: 
+You can now create Provider/Alert resources on the management cluster to forward notifications to external systems. For example, the Provider resource shown below is used to invoke a GitHub Actions workflow on a repository:
 ```yaml
 ---
 apiVersion: notification.toolkit.fluxcd.io/v1beta1
@@ -423,7 +599,7 @@ spec:
         url: https://github.com/my-org/my-app-repo
         baseBranch: main
         secretRef:
-          name: promotion-credentials              
+          name: promotion-credentials
 ```
 
 </details>
