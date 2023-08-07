@@ -75,6 +75,8 @@ type Options struct {
 	EnableMetrics  bool
 	MetricsAddress string
 
+	ClusterName string
+
 	UseK8sCachedClients bool
 }
 
@@ -98,6 +100,7 @@ func NewCommand() *cobra.Command {
 	cmd.Flags().StringVar(&options.NotificationControllerAddress, "notification-controller-address", "", "the address of the notification-controller running in the cluster")
 	cmd.Flags().StringVar(&options.Path, "path", "", "Path url")
 	cmd.Flags().StringVar(&options.Port, "port", server.DefaultPort, "UI port")
+	cmd.Flags().StringVar(&options.ClusterName, "cluster-name", cluster.DefaultCluster, "Internal name of the cluster")
 	cmd.Flags().StringSliceVar(&options.AuthMethods, "auth-methods", auth.DefaultAuthMethodStrings(), fmt.Sprintf("Which auth methods to use, valid values are %s", strings.Join(auth.DefaultAuthMethodStrings(), ",")))
 	cmd.Flags().BoolVar(&options.UseK8sCachedClients, "use-k8s-cached-clients", false, "Enables the use of cached clients")
 	//  TLS
@@ -206,7 +209,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		oidcPrefixes.GroupsPrefix = authServer.AuthConfig.OIDCConfig.GroupsPrefix
 	}
 
-	cl, err := cluster.NewSingleCluster(cluster.DefaultCluster, rest, scheme, oidcPrefixes, cluster.DefaultKubeConfigOptions...)
+	cl, err := cluster.NewSingleCluster(options.ClusterName, rest, scheme, oidcPrefixes, cluster.DefaultKubeConfigOptions...)
 	if err != nil {
 		return fmt.Errorf("failed to create cluster client; %w", err)
 	}

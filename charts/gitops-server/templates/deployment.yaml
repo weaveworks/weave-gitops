@@ -59,6 +59,9 @@ spec:
             - "--enable-metrics"
             - "--metrics-address=:{{ .Values.metrics.service.port }}"
             {{- end }}
+          {{- if .Values.clusterName }}
+            - "--cluster-name={{ .Values.clusterName }}"
+          {{- end }}
           {{- with .Values.additionalArgs }}
             {{- range . }}
             - {{ . | quote }}

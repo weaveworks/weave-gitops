@@ -194,3 +194,7 @@ metrics:
       prometheus.io/scrape: "true"
       prometheus.io/path: "/metrics"
       prometheus.io/port: "{{ .Values.metrics.service.port }}"
+
+# You do not need to set this unless you want to change the name that this
+# cluster responds to.  The default is Default.
+# clusterName: Default
