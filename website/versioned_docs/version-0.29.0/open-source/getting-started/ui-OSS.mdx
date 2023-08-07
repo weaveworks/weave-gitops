@@ -37,8 +37,8 @@ First, expose the service running on the cluster with this command:
    kubectl port-forward svc/ww-gitops-weave-gitops -n flux-system 9001:9001
    ```
 
-Next, [open the dashboard](http://localhost:9001/) and login using either the [emergency cluster user](../../configuration/emergency-user.mdx)
-	or OIDC, based on your [configuration](../../configuration/securing-access-to-the-dashboard.mdx).
+Next, [open the dashboard](http://localhost:9001/) and login using either the [emergency cluster user](../../enterprise/getting-started/install-enterprise.mdx#configuring-the-emergency-user)
+	or OIDC, based on your [configuration](../../enterprise/getting-started/install-enterprise.mdx#securing-access-to-the-dashboard)/.
 	If you followed the example above, the emergency user will be configured with the username set to `admin`. This means that you can use “admin” as your user name, and the password that you set earlier during installation as `$PASSWORD`.
 
    ![Weave GitOps login screen](/img/dashboard-login.png)
