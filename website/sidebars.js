@@ -42,36 +42,17 @@
             'enterprise/getting-started/install-enterprise',
             'enterprise/getting-started/install-enterprise-airgap',
             'enterprise/getting-started/releases-enterprise',
-          ],
-        },
+            'enterprise/getting-started/install-enterprise-azure',
+            'enterprise/getting-started/join-cluster-azure-flux',
+            'enterprise/getting-started/deploying-capa-eks',
+            'enterprise/getting-started/management-cluster-setup-eks-capa',
+            ],
+          },
         {
             type: 'link',
             label: 'Version Archives',
             href: '/archives',
         },
-      ],
-    },
-    {
-      type: 'category',
-      label: 'Access Configuration',
-      items: [
-        'configuration/recommended-rbac-configuration',
-        {
-          type: 'category',
-          label: 'Securing Access to the Dashboard',
-          collapsed: false,
-          link: {
-            type: 'doc',
-            id:'configuration/securing-access-to-the-dashboard',
-          },
-          items: [
-            'configuration/oidc-access',
-            'configuration/emergency-user',
-          ],
-        },
-        'configuration/service-account-permissions',
-        'configuration/user-permissions',
-        'configuration/tls',
       ],
     },
     {
@@ -83,7 +64,6 @@
       },
       items: [
         'cluster-management/managing-clusters-without-capi',
-        'cluster-management/deploying-capa-eks',
         'cluster-management/profiles',
         'cluster-management/cluster-management-troubleshooting',
         {
@@ -135,8 +115,6 @@
       type: 'category',
       label: 'Guides',
       items: [
-        'guides/setting-up-dex',
-        'guides/cert-manager',
         'guides/displaying-custom-metadata',
         'guides/fluxga-upgrade',
       ],
