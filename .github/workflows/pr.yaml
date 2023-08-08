@@ -28,3 +28,12 @@ jobs:
         with:
           go-version: ${{ matrix.go-version }}
       - run: make check-format
+
+  finish-ci-pr:
+    name: PR CI Pipeline
+    runs-on: ubuntu-latest
+    needs:
+      - ci-static
+    if: github.event_name != 'push'
+    steps:
+      - run: echo "All done"
