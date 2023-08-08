@@ -7,7 +7,7 @@ on:
 
 jobs:
   release-not-required:
-    if: !startsWith(github.event.pull_request.head.ref, 'releases/')
+    if: ${{ !startsWith(github.event.pull_request.head.ref, 'releases/') }}
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.release-version.outputs.version }}
