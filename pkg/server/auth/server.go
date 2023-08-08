@@ -502,6 +502,23 @@ func (s *AuthServer) UserInfo(rw http.ResponseWriter, r *http.Request) {
 	toJSON(rw, ui, s.Log)
 }
 
+func (s *AuthServer) RefreshHandler(rw http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		s.Log.Info("Only POST requests allowed")
+		rw.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	_, err := s.Refresh(rw, r)
+	if err != nil {
+		s.Log.V(logger.LogLevelWarn).Info("refreshing token failed", "err", err)
+		JSONError(s.Log, rw, "failed to refresh", http.StatusUnauthorized)
+		return
+	}
+
+	rw.WriteHeader(http.StatusOK)
+}
+
 // Refresh is used to refresh the access token and id token. It updates the cookies on the response
 // with the new tokens. It returns the new user principal.
 func (s *AuthServer) Refresh(rw http.ResponseWriter, r *http.Request) (*UserPrincipal, error) {
