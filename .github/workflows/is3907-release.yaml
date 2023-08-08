@@ -1,9 +1,13 @@
 name: is3907release
 
 on:
-  pull_request_review:
-    types:
-      - submitted
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
 
 jobs:
   release-not-required:
@@ -21,3 +25,31 @@ jobs:
         run: |
           version=$(echo ${{ github.event.pull_request.head.ref }} | cut -d'/' -f2)
           echo "::set-output name=version::$version"
+
+  release:
+    if: ${{ startsWith(github.event.pull_request.head.ref, 'releases/') }}
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.release-version.outputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Find release version
+        id: release-version
+        run: |
+          version=$(echo ${{ github.event.pull_request.head.ref }} | cut -d'/' -f2)
+          echo "::set-output name=version::$version"
+      - name: Wait on release status check
+        run: |
+          curl --request POST \
+            --url https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }} \
+            --header 'authorization: Bearer ${{ secrets.WEAVE_GITOPS_BOT_ACCESS_TOKEN }}' \
+            --header 'content-type: application/json' \
+            --data '{
+                "state":"success",
+                "target_url":"https://example.com/build/status",
+                "description":"The build succeeded!",
+                "context":"continuous-integration/jenkins"
+              }'

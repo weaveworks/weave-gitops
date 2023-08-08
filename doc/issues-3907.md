@@ -36,27 +36,32 @@ Therefore, an attempt to merge a release would be blocked until the release does
 Acceptance for this solution
 
 ```gherkin
-
-Feature:
-  Scenario: can build non-release branches without changing the flow nor overhead
+Feature: can build non-release branches without changing the flow nor overhead
+  Scenario: current flow  
     Given a non release pr
     When build
     Then CI workflow  passes
-    And Release process build passes
-    Then I could merge
+    And I could merge
+```
 
-  Scenario: can build release branches with guardrails
+
+```gherkin
+Feature: can build release branches with guardrails
+
+  Scenario: add a check to the PR that only gets passed when release goes on 
     Given a release pr
+    And CI build check preventing merging
+    And Release check preventing merging
     When build
-    Then CI workflow  passes
-    And cannot merge it
+    Then CI workflow passes so CI build check passes
+    And cannot merge it cause release hasnt happened
     When human approves it
     Then release process starts
-    And cannot merge it
-    When release process ends
+    And cannot merge it cause release hasnt happened
+    When release process ends so release check passes
     Then can merge it
 ```
-**Scenario: can build non-release branches without changing the flow nor overhead**
+
 
 
 
