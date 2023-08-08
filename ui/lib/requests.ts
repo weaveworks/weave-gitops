@@ -7,19 +7,18 @@ export class TokenRefreshWrapper {
   private static refreshPromise: Promise<void> | null = null;
   private static refreshTokenFn: () => Promise<void>;
 
-  static wrap(service: any, refreshTokenFn: () => Promise<void>) {
+  static wrap(api: any, refreshTokenFn: () => Promise<void>) {
     this.refreshTokenFn = refreshTokenFn;
-    return new Proxy(service, {
-      get: (target, propKey) => {
-        const origMethod = target[propKey];
-        if (typeof origMethod === "function") {
-          return (...args: any[]) => {
-            return this.makeRequest(origMethod.bind(target, ...args));
-          };
-        }
-        return target[propKey];
-      },
-    });
+
+    const wrapped: any = {};
+    for (const method of Object.getOwnPropertyNames(api)) {
+      if (typeof api[method] != "function") {
+        continue;
+      }
+      wrapped[method] = (req: any, initReq: any) =>
+        this.makeRequest(() => api[method](req, initReq));
+    }
+    return wrapped;
   }
 
   private static getOrInitiateRefresh(): Promise<void> {
