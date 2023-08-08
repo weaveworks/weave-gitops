@@ -1,4 +1,4 @@
-name: is3907-release
+name: is3907release
 
 on:
   pull_request_review:
