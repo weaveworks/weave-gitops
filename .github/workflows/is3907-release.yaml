@@ -1,0 +1,23 @@
+name: is3907-release
+
+on:
+  pull_request_review:
+    types:
+      - submitted
+
+jobs:
+  release-not-required:
+    if: !startsWith(github.event.pull_request.head.ref, 'releases/')
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.release-version.outputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Find release version
+        id: release-version
+        run: |
+          version=$(echo ${{ github.event.pull_request.head.ref }} | cut -d'/' -f2)
+          echo "::set-output name=version::$version"

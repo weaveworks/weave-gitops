@@ -56,7 +56,10 @@ Feature:
     When release process ends
     Then can merge it
 ```
-**Scenario A: non release PR**
+**Scenario: can build non-release branches without changing the flow nor overhead**
+
+
+
 
 
 **Scenario B:  release PR**
