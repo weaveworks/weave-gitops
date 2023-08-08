@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 )
@@ -22,7 +21,7 @@ const (
 )
 
 func (cs *coreServer) getKubeVersion(ctx context.Context) (string, error) {
-	dc, err := cs.clustersManager.GetImpersonatedDiscoveryClient(ctx, auth.Principal(ctx), cluster.DefaultCluster)
+	dc, err := cs.clustersManager.GetImpersonatedDiscoveryClient(ctx, auth.Principal(ctx), cs.ClusterName)
 	if err != nil {
 		return "", fmt.Errorf("error creating discovery client: %w", err)
 	}

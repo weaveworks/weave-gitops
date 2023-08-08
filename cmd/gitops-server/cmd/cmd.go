@@ -152,7 +152,6 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	assetFS := getAssets()
 	assetHandler := http.FileServer(http.FS(assetFS))
 	redirector := createRedirector(assetFS, log)
-	clusterName := kube.InClusterConfigClusterName()
 
 	rest, err := config.GetConfig()
 	if err != nil {
@@ -209,6 +208,8 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		oidcPrefixes.GroupsPrefix = authServer.AuthConfig.OIDCConfig.GroupsPrefix
 	}
 
+	log.Info("Single cluster", "name", options.ClusterName)
+
 	cl, err := cluster.NewSingleCluster(options.ClusterName, rest, scheme, oidcPrefixes, cluster.DefaultKubeConfigOptions...)
 	if err != nil {
 		return fmt.Errorf("failed to create cluster client; %w", err)
@@ -236,7 +237,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	healthChecker := health.NewHealthChecker()
 
-	coreConfig, err := core.NewCoreConfig(log, rest, clusterName, clustersManager, healthChecker)
+	coreConfig, err := core.NewCoreConfig(log, rest, options.ClusterName, clustersManager, healthChecker)
 	if err != nil {
 		return fmt.Errorf("could not create core config: %w", err)
 	}

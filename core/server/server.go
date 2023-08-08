@@ -38,12 +38,13 @@ type coreServer struct {
 	primaryKinds    *PrimaryKinds
 	crd             crd.Fetcher
 	healthChecker   health.HealthChecker
+	ClusterName     string
 }
 
 type CoreServerConfig struct {
-	log             logr.Logger
+	Log             logr.Logger
 	RestCfg         *rest.Config
-	clusterName     string
+	ClusterName     string
 	NSAccess        nsaccess.Checker
 	ClustersManager clustersmngr.ClustersManager
 	PrimaryKinds    *PrimaryKinds
@@ -58,9 +59,9 @@ func NewCoreConfig(log logr.Logger, cfg *rest.Config, clusterName string, cluste
 	}
 
 	return CoreServerConfig{
-		log:             log.WithName("core-server"),
+		Log:             log.WithName("core-server"),
 		RestCfg:         cfg,
-		clusterName:     clusterName,
+		ClusterName:     clusterName,
 		NSAccess:        nsaccess.NewChecker(nsaccess.DefautltWegoAppRules),
 		ClustersManager: clustersManager,
 		PrimaryKinds:    kinds,
@@ -70,15 +71,16 @@ func NewCoreConfig(log logr.Logger, cfg *rest.Config, clusterName string, cluste
 
 func NewCoreServer(cfg CoreServerConfig) (pb.CoreServer, error) {
 	if cfg.CRDService == nil {
-		cfg.CRDService = crd.NewFetcher(cfg.log, cfg.ClustersManager)
+		cfg.CRDService = crd.NewFetcher(cfg.Log, cfg.ClustersManager)
 	}
 
 	return &coreServer{
-		logger:          cfg.log,
+		logger:          cfg.Log,
 		nsChecker:       cfg.NSAccess,
 		clustersManager: cfg.ClustersManager,
 		primaryKinds:    cfg.PrimaryKinds,
 		crd:             cfg.CRDService,
 		healthChecker:   cfg.HealthChecker,
+		ClusterName:     cfg.ClusterName,
 	}, nil
 }
