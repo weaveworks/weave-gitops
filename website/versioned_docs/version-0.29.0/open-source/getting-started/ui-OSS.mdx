@@ -50,13 +50,19 @@ Upon login you're taken to the Applications view, which allows you to quickly un
 ![Applications summary view showing Flux System and Weave GitOps deployments](/img/dashboard-applications-overview.png)
 
 In the above screenshot you can see:
--  a `Kustomization` called `flux-system`. This was created when Flux was bootstrapped onto the cluster, and deploys the [GitOps Toolkit controllers](https://fluxcd.io/flux/components/). It also deploys other Flux objects defined in the same repo, so that Flux will deploy additional workloads—including our [Helm Chart for Weave GitOps](https://docs.gitops.weave.works/docs/references/helm-reference/).
-- a `HelmRelease` called `ww-gitops`, which deploys the Helm Chart.
+- two `Kustomizations` called `podinfo` and `canaries` corresponding to the applications with the same names. The source referenced by `podinfo` is `shipping-service-podinfo` which has been verified whereas the one referenced by `canaries` does not have verification set up.
+- three `HelmReleases` called `weave-gitops-enterprise`, `tf-controller` and `podinfo` which deploys the respective Helm Charts.
 
-The table view shows you the reported status so you can understand whether a reconciliation has been successful, and when it was last updated. You can also see where the Flux objects are deployed, and which `Source` object they are reconciling from. Clicking the name of the Source will take you to a detail view for the given Source object. The view automatically updates every few seconds so you know the current state of your system.
+The table view shows you the reported status so you can understand whether a reconciliation has been successful, and when it was last updated. You can also see where the Flux objects are deployed, which `Source` object they are reconciling from and whether or not that `Source` is verified (this requires verification to have been set up for the source). Clicking the name of the Source will take you to a detail view for the given Source object. The view automatically updates every few seconds so you know the current state of your system.
 
 :::tip
 For more information about Sources, please take a look at the [Flux documentation](https://fluxcd.io/flux/concepts/#sources).
+
+For information on Source verification, you can check:
+- [Flux documentation - GitRepository verification](https://fluxcd.io/flux/components/source/gitrepositories/#verification)
+- [Flux documentation - OCIRepository verification](https://fluxcd.io/flux/components/source/ocirepositories/#verification)
+
+If verification is not set up for the repository, this will appear blank in the UI.
 :::
 
 More actions you can take:
@@ -100,11 +106,13 @@ In the left-hand menu of the UI, click on the Sources view. This will show you w
 ![Sources summary view showing Flux System and Weave GitOps sources](/img/dashboard-sources.png)
 
 In the above screenshot you can see:
-- a `GitRepository` called `flux-system`, which was created when Flux was bootstrapped onto the cluster. It contains the manifests for the GitOps Toolkit and Weave GitOps, and also various Flux objects.
-- a `HelmChart` called `flux-system-ww-gitops`. This is automatically created by Flux when you define a `HelmRelease` to deploy a Helm Chart from a given source.
-- a `HelmRepository` called `ww-gitops`. This pulls from the Helm Repository where the Weave GitOps Helm Chart is published.
+- a `GitRepository` called `shipping-service-podinfo`
+- an `OCIRepository` called `podinfo-oci`
+
+These have both had verification set up on them which has been completed successfully.
 
 The Sources table view displays information about status so that you can see whether Flux has been able to successfully pull from a given source, and which specific commit was last detected. It shows you key information like the `Interval`—namely, how frequently Flux will check for updates in a given source location.
+You can also see whether or not that source is verified (if this is something that you have set up for the specific source).
 
 Actions you can take:
 * Apply filtering as you did the Applications view.
