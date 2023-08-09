@@ -65,7 +65,7 @@ When multiple Profiles are specified in an API call, with layers in the API requ
 
 The scope of the `dependsOn` calculation is limited to the set of Profiles in the API call.
 
-If only one chart is being installed, obviously no `dependsOn` is configured.
+If only one chart is being installed, no `dependsOn` is configured.
 
 If several charts are installed in the same layer, then the preceeding layer charts will be configured to depend on _all_ the charts in the succeeding layer.
 ```

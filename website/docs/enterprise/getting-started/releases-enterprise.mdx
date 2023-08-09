@@ -10,6 +10,82 @@ import TierLabel from "../../_components/TierLabel";
 This page details the changes for Weave GitOps Enterprise and its associated components. For Weave GitOps OSS - please see the release notes on [GitHub](https://github.com/weaveworks/weave-gitops/releases).
 :::
 
+
+## v0.29.1
+2023-08-04
+
+:::caution
+
+This release builds upon Weave Gitops v0.29.0 that has breaking changes from Flux v2.0.0. Please make
+sure that you read [these release notes](#v0290).
+
+:::
+
+### Dependency versions
+- flux >v2.0.0
+- weave-gitops v0.29.0
+- cluster-controller v1.5.2
+- cluster-bootstrap-controller v0.6.0
+- templates-controller v0.3.0
+- (optional) pipeline-controller v0.21.0
+- (optional) policy-agent v2.5.0
+- (optional) gitopssets-controller v0.14.1
+
+### 🚀 Enhancements
+
+- PR: #3126 - Uses weave-gitops [v0.29.0](https://github.com/weaveworks/weave-gitops/releases/tag/v0.29.0) that as
+major changes include:
+  - Support for Flux v2.0.0
+  - Suspend/resume/reconcile Image Repositories
+  - Add Verified sources to Applications and Sources UI
+
+## v0.29.0
+2023-08-03
+
+:::danger
+
+### ⚠️ Breaking changes
+
+We introduced a breaking change in this release by upgrading to Flux v2 APIs, notably `GitRepository` v1, `Kustomization` v1, and `Receiver` v1. This means that this version of Weave GitOps Enterprise is not compatible with previous versions of Flux v2, such as v0.41.x and earlier.
+
+### ✍️ Action required
+
+Follow [Flux](https://github.com/fluxcd/flux2/releases/tag/v2.0.0) or [Weave Gitops](https://docs.gitops.weave.works/docs/guides/fluxga-upgrade/) to upgrade to Flux v2 GA before upgrading Weave Gitops Enterprise.
+:::
+
+### Highlights
+
+#### Flux
+- Using Flux v2.0.0 APIs. Managing `GitRepository` v1, `Kustomization` v1, and `Receiver` v1 resources. See Breaking Changes.
+
+#### Explorer
+- Generates metrics for indexer write operations
+
+### Dependency versions
+- flux >v2.0.0
+- weave-gitops v0.29.0-rc.1
+- cluster-controller v1.5.2
+- cluster-bootstrap-controller v0.6.0
+- templates-controller v0.3.0
+- (optional) pipeline-controller v0.21.0
+- (optional) policy-agent v2.5.0
+- (optional) gitopssets-controller v0.14.1
+
+### 🚀 Enhancements
+
+- PR: #3137 - Upgrade to weave gitops oss v0.29.0-rc.1 and flux v2.0.0 apis
+- PR: #3119 - Bump GitOpsSets to v0.14.0
+- PR: #3134 - add RED metrics for indexer writes
+- PR: #3098 - [UI] Cleanup forms across sections to ensure consistency
+- PR: #3145 - Wge 3144 - create sops secrets uses v1 kustomizations api
+- PR: #3146 - generate v1 kustomizations when adding apps
+- PR: #3164 - Bump gitopssets-controller to v0.14.1
+
+### 🔥 UI
+
+- PR: #3120 - Add large info display of Applied Revision and Last Updated on Terraform detail page
+- PR: #3138 - Fix checkboxes on terraform data table
+
 ## v0.28.0
 2023-07-20
 
@@ -521,7 +597,7 @@ config
 - Weave GitOps default admin user can now “read” all objects. Why is this important? As users are trying out Weave GitOps they will most likely try it out with some of their favorite Cloud Native tools such as Crossplane, Tekton, Istio, etc. This enables them to see all of those resources and explore the full power of Weave GitOps. We still do not recommend this user for “production-use” cases, and customers should always be pushed towards implementing OIDC with scoped roles.
 
 #### Pipelines - adding Pipelines through Templates
-- From the Pipelines view you can add new Pipelines in a way which leverages GitOpsTemplates, additionally - to help users configure these, we’ve provided [documentation](../../pipelines/pipeline-templates.mdx) which has some samples.
+- From the Pipelines view you can add new Pipelines in a way which leverages GitOpsTemplates, additionally - to help users configure these, we’ve provided [documentation](../../pipelines/pipelines-templates.mdx) which has some samples.
 
 #### Support for multiple Flux instances on a single cluster
 - Support for running multiple flux instances in different namespaces on a single cluster for resource isolation.
