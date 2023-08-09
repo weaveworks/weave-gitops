@@ -52,7 +52,6 @@ export enum V2Routes {
   NotImplemented = "/not_implemented",
 }
 
-export const DefaultCluster = "Default";
 export const NoNamespace = "";
 
 export interface Source {

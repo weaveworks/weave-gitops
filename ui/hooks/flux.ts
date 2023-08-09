@@ -10,15 +10,10 @@ import {
 import { GroupVersionKind, Kind } from "../lib/api/core/types.pb";
 import { getChildren } from "../lib/graph";
 import { FluxObject } from "../lib/objects";
-import {
-  DefaultCluster,
-  NoNamespace,
-  ReactQueryOptions,
-  RequestError,
-} from "../lib/types";
+import { NoNamespace, ReactQueryOptions, RequestError } from "../lib/types";
 import { notifyError, notifySuccess } from "../lib/utils";
 export function useListFluxRuntimeObjects(
-  clusterName = DefaultCluster,
+  clusterName: string,
   namespace = NoNamespace,
   opts: ReactQueryOptions<ListFluxRuntimeObjectsResponse, RequestError> = {
     retry: false,
@@ -34,7 +29,7 @@ export function useListFluxRuntimeObjects(
   );
 }
 
-export function useListFluxCrds(clusterName = DefaultCluster) {
+export function useListFluxCrds(clusterName: string) {
   const { api } = useContext(CoreClientContext);
 
   return useQuery<ListFluxCrdsResponse, RequestError>(
@@ -55,7 +50,7 @@ export function useGetReconciledObjects(
   namespace: string,
   type: Kind,
   kinds: GroupVersionKind[],
-  clusterName = DefaultCluster,
+  clusterName: string,
   opts: ReactQueryOptions<FluxObject[], RequestError> = {
     retry: false,
     refetchInterval: 5000,
@@ -80,7 +75,7 @@ export function useGetReconciledTree(
   namespace: string,
   type: Kind,
   kinds: GroupVersionKind[],
-  clusterName = DefaultCluster,
+  clusterName: string,
   opts: ReactQueryOptions<FluxObject[], RequestError> = {
     retry: false,
     refetchInterval: 5000,
