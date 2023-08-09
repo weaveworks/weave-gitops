@@ -101,7 +101,8 @@ export const getParentNavRouteValue = (
       return V2Routes.Policies;
 
     case V2Routes.PolicyViolationDetails:
-      return location.search.includes("kind=Policy")
+      return location.search.includes("kind=Policy") ||
+        location.search.includes("kind=AllPoliciesViolations")
         ? V2Routes.Policies
         : V2Routes.Automations;
 
