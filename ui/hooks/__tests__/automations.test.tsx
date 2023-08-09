@@ -27,6 +27,7 @@ describe("addSearchedNamespaces", () => {
       "kube-public",
     ]);
   });
+
   it("calculates searched namespaces for several clusters", () => {
     const final = { errors: [], result: [], searchedNamespaces: [] };
     const response = {

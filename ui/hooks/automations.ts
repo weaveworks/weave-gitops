@@ -83,8 +83,6 @@ export function useListAutomations(
               return { ...o, kind };
             })
           );
-
-          console.log(response);
           addSearchedNamespaces(final, response);
         }
         return final;
