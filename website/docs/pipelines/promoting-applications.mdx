@@ -31,7 +31,7 @@ At the moment only applications defined as Flux `HelmReleases` are supported in 
 <figcaption>An example of a pull request for an application promotion</figcaption>
 </figure>
 
-The [Getting started guide](../getting-started) describes how to create a basic pipeline for an application so you can visualize its deployments across a series of environments. You may also configure a pipeline in order to promote applications across a series of environments.
+The [Getting Started Guide](pipelines-getting-started.mdx) describes how to create a basic pipeline for an application so you can visualize its deployments across a series of environments. You may also configure a pipeline in order to promote applications across a series of environments.
 There are currently two supported strategies for application promotions:
 - Pull request strategy: this strategy is used for applications that are delivered via Flux to all environments of a pipeline. Typically, the versions of these applications are stored in Git and therefore pull requests can be used to update them as part of a promotion.
 - Notification strategy: this strategy is used when an external CI system is responsible for promoting an application across the environments of a pipeline. In this strategy, the notification controller running on the management cluster is used to forward notifications of succesful promotions to external CI systems.

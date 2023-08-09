@@ -10,15 +10,8 @@ import AlphaWarning from "../_components/_alpha_warning.mdx";
 
 <AlphaWarning/>
 
-This section provides a recommended way to configure RBAC in the context of pipelines. It is oriented to the journey
-that you expect your users to have.
-
-## View pipelines
-
-In order to view pipelines, users would need to have read access to the `pipeline` resource and the underlying `application` resources.
-
-An example of configuration to achieve this purpose could be seen below with `pipeline-reader` role and `search-pipeline-reader`
-role-binding to allow a group `search-developer` to access pipeline resources within `search` namespace.
+To view pipelines, users need read access to the `pipeline` resource and the underlying `application` resources. This sample configuration shows a recommended way to configure RBAC to provide such access. The `pipeline-reader` role and the `search-pipeline-reader`
+role-binding allow a group `search-developer` to access pipeline resources within the `search` namespace.
 
 ```yaml
 apiVersion: rbac.authorization.k8s.io/v1

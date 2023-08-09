@@ -2,9 +2,9 @@
 title: TLS and Certificates
 ---
 
-## TLS configuration
+## TLS Configuration
 
-By default the dashboard will listen on 0.0.0.0:9001 with TLS disabled and
+By default Weave GitOps Dashboard listens on 0.0.0.0:9001 with TLS disabled and
 without exposing any external connection.
 
 Exposing services without TLS if not recommended. Without a certificate, a user

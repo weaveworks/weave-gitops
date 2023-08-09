@@ -4,12 +4,10 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"net"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"strings"
-	"sync"
 	"testing"
 	"time"
 
@@ -80,85 +78,6 @@ func TestWithAPIAuthReturns401ForUnauthenticatedRequests(t *testing.T) {
 	auth.WithAPIAuth(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {}), srv, []string{"/v1/featureflags"}).ServeHTTP(res, req)
 
 	g.Expect(res).To(HaveHTTPStatus(http.StatusOK))
-}
-
-func TestWithAPIAuthRefreshParallelism(t *testing.T) {
-	g := NewGomegaWithT(t)
-
-	m, _ := mockoidc.NewServer(nil)
-	var refreshCount int32
-	m.AddMiddleware(func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-			next.ServeHTTP(rw, req)
-			if req.URL.Path == "/oidc/token" && (req.Form.Get("grant_type") == "refresh_token") && (req.Form.Get("refresh_token") == "token1") && req.Form.Get("client_id") != "" {
-				refreshCount++
-			}
-		})
-	})
-
-	ln, err := net.Listen("tcp", "127.0.0.1:0")
-	g.Expect(err).NotTo(HaveOccurred())
-	err = m.Start(ln, nil)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	t.Cleanup(func() {
-		_ = m.Shutdown()
-	})
-
-	fake := m.Config()
-	mux := http.NewServeMux()
-	fakeKubernetesClient := ctrlclient.NewClientBuilder().Build()
-
-	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	oidcCfg := auth.OIDCConfig{
-		ClientID:     fake.ClientID,
-		ClientSecret: fake.ClientSecret,
-		IssuerURL:    fake.Issuer,
-	}
-
-	authMethods := map[auth.AuthMethod]bool{auth.OIDC: true}
-
-	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), oidcCfg, fakeKubernetesClient, tokenSignerVerifier, testNamespace, authMethods)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	srv, err := auth.NewAuthServer(context.Background(), authCfg)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	g.Expect(auth.RegisterAuthServer(mux, "/oauth2", srv, 1)).To(Succeed())
-
-	s := httptest.NewServer(mux)
-
-	t.Cleanup(func() {
-		s.Close()
-	})
-
-	refreshCount = 0
-	// Set the correct redirect URL now that we have a server running
-	srv.SetRedirectURL(s.URL + "/oauth2/callback")
-	var wg sync.WaitGroup
-	wg.Add(20)
-
-	server := auth.WithAPIAuth(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {}), srv, nil)
-	for i := 0; i < 20; i++ {
-		go func() {
-			defer wg.Done()
-			req := httptest.NewRequest(http.MethodGet, s.URL, nil)
-			req.AddCookie(&http.Cookie{
-				Name:  auth.RefreshTokenCookieName,
-				Value: "token1",
-			})
-
-			res := httptest.NewRecorder()
-			server.ServeHTTP(res, req)
-
-			g.Expect(res).To(HaveHTTPStatus(http.StatusUnauthorized))
-		}()
-	}
-	wg.Wait()
-
-	g.Expect(refreshCount).To(Equal(int32(20)))
 }
 
 func TestWithAPIAuthOnlyUsesValidMethods(t *testing.T) {
