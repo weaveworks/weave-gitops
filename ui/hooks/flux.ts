@@ -10,11 +10,9 @@ import {
 import { GroupVersionKind, Kind } from "../lib/api/core/types.pb";
 import { getChildren } from "../lib/graph";
 import { FluxObject } from "../lib/objects";
-import { NoNamespace, ReactQueryOptions, RequestError } from "../lib/types";
+import { ReactQueryOptions, RequestError } from "../lib/types";
 import { notifyError, notifySuccess } from "../lib/utils";
 export function useListFluxRuntimeObjects(
-  clusterName: string,
-  namespace = NoNamespace,
   opts: ReactQueryOptions<ListFluxRuntimeObjectsResponse, RequestError> = {
     retry: false,
     refetchInterval: 5000,
@@ -24,17 +22,17 @@ export function useListFluxRuntimeObjects(
 
   return useQuery<ListFluxRuntimeObjectsResponse, RequestError>(
     "flux_runtime_objects",
-    () => api.ListFluxRuntimeObjects({ namespace, clusterName }),
+    () => api.ListFluxRuntimeObjects({}),
     opts
   );
 }
 
-export function useListFluxCrds(clusterName: string) {
+export function useListFluxCrds() {
   const { api } = useContext(CoreClientContext);
 
   return useQuery<ListFluxCrdsResponse, RequestError>(
     "flux_crds",
-    () => api.ListFluxCrds({ clusterName }),
+    () => api.ListFluxCrds({}),
     { retry: false, refetchInterval: 5000 }
   );
 }
