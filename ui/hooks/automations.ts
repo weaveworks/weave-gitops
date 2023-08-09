@@ -26,6 +26,25 @@ type Res = {
   searchedNamespaces: SearchedNamespaces;
 };
 
+export const addSearchedNamespaces = (final, response) => {
+  for (const k of Object.keys(response.searchedNamespaces)) {
+    const existingKeys = final.searchedNamespaces.map(
+      (ns) => Object.keys(ns)[0]
+    );
+    if (!existingKeys.includes(k)) {
+      final.searchedNamespaces.push({
+        [k as string]: response.searchedNamespaces[k].namespaces,
+      });
+    } else {
+      final.searchedNamespaces[existingKeys.indexOf(k)][k] = _.uniq([
+        ...final.searchedNamespaces[existingKeys.indexOf(k)][k],
+        ...response.searchedNamespaces[k].namespaces,
+      ]);
+    }
+  }
+  return final;
+};
+
 export function useListAutomations(
   namespace: string = NoNamespace,
   opts: ReactQueryOptions<Res, RequestError> = {
@@ -64,21 +83,9 @@ export function useListAutomations(
               return { ...o, kind };
             })
           );
-          for (const k of Object.keys(response.searchedNamespaces)) {
-            const existingKeys = final.searchedNamespaces.map(
-              (ns) => Object.keys(ns)[0]
-            );
-            if (!existingKeys.includes(k)) {
-              final.searchedNamespaces.push({
-                [k as string]: response.searchedNamespaces[k].namespaces,
-              });
-            } else {
-              final.searchedNamespaces[existingKeys.indexOf(k)][k] = _.uniq([
-                ...final.searchedNamespaces[existingKeys.indexOf(k)][k],
-                ...response.searchedNamespaces[k].namespaces,
-              ]);
-            }
-          }
+
+          console.log(response);
+          addSearchedNamespaces(final, response);
         }
         return final;
       });
