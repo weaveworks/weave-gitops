@@ -619,7 +619,7 @@ The primary way Weave GitOps queries the Kube API is via `impersonation`. The pe
 can impersonate will determine the scope of actions that WGE can take within your cluster. 
 
 The application, not the cluster, authenticates the user, either via the [emergency
-cluster user](../../configuration/emergency-user.mdx) credentials or OIDC. Then it makes Kube API calls on the user's
+cluster user](../emergency-user) credentials or OIDC. Then it makes Kube API calls on the user's
 behalf. This is equivalent to making a kubectl call like:
 
 ```bash
@@ -648,7 +648,7 @@ rbac:
     - qa-team
 ```
 In this example, the application can only impersonate the group's admin, dev-team,
-and qa-team. This also implicitly disables the [emergency cluster user](../../configuration/emergency-user.mdx)).
+and qa-team. This also implicitly disables the [emergency cluster user](../emergency-user)).
 
 Unfortunately, not all OIDC providers support groups. You may need to
 manually enumerate users—for example:
