@@ -1,12 +1,11 @@
 import React from "react";
-import { fontSizes } from "../../../typedefs/styled";
 import Flex from "../../Flex";
 import Icon, { IconType } from "../../Icon";
 import Text from "../../Text";
 
 type Props = {
   severity: string;
-  fontSize?: keyof typeof fontSizes;
+  fontSize?: any;
 };
 
 const Severity = ({ severity, fontSize = "medium" }: Props) => {
