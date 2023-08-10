@@ -163,7 +163,7 @@ kubectl create secret generic oidc-auth \
 
 Once the HTTP server starts, unauthenticated users will have to click 'Login With OIDC Provider' to log in or use the cluster account (if configured). Upon successful authentication, the users' identities will be impersonated in any calls made to the Kubernetes API, as part of any action they take in the dashboard. By default the Helm chart will configure RBAC correctly, but we recommend reading the [service account](#gitops-dashboard-service-account-permissions) and [user permissions](#user-permissions) pages to understand which actions are needed for Weave GitOps to function correctly.
 
-### Customization
+#### Customization
 
 For some OIDC configurations, you may need to customise the requested [scopes](https://openid.net/specs/openid-connect-core-1_0.html#ScopeClaims) or [claims](https://openid.net/specs/openid-connect-core-1_0.html#Claims).
 
@@ -211,7 +211,7 @@ There are two separate configuration keys. You can override them separately. The
 
 <TabItem value="Configuring OIDC with Dex and GitHub" label="Configuring OIDC with Dex and GitHub">
 
-### Configuring OIDC with Dex and GitHub
+#### Configuring OIDC with Dex and GitHub
 This example uses [Dex](https://dexidp.io/) and its [GitHub connector](https://dexidp.io/docs/connectors/github/) to show you how to log in to the Weave GitOps dashboard by authenticating with your GitHub account. It assumes you have already installed Weave GitOps on a Kubernetes cluster, per the instructions above, and have also [enabled TLS](#tls-configuration).
 
 Dex is an identity service that uses [OpenID Connect](https://openid.net/connect/) to
@@ -238,7 +238,7 @@ kubectl create secret generic github-client \
   --from-literal=client-secret=${GITHUB_CLIENT_SECRET}
 ```
 
-### Deploy Dex
+#### Deploy Dex
 
 Use `HelmRepository` and `HelmRelease` objects to let Flux deploy everything.
 
@@ -424,7 +424,7 @@ roleRef:
 
 </details>
 
-### Set up a Static User
+#### Set up a Static User
 
 For a static user, add `staticPasswords` to the `config`:
 
@@ -447,7 +447,7 @@ echo -n $PASSWORD | gitops get bcrypt-hash
 $2a$10$OS5NJmPNEb13UgTOSKnMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q
 ```
 
-### OIDC Login
+#### OIDC Login
 
 Using the "Login with OIDC Provider" button:
 
@@ -477,7 +477,7 @@ and development environments, or if you need to activate emergency access to a d
 Note also that this mechanism only exists for a single user. You will not be able to create multiple users. Weave GitOps does not provide its own authentication mechanism. For secure and fully-featured authentication we **strongly recommend** using an OIDC provider, as described in the other tab.
 :::
 
-### Configuring the Emergency User
+#### Configuring the Emergency User
 
 Before you log in via the emergency user account, you need to generate a bcrypt hash for your chosen password and store it as a secret in Kubernetes. There are several different ways to generate a bcrypt hash. This guide uses `gitops get bcrypt-hash` from our CLI.
 
@@ -500,14 +500,14 @@ kubectl create secret generic cluster-user-auth \
 
 You should now be able to login via the cluster user account using your chosen username and password.
 
-### Updating the Emergency User
+#### Updating the Emergency User
 
 To change either the username or the password, recreate the `cluster-user-auth`
 with the new details.
 
 Only one emergency user can be created this way. To add more users, enable an OIDC provider.
 
-### User Permissions
+#### User Permissions
 
 By default, both a ClusterRole and Role are generated for the emergency user.
 Both have the same permissions, with the former being optional and the latter being
