@@ -52,6 +52,10 @@ module.exports = {
           {
             to: '/docs/enterprise/getting-started/releases-enterprise/',
             from: ['/docs/enterprise/releases/']
+          },
+          {
+            to: '/docs/intro-weave-gitops/',
+            from: '/docs/intro'
           }
         ],
       },
