@@ -33,6 +33,7 @@ enum Kind {
     ImagePolicy           = 12;
     Pod                   = 13;
     Policy                   = 14;
+    AllPoliciesViolations                   = 15;
 };
 
 /**

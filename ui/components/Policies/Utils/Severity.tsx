@@ -1,8 +1,8 @@
 import React from "react";
+import { fontSizes } from "../../../typedefs/styled";
 import Flex from "../../Flex";
 import Icon, { IconType } from "../../Icon";
 import Text from "../../Text";
-import { fontSizes } from "../../../typedefs/styled";
 
 type Props = {
   severity: string;
