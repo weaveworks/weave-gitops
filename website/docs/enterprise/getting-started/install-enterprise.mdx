@@ -43,12 +43,6 @@ then review their docs on [setting your username](https://docs.github.com/en/get
 - obtain a valid entitlement secret from Weaveworks and apply it to your cluster
 - install a compatible version of Flux onto your cluster; see below for how-to guidance
 
-As noted above, you receive your entitlements secret by contacting sales@weave.works. Use this command to apply it to the cluster:
-
-```bash
-kubectl apply -f entitlements.yaml
-```
-
 ### Install the Weave GitOps Enterprise CLI Tool
 
 To do this, you can use either brew or curl.
@@ -107,6 +101,14 @@ flux bootstrap gitlab \
 
 </TabItem>
 </Tabs>
+
+### Apply Your Entitlements Secret to Your Cluster
+
+As noted above, you receive your entitlements secret by contacting sales@weave.works. Use this command to apply it to the cluster:
+
+```bash
+kubectl apply -f entitlements.yaml
+```
 
 Your private GitHub repo should have a clusters/management folder that includes the manifests Flux needs to operate, and that also generates a key value pair for Flux to access the repo. 
 
