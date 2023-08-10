@@ -20,7 +20,7 @@ export enum Kind {
   ImagePolicy = "ImagePolicy",
   Pod = "Pod",
   Policy = "Policy",
-  AllPoliciesViolations = "AllPoliciesViolations"
+  AllPoliciesViolations = "AllPoliciesViolations",
 }
 
 export enum HelmRepositoryType {
