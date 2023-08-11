@@ -17,6 +17,9 @@ const (
 	OIDC
 	// EE CLI tokens
 	TokenPassthrough
+
+	// Anonymous
+	Anonymous
 )
 
 // This is a function to mimic a const slice
@@ -56,6 +59,8 @@ func (am *AuthMethod) String() string {
 		return "oidc"
 	case TokenPassthrough:
 		return "token-passthrough"
+	case Anonymous:
+		return "anonymous"
 	default:
 		return fmt.Sprintf("AuthMethod(%d)", am)
 	}
@@ -70,6 +75,8 @@ func (am *AuthMethod) UnmarshalText(text []byte) error {
 		*am = OIDC
 	case "token-passthrough":
 		*am = TokenPassthrough
+	case "anonymous":
+		*am = Anonymous
 	default:
 		return fmt.Errorf("unknown auth method '%q'", text)
 	}

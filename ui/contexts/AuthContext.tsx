@@ -22,7 +22,7 @@ export const AuthCheck = ({ children, Loader }: AuthCheckProps) => {
     return Loader ? <Loader /> : null;
   }
   // Signed in! Show app
-  if (userInfo?.email) {
+  if (userInfo?.id) {
     return children;
   }
   // User appears not be logged in, off to signin

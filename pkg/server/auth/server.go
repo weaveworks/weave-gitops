@@ -27,9 +27,9 @@ const (
 	ClusterUserAuthSecretName  string = "cluster-user-auth"
 	DefaultOIDCAuthSecretName  string = "oidc-auth"
 	FeatureFlagClusterUser     string = "CLUSTER_USER_AUTH"
+	FeatureFlagAnonymousAuth   string = "ANONYMOUS_AUTH"
 	FeatureFlagOIDCAuth        string = "OIDC_AUTH"
 	FeatureFlagOIDCPassthrough string = "WEAVE_GITOPS_FEATURE_OIDC_AUTH_PASSTHROUGH"
-	FeatureFlagSet             string = "true"
 
 	// ClaimUsername is the default claim for getting the user from OIDC for
 	// auth
@@ -205,16 +205,16 @@ func NewAuthServer(ctx context.Context, cfg AuthConfig) (*AuthServer, error) {
 		if err != nil {
 			return nil, fmt.Errorf("could not get secret for cluster user, %w", err)
 		} else {
-			featureflags.Set(FeatureFlagClusterUser, FeatureFlagSet)
+			featureflags.SetBoolean(FeatureFlagClusterUser, true)
 		}
 	} else {
-		featureflags.Set(FeatureFlagClusterUser, "false")
+		featureflags.SetBoolean(FeatureFlagClusterUser, false)
 	}
 
 	var provider *oidc.Provider
 
 	if cfg.OIDCConfig.IssuerURL == "" {
-		featureflags.Set(FeatureFlagOIDCAuth, "false")
+		featureflags.SetBoolean(FeatureFlagOIDCAuth, false)
 	} else if cfg.authMethods[OIDC] {
 		var err error
 
@@ -222,11 +222,17 @@ func NewAuthServer(ctx context.Context, cfg AuthConfig) (*AuthServer, error) {
 		if err != nil {
 			return nil, fmt.Errorf("could not create provider: %w", err)
 		}
-		featureflags.Set(FeatureFlagOIDCAuth, FeatureFlagSet)
+		featureflags.SetBoolean(FeatureFlagOIDCAuth, true)
 	}
 
-	if featureflags.Get(FeatureFlagOIDCAuth) != FeatureFlagSet && featureflags.Get(FeatureFlagClusterUser) != FeatureFlagSet {
-		return nil, fmt.Errorf("neither OIDC auth or local auth enabled, can't start")
+	if cfg.authMethods[Anonymous] {
+		featureflags.SetBoolean(FeatureFlagAnonymousAuth, true)
+	}
+
+	if !featureflags.IsSet(FeatureFlagOIDCAuth) &&
+		!featureflags.IsSet(FeatureFlagClusterUser) &&
+		!featureflags.IsSet(FeatureFlagAnonymousAuth) {
+		return nil, fmt.Errorf("OIDC auth, local auth enabled or anonymous mode must be enabled, can't start")
 	}
 
 	return &AuthServer{cfg, provider}, nil
@@ -239,11 +245,15 @@ func (s *AuthServer) SetRedirectURL(url string) {
 }
 
 func (s *AuthServer) oidcEnabled() bool {
-	return featureflags.Get(FeatureFlagOIDCAuth) == FeatureFlagSet
+	return featureflags.IsSet(FeatureFlagOIDCAuth)
+}
+
+func (s *AuthServer) anonymousMode() bool {
+	return featureflags.IsSet(FeatureFlagAnonymousAuth)
 }
 
 func (s *AuthServer) oidcPassthroughEnabled() bool {
-	return featureflags.Get(FeatureFlagOIDCPassthrough) == FeatureFlagSet
+	return featureflags.IsSet(FeatureFlagOIDCPassthrough)
 }
 
 func (s *AuthServer) verifier() *oidc.IDTokenVerifier {
@@ -448,6 +458,14 @@ func (s *AuthServer) UserInfo(rw http.ResponseWriter, r *http.Request) {
 		rw.Header().Add("Allow", "GET")
 		rw.WriteHeader(http.StatusMethodNotAllowed)
 
+		return
+	}
+
+	if s.anonymousMode() {
+		ui := UserInfo{
+			ID: "Anonymous",
+		}
+		toJSON(rw, ui, s.Log)
 		return
 	}
 

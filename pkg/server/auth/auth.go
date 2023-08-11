@@ -188,7 +188,7 @@ func WithAPIAuth(next http.Handler, srv *AuthServer, publicRoutes []string) http
 			}
 
 		case UserAccount:
-			if featureflags.Get(FeatureFlagClusterUser) == FeatureFlagSet {
+			if featureflags.IsSet(FeatureFlagClusterUser) {
 				adminAuth := NewJWTAdminCookiePrincipalGetter(srv.Log, srv.tokenSignerVerifier, IDTokenCookieName)
 				multi.Getters = append(multi.Getters, adminAuth)
 			}
@@ -196,6 +196,9 @@ func WithAPIAuth(next http.Handler, srv *AuthServer, publicRoutes []string) http
 		case TokenPassthrough:
 			tokenAuth := NewBearerTokenPassthroughPrincipalGetter(srv.Log, nil, AuthorizationTokenHeaderName, srv.kubernetesClient)
 			multi.Getters = append(multi.Getters, tokenAuth)
+
+		case Anonymous:
+			multi.Getters = []PrincipalGetter{NewAnonymousPrincipalGetter(srv.Log, "testing")}
 		}
 	}
 
