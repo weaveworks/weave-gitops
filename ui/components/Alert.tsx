@@ -1,7 +1,8 @@
-import { AlertTitle, Alert as MaterialAlert } from "@material-ui/lab";
+import { Alert as MaterialAlert, AlertTitle } from "@material-ui/lab";
 import * as React from "react";
 import styled from "styled-components";
 import Flex from "./Flex";
+import Icon, { IconType } from "./Icon";
 import Text from "./Text";
 
 /** Alert Properties */
@@ -21,7 +22,12 @@ export interface Props {
 function UnstyledAlert({ center, title, message, severity, className }: Props) {
   return (
     <Flex wide start={!center} className={className}>
-      <MaterialAlert severity={severity}>
+      <MaterialAlert
+        icon={
+          <Icon type={IconType.ErrorIcon} size="medium" color="alertDark" />
+        }
+        severity={severity}
+      >
         <AlertTitle>{title}</AlertTitle>
         <Text color="black">{message}</Text>
       </MaterialAlert>

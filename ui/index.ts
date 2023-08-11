@@ -13,6 +13,7 @@ import DataTable, {
 import DependenciesView from "./components/DependenciesView";
 import DetailModal from "./components/DetailModal";
 import DirectedGraph from "./components/DirectedGraph";
+import ErrorList from "./components/ErrorList";
 import EventsTable from "./components/EventsTable";
 import Flex from "./components/Flex";
 import FluxObjectsTable from "./components/FluxObjectsTable";
@@ -145,6 +146,7 @@ export {
   DialogYamlView,
   DirectedGraph,
   EventsTable,
+  ErrorList,
   Flex,
   FluxObject,
   FluxObjectsTable,
