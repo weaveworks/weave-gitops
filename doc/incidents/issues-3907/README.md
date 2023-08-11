@@ -180,7 +180,9 @@ The `release` status check could be managed via github api and gitihub actions s
               }'
 ```
 
-#### Proof of Concept Validation 
+### Proof of Concept Validation 
+
+#### Non-Release Branch Scenario 
 
 ```gherkin
 Feature: can build non-release branches without changing the flow nor overhead
@@ -223,6 +225,8 @@ After building, it gets updated
 ![validate-non-release-pr-after-build.png](imgs/validate-non-release-pr-after-build.png)
 
 I could approve and merge as usual https://github.com/enekofb/weave-gitops/pull/6
+
+#### Release Branch Scenario
 
 ```gherkin
 Feature: can build release branches with guardrails
