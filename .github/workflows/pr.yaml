@@ -267,6 +267,22 @@ jobs:
     steps:
       - run: echo "All done"
 
+  release:
+    if: ${{ !startsWith(github.event.pull_request.head.ref, 'releases/') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Release
+        run: |
+          curl --request POST \
+            --url https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }} \
+            --header 'authorization: Bearer ${{ secrets.WEAVE_GITOPS_BOT_ACCESS_TOKEN }}' \
+            --header 'content-type: application/json' \
+            --data '{
+                "state":"success",
+                "description":"release not required",
+                "context":"release"
+              }'
+
   notify-failure:
     name: Notify Slack on Failure
     runs-on: ubuntu-latest

@@ -48,9 +48,7 @@ To release a new version of Weave Gitops, you need to:
     called "Doc site preview")
 - The PR cover message contains draft release notes. Edit the cover
   message to fill in or delete blocks as appropriate. In case of making a fix release because of regressions, add a message about the regression to the release notes. Move as many PRs out of "Uncategorized" as you possibly can.
-- If everything looks good, approve the PR - do *not* merge or things
-  won't be published in the right order. This immediately kicks off the
-  release job.
+- If everything looks good, approve the PR to trigger the [release](../.github/workflows/release.yaml) workflow.
 - Wait for the action to finish, at which point the PR will be merged automatically.
 - Notify weave-gitops-dev channel that PRs are now safe to merge.
 
