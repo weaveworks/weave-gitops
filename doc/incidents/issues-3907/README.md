@@ -65,7 +65,9 @@ This happened at around `2023-08-02T11:16` (UTC is the timezone used here).
 2023-08-02T11:16:19.8550603Z Post job cleanup.
 ```
 
-First time we were notified of impact was at [11.26 UTC](https://weaveworks.slack.com/archives/CMDJFD3P0/p1690975563096289).
+First time we were notified of impact was at 11.26 UTC:
+
+![first-time-noticed.png](imgs/first-time-noticed.png)
 
 The container image tag v0.29.0 [started building](https://github.com/weaveworks/weave-gitops/actions/runs/5738127454) at `2023-08-02T11:29`: 
 
