@@ -72,7 +72,7 @@ const IconFlex = styled(Flex)`
 `;
 
 /** Form DataTable */
-function UnstyledDataTable({
+function DataTable({
   id,
   className,
   fields,
@@ -211,6 +211,11 @@ function UnstyledDataTable({
   );
 
   const [checked, setChecked] = React.useState([]);
+  
+  React.useEffect(() => {
+    console.count();
+    handleClearAll();
+  }, []);
 
   const r = _.map(sorted, (r, i) => {
     return (
@@ -359,7 +364,7 @@ function UnstyledDataTable({
     </Flex>
   );
 }
-export const DataTable = styled(UnstyledDataTable)`
+export default styled(DataTable)`
   width: 100%;
   flex-wrap: nowrap;
   overflow-x: hidden;
@@ -414,5 +419,3 @@ export const DataTable = styled(UnstyledDataTable)`
         : null}
   }
 `;
-
-export default DataTable;
