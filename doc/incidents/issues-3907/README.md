@@ -5,15 +5,15 @@ Tracking issue: https://github.com/weaveworks/weave-gitops/issues/3907
 ## Summary  
 
 Wednesday, August 2nd, we released Weave Gitops v0.29 as part of our regular release cadence. The release published 
-artefacts out of order causing degradation in users environments. For example as stated in the [issue](https://github.com/weaveworks/weave-gitops/issues/3907), 
-the helm chart was published before the container image was available:
+artefacts out of order causing degradation in users environments. For example, as stated in the [issue](https://github.com/weaveworks/weave-gitops/issues/3907), 
+the Helm chart was published before the container image was available:
 
 ```
 weave-gitops-648b7f9655-ll4zn   0/1     ImagePullBackOff   0          11m
 weave-gitops-648b7f9655-ll4zn   0/1     ErrImagePull       0          11m
 ```
 
-It was caused due to the release PR merged before the release workflows finished. It recovered when the release workflow finished 
+It was caused by the release PR being merged before the release workflows had finished. It recovered when the release workflow finished 
 and the container image was published. 
 
 ## Root Cause Analysis 
@@ -30,7 +30,7 @@ Looking at process and workflows, at least these two paths could cause the failu
 
 ### Release PR merged before Release job finishes
 
-Release PR has two expected interaction:
+Release PR has two expected interactions:
 - Release PR is approved by Releaser flagging the release job to start. 
 - Release PR is merged by Release Bot after the release job has completed. 
 
@@ -39,10 +39,10 @@ release job has finished.
 
 This is the scenario that we found ourselves in the latest release [v0.29](https://github.com/weaveworks/weave-gitops/pull/3906). 
 The merge triggered the [chart workflow](https://github.com/weaveworks/weave-gitops/blob/main/.github/workflows/chart.yaml) 
-that [released v4.0.27 chart](https://github.com/weaveworks/weave-gitops/actions/runs/5738131386/job/15551116775). This chart  
+that [released v4.0.27 chart](https://github.com/weaveworks/weave-gitops/actions/runs/5738131386/job/15551116775). This chart
 expected [container image tag v0.29.0](https://github.com/weaveworks/weave-gitops/pull/3906/files#diff-67081178cf02ff87b1326e8b608a6ab4e49a85606346d64607b498fead04b048R13). 
 
-This happened at around  `2023-08-02T11:16` (UTC is the timezone used here)
+This happened at around `2023-08-02T11:16` (UTC is the timezone used here).
 
 ```bash
 2023-08-02T11:16:18.4241737Z ##[group]Run helm push helm-release/weave-gitops-4.0.27.tgz oci://ghcr.io/weaveworks/charts
@@ -80,7 +80,8 @@ ghcr.io/weaveworks/wego-app:v0.29.0
 ghcr.io/weaveworks/wego-app:latest
 ```
 
-And ended up at around `2023-08-02T12:41` 
+And ended up at around `2023-08-02T12:41`:
+
 ```
 023-08-02T12:40:58.9623639Z #70 pushing layers
 2023-08-02T12:41:00.6152315Z #70 pushing layers 1.7s done
@@ -98,7 +99,7 @@ And ended up at around `2023-08-02T12:41`
 
 Any upgrade to v0.29.0 from `2023-08-02T11:16` to `2023-08-02T12:41` ended up in failure. 
 
-Given the evidences we could say with a degree of certainty that this was the cause of the incident. The rest of the document focuses on understanding 
+Given the evidence, we could say with a degree of certainty that this was the cause of the incident. The rest of the document focuses on understanding 
 remediation actions and next steps. Release job steps ordering will be evaluated as separate issue. 
 
 ## Resolution 
@@ -107,15 +108,15 @@ It was resolved after the release workflow ended and the container image was pub
 
 ## Prevention
 
-Given that a Releaser just needs to verify the release looks fine before triggered. We should design it the process 
-with that into consideration. Two alternatives are identified: 
+Given that a Releaser just needs to verify the release looks fine before triggered. We should design the process 
+taking that into consideration. Two alternatives are identified: 
 
-1. no human intervention has effect or not possible after release PR is approved
+1. no human intervention has effect, or is possible, after a release PR is approved
 2. no human intervention is required during the release process
 
 From the two approaches, we will be giving priority to the first one, so the second would require changing the process that we could anticipate would
 be more costly (more changes to do) and riskier (adopt new process and changes could end up in different new failure modes). 
-The second alternative would be discovered in case there is no  feasible solution from 1) or there is no appetite to go ahead with that. 
+The second alternative would be discovered in case there is no feasible solution from 1), or there is no appetite to go ahead with that. 
 
 ### No human intervention has effect or not possible after release PR is approved
 The scenario we want to model would be something like 
