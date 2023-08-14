@@ -776,15 +776,6 @@ You can then create three groups:
     no `patch` permissions.
   - Aisha, Brian, June and Jo are all members
 
-The Weave GitOps service account can then be configured with:
-```yaml
-rbac:
-  impersonationResourceNames: ["wego-admin", "wego-team-a-admin", "wego-readonly"]
-  impersonationResources: ["groups"]
-```
-
-so that only these three groups can be `impersonated` by the service account.
-
 :::caution Using OIDC for cluster and Weave GitOps Authentication
 If the same OIDC provider is used to authenticate a user with the cluster
 itself (e.g. for use with `kubectl`) and to Weave GitOps then, depending
