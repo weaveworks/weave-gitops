@@ -576,7 +576,7 @@ the cluster.
 ### GitOps Dashboard Service Account Permissions
 
 This section covers the service account [permissions](https://kubernetes.io/docs/reference/access-authn-authz/rbac/)
-for the Weave GitOps application, which the WGE UI requires to work. The default permissions are defined in the [Helm chart](https://github.com/weaveworks/weave-gitops/tree/main/charts/gitops-server/templates/role.yaml), which will generate a cluster role with the following permissions:
+for the Weave GitOps application, which the WGE UI requires to work. The default permissions will generate a cluster role with the following permissions:
 
 ```yaml
 rules:
