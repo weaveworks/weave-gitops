@@ -211,7 +211,7 @@ function DataTable({
   );
 
   const [checked, setChecked] = React.useState([]);
-  
+
   React.useEffect(() => {
     console.count();
     handleClearAll();
