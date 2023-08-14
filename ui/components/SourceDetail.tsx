@@ -15,7 +15,6 @@ import Metadata from "./Metadata";
 import PageStatus from "./PageStatus";
 import SubRouterTabs, { RouterTab } from "./SubRouterTabs";
 import SyncActions from "./SyncActions";
-import Text from "./Text";
 import YamlView from "./YamlView";
 
 type Props = {
@@ -65,9 +64,6 @@ function SourceDetail({ className, source, info, type, customActions }: Props) {
 
   return (
     <Flex wide tall column className={className}>
-      <Text size="large" semiBold titleHeight>
-        {source.name}
-      </Text>
       <PageStatus conditions={source.conditions} suspended={source.suspended} />
       <SyncActions
         name={name}
@@ -115,9 +111,6 @@ function SourceDetail({ className, source, info, type, customActions }: Props) {
 }
 
 export default styled(SourceDetail).attrs({ className: SourceDetail.name })`
-  ${PageStatus} {
-    padding: ${(props) => props.theme.spacing.small} 0px;
-  }
   ${SubRouterTabs} {
     margin-top: ${(props) => props.theme.spacing.medium};
   }
