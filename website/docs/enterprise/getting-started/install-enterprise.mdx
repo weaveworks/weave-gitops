@@ -605,15 +605,6 @@ These allow the pod to do three things:
   to store the emergency cluster user account and OIDC configuration (see
   [securing access to the dashboard](#securing-access-to-the-dashboard))
 
-### The Helm Values
-
-| Value                             | Description                                                         | Default                              |
-|-----------------------------------|---------------------------------------------------------------------|--------------------------------------|
-| `rbac.impersonationResources`     | Which resource types the service account can impersonate            | `["users", "groups"]`                |
-| `rbac.impersonationResourceNames` | Specific users, groups or services account that can be impersonated | `[]`                                 |
-| `rbac.viewSecretsResourceNames`   | Specific secrets that can be read                                   | `["cluster-user-auth", "oidc-auth"]` |
-
-
 ### Impersonation
 
 The primary way Weave GitOps queries the Kube API is via `impersonation`. The permissions granted to users and groups that Weave GitOps
