@@ -625,37 +625,6 @@ permissions is very important. Without proper restrictions the application can i
 very powerful `users` or `groups`. For example, the `system:masters` is a group
 generally bound to the `cluster-admin` role, which can do anything.
 
-### Configuring Impersonation
-
-We highly recommend limiting which users and groups the
-application can impersonate by setting `rbac.impersonationResourceNames` in
-the Helm chart's `values`. e.g.:
-
-```yaml
-rbac:
-  impersonationResources: ["groups"]
-  impersonationResourceNames:
-    - admin
-    - dev-team
-    - qa-team
-```
-In this example, the application can only impersonate the group's admin, dev-team,
-and qa-team. This also implicitly disables the [emergency cluster user](../emergency-user)).
-
-Unfortunately, not all OIDC providers support groups. You may need to
-manually enumerate users—for example:
-
-```yaml
-rbac:
-  impersonationResources: ["users"]
-  impersonationResourceNames:
-    - aisha@example.com
-    - bill@example.com
-    - wego-admin         # enable the emergency cluster user
-```
-
-A better, albeit more involved, solution is to set up an OIDC connector like Dex and use that to manage groups for you.
-
 ### Get Namespaces
 
 The application itself uses get namespace permissions to pre-cache the list of
