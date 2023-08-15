@@ -213,8 +213,13 @@ function DataTable({
   const [checked, setChecked] = React.useState([]);
 
   React.useEffect(() => {
-    console.count();
-    handleClearAll();
+    return () => {
+      setFilterState({ filters: {}, formState: {}, textFilters: [] });
+      const url = qs.parse(location.search);
+      //keeps things like clusterName and namespace for details pages
+      const cleared = _.omit(url, ["filters", "search"]);
+      history.replace({ ...history.location, search: qs.stringify(cleared) });
+    };
   }, []);
 
   const r = _.map(sorted, (r, i) => {
