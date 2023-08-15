@@ -41,6 +41,7 @@ export type AuthContext = {
   userInfo: {
     email: string;
     groups: string[];
+    id: string;
   };
   error: { status: number; statusText: string };
   setError: any;
@@ -56,6 +57,7 @@ export default function AuthContextProvider({ children }) {
   const [userInfo, setUserInfo] = React.useState<{
     email: string;
     groups: string[];
+    id: string;
   }>(null);
   const [loading, setLoading] = React.useState<boolean>(true);
   const [error, setError] = React.useState(null);
@@ -90,7 +92,9 @@ export default function AuthContextProvider({ children }) {
         }
         return response.json();
       })
-      .then((data) => setUserInfo({ email: data?.email, groups: data?.groups }))
+      .then((data) =>
+        setUserInfo({ email: data?.email, groups: data?.groups, id: data?.id })
+      )
       .catch((err) => console.log(err))
       .finally(() => setLoading(false));
   }, []);
