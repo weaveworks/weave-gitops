@@ -161,7 +161,7 @@ func WithAPIAuth(next http.Handler, srv *AuthServer, publicRoutes []string) http
 
 	// FIXME: currently the order must be OIDC last, or it'll "shadow" the other
 	// methods so they don't work.
-	methods := []AuthMethod{UserAccount, TokenPassthrough, OIDC}
+	methods := []AuthMethod{UserAccount, TokenPassthrough, OIDC, Anonymous}
 	for _, method := range methods {
 		enabled, ok := srv.authMethods[method]
 		if !ok {
