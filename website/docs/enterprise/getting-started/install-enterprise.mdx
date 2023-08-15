@@ -576,23 +576,16 @@ the cluster.
 ### GitOps Dashboard Service Account Permissions
 
 This section covers the service account [permissions](https://kubernetes.io/docs/reference/access-authn-authz/rbac/)
-for the Weave GitOps application, which the WGE UI requires to work. The default permissions will generate a cluster role with the following permissions:
+for the Weave GitOps application, which the WGE UI requires to work. The default permissions will generate a cluster role that includes the permissions:
 
 ```yaml
 rules:
-# Used to query the cluster
 - apiGroups: [""]
-  resources:  ["users", "groups"]  # set by rbac.impersonationResources
+  resources:  ["users", "groups"] 
   verbs: [ "impersonate" ]
-  # resourceNames: []              # set by rbac.impersonationResourceNames
-# Used to get OIDC/static user credentials for login
 - apiGroups: [""]
   resources: [ "secrets" ]
   verbs: [ "get", "list" ]
-  resourceNames:                  # set by rbac.viewSecretsResourceNames
-    - "cluster-user-auth"
-    - "oidc-auth"
-# The service account needs to read namespaces to know where it can query
 - apiGroups: [ "" ]
   resources: [ "namespaces" ]
   verbs: [ "get", "list" ]
@@ -605,7 +598,7 @@ These allow the pod to do three things:
   to store the emergency cluster user account and OIDC configuration (see
   [securing access to the dashboard](#securing-access-to-the-dashboard))
 
-### Impersonation
+#### Impersonation
 
 The primary way Weave GitOps queries the Kube API is via `impersonation`. The permissions granted to users and groups that Weave GitOps
 can impersonate will determine the scope of actions that WGE can take within your cluster. 
@@ -625,13 +618,13 @@ permissions is very important. Without proper restrictions the application can i
 very powerful `users` or `groups`. For example, the `system:masters` is a group
 generally bound to the `cluster-admin` role, which can do anything.
 
-### Get Namespaces
+#### Get Namespaces
 
 The application itself uses get namespace permissions to pre-cache the list of
 available namespaces. As the user accesses resources their permissions within
 various namespaces is also cached to speed up future operations.
 
-### Reading the `cluster-user-auth` and `oidc-auth` Secrets
+#### Reading the `cluster-user-auth` and `oidc-auth` Secrets
 
 The `cluster-user-auth` and `oidc-auth` secrets provide information for authenticating
 to the application. The former holds the username and bcrypt-hashed password
@@ -639,12 +632,6 @@ for the [emergency user](../emergency-user), and the latter holds OIDC configura
 
 The application needs to be able to access these secrets in order to
 authenticate users.
-
-#### Configuring Secrets
-
-The `rbac.viewSecretsResourceNames` value allows the operator to change which secrets the
-application can read. This is mostly so that the secret can be removed if the emergency user is not
-configured, or if the secret _is_ in use but renamed.
 
 ### User Permissions
 
@@ -682,6 +669,8 @@ rules:
 ```
 
 For a wider scope, the User can be bound to a ClusterRole with the same set.
+
+On top of this you can add other permissions to view WGE resources like `GitOpsSets` and `Templates`.
 
 #### Flux Resources
 
