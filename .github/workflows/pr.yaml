@@ -267,8 +267,9 @@ jobs:
     steps:
       - run: echo "All done"
 
+  #  release step updates 'release' status check for non releases branches. See ../../doc/incidents/issues-3907 for full context.
   release:
-    if: ${{ !startsWith(github.event.pull_request.head.ref, 'releases/') }}
+    if: ${{ github.event_name == 'pull_request' && !startsWith(github.event.pull_request.head.ref, 'releases/') }}
     runs-on: ubuntu-latest
     steps:
       - name: Release
