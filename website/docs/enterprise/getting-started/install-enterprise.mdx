@@ -230,7 +230,7 @@ metadata:
 
 Get a GitHub ClientID and Client secret by creating a [new OAuth application](https://docs.github.com/en/developers/apps/building-oauth-apps/creating-an-oauth-app).
 
-![GitHub OAuth configuration](/img/enterprise/getting-started/install-enterprise/github-oauth-application.png)
+![GitHub OAuth configuration](/img/guides/setting-up-dex/github-oauth-application.png)
 
 ```bash
 kubectl create secret generic github-client \
@@ -452,20 +452,20 @@ $2a$10$OS5NJmPNEb13UgTOSKnMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q
 
 Using the "Login with OIDC Provider" button:
 
-![Login page](/img/enterprise/getting-started/install-enterprise/oidc-login.png)
+![Login page](/img/guides/setting-up-dex/oidc-login.png)
 
 We have to authorize the GitHub OAuth application:
 
-![GitHub OAuth page](/img/enterprise/getting-started/install-enterprise/github-auth.png)
+![GitHub OAuth page](/img/guides/setting-up-dex/github-auth.png)
 
 After that, grant access to Dex:
 
-![Dex grant access](/img/enterprise/getting-started/install-enterprise/dex-auth.png)
+![Dex grant access](/img/guides/setting-up-dex/dex-auth.png)
 
 Now we are logged in with our GitHub user and can see all of the resources we have
 access to:
 
-![UI logged in](/img/enterprise/getting-started/install-enterprise/ui-logged-in.png)
+![UI logged in](/img/guides/setting-up-dex/ui-logged-in.png)
 
 </TabItem>
 
@@ -604,7 +604,7 @@ The primary way Weave GitOps queries the Kube API is via `impersonation`. The pe
 can impersonate will determine the scope of actions that WGE can take within your cluster. 
 
 The application, not the cluster, authenticates the user, either via the [emergency
-cluster user](../emergency-user) credentials or OIDC. Then it makes Kube API calls on the user's
+cluster user](../../configuration/emergency-user.mdx) credentials or OIDC. Then it makes Kube API calls on the user's
 behalf. This is equivalent to making a kubectl call like:
 
 ```bash
@@ -628,7 +628,7 @@ various namespaces is also cached to speed up future operations.
 
 The `cluster-user-auth` and `oidc-auth` secrets provide information for authenticating
 to the application. The former holds the username and bcrypt-hashed password
-for the [emergency user](../emergency-user), and the latter holds OIDC configuration.
+for the [emergency user](../../configuration/emergency-user.mdx), and the latter holds OIDC configuration.
 
 The application needs to be able to access these secrets in order to
 authenticate users.
