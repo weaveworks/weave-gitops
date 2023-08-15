@@ -37,7 +37,6 @@ import {
   toPairs,
 } from "./helpers";
 import { Field, FilterState } from "./types";
-import { useFeatureFlags } from "../../hooks/featureflags";
 /** DataTable Properties  */
 export interface Props {
   /** The ID of the table. */
@@ -73,7 +72,7 @@ const IconFlex = styled(Flex)`
 `;
 
 /** Form DataTable */
-function DataTable({
+function UnstyledDataTable({
   id,
   className,
   fields,
@@ -86,19 +85,12 @@ function DataTable({
   onColumnHeaderClick,
   disableSort,
 }: Props) {
+  //URL info
   const history = useHistory();
-  const { location } = history;
-  const { isFlagEnabled } = useFeatureFlags();
-
-  console.log(history.location.search)
-
-
-  const search = history.location.search;
+  const location = useLocation();
+  const search = location.search;
   const state = parseFilterStateFromURL(search);
 
-  const useQueryServiceBackend = isFlagEnabled(
-    "WEAVE_GITOPS_FEATURE_QUERY_SERVICE_BACKEND"
-  );
   const [filterDialogOpen, setFilterDialogOpen] = React.useState(dialogOpen);
   const [filterState, setFilterState] = React.useState<FilterState>({
     filters: selectionsToFilters(state.initialSelections, filters),
@@ -219,23 +211,6 @@ function DataTable({
   );
 
   const [checked, setChecked] = React.useState([]);
-
-  React.useEffect(() => {
-    setFilterState({
-      filters: selectionsToFilters(state.initialSelections, filters),
-      formState: initialFormState(filters, state.initialSelections),
-      textFilters: state.textFilters,
-    })
-    return () => {
-      const url = qs.parse(history.location.search);
-      let cleared = _.omit(url, ["filters", "search"]);
-      if (useQueryServiceBackend) {
-        cleared = _.omit(cleared, ["qFilters", "ascending", "terms"]);
-      }
-      history.replace({ ...history.location, search: qs.stringify(cleared) });
-      setFilterState({ filters: {}, formState: {}, textFilters: [] });
-    };
-  }, [history]);
 
   const r = _.map(sorted, (r, i) => {
     return (
@@ -384,7 +359,7 @@ function DataTable({
     </Flex>
   );
 }
-export default styled(DataTable)`
+export const DataTable = styled(UnstyledDataTable)`
   width: 100%;
   flex-wrap: nowrap;
   overflow-x: hidden;
@@ -439,3 +414,5 @@ export default styled(DataTable)`
         : null}
   }
 `;
+
+export default DataTable;
