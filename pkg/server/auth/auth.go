@@ -59,6 +59,7 @@ func RegisterAuthServer(mux *http.ServeMux, prefix string, srv *AuthServer, logi
 	mux.HandleFunc(prefix+"/callback", srv.Callback)
 	mux.Handle(prefix+"/sign_in", middleware.Handle(srv.SignIn()))
 	mux.HandleFunc(prefix+"/userinfo", srv.UserInfo)
+	mux.HandleFunc(prefix+"/refresh", srv.RefreshHandler)
 	mux.Handle(prefix+"/logout", srv.Logout())
 
 	return nil
@@ -215,15 +216,6 @@ type authenticatedMiddleware struct {
 	locks           *refreshLocks
 }
 
-func getRefreshToken(r *http.Request) string {
-	refreshTokenCookie, err := r.Cookie(RefreshTokenCookieName)
-	if err != nil {
-		return ""
-	}
-
-	return refreshTokenCookie.Value
-}
-
 func (a *authenticatedMiddleware) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	if IsPublicRoute(r.URL, a.publicRoutes) {
 		a.next.ServeHTTP(rw, r)
@@ -232,24 +224,9 @@ func (a *authenticatedMiddleware) ServeHTTP(rw http.ResponseWriter, r *http.Requ
 
 	principal, err := a.principalGetter.Principal(r)
 
-	if refreshToken := getRefreshToken(r); err != nil || principal == nil {
-		var refreshErr error
-		if refreshToken != "" {
-			unlock := a.locks.lock(refreshToken)
-			defer unlock()
-
-			principal, refreshErr = a.srv.Refresh(rw, r)
-		}
-
-		if refreshErr != nil || principal == nil {
-			a.srv.Log.V(logger.LogLevelWarn).Info("refreshing token failed", "err", refreshErr, "principal", principal)
-			a.srv.Log.V(logger.LogLevelWarn).Info("Authentication failed", "err", err, "principal", principal)
-
-			JSONError(a.srv.Log, rw, "Authentication required", http.StatusUnauthorized)
-			return
-		}
-
-		a.srv.Log.Info("Successfully refreshed token", "principal", principal)
+	if err != nil || principal == nil {
+		JSONError(a.srv.Log, rw, "Authentication required", http.StatusUnauthorized)
+		return
 	}
 
 	a.next.ServeHTTP(rw, r.Clone(WithPrincipal(r.Context(), principal)))

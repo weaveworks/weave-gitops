@@ -13,12 +13,12 @@ From [wikipedia](https://en.wikipedia.org/wiki/Air_gap_(networking))
 >An air gap, air wall, air gapping or disconnected network is a network security measure employed on one or more computers
 to ensure that a secure computer network is physically isolated from unsecured networks, such as the public Internet or an unsecured local area network...
 
-This document guides on how to install Weave Gitops Enterprise in a restricted environment.
+This document guides on how to install Weave GitOps Enterprise (WGE) in a restricted environment.
 
 # Before You Start
 
 There are multiple restrictions that could happen within an air-gapped environment. This guide assumes that you have egress network
-restrictions. In order to install Weave Gitops Enterprise (WGE), the required artifacts are required to be loaded
+restrictions. In order to install WGE, the required artifacts must be loaded
 from a private registry. This guide helps you with the task to identity the Helm charts
 and container images required to install WGE and to load them into your private registry.
 
@@ -33,25 +33,25 @@ to load the artifacts in the private network.
 Finally, we aim to provide an end to end example to use it as a guidance more than a recipe. Feel free to adapt the details
 that do not fit within your context.
 
-# Install
+# Install WGE
 
 There are different variations of the following stages and conditions. We consider that installing 
 WGE in an air-gapped environment could follow the following stages.
 
-1. Setup a WGE install environment.
+1. Set up a WGE install environment.
 2. Collect artifacts and publish to a private registry.
-3. Install Weave Gitops Enterprise in the air-gapped environment.
+3. Install WGE in the air-gapped environment.
 
-## Setup a WGE install environment
+## Set up a WGE install environment
 
-The main goal of this stage is to recreate a local Weave Gitops Enterprise within your context, to collect
+The main goal of this stage is to recreate a local WGE within your context, to collect
 the container images and Helm charts, that will be required in your private registry for the offline installation.
 
 A three-step setup is followed.
 
 1. Setup a proxy host
 2. Setup a private registry
-3. Install Weave Gitops Enterprise
+3. Install WGE
 
 ### Setup a proxy host
 
@@ -143,7 +143,7 @@ helm repo update private
 
 At this stage you have already a private registry for container images and helm charts.
 
-### Install Weave Gitops Enterprise
+### Install WGE
 
 This step is to gather the artifacts and images in your local environment to push to the private registry.
 
@@ -274,7 +274,7 @@ spec:
 
 </details>
 
-#### Weave Gitops Enterprise
+#### WGE
 
 Update the following manifest to your context.
 
@@ -482,7 +482,7 @@ ghcr.io/weaveworks-liquidmetal/flintlock-kernel:5.10.77
 
 ## Airgap Install
 
-### Weave Gitops Enterprise
+### Weave GitOps Enterprise
 At this stage you have in your private registry both the Helm charts and container images required to install Weave GitOps
 Enterprise. Now you are ready to install WGE from your private registry.
 

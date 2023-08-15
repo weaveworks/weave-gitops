@@ -11,41 +11,42 @@ import BrowserOnly from "@docusaurus/BrowserOnly";
 # Using GitOpsTemplates for Pipelines <TierLabel tiers="Enterprise" />
 
 To create new Pipelines and their required resources from within Weave GitOps
-Enterprise, you can leverage [GitOpsTemplates](../gitops-templates/intro.mdx) to help platform teams scale for developer self-service.
+Enterprise, you can leverage [GitOpsTemplates](../gitops-templates/intro.mdx), which help platform teams scale for developer self-service.
 
-This document will provide example configuration which could be adapted for use within your own organization, based on your [tenancy model](https://kubernetes.io/blog/2021/04/15/three-tenancy-models-for-kubernetes/) of choice.
+This document provides example configuration that you can adapt and use within your own organization, based on your [tenancy model](https://kubernetes.io/blog/2021/04/15/three-tenancy-models-for-kubernetes/).
 
 We will cover the creation of:
 - Pipelines
 - Alerts
 - Providers
 
-Secrets, required for authentication and authorization between leaf and management clusters as well as to Git, are out of scope for this document and would need to be handled by your secret management solution of choice.
+Secrets, required for authentication and authorization between leaf and management clusters as well as to Git, are out of scope for this document and must be handled by your chosen secret management solution.
 
-For advice on Secrets Management, you can refer to the Flux guide [here](https://fluxcd.io/flux/security/secrets-management/) or contact [Weaveworks](mailto:sales@weave.works) for assistance.
+For advice on Secrets Management, refer to [the Flux guide](https://fluxcd.io/flux/security/secrets-management/).
 
-Templates can include a single resource or multiple resources depending on your use case, for example - you may want to only create the Pipeline custom resource to associate existing HelmReleases, or you could create the HelmReleases, notification controller resources, and Pipeline all in a single template. They are highly customizable to suit your teams' needs.
+Templates can include a single resource or multiple resources, depending on your use case. For example, you may want to only create the Pipeline custom resource to associate existing HelmReleases. Or, you can create the HelmReleases, notification controller resources, and Pipeline all in a single template. They are highly customizable to meet the needs of your teams.
 
-## Adding new resources from within the Weave GitOps Enterprise dashboard
-GitOpsTemplates are custom resources installed onto the management cluster where Weave GitOps Enterprise resides. To add a new Pipeline, click `Create a Pipeline` from within the Pipeline view, which will take you to a pre-filtered list of templates with the label: `weave.works/template-type: pipeline`.
+## Adding New Resources From Within the Weave GitOps Enterprise Dashboard
+
+GitOpsTemplates are custom resources installed onto a management cluster where Weave GitOps Enterprise resides. To add a new Pipeline, click `Create a Pipeline` from within the Pipeline view. This will take you to a pre-filtered list of templates with the label: `weave.works/template-type: pipeline`.
 
 ![Create Pipeline button in Pipeline view](img/pipelines-table-create.png)
 
- The `Templates` view (shown below) lists all templates for which a given user has the appropriate permission to view. You can install GitOpsTemplates into different namespaces, and apply standard kubernetes RBAC to limit which teams can utilize which templates. You could additionally configure [Policy](../../policy/intro) to enforce permitted values within a template.
+ The `Templates` view (shown below) lists all templates for which a given user has the appropriate permission to view. You can install GitOpsTemplates into different namespaces and apply standard Kubernetes RBAC to limit which teams can utilize which templates. You can also configure [policy](../../policy/intro) to enforce permitted values within a template.
 
 ![Templates view showing Pipeline templates](img/pipelines-templates.png)
 
-## Example GitOpsTemplates
+## Example: GitOpsTemplates
 
 This section provides examples to help you build your own templates for Pipelines.
 
-### Pipeline - Visualization only
+### Pipeline: Visualization Only
 
 :::tip Included Sample
-This template is shipped by default with Weave GitOps Enterprise to help you get started with Pipelines.
+This default template is shipped with Weave GitOps Enterprise to help you get started with Pipelines.
 :::
 
-For flexibility, this allows the user of the template to specify the names of the Clusters where the application is deployed, and to vary the namespace per cluster. This means it would even work in a tenancy model where environments co-exist on the same cluster and use namespaces for isolation.
+For flexibility, this allows the template user to specify the names of the clusters where the application is deployed, and to vary the namespace per cluster. This works even in a tenancy model where environments coexist on the same cluster and use namespaces for isolation.
 
 <details><summary>Expand to view example template</summary>
 
@@ -117,9 +118,9 @@ spec:
 
 </details>
 
-### Pipeline - Multi-cluster promotion
+### Pipeline - Multi-Cluster Promotion
 
-This example extends the above to add a promotion strategy, in this case it will raise a pull request to update the application version in subsequent environments.
+This example extends the above to add a promotion strategy. In this case, it will raise a pull request to update the application version in subsequent environments.
 
 <details><summary>Expand to view example template</summary>
 
@@ -203,13 +204,13 @@ spec:
 
 </details>
 
-#### Git credentials
-For guidance on configuring credentials - see instructions in the [Promoting Applications](../promoting-applications#create-credentials-secret) documentation.
+#### Git Credentials
 
-#### Promotion marker to be added to HelmRelease in `Second-Environment`
-A comment would need to be added to the HelmRelease or Kustomization patch where the `spec.chart.spec.version` is defined.
+For guidance on configuring credentials, find instructions in the [Promoting Applications](../promoting-applications#create-credentials-secret) documentation.
 
-For example, if the values used in the above template were as follows:
+#### Promotion Marker Added to HelmRelease in `Second-Environment`
+
+You must add a comment to the HelmRelease or Kustomization patch where the `spec.chart.spec.version` is defined. For example, if the values used in the above template were as follows:
 
 ```yaml
 RESOURCE_NAME=my-app
@@ -222,14 +223,15 @@ Then the marker would be:
 # {"$promotion": "pipeline-01:my-app:Second-Environment"}
 ```
 
-More guidance on adding markers can be found [here](../promoting-applications#add-markers-to-app-manifests).
+Find more guidance on adding markers [here](../promoting-applications#add-markers-to-app-manifests).
 
 ### Alerts and Providers
-This example shows how you can configure multiple resources in a single template, and simplify creation through common naming strategies. The notification controller is used to communicate update events from the leaf clusters where Applications are deployed, to the management cluster where the Pipeline Controller resides and orchestrates.
 
-For the `Alert`, this template is filtering events to detect when an update has occurred. Depending on your use case, you could use different filtering.
+This example shows you how you can configure multiple resources in a single template and simplify creation through common naming strategies. The notification controller communicates update events from the leaf clusters where applications are deployed to the management cluster, where the Pipeline Controller resides and orchestrates.
 
-For the `Provider`, this template uses authenticated (HMAC) communication to the promotion endpoint, where a secret will need to be present on both the management cluster and leaf cluster(s). For simplicity, a `generic` provider could be used instead - which would not require the secret.
+For the `Alert`, this template filters events to detect when an update has occurred. Depending on your use case, you can use different filtering.
+
+For the `Provider`, this template uses authenticated (HMAC) communication to the promotion endpoint, where a secret must be present on both the management cluster and the leaf cluster(s). For simplicity's sake, you can use a `generic` provider instead; this will not require the secret.
 
 <details><summary>Expand to view example template</summary>
 
@@ -287,11 +289,11 @@ spec:
 </details>
 
 ## Summary
+
 GitOpsTemplates provide a highly flexible way for platform and application teams to work together with Pipelines.
 
-You can hard-code values, offer a range of accepted values, or leave open to the consumer of the template to provide input based on your organization's requirements.
+You can hard-code values, offer a range of accepted values, or allow the template consumer to provide input based on your organization's requirements.
 
 Templates are subject to RBAC as with any Kubernetes resource, enabling you to easily control which tenants have access to which templates.
 
-For full details on GitOpsTemplates, be sure to read our
-[documentation](../gitops-templates/intro.mdx).
+For full details on GitOpsTemplates, read our [documentation](../gitops-templates/intro.mdx).
