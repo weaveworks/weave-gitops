@@ -245,9 +245,6 @@ export default styled(AutomationDetail).attrs({
   ${Collapsible} {
     width: 100%;
   }
-  ${PageStatus} {
-    padding: ${(props) => props.theme.spacing.small} 0px;
-  }
   .collapse-wrapper {
     padding: 16px 44px;
     width: 100%;
