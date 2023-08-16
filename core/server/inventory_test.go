@@ -134,20 +134,12 @@ func TestGetBlankInventoryKustomization(t *testing.T) {
 	ctx := context.Background()
 
 	automationName := "my-automation"
-
-	ns := corev1.Namespace{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: "test-namespace",
-			Labels: map[string]string{
-				"toolkit.fluxcd.io/tenant": "tenant",
-			},
-		},
-	}
+	ns := "test-namespace"
 
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "my-deployment",
-			Namespace: ns.Name,
+			Namespace: ns,
 			UID:       "this-is-not-an-uid",
 		},
 		Spec: appsv1.DeploymentSpec{
@@ -170,31 +162,10 @@ func TestGetBlankInventoryKustomization(t *testing.T) {
 		},
 	}
 
-	rs := &appsv1.ReplicaSet{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("%s-123abcd", automationName),
-			Namespace: ns.Name,
-		},
-		Spec: appsv1.ReplicaSetSpec{
-			Template: deployment.Spec.Template,
-			Selector: deployment.Spec.Selector,
-		},
-		Status: appsv1.ReplicaSetStatus{
-			Replicas: 1,
-		},
-	}
-
-	rs.SetOwnerReferences([]metav1.OwnerReference{{
-		UID:        deployment.UID,
-		APIVersion: appsv1.SchemeGroupVersion.String(),
-		Kind:       "Deployment",
-		Name:       deployment.Name,
-	}})
-
 	kust := &kustomizev1.Kustomization{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      automationName,
-			Namespace: ns.Name,
+			Namespace: ns,
 		},
 		Spec: kustomizev1.KustomizationSpec{
 			SourceRef: kustomizev1.CrossNamespaceSourceReference{
@@ -209,12 +180,12 @@ func TestGetBlankInventoryKustomization(t *testing.T) {
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
 
-	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(&ns, kust, deployment, rs).Build()
+	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(kust, deployment).Build()
 	cfg := makeServerConfig(client, t, "")
 	c := makeServer(cfg, t)
 
 	res, err := c.GetInventory(ctx, &pb.GetInventoryRequest{
-		Namespace:    ns.Name,
+		Namespace:    ns,
 		ClusterName:  cluster.DefaultCluster,
 		Kind:         "Kustomization",
 		Name:         kust.Name,
