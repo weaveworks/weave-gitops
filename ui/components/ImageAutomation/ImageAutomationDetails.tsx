@@ -8,7 +8,6 @@ import PageStatus from "../PageStatus";
 import Spacer from "../Spacer";
 import SubRouterTabs, { RouterTab } from "../SubRouterTabs";
 import SyncActions from "../SyncActions";
-import Text from "../Text";
 import YamlView from "../YamlView";
 
 interface Props {
@@ -32,9 +31,6 @@ const ImageAutomationDetails = ({
 
   return (
     <Flex wide tall column className={className}>
-      <Text size="large" semiBold titleHeight>
-        {name}
-      </Text>
       <PageStatus conditions={conditions} suspended={suspended} />
       {kind !== Kind.ImagePolicy && (
         <SyncActions
@@ -85,9 +81,6 @@ const ImageAutomationDetails = ({
 export default styled(ImageAutomationDetails).attrs({
   className: ImageAutomationDetails.name,
 })`
-  ${PageStatus} {
-    padding: ${(props) => props.theme.spacing.small} 0px;
-  }
   ${SubRouterTabs} {
     margin-top: ${(props) => props.theme.spacing.medium};
   }
