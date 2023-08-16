@@ -96,7 +96,7 @@ jobs:
           branch: ${{ env.BRANCH }}
           base: main
           title: "Updates for ${{ env.GITOPS_VERSION }}"
-          body: |                            
+          body: |
            ## ⚠️ Breaking changes
            Describe any breaking changes here, or delete this block
 
