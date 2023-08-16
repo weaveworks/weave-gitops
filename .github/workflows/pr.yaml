@@ -267,6 +267,23 @@ jobs:
     steps:
       - run: echo "All done"
 
+  #  release step updates 'release' status check for non releases branches. See ../../doc/incidents/issues-3907 for full context.
+  release:
+    if: ${{ github.event_name == 'pull_request' && !startsWith(github.event.pull_request.head.ref, 'releases/') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Release
+        run: |
+          curl --fail --request POST \
+            --url https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }} \
+            --header 'authorization: Bearer ${{ secrets.WEAVE_GITOPS_BOT_ACCESS_TOKEN }}' \
+            --header 'content-type: application/json' \
+            --data '{
+                "state":"success",
+                "description":"release not required",
+                "context":"release"
+              }'
+
   notify-failure:
     name: Notify Slack on Failure
     runs-on: ubuntu-latest
