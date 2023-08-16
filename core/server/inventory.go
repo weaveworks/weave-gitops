@@ -72,11 +72,11 @@ func (cs *coreServer) getKustomizationInventory(ctx context.Context, clusterName
 	}
 
 	if kust.Status.Inventory == nil {
-		return []*pb.InventoryEntry{}, nil
+		return nil, nil
 	}
 
 	if kust.Status.Inventory.Entries == nil {
-		return []*pb.InventoryEntry{}, nil
+		return nil, nil
 	}
 
 	result := []*pb.InventoryEntry{}
