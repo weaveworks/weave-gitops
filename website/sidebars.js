@@ -56,19 +56,6 @@
       label: 'Access Configuration',
       items: [
         'configuration/recommended-rbac-configuration',
-        {
-          type: 'category',
-          label: 'Securing Access to the Dashboard',
-          collapsed: false,
-          link: {
-            type: 'doc',
-            id:'configuration/securing-access-to-the-dashboard',
-          },
-          items: [
-            'configuration/oidc-access',
-            'configuration/emergency-user',
-          ],
-        },
         'configuration/service-account-permissions',
         'configuration/user-permissions',
         'configuration/tls',
