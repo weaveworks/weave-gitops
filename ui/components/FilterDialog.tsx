@@ -120,14 +120,14 @@ export function selectionsToFilters(
 
     if (v) {
       const el = out[key];
-
       if (el) {
         el.options.push(val);
       } else {
-        out[key] = {
-          options: [val],
-          transformFunc: filterList[key]?.transformFunc,
-        };
+        if (filterList)
+          out[key] = {
+            options: [val],
+            transformFunc: filterList[key]?.transformFunc,
+          };
       }
     }
   });
