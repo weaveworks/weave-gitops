@@ -248,17 +248,6 @@ function UnstyledDataTable({
       </TableRow>
     );
   });
-
-  React.useEffect(() => {
-    return () => {
-      const url = qs.parse(location.search);
-      const clearFilters = _.omit(url, ["filters", "search"]);
-      history.replace({
-        ...history.location,
-        search: qs.stringify(clearFilters),
-      });
-    };
-  }, [history]);
   return (
     <Flex wide tall column className={className}>
       <TopBar wide align end>
