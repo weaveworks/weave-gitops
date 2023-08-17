@@ -3,19 +3,23 @@ import qs from "query-string";
 import * as React from "react";
 import { QueryClient, QueryClientProvider } from "react-query";
 import {
+  BrowserRouter as Router,
   Redirect,
   Route,
-  BrowserRouter as Router,
   Switch,
 } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { ThemeProvider } from "styled-components";
 import ErrorBoundary from "./components/ErrorBoundary";
+import Footer from "./components/Footer";
+import { IconType } from "./components/Icon";
 import ImagePolicyDetails from "./components/ImageAutomation/policies/ImagePolicyDetails";
 import ImageAutomationRepoDetails from "./components/ImageAutomation/repositories/ImageAutomationRepoDetails";
 import ImageAutomationUpdatesDetails from "./components/ImageAutomation/updates/ImageAutomationUpdatesDetails";
 import Layout from "./components/Layout";
+import Logo from "./components/Logo";
+import Nav, { NavItem } from "./components/Nav";
 import PendoContainer from "./components/PendoContainer";
 import PolicyViolationPage from "./components/Policies/PolicyViolations/PolicyViolationPage";
 import AppContextProvider, {
@@ -24,9 +28,11 @@ import AppContextProvider, {
 } from "./contexts/AppContext";
 import AuthContextProvider, { AuthCheck } from "./contexts/AuthContext";
 import CoreClientContextProvider from "./contexts/CoreClientContext";
+import useNavigation from "./hooks/navigation";
 import { useInDarkMode } from "./hooks/theme";
 import { Core } from "./lib/api/core/core.pb";
 import Fonts from "./lib/fonts";
+import { getParentNavRouteValue } from "./lib/nav";
 import theme, { GlobalStyle, muiTheme } from "./lib/theme";
 import { V2Routes } from "./lib/types";
 import Error from "./pages/Error";
@@ -47,12 +53,6 @@ import PolicyDetailsPage from "./pages/v2/PolicyDetailsPage";
 import ProviderPage from "./pages/v2/ProviderPage";
 import Sources from "./pages/v2/Sources";
 import UserInfo from "./pages/v2/UserInfo";
-import Nav, { NavItem } from "./components/Nav";
-import { IconType } from "./components/Icon";
-import Footer from "./components/Footer";
-import useNavigation from "./hooks/navigation";
-import { getParentNavRouteValue } from "./lib/nav";
-import Logo from "./components/Logo";
 
 const queryClient = new QueryClient();
 
@@ -121,6 +121,7 @@ const App = () => {
   return (
     <Layout logo={logo} nav={nav}>
       <PendoContainer />
+
       <ErrorBoundary>
         <Switch>
           <Route exact path={V2Routes.Automations} component={Automations} />
