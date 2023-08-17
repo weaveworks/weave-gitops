@@ -55,9 +55,6 @@
       type: 'category',
       label: 'Access Configuration',
       items: [
-        'configuration/recommended-rbac-configuration',
-        'configuration/service-account-permissions',
-        'configuration/user-permissions',
         'configuration/tls',
       ],
     },
