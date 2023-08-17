@@ -1,3 +1,4 @@
+import { useTheme } from "@material-ui/core";
 import * as React from "react";
 import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
@@ -8,7 +9,7 @@ import { automationLastUpdated } from "../lib/utils";
 import Collapsible from "./Collapsible";
 import DependenciesView from "./DependenciesView";
 import EventsTable from "./EventsTable";
-import Flex from "./Flex";
+import Flex, { ColumnOnBreakpoint } from "./Flex";
 import HealthCheckAgg, { computeAggHealthCheck } from "./HealthCheckAgg";
 import { InfoField } from "./InfoList";
 import { routeTab } from "./KustomizationDetail";
@@ -169,9 +170,15 @@ function AutomationDetail({
     },
     ...(customTabs?.length ? customTabs : []),
   ];
+  const muiTheme = useTheme();
   return (
     <Flex wide tall column className={className} gap="16">
-      <Flex wide>
+      <ColumnOnBreakpoint
+        wide
+        between
+        breakpoint={muiTheme.breakpoints.values["md"]}
+        gap="8"
+      >
         <SyncActions
           name={name}
           namespace={namespace}
@@ -180,7 +187,7 @@ function AutomationDetail({
           suspended={suspended}
           customActions={customActions}
         />
-        <Flex wide end gap="14">
+        <Flex gap="14">
           {automation?.type === "HelmRelease" ? (
             <LargeInfo
               title={"Chart Version"}
@@ -197,7 +204,7 @@ function AutomationDetail({
             component={<Timestamp time={automationLastUpdated(automation)} />}
           />
         </Flex>
-      </Flex>
+      </ColumnOnBreakpoint>
       <PageStatus
         conditions={automation.conditions}
         suspended={automation.suspended}
