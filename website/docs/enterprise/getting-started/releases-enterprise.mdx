@@ -7,7 +7,7 @@ import TierLabel from "../../_components/TierLabel";
 # Releases <TierLabel tiers="Enterprise" />
 
 :::info
-This page details the changes for Weave GitOps Enterprise and its associated components. For Weave GitOps OSS - please see the release notes on [GitHub](https://github.com/weaveworks/weave-gitops/releases).
+This page details the changes for Weave GitOps Enterprise and its associated components. For Weave GitOps OSS, please see the release notes on [GitHub](https://github.com/weaveworks/weave-gitops/releases).
 :::
 
 
@@ -16,7 +16,7 @@ This page details the changes for Weave GitOps Enterprise and its associated com
 
 :::caution
 
-This release builds upon Weave Gitops v0.29.0 that has breaking changes from Flux v2.0.0. Please make
+This release builds upon Weave GitOps v0.29.0 that has breaking changes from Flux v2.0.0. Please make
 sure that you read [these release notes](#v0290).
 
 :::
@@ -50,7 +50,7 @@ We introduced a breaking change in this release by upgrading to Flux v2 APIs, no
 
 ### ✍️ Action required
 
-Follow [Flux](https://github.com/fluxcd/flux2/releases/tag/v2.0.0) or [Weave Gitops](https://docs.gitops.weave.works/docs/guides/fluxga-upgrade/) to upgrade to Flux v2 GA before upgrading Weave Gitops Enterprise.
+Follow [Flux](https://github.com/fluxcd/flux2/releases/tag/v2.0.0) or [Weave GitOps](https://docs.gitops.weave.works/docs/guides/fluxga-upgrade/) to upgrade to Flux v2 GA before upgrading Weave GitOps Enterprise.
 :::
 
 ### Highlights
@@ -73,7 +73,7 @@ Follow [Flux](https://github.com/fluxcd/flux2/releases/tag/v2.0.0) or [Weave Git
 
 ### 🚀 Enhancements
 
-- PR: #3137 - Upgrade to weave gitops oss v0.29.0-rc.1 and flux v2.0.0 apis
+- PR: #3137 - Upgrade to Weave GitOps OSS v0.29.0-rc.1 and Flux v2.0.0 APIs
 - PR: #3119 - Bump GitOpsSets to v0.14.0
 - PR: #3134 - add RED metrics for indexer writes
 - PR: #3098 - [UI] Cleanup forms across sections to ensure consistency
@@ -752,7 +752,7 @@ You can still view and tweak the `values.yaml` when selecting profiles to includ
 
 ### Highlights
 - **Tenancy**
-  - `gitops create tenant` now supports `--prune` to remove old resources from the cluster if you're not using `--export` with gitops.
+  - `gitops create tenant` now supports `--prune` to remove old resources from the cluster if you're not using `--export` with GitOps.
   - `deploymentRBAC` section in `tenancy.yaml` allows you to specify the permissions given to the flux `Kustomizations` that will apply the resources from git to your tenants' namespaces in the cluster.
   - Support for `OCIRepository` sources when restricting/allowing the sources that can be applied into tenants' namespaces.
 - **Templates**
