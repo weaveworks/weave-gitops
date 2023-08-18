@@ -104,6 +104,10 @@ Follow [Flux](https://github.com/fluxcd/flux2/releases/tag/v2.0.0) or [Weave Git
 
 - Adds support for Kubernetes Events 
 
+### Breaking Changes
+
+- This version of Weave Gitops Enterprise drops support for `v1alpha1` of the `CAPITemplate` and `GitopsTemplate` CRDs. Please migrate to `v1alpha2` of these CRDs. See the [migration guide](../../gitops-templates/versions.mdx)
+
 ### Dependency versions
 
 - weave-gitops v0.28.0
