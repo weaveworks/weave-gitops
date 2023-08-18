@@ -10,6 +10,36 @@ import TierLabel from "../../_components/TierLabel";
 This page details the changes for Weave GitOps Enterprise and its associated components. For Weave GitOps OSS - please see the release notes on [GitHub](https://github.com/weaveworks/weave-gitops/releases).
 :::
 
+## v0.30.0
+2023-08-17
+
+## Highlights
+
+### UI
+
+- UI token refreshing! OIDC token refreshing is now handled by the UI, this avoids unintentionally making multiple token requests to the OIDC provider. This old behaviour sometimes triggered rate limiting in OIDC providers, causing errors.
+- UI polish including removing duplicate error messages and more consistency in headers and font sizes.
+
+### Policy
+
+- View Policy Audit violations in policies page as a tab
+
+### GitOpsSets
+
+* ClusterGenerator - return labels as generic maps, allows for easily using them in params.
+* Handle empty artifacts in directory processing, if a `GitRepository` or `OCIRepository` has no artifact, stop generating with an error.
+* Update the ImagePolicy generator to add the image. 
+* Ignore empty generators in the Matrix generator, fixing a panic if a generator produced an empty list.
+
+
+## Dependency versions
+- flux >v2.0.0
+- weave-gitops v0.30.0
+- cluster-controller v1.5.2
+- cluster-bootstrap-controller v0.6.1
+- (optional) pipeline-controller v0.21.0
+- (optional) policy-agent v2.5.0
+- (optional) gitopssets-controller v0.15.3
 
 ## v0.29.1
 2023-08-04
