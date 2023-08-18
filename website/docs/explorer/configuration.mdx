@@ -87,7 +87,7 @@ We look into them separately.
 
 ## Authentication and Authorization for querying
 
-Explorer leverages existing authentication and authorization built-in the [application](../../enterprise/getting-started/install-enterprise.mdx#securing-access-to-the-dashboard).
+Explorer leverages existing authentication and authorization built-in the [application](../enterprise/getting-started/install-enterprise.mdx#securing-access-to-the-dashboard).
 It identifies for a user logged in the application: its identity and the access permissions via Kuberentes RBAC.
 Query results are filtered honouring the access determined via RBAC.
 
@@ -95,7 +95,7 @@ Query results are filtered honouring the access determined via RBAC.
 
 [GitopsClusters](../cluster-management/managing-clusters-without-capi.mdx/#connect-a-cluster)
 define the connection and security context that Explorer leverages to collect data from leaf clusters. Given that you have followed the indications
-in [setup RBAC](../configuration/service-account-permissions.mdx), the GitopsCluster service account is able to impersonate any user or group.
+in [setup RBAC](../enterprise/getting-started/install-enterprise/#gitops-dashboard-service-account-permissions.mdx), the GitopsCluster service account is able to impersonate any user or group.
 
 :::tip
 
