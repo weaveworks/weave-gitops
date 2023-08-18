@@ -1,0 +1,312 @@
+---
+title: Pipelines With Tekton
+hide_title: true
+---
+
+import TierLabel from "./../_components/TierLabel";
+
+import CodeBlock from "@theme/CodeBlock";
+import BrowserOnly from "@docusaurus/BrowserOnly";
+
+# Setting up Pipelines to Trigger a Tekton Pipeline <TierLabel tiers="Enterprise" />
+
+Using Flux's [Notification
+Controller](https://fluxcd.io/flux/components/notification/), a [Tekton EventListener](https://tekton.dev/docs/triggers/eventlisteners/) can be triggered on Pipeline promotion events.
+
+## Configuring Tekton Pipelines
+
+### Tekton Tasks
+
+In this tutorial, we have two tasks to demonstrate how to use parameter values from the
+Pipeline event payload. Both tasks print out messages with information about the
+pipeline promotion. Each task has three parameters: `name`, `namespace`, and
+`message`.
+
+```yaml
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: hello
+  namespace: ww-pipeline
+spec:
+  params:
+  - name: name
+    type: string
+  - name: namespace
+    type: string
+  - name: message
+    type: string
+  steps:
+    - name: echo
+      image: alpine
+      script: |
+        #!/bin/sh
+        echo "Hello $(params.namespace)/$(params.name)!"
+        echo "Message: $(params.message)"
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: goodbye
+  namespace: ww-pipeline
+spec:
+  params:
+  - name: name
+    type: string
+  - name: namespace
+    type: string
+  - name: message
+    type: string
+  steps:
+    - name: goodbye
+      image: ubuntu
+      script: |
+        #!/bin/bash
+        echo "Goodbye $(params.namespace)/$(params.name)!"
+        echo "Message: $(params.message)"
+```
+
+### Tekton Pipeline
+
+The `hello-goodbye` Tekton Pipeline has the same three parameters as the tasks
+and it passes down the values to them.
+
+```yaml
+---
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: hello-goodbye
+  namespace: ww-pipeline
+spec:
+  params:
+  - name: name
+    type: string
+  - name: namespace
+    type: string
+  - name: message
+    type: string
+  tasks:
+    - name: hello
+      taskRef:
+        name: hello
+      params:
+      - name: namespace
+        value: $(params.namespace)
+      - name: name
+        value: $(params.name)
+      - name: message
+        value: $(params.message)
+    - name: goodbye
+      runAfter:
+        - hello
+      taskRef:
+        name: goodbye
+      params:
+      - name: namespace
+        value: $(params.namespace)
+      - name: name
+        value: $(params.name)
+      - name: message
+        value: $(params.message)
+```
+
+## Configuring Tekton Pipline Automation
+
+In order to be able to trigger a Pipeline from an external source, we need three
+Tekton resources.
+
+1. `TriggerBinding`: This resource binds the incoming JSON message to parameter
+   variables.
+2. `TriggerTemplate`: This resource is the template of the `PipelineRun` that
+   will be started.
+3. `EventListener`: This resource glues the above two resources together and
+   creates an http listener service.
+
+### Tekton TriggerBinding
+
+A JSON payload from the Notification Service about a Pipeline promotion looks
+like this:
+
+```json
+{
+  "involvedObject": {
+    "kind": "Pipeline",
+    "namespace": "flux-system",
+    "name": "podinfo-pipeline",
+    "uid": "74d9e3b6-0269-4c12-9051-3ce8cfb7886f",
+    "apiVersion": "pipelines.weave.works/v1alpha1",
+    "resourceVersion": "373617"
+  },
+  "severity": "info",
+  "timestamp": "2023-02-08T12:34:13Z",
+  "message": "Promote pipeline flux-system/podinfo-pipeline to prod with version 6.1.5",
+  "reason": "Promote",
+  "reportingController": "pipeline-controller",
+  "reportingInstance": "chart-pipeline-controller-8549867565-7822g"
+}
+```
+
+In our tasks, we are using only the `involvedObject.name`,
+`involvedObject.namespace` and `message` fields:
+
+```yaml
+---
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerBinding
+metadata:
+  name: ww-pipeline-binding
+  namespace: ww-pipeline
+spec:
+  params:
+  - name: namespace
+    value: $(body.involvedObject.namespace)
+  - name: name
+    value: $(body.involvedObject.name)
+  - name: message
+    value: $(body.message)
+```
+
+### Tekton TriggerTemplate
+
+The template has the same parameters as the `Pipeline` resources:
+
+```yaml
+---
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerTemplate
+metadata:
+  name: ww-pipeline-template
+  namespace: ww-pipeline
+spec:
+  params:
+  - name: namespace
+    default: "Unknown"
+  - name: name
+    default: "Unknown"
+  - name: message
+    default: "no message"
+  resourcetemplates:
+  - apiVersion: tekton.dev/v1beta1
+    kind: PipelineRun
+    metadata:
+      generateName: hello-goodbye-run-
+    spec:
+      pipelineRef:
+        name: hello-goodbye
+      params:
+      - name: name
+        value: $(tt.params.name)
+      - name: namespace
+        value: $(tt.params.namespace)
+      - name: message
+        value: $(tt.params.message)
+```
+
+### Tekton EventListener
+
+To access all [required resources](https://tekton.dev/docs/getting-started/triggers/#create-an-eventlistener), we need an extra service account:
+
+```yaml
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: tekton-ww-pipeline-robot
+  namespace: ww-pipeline
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: triggers-example-eventlistener-binding
+  namespace: ww-pipeline
+subjects:
+- kind: ServiceAccount
+  name: tekton-ww-pipeline-robot
+  namespace: ww-pipeline
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: tekton-triggers-eventlistener-roles
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: triggers-example-eventlistener-clusterbinding
+subjects:
+- kind: ServiceAccount
+  name: tekton-ww-pipeline-robot
+  namespace: ww-pipeline
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: tekton-triggers-eventlistener-clusterroles
+```
+
+With this `ServiceAccount`, we can create the `EventListener` using the
+`TriggerBinding` and `TriggerTemplate`:
+
+```yaml
+---
+apiVersion: triggers.tekton.dev/v1beta1
+kind: EventListener
+metadata:
+  name: ww-pipeline-listener
+  namespace: ww-pipeline
+spec:
+  serviceAccountName: tekton-ww-pipeline-robot
+  triggers:
+    - name: ww-pipeline-trigger
+      bindings:
+      - ref: ww-pipeline-binding
+      template:
+        ref: ww-pipeline-template
+```
+
+At this point, we should have a `Service` for our `EventListener`.
+
+```bash
+❯ kubectl get service -n ww-pipeline
+NAME                      TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)             AGE
+el-ww-pipeline-listener   ClusterIP   10.96.250.23   <none>        8080/TCP,9000/TCP   3d
+```
+
+## Configure Notification Provider
+
+In this case, we are using Tekton in the same cluster, so we can use an internal
+address to access the `EventListener` service. If they are not in the same
+cluster, exposing the service may be required through an ingress or a service mesh.
+
+```yaml
+---
+apiVersion: notification.toolkit.fluxcd.io/v1beta1
+kind: Provider
+metadata:
+  name: tekton-promotion
+  namespace: hello-podinfo
+spec:
+  type: generic
+  address: http://el-ww-pipeline-listener.ww-pipeline:8080/
+```
+
+## Set Up Alerts
+
+We can configure an Alert to use the `tekton-promotion` provider. For example,
+an Alert for the `podinfo-pipeline` in the `flux-system` namespace:
+```yaml
+---
+apiVersion: notification.toolkit.fluxcd.io/v1beta1
+kind: Alert
+metadata:
+  name: tekton-promotion-podinfo
+  namespace: hello-podinfo
+spec:
+  eventSeverity: info
+  eventSources:
+  - kind: Pipeline
+    name: hello-podinfo
+    namespace: flux-system
+  providerRef:
+    name: tekton-promotion
+```

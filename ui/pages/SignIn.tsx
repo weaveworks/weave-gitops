@@ -44,6 +44,7 @@ const OidcFlex = styled(Flex)`
 const Footer = styled(Flex)`
   & img {
     width: 500px;
+    height: 300px;
   }
 `;
 
