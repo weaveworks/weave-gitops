@@ -252,6 +252,20 @@ single element, i.e. only one element will be generated containing the
 entire object.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>secretRef</code><br />
+<em>
+<a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.19/#localobjectreference-v1-core">
+Kubernetes core/v1.LocalObjectReference
+</a>
+</em>
+</td>
+<td>
+<p>Reference to Secret in same namespace with a field &ldquo;caFile&rdquo; which
+provides the Certificate Authority to trust when making API calls.</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="templates.weave.works/v1alpha1.ClusterGenerator">ClusterGenerator
@@ -382,6 +396,18 @@ GitRepositoryGenerator
 </tr>
 <tr>
 <td>
+<code>ociRepository</code><br />
+<em>
+<a href="#templates.weave.works/v1alpha1.OCIRepositoryGenerator">
+OCIRepositoryGenerator
+</a>
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
 <code>matrix</code><br />
 <em>
 <a href="#templates.weave.works/v1alpha1.MatrixGenerator">
@@ -490,6 +516,18 @@ ListGenerator
 <em>
 <a href="#templates.weave.works/v1alpha1.GitRepositoryGenerator">
 GitRepositoryGenerator
+</a>
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>ociRepository</code><br />
+<em>
+<a href="#templates.weave.works/v1alpha1.OCIRepositoryGenerator">
+OCIRepositoryGenerator
 </a>
 </em>
 </td>
@@ -776,8 +814,8 @@ string
 <td>
 <code>files</code><br />
 <em>
-<a href="#templates.weave.works/v1alpha1.GitRepositoryGeneratorFileItem">
-[]GitRepositoryGeneratorFileItem
+<a href="#templates.weave.works/v1alpha1.RepositoryGeneratorFileItem">
+[]RepositoryGeneratorFileItem
 </a>
 </em>
 </td>
@@ -789,80 +827,14 @@ string
 <td>
 <code>directories</code><br />
 <em>
-<a href="#templates.weave.works/v1alpha1.GitRepositoryGeneratorDirectoryItem">
-[]GitRepositoryGeneratorDirectoryItem
+<a href="#templates.weave.works/v1alpha1.RepositoryGeneratorDirectoryItem">
+[]RepositoryGeneratorDirectoryItem
 </a>
 </em>
 </td>
 <td>
 <p>Directories is a set of rules for identifying directories to be
 generated.</p>
-</td>
-</tr>
-</tbody>
-</table>
-<h3 id="templates.weave.works/v1alpha1.GitRepositoryGeneratorDirectoryItem">GitRepositoryGeneratorDirectoryItem
-</h3>
-<p>
-(<em>Appears on:</em>
-<a href="#templates.weave.works/v1alpha1.GitRepositoryGenerator">GitRepositoryGenerator</a>)
-</p>
-<p>GitRepositoryGeneratorDirectoryItem stores the information about a specific
-directory to be generated from.</p>
-<table>
-<thead>
-<tr>
-<th>Field</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<code>path</code><br />
-<em>
-string
-</em>
-</td>
-<td>
-</td>
-</tr>
-<tr>
-<td>
-<code>exclude</code><br />
-<em>
-bool
-</em>
-</td>
-<td>
-</td>
-</tr>
-</tbody>
-</table>
-<h3 id="templates.weave.works/v1alpha1.GitRepositoryGeneratorFileItem">GitRepositoryGeneratorFileItem
-</h3>
-<p>
-(<em>Appears on:</em>
-<a href="#templates.weave.works/v1alpha1.GitRepositoryGenerator">GitRepositoryGenerator</a>)
-</p>
-<p>GitRepositoryGeneratorFileItem defines a path to a file to be parsed when generating.</p>
-<table>
-<thead>
-<tr>
-<th>Field</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>
-<code>path</code><br />
-<em>
-string
-</em>
-</td>
-<td>
-<p>Path is the name of a file to read and generate from can be JSON or YAML.</p>
 </td>
 </tr>
 </tbody>
@@ -995,6 +967,78 @@ The matrix is a cartesian product of the generators.</p>
 <p>Generators is a list of generators to be combined.</p>
 </td>
 </tr>
+<tr>
+<td>
+<code>singleElement</code><br />
+<em>
+bool
+</em>
+</td>
+<td>
+<em>(Optional)</em>
+<p>SingleElement means generate a single element with the result of the
+merged generator elements.</p>
+<p>When true, the matrix elements will be merged to a single element, with
+whatever prefixes they have.
+It&rsquo;s recommended that you use the Name field to separate out elements.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="templates.weave.works/v1alpha1.OCIRepositoryGenerator">OCIRepositoryGenerator
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#templates.weave.works/v1alpha1.GitOpsSetGenerator">GitOpsSetGenerator</a>, 
+<a href="#templates.weave.works/v1alpha1.GitOpsSetNestedGenerator">GitOpsSetNestedGenerator</a>)
+</p>
+<p>OCIRepositoryGenerator generates from files in a Flux OCIRepository resource.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>repositoryRef</code><br />
+<em>
+string
+</em>
+</td>
+<td>
+<p>RepositoryRef is the name of a OCIRepository resource to be generated from.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>files</code><br />
+<em>
+<a href="#templates.weave.works/v1alpha1.RepositoryGeneratorFileItem">
+[]RepositoryGeneratorFileItem
+</a>
+</em>
+</td>
+<td>
+<p>Files is a set of rules for identifying files to be parsed.</p>
+</td>
+</tr>
+<tr>
+<td>
+<code>directories</code><br />
+<em>
+<a href="#templates.weave.works/v1alpha1.RepositoryGeneratorDirectoryItem">
+[]RepositoryGeneratorDirectoryItem
+</a>
+</em>
+</td>
+<td>
+<p>Directories is a set of rules for identifying directories to be
+generated.</p>
+</td>
+</tr>
 </tbody>
 </table>
 <h3 id="templates.weave.works/v1alpha1.PullRequestGenerator">PullRequestGenerator
@@ -1100,6 +1144,74 @@ bool
 <em>(Optional)</em>
 <p>Fork is used to filter out forks from the target PRs if false,
 or to include forks if  true</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="templates.weave.works/v1alpha1.RepositoryGeneratorDirectoryItem">RepositoryGeneratorDirectoryItem
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#templates.weave.works/v1alpha1.GitRepositoryGenerator">GitRepositoryGenerator</a>, 
+<a href="#templates.weave.works/v1alpha1.OCIRepositoryGenerator">OCIRepositoryGenerator</a>)
+</p>
+<p>RepositoryGeneratorDirectoryItem stores the information about a specific
+directory to be generated from.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>path</code><br />
+<em>
+string
+</em>
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+<code>exclude</code><br />
+<em>
+bool
+</em>
+</td>
+<td>
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="templates.weave.works/v1alpha1.RepositoryGeneratorFileItem">RepositoryGeneratorFileItem
+</h3>
+<p>
+(<em>Appears on:</em>
+<a href="#templates.weave.works/v1alpha1.GitRepositoryGenerator">GitRepositoryGenerator</a>, 
+<a href="#templates.weave.works/v1alpha1.OCIRepositoryGenerator">OCIRepositoryGenerator</a>)
+</p>
+<p>RepositoryGeneratorFileItem defines a path to a file to be parsed when generating.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<code>path</code><br />
+<em>
+string
+</em>
+</td>
+<td>
+<p>Path is the name of a file to read and generate from can be JSON or YAML.</p>
 </td>
 </tr>
 </tbody>
