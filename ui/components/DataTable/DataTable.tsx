@@ -27,7 +27,7 @@ import SearchField from "../SearchField";
 import Spacer from "../Spacer";
 import Text from "../Text";
 import InfoModal from "../InfoModal";
-import { SearchedNamespaces } from "../../hooks/automations";
+import { SearchedNamespaces } from "../../lib/types";
 import SortableLabel from "./SortableLabel";
 import {
   filterRows,
@@ -39,6 +39,7 @@ import {
   toPairs,
 } from "./helpers";
 import { Field, FilterState } from "./types";
+
 /** DataTable Properties  */
 export interface Props {
   /** The ID of the table. */
@@ -216,6 +217,8 @@ function UnstyledDataTable({
     disableSort
   );
 
+  const numFields = fields.length + (checkboxes ? 1 : 0);
+
   const [checked, setChecked] = React.useState([]);
 
   const r = _.map(sorted, (r, i) => {
@@ -257,6 +260,11 @@ function UnstyledDataTable({
 
   return (
     <Flex wide tall column className={className}>
+      <InfoModal
+        searchedNamespaces={searchedNamespaces}
+        open={searchedNamespacesModalOpen}
+        onCloseModal={setSearchedNamespacesModalOpen}
+      />
       <TopBar wide align end>
         {checkboxes && <CheckboxActions checked={checked} rows={filtered} />}
         {filters && !hideSearchAndFilters && (
@@ -281,11 +289,6 @@ function UnstyledDataTable({
                   />
                 </IconButton>
               )}
-              <InfoModal
-                searchedNamespaces={searchedNamespaces}
-                open={searchedNamespacesModalOpen}
-                onCloseModal={setSearchedNamespacesModalOpen}
-              />
               <SearchField onSubmit={handleTextSearchSubmit} />
               <IconButton
                 onClick={() => setFilterDialogOpen(!filterDialogOpen)}
@@ -354,8 +357,8 @@ function UnstyledDataTable({
               {r.length > 0 ? (
                 r
               ) : (
-                <EmptyRow colSpan={fields.length}>
-                  <TableCell colSpan={fields.length}>
+                <EmptyRow colSpan={numFields}>
+                  <TableCell colSpan={numFields}>
                     <Flex center align>
                       <Icon
                         color="neutral20"

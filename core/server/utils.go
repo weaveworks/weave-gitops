@@ -20,22 +20,21 @@ func GetTenant(namespace, clusterName string, clusterUserNamespaces map[string][
 	return ""
 }
 
-func GetClusterUserNamespacesNames(clusterUserNamespaces map[string][]v1.Namespace) map[string]*api.NamespaceList {
-	namespaces := make(map[string]*api.NamespaceList)
+func GetClusterUserNamespacesNames(clusterUserNamespaces map[string][]v1.Namespace) []*api.ClusterNamespaceList {
+	clusterNamespaces := []*api.ClusterNamespaceList{}
 
-	for clusterName := range clusterUserNamespaces {
-		var clusterNamespaces []string
-
-		for _, ns := range clusterUserNamespaces[clusterName] {
-			clusterNamespaces = append(clusterNamespaces, ns.GetName())
+	for clusterName, namespaces := range clusterUserNamespaces {
+		namespaceNames := []string{}
+		for _, namespace := range namespaces {
+			namespaceNames = append(namespaceNames, namespace.Name)
 		}
-
-		namespaces[clusterName] = &api.NamespaceList{
-			Namespaces: clusterNamespaces,
-		}
+		clusterNamespaces = append(clusterNamespaces, &api.ClusterNamespaceList{
+			ClusterName: clusterName,
+			Namespaces:  namespaceNames,
+		})
 	}
 
-	return namespaces
+	return clusterNamespaces
 }
 
 // ExtractValueFromMap gets string value from map or empty string if the value is empty

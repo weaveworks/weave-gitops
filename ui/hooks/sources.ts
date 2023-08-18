@@ -9,10 +9,15 @@ import {
   NoNamespace,
   ReactQueryOptions,
   RequestError,
+  SearchedNamespaces,
 } from "../lib/types";
 import { convertResponse } from "./objects";
 
-type Res = { result: Source[]; errors: MultiRequestError[] };
+type Res = {
+  result: Source[];
+  errors: MultiRequestError[];
+  searchedNamespaces: SearchedNamespaces;
+};
 
 export function useListSources(
   appName?: string,
@@ -43,7 +48,7 @@ export function useListSources(
           })
       );
       return Promise.all(p).then((responses) => {
-        const final = { result: [], errors: [] };
+        const final: Res = { result: [], errors: [], searchedNamespaces: {} };
         for (const { kind, response } of responses) {
           final.result.push(
             ...response.objects.map((o) => convertResponse(kind, o) as Source)
@@ -55,6 +60,7 @@ export function useListSources(
               })
             );
           }
+          final.searchedNamespaces[kind] = response.searchedNamespaces;
         }
         return final;
       });

@@ -191,7 +191,7 @@ func (c *clustersClient) ClusteredList(ctx context.Context, clist ClusteredObjec
 
 				paginationInfo.Set(clusterName, nsName, list.GetContinue())
 
-				clist.AddObjectList(clusterName, list)
+				clist.AddObjectList(clusterName, namespaces, list)
 			}(clusterName, ns.Name, cc, listOpts...)
 		}
 	}
@@ -275,9 +275,11 @@ type ClusteredObjectList interface {
 	// NewList is a factory that returns a new concrete list being queried
 	NewList() client.ObjectList
 	// AddObjectList adds a result list of objects to the lists map
-	AddObjectList(cluster string, list client.ObjectList)
+	AddObjectList(cluster string, namespaces []v1.Namespace, list client.ObjectList)
 	// Lists returns the map of lists from all clusters
 	Lists() map[string][]client.ObjectList
+	// Namespaces returns the map of queried namespaces from all clusters
+	Namespaces() map[string][]v1.Namespace
 	// GetContinue returns the continue token used for pagination
 	GetContinue() string
 	// SetContinue sets the continue token used for pagination
@@ -289,6 +291,7 @@ type ClusteredList struct {
 
 	listFactory   func() client.ObjectList
 	lists         map[string][]client.ObjectList
+	namespaces    map[string][]v1.Namespace
 	continueToken string
 }
 
@@ -296,6 +299,7 @@ func NewClusteredList(listFactory func() client.ObjectList) ClusteredObjectList 
 	return &ClusteredList{
 		listFactory: listFactory,
 		lists:       make(map[string][]client.ObjectList),
+		namespaces:  make(map[string][]v1.Namespace),
 	}
 }
 
@@ -303,11 +307,12 @@ func (cl *ClusteredList) NewList() client.ObjectList {
 	return cl.listFactory()
 }
 
-func (cl *ClusteredList) AddObjectList(cluster string, list client.ObjectList) {
+func (cl *ClusteredList) AddObjectList(cluster string, namespaces []v1.Namespace, list client.ObjectList) {
 	cl.Lock()
 	defer cl.Unlock()
 
 	cl.lists[cluster] = append(cl.lists[cluster], list)
+	cl.namespaces[cluster] = namespaces
 }
 
 func (cl *ClusteredList) Lists() map[string][]client.ObjectList {
@@ -315,6 +320,13 @@ func (cl *ClusteredList) Lists() map[string][]client.ObjectList {
 	defer cl.Unlock()
 
 	return cl.lists
+}
+
+func (cl *ClusteredList) Namespaces() map[string][]v1.Namespace {
+	cl.Lock()
+	defer cl.Unlock()
+
+	return cl.namespaces
 }
 
 func (cl *ClusteredList) GetContinue() string {

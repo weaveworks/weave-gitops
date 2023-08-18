@@ -766,6 +766,20 @@
         }
       }
     },
+    "v1ClusterNamespaceList": {
+      "type": "object",
+      "properties": {
+        "clusterName": {
+          "type": "string"
+        },
+        "namespaces": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
     "v1Condition": {
       "type": "object",
       "properties": {
@@ -1224,9 +1238,9 @@
           }
         },
         "searchedNamespaces": {
-          "type": "object",
-          "additionalProperties": {
-            "$ref": "#/definitions/v1NamespaceList"
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ClusterNamespaceList"
           }
         }
       }
@@ -1348,17 +1362,6 @@
         },
         "clusterName": {
           "type": "string"
-        }
-      }
-    },
-    "v1NamespaceList": {
-      "type": "object",
-      "properties": {
-        "namespaces": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
         }
       }
     },

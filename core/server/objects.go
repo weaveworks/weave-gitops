@@ -92,9 +92,9 @@ func (cs *coreServer) ListObjects(ctx context.Context, msg *pb.ListObjectsReques
 
 	var results []*pb.Object
 
-	clusterUserNamespaces := cs.clustersManager.GetUserNamespaces(auth.Principal(ctx))
+	queriedNamespaces := clist.Namespaces()
 
-	for n, lists := range clist.Lists() {
+	for clusterName, lists := range clist.Lists() {
 		for _, l := range lists {
 			list, ok := l.(*unstructured.UnstructuredList)
 			if !ok {
@@ -102,7 +102,7 @@ func (cs *coreServer) ListObjects(ctx context.Context, msg *pb.ListObjectsReques
 			}
 
 			for _, unstructuredObj := range list.Items {
-				tenant := GetTenant(unstructuredObj.GetNamespace(), n, clusterUserNamespaces)
+				tenant := GetTenant(unstructuredObj.GetNamespace(), clusterName, queriedNamespaces)
 
 				var obj client.Object = &unstructuredObj
 
@@ -113,13 +113,13 @@ func (cs *coreServer) ListObjects(ctx context.Context, msg *pb.ListObjectsReques
 				case "Secret":
 					obj, err = sanitizeSecret(&unstructuredObj)
 					if err != nil {
-						respErrors = append(respErrors, &pb.ListError{ClusterName: n, Message: fmt.Sprintf("error sanitizing secrets: %v", err)})
+						respErrors = append(respErrors, &pb.ListError{ClusterName: clusterName, Message: fmt.Sprintf("error sanitizing secrets: %v", err)})
 						continue
 					}
 				case v2beta1.HelmReleaseKind:
-					inventory, err = getUnstructuredHelmReleaseInventory(ctx, unstructuredObj, clustersClient, n)
+					inventory, err = getUnstructuredHelmReleaseInventory(ctx, unstructuredObj, clustersClient, clusterName)
 					if err != nil {
-						respErrors = append(respErrors, &pb.ListError{ClusterName: n, Message: err.Error()})
+						respErrors = append(respErrors, &pb.ListError{ClusterName: clusterName, Message: err.Error()})
 						inventory = nil // We can still display most things without inventory
 
 						cs.logger.V(logger.LogLevelDebug).Info("Couldn't grab inventory for helm release", "error", err)
@@ -137,9 +137,9 @@ func (cs *coreServer) ListObjects(ctx context.Context, msg *pb.ListObjectsReques
 					}
 				}
 
-				o, err := types.K8sObjectToProto(obj, n, tenant, inventory, info)
+				o, err := types.K8sObjectToProto(obj, clusterName, tenant, inventory, info)
 				if err != nil {
-					respErrors = append(respErrors, &pb.ListError{ClusterName: n, Message: "converting items: " + err.Error()})
+					respErrors = append(respErrors, &pb.ListError{ClusterName: clusterName, Message: "converting items: " + err.Error()})
 					continue
 				}
 
@@ -151,7 +151,7 @@ func (cs *coreServer) ListObjects(ctx context.Context, msg *pb.ListObjectsReques
 	return &pb.ListObjectsResponse{
 		Objects:            results,
 		Errors:             respErrors,
-		SearchedNamespaces: GetClusterUserNamespacesNames(clusterUserNamespaces),
+		SearchedNamespaces: GetClusterUserNamespacesNames(queriedNamespaces),
 	}, nil
 }
 

@@ -5,7 +5,7 @@ import { useFeatureFlags } from "../hooks/featureflags";
 import { Kind } from "../lib/api/core/types.pb";
 import { formatURL } from "../lib/nav";
 import { Automation, HelmRelease } from "../lib/objects";
-import { V2Routes } from "../lib/types";
+import { SearchedNamespaces, V2Routes } from "../lib/types";
 import { getSourceRefForAutomation, statusSortHelper } from "../lib/utils";
 import DataTable, {
   Field,
@@ -23,7 +23,7 @@ type Props = {
   automations?: Automation[];
   appName?: string;
   hideSource?: boolean;
-  searchedNamespaces?: { [key: string]: string[] }[];
+  searchedNamespaces?: SearchedNamespaces;
 };
 
 function AutomationsTable({

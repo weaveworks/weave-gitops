@@ -1,7 +1,7 @@
 import { List, ListItem } from "@material-ui/core";
-import React, { Dispatch, SetStateAction } from "react";
+import React, { Dispatch, Fragment, SetStateAction } from "react";
 import styled from "styled-components";
-import { SearchedNamespaces } from "../hooks/automations";
+import { SearchedNamespaces } from "../lib/types";
 import Modal from "./Modal";
 import Text from "./Text";
 
@@ -20,12 +20,19 @@ function InfoModal({ searchedNamespaces, onCloseModal, open }: Props) {
 
   const content = (
     <List>
-      {searchedNamespaces?.map((ns, index) => (
-        <ListItem key={index}>
-          <ClusterName bold>{Object.keys(ns)[0]}</ClusterName>
-          {(Object.values(ns)[0] as string[]).join(", ")}
-        </ListItem>
-      ))}
+      {Object.entries(searchedNamespaces || []).map(
+        ([kind, clusterNamespacesList]) => (
+          <Fragment key={kind}>
+            <h2>kind: {kind}</h2>
+            {clusterNamespacesList?.map((clusterNamespaces) => (
+              <ListItem key={clusterNamespaces.clusterName}>
+                <ClusterName bold>{clusterNamespaces.clusterName}</ClusterName>
+                {clusterNamespaces.namespaces.join(", ")}
+              </ListItem>
+            ))}
+          </Fragment>
+        )
+      )}
     </List>
   );
 

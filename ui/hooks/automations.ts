@@ -1,6 +1,5 @@
 import { useContext } from "react";
 import { useMutation, useQuery } from "react-query";
-import _ from "lodash";
 import { CoreClientContext } from "../contexts/CoreClientContext";
 import {
   ListObjectsResponse,
@@ -14,35 +13,15 @@ import {
   NoNamespace,
   ReactQueryOptions,
   RequestError,
+  SearchedNamespaces,
 } from "../lib/types";
 import { notifyError, notifySuccess } from "../lib/utils";
 import { convertResponse } from "./objects";
-
-export type SearchedNamespaces = { [key: string]: string[] }[];
 
 type Res = {
   result: Automation[];
   errors: MultiRequestError[];
   searchedNamespaces: SearchedNamespaces;
-};
-
-export const addSearchedNamespaces = (final, response) => {
-  for (const k of Object.keys(response.searchedNamespaces)) {
-    const existingKeys = final.searchedNamespaces.map(
-      (ns) => Object.keys(ns)[0]
-    );
-    if (!existingKeys.includes(k)) {
-      final.searchedNamespaces.push({
-        [k as string]: response.searchedNamespaces[k].namespaces,
-      });
-    } else {
-      final.searchedNamespaces[existingKeys.indexOf(k)][k] = _.uniq([
-        ...final.searchedNamespaces[existingKeys.indexOf(k)][k],
-        ...response.searchedNamespaces[k].namespaces,
-      ]);
-    }
-  }
-  return final;
 };
 
 export function useListAutomations(
@@ -67,10 +46,10 @@ export function useListAutomations(
           })
       );
       return Promise.all(p).then((responses) => {
-        const final = {
+        const final: Res = {
           result: [],
           errors: [],
-          searchedNamespaces: [] as SearchedNamespaces,
+          searchedNamespaces: {},
         };
         for (const { kind, response } of responses) {
           final.result.push(
@@ -83,7 +62,7 @@ export function useListAutomations(
               return { ...o, kind };
             })
           );
-          addSearchedNamespaces(final, response);
+          final.searchedNamespaces[kind] = response.searchedNamespaces;
         }
         return final;
       });

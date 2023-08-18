@@ -285,6 +285,7 @@ function getIcon(i: IconType) {
 
     case IconType.InfoIcon:
       return InfoIcon;
+
     case IconType.CallReceived:
       return CallReceived;
 

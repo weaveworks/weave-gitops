@@ -17,7 +17,10 @@ function SourcesList({ className }: Props) {
       className={className}
       path={[{ label: "Sources" }]}
     >
-      <SourcesTable sources={sources?.result} />
+      <SourcesTable
+        sources={sources?.result}
+        searchedNamespaces={sources?.searchedNamespaces}
+      />
     </Page>
   );
 }
