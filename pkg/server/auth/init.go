@@ -13,7 +13,7 @@ import (
 
 // InitAuthServer creates a new AuthServer and configures it for the correct
 // authentication methods.
-func InitAuthServer(ctx context.Context, log logr.Logger, rawKubernetesClient ctrlclient.Client, oidcConfig OIDCConfig, oidcSecret, namespace string, authMethodStrings []string) (*AuthServer, error) {
+func InitAuthServer(ctx context.Context, log logr.Logger, rawKubernetesClient ctrlclient.Client, oidcConfig OIDCConfig, oidcSecret, namespace string, authMethodStrings []string, noAuthUser string) (*AuthServer, error) {
 	log.V(logger.LogLevelDebug).Info("Registering authentication methods", "methods", authMethodStrings)
 
 	authMethods, err := ParseAuthMethodArray(authMethodStrings)
@@ -21,8 +21,8 @@ func InitAuthServer(ctx context.Context, log logr.Logger, rawKubernetesClient ct
 		return nil, err
 	}
 
-	if len(authMethods) == 0 {
-		return nil, fmt.Errorf("no authentication methods set")
+	if noAuthUser != "" {
+		authMethods = map[AuthMethod]bool{Anonymous: true}
 	}
 
 	if authMethods[OIDC] {
@@ -64,7 +64,7 @@ func InitAuthServer(ctx context.Context, log logr.Logger, rawKubernetesClient ct
 		tsv.SetDevMode(true)
 	}
 
-	authCfg, err := NewAuthServerConfig(log, oidcConfig, rawKubernetesClient, tsv, namespace, authMethods)
+	authCfg, err := NewAuthServerConfig(log, oidcConfig, rawKubernetesClient, tsv, namespace, authMethods, noAuthUser)
 	if err != nil {
 		return nil, err
 	}

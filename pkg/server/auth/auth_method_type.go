@@ -27,6 +27,17 @@ func DefaultAuthMethods() []AuthMethod {
 	return []AuthMethod{UserAccount, OIDC}
 }
 
+func AllUserAuthMethods() []string {
+	allUserAuthMethods := []AuthMethod{UserAccount, OIDC, TokenPassthrough}
+	res := []string{}
+	for _, method := range allUserAuthMethods {
+		res = append(res, method.String())
+	}
+
+	return res
+
+}
+
 func DefaultAuthMethodStrings() []string {
 	res := []string{}
 	for _, method := range DefaultAuthMethods() {

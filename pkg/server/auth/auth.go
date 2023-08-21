@@ -198,7 +198,7 @@ func WithAPIAuth(next http.Handler, srv *AuthServer, publicRoutes []string) http
 			multi.Getters = append(multi.Getters, tokenAuth)
 
 		case Anonymous:
-			multi.Getters = []PrincipalGetter{NewAnonymousPrincipalGetter(srv.Log, "testing")}
+			multi.Getters = []PrincipalGetter{NewAnonymousPrincipalGetter(srv.Log, srv.noAuthUser)}
 		}
 	}
 

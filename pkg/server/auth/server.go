@@ -27,7 +27,6 @@ const (
 	ClusterUserAuthSecretName  string = "cluster-user-auth"
 	DefaultOIDCAuthSecretName  string = "oidc-auth"
 	FeatureFlagClusterUser     string = "CLUSTER_USER_AUTH"
-	FeatureFlagAnonymousAuth   string = "ANONYMOUS_AUTH"
 	FeatureFlagOIDCAuth        string = "OIDC_AUTH"
 	FeatureFlagOIDCPassthrough string = "WEAVE_GITOPS_FEATURE_OIDC_AUTH_PASSTHROUGH"
 
@@ -75,6 +74,7 @@ type AuthConfig struct {
 	OIDCConfig          OIDCConfig
 	authMethods         map[AuthMethod]bool
 	namespace           string
+	noAuthUser          string
 }
 
 // AuthServer interacts with an OIDC issuer to handle the OAuth2 process flow.
@@ -171,7 +171,7 @@ func claimsConfigFromSecret(secret corev1.Secret) *ClaimsConfig {
 	return nil
 }
 
-func NewAuthServerConfig(log logr.Logger, oidcCfg OIDCConfig, kubernetesClient ctrlclient.Client, tsv TokenSignerVerifier, namespace string, authMethods map[AuthMethod]bool) (AuthConfig, error) {
+func NewAuthServerConfig(log logr.Logger, oidcCfg OIDCConfig, kubernetesClient ctrlclient.Client, tsv TokenSignerVerifier, namespace string, authMethods map[AuthMethod]bool, noAuthUser string) (AuthConfig, error) {
 	if authMethods[OIDC] {
 		if _, err := url.Parse(oidcCfg.IssuerURL); err != nil {
 			return AuthConfig{}, fmt.Errorf("invalid issuer URL: %w", err)
@@ -190,6 +190,7 @@ func NewAuthServerConfig(log logr.Logger, oidcCfg OIDCConfig, kubernetesClient c
 		OIDCConfig:          oidcCfg,
 		namespace:           namespace,
 		authMethods:         authMethods,
+		noAuthUser:          noAuthUser,
 	}, nil
 }
 
@@ -225,13 +226,8 @@ func NewAuthServer(ctx context.Context, cfg AuthConfig) (*AuthServer, error) {
 		featureflags.SetBoolean(FeatureFlagOIDCAuth, true)
 	}
 
-	if cfg.authMethods[Anonymous] {
-		featureflags.SetBoolean(FeatureFlagAnonymousAuth, true)
-	}
-
 	if !featureflags.IsSet(FeatureFlagOIDCAuth) &&
-		!featureflags.IsSet(FeatureFlagClusterUser) &&
-		!featureflags.IsSet(FeatureFlagAnonymousAuth) {
+		!featureflags.IsSet(FeatureFlagClusterUser) {
 		return nil, fmt.Errorf("OIDC auth, local auth enabled or anonymous mode must be enabled, can't start")
 	}
 
@@ -246,10 +242,6 @@ func (s *AuthServer) SetRedirectURL(url string) {
 
 func (s *AuthServer) oidcEnabled() bool {
 	return featureflags.IsSet(FeatureFlagOIDCAuth)
-}
-
-func (s *AuthServer) anonymousMode() bool {
-	return featureflags.IsSet(FeatureFlagAnonymousAuth)
 }
 
 func (s *AuthServer) oidcPassthroughEnabled() bool {
@@ -461,9 +453,9 @@ func (s *AuthServer) UserInfo(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if s.anonymousMode() {
+	if s.noAuthUser != "" {
 		ui := UserInfo{
-			ID: "Anonymous",
+			ID: s.noAuthUser,
 		}
 		toJSON(rw, ui, s.Log)
 		return
