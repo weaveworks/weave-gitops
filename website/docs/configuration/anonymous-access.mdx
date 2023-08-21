@@ -1,0 +1,34 @@
+---
+title: Anonymous Access
+---
+
+:::danger Important
+Alone, this is an **insecure** method of securing your dashboard.
+
+It is designed to be used with other external authentication systems like auth proxies.
+:::
+
+## Configuring Anonymous access
+
+Set the following values in the [Helm Chart](../references/helm-reference.md):
+
+```yaml
+#
+additionalArgs:
+- --insecure-no-authentication=gitops-test-user
+#
+```
+
+The value of the `--insecure-no-authentication` flag is the
+kubernetes `User` to be impersonated to make requests into the cluster.
+
+When this flag is set all other authentication methods (e.g. those specified via `--auth-methods`) are disabled.
+
+No login screen will be displayed when accessing the dashboard.
+
+## User permissions
+
+By default both a ClusterRole and Role are generated for the [emergency user](./emergency-user.mdx).
+
+This makes it easy to test out the Anonymous access by setting the flag to the name of this user. (`gitops-test-user` by default)
+A base set of permissions to access Flux resources will be pre-configured.
