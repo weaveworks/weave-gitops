@@ -80,6 +80,24 @@ func TestWithAPIAuthReturns401ForUnauthenticatedRequests(t *testing.T) {
 	g.Expect(res).To(HaveHTTPStatus(http.StatusOK))
 }
 
+func TestAnonymousAuth(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	authMethods := map[auth.AuthMethod]bool{auth.Anonymous: true}
+	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), auth.OIDCConfig{}, nil, nil, testNamespace, authMethods, "test-user")
+	g.Expect(err).NotTo(HaveOccurred())
+
+	srv, err := auth.NewAuthServer(context.Background(), authCfg)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	res := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/foo", nil)
+	auth.WithAPIAuth(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		// no cookie checking etc, principal is just there ready to go
+		g.Expect(auth.Principal(r.Context()).ID).To(Equal("test-user"))
+	}), srv, nil).ServeHTTP(res, req)
+}
+
 func TestWithAPIAuthOnlyUsesValidMethods(t *testing.T) {
 	// In theory all attempts to login in this should fail as, despite
 	// the auth server having access to

@@ -27,6 +27,7 @@ const (
 	ClusterUserAuthSecretName  string = "cluster-user-auth"
 	DefaultOIDCAuthSecretName  string = "oidc-auth"
 	FeatureFlagClusterUser     string = "CLUSTER_USER_AUTH"
+	FeatureFlagAnonymousAuth   string = "ANONYMOUS_AUTH"
 	FeatureFlagOIDCAuth        string = "OIDC_AUTH"
 	FeatureFlagOIDCPassthrough string = "WEAVE_GITOPS_FEATURE_OIDC_AUTH_PASSTHROUGH"
 
@@ -226,8 +227,13 @@ func NewAuthServer(ctx context.Context, cfg AuthConfig) (*AuthServer, error) {
 		featureflags.SetBoolean(FeatureFlagOIDCAuth, true)
 	}
 
+	if cfg.authMethods[Anonymous] {
+		featureflags.SetBoolean(FeatureFlagAnonymousAuth, true)
+	}
+
 	if !featureflags.IsSet(FeatureFlagOIDCAuth) &&
-		!featureflags.IsSet(FeatureFlagClusterUser) {
+		!featureflags.IsSet(FeatureFlagClusterUser) &&
+		!featureflags.IsSet(FeatureFlagAnonymousAuth) {
 		return nil, fmt.Errorf("OIDC auth, local auth enabled or anonymous mode must be enabled, can't start")
 	}
 
@@ -242,6 +248,10 @@ func (s *AuthServer) SetRedirectURL(url string) {
 
 func (s *AuthServer) oidcEnabled() bool {
 	return featureflags.IsSet(FeatureFlagOIDCAuth)
+}
+
+func (s *AuthServer) anonymousMode() bool {
+	return featureflags.IsSet(FeatureFlagAnonymousAuth)
 }
 
 func (s *AuthServer) oidcPassthroughEnabled() bool {

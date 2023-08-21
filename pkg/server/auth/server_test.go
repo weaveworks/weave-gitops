@@ -419,6 +419,32 @@ func TestUserInfoIDTokenCookieNotSet(t *testing.T) {
 	g.Expect(w.Result().StatusCode).To(Equal(http.StatusBadRequest))
 }
 
+func TestUserInfoAnonymous(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	authMethods := map[auth.AuthMethod]bool{
+		auth.Anonymous: true,
+	}
+	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), auth.OIDCConfig{}, nil, nil, testNamespace, authMethods, "test-user")
+	g.Expect(err).NotTo(HaveOccurred())
+
+	s, err := auth.NewAuthServer(context.Background(), authCfg)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	req := httptest.NewRequest(http.MethodGet, "/foo", nil)
+	w := httptest.NewRecorder()
+	s.UserInfo(w, req)
+
+	// Anonymous auth should always return a 200
+	resp := w.Result()
+	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
+
+	// Check we return the noAuthUser
+	var info auth.UserInfo
+	g.Expect(json.NewDecoder(resp.Body).Decode(&info)).To(Succeed())
+	g.Expect(info.ID).To(Equal("test-user"))
+}
+
 func TestUserInfoAdminFlow(t *testing.T) {
 	g := NewGomegaWithT(t)
 
