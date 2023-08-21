@@ -46,11 +46,11 @@ You'll get to a new screen, which at the top-right shows "Notifications" and wil
 
 The Kustomisations screen does not provide an option to inspect the path/target namespace—you have to supply the target Namespace in the Kustomization object.
 
-## 2. Install CAPZ, the CAPI Provider
+### Optional: Install CAPZ, the CAPI Provider
 
-The installation wizard in the Azure Marketplace UI offers a checkbox where you can select to do this. 
+If you are planning to manage or connect CAPI clusters to the WE service make sure you first install the CAPI provider. Then during the WE installation process be sure to select the "Enable CAPI support" checkbox.
 
-## 3. Apply the Entitlements Secret
+## 2. Apply the Entitlements Secret
 
 Contact sales@weave.works for a valid entitlements secret. This will come in the form of a file “entitlements.yaml”. Apply it to the cluster:
 
@@ -58,7 +58,7 @@ Contact sales@weave.works for a valid entitlements secret. This will come in the
 kubectl apply -f entitlements.yaml
 ```
 
-## 4. Configure Access for Writing to Git from the UI
+## 3. Configure Access for Writing to Git from the UI
 
 *(This section is the same as what you'll find in the main WGE install documentation.)*
 
@@ -181,8 +181,7 @@ WGE is now configured to ask users for authorization the next time a pull reques
 </TabItem>
 </Tabs>
 
-
-## 5. Configure Your Password
+## 4. Configure Your Password
 
 First, install the Weave GitOps Enterprise CLI tool. To do this, you can use either brew or curl.
 
@@ -219,7 +218,7 @@ A validation to know it’s working:
 kubectl get secret -n flux-system cluster-user-auth
 ```
 
-## 6. Install Weave GitOps Enterprise to Your Cluster
+## 5. Install Weave GitOps Enterprise to Your Cluster
 
 First, you'll get taken to the Weaveworks portal on the Azure platform, which provides your subscription details.
 
@@ -227,7 +226,7 @@ Search for Weave GitOps. Pick "View private products" and choose WGE. Fill out t
 
 If you've not yet installed cert-manager, your deployment will fail. You will have cert-manager if you installed CAPI already. If you've not installed CAPI, install cert-manager using Helm and kubectl.
 
-## 7. Apply Extra Configuration
+## 6. Apply Extra Configuration
 
 Additional configuration is done through an optional ConfigMap:
 
@@ -267,7 +266,7 @@ kubectl -n flux-system rollout restart deploy/weave-gitops-enterprise-mccp-clust
 | `OIDC_CLAIM_GROUPS`  | `"groups"`  | JWT claim to use as the user's group. If the claim is present it must be an array of strings  |
 | `CUSTOM_OIDC_SCOPES`  | `"groups, openid, email, profile"`  | Customise the requested scopes for then OIDC authentication flow - openid will always be requested  |
 
-## 8. Check That It Works
+## 7. Check That It Works
 
 Go to the "services and ingresses" tab in the Azure portal and look for signs that the UI installed. 
 
