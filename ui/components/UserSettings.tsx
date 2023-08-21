@@ -86,7 +86,7 @@ function UserSettings({ className, darkModeEnabled = true }: Props) {
         transformOrigin={{ horizontal: 150, vertical: -80 }}
       >
         <MenuItem onClick={() => history.push(V2Routes.UserInfo)}>
-          Hello, {userInfo.id}
+          Hello, {userInfo?.id}
         </MenuItem>
         <MenuItem className="logout" onClick={() => logOut()}>
           <ListItemIcon>

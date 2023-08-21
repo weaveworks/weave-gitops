@@ -946,7 +946,7 @@ func makeAuthServer(t *testing.T, client ctrlclient.Client, tsv auth.TokenSigner
 	t.Helper()
 	g := NewGomegaWithT(t)
 
-	featureflags.Set("OIDC_AUTH", "") // Reset this
+	featureflags.SetBoolean("OIDC_AUTH", false) // Reset this
 
 	m, err := mockoidc.Run()
 	g.Expect(err).NotTo(HaveOccurred())
@@ -984,8 +984,9 @@ func makeAuthServer(t *testing.T, client ctrlclient.Client, tsv auth.TokenSigner
 func TestAuthMethods(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	featureflags.Set("OIDC_AUTH", "")
-	featureflags.Set("CLUSTER_USER_AUTH", "")
+	featureflags.SetBoolean("OIDC_AUTH", false)
+	featureflags.SetBoolean("CLUSTER_USER_AUTH", false)
+	featureflags.SetBoolean("ANONYMOUS_AUTH", false)
 
 	authMethods := map[auth.AuthMethod]bool{}
 
@@ -993,10 +994,10 @@ func TestAuthMethods(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	_, err = auth.NewAuthServer(context.Background(), authCfg)
-	g.Expect(err).To(HaveOccurred())
+	g.Expect(err).To(MatchError(MatchRegexp("OIDC auth, local auth enabled or anonymous mode must be enabled")))
 
-	g.Expect(featureflags.Get("OIDC_AUTH")).To(Equal("false"))
-	g.Expect(featureflags.Get("CLUSTER_USER_AUTH")).To(Equal("false"))
+	g.Expect(featureflags.Get("OIDC_AUTH")).To(Equal(""))
+	g.Expect(featureflags.Get("CLUSTER_USER_AUTH")).To(Equal(""))
 
 	hashedSecret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
@@ -1017,7 +1018,7 @@ func TestAuthMethods(t *testing.T) {
 	_, err = auth.NewAuthServer(context.Background(), authCfg)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	g.Expect(featureflags.Get("OIDC_AUTH")).To(Equal("false"))
+	g.Expect(featureflags.Get("OIDC_AUTH")).To(Equal(""))
 	g.Expect(featureflags.Get("CLUSTER_USER_AUTH")).To(Equal("true"))
 
 	m, err := mockoidc.Run()
@@ -1041,7 +1042,7 @@ func TestAuthMethods(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	g.Expect(featureflags.Get("OIDC_AUTH")).To(Equal("true"))
-	g.Expect(featureflags.Get("CLUSTER_USER_AUTH")).To(Equal("false"))
+	g.Expect(featureflags.Get("CLUSTER_USER_AUTH")).To(Equal(""))
 }
 
 func TestNewOIDCConfigFromSecret(t *testing.T) {

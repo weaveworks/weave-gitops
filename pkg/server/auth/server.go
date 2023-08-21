@@ -250,10 +250,6 @@ func (s *AuthServer) oidcEnabled() bool {
 	return featureflags.IsSet(FeatureFlagOIDCAuth)
 }
 
-func (s *AuthServer) anonymousMode() bool {
-	return featureflags.IsSet(FeatureFlagAnonymousAuth)
-}
-
 func (s *AuthServer) oidcPassthroughEnabled() bool {
 	return featureflags.IsSet(FeatureFlagOIDCPassthrough)
 }

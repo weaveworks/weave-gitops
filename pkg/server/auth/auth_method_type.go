@@ -37,7 +37,6 @@ func AllUserAuthMethods() []string {
 	}
 
 	return res
-
 }
 
 func DefaultAuthMethodStrings() []string {
