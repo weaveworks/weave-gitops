@@ -27,6 +27,8 @@ func DefaultAuthMethods() []AuthMethod {
 	return []AuthMethod{UserAccount, OIDC}
 }
 
+// Returns all the auth methods that can be configured via the auth-methods flag
+// Anonymous is not included as it is configured via another --insecure-no-auth flag
 func AllUserAuthMethods() []string {
 	allUserAuthMethods := []AuthMethod{UserAccount, OIDC, TokenPassthrough}
 	res := []string{}

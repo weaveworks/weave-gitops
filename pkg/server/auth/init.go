@@ -25,6 +25,10 @@ func InitAuthServer(ctx context.Context, log logr.Logger, rawKubernetesClient ct
 		authMethods = map[AuthMethod]bool{Anonymous: true}
 	}
 
+	if len(authMethods) == 0 {
+		return nil, fmt.Errorf("no authentication methods set")
+	}
+
 	if authMethods[OIDC] {
 		if oidcSecret != DefaultOIDCAuthSecretName {
 			log.V(logger.LogLevelDebug).Info("Reading OIDC configuration from alternate secret", "secretName", oidcSecret)
