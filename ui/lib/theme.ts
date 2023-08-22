@@ -284,7 +284,7 @@ export const muiTheme = (colors, mode) =>
         root: {
           "&$disabled": {
             color:
-              mode === ThemeTypes.Dark ? colors.primary20 : colors.neutral20,
+              mode === ThemeTypes.Dark ? colors.primary30 : colors.neutral20,
           },
         },
         outlined: {
