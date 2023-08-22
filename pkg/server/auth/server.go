@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"net/url"
 	"strings"
 	"time"
 
@@ -27,9 +26,9 @@ const (
 	ClusterUserAuthSecretName  string = "cluster-user-auth"
 	DefaultOIDCAuthSecretName  string = "oidc-auth"
 	FeatureFlagClusterUser     string = "CLUSTER_USER_AUTH"
+	FeatureFlagAnonymousAuth   string = "ANONYMOUS_AUTH"
 	FeatureFlagOIDCAuth        string = "OIDC_AUTH"
 	FeatureFlagOIDCPassthrough string = "WEAVE_GITOPS_FEATURE_OIDC_AUTH_PASSTHROUGH"
-	FeatureFlagSet             string = "true"
 
 	// ClaimUsername is the default claim for getting the user from OIDC for
 	// auth
@@ -66,8 +65,8 @@ type OIDCConfig struct {
 // that is set then it is used for both OIDC cookies and other cookies.
 const defaultCookieDuration time.Duration = time.Hour
 
-// AuthConfig is used to configure an AuthServer.
-type AuthConfig struct {
+// AuthServerConfig is used to configure an AuthServer.
+type AuthServerConfig struct {
 	Log                 logr.Logger
 	client              *http.Client
 	kubernetesClient    ctrlclient.Client
@@ -75,11 +74,12 @@ type AuthConfig struct {
 	OIDCConfig          OIDCConfig
 	authMethods         map[AuthMethod]bool
 	namespace           string
+	noAuthUser          string
 }
 
 // AuthServer interacts with an OIDC issuer to handle the OAuth2 process flow.
 type AuthServer struct {
-	AuthConfig
+	AuthServerConfig
 	provider *oidc.Provider
 }
 
@@ -171,30 +171,21 @@ func claimsConfigFromSecret(secret corev1.Secret) *ClaimsConfig {
 	return nil
 }
 
-func NewAuthServerConfig(log logr.Logger, oidcCfg OIDCConfig, kubernetesClient ctrlclient.Client, tsv TokenSignerVerifier, namespace string, authMethods map[AuthMethod]bool) (AuthConfig, error) {
-	if authMethods[OIDC] {
-		if _, err := url.Parse(oidcCfg.IssuerURL); err != nil {
-			return AuthConfig{}, fmt.Errorf("invalid issuer URL: %w", err)
-		}
-
-		if _, err := url.Parse(oidcCfg.RedirectURL); err != nil {
-			return AuthConfig{}, fmt.Errorf("invalid redirect URL: %w", err)
-		}
-	}
-
-	return AuthConfig{
+func NewAuthServerConfig(log logr.Logger, oidcCfg OIDCConfig, kubernetesClient ctrlclient.Client, tsv TokenSignerVerifier, namespace string, authMethods map[AuthMethod]bool, noAuthUser string) (AuthServerConfig, error) {
+	return AuthServerConfig{
 		Log:                 log.WithName("auth-server"),
 		client:              http.DefaultClient,
 		kubernetesClient:    kubernetesClient,
 		tokenSignerVerifier: tsv,
+		authMethods:         authMethods,
 		OIDCConfig:          oidcCfg,
 		namespace:           namespace,
-		authMethods:         authMethods,
+		noAuthUser:          noAuthUser,
 	}, nil
 }
 
 // NewAuthServer creates a new AuthServer object.
-func NewAuthServer(ctx context.Context, cfg AuthConfig) (*AuthServer, error) {
+func NewAuthServer(ctx context.Context, cfg AuthServerConfig) (*AuthServer, error) {
 	if cfg.authMethods[UserAccount] {
 		var secret corev1.Secret
 		err := cfg.kubernetesClient.Get(ctx, ctrlclient.ObjectKey{
@@ -205,16 +196,16 @@ func NewAuthServer(ctx context.Context, cfg AuthConfig) (*AuthServer, error) {
 		if err != nil {
 			return nil, fmt.Errorf("could not get secret for cluster user, %w", err)
 		} else {
-			featureflags.Set(FeatureFlagClusterUser, FeatureFlagSet)
+			featureflags.SetBoolean(FeatureFlagClusterUser, true)
 		}
 	} else {
-		featureflags.Set(FeatureFlagClusterUser, "false")
+		featureflags.SetBoolean(FeatureFlagClusterUser, false)
 	}
 
 	var provider *oidc.Provider
 
 	if cfg.OIDCConfig.IssuerURL == "" {
-		featureflags.Set(FeatureFlagOIDCAuth, "false")
+		featureflags.SetBoolean(FeatureFlagOIDCAuth, false)
 	} else if cfg.authMethods[OIDC] {
 		var err error
 
@@ -222,11 +213,17 @@ func NewAuthServer(ctx context.Context, cfg AuthConfig) (*AuthServer, error) {
 		if err != nil {
 			return nil, fmt.Errorf("could not create provider: %w", err)
 		}
-		featureflags.Set(FeatureFlagOIDCAuth, FeatureFlagSet)
+		featureflags.SetBoolean(FeatureFlagOIDCAuth, true)
 	}
 
-	if featureflags.Get(FeatureFlagOIDCAuth) != FeatureFlagSet && featureflags.Get(FeatureFlagClusterUser) != FeatureFlagSet {
-		return nil, fmt.Errorf("neither OIDC auth or local auth enabled, can't start")
+	if cfg.authMethods[Anonymous] {
+		featureflags.SetBoolean(FeatureFlagAnonymousAuth, true)
+	}
+
+	if !featureflags.IsSet(FeatureFlagOIDCAuth) &&
+		!featureflags.IsSet(FeatureFlagClusterUser) &&
+		!featureflags.IsSet(FeatureFlagAnonymousAuth) {
+		return nil, fmt.Errorf("OIDC auth, local auth or anonymous mode must be enabled, can't start")
 	}
 
 	return &AuthServer{cfg, provider}, nil
@@ -239,11 +236,11 @@ func (s *AuthServer) SetRedirectURL(url string) {
 }
 
 func (s *AuthServer) oidcEnabled() bool {
-	return featureflags.Get(FeatureFlagOIDCAuth) == FeatureFlagSet
+	return featureflags.IsSet(FeatureFlagOIDCAuth)
 }
 
 func (s *AuthServer) oidcPassthroughEnabled() bool {
-	return featureflags.Get(FeatureFlagOIDCPassthrough) == FeatureFlagSet
+	return featureflags.IsSet(FeatureFlagOIDCPassthrough)
 }
 
 func (s *AuthServer) verifier() *oidc.IDTokenVerifier {
@@ -448,6 +445,14 @@ func (s *AuthServer) UserInfo(rw http.ResponseWriter, r *http.Request) {
 		rw.Header().Add("Allow", "GET")
 		rw.WriteHeader(http.StatusMethodNotAllowed)
 
+		return
+	}
+
+	if s.noAuthUser != "" {
+		ui := UserInfo{
+			ID: s.noAuthUser,
+		}
+		toJSON(rw, ui, s.Log)
 		return
 	}
 
