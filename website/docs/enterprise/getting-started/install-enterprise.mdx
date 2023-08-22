@@ -125,12 +125,11 @@ kubectl apply -f entitlements.yaml
 
 ### Securing Access to the Dashboard
 
-There are a few supported methods for logging in to the dashboard, that work with standard Kubernetes RBAC:
+There are two supported methods for logging in to the dashboard, that work with standard Kubernetes RBAC:
 - Login via an OIDC provider: recommended, as this will allow you to control permissions for existing users and groups that have
 already been configured to use OIDC. OIDC decouples the need to manage user lists from the application, allowing it to be managed via
 a central system designed for that purpose (i.e. the OIDC provider). OIDC also enables the creation of groups—either via your provider's own systems or by using a connector like [Dex](#configuring-oidc-with-dex-and-github).
 - Login via a cluster user account: which is insecure, and which we only recommend for local and development environments or if you need to activate emergency access to a damaged cluster. However, it is an option if an OIDC provider is not available.
-- Anonymous login: Disable authentication completely and allow anonymous access to the dashboard.  Alone this is not recommended, but can be used in conjunction with other external auth solutions.
 
 You may decide to give your engineering teams access to the WGE dashboard so they can view and manage their workloads. In this case, you will want to secure dashboard access and restrict who can interact with it. Weave GitOps Enterprise integrates with your OIDC provider and uses standard Kubernetes RBAC to give you fine-grained control of the dashboard users' permissions.
 
@@ -570,30 +569,6 @@ If you are disabling an already existing emergency user, you will need to
 manually delete the Kubernetes Secret and any User Roles that were created on
 the cluster.
 :::
-
-</TabItem>
-<TabItem value="Anonymous access" label="Anonymous Access">
-
-Alone, this is an **insecure** method of securing your dashboard.
-If you decide to use anonymous access, you should be cautious about exposing the endpoint and consider
-implementing additional authentication measures such as an auth proxy.
-
-When creating the `HelmRelease` resource further down configure the `insecureNoAuthentication` like so:
-
-```yaml
-config:
-  auth:
-    insecureNoAuthentication:
-      enabled: true
-      user: "wego-admin"
-```
-
-The value of the `insecureNoAuthentication.user` is the kubernetes `User` to be impersonated to make requests into the cluster.
-Setting this to `wego-admin` will impersonate the hard coded emergency user. Default ClusterRoleBindings and RoleBindings are created for this user.
-
-When `insecureNoAuthentication` is enabled all other authentication methods (e.g. OIDC, emergency user) are disabled.
-
-No login screen will be displayed when accessing the dashboard.
 
 </TabItem>
 </Tabs>

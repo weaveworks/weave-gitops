@@ -67,7 +67,6 @@
           items: [
             'configuration/oidc-access',
             'configuration/emergency-user',
-            'configuration/anonymous-access',
           ],
         },
         'configuration/service-account-permissions',
