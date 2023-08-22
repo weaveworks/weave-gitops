@@ -574,7 +574,9 @@ the cluster.
 </TabItem>
 <TabItem value="Anonymous access" label="Anonymous Access">
 
-Alone, this is an **insecure** method of securing your dashboard. It is designed to be used with other external authentication systems like auth proxies.
+Alone, this is an **insecure** method of securing your dashboard.
+If you decide to use anonymous access, you should be cautious about exposing the endpoint and consider
+implementing additional authentication measures such as an auth proxy.
 
 When creating the `HelmRelease` resource further down configure the `insecureNoAuthentication` like so:
 
