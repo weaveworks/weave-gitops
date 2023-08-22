@@ -161,7 +161,7 @@ func WithAPIAuth(next http.Handler, srv *AuthServer, publicRoutes []string) http
 
 	// FIXME: currently the order must be OIDC last, or it'll "shadow" the other
 	// methods so they don't work.
-	methods := []AuthMethod{UserAccount, TokenPassthrough, OIDC}
+	methods := []AuthMethod{UserAccount, TokenPassthrough, OIDC, Anonymous}
 	for _, method := range methods {
 		enabled, ok := srv.authMethods[method]
 		if !ok {
@@ -188,7 +188,7 @@ func WithAPIAuth(next http.Handler, srv *AuthServer, publicRoutes []string) http
 			}
 
 		case UserAccount:
-			if featureflags.Get(FeatureFlagClusterUser) == FeatureFlagSet {
+			if featureflags.IsSet(FeatureFlagClusterUser) {
 				adminAuth := NewJWTAdminCookiePrincipalGetter(srv.Log, srv.tokenSignerVerifier, IDTokenCookieName)
 				multi.Getters = append(multi.Getters, adminAuth)
 			}
@@ -196,6 +196,9 @@ func WithAPIAuth(next http.Handler, srv *AuthServer, publicRoutes []string) http
 		case TokenPassthrough:
 			tokenAuth := NewBearerTokenPassthroughPrincipalGetter(srv.Log, nil, AuthorizationTokenHeaderName, srv.kubernetesClient)
 			multi.Getters = append(multi.Getters, tokenAuth)
+
+		case Anonymous:
+			multi.Getters = []PrincipalGetter{NewAnonymousPrincipalGetter(srv.Log, srv.noAuthUser)}
 		}
 	}
 
@@ -204,7 +207,6 @@ func WithAPIAuth(next http.Handler, srv *AuthServer, publicRoutes []string) http
 		srv:             srv,
 		publicRoutes:    publicRoutes,
 		principalGetter: multi,
-		locks:           newRefreshLocker(),
 	}
 }
 
@@ -213,7 +215,6 @@ type authenticatedMiddleware struct {
 	publicRoutes    []string
 	next            http.Handler
 	principalGetter PrincipalGetter
-	locks           *refreshLocks
 }
 
 func (a *authenticatedMiddleware) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
