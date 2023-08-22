@@ -88,7 +88,6 @@ func InitAuthServer(ctx context.Context, log logr.Logger, rawKubernetesClient ct
 		if _, err := url.Parse(oidcConfig.RedirectURL); err != nil {
 			return nil, fmt.Errorf("invalid redirect URL: %w", err)
 		}
-
 	} else {
 		// Make sure there is no OIDC config if it's not an enabled authorization method
 		// the TokenDuration needs to be set so cookies can use it
