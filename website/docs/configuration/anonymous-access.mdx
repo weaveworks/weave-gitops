@@ -15,11 +15,11 @@ Set the following values in the [Helm Chart](../references/helm-reference.md):
 ```yaml
 #
 additionalArgs:
-- --insecure-no-authentication=gitops-test-user
+- --insecure-no-authentication-user=gitops-test-user
 #
 ```
 
-The value of the `--insecure-no-authentication` flag is the
+The value of the `--insecure-no-authentication-user` flag is the
 kubernetes `User` to be impersonated to make requests into the cluster.
 
 When this flag is set all other authentication methods (e.g. those specified via `--auth-methods`) are disabled.
