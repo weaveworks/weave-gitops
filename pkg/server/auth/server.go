@@ -254,14 +254,6 @@ func (s *AuthServer) oidcPassthroughEnabled() bool {
 	return featureflags.IsSet(FeatureFlagOIDCPassthrough)
 }
 
-func (s *AuthServer) clusterUserEnabled() bool {
-	return featureflags.IsSet(FeatureFlagClusterUser)
-}
-
-func (s *AuthServer) anonymousAuthEnabled() bool {
-	return featureflags.IsSet(FeatureFlagAnonymousAuth)
-}
-
 func (s *AuthServer) verifier() *oidc.IDTokenVerifier {
 	return s.provider.Verifier(&oidc.Config{ClientID: s.OIDCConfig.ClientID})
 }

@@ -13,6 +13,7 @@ import (
 	"github.com/sethvargo/go-limiter/httplimit"
 	"github.com/sethvargo/go-limiter/memorystore"
 	"github.com/weaveworks/weave-gitops/core/logger"
+	"github.com/weaveworks/weave-gitops/pkg/featureflags"
 )
 
 const (
@@ -187,21 +188,17 @@ func WithAPIAuth(next http.Handler, srv *AuthServer, publicRoutes []string) http
 			}
 
 		case UserAccount:
-			if srv.clusterUserEnabled() {
+			if featureflags.IsSet(FeatureFlagClusterUser) {
 				adminAuth := NewJWTAdminCookiePrincipalGetter(srv.Log, srv.tokenSignerVerifier, IDTokenCookieName)
 				multi.Getters = append(multi.Getters, adminAuth)
 			}
 
 		case TokenPassthrough:
-			if srv.oidcPassthroughEnabled() {
-				tokenAuth := NewBearerTokenPassthroughPrincipalGetter(srv.Log, nil, AuthorizationTokenHeaderName, srv.kubernetesClient)
-				multi.Getters = append(multi.Getters, tokenAuth)
-			}
+			tokenAuth := NewBearerTokenPassthroughPrincipalGetter(srv.Log, nil, AuthorizationTokenHeaderName, srv.kubernetesClient)
+			multi.Getters = append(multi.Getters, tokenAuth)
 
 		case Anonymous:
-			if srv.anonymousAuthEnabled() {
-				multi.Getters = []PrincipalGetter{NewAnonymousPrincipalGetter(srv.Log, srv.noAuthUser)}
-			}
+			multi.Getters = []PrincipalGetter{NewAnonymousPrincipalGetter(srv.Log, srv.noAuthUser)}
 		}
 	}
 
