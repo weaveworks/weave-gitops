@@ -114,21 +114,21 @@
       label: 'GitOps Run',
       link: {
         type: 'doc',
-        id: 'gitops-run/overview',
+        id: 'gitops-run/gitops-run-overview',
       },
       items: [
-        'gitops-run/get-started',
+        'gitops-run/gitops-run-get-started',
       ],
     },
     {
       type: 'category',
       label: 'GitOpsSets',
       items: [
-        'gitopssets/intro',
-        'gitopssets/installation',
-        'gitopssets/guide',
-        'gitopssets/api-reference',
-        'gitopssets/releases'
+        'gitopssets/gitopssets-intro',
+        'gitopssets/gitopssets-installation',
+        'gitopssets/templating-from-generators',
+        'gitopssets/gitopssets-api-reference',
+        'gitopssets/gitopssets-releases'
       ],
     },
     {
@@ -136,7 +136,6 @@
       label: 'Guides',
       items: [
         'guides/setting-up-dex',
-        'guides/cert-manager',
         'guides/displaying-custom-metadata',
         'guides/fluxga-upgrade',
       ],
@@ -149,10 +148,10 @@
         id: 'pipelines/pipelines-intro',
       },
       items: [
-        'pipelines/getting-started',
+        'pipelines/pipelines-getting-started',
         'pipelines/authorization',
         'pipelines/promoting-applications',
-        'pipelines/pipeline-templates',
+        'pipelines/pipelines-templates',
         'pipelines/pipelines-with-jenkins',
         'pipelines/pipelines-with-tekton',
         {
