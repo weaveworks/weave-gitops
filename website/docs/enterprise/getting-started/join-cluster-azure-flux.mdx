@@ -9,13 +9,15 @@ import TierLabel from "../../_components/TierLabel";
 
 ## Prerequisites
 
-See our [guide to installing Weave GitOps Enterprise on AKS](install-enterprise-azure.mdx)
+See also our [guide to installing Weave GitOps Enterprise on Azure](install-enterprise-azure.mdx):
 - An Azure cluster deployed with either the Azure Portal or Azure CLI tools.
 - Azure Flux add-on deployed by adding a GitOps configuration, either via the Azure Portal or the CLI tool.
 
+Note that this documentation applies to both Azure AKS and Azure ARC clusters.
+
 ## Initial Status
 
-The AKS cluster already has the Azure Flux add-on installed. This differs from [CNCF Flux](https://fluxcd.io/) in that there are two additional controllers:
+The Azure cluster already has the Azure Flux add-on installed. This differs from [CNCF Flux](https://fluxcd.io/) in that there are two additional controllers:
 - fluxconfig-agent
 - fluxconfig-controller
 
@@ -201,4 +203,4 @@ Either way, it is typical that Terraform-deployed clusters do not run the Flux b
 
 ### With Crossplane
 
-The Azure Flux add-on is supported under [Crossplane](https://www.crossplane.io/)-deployed AKS clusters. Any clusters deployed with Crossplane that have the Azure Flux add-on enabled would also be added to WGE without running the bootstrap process.
+The Azure Flux add-on is supported under [Crossplane](https://www.crossplane.io/)-deployed Azure clusters. Any clusters deployed with Crossplane that have the Azure Flux add-on enabled would also be added to WGE without running the bootstrap process.
