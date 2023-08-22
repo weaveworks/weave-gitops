@@ -210,7 +210,6 @@ func WithAPIAuth(next http.Handler, srv *AuthServer, publicRoutes []string) http
 		srv:             srv,
 		publicRoutes:    publicRoutes,
 		principalGetter: multi,
-		locks:           newRefreshLocker(),
 	}
 }
 
@@ -219,7 +218,6 @@ type authenticatedMiddleware struct {
 	publicRoutes    []string
 	next            http.Handler
 	principalGetter PrincipalGetter
-	locks           *refreshLocks
 }
 
 func (a *authenticatedMiddleware) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
