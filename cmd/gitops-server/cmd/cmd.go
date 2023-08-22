@@ -186,8 +186,13 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("couldn't get current namespace")
 	}
 
-	authServer, err := auth.InitAuthServer(cmd.Context(), log, rawClient, options.OIDC, options.OIDCSecret, namespace, options.AuthMethods, options.NoAuthUser)
-
+	authServer, err := auth.InitAuthServer(cmd.Context(), log, rawClient, auth.AuthParams{
+		OIDCConfig:        options.OIDC,
+		OIDCSecretName:    options.OIDCSecret,
+		AuthMethodStrings: options.AuthMethods,
+		NoAuthUser:        options.NoAuthUser,
+		Namespace:         namespace,
+	})
 	if err != nil {
 		return fmt.Errorf("could not initialise authentication server: %w", err)
 	}
@@ -206,13 +211,13 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	// Incorporate values from authServer.AuthConfig.OIDCConfig
-	if authServer.AuthConfig.OIDCConfig.UsernamePrefix != "" {
+	if authServer.OIDCConfig.UsernamePrefix != "" {
 		log.V(logger.LogLevelWarn).Info("OIDC username prefix configured by both CLI and secret. Secret values will take precedence.")
-		oidcPrefixes.UsernamePrefix = authServer.AuthConfig.OIDCConfig.UsernamePrefix
+		oidcPrefixes.UsernamePrefix = authServer.OIDCConfig.UsernamePrefix
 	}
-	if authServer.AuthConfig.OIDCConfig.GroupsPrefix != "" {
+	if authServer.OIDCConfig.GroupsPrefix != "" {
 		log.V(logger.LogLevelWarn).Info("OIDC groups prefix configured by both CLI and secret. Secret values will take precedence.")
-		oidcPrefixes.GroupsPrefix = authServer.AuthConfig.OIDCConfig.GroupsPrefix
+		oidcPrefixes.GroupsPrefix = authServer.OIDCConfig.GroupsPrefix
 	}
 
 	cl, err := cluster.NewSingleCluster(cluster.DefaultCluster, rest, scheme, oidcPrefixes, cluster.DefaultKubeConfigOptions...)

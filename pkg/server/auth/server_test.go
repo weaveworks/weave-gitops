@@ -994,7 +994,7 @@ func TestAuthMethods(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	_, err = auth.NewAuthServer(context.Background(), authCfg)
-	g.Expect(err).To(MatchError(MatchRegexp("OIDC auth, local auth enabled or anonymous mode must be enabled")))
+	g.Expect(err).To(MatchError(MatchRegexp("OIDC auth, local auth or anonymous mode must be enabled")))
 
 	g.Expect(featureflags.Get("OIDC_AUTH")).To(Equal(""))
 	g.Expect(featureflags.Get("CLUSTER_USER_AUTH")).To(Equal(""))

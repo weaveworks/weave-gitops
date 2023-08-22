@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"net/url"
 	"strings"
 	"time"
 
@@ -66,8 +65,8 @@ type OIDCConfig struct {
 // that is set then it is used for both OIDC cookies and other cookies.
 const defaultCookieDuration time.Duration = time.Hour
 
-// AuthConfig is used to configure an AuthServer.
-type AuthConfig struct {
+// AuthServerConfig is used to configure an AuthServer.
+type AuthServerConfig struct {
 	Log                 logr.Logger
 	client              *http.Client
 	kubernetesClient    ctrlclient.Client
@@ -80,7 +79,7 @@ type AuthConfig struct {
 
 // AuthServer interacts with an OIDC issuer to handle the OAuth2 process flow.
 type AuthServer struct {
-	AuthConfig
+	AuthServerConfig
 	provider *oidc.Provider
 }
 
@@ -172,31 +171,21 @@ func claimsConfigFromSecret(secret corev1.Secret) *ClaimsConfig {
 	return nil
 }
 
-func NewAuthServerConfig(log logr.Logger, oidcCfg OIDCConfig, kubernetesClient ctrlclient.Client, tsv TokenSignerVerifier, namespace string, authMethods map[AuthMethod]bool, noAuthUser string) (AuthConfig, error) {
-	if authMethods[OIDC] {
-		if _, err := url.Parse(oidcCfg.IssuerURL); err != nil {
-			return AuthConfig{}, fmt.Errorf("invalid issuer URL: %w", err)
-		}
-
-		if _, err := url.Parse(oidcCfg.RedirectURL); err != nil {
-			return AuthConfig{}, fmt.Errorf("invalid redirect URL: %w", err)
-		}
-	}
-
-	return AuthConfig{
+func NewAuthServerConfig(log logr.Logger, oidcCfg OIDCConfig, kubernetesClient ctrlclient.Client, tsv TokenSignerVerifier, namespace string, authMethods map[AuthMethod]bool, noAuthUser string) (AuthServerConfig, error) {
+	return AuthServerConfig{
 		Log:                 log.WithName("auth-server"),
 		client:              http.DefaultClient,
 		kubernetesClient:    kubernetesClient,
 		tokenSignerVerifier: tsv,
+		authMethods:         authMethods,
 		OIDCConfig:          oidcCfg,
 		namespace:           namespace,
-		authMethods:         authMethods,
 		noAuthUser:          noAuthUser,
 	}, nil
 }
 
 // NewAuthServer creates a new AuthServer object.
-func NewAuthServer(ctx context.Context, cfg AuthConfig) (*AuthServer, error) {
+func NewAuthServer(ctx context.Context, cfg AuthServerConfig) (*AuthServer, error) {
 	if cfg.authMethods[UserAccount] {
 		var secret corev1.Secret
 		err := cfg.kubernetesClient.Get(ctx, ctrlclient.ObjectKey{
