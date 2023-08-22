@@ -22,30 +22,6 @@ Add the config name, namespace (default), scope: cluster, type (Flux v2), and co
 
 All of the displayed properties for the Flux objects screen are the same as what you'd supply to Flux bootstrap.
 
-WGE won't install if the Flux auto-installation fails. If that happens, click "Next" and add:
-- Source Kind: Git repository
-- Repository URL: [your repository URL here]
-- Reference Type: Branch
-- Repository Type: Private
-
-And under the "Authentication" section:
-- Authentication Source: Provide Authentication here
-- SSH Key Authentication: Let the operator generate SSH Keys
-- HTTPS User: YOUR_GITHUB_USERNAME
-- HTTPS Key: YOUR_GITHUB_USER_PAT (Get one at [this link](https://github.com/settings/tokens). It's not the most secure method, but the easiest to get going.)
-
-Click "Next". You'll see an option to create a Kustomisation, which is optional. To create one:
-- Click Create
-- Instance name: flux-system
-- Path: clusters/default/demo3-azure-flux
-- Prune: Ticked
-
-Click "Save". Then clicking "Next", which will give you a summary so you can review your input. Then click "Create". It will take about five minutes to deploy.
-
-You'll get to a new screen, which at the top-right shows "Notifications" and will display creation of the Flux configuration. When your deployment succeeds, go to the resource and pin to your dashboard. Then go to your terminal to see if it works in kubectl. In the terminal you'll get the GitRepository and Kustomizations. You should then get a green "succeeded" checkmark.
-
-The Kustomisations screen does not provide an option to inspect the path/target namespace—you have to supply the target Namespace in the Kustomization object.
-
 ### Optional: Install CAPZ, the CAPI Provider
 
 If you are planning to manage or connect CAPI clusters to the WE service make sure you first install the CAPI provider. Then during the WE installation process be sure to select the "Enable CAPI support" checkbox.
@@ -267,6 +243,34 @@ kubectl -n flux-system rollout restart deploy/weave-gitops-enterprise-mccp-clust
 ## 7. Check That It Works
 
 Go to the "services and ingresses" tab in the Azure portal and look for signs that the UI installed. 
+
+## Troubleshooting
+
+WGE will try and automatically install Flux on a new cluster. If this fails for some reason, or if you need a custom Flux installation, you can manually install it before installing WGE.
+
+Click "Next" and add:
+- Source Kind: Git repository
+- Repository URL: [your repository URL here]
+- Reference Type: Branch
+- Repository Type: Private
+
+And under the "Authentication" section:
+- Authentication Source: Provide Authentication here
+- SSH Key Authentication: Let the operator generate SSH Keys
+- HTTPS User: YOUR_GITHUB_USERNAME
+- HTTPS Key: YOUR_GITHUB_USER_PAT (Get one at [this link](https://github.com/settings/tokens). It's not the most secure method, but the easiest to get going.)
+
+Click "Next". You'll see an option to create a Kustomisation, which is optional. To create one:
+- Click Create
+- Instance name: flux-system
+- Path: clusters/default/demo3-azure-flux
+- Prune: Ticked
+
+Click "Save". Then clicking "Next", which will give you a summary so you can review your input. Then click "Create". It will take about five minutes to deploy.
+
+You'll get to a new screen, which at the top-right shows "Notifications" and will display creation of the Flux configuration. When your deployment succeeds, go to the resource and pin to your dashboard. Then go to your terminal to see if it works in kubectl. In the terminal you'll get the GitRepository and Kustomizations. You should then get a green "succeeded" checkmark.
+
+The Kustomisations screen does not provide an option to inspect the path/target namespace—you have to supply the target Namespace in the Kustomization object.
 
 ## Next Steps
 
