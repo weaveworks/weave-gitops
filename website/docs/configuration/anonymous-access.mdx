@@ -5,7 +5,7 @@ title: Anonymous Access
 :::danger Important
 Alone, this is an **insecure** method of securing your dashboard.
 
-It is designed to be used with other external authentication systems like auth proxies.
+If you decide to use anonymous access, you should be cautious about exposing the endpoint and consider implementing additional authentication measures such as an auth proxy.
 :::
 
 ## Configuring Anonymous access
@@ -20,7 +20,7 @@ additionalArgs:
 ```
 
 The value of the `--insecure-no-authentication-user` flag is the
-kubernetes `User` to be impersonated to make requests into the cluster.
+kubernetes `User` that will be impersonated to make requests into the cluster.
 
 When this flag is set all other authentication methods (e.g. those specified via `--auth-methods`) are disabled.
 

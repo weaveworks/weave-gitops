@@ -234,7 +234,7 @@ func NewAuthServer(ctx context.Context, cfg AuthConfig) (*AuthServer, error) {
 	if !featureflags.IsSet(FeatureFlagOIDCAuth) &&
 		!featureflags.IsSet(FeatureFlagClusterUser) &&
 		!featureflags.IsSet(FeatureFlagAnonymousAuth) {
-		return nil, fmt.Errorf("OIDC auth, local auth enabled or anonymous mode must be enabled, can't start")
+		return nil, fmt.Errorf("OIDC auth, local auth or anonymous mode must be enabled, can't start")
 	}
 
 	return &AuthServer{cfg, provider}, nil

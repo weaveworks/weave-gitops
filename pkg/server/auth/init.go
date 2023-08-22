@@ -14,7 +14,7 @@ import (
 // InitAuthServer creates a new AuthServer and configures it for the correct
 // authentication methods.
 func InitAuthServer(ctx context.Context, log logr.Logger, rawKubernetesClient ctrlclient.Client, oidcConfig OIDCConfig, oidcSecret, namespace string, authMethodStrings []string, noAuthUser string) (*AuthServer, error) {
-	log.V(logger.LogLevelDebug).Info("Registering authentication methods", "methods", authMethodStrings)
+	log.V(logger.LogLevelDebug).Info("Parsing authentication methods", "methods", authMethodStrings)
 
 	authMethods, err := ParseAuthMethodArray(authMethodStrings)
 	if err != nil {
@@ -22,8 +22,11 @@ func InitAuthServer(ctx context.Context, log logr.Logger, rawKubernetesClient ct
 	}
 
 	if noAuthUser != "" {
+		log.V(logger.LogLevelWarn).Info("Anonymous mode enabled", "noAuthUser", noAuthUser)
 		authMethods = map[AuthMethod]bool{Anonymous: true}
 	}
+
+	log.Info("Registering authentication methods", "methods", toAuthMethodStrings(authMethods))
 
 	if len(authMethods) == 0 {
 		return nil, fmt.Errorf("no authentication methods set")
