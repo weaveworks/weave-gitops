@@ -25,6 +25,8 @@ import (
 const (
 	// Env var prefix that will be set as a feature flag automatically
 	featureFlagPrefix = "WEAVE_GITOPS_FEATURE"
+
+	FeatureFlagSet string = "true"
 )
 
 var flags map[string]string = make(map[string]string)
@@ -33,6 +35,21 @@ var flags map[string]string = make(map[string]string)
 // Existing flags will be overwritten.
 func Set(key, value string) {
 	flags[key] = value
+}
+
+// SetBoolean sets the named feature flag to the boolean flag state.
+// If set to true, IsSet will return true for the same name.
+func SetBoolean(key string, b bool) {
+	if b {
+		flags[key] = FeatureFlagSet
+		return
+	}
+	delete(flags, key)
+}
+
+// IsSet returns true if the named feature flag is set.
+func IsSet(key string) bool {
+	return flags[key] == FeatureFlagSet
 }
 
 // Get returns the value of a flag, or "" if the flag wasn't set
