@@ -181,6 +181,7 @@ Kubernetes 1.24+ [will not create secrets for Service Accounts for you](https://
 	kubectl create secret generic demo-01-kubeconfig \
 	--from-file=value=./demo-01-kubeconfig
 	```
+
 You can also take care of this step in WGE's [Secrets UI](https://docs.gitops.weave.works/docs/next/secrets/intro/), setting up a a secret in [SOPS](https://docs.gitops.weave.works/docs/next/secrets/setup-sops/) or [ESO](https://docs.gitops.weave.works/docs/next/secrets/setup-eso/).
 
 Flux CRDs are compatible with the Azure Flux Configuration CRDs. This means that there are no compatibility issues between WGE and Azure Flux.
