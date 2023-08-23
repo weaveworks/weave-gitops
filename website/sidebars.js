@@ -44,8 +44,6 @@
             'enterprise/getting-started/releases-enterprise',
             'enterprise/getting-started/install-enterprise-azure',
             'enterprise/getting-started/join-cluster-azure-flux',
-            'enterprise/getting-started/deploying-capa-eks',
-            'enterprise/getting-started/management-cluster-setup-eks-capa',
             ],
           },
         {
@@ -71,7 +69,9 @@
       },
       items: [
         'cluster-management/managing-clusters-without-capi',
+        'cluster-management/deploying-capa-eks',
         'cluster-management/profiles',
+        'cluster-management/management-cluster-setup-eks-capa',
         'cluster-management/cluster-management-troubleshooting',
         {
           type: 'category',
