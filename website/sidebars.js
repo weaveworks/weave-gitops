@@ -71,7 +71,6 @@
         'cluster-management/managing-clusters-without-capi',
         'cluster-management/deploying-capa-eks',
         'cluster-management/profiles',
-        'cluster-management/management-cluster-setup-eks-capa',
         'cluster-management/cluster-management-troubleshooting',
         {
           type: 'category',
