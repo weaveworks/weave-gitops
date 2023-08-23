@@ -53,10 +53,6 @@ exports[`SyncActions snapshots hideDropdown 1`] = `
   padding: 8px 12px;
 }
 
-.c2.MuiButton-outlinedPrimary {
-  border-color: #d8d8d8;
-}
-
 .c3.MuiButton-outlined {
   margin-right: 0;
 }
@@ -301,10 +297,6 @@ exports[`SyncActions snapshots non-suspended 1`] = `
 
 .c2.MuiButton-outlined {
   padding: 8px 12px;
-}
-
-.c2.MuiButton-outlinedPrimary {
-  border-color: #d8d8d8;
 }
 
 .c4.MuiButton-root {
@@ -610,10 +602,6 @@ exports[`SyncActions snapshots suspended 1`] = `
 
 .c2.MuiButton-outlined {
   padding: 8px 12px;
-}
-
-.c2.MuiButton-outlinedPrimary {
-  border-color: #d8d8d8;
 }
 
 .c4.MuiButton-root {
@@ -926,10 +914,6 @@ exports[`SyncActions snapshots wide 1`] = `
 
 .c2.MuiButton-outlined {
   padding: 8px 12px;
-}
-
-.c2.MuiButton-outlinedPrimary {
-  border-color: #d8d8d8;
 }
 
 .c4.MuiButton-root {
