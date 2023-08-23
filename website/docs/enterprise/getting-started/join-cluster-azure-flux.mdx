@@ -55,6 +55,7 @@ If you already have Flux running, you can create the service account in your fle
 1. Create a service account file:
 
 <details><summary>Expand to see role manifests</summary>
+
 ```yaml
 apiVersion: v1
 kind: ServiceAccount
@@ -76,6 +77,7 @@ metadata:
 
 2. Create a roles file:
 <details><summary>Expand to see role manifests</summary>
+
 ```yaml
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -103,6 +105,7 @@ rules:
       resources: ["namespaces"]
       verbs: ["get", "list"]
 ```
+
 </details>
 
 3. Commit to your fleet repo to sync.
