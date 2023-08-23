@@ -64,6 +64,7 @@ export const theme = (mode: ThemeTypes = ThemeTypes.Light): DefaultTheme => {
         primaryLight10: "#98E0F7",
         primary10: "#00b3ec",
         primary20: "#006B8E",
+        primary30: "#556991",
         successLight: "#156034",
         successMedium: "#78CC9C",
         successOriginal: "#27AE60",
@@ -106,6 +107,7 @@ export const theme = (mode: ThemeTypes = ThemeTypes.Light): DefaultTheme => {
         primaryLight10: "#98E0F7",
         primary10: "#009CCC",
         primary20: "#006B8E",
+        primary30: "#556991",
         successLight: "#C9EBD7",
         successMedium: "#78CC9C",
         successOriginal: "#27AE60",
@@ -282,7 +284,7 @@ export const muiTheme = (colors, mode) =>
         root: {
           "&$disabled": {
             color:
-              mode === ThemeTypes.Dark ? colors.primary20 : colors.neutral20,
+              mode === ThemeTypes.Dark ? colors.primary30 : colors.neutral20,
           },
         },
         outlined: {
@@ -290,6 +292,12 @@ export const muiTheme = (colors, mode) =>
             border:
               mode === ThemeTypes.Dark
                 ? `1px solid ${colors.primary20}`
+                : `1px solid ${colors.neutral20}`,
+          },
+          "&$outlinedPrimary": {
+            border:
+              mode === ThemeTypes.Dark
+                ? `1px solid ${colors.primary30}`
                 : `1px solid ${colors.neutral20}`,
           },
         },

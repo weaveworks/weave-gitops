@@ -291,6 +291,10 @@ exports[`DataTable snapshots renders 1`] = `
   transition: background 0.5s ease-in-out;
 }
 
+.c1 .MuiTableCell-root {
+  border-color: #d8d8d8;
+}
+
 .c1 table {
   margin-top: 12px;
 }
