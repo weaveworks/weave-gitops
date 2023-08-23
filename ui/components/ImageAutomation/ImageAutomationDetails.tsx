@@ -39,7 +39,6 @@ const ImageAutomationDetails = ({
           clusterName={clusterName}
           kind={kind}
           suspended={suspended}
-          wide
           hideDropdown
         />
       )}

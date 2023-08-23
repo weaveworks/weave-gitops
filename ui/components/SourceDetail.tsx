@@ -71,7 +71,6 @@ function SourceDetail({ className, source, info, type, customActions }: Props) {
         clusterName={clusterName}
         kind={type}
         suspended={suspended}
-        wide
         hideDropdown
         customActions={customActions}
       />

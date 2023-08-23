@@ -59,10 +59,4 @@ class Flex extends React.PureComponent<Props> {
   }
 }
 
-export const ColumnOnBreakpoint = styled(Styled(Flex))<{ breakpoint: number }>`
-  @media screen and (max-width: ${(props) => props.breakpoint}px) {
-    flex-direction: column;
-  }
-`;
-
 export default Styled(Flex);
