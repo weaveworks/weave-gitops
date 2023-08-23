@@ -46,7 +46,8 @@ import (
 
 const (
 	// Allowed login requests per second
-	loginRequestRateLimit = 20
+	loginRequestRateLimit            = 20
+	InsecureNoAuthenticationUserFlag = "insecure-no-authentication-user"
 )
 
 // Options contains all the options for the gitops-server command.
@@ -69,6 +70,8 @@ type Options struct {
 	// OIDC
 	OIDC       auth.OIDCConfig
 	OIDCSecret string
+	// Auth
+	NoAuthUser string
 	// Dev mode
 	DevMode bool
 	// Metrics
@@ -98,7 +101,7 @@ func NewCommand() *cobra.Command {
 	cmd.Flags().StringVar(&options.NotificationControllerAddress, "notification-controller-address", "", "the address of the notification-controller running in the cluster")
 	cmd.Flags().StringVar(&options.Path, "path", "", "Path url")
 	cmd.Flags().StringVar(&options.Port, "port", server.DefaultPort, "UI port")
-	cmd.Flags().StringSliceVar(&options.AuthMethods, "auth-methods", auth.DefaultAuthMethodStrings(), fmt.Sprintf("Which auth methods to use, valid values are %s", strings.Join(auth.DefaultAuthMethodStrings(), ",")))
+	cmd.Flags().StringSliceVar(&options.AuthMethods, "auth-methods", auth.DefaultAuthMethodStrings(), fmt.Sprintf("Which auth methods to use, valid values are %s", strings.Join(auth.AllUserAuthMethods(), ",")))
 	cmd.Flags().BoolVar(&options.UseK8sCachedClients, "use-k8s-cached-clients", false, "Enables the use of cached clients")
 	//  TLS
 	cmd.Flags().BoolVar(&options.Insecure, "insecure", false, "do not attempt to read TLS certificates")
@@ -118,6 +121,8 @@ func NewCommand() *cobra.Command {
 	// OIDC prefixes
 	cmd.Flags().StringVar(&options.OIDC.UsernamePrefix, "oidc-username-prefix", "", "Prefix to add to the username when impersonating")
 	cmd.Flags().StringVar(&options.OIDC.GroupsPrefix, "oidc-group-prefix", "", "Prefix to add to the groups when impersonating")
+	// auth
+	cmd.Flags().StringVar(&options.NoAuthUser, InsecureNoAuthenticationUserFlag, "", "A kubernetes user to impersonate for all requests, no authentication will be performed")
 
 	// Metrics
 	cmd.Flags().BoolVar(&options.EnableMetrics, "enable-metrics", false, "Starts the metrics listener")
@@ -135,6 +140,10 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	log.Info("Version", "version", core.Version, "git-commit", core.GitCommit, "branch", core.Branch, "buildtime", core.Buildtime)
 
 	featureflags.SetFromEnv(os.Environ())
+
+	if cmd.Flags().Changed(InsecureNoAuthenticationUserFlag) && options.NoAuthUser == "" {
+		return fmt.Errorf("%s flag set but no user specified", InsecureNoAuthenticationUserFlag)
+	}
 
 	mux := http.NewServeMux()
 
@@ -177,8 +186,13 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("couldn't get current namespace")
 	}
 
-	authServer, err := auth.InitAuthServer(cmd.Context(), log, rawClient, options.OIDC, options.OIDCSecret, namespace, options.AuthMethods)
-
+	authServer, err := auth.InitAuthServer(cmd.Context(), log, rawClient, auth.AuthParams{
+		OIDCConfig:        options.OIDC,
+		OIDCSecretName:    options.OIDCSecret,
+		AuthMethodStrings: options.AuthMethods,
+		NoAuthUser:        options.NoAuthUser,
+		Namespace:         namespace,
+	})
 	if err != nil {
 		return fmt.Errorf("could not initialise authentication server: %w", err)
 	}
@@ -197,13 +211,13 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	// Incorporate values from authServer.AuthConfig.OIDCConfig
-	if authServer.AuthConfig.OIDCConfig.UsernamePrefix != "" {
+	if authServer.OIDCConfig.UsernamePrefix != "" {
 		log.V(logger.LogLevelWarn).Info("OIDC username prefix configured by both CLI and secret. Secret values will take precedence.")
-		oidcPrefixes.UsernamePrefix = authServer.AuthConfig.OIDCConfig.UsernamePrefix
+		oidcPrefixes.UsernamePrefix = authServer.OIDCConfig.UsernamePrefix
 	}
-	if authServer.AuthConfig.OIDCConfig.GroupsPrefix != "" {
+	if authServer.OIDCConfig.GroupsPrefix != "" {
 		log.V(logger.LogLevelWarn).Info("OIDC groups prefix configured by both CLI and secret. Secret values will take precedence.")
-		oidcPrefixes.GroupsPrefix = authServer.AuthConfig.OIDCConfig.GroupsPrefix
+		oidcPrefixes.GroupsPrefix = authServer.OIDCConfig.GroupsPrefix
 	}
 
 	cl, err := cluster.NewSingleCluster(cluster.DefaultCluster, rest, scheme, oidcPrefixes, cluster.DefaultKubeConfigOptions...)
