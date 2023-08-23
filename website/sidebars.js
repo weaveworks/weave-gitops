@@ -42,8 +42,10 @@
             'enterprise/getting-started/install-enterprise',
             'enterprise/getting-started/install-enterprise-airgap',
             'enterprise/getting-started/releases-enterprise',
-          ],
-        },
+            'enterprise/getting-started/install-enterprise-azure',
+            'enterprise/getting-started/join-cluster-azure-flux',
+            ],
+          },
         {
             type: 'link',
             label: 'Version Archives',
