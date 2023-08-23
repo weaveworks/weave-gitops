@@ -383,6 +383,13 @@ export const DataTable = styled(UnstyledDataTable)`
         : props.theme.colors.neutral10};
     transition: background 0.5s ease-in-out;
   }
+
+  .MuiTableCell-root {
+    border-color: ${(props) =>
+      props.theme.mode === ThemeTypes.Dark
+        ? props.theme.colors.primary30
+        : props.theme.colors.neutral20};
+  }
   table {
     margin-top: ${(props) => props.theme.spacing.small};
   }
