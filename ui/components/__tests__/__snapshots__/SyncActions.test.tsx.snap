@@ -57,6 +57,10 @@ exports[`SyncActions snapshots hideDropdown 1`] = `
   margin-right: 0;
 }
 
+.c3.MuiButton-outlined.Mui-disabled {
+  border-right: none;
+}
+
 .c4 {
   position: absolute;
   overflow: hidden;
@@ -331,6 +335,10 @@ exports[`SyncActions snapshots non-suspended 1`] = `
 .c3.MuiButton-outlined {
   margin-right: 0;
   border-radius: 2px 0 0 2px;
+  border-right: none;
+}
+
+.c3.MuiButton-outlined.Mui-disabled {
   border-right: none;
 }
 
@@ -636,6 +644,10 @@ exports[`SyncActions snapshots suspended 1`] = `
 .c3.MuiButton-outlined {
   margin-right: 0;
   border-radius: 2px 0 0 2px;
+  border-right: none;
+}
+
+.c3.MuiButton-outlined.Mui-disabled {
   border-right: none;
 }
 
@@ -948,6 +960,10 @@ exports[`SyncActions snapshots wide 1`] = `
 .c3.MuiButton-outlined {
   margin-right: 0;
   border-radius: 2px 0 0 2px;
+  border-right: none;
+}
+
+.c3.MuiButton-outlined.Mui-disabled {
   border-right: none;
 }
 
