@@ -288,13 +288,13 @@ export const muiTheme = (colors, mode) =>
           },
         },
         outlined: {
-          "&$disabled": {
+          "&$outlinedPrimary": {
             border:
               mode === ThemeTypes.Dark
-                ? `1px solid ${colors.primary20}`
+                ? `1px solid ${colors.primary30}`
                 : `1px solid ${colors.neutral20}`,
           },
-          "&$outlinedPrimary": {
+          "&$disabled": {
             border:
               mode === ThemeTypes.Dark
                 ? `1px solid ${colors.primary30}`
