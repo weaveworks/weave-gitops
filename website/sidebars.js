@@ -55,13 +55,6 @@
     },
     {
       type: 'category',
-      label: 'Access Configuration',
-      items: [
-        'configuration/tls',
-      ],
-    },
-    {
-      type: 'category',
       label: 'Cluster Management',
       link: {
         type: 'doc',
