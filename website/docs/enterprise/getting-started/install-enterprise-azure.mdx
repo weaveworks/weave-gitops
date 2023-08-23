@@ -4,10 +4,11 @@ hide_title: true
 ---
 
 import TierLabel from "@site/docs/_components/TierLabel";
+import oauthBitbucket from '/img/oauth-bitbucket.png';
 
 # Azure and Weave GitOps Enterprise Installation<TierLabel tiers="Enterprise" />
 
-Once you successfully create your Kuberbetes cluster in Azure Marketplace, follow these steps to Install Weave GitOps Enterprise. These instructions apply to both Azure AKS and Azure ARC clusters—they'll behave in the same way.
+Once you successfully create your Kubernetes cluster in Azure Marketplace, follow these steps to Install Weave GitOps Enterprise. These instructions apply to both Azure AKS and Azure ARC clusters—they'll behave in the same way.
 
 :::tip
 If you have already installed [Flux](https://fluxcd.io/flux/cmd/), then Azure Flux will refuse to install.
@@ -46,7 +47,7 @@ Here we provide guidance for GitHub, GitLab, BitBucket Server, and Azure DevOps.
 
 <Tabs groupId="git-provider" default>
 <TabItem value="github" label="GitHub">
-GitHub requires no additional configuration for OAuth git access
+GitHub requires no additional configuration for OAuth Git access
 </TabItem>
 <TabItem value="gitlab" label="GitLab">
 
