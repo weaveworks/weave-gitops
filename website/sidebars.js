@@ -114,7 +114,6 @@
       type: 'category',
       label: 'Guides',
       items: [
-        'guides/setting-up-dex',
         'guides/displaying-custom-metadata',
         'guides/fluxga-upgrade',
       ],
