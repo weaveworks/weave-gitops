@@ -90,6 +90,33 @@ The navbar is controlled in `docusaurus.config.js`. It is important to note that
 this is not (and cannot be) versioned, meaning that if you change the navbar
 that change will be present for all versions.
 
+#### How to format yaml
+
+When formatting `yaml` code, use two spaces (not tabs) per indentation level. For example, the following yaml:
+
+```yaml
+---
+apiVersion: v1
+	kind: ServiceAccount
+	metadata:
+		name: demo-01
+		namespace: default
+
+```
+
+should be
+
+```yaml
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: demo-01
+  namespace: default
+```
+
+In our eyes it may appear the same, but yaml parsers may complain.
+
 #### How to add yaml/json/console output without making it painful
 
 Our product comes with a lot of `yaml`, and we need to document that. However,
