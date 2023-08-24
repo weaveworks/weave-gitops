@@ -97,8 +97,8 @@ When formatting `yaml` code, use two spaces (not tabs) per indentation level. Fo
 ```yaml
 ---
 apiVersion: v1
-	kind: ServiceAccount
-	metadata:
+kind: ServiceAccount
+metadata:
 		name: demo-01
 		namespace: default
 
