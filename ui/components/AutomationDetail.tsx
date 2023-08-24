@@ -171,7 +171,7 @@ function AutomationDetail({
   ];
   return (
     <Flex wide tall column className={className} gap="16">
-      <Flex wide>
+      <Flex wide wrap between gap="8">
         <SyncActions
           name={name}
           namespace={namespace}
@@ -180,7 +180,7 @@ function AutomationDetail({
           suspended={suspended}
           customActions={customActions}
         />
-        <Flex wide end gap="14">
+        <Flex gap="14">
           {automation?.type === "HelmRelease" ? (
             <LargeInfo
               title={"Chart Version"}
