@@ -45,7 +45,6 @@ function UnstyledModal({
 }: Props) {
   return (
     <div className={className}>
-      {/* @ts-ignore */}
       <MaterialModal
         open={open}
         onClose={onClose}
