@@ -184,6 +184,9 @@ ui-test: ## Run UI tests
 ui-audit: ## Run audit against the UI
 	yarn audit --production
 
+ui-audit-fix: ## Run audit against the UI
+	yarn yarn-audit-fix
+
 # Build the UI as an NPM package (hosted on github)
 ui-lib: node_modules dist/index.js dist/index.d.ts ## Build UI libraries
 # Remove font files from the npm module.

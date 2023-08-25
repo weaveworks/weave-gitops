@@ -112,7 +112,8 @@
     "process": "^0.11.10",
     "react-test-renderer": "^17.0.2",
     "ts-jest": "^27.1.1",
-    "typescript": "4.9.3"
+    "typescript": "4.9.3",
+    "yarn-audit-fix": "^10.0.1"
   },
   "alias": {
     "yaml": "yaml/browser/dist/index.js"
