@@ -9,5 +9,8 @@
     },
     "include": [
         "ui/**/*"
+    ],
+    "exclude": [
+        "node_modules"
     ]
 }
