@@ -103,4 +103,11 @@ export default styled(Page)`
   .MuiAlert-root {
     width: 100%;
   }
+  .MuiButtonGroup-root {
+    button {
+      &:first-child {
+        margin-right: 0 !important;
+      }
+    }
+  }
 `;

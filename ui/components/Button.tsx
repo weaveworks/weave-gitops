@@ -48,6 +48,7 @@ const Button = styled(UnstyledButton)`
     line-height: 1;
     border-radius: ${(props) => props.theme.borderRadius.soft};
     font-weight: 600;
+    margin-right: ${(props) => props.theme.spacing.small} !important;
   }
   &.MuiButton-outlined {
     padding: 8px 12px;
@@ -60,6 +61,7 @@ export const IconButton = styled(UnstyledButton)`
     min-width: 38px;
     height: 38px;
     padding: 0;
+    margin-right: 0 !important;
   }
   &.MuiButton-text {
     padding: 0;

@@ -32,9 +32,10 @@ export const ArrowDropDown = styled(IconButton)`
 
 const Sync = styled(Button)<{ $hideDropdown: boolean }>`
   &.MuiButton-outlined {
-    margin-right: 0;
+    margin-right: 0 !important;
     ${(props) =>
-      !props.$hideDropdown && `border-radius: 2px 0 0 2px; border-right: none`}
+      !props.$hideDropdown &&
+      `border-radius: 2px 0 0 2px; border-right: none !important`};
   }
   &.MuiButton-outlined.Mui-disabled {
     border-right: none;
