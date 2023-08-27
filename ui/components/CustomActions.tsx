@@ -6,7 +6,6 @@ function CustomActions({ actions }: { actions: JSX.Element[] }) {
     <>
       {actions?.map((action, index) => (
         <React.Fragment key={index}>
-          <Spacer padding="xs" />
           {action}
         </React.Fragment>
       ))}

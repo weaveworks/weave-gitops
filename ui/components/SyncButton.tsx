@@ -16,6 +16,7 @@ export const ArrowDropDown = styled(IconButton)`
   &.MuiButton-outlined {
     //2px = MUI radius
     border-radius: 0 2px 2px 0;
+    margin-right: ${(props) => props.theme.spacing.small} !important;
   }
   &.MuiButton-outlinedPrimary {
     border-color: ${(props) => props.theme.colors.neutral20};
@@ -32,13 +33,14 @@ export const ArrowDropDown = styled(IconButton)`
 
 const Sync = styled(Button)<{ $hideDropdown: boolean }>`
   &.MuiButton-outlined {
-    margin-right: 0 !important;
     ${(props) =>
       !props.$hideDropdown &&
-      `border-radius: 2px 0 0 2px; border-right: none !important`};
-  }
-  &.MuiButton-outlined.Mui-disabled {
-    border-right: none;
+      `border-radius: 2px 0 0 2px;
+       border-right: none !important;
+      margin-right: 0 !important; 
+      &.MuiButton-outlined.Mui-disabled {
+      border-right: none !important};
+    }`};
   }
 `;
 

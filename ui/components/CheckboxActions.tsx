@@ -104,7 +104,7 @@ function CheckboxActions({ className, checked = [], rows = [] }: Props) {
   }, [checked, rows]);
 
   return (
-    <Flex start align className={className} gap="8">
+    <Flex start align className={className}>
       <DefaultSync reqObjects={reqObjects} />
       <DefaultSuspend reqObjects={reqObjects} suspend={true} />
       <DefaultSuspend reqObjects={reqObjects} suspend={false} />

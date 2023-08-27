@@ -66,7 +66,6 @@ const SyncActions = ({
         disabled={suspended}
         hideDropdown={hideDropdown}
       />
-      <Spacer padding="xs" />
       <Button onClick={() => suspend.mutateAsync()} loading={suspend.isLoading}>
         {suspended ? "Resume" : "Suspend"}
       </Button>
