@@ -6,7 +6,6 @@ import { Kind } from "../lib/api/core/types.pb";
 import Button from "./Button";
 import CustomActions from "./CustomActions";
 import Flex from "./Flex";
-import Spacer from "./Spacer";
 import SyncButton from "./SyncButton";
 
 interface Props {

@@ -1,5 +1,4 @@
 import * as React from "react";
-import Spacer from "./Spacer";
 
 function CustomActions({ actions }: { actions: JSX.Element[] }) {
   return actions?.length > 0 ? (
