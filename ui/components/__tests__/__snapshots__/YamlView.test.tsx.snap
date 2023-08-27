@@ -68,6 +68,7 @@ exports[`YamlView snapshots renders 1`] = `
   min-width: 38px;
   height: 38px;
   padding: 0;
+  margin-right: 0 !important;
 }
 
 .c2.MuiButton-text {

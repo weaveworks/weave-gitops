@@ -231,6 +231,10 @@ exports[`Page snapshots default 1`] = `
   width: 100%;
 }
 
+.c14 .MuiButtonGroup-root button:first-child {
+  margin-right: 0 !important;
+}
+
 <div
   className="c0 c1"
 >
