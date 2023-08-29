@@ -10,11 +10,13 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
-	automation1 "github.com/fluxcd/image-automation-controller/api/v1beta1"
-	reflectorv1 "github.com/fluxcd/image-reflector-controller/api/v1beta1"
-	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
-	notificationv2 "github.com/fluxcd/notification-controller/api/v1beta1"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	imgautomationv1 "github.com/fluxcd/image-automation-controller/api/v1beta1"
+	reflectorv1 "github.com/fluxcd/image-reflector-controller/api/v1beta2"
+	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
+	notificationv1 "github.com/fluxcd/notification-controller/api/v1"
+	notificationv1b2 "github.com/fluxcd/notification-controller/api/v1beta2"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1"
+	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/pkg/errors"
 	pacv2beta2 "github.com/weaveworks/policy-agent/api/v2beta2"
 	appsv1 "k8s.io/api/apps/v1"
@@ -29,17 +31,19 @@ func CreateScheme() (*apiruntime.Scheme, error) {
 	scheme := apiruntime.NewScheme()
 	builder := apiruntime.SchemeBuilder{
 		sourcev1.AddToScheme,
-		kustomizev2.AddToScheme,
+		sourcev1b2.AddToScheme,
+		kustomizev1.AddToScheme,
 		helmv2.AddToScheme,
 		corev1.AddToScheme,
 		extensionsv1.AddToScheme,
 		appsv1.AddToScheme,
 		rbacv1.AddToScheme,
 		authv1.AddToScheme,
-		notificationv2.AddToScheme,
-		reflectorv1.AddToScheme,
-		automation1.AddToScheme,
+		notificationv1.AddToScheme,
+		notificationv1b2.AddToScheme,
 		pacv2beta2.AddToScheme,
+		reflectorv1.AddToScheme,
+		imgautomationv1.AddToScheme,
 	}
 
 	err := builder.AddToScheme(scheme)

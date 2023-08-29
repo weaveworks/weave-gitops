@@ -3,6 +3,7 @@ import * as React from "react";
 import { useQuery } from "react-query";
 import { Core, GetFeatureFlagsResponse } from "../lib/api/core/core.pb";
 import { RequestError } from "../lib/types";
+import { TokenRefreshWrapper } from "../lib/requests";
 import { AuthRoutes } from "./AuthContext";
 
 type Props = {
@@ -20,31 +21,6 @@ export type CoreClientContextType = {
 export const CoreClientContext =
   React.createContext<CoreClientContextType | null>(null);
 
-export function UnAuthorizedInterceptor(api: typeof Core): typeof Core {
-  const wrapped = {};
-  //   Wrap each API method in a check that redirects to the signin page if a 401 is returned.
-  for (const method of Object.getOwnPropertyNames(api)) {
-    if (typeof api[method] != "function") {
-      continue;
-    }
-    wrapped[method] = (req, initReq) => {
-      return api[method](req, initReq).catch((err) => {
-        if (err.code === 401) {
-          window.location.replace(
-            AuthRoutes.AUTH_PATH_SIGNIN +
-              "?" +
-              qs.stringify({
-                redirect: location.pathname + location.search,
-              })
-          );
-        }
-        throw err;
-      });
-    };
-  }
-  return wrapped as typeof Core;
-}
-
 function FeatureFlags(api) {
   const { data } = useQuery<GetFeatureFlagsResponse, RequestError>(
     "feature_flags",
@@ -55,6 +31,28 @@ function FeatureFlags(api) {
     }
   );
   return data?.flags;
+}
+
+export async function refreshToken() {
+  const res = await fetch("/oauth2/refresh", { method: "POST" });
+  if (!res.ok) {
+    window.location.replace(
+      AuthRoutes.AUTH_PATH_SIGNIN +
+        "?" +
+        qs.stringify({
+          redirect: location.pathname + location.search,
+        })
+    );
+
+    // Return a promse that does not resolve.
+    // This stops any more API requests or refreshToken requests from being
+    // made during the few seconds the browser is redirecting.
+    return new Promise<void>(() => null);
+  }
+}
+
+export function UnAuthorizedInterceptor(api: typeof Core): typeof Core {
+  return TokenRefreshWrapper.wrap(api, refreshToken);
 }
 
 export default function CoreClientContextProvider({ api, children }: Props) {

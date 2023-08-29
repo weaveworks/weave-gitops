@@ -419,6 +419,32 @@ func TestUserInfoIDTokenCookieNotSet(t *testing.T) {
 	g.Expect(w.Result().StatusCode).To(Equal(http.StatusBadRequest))
 }
 
+func TestUserInfoAnonymous(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	authMethods := map[auth.AuthMethod]bool{
+		auth.Anonymous: true,
+	}
+	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), auth.OIDCConfig{}, nil, nil, testNamespace, authMethods, "test-user")
+	g.Expect(err).NotTo(HaveOccurred())
+
+	s, err := auth.NewAuthServer(context.Background(), authCfg)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	req := httptest.NewRequest(http.MethodGet, "/foo", nil)
+	w := httptest.NewRecorder()
+	s.UserInfo(w, req)
+
+	// Anonymous auth should always return a 200
+	resp := w.Result()
+	g.Expect(resp.StatusCode).To(Equal(http.StatusOK))
+
+	// Check we return the noAuthUser
+	var info auth.UserInfo
+	g.Expect(json.NewDecoder(resp.Body).Decode(&info)).To(Succeed())
+	g.Expect(info.ID).To(Equal("test-user"))
+}
+
 func TestUserInfoAdminFlow(t *testing.T) {
 	g := NewGomegaWithT(t)
 
@@ -776,6 +802,51 @@ func TestRefresh(t *testing.T) {
 	g.Expect(refreshTokenExpires).To(Equal(idTokenExpires.Add(time.Hour)))
 }
 
+func TestRefreshSucceedsReturns200(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	s, m := makeAuthServer(t, nil, tokenSignerVerifier, []auth.AuthMethod{auth.OIDC})
+
+	tokens := getVerifyTokens(t, m)
+
+	tf := tokens["refresh_token"].(string)
+
+	req := httptest.NewRequest(http.MethodPost, "https://example.com/test", nil)
+	req.AddCookie(&http.Cookie{
+		Name:  auth.RefreshTokenCookieName,
+		Value: tf,
+	})
+
+	w := httptest.NewRecorder()
+	s.RefreshHandler(w, req)
+	g.Expect(w.Result().StatusCode).To(Equal(200))
+}
+
+func TestRefreshHandlerRejectsMethodGet(t *testing.T) {
+	g := NewGomegaWithT(t)
+	s, _ := makeAuthServer(t, nil, nil, []auth.AuthMethod{auth.OIDC})
+
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "https://example.com/test", nil)
+
+	s.RefreshHandler(w, req)
+	g.Expect(w.Result().StatusCode).To(Equal(http.StatusMethodNotAllowed))
+}
+
+func TestRefreshFailsReturns401(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	s, _ := makeAuthServer(t, nil, nil, []auth.AuthMethod{auth.OIDC})
+
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodPost, "https://example.com/test", nil)
+	s.RefreshHandler(w, req)
+	g.Expect(w.Result().StatusCode).To(Equal(http.StatusUnauthorized))
+}
+
 func TestRefreshNoToken(t *testing.T) {
 	g := NewGomegaWithT(t)
 	s, _ := makeAuthServer(t, nil, nil, []auth.AuthMethod{auth.OIDC})
@@ -875,7 +946,7 @@ func makeAuthServer(t *testing.T, client ctrlclient.Client, tsv auth.TokenSigner
 	t.Helper()
 	g := NewGomegaWithT(t)
 
-	featureflags.Set("OIDC_AUTH", "") // Reset this
+	featureflags.SetBoolean("OIDC_AUTH", false) // Reset this
 
 	m, err := mockoidc.Run()
 	g.Expect(err).NotTo(HaveOccurred())
@@ -901,7 +972,7 @@ func makeAuthServer(t *testing.T, client ctrlclient.Client, tsv auth.TokenSigner
 		authMethodsMap[mthd] = true
 	}
 
-	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), oidcCfg, client, tsv, testNamespace, authMethodsMap)
+	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), oidcCfg, client, tsv, testNamespace, authMethodsMap, "")
 	g.Expect(err).NotTo(HaveOccurred())
 
 	s, err := auth.NewAuthServer(context.Background(), authCfg)
@@ -913,19 +984,20 @@ func makeAuthServer(t *testing.T, client ctrlclient.Client, tsv auth.TokenSigner
 func TestAuthMethods(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	featureflags.Set("OIDC_AUTH", "")
-	featureflags.Set("CLUSTER_USER_AUTH", "")
+	featureflags.SetBoolean("OIDC_AUTH", false)
+	featureflags.SetBoolean("CLUSTER_USER_AUTH", false)
+	featureflags.SetBoolean("ANONYMOUS_AUTH", false)
 
 	authMethods := map[auth.AuthMethod]bool{}
 
-	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), auth.OIDCConfig{}, ctrlclientfake.NewClientBuilder().Build(), nil, testNamespace, authMethods)
+	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), auth.OIDCConfig{}, ctrlclientfake.NewClientBuilder().Build(), nil, testNamespace, authMethods, "")
 	g.Expect(err).NotTo(HaveOccurred())
 
 	_, err = auth.NewAuthServer(context.Background(), authCfg)
-	g.Expect(err).To(HaveOccurred())
+	g.Expect(err).To(MatchError(MatchRegexp("OIDC auth, local auth or anonymous mode must be enabled")))
 
-	g.Expect(featureflags.Get("OIDC_AUTH")).To(Equal("false"))
-	g.Expect(featureflags.Get("CLUSTER_USER_AUTH")).To(Equal("false"))
+	g.Expect(featureflags.Get("OIDC_AUTH")).To(Equal(""))
+	g.Expect(featureflags.Get("CLUSTER_USER_AUTH")).To(Equal(""))
 
 	hashedSecret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
@@ -941,12 +1013,12 @@ func TestAuthMethods(t *testing.T) {
 
 	authMethods = map[auth.AuthMethod]bool{auth.UserAccount: true}
 
-	authCfg, err = auth.NewAuthServerConfig(logr.Discard(), auth.OIDCConfig{}, fakeKubernetesClient, nil, testNamespace, authMethods)
+	authCfg, err = auth.NewAuthServerConfig(logr.Discard(), auth.OIDCConfig{}, fakeKubernetesClient, nil, testNamespace, authMethods, "")
 	g.Expect(err).NotTo(HaveOccurred())
 	_, err = auth.NewAuthServer(context.Background(), authCfg)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	g.Expect(featureflags.Get("OIDC_AUTH")).To(Equal("false"))
+	g.Expect(featureflags.Get("OIDC_AUTH")).To(Equal(""))
 	g.Expect(featureflags.Get("CLUSTER_USER_AUTH")).To(Equal("true"))
 
 	m, err := mockoidc.Run()
@@ -964,13 +1036,13 @@ func TestAuthMethods(t *testing.T) {
 	}
 	authMethods = map[auth.AuthMethod]bool{auth.OIDC: true}
 
-	authCfg, err = auth.NewAuthServerConfig(logr.Discard(), oidcCfg, ctrlclientfake.NewClientBuilder().Build(), nil, testNamespace, authMethods)
+	authCfg, err = auth.NewAuthServerConfig(logr.Discard(), oidcCfg, ctrlclientfake.NewClientBuilder().Build(), nil, testNamespace, authMethods, "")
 	g.Expect(err).NotTo(HaveOccurred())
 	_, err = auth.NewAuthServer(context.Background(), authCfg)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	g.Expect(featureflags.Get("OIDC_AUTH")).To(Equal("true"))
-	g.Expect(featureflags.Get("CLUSTER_USER_AUTH")).To(Equal("false"))
+	g.Expect(featureflags.Get("CLUSTER_USER_AUTH")).To(Equal(""))
 }
 
 func TestNewOIDCConfigFromSecret(t *testing.T) {

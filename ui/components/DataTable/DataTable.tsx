@@ -14,7 +14,7 @@ import { useHistory, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import { ThemeTypes } from "../../contexts/AppContext";
 import { IconButton } from "../Button";
-import CheckboxActions, { Action } from "../CheckboxActions";
+import CheckboxActions from "../CheckboxActions";
 import ChipGroup from "../ChipGroup";
 import FilterDialog, {
   FilterConfig,
@@ -49,7 +49,7 @@ export interface Props {
   rows?: any[];
   filters?: FilterConfig;
   dialogOpen?: boolean;
-  hasCheckboxes?: Action[] | boolean;
+  hasCheckboxes?: boolean;
   hideSearchAndFilters?: boolean;
   emptyMessagePlaceholder?: React.ReactNode;
   onColumnHeaderClick?: (field: Field) => void;
@@ -251,13 +251,7 @@ function UnstyledDataTable({
   return (
     <Flex wide tall column className={className}>
       <TopBar wide align end>
-        {checkboxes && (
-          <CheckboxActions
-            checked={checked}
-            rows={filtered}
-            actions={typeof checkboxes !== "boolean" && checkboxes}
-          />
-        )}
+        {checkboxes && <CheckboxActions checked={checked} rows={filtered} />}
         {filters && !hideSearchAndFilters && (
           <>
             <ChipGroup
@@ -388,6 +382,13 @@ export const DataTable = styled(UnstyledDataTable)`
         ? props.theme.colors.blueWithOpacity
         : props.theme.colors.neutral10};
     transition: background 0.5s ease-in-out;
+  }
+
+  .MuiTableCell-root {
+    border-color: ${(props) =>
+      props.theme.mode === ThemeTypes.Dark
+        ? props.theme.colors.primary30
+        : props.theme.colors.neutral20};
   }
   table {
     margin-top: ${(props) => props.theme.spacing.small};

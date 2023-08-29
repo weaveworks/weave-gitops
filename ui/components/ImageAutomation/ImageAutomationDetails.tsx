@@ -1,4 +1,5 @@
 import React from "react";
+import styled from "styled-components";
 import { Kind } from "../../lib/api/core/types.pb";
 import EventsTable from "../EventsTable";
 import Flex from "../Flex";
@@ -6,10 +7,11 @@ import InfoList, { InfoField } from "../InfoList";
 import PageStatus from "../PageStatus";
 import Spacer from "../Spacer";
 import SubRouterTabs, { RouterTab } from "../SubRouterTabs";
-import Text from "../Text";
+import SyncActions from "../SyncActions";
 import YamlView from "../YamlView";
 
 interface Props {
+  className?: string;
   data: any;
   kind: Kind;
   rootPath: string;
@@ -18,6 +20,7 @@ interface Props {
 }
 
 const ImageAutomationDetails = ({
+  className,
   data,
   kind,
   rootPath,
@@ -25,22 +28,20 @@ const ImageAutomationDetails = ({
   children,
 }: Props) => {
   const { name, namespace, clusterName, suspended, conditions } = data;
+
   return (
-    <Flex wide tall column>
-      <Text size="large" semiBold titleHeight>
-        {name}
-      </Text>
-      <Spacer margin="xs" />
+    <Flex wide tall column className={className}>
       <PageStatus conditions={conditions} suspended={suspended} />
-      <Spacer margin="xs" />
-      {/* ImageUpdateAutomation sync is not supported yet and it'll be added in future PR */}
-      {/* <SyncActions
+      {kind !== Kind.ImagePolicy && (
+        <SyncActions
           name={name}
           namespace={namespace}
           clusterName={clusterName}
           kind={kind}
+          suspended={suspended}
+          hideDropdown
         />
-        <Spacer margin="xs" /> */}
+      )}
 
       <SubRouterTabs rootPath={`${rootPath}/details`}>
         <RouterTab name="Details" path={`${rootPath}/details`}>
@@ -76,4 +77,10 @@ const ImageAutomationDetails = ({
   );
 };
 
-export default ImageAutomationDetails;
+export default styled(ImageAutomationDetails).attrs({
+  className: ImageAutomationDetails.name,
+})`
+  ${SubRouterTabs} {
+    margin-top: ${(props) => props.theme.spacing.medium};
+  }
+`;

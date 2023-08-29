@@ -10,6 +10,7 @@ import Timestamp from "../../../Timestamp";
 import Severity from "../../Utils/Severity";
 import { useFeatureFlags } from "../../../../hooks/featureflags";
 import { Kind } from "../../../../lib/api/core/types.pb";
+import Text from "../../../Text";
 
 interface Props {
   req: ListPolicyValidationsRequest;
@@ -81,7 +82,20 @@ export const PolicyViolationsList = ({ req }: Props) => {
       ? [
           {
             label: "Violated Policy",
-            value: "name",
+            value: ({ name, clusterName, policyId }) => (
+              <Link
+                to={formatURL(V2Routes.PolicyDetailsPage, {
+                  clusterName: clusterName,
+                  id: policyId,
+                  name: name,
+                })}
+                data-policy-name={name}
+              >
+                <Text capitalize semiBold>
+                  {name}
+                </Text>
+              </Link>
+            ),
             sortValue: ({ name }) => name,
           },
         ]

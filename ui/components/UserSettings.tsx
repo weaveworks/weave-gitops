@@ -12,6 +12,7 @@ import { Auth } from "../contexts/AuthContext";
 import { V2Routes } from "../lib/types";
 import DarkModeSwitch from "./DarkModeSwitch";
 import Icon, { IconType } from "./Icon";
+
 const SettingsMenu = styled(Menu)`
   .MuiPaper-root {
     background: ${(props) => props.theme.colors.whiteToPrimary};
@@ -85,7 +86,7 @@ function UserSettings({ className, darkModeEnabled = true }: Props) {
         transformOrigin={{ horizontal: 150, vertical: -80 }}
       >
         <MenuItem onClick={() => history.push(V2Routes.UserInfo)}>
-          Hello, {userInfo?.email}
+          Hello, {userInfo?.id}
         </MenuItem>
         <MenuItem className="logout" onClick={() => logOut()}>
           <ListItemIcon>

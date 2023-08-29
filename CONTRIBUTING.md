@@ -5,6 +5,10 @@ open source product with a community led by Weaveworks :heart:
 
 We welcome improvements to reporting issues and documentation as well as to code.
 
+## Developer Certificate of Origin
+
+By submitting any contributions to this repository as an individual or on behalf of a corporation, you agree to the [Developer Certificate of Origin](DCO).
+
 ## Understanding how to run development process
 
 The [internal guide](doc/development-process.md) **is a work in progress** but aims to cover all aspects of how to

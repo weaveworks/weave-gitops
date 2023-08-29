@@ -17,11 +17,27 @@ const (
 	OIDC
 	// EE CLI tokens
 	TokenPassthrough
+
+	// Anonymous
+	Anonymous
 )
 
 // This is a function to mimic a const slice
 func DefaultAuthMethods() []AuthMethod {
 	return []AuthMethod{UserAccount, OIDC}
+}
+
+// AllUserAuthMethods returns all the auth methods that can be configured via the
+// auth-methods flag. `Anonymous` is not included as it is configured via another
+// --insecure-no-auth flag
+func AllUserAuthMethods() []string {
+	allUserAuthMethods := []AuthMethod{UserAccount, OIDC, TokenPassthrough}
+	res := []string{}
+	for _, method := range allUserAuthMethods {
+		res = append(res, method.String())
+	}
+
+	return res
 }
 
 func DefaultAuthMethodStrings() []string {
@@ -30,6 +46,14 @@ func DefaultAuthMethodStrings() []string {
 		res = append(res, method.String())
 	}
 
+	return res
+}
+
+func toAuthMethodStrings(authMethods map[AuthMethod]bool) []string {
+	res := []string{}
+	for method := range authMethods {
+		res = append(res, method.String())
+	}
 	return res
 }
 
@@ -56,6 +80,8 @@ func (am *AuthMethod) String() string {
 		return "oidc"
 	case TokenPassthrough:
 		return "token-passthrough"
+	case Anonymous:
+		return "anonymous"
 	default:
 		return fmt.Sprintf("AuthMethod(%d)", am)
 	}
@@ -70,6 +96,8 @@ func (am *AuthMethod) UnmarshalText(text []byte) error {
 		*am = OIDC
 	case "token-passthrough":
 		*am = TokenPassthrough
+	case "anonymous":
+		*am = Anonymous
 	default:
 		return fmt.Errorf("unknown auth method '%q'", text)
 	}

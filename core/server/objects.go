@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/fluxcd/helm-controller/api/v2beta1"
-	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
+	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
 	"github.com/hashicorp/go-multierror"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/logger"

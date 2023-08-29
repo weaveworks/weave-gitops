@@ -182,7 +182,7 @@ function PodDetail({ className, pod }: Props) {
 
 export default styled(PodDetail).attrs({ className: PodDetail.name })`
   height: 100%;
-  ${PageStatus}, ${NoDialogDataTable} {
+  ${NoDialogDataTable} {
     margin-bottom: ${(props) => props.theme.spacing.small};
   }
 `;

@@ -19,7 +19,7 @@ function LargeInfo({ className, title, info, component }: Props) {
       </Text>
       <Tooltip title={info || ""} placement="top">
         <Text size="large" color="neutral40">
-          {component ? component : info || ""}
+          {component ? component : info || "-"}
         </Text>
       </Tooltip>
     </Flex>
@@ -29,7 +29,6 @@ function LargeInfo({ className, title, info, component }: Props) {
 export default styled(LargeInfo).attrs({
   className: LargeInfo.name,
 })`
-  margin: 0 ${(props) => props.theme.spacing.small};
   ${Text} {
     max-width: 150px;
     white-space: nowrap;

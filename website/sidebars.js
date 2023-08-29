@@ -42,36 +42,15 @@
             'enterprise/getting-started/install-enterprise',
             'enterprise/getting-started/install-enterprise-airgap',
             'enterprise/getting-started/releases-enterprise',
-          ],
-        },
+            'enterprise/getting-started/install-enterprise-azure',
+            'enterprise/getting-started/join-cluster-azure-flux',
+            ],
+          },
         {
             type: 'link',
             label: 'Version Archives',
             href: '/archives',
         },
-      ],
-    },
-    {
-      type: 'category',
-      label: 'Access Configuration',
-      items: [
-        'configuration/recommended-rbac-configuration',
-        {
-          type: 'category',
-          label: 'Securing Access to the Dashboard',
-          collapsed: false,
-          link: {
-            type: 'doc',
-            id:'configuration/securing-access-to-the-dashboard',
-          },
-          items: [
-            'configuration/oidc-access',
-            'configuration/emergency-user',
-          ],
-        },
-        'configuration/service-account-permissions',
-        'configuration/user-permissions',
-        'configuration/tls',
       ],
     },
     {
@@ -114,29 +93,27 @@
       label: 'GitOps Run',
       link: {
         type: 'doc',
-        id: 'gitops-run/overview',
+        id: 'gitops-run/gitops-run-overview',
       },
       items: [
-        'gitops-run/get-started',
+        'gitops-run/gitops-run-get-started',
       ],
     },
     {
       type: 'category',
       label: 'GitOpsSets',
       items: [
-        'gitopssets/intro',
-        'gitopssets/installation',
-        'gitopssets/guide',
-        'gitopssets/api-reference',
-        'gitopssets/releases'
+        'gitopssets/gitopssets-intro',
+        'gitopssets/gitopssets-installation',
+        'gitopssets/templating-from-generators',
+        'gitopssets/gitopssets-api-reference',
+        'gitopssets/gitopssets-releases'
       ],
     },
     {
       type: 'category',
       label: 'Guides',
       items: [
-        'guides/setting-up-dex',
-        'guides/cert-manager',
         'guides/displaying-custom-metadata',
         'guides/fluxga-upgrade',
       ],
@@ -146,13 +123,13 @@
       label: 'Pipelines',
       link: {
         type: 'doc',
-        id: 'pipelines/intro',
+        id: 'pipelines/pipelines-intro',
       },
       items: [
-        'pipelines/getting-started',
+        'pipelines/pipelines-getting-started',
         'pipelines/authorization',
         'pipelines/promoting-applications',
-        'pipelines/pipeline-templates',
+        'pipelines/pipelines-templates',
         'pipelines/pipelines-with-jenkins',
         'pipelines/pipelines-with-tekton',
         {

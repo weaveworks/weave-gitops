@@ -1,0 +1,197 @@
+---
+title: Configuration
+hide_title: true
+---
+
+import TierLabel from "./../_components/TierLabel";
+import AlphaWarning from "../_components/_alpha_warning.mdx";
+
+# Configuration <TierLabel tiers="Enterprise" />
+
+<AlphaWarning/>
+
+This page helps you to understand the options available to configure Explorer
+
+## Prerequisites
+Before using Explorer, please ensure that:
+- You have Weave Gitops Enterprise [v0.23.0](../enterprise/getting-started/releases-enterprise.mdx)
+
+## Setup
+
+The following configuration options are available for you to setup Explorer.
+
+- `.spec.values.enableExplorer`: feature flag to control whether Explorer is enabled.
+- `.spec.values.useQueryServiceBackend`: feature flag to control whether you want to leverage Explorer backend capabilities for
+other UI experiences like [Applications](../open-source/getting-started/ui-OSS.mdx#the-applications-view) or [Sources](../open-source/getting-started/ui-OSS.mdx#the-sources-view)
+- `.spec.values.explorer.collector.serviceAccount`: ServiceAccount `name` and `namespace` that explorer collector will use to impersonate
+in leaf clusters. Make sure you read [authz for collector](#Authentication_and_Authorization_for_collecting) before setting it. Default
+values are `name: collector`, `namespace: flux-system`.
+
+You should specify them in your HelmRelease values:
+
+```yaml
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: weave-gitops-enterprise
+  namespace: flux-system
+spec:
+  # ... other spec components
+  values:
+    enableExplorer: true # feature flag to enable explorer
+    useQueryServiceBackend: true # uses explorer query backend in collection UIs
+    explorer:
+      collector:
+        serviceAccount: # service account that collector will impersonate in leaf clusters
+          name: collector
+          namespace: flux-system
+```
+
+## Configuration
+
+### Clusters
+
+Explorer watches the [GitopsClusters](../cluster-management/managing-clusters-without-capi.mdx/#connect-a-cluster)
+that you have connected to Weave Gitops Enterprise, as well as your Management cluster.
+
+### Kinds
+
+Explorer watches for the following kind resources out of the box:
+
+[Flux GitOps Toolkit](https://fluxcd.io/flux/components/)
+
+- [HelmRelease](https://fluxcd.io/flux/components/helm/helmreleases/)
+- [Kustomizations](https://fluxcd.io/flux/components/kustomize/kustomization/)
+- [Sources](https://fluxcd.io/flux/components/source/)
+  - [GitRepostiories](https://fluxcd.io/flux/components/source/gitrepositories/)
+  - [OciRepositories](https://fluxcd.io/flux/components/source/ocirepositories/)
+  - [HelmRepositories](https://fluxcd.io/flux/components/source/helmrepositories/)
+  - [HelmCharts](https://fluxcd.io/flux/components/source/helmcharts/)
+  - [Buckets](https://fluxcd.io/flux/components/source/buckets/)
+
+## Data Layer
+
+Explorer take a simple approach to manage resource views. It leverages a Data Store for caching the views and query them.
+The storage lifecycle is bounded to Weave Gitops Enterprise app and does not provide persistence guarantees.
+Instead, it requests data as required to the leaf clusters. In its simplest form, the data store used is [SQLite](https://sqlite.org/index.html).
+
+## Authentication and Authorization
+
+There are two main paths to consider within Explorer in the context of authentication and authorization (authN/authZ):
+
+1. The read or querying path is exercised when a weave gitops user queries the data.
+2. The write or collecting path is exercised to gather the resources from the leaf clusters.
+
+We look into them separately.
+
+## Authentication and Authorization for Querying
+
+Explorer leverages existing authentication and authorization built-in the [application](https://docs.gitops.weave.works/docs/configuration/securing-access-to-the-dashboard/).
+It identifies for a user logged in the application: its identity and the access permissions via Kuberentes RBAC.
+Query results are filtered honouring the access determined via RBAC.
+
+## Authentication and Authorization for Collecting
+
+[GitopsClusters](../cluster-management/managing-clusters-without-capi.mdx/#connect-a-cluster)
+define the connection and security context that Explorer leverages to collect data from leaf clusters. Given that you have followed the indications
+in [setting up RBAC](../enterprise/getting-started/install-enterprise.mdx#gitops-dashboard-service-account-permissions), the GitopsCluster service account is able to impersonate any user or group.
+
+:::tip
+
+Collector RBAC resources are part of your leaf clusters common RBAC configuration. It is commonly
+located in your  `clusters/bases` folder, as described in [Getting started](./getting-started.mdx).
+
+:::
+
+
+To configure collection, you would need to extend this configuration with the following:
+
+1. Create a ServiceAccount for the one that you specified in your [setup](#setup) `.spec.values.explorer.collector.serviceAccount`.
+
+<details><summary>Expand to see an example</summary>
+
+```yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: collector # should match .spec.values.explorer.collector.serviceAccount.name
+  namespace: flux-system # should match .spec.values.explorer.collector.serviceAccount.namespace
+```
+
+</details>
+
+
+2. Create a ClusterRole with the permissions to watch the supported resources.
+
+<details><summary>Expand to see an example</summary>
+
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: collector # could be .spec.values.explorer.collector.serviceAccount.name
+rules:
+  - apiGroups: [ "rbac.authorization.k8s.io" ]
+    resources: [ "roles", "clusterroles", "rolebindings", "clusterrolebindings" ]
+    verbs: [ "list", "watch" ]
+  - apiGroups: [ "kustomize.toolkit.fluxcd.io" ]
+    resources: [ "kustomizations" ]
+    verbs: [ "list", "watch" ]
+  - apiGroups: [ "helm.toolkit.fluxcd.io" ]
+    resources: [ "helmreleases" ]
+    verbs: [ "list", "watch" ]
+  - apiGroups: [ "source.toolkit.fluxcd.io" ]
+    resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories", "ocirepositories" ]
+    verbs: [ "list", "watch" ]
+```
+
+</details>
+
+3. Create a ClusterRolebinding to assign previous ClusterRole to the created collector `ServiceAccount`.
+
+<details><summary>Expand to see an example</summary>
+
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: collector # could be .spec.values.explorer.collector.serviceAccount.name
+subjects:
+  - kind: ServiceAccount
+    name: collector # should match .spec.values.explorer.collector.serviceAccount.name
+    namespace: flux-system # should match .spec.values.explorer.collector.serviceAccount.namespace
+roleRef:
+  kind: ClusterRole
+  name: collector # name of the cluster role created earlier
+  apiGroup: rbac.authorization.k8s.io
+```
+
+</details>
+
+If you want the collector to watch a particular namespace use a RoleBinding instead.
+
+4. Extend impersonation rules to allow service account impersonation for ServiceAccount `collector`
+
+<details><summary>Expand to see an example</summary>
+
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: clusters-service-impersonator-role
+rules:
+  - apiGroups: [""]
+    resources: ["users", "groups"]
+    verbs: ["impersonate"]
+  - apiGroups: [ "" ]
+    resources: [ "serviceaccounts" ]
+    verbs: [ "impersonate" ]
+    resourceNames:
+      - "collector" # should match .spec.values.explorer.collector.serviceAccount.name
+```
+</details>
+
+## Next Steps
+- See [querying](./querying.mdx) to deep dive in how to query.
+- See [operations](./operations.mdx) for day troubleshooting and operations.

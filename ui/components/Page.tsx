@@ -7,7 +7,6 @@ import Alert from "./Alert";
 import Breadcrumbs, { Breadcrumb } from "./Breadcrumbs";
 import Flex from "./Flex";
 import LoadingPage from "./LoadingPage";
-import Spacer from "./Spacer";
 import UserSettings from "./UserSettings";
 
 export type PageProps = {
@@ -59,17 +58,15 @@ const TopToolBar = styled(Flex)`
 `;
 
 export function Errors({ error }) {
-  const arr = _.isArray(error) ? error : [error];
+  const arr = _.isArray(error) ? _.uniqBy(error, (e) => e?.message) : [error];
   if (arr[0])
     return (
-      <Flex wide column>
-        <Spacer padding="xs" />
+      <Flex wide column gap="4">
         {_.map(arr, (e, i) => (
           <Flex key={i} wide start>
             <Alert title="Error" message={e?.message} severity="error" />
           </Flex>
         ))}
-        <Spacer padding="xs" />
       </Flex>
     );
   return null;

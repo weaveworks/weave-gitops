@@ -4,15 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
 
-	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
+	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
 	"github.com/fluxcd/pkg/apis/meta"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/fsnotify/fsnotify"
 	"github.com/minio/minio-go/v7"
 	ignore "github.com/sabhiram/go-gitignore"
@@ -62,7 +63,7 @@ func SetupBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeClient c
 			Interval: metav1.Duration{Duration: 30 * 24 * time.Hour}, // 30 days
 			Prune:    true,                                           // GC the kustomization
 			SourceRef: kustomizev1.CrossNamespaceSourceReference{
-				Kind: sourcev1.BucketKind,
+				Kind: sourcev1b2.BucketKind,
 				Name: constants.RunDevBucketName,
 			},
 			Timeout: &metav1.Duration{Duration: params.Timeout},
@@ -419,17 +420,18 @@ func ReconcileDevBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeC
 			Name:      constants.RunDevBucketName,
 			Namespace: namespace,
 		}, schema.GroupVersionKind{
-			Group:   "source.toolkit.fluxcd.io",
-			Version: "v1beta2",
-			Kind:    sourcev1.BucketKind,
+			Group:   sourcev1b2.GroupVersion.Group,
+			Version: sourcev1b2.GroupVersion.Version,
+			Kind:    sourcev1b2.BucketKind,
 		})
 	if err != nil {
 		return err
 	}
 
 	// wait for the reconciliation of dev-bucket to be done
+	//nolint:staticcheck // deprecated, tracking issue: https://github.com/weaveworks/weave-gitops/issues/3812
 	if err := wait.Poll(interval, timeout, func() (bool, error) {
-		devBucket := &sourcev1.Bucket{}
+		devBucket := &sourcev1b2.Bucket{}
 		if err := kubeClient.Get(ctx, types.NamespacedName{
 			Name:      constants.RunDevBucketName,
 			Namespace: namespace,
@@ -443,8 +445,9 @@ func ReconcileDevBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeC
 	}
 
 	// wait for devBucket to be ready
+	//nolint:staticcheck // deprecated, tracking issue: https://github.com/weaveworks/weave-gitops/issues/3812
 	if err := wait.Poll(interval, timeout, func() (bool, error) {
-		devBucket := &sourcev1.Bucket{}
+		devBucket := &sourcev1b2.Bucket{}
 		if err := kubeClient.Get(ctx, types.NamespacedName{
 			Name:      constants.RunDevBucketName,
 			Namespace: namespace,
@@ -462,14 +465,15 @@ func ReconcileDevBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeC
 			Name:      constants.RunDevKsName,
 			Namespace: namespace,
 		}, schema.GroupVersionKind{
-			Group:   "kustomize.toolkit.fluxcd.io",
-			Version: "v1beta2",
+			Group:   kustomizev1.GroupVersion.Group,
+			Version: kustomizev1.GroupVersion.Version,
 			Kind:    kustomizev1.KustomizationKind,
 		})
 	if err != nil {
 		return err
 	}
 
+	//nolint:staticcheck // deprecated, tracking issue: https://github.com/weaveworks/weave-gitops/issues/3812
 	if err := wait.Poll(interval, timeout, func() (bool, error) {
 		devKs := &kustomizev1.Kustomization{}
 		if err := kubeClient.Get(ctx, types.NamespacedName{
@@ -485,6 +489,7 @@ func ReconcileDevBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeC
 	}
 
 	devKs := &kustomizev1.Kustomization{}
+	//nolint:staticcheck // deprecated, tracking issue: https://github.com/weaveworks/weave-gitops/issues/3812
 	devKsErr := wait.Poll(interval, timeout, func() (bool, error) {
 		if err := kubeClient.Get(ctx, types.NamespacedName{
 			Name:      constants.RunDevKsName,

@@ -7,7 +7,7 @@ BUILD_TIME?=$(shell date +'%Y-%m-%d_%T')
 BRANCH?=$(shell which git > /dev/null && git rev-parse --abbrev-ref HEAD)
 GIT_COMMIT?=$(shell which git > /dev/null && git log -n1 --pretty='%h')
 VERSION?=$(shell which git > /dev/null && git describe --always --match "v*")
-FLUX_VERSION=0.37.0
+FLUX_VERSION=2.0.1
 CHART_VERSION=$(shell which yq > /dev/null && yq e '.version' charts/gitops-server/Chart.yaml)
 DEV_BUCKET_CONTAINER_IMAGE?=ghcr.io/weaveworks/gitops-bucket-server@sha256:9fa2a68032b9d67197a3d41a46b5029ffdf9a7bc415e4e7e9794faec8bc3b8e4
 TIER=oss
@@ -162,26 +162,30 @@ docker-gitops-bucket-server: _docker ## Build a Docker image of the Gitops UI Se
 ##@ UI
 # Build the UI for embedding
 ui: node_modules $(shell find ui -type f) ## Build the UI
-	npm run build
+	yarn build
 
 node_modules: ## Install node modules
 	rm -rf .parcel-cache
-	npm install-clean
+	yarn --pure-lockfile
 
 ui-lint: ## Run linter against the UI
-	npm run lint
+	yarn lint
+	yarn typecheck
 
 ui-prettify-check: ## Check format of the UI code with Prettier
-	npm run prettify:check
+	yarn prettify:check
 
 ui-prettify-format: ## Format the UI code with Prettier
-	npm run prettify:format
+	yarn prettify:format
 
 ui-test: ## Run UI tests
-	npm run test
+	yarn test
 
 ui-audit: ## Run audit against the UI
-	npm audit --production
+	yarn audit --production
+
+ui-audit-fix: ## Run audit against the UI
+	yarn yarn-audit-fix
 
 # Build the UI as an NPM package (hosted on github)
 ui-lib: node_modules dist/index.js dist/index.d.ts ## Build UI libraries
@@ -190,10 +194,10 @@ ui-lib: node_modules dist/index.js dist/index.d.ts ## Build UI libraries
 	@find dist -type f -iname \*.woff -delete
 
 dist/index.js: ui/index.ts
-	npm run build:lib && cp package.json dist
+	yarn build:lib && cp package.json dist
 
 dist/index.d.ts: ui/index.ts
-	npm run typedefs
+	yarn typedefs
 
 # Runs a test to raise errors if the integration between Gitops Core and EE is
 # in danger of breaking due to package API changes.
@@ -220,6 +224,16 @@ echo-flux-version:
 
 echo-dev-bucket-container:
 	@echo $(DEV_BUCKET_CONTAINER_IMAGE)
+
+download-test-crds:
+	group_resources="source/helmrepositories source/buckets source/gitrepositories source/helmcharts source/ocirepositories"; \
+	for group_resource in $$group_resources; do \
+		group="$${group_resource%/*}"; resource="$${group_resource#*/}"; \
+		echo "Downloading $${group}.$${resource}"; \
+		curl -sL "https://raw.githubusercontent.com/fluxcd/source-controller/v1.0.0/config/crd/bases/$${group}.toolkit.fluxcd.io_$${resource}.yaml" -o "tools/testcrds/$${group}.toolkit.fluxcd.io_$${resource}.yaml"; \
+	done
+	curl -sL "https://raw.githubusercontent.com/fluxcd/kustomize-controller/v1.0.0/config/crd/bases/kustomize.toolkit.fluxcd.io_kustomizations.yaml" -o "tools/testcrds/kustomize.toolkit.fluxcd.io_kustomizations.yaml"
+	curl -sL "https://raw.githubusercontent.com/fluxcd/helm-controller/v0.35.0/config/crd/bases/helm.toolkit.fluxcd.io_helmreleases.yaml" -o "tools/testcrds/helm.toolkit.fluxcd.io_helmreleases.yaml"
 
 .PHONY: help
 # Thanks to https://www.thapaliya.com/en/writings/well-documented-makefiles/

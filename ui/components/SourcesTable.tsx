@@ -20,6 +20,7 @@ import DataTable, {
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
 import Timestamp from "./Timestamp";
+import { VerifiableSource, VerifiedStatus } from "./VerifiedStatus";
 
 type Props = {
   className?: string;
@@ -70,6 +71,10 @@ function SourcesTable({ className, sources }: Props) {
     },
     { label: "Kind", value: "type" },
     { label: "Namespace", value: "namespace" },
+    {
+      label: "Verified",
+      value: (s: VerifiableSource) => <VerifiedStatus source={s} />,
+    },
     ...(isFlagEnabled("WEAVE_GITOPS_FEATURE_TENANCY")
       ? [{ label: "Tenant", value: "tenant" }]
       : []),

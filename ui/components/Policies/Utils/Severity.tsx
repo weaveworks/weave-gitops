@@ -3,7 +3,12 @@ import Flex from "../../Flex";
 import Icon, { IconType } from "../../Icon";
 import Text from "../../Text";
 
-const Severity = ({ severity }: { severity: string }) => {
+type Props = {
+  severity: string;
+  fontSize?: any;
+};
+
+const Severity = ({ severity, fontSize = "medium" }: Props) => {
   let icon = null;
   switch (severity.toLocaleLowerCase()) {
     case "low":
@@ -21,7 +26,7 @@ const Severity = ({ severity }: { severity: string }) => {
   return (
     <Flex alignItems="center" gap="4" data-testid={severity}>
       {icon}
-      <Text capitalize size="medium">
+      <Text capitalize size={fontSize}>
         {severity}
       </Text>
     </Flex>

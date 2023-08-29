@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"io"
 	"strings"
 	"testing"
@@ -13,7 +14,6 @@ import (
 
 	. "github.com/onsi/gomega"
 
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/minio/minio-go/v7"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -33,7 +33,7 @@ func (m *mockGet) Get(ctx context.Context, key types.NamespacedName, obj client.
 			"accesskey": []byte("abcd"),
 			"secretkey": []byte("1234"),
 		}
-	case *sourcev1.Bucket:
+	case *sourcev1b2.Bucket:
 		obj.Spec.Endpoint = "endpoint:9000"
 		obj.Spec.Insecure = false
 	}

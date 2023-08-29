@@ -1,0 +1,67 @@
+---
+title: Version Information
+hide_title: true
+---
+
+import TierLabel from "../_components/TierLabel";
+
+# Version Information <TierLabel tiers="Enterprise" />
+
+There are now multiple published versions of the template CRD.
+
+## Migration notes
+
+### `v1alpha1` to `v1alpha2`
+
+When manually migrating a template from `v1alpha1` to `v1alpha2` (for example in git) you will need to:
+1. Update the `apiVersion` to `templates.weave.works/v1alpha2`
+1. Move the `spec.resourcetemplates` field to `spec.resourcetemplates[0].contents`
+1. Either leave the `spec.resourcetemplates[0].path` field empty or give it a sensible value.
+
+If you experience issues with the path not being recognised when Flux reconciles
+the new template versions, try manually applying the new template to the cluster directly with:
+1. Run `kubectl apply -f capi-template.yaml`
+1. Run `flux reconcile kustomization --with-source flux-system` **twice**.
+
+## Conversion Webhook
+
+A conversion webhook is hosted by the `flux-system/templates-controller-webhook-service` service.
+`v1alpha1` templates are automatically converted to `v1alpha2` when they are loaded into the cluster.
+
+### v1alpha1 to v1alpha2 conversion
+
+The `spec.resourcetemplates` field is moved to `spec.resourcetemplates[0].contents` and the `spec.resourcetemplates[0].path` is left empty.
+When the tempalte is rendered the `spec.resourcetemplates[0].path` field has a default value calculated.
+
+## `v1alpha2` (default) notes
+
+This version changes the type of `spec.resourcetemplates` from a list of objects to a list of files with a `path` and `contents`:
+
+Example:
+```yaml
+spec:
+  resourcetemplates:
+    - path: "clusters/{{ .params.CLUSTER_NAME }}.yaml"
+      contents:
+        - apiVersion: cluster.x-k8s.io/v1alpha3
+          kind: Cluster
+          metadata:
+            name: "{{ .params.CLUSTER_NAME }}"
+          path: "clusters/{{ .params.CLUSTER_NAME }}.yaml"
+```
+
+## `v1alpha1` notes
+
+The original version of the template. This version is deprecated and will be removed in a future release.
+
+It uses `spec.resourcetemplates` as a list of resources to render.
+
+Example:
+```yaml
+spec:
+  resourcetemplates:
+    - apiVersion: cluster.x-k8s.io/v1alpha3
+      kind: Cluster
+      metadata:
+        name: "{{ .params.CLUSTER_NAME }}"
+```

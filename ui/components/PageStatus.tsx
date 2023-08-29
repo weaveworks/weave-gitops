@@ -71,6 +71,7 @@ function PageStatus({
   );
 }
 export default styled(PageStatus).attrs({ className: PageStatus.name })`
+  padding-bottom: ${(props) => props.theme.spacing.small};
   transition-property: max-height;
   transition-duration: 0.5s;
   transition-timing-function: ease-in-out;
