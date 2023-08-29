@@ -16,6 +16,7 @@ import FilterIcon from "@material-ui/icons/FilterList";
 import HourglassFullIcon from "@material-ui/icons/HourglassFull";
 import KeyboardArrowDownIcon from "@material-ui/icons/KeyboardArrowDown";
 import KeyboardArrowRightIcon from "@material-ui/icons/KeyboardArrowRight";
+import InfoIcon from "@material-ui/icons/Info";
 import LaunchIcon from "@material-ui/icons/Launch";
 import NavigateBeforeIcon from "@material-ui/icons/NavigateBefore";
 import NavigateNextIcon from "@material-ui/icons/NavigateNext";
@@ -108,6 +109,7 @@ export enum IconType {
   ClustersIcon,
   ExploreIcon,
   PendingActionIcon,
+  InfoIcon,
   CallReceived,
   CallMade,
   Remove,
@@ -280,6 +282,9 @@ function getIcon(i: IconType) {
 
     case IconType.ExploreIcon:
       return ExploreIcon;
+
+    case IconType.InfoIcon:
+      return InfoIcon;
 
     case IconType.CallReceived:
       return CallReceived;
