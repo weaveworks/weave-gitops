@@ -71,8 +71,12 @@ func (cs *coreServer) getKustomizationInventory(ctx context.Context, clusterName
 		return nil, fmt.Errorf("failed to get kustomization: %w", err)
 	}
 
+	if kust.Status.Inventory == nil {
+		return nil, nil
+	}
+
 	if kust.Status.Inventory.Entries == nil {
-		return []*pb.InventoryEntry{}, nil
+		return nil, nil
 	}
 
 	result := []*pb.InventoryEntry{}

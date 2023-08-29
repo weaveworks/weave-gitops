@@ -85,17 +85,17 @@ There are two main paths to consider within Explorer in the context of authentic
 
 We look into them separately.
 
-## Authentication and Authorization for querying
+## Authentication and Authorization for Querying
 
 Explorer leverages existing authentication and authorization built-in the [application](https://docs.gitops.weave.works/docs/configuration/securing-access-to-the-dashboard/).
 It identifies for a user logged in the application: its identity and the access permissions via Kuberentes RBAC.
 Query results are filtered honouring the access determined via RBAC.
 
-## Authentication and Authorization for collecting
+## Authentication and Authorization for Collecting
 
 [GitopsClusters](../cluster-management/managing-clusters-without-capi.mdx/#connect-a-cluster)
 define the connection and security context that Explorer leverages to collect data from leaf clusters. Given that you have followed the indications
-in [setup RBAC](../configuration/service-account-permissions.mdx), the GitopsCluster service account is able to impersonate any user or group.
+in [setting up RBAC](../enterprise/getting-started/install-enterprise.mdx#gitops-dashboard-service-account-permissions), the GitopsCluster service account is able to impersonate any user or group.
 
 :::tip
 

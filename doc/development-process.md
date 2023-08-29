@@ -71,7 +71,7 @@ Then we make our node_modules, this will take a little while.
 
 Then we fire up our frontend server.
 
-`$ npm start`
+`$ yarn start`
 
 Goto login with username: dev, password:dev at http://localhost:4567/sign_in
 

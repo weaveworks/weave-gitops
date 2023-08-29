@@ -97,7 +97,7 @@ jobs:
           node-version: "16.X"
           registry-url: "https://npm.pkg.github.com"
           scope: "@weaveworks"
-      - run: npm install
+      - run: yarn
       - run: make ui-lib && cd dist && npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

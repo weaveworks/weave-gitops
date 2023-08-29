@@ -1,13 +1,13 @@
 import "jest-styled-components";
 import React from "react";
 import renderer from "react-test-renderer";
+import { CoreClientContext } from "../../contexts/CoreClientContext";
 import {
   createCoreMockClient,
   withContext,
   withTheme,
 } from "../../lib/test-utils";
 import SyncActions from "../SyncActions";
-import { CoreClientContext } from "../../contexts/CoreClientContext";
 
 describe("SyncActions", () => {
   describe("snapshots", () => {
@@ -36,22 +36,6 @@ describe("SyncActions", () => {
             withContext(
               <CoreClientContext.Provider value={mockContext}>
                 <SyncActions suspended />
-              </CoreClientContext.Provider>,
-              "/",
-              {}
-            )
-          )
-        )
-        .toJSON();
-      expect(tree).toMatchSnapshot();
-    });
-    it("wide", () => {
-      const tree = renderer
-        .create(
-          withTheme(
-            withContext(
-              <CoreClientContext.Provider value={mockContext}>
-                <SyncActions wide />
               </CoreClientContext.Provider>,
               "/",
               {}

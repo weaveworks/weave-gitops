@@ -29,7 +29,6 @@ function LargeInfo({ className, title, info, component }: Props) {
 export default styled(LargeInfo).attrs({
   className: LargeInfo.name,
 })`
-  margin: 0 ${(props) => props.theme.spacing.small};
   ${Text} {
     max-width: 150px;
     white-space: nowrap;

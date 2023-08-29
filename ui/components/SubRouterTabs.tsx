@@ -54,7 +54,7 @@ function routesToIndex(routes: PathConfig[], pathname) {
 export function RouterTab({ children }: TabProps) {
   return (
     <Route exact path={children.props.path}>
-      {children}
+      {children as any}
     </Route>
   );
 }

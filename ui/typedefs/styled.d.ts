@@ -9,6 +9,7 @@ export namespace colors {
   const primaryLight10: string;
   const primary10: string;
   const primary20: string;
+  const primary30: string;
   const alertLight: string;
   const alertOriginal: string;
   const alertMedium: string;
