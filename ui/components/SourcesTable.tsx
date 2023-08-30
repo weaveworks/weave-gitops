@@ -11,8 +11,8 @@ import {
   Source,
 } from "../lib/objects";
 import { showInterval } from "../lib/time";
-import { convertGitURLToGitProvider, statusSortHelper } from "../lib/utils";
 import { SearchedNamespaces } from "../lib/types";
+import { convertGitURLToGitProvider, statusSortHelper } from "../lib/utils";
 import DataTable, {
   Field,
   filterByStatusCallback,
@@ -21,7 +21,7 @@ import DataTable, {
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
 import Timestamp from "./Timestamp";
-import { VerifiableSource, VerifiedStatus } from "./VerifiedStatus";
+import { VerifiedStatus } from "./VerifiedStatus";
 
 type Props = {
   className?: string;
@@ -74,7 +74,7 @@ function SourcesTable({ className, sources, searchedNamespaces }: Props) {
     { label: "Namespace", value: "namespace" },
     {
       label: "Verified",
-      value: (s: VerifiableSource) => <VerifiedStatus source={s} />,
+      value: (s: Source) => <VerifiedStatus source={s} />,
     },
     ...(isFlagEnabled("WEAVE_GITOPS_FEATURE_TENANCY")
       ? [{ label: "Tenant", value: "tenant" }]
