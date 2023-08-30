@@ -61,7 +61,7 @@ require (
 	k8s.io/api v0.27.3
 	k8s.io/apiextensions-apiserver v0.27.3
 	k8s.io/apimachinery v0.27.3
-	k8s.io/cli-runtime v0.26.3
+	k8s.io/cli-runtime v0.26.8
 	k8s.io/client-go v0.27.3
 	sigs.k8s.io/cli-utils v0.34.0
 	sigs.k8s.io/controller-runtime v0.15.0
@@ -219,7 +219,7 @@ require (
 	k8s.io/component-base v0.27.3 // indirect
 	k8s.io/klog/v2 v2.100.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20230501164219-8b0f38b5fd1f // indirect
-	k8s.io/kubectl v0.26.3
+	k8s.io/kubectl v0.26.8
 	k8s.io/utils v0.0.0-20230505201702-9f6742963106 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
 	sigs.k8s.io/kustomize/kyaml v0.13.9
@@ -234,11 +234,11 @@ replace github.com/johannesboyne/gofakes3 => github.com/chanwit/gofakes3 v0.0.0-
 
 // Replace k8s.io packages v0.26 to downgrade controller-runtime to v0.14.6
 replace (
-	k8s.io/api => k8s.io/api v0.26.3
-	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.26.3
-	k8s.io/apimachinery => k8s.io/apimachinery v0.26.3
-	k8s.io/cli-runtime => k8s.io/cli-runtime v0.26.3
-	k8s.io/client-go => k8s.io/client-go v0.26.3
+	k8s.io/api => k8s.io/api v0.26.8
+	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.26.8
+	k8s.io/apimachinery => k8s.io/apimachinery v0.26.8
+	k8s.io/cli-runtime => k8s.io/cli-runtime v0.26.8
+	k8s.io/client-go => k8s.io/client-go v0.26.8
 
 	sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.14.6
 )

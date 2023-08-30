@@ -345,9 +345,15 @@ message ListObjectsRequest {
     map<string, string> labels = 4;
 }
 
+message ClusterNamespaceList { 
+    string clusterName = 1;
+    repeated string namespaces = 2; 
+}
+
 message ListObjectsResponse {
     repeated Object objects   = 1;
     repeated ListError errors = 2;
+    repeated ClusterNamespaceList searchedNamespaces = 3;
 }
 
 message GetReconciledObjectsRequest {
