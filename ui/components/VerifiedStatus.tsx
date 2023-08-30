@@ -47,7 +47,6 @@ export const SourceIsVerifiedStatus: React.FC<{ sourceRef: ObjectRef }> = ({
 }): JSX.Element | null => {
   const { name, namespace, kind, clusterName } = sourceRef;
 
-  const objKind = kind && Kind[kind];
   //can sourceRef actually return undefined stuff?! Typescript says it can.
   const undefinedRef = !name || !namespace || !kind;
   if (
@@ -59,7 +58,7 @@ export const SourceIsVerifiedStatus: React.FC<{ sourceRef: ObjectRef }> = ({
   const { data: source } = useGetObject<VerifiableSource>(
     name,
     namespace,
-    objKind,
+    Kind[kind],
     clusterName || ""
   );
 
