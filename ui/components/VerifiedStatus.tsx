@@ -2,7 +2,7 @@ import { Tooltip } from "@material-ui/core";
 import React from "react";
 import { useGetObject } from "../hooks/objects";
 import { Condition, Kind, ObjectRef } from "../lib/api/core/types.pb";
-import { GitRepository, OCIRepository } from "../lib/objects";
+import { GitRepository, OCIRepository, Source } from "../lib/objects";
 import Flex from "./Flex";
 import Icon, { IconType } from "./Icon";
 
@@ -25,10 +25,20 @@ export const findVerificationCondition = (
 ): Condition | undefined =>
   a?.conditions?.find((condition) => condition.type === "SourceVerified");
 
-export const VerifiedStatus = ({
+const checkVerifiable = (sourceRef: ObjectRef): boolean => {
+  const { name, namespace, kind } = sourceRef;
+  //can sourceRef actually return undefined stuff?! Typescript says it can.
+  const undefinedRef = !name || !namespace || !kind;
+  return (
+    (kind === Kind.GitRepository || kind === Kind.OCIRepository) &&
+    !undefinedRef
+  );
+};
+
+const VerifiedStatus = ({
   source,
 }: {
-  source: VerifiableSource;
+  source?: VerifiableSource;
 }): JSX.Element => {
   const condition = findVerificationCondition(source);
   const color = getVerifiedStatusColor(condition?.status);
@@ -42,34 +52,33 @@ export const VerifiedStatus = ({
   );
 };
 
-export const SourceIsVerifiedStatus: React.FC<{ sourceRef: ObjectRef }> = ({
-  sourceRef,
-}): JSX.Element | null => {
-  const { name, namespace, kind, clusterName } = sourceRef;
+export const SourceIsVerifiedStatus: React.FC<{
+  sourceRef?: ObjectRef;
+  source?: Source;
+}> = ({ sourceRef, source }): JSX.Element => {
+  const isVerifiable = source
+    ? checkVerifiable({
+        name: source.name,
+        namespace: source.namespace,
+        clusterName: source.clusterName,
+        kind: source?.type,
+      })
+    : checkVerifiable(sourceRef || {});
+  if (!isVerifiable) return <Flex>-</Flex>;
 
-  //can sourceRef actually return undefined stuff?! Typescript says it can.
-  const undefinedRef = !name || !namespace || !kind;
-  if (
-    (kind !== Kind.GitRepository && kind !== Kind.OCIRepository) ||
-    undefinedRef
-  )
-    return <Flex>-</Flex>;
-
-  const { data: source } = useGetObject<VerifiableSource>(
+  if (source) return <VerifiedStatus source={source as VerifiableSource} />;
+  const {
+    name = "",
+    namespace = "",
+    kind = "",
+    clusterName = "",
+  } = sourceRef || {};
+  const { data: verifiable } = useGetObject<VerifiableSource>(
     name,
     namespace,
     Kind[kind],
-    clusterName || ""
+    clusterName
   );
 
-  const condition = findVerificationCondition(source);
-  const color = getVerifiedStatusColor(condition?.status);
-
-  return (
-    <Tooltip title={condition?.message || "pending verification"}>
-      <div>
-        <Icon type={IconType.VerifiedUser} color={color} size="base" />
-      </div>
-    </Tooltip>
-  );
+  return <VerifiedStatus source={verifiable} />;
 };
