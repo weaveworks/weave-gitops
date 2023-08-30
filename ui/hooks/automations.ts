@@ -13,10 +13,16 @@ import {
   NoNamespace,
   ReactQueryOptions,
   RequestError,
+  SearchedNamespaces,
 } from "../lib/types";
 import { notifyError, notifySuccess } from "../lib/utils";
 import { convertResponse } from "./objects";
-type Res = { result: Automation[]; errors: MultiRequestError[] };
+
+type Res = {
+  result: Automation[];
+  errors: MultiRequestError[];
+  searchedNamespaces: SearchedNamespaces;
+};
 
 export function useListAutomations(
   namespace: string = NoNamespace,
@@ -40,7 +46,11 @@ export function useListAutomations(
           })
       );
       return Promise.all(p).then((responses) => {
-        const final = { result: [], errors: [] };
+        const final: Res = {
+          result: [],
+          errors: [],
+          searchedNamespaces: {},
+        };
         for (const { kind, response } of responses) {
           final.result.push(
             ...response.objects.map(
@@ -52,6 +62,7 @@ export function useListAutomations(
               return { ...o, kind };
             })
           );
+          final.searchedNamespaces[kind] = response.searchedNamespaces;
         }
         return final;
       });

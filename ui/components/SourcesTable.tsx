@@ -12,6 +12,7 @@ import {
 } from "../lib/objects";
 import { showInterval } from "../lib/time";
 import { convertGitURLToGitProvider, statusSortHelper } from "../lib/utils";
+import { SearchedNamespaces } from "../lib/types";
 import DataTable, {
   Field,
   filterByStatusCallback,
@@ -25,10 +26,10 @@ import { VerifiableSource, VerifiedStatus } from "./VerifiedStatus";
 type Props = {
   className?: string;
   sources?: Source[];
-  appName?: string;
+  searchedNamespaces?: SearchedNamespaces;
 };
 
-function SourcesTable({ className, sources }: Props) {
+function SourcesTable({ className, sources, searchedNamespaces }: Props) {
   const { isFlagEnabled } = useFeatureFlags();
 
   let initialFilterState = {
@@ -169,6 +170,7 @@ function SourcesTable({ className, sources }: Props) {
       hasCheckboxes
       rows={sources}
       fields={fields}
+      searchedNamespaces={searchedNamespaces}
     />
   );
 }

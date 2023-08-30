@@ -6,6 +6,7 @@ import (
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/go-logr/logr"
+	"github.com/weaveworks/weave-gitops/core/logger"
 	authv1 "k8s.io/api/authentication/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -62,11 +63,12 @@ func (pg *BearerTokenPassthroughPrincipalGetter) Principal(r *http.Request) (*Us
 
 // NewJWTPassthroughCookiePrincipalGetter creates and returns a new
 // JWTPassthroughCookiePrincipalGetter.
-func NewJWTPassthroughCookiePrincipalGetter(log logr.Logger, verifier *oidc.IDTokenVerifier, cookieName string) PrincipalGetter {
+func NewJWTPassthroughCookiePrincipalGetter(log logr.Logger, verifier *oidc.IDTokenVerifier, cookieName string, sm SessionManager) PrincipalGetter {
 	return &JWTPassthroughCookiePrincipalGetter{
 		log:        log,
 		verifier:   verifier,
 		cookieName: cookieName,
+		sm:         sm,
 	}
 }
 
@@ -78,26 +80,28 @@ type JWTPassthroughCookiePrincipalGetter struct {
 	log        logr.Logger
 	verifier   *oidc.IDTokenVerifier
 	cookieName string
+	sm         SessionManager
 }
 
 // Principal implements the PrincipalGetter by pasing the cookie, and if it's
 // valid, it stores the token and user details on the principal.
 func (pg *JWTPassthroughCookiePrincipalGetter) Principal(r *http.Request) (*UserPrincipal, error) {
-	cookie, err := r.Cookie(pg.cookieName)
-	if err == http.ErrNoCookie {
+	cookieValue := pg.sm.GetString(r.Context(), pg.cookieName)
+	if cookieValue == "" {
+		pg.log.V(logger.LogLevelDebug).Info("no cookie in session", "cookieName", pg.cookieName)
 		return nil, nil
 	}
 
 	// This passes nil as the ClaimsConfig because technically we don't really
 	// use the cookie, we're just passing it through, but this could change.
 	// In which case the getter would need an auth config.
-	principal, err := parseJWTToken(r.Context(), pg.verifier, cookie.Value, nil, pg.log)
+	principal, err := parseJWTToken(r.Context(), pg.verifier, cookieValue, nil, pg.log)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse for passthrough: %w", err)
 	}
 
 	pg.log.V(4).Info("passing through token")
-	principal.SetToken(cookie.Value)
+	principal.SetToken(cookieValue)
 
 	return principal, nil
 }

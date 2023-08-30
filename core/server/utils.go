@@ -1,6 +1,7 @@
 package server
 
 import (
+	api "github.com/weaveworks/weave-gitops/pkg/api/core"
 	v1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -17,6 +18,23 @@ func GetTenant(namespace, clusterName string, clusterUserNamespaces map[string][
 	}
 
 	return ""
+}
+
+func GetClusterUserNamespacesNames(clusterUserNamespaces map[string][]v1.Namespace) []*api.ClusterNamespaceList {
+	clusterNamespaces := []*api.ClusterNamespaceList{}
+
+	for clusterName, namespaces := range clusterUserNamespaces {
+		namespaceNames := []string{}
+		for _, namespace := range namespaces {
+			namespaceNames = append(namespaceNames, namespace.Name)
+		}
+		clusterNamespaces = append(clusterNamespaces, &api.ClusterNamespaceList{
+			ClusterName: clusterName,
+			Namespaces:  namespaceNames,
+		})
+	}
+
+	return clusterNamespaces
 }
 
 // ExtractValueFromMap gets string value from map or empty string if the value is empty
