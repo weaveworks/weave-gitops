@@ -1,0 +1,128 @@
+---
+title: Creating Templates
+hide_title: true
+---
+
+import TierLabel from "../_components/TierLabel";
+
+# Creating GitOpsTemplates <TierLabel tiers="Enterprise" />
+
+:::tip
+
+For complete examples of widely-used templates, see the [Quickstart
+guide](../quickstart-templates).
+
+:::
+
+GitOps Templates were originally introduced to enable self-service operations
+for the the cluster creation workflow.
+
+We have since extended this capability to cover Terraform, Crossplane and
+general Kubernetes resources.
+
+An example template could, upon merging to a GitOps repository and reconciling in
+a cluster, provide a running developer environment consisting of
+an EKS cluster, an RDS database, and a branch and revision of the current
+application through single template.
+
+Templates can be loaded into the cluster by Platform Operator by adding them to
+the Flux-manage GitOps repository for the target cluster. Alternatively, they
+can be applied directly to the cluster with `kubectl`.
+
+:::info
+
+Weave GitOps will search for templates in the `default` namespace.
+This can be changed by configuring the `config.capi.namespace` value in the
+Weave GitOps Enterprise Helm Chart.
+
+:::
+
+
+## Template Type
+
+Template types are used by Weave GitOps to group the templates nicely in the
+Dashboard UI.
+
+There are 4 recommended template types:
+- `application` - for application templates
+- `cluster` - for cluster templates
+- `terraform` - for Terraform templates
+- `pipeline` - for Pipeline templates
+
+Declare this in the object manifest by using the `weave.works/template-type`
+label and setting the value as the name of the type.
+
+```yaml {7-8}
+---
+apiVersion: templates.weave.works/v1alpha2
+kind: GitOpsTemplate
+metadata:
+  name: example-template
+  namespace: default
+  labels:
+    weave.works/template-type: pipeline
+spec:
+# ...
+```
+
+## Template Components
+
+The rendering of certain component sections in a template can be enabled or
+disabled with annotations. The annotation keys are of the form
+`templates.weave.works/COMPONENT-enabled` and have `boolean` values.
+
+Supported components:
+- `profiles`
+- `kustomizations`
+- `credentials`
+
+Example:
+
+```yaml
+annotations:
+  templates.weave.works/profiles-enabled: "true"
+  templates.weave.works/kustomizations-enabled: "false"
+  templates.weave.works/credentials-enabled: "true"
+```
+
+## In-UI Template Editing
+
+When rendering a template, a `templates.weave.works/create-request` annotation
+is added by default to the first resource in the `resourcetemplates`.
+
+It can be added to any other resource by simply adding the annotation in empty form.
+This annotation holds information about which template generated the resource
+and the parameter values used as a json string.
+
+If the resource type is one of the following and has this annotation, an
+`Edit resource` button will appear in the GitOps UI which allows the editing of
+the resource by users, after which it will be re-rendered:
+- Applications:
+  - `HelmRelease`
+  - `Kustomization`
+- Sources:
+  - `HelmRepository`
+  - `GitRepository`
+- Clusters:
+  - `GitopsCluster`
+
+Example:
+```yaml {10,14}
+spec:
+  resourcetemplates:
+  - apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: my-configmap
+    data:
+      my-key: my-value
+  - apiVersion: source.toolkit.fluxcd.io/v1beta1
+    kind: HelmRepository
+    metadata:
+      # This annotation will add an `Edit resource` button in the UI for this resource
+      annotations:
+        templates.weave.works/create-request: ''
+      name: nginx
+      namespace: default
+```
+
