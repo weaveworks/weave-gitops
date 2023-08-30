@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/alexedwards/scs/v2"
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops/core/logger"
 	"github.com/weaveworks/weave-gitops/pkg/featureflags"
@@ -14,19 +15,20 @@ import (
 	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+// AuthParams provides the configuration for the AuthServer.
 type AuthParams struct {
 	OIDCConfig        OIDCConfig
 	OIDCSecretName    string
 	AuthMethodStrings []string
 	NoAuthUser        string
 	Namespace         string
+	SessionManager    *scs.SessionManager
 }
 
 // InitAuthServer creates a new AuthServer and configures it for the correct
 // authentication methods.
 func InitAuthServer(ctx context.Context, log logr.Logger, rawKubernetesClient ctrlclient.Client, authParams AuthParams) (*AuthServer, error) {
 	log.V(logger.LogLevelDebug).Info("Parsing authentication methods", "methods", authParams.AuthMethodStrings)
-
 	authMethods, err := ParseAuthMethodArray(authParams.AuthMethodStrings)
 	if err != nil {
 		return nil, err
@@ -99,12 +101,12 @@ func InitAuthServer(ctx context.Context, log logr.Logger, rawKubernetesClient ct
 		return nil, fmt.Errorf("could not create HMAC token signer: %w", err)
 	}
 
-	if featureflags.Get("WEAVE_GITOPS_FEATURE_DEV_MODE") == "true" {
+	if featureflags.IsSet("WEAVE_GITOPS_FEATURE_DEV_MODE") {
 		log.V(logger.LogLevelWarn).Info("Dev-mode is enabled. This should be used for local work only.")
 		tsv.SetDevMode(true)
 	}
 
-	authServer, err := NewAuthServer(ctx, AuthServerConfig{
+	authServer, err := NewAuthServer(ctx, &AuthServerConfig{
 		Log:                 log.WithName("auth-server"),
 		client:              http.DefaultClient,
 		kubernetesClient:    rawKubernetesClient,
@@ -113,10 +115,13 @@ func InitAuthServer(ctx context.Context, log logr.Logger, rawKubernetesClient ct
 		OIDCConfig:          oidcConfig,
 		namespace:           authParams.Namespace,
 		noAuthUser:          authParams.NoAuthUser,
+		SessionManager:      authParams.SessionManager,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("could not create auth server: %w", err)
 	}
+
+	authParams.SessionManager.Lifetime = oidcConfig.TokenDuration
 
 	return authServer, err
 }

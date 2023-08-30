@@ -60,7 +60,7 @@ func RegisterAuthServer(mux *http.ServeMux, prefix string, srv *AuthServer, logi
 	mux.Handle(prefix+"/sign_in", middleware.Handle(srv.SignIn()))
 	mux.HandleFunc(prefix+"/userinfo", srv.UserInfo)
 	mux.HandleFunc(prefix+"/refresh", srv.RefreshHandler)
-	mux.Handle(prefix+"/logout", srv.Logout())
+	mux.HandleFunc(prefix+"/logout", srv.Logout)
 
 	return nil
 }
@@ -156,7 +156,7 @@ func WithPrincipal(ctx context.Context, p *UserPrincipal) context.Context {
 // WithAPIAuth middleware adds auth validation to API handlers.
 //
 // Unauthorized requests will be denied with a 401 status code.
-func WithAPIAuth(next http.Handler, srv *AuthServer, publicRoutes []string) http.Handler {
+func WithAPIAuth(next http.Handler, srv *AuthServer, publicRoutes []string, sm SessionManager) http.Handler {
 	multi := MultiAuthPrincipal{Log: srv.Log, Getters: []PrincipalGetter{}}
 
 	// FIXME: currently the order must be OIDC last, or it'll "shadow" the other
@@ -181,15 +181,16 @@ func WithAPIAuth(next http.Handler, srv *AuthServer, publicRoutes []string) http
 
 				if srv.oidcPassthroughEnabled() {
 					srv.Log.V(logger.LogLevelDebug).Info("JWT Token Passthrough Enabled")
-					multi.Getters = append(multi.Getters, NewJWTPassthroughCookiePrincipalGetter(srv.Log, srv.verifier(), IDTokenCookieName))
+					multi.Getters = append(multi.Getters, NewJWTPassthroughCookiePrincipalGetter(srv.Log, srv.verifier(), IDTokenCookieName, sm))
 				} else {
-					multi.Getters = append(multi.Getters, NewJWTCookiePrincipalGetter(srv.Log, srv.verifier(), IDTokenCookieName, srv.OIDCConfig.ClaimsConfig))
+					multi.Getters = append(multi.Getters, NewJWTCookiePrincipalGetter(srv.Log, srv.verifier(), srv.OIDCConfig.ClaimsConfig, IDTokenCookieName, sm))
 				}
 			}
 
 		case UserAccount:
 			if featureflags.IsSet(FeatureFlagClusterUser) {
-				adminAuth := NewJWTAdminCookiePrincipalGetter(srv.Log, srv.tokenSignerVerifier, IDTokenCookieName)
+				adminAuth := NewJWTAdminCookiePrincipalGetter(srv.Log, srv.tokenSignerVerifier, IDTokenCookieName, sm)
+
 				multi.Getters = append(multi.Getters, adminAuth)
 			}
 
@@ -207,6 +208,7 @@ func WithAPIAuth(next http.Handler, srv *AuthServer, publicRoutes []string) http
 		srv:             srv,
 		publicRoutes:    publicRoutes,
 		principalGetter: multi,
+		sm:              sm,
 	}
 }
 
@@ -215,6 +217,7 @@ type authenticatedMiddleware struct {
 	publicRoutes    []string
 	next            http.Handler
 	principalGetter PrincipalGetter
+	sm              SessionManager
 }
 
 func (a *authenticatedMiddleware) ServeHTTP(rw http.ResponseWriter, r *http.Request) {

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -11,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/alexedwards/scs/v2"
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/go-logr/logr"
 	"github.com/oauth2-proxy/mockoidc"
@@ -25,6 +27,7 @@ import (
 const testNamespace = "flux-system"
 
 func TestWithAPIAuthReturns401ForUnauthenticatedRequests(t *testing.T) {
+	sm := scs.New()
 	g := NewGomegaWithT(t)
 
 	m, err := mockoidc.Run()
@@ -49,7 +52,7 @@ func TestWithAPIAuthReturns401ForUnauthenticatedRequests(t *testing.T) {
 
 	authMethods := map[auth.AuthMethod]bool{auth.OIDC: true}
 
-	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), oidcCfg, fakeKubernetesClient, tokenSignerVerifier, testNamespace, authMethods, "")
+	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), oidcCfg, fakeKubernetesClient, tokenSignerVerifier, testNamespace, authMethods, "", sm)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	srv, err := auth.NewAuthServer(context.Background(), authCfg)
@@ -68,14 +71,16 @@ func TestWithAPIAuthReturns401ForUnauthenticatedRequests(t *testing.T) {
 
 	res := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, s.URL, nil)
-	auth.WithAPIAuth(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {}), srv, nil).ServeHTTP(res, req)
+	handler := sm.LoadAndSave(auth.WithAPIAuth(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {}), srv, nil, sm))
+
+	handler.ServeHTTP(res, req)
 
 	g.Expect(res).To(HaveHTTPStatus(http.StatusUnauthorized))
 
 	// Test out the publicRoutes
 	res = httptest.NewRecorder()
 	req = httptest.NewRequest(http.MethodGet, s.URL+"/v1/featureflags", nil)
-	auth.WithAPIAuth(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {}), srv, []string{"/v1/featureflags"}).ServeHTTP(res, req)
+	auth.WithAPIAuth(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {}), srv, []string{"/v1/featureflags"}, sm).ServeHTTP(res, req)
 
 	g.Expect(res).To(HaveHTTPStatus(http.StatusOK))
 }
@@ -84,7 +89,7 @@ func TestAnonymousAuth(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	authMethods := map[auth.AuthMethod]bool{auth.Anonymous: true}
-	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), auth.OIDCConfig{}, nil, nil, testNamespace, authMethods, "test-user")
+	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), auth.OIDCConfig{}, nil, nil, testNamespace, authMethods, "test-user", nil)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	srv, err := auth.NewAuthServer(context.Background(), authCfg)
@@ -95,13 +100,14 @@ func TestAnonymousAuth(t *testing.T) {
 	auth.WithAPIAuth(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		// no cookie checking etc, principal is just there ready to go
 		g.Expect(auth.Principal(r.Context()).ID).To(Equal("test-user"))
-	}), srv, nil).ServeHTTP(res, req)
+	}), srv, nil, nil).ServeHTTP(res, req)
 }
 
 func TestWithAPIAuthOnlyUsesValidMethods(t *testing.T) {
 	// In theory all attempts to login in this should fail as, despite
 	// the auth server having access to
 	g := NewGomegaWithT(t)
+	sm := scs.New()
 
 	m, err := mockoidc.Run()
 	g.Expect(err).NotTo(HaveOccurred())
@@ -140,7 +146,7 @@ func TestWithAPIAuthOnlyUsesValidMethods(t *testing.T) {
 
 	authMethods := map[auth.AuthMethod]bool{} // This is not a valid AuthMethod
 
-	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), oidcCfg, fakeKubernetesClient, tokenSignerVerifier, testNamespace, authMethods, "")
+	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), oidcCfg, fakeKubernetesClient, tokenSignerVerifier, testNamespace, authMethods, "", sm)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	srv, err := auth.NewAuthServer(context.Background(), authCfg)
@@ -159,7 +165,7 @@ func TestWithAPIAuthOnlyUsesValidMethods(t *testing.T) {
 
 	res := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, s.URL, nil)
-	auth.WithAPIAuth(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {}), srv, nil).ServeHTTP(res, req)
+	auth.WithAPIAuth(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {}), srv, nil, scs.New()).ServeHTTP(res, req)
 
 	g.Expect(res).To(HaveHTTPStatus(http.StatusUnauthorized))
 
@@ -172,13 +178,14 @@ func TestWithAPIAuthOnlyUsesValidMethods(t *testing.T) {
 	// Test out the publicRoutes
 	res = httptest.NewRecorder()
 	req = httptest.NewRequest(http.MethodGet, s.URL+"/v1/featureflags", nil)
-	auth.WithAPIAuth(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {}), srv, []string{"/v1/featureflags"}).ServeHTTP(res, req)
+	auth.WithAPIAuth(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {}), srv, []string{"/v1/featureflags"}, scs.New()).ServeHTTP(res, req)
 
 	g.Expect(res).To(HaveHTTPStatus(http.StatusOK))
 }
 
 func TestOauth2FlowRedirectsToOIDCIssuerWithCustomScopes(t *testing.T) {
 	g := NewGomegaWithT(t)
+	sm := &fakeSessionManager{}
 
 	m, err := mockoidc.Run()
 	g.Expect(err).NotTo(HaveOccurred())
@@ -204,7 +211,7 @@ func TestOauth2FlowRedirectsToOIDCIssuerWithCustomScopes(t *testing.T) {
 
 	authMethods := map[auth.AuthMethod]bool{auth.OIDC: true}
 
-	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), oidcCfg, fakeKubernetesClient, tokenSignerVerifier, testNamespace, authMethods, "")
+	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), oidcCfg, fakeKubernetesClient, tokenSignerVerifier, testNamespace, authMethods, "", sm)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	srv, err := auth.NewAuthServer(context.Background(), authCfg)
@@ -232,6 +239,7 @@ func TestOauth2FlowRedirectsToOIDCIssuerWithCustomScopes(t *testing.T) {
 
 func TestOauth2FlowRedirectsToOIDCIssuerForUnauthenticatedRequests(t *testing.T) {
 	g := NewGomegaWithT(t)
+	sm := &fakeSessionManager{}
 
 	m, err := mockoidc.Run()
 	g.Expect(err).NotTo(HaveOccurred())
@@ -257,7 +265,7 @@ func TestOauth2FlowRedirectsToOIDCIssuerForUnauthenticatedRequests(t *testing.T)
 
 	authMethods := map[auth.AuthMethod]bool{auth.OIDC: true}
 
-	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), oidcCfg, fakeKubernetesClient, tokenSignerVerifier, testNamespace, authMethods, "")
+	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), oidcCfg, fakeKubernetesClient, tokenSignerVerifier, testNamespace, authMethods, "", sm)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	srv, err := auth.NewAuthServer(context.Background(), authCfg)
@@ -295,6 +303,7 @@ func TestIsPublicRoute(t *testing.T) {
 
 func TestRateLimit(t *testing.T) {
 	g := NewGomegaWithT(t)
+	sm := &fakeSessionManager{}
 
 	mux := http.NewServeMux()
 	tokenSignerVerifier, err := auth.NewHMACTokenSignerVerifier(5 * time.Minute)
@@ -319,7 +328,7 @@ func TestRateLimit(t *testing.T) {
 
 	authMethods := map[auth.AuthMethod]bool{auth.UserAccount: true}
 
-	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), oidcCfg, fakeKubernetesClient, tokenSignerVerifier, testNamespace, authMethods, "")
+	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), oidcCfg, fakeKubernetesClient, tokenSignerVerifier, testNamespace, authMethods, "", sm)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	srv, err := auth.NewAuthServer(context.Background(), authCfg)
@@ -406,4 +415,77 @@ func TestUserPrincipal_String(t *testing.T) {
 	if s := p.String(); s != `id="testing" groups=[group1 group2]` {
 		t.Fatalf("principal.String() got %s, want %s", s, `id="testing" groups=[group1 group2]`)
 	}
+}
+
+type sessionsCtxKey struct{}
+
+// Use the fakeSessionManager for cases where you want to pass in an
+// *http.Request to a handler rather than routing through a Mux.
+var _ auth.SessionManager = (*fakeSessionManager)(nil)
+
+func contextWithSessionValues(values map[string]any) context.Context {
+	return contextWithValues(context.TODO(), values)
+}
+
+func contextWithValues(ctx context.Context, values map[string]any) context.Context {
+	return context.WithValue(ctx, sessionsCtxKey{}, values)
+}
+
+type fakeSessionManager struct {
+	// Things that are put into the context are actually stored here
+	// They would normally be output in the `LoadAndSave` middleware by the
+	// user's session cookie
+	PutValues map[string]any
+	// Record the IDs of destroyed sessions (taken from the sessionid in the
+	// context).
+	Destroyed []string
+}
+
+func (sm *fakeSessionManager) stringValue(name string) string {
+	v, ok := sm.PutValues[name]
+	if !ok {
+		return ""
+	}
+	return v.(string)
+}
+
+func (sm *fakeSessionManager) LoadAndSave(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		http.Error(w, "Not Implemented", http.StatusNotImplemented)
+	})
+}
+
+func (sm *fakeSessionManager) GetString(ctx context.Context, key string) string {
+	values, ok := ctx.Value(sessionsCtxKey{}).(map[string]any)
+	if !ok {
+		values = map[string]any{}
+	}
+
+	v, ok := values[key]
+	if ok {
+		return v.(string)
+	}
+
+	return ""
+}
+
+func (sm *fakeSessionManager) Remove(context.Context, string) {
+	panic("not implemented")
+}
+
+func (sm *fakeSessionManager) Put(ctx context.Context, key string, val interface{}) {
+	if sm.PutValues == nil {
+		sm.PutValues = map[string]any{}
+	}
+
+	sm.PutValues[key] = val
+}
+
+func (sm *fakeSessionManager) Destroy(ctx context.Context) error {
+	sid := sm.GetString(ctx, "sessionid")
+	if sid != "" {
+		sm.Destroyed = append(sm.Destroyed, sid)
+	}
+
+	return nil
 }
