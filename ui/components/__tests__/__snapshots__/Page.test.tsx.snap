@@ -232,7 +232,7 @@ exports[`Page snapshots default 1`] = `
 }
 
 .c14 .MuiButtonGroup-root button:first-child {
-  margin-right: 0 !important;
+  margin-right: 0;
 }
 
 <div

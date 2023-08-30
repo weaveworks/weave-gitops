@@ -43,7 +43,7 @@ exports[`SyncActions snapshots hideDropdown 1`] = `
   line-height: 1;
   border-radius: 2px;
   font-weight: 600;
-  margin-right: 12px !important;
+  margin-right: 12px;
 }
 
 .c3.MuiButton-outlined {
@@ -274,7 +274,7 @@ exports[`SyncActions snapshots non-suspended 1`] = `
   line-height: 1;
   border-radius: 2px;
   font-weight: 600;
-  margin-right: 12px !important;
+  margin-right: 12px;
 }
 
 .c3.MuiButton-outlined {
@@ -286,7 +286,7 @@ exports[`SyncActions snapshots non-suspended 1`] = `
   min-width: 38px;
   height: 38px;
   padding: 0;
-  margin-right: 0 !important;
+  margin-right: 0;
 }
 
 .c5.MuiButton-text {
@@ -295,7 +295,7 @@ exports[`SyncActions snapshots non-suspended 1`] = `
 
 .c6.MuiButton-outlined {
   border-radius: 0 2px 2px 0;
-  margin-right: 12px !important;
+  margin-right: 12px;
 }
 
 .c6.MuiButton-outlinedPrimary {
@@ -314,12 +314,12 @@ exports[`SyncActions snapshots non-suspended 1`] = `
 
 .c4.MuiButton-outlined {
   border-radius: 2px 0 0 2px;
-  border-right: none !important;
-  margin-right: 0 !important;
+  border-right: none;
+  margin-right: 0;
 }
 
 .c4.MuiButton-outlined.MuiButton-outlined.Mui-disabled {
-  border-right: none !important;
+  border-right: none;
 }
 
 .c9 {
@@ -583,7 +583,7 @@ exports[`SyncActions snapshots suspended 1`] = `
   line-height: 1;
   border-radius: 2px;
   font-weight: 600;
-  margin-right: 12px !important;
+  margin-right: 12px;
 }
 
 .c3.MuiButton-outlined {
@@ -595,7 +595,7 @@ exports[`SyncActions snapshots suspended 1`] = `
   min-width: 38px;
   height: 38px;
   padding: 0;
-  margin-right: 0 !important;
+  margin-right: 0;
 }
 
 .c5.MuiButton-text {
@@ -604,7 +604,7 @@ exports[`SyncActions snapshots suspended 1`] = `
 
 .c6.MuiButton-outlined {
   border-radius: 0 2px 2px 0;
-  margin-right: 12px !important;
+  margin-right: 12px;
 }
 
 .c6.MuiButton-outlinedPrimary {
@@ -623,12 +623,12 @@ exports[`SyncActions snapshots suspended 1`] = `
 
 .c4.MuiButton-outlined {
   border-radius: 2px 0 0 2px;
-  border-right: none !important;
-  margin-right: 0 !important;
+  border-right: none;
+  margin-right: 0;
 }
 
 .c4.MuiButton-outlined.MuiButton-outlined.Mui-disabled {
-  border-right: none !important;
+  border-right: none;
 }
 
 .c9 {

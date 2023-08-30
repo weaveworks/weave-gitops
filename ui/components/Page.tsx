@@ -106,7 +106,7 @@ export default styled(Page)`
   .MuiButtonGroup-root {
     button {
       &:first-child {
-        margin-right: 0 !important;
+        margin-right: 0;
       }
     }
   }
