@@ -26,8 +26,8 @@ export const findVerificationCondition = (
   a?.conditions?.find((condition) => condition.type === "SourceVerified");
 
 const checkVerifiable = (sourceRef: ObjectRef): boolean => {
+  //guard against an undefined or non-verifiable obj (as of right now anything that's not a git or oci repo)
   const { name, namespace, kind } = sourceRef;
-  //can sourceRef actually return undefined stuff?! Typescript says it can.
   const undefinedRef = !name || !namespace || !kind;
   return (
     (kind === Kind.GitRepository || kind === Kind.OCIRepository) &&
