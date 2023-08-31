@@ -13,7 +13,7 @@ import { FluxObject } from "../../../lib/objects";
 import { V2Routes } from "../../../lib/types";
 import ClusterDashboardLink from "../../ClusterDashboardLink";
 import Link from "../../Link";
-import HeaderRows, { Header } from "../Utils/HeaderRows";
+import { Header, HeaderRows } from "../Utils/HeaderRows";
 import { MarkdownEditor } from "../Utils/MarkdownEditor";
 import Parameters from "../Utils/Parameters";
 import { SectionWrapper } from "../Utils/PolicyUtils";

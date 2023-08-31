@@ -12,35 +12,43 @@ export interface Header {
 interface Props {
   headers: Header[];
 }
-const HeaderRows = ({ headers }: Props) => {
+export const HeaderRows = ({ headers }: Props) => {
   return (
     <Flex column gap="8">
-      {headers.map((h) => {
-        return (
-          h.visible !== false && (
-            <Flex
-              alignItems="center"
-              center
-              gap="8"
-              data-testid={h.rowkey}
-              key={h.rowkey}
-            >
-              <Text color="neutral30" semiBold size="medium">
-                {h.rowkey}:
-              </Text>
-              {h.children ? (
-                h.children
-              ) : (
-                <Text color="neutral40" size="medium">
-                  {h.value || "-"}
-                </Text>
-              )}
-            </Flex>
-          )
-        );
-      })}
+      {headers
+        .filter((h) => h.visible)
+        .map((h) => {
+          return (
+            <RowHeader rowkey={h.rowkey} value={h.value} key={h.rowkey}>
+              {h.children}
+            </RowHeader>
+          );
+        })}
     </Flex>
   );
 };
 
-export default HeaderRows;
+export const RowHeader = ({
+  children,
+  rowkey,
+  value,
+}: {
+  children?: any;
+  rowkey: string;
+  value: string | JSX.Element | undefined | any;
+}) => {
+  return (
+    <Flex alignItems="center" center gap="8" data-testid={rowkey}>
+      <Text color="neutral30" semiBold size="medium" minWidth="150">
+        {rowkey}:
+      </Text>
+      {children ? (
+        children
+      ) : (
+        <Text color="neutral40" size="medium">
+          {value || "--"}
+        </Text>
+      )}
+    </Flex>
+  );
+};

@@ -21,7 +21,7 @@ export function useGetInventory(
   withChildren?: boolean,
   opts: ReactQueryOptions<GetInventoryResponse, RequestError> = {
     retry: false,
-    refetchInterval: 5000,
+    refetchInterval: (data) => (data ? false : 5000),
   }
 ) {
   const { api } = useContext(CoreClientContext);

@@ -11,7 +11,7 @@ import SubRouterTabs, { RouterTab } from "../../SubRouterTabs";
 import Text from "../../Text";
 import YamlView from "../../YamlView";
 import { PolicyViolationsList } from "../PolicyViolations/Table";
-import HeaderRows, { Header } from "../Utils/HeaderRows";
+import { Header, HeaderRows } from "../Utils/HeaderRows";
 import { MarkdownEditor } from "../Utils/MarkdownEditor";
 import Parameters from "../Utils/Parameters";
 import PolicyMode from "../Utils/PolicyMode";
@@ -61,7 +61,7 @@ const PolicyDetails = ({ policy }: Props) => {
       rowkey: "Tags",
       children: (
         <Flex id="policy-details-header-tags" gap="4">
-          {!!tags && tags?.length > 0 ? (
+          {tags?.length > 0 ? (
             tags?.map((tag) => <ChipWrap key={tag} label={tag} />)
           ) : (
             <Text>There is no tags for this policy</Text>
@@ -89,7 +89,7 @@ const PolicyDetails = ({ policy }: Props) => {
       rowkey: "Targeted K8s Kind",
       children: (
         <Flex id="policy-details-header-kinds" gap="4">
-          {targets?.kinds?.length ? (
+          {targets?.kinds?.length > 0 ? (
             targets?.kinds?.map((kind) => <ChipWrap key={kind} label={kind} />)
           ) : (
             <Text>There is no kinds for this policy</Text>
