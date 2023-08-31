@@ -1,7 +1,7 @@
 import { render } from "@testing-library/react";
 import React from "react";
 import { withTheme } from "../../../lib/test-utils";
-import { Header, HeaderRows } from "../Utils/HeaderRows";
+import HeaderRows, { Header } from "../Utils/HeaderRows";
 
 const headers: Header[] = [
   {

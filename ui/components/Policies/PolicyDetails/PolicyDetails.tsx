@@ -11,7 +11,7 @@ import SubRouterTabs, { RouterTab } from "../../SubRouterTabs";
 import Text from "../../Text";
 import YamlView from "../../YamlView";
 import { PolicyViolationsList } from "../PolicyViolations/Table";
-import { Header, HeaderRows } from "../Utils/HeaderRows";
+import HeaderRows, { Header } from "../Utils/HeaderRows";
 import { MarkdownEditor } from "../Utils/MarkdownEditor";
 import Parameters from "../Utils/Parameters";
 import PolicyMode from "../Utils/PolicyMode";
