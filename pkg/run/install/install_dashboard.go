@@ -4,12 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"strings"
 	"time"
 
+	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
+
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	coretypes "github.com/weaveworks/weave-gitops/core/server/types"
 	"github.com/weaveworks/weave-gitops/pkg/config"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
@@ -301,7 +301,7 @@ func makeHelmRepository(name, namespace string) *sourcev1b2.HelmRepository {
 	helmRepository := &sourcev1b2.HelmRepository{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       sourcev1b2.HelmRepositoryKind,
-			APIVersion: sourcev1.GroupVersion.Identifier(),
+			APIVersion: sourcev1b2.GroupVersion.Identifier(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,

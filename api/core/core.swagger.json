@@ -766,6 +766,20 @@
         }
       }
     },
+    "v1ClusterNamespaceList": {
+      "type": "object",
+      "properties": {
+        "clusterName": {
+          "type": "string"
+        },
+        "namespaces": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
     "v1Condition": {
       "type": "object",
       "properties": {
@@ -1221,6 +1235,12 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1ListError"
+          }
+        },
+        "searchedNamespaces": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ClusterNamespaceList"
           }
         }
       }

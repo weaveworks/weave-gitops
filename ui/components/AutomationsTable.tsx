@@ -5,7 +5,7 @@ import { useFeatureFlags } from "../hooks/featureflags";
 import { Kind } from "../lib/api/core/types.pb";
 import { formatURL } from "../lib/nav";
 import { Automation, HelmRelease } from "../lib/objects";
-import { V2Routes } from "../lib/types";
+import { SearchedNamespaces, V2Routes } from "../lib/types";
 import { getSourceRefForAutomation, statusSortHelper } from "../lib/utils";
 import DataTable, {
   Field,
@@ -23,9 +23,15 @@ type Props = {
   automations?: Automation[];
   appName?: string;
   hideSource?: boolean;
+  searchedNamespaces?: SearchedNamespaces;
 };
 
-function AutomationsTable({ className, automations, hideSource }: Props) {
+function AutomationsTable({
+  className,
+  automations,
+  hideSource,
+  searchedNamespaces,
+}: Props) {
   const { isFlagEnabled } = useFeatureFlags();
 
   let initialFilterState = {
@@ -122,7 +128,9 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
     {
       label: "Verified",
       value: (a: Automation) => (
-        <SourceIsVerifiedStatus sourceRef={getSourceRefForAutomation(a)} />
+        <SourceIsVerifiedStatus
+          sourceRef={getSourceRefForAutomation(a) || {}}
+        />
       ),
     },
     {
@@ -171,6 +179,7 @@ function AutomationsTable({ className, automations, hideSource }: Props) {
       className={className}
       filters={initialFilterState}
       hasCheckboxes
+      searchedNamespaces={searchedNamespaces}
     />
   );
 }

@@ -19,7 +19,7 @@ type Props = {
   errors?: Error[];
 };
 
-const BoxWrapper = styled(Box)`
+const BoxWrapper = styled(Box as any)`
   .MuiAlert-root {
     width: auto;
     margin-bottom: ${(props) => props.theme.spacing.base};

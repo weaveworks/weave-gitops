@@ -8,7 +8,6 @@ import (
 	"time"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo/v2"
@@ -397,7 +396,7 @@ var _ = Describe("makeHelmRepository", func() {
 	It("creates helmrepository", func() {
 		actual := makeHelmRepository(testDashboardName, testNamespace)
 		Expect(actual.Kind).To(Equal(sourcev1b2.HelmRepositoryKind))
-		Expect(actual.APIVersion).To(Equal(sourcev1.GroupVersion.Identifier()))
+		Expect(actual.APIVersion).To(Equal(sourcev1b2.GroupVersion.Identifier()))
 		Expect(actual.Name).To(Equal(testDashboardName))
 		Expect(actual.Namespace).To(Equal(testNamespace))
 

@@ -1,4 +1,5 @@
 import React from "react";
+import styled from "styled-components";
 import { useSyncFluxObject } from "../hooks/automations";
 import { useToggleSuspend } from "../hooks/flux";
 import { Kind } from "../lib/api/core/types.pb";
@@ -14,9 +15,9 @@ interface Props {
   clusterName?: string;
   kind?: Kind;
   suspended?: boolean;
-  wide?: boolean;
   hideDropdown?: boolean;
   customActions?: JSX.Element[];
+  className?: string;
 }
 
 const SyncActions = ({
@@ -25,9 +26,9 @@ const SyncActions = ({
   clusterName,
   kind,
   suspended,
-  wide,
   hideDropdown,
   customActions,
+  className,
 }: Props) => {
   const suspend = useToggleSuspend(
     {
@@ -58,7 +59,7 @@ const SyncActions = ({
     : (opts) => sync.mutateAsync(opts);
 
   return (
-    <Flex wide={wide} start>
+    <Flex start className={className}>
       <SyncButton
         onClick={syncHandler}
         loading={sync.isLoading}
@@ -74,4 +75,6 @@ const SyncActions = ({
   );
 };
 
-export default SyncActions;
+export default styled(SyncActions)`
+  width: 50%;
+`;

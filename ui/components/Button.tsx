@@ -52,9 +52,6 @@ const Button = styled(UnstyledButton)`
   &.MuiButton-outlined {
     padding: 8px 12px;
   }
-  &.MuiButton-outlinedPrimary {
-    border-color: ${(props) => props.theme.colors.neutral20};
-  }
 `;
 
 export const IconButton = styled(UnstyledButton)`

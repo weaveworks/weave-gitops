@@ -23,12 +23,12 @@ jobs:
       - uses: actions/checkout@v3
       - name: Node modules cache
         uses: actions/cache@v2
+        id: yarn-cache
         env:
           cache-name: cache-node-modules
         with:
-          # npm cache files are stored in `~/.npm` on Linux/macOS
-          path: ~/.npm
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          path: ~/.cache/yarn
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-build-${{ env.cache-name }}-
             ${{ runner.os }}-build-
@@ -41,7 +41,7 @@ jobs:
       - name: Check that package.json & package-lock.json were updated in commit
         run: |
           echo "Using node.js "$(node --version)
-          echo "Using NPM "$(npm --version)
+          echo "Using Yarn "$(yarn --version)
           git diff --no-ext-diff --exit-code
       - run: make ui-audit
       - run: make ui
@@ -229,7 +229,7 @@ jobs:
           node-version: "16.X"
           registry-url: "https://npm.pkg.github.com"
           scope: "@weaveworks"
-      - run: npm install
+      - run: yarn
       - run: make ui-lib
       - name: Update package version
         id: package-version
@@ -266,6 +266,23 @@ jobs:
       - ci-publish-js-lib
     steps:
       - run: echo "All done"
+
+  #  release step updates 'release' status check for non releases branches. See ../../doc/incidents/issues-3907 for full context.
+  release:
+    if: ${{ github.event_name == 'pull_request' && !startsWith(github.event.pull_request.head.ref, 'releases/') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Release
+        run: |
+          curl --fail --request POST \
+            --url https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }} \
+            --header 'authorization: Bearer ${{ secrets.WEAVE_GITOPS_BOT_ACCESS_TOKEN }}' \
+            --header 'content-type: application/json' \
+            --data '{
+                "state":"success",
+                "description":"release not required",
+                "context":"release"
+              }'
 
   notify-failure:
     name: Notify Slack on Failure

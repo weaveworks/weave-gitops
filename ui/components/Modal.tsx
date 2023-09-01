@@ -30,7 +30,17 @@ export const Body = styled.div`
   margin: 0 auto;
   max-width: 540px;
   padding: 16px 32px;
-  transform: translate(0, 50%);
+
+  // vertically center using transform:
+  transform: translateY(-50%);
+  top: 50%;
+  position: relative;
+
+  max-height: 90vh;
+`;
+
+export const Content = styled.div`
+  overflow-y: scroll;
 `;
 
 /** Form Modal */
@@ -56,7 +66,7 @@ function UnstyledModal({
             <h2 id="simple-modal-title">{title}</h2>
             <p id="simple-modal-description">{description}</p>
           </Flex>
-          <div>{children}</div>
+          <Content>{children}</Content>
           <Flex wide end>
             <Button onClick={onClose} color="inherit" variant="text">
               Close

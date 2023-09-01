@@ -162,26 +162,30 @@ docker-gitops-bucket-server: _docker ## Build a Docker image of the Gitops UI Se
 ##@ UI
 # Build the UI for embedding
 ui: node_modules $(shell find ui -type f) ## Build the UI
-	npm run build
+	yarn build
 
 node_modules: ## Install node modules
 	rm -rf .parcel-cache
-	npm install-clean
+	yarn config set network-timeout 600000 && yarn --pure-lockfile
 
 ui-lint: ## Run linter against the UI
-	npm run lint
+	yarn lint
+	yarn typecheck
 
 ui-prettify-check: ## Check format of the UI code with Prettier
-	npm run prettify:check
+	yarn prettify:check
 
 ui-prettify-format: ## Format the UI code with Prettier
-	npm run prettify:format
+	yarn prettify:format
 
 ui-test: ## Run UI tests
-	npm run test
+	yarn test
 
 ui-audit: ## Run audit against the UI
-	npm audit --production
+	yarn audit --production
+
+ui-audit-fix: ## Run audit against the UI
+	yarn yarn-audit-fix
 
 # Build the UI as an NPM package (hosted on github)
 ui-lib: node_modules dist/index.js dist/index.d.ts ## Build UI libraries
@@ -190,10 +194,10 @@ ui-lib: node_modules dist/index.js dist/index.d.ts ## Build UI libraries
 	@find dist -type f -iname \*.woff -delete
 
 dist/index.js: ui/index.ts
-	npm run build:lib && cp package.json dist
+	yarn build:lib && cp package.json dist
 
 dist/index.d.ts: ui/index.ts
-	npm run typedefs
+	yarn typedefs
 
 # Runs a test to raise errors if the integration between Gitops Core and EE is
 # in danger of breaking due to package API changes.

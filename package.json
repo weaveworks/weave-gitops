@@ -1,6 +1,6 @@
 {
   "name": "@weaveworks/weave-gitops",
-  "version": "0.29.0",
+  "version": "0.31.2",
   "description": "Weave GitOps core",
   "targets": {
     "default": {
@@ -20,9 +20,9 @@
   "scripts": {
     "build": "parcel build --target default",
     "build:lib": "parcel build --target lib",
-    "typedefs": "tsc --declaration --emitDeclarationOnly --outDir dist -p .",
+    "typedefs": "tsc --declaration --skipLibCheck --emitDeclarationOnly --outDir dist -p .",
     "start": "parcel serve --port 4567 ui/index.html",
-    "lint": "eslint ui --max-warnings 0 && npm run typecheck",
+    "lint": "eslint ui --max-warnings 0",
     "prettify:check": "prettier --check ui",
     "prettify:format": "prettier --write ui",
     "test": "jest",
@@ -46,7 +46,7 @@
     "styled-components": "^5.3.0"
   },
   "dependencies": {
-    "@material-ui/core": "^4.12.3",
+    "@material-ui/core": "^4.12.4",
     "@material-ui/icons": "^4.11.2",
     "@material-ui/lab": "^4.0.0-alpha.58",
     "d3": "^7.6.1",
@@ -66,11 +66,11 @@
     "react-dom": "^17.0.2",
     "react-lottie-player": "^1.4.3",
     "react-markdown": "^8.0.7",
-    "remark-gfm": "^3.0.1",
     "react-query": "^3.34.7",
     "react-router-dom": "^5.2.0",
     "react-syntax-highlighter": "^15.5.0",
     "react-toastify": "^9.1.2",
+    "remark-gfm": "^3.0.1",
     "styled-components": "^5.3.0",
     "yaml": "^2.2.2"
   },
@@ -100,8 +100,8 @@
     "@types/react-dom": "^17.0.5",
     "@types/react-router-dom": "^5.1.6",
     "@types/styled-components": "^5.1.9",
-    "@typescript-eslint/eslint-plugin": "^4.16.1",
-    "@typescript-eslint/parser": "^4.16.1",
+    "@typescript-eslint/eslint-plugin": "^4.33.0",
+    "@typescript-eslint/parser": "^4.33.0",
     "buffer": "^5.7.1",
     "eslint": "^7.28.0",
     "eslint-plugin-import": "^2.25.4",
@@ -111,8 +111,9 @@
     "prettier": "^2.6.2",
     "process": "^0.11.10",
     "react-test-renderer": "^17.0.2",
-    "ts-jest": "^27.0.7",
-    "typescript": "~4.3.5"
+    "ts-jest": "^27.1.1",
+    "typescript": "4.9.3",
+    "yarn-audit-fix": "^10.0.1"
   },
   "alias": {
     "yaml": "yaml/browser/dist/index.js"

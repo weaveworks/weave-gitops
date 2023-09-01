@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/alexedwards/scs/v2"
 	"github.com/go-logr/logr"
 	"github.com/oauth2-proxy/mockoidc"
 	"github.com/onsi/gomega"
@@ -57,7 +58,7 @@ func TestInitAuthServer(t *testing.T) {
 			cliOIDCConfig:   auth.OIDCConfig{},
 			oidcSecretName:  auth.DefaultOIDCAuthSecretName,
 			expectErr:       false,
-			clusterUserFlag: "false",
+			clusterUserFlag: "",
 			oidcEnabledFlag: "true",
 		},
 		{
@@ -69,7 +70,7 @@ func TestInitAuthServer(t *testing.T) {
 			cliOIDCConfig:   auth.OIDCConfig{},
 			oidcSecretName:  "alternate-oidc-secret",
 			expectErr:       false,
-			clusterUserFlag: "false",
+			clusterUserFlag: "",
 			oidcEnabledFlag: "true",
 		},
 		{
@@ -84,7 +85,7 @@ func TestInitAuthServer(t *testing.T) {
 			},
 			oidcSecretName:  auth.DefaultOIDCAuthSecretName,
 			expectErr:       false,
-			clusterUserFlag: "false",
+			clusterUserFlag: "",
 			oidcEnabledFlag: "true",
 		},
 		{
@@ -97,7 +98,7 @@ func TestInitAuthServer(t *testing.T) {
 			oidcSecretName:  auth.DefaultOIDCAuthSecretName,
 			expectErr:       false,
 			clusterUserFlag: "true",
-			oidcEnabledFlag: "false",
+			oidcEnabledFlag: "",
 		},
 		{
 			name:            "No auth methods",
@@ -106,16 +107,17 @@ func TestInitAuthServer(t *testing.T) {
 			cliOIDCConfig:   auth.OIDCConfig{},
 			oidcSecretName:  "",
 			expectErr:       true,
-			clusterUserFlag: "false",
-			oidcEnabledFlag: "false",
+			clusterUserFlag: "",
+			oidcEnabledFlag: "",
 		},
 	}
 
 	for _, tt := range initTests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Reset feature flags for each run
-			featureflags.Set(auth.FeatureFlagClusterUser, "false")
-			featureflags.Set(auth.FeatureFlagOIDCAuth, "false")
+			featureflags.SetBoolean(auth.FeatureFlagClusterUser, false)
+			featureflags.SetBoolean(auth.FeatureFlagOIDCAuth, false)
+			featureflags.SetBoolean(auth.FeatureFlagAnonymousAuth, false)
 
 			partialKubernetesClient := ctrlclient.NewClientBuilder()
 
@@ -126,7 +128,13 @@ func TestInitAuthServer(t *testing.T) {
 
 			fakeKubernetesClient := partialKubernetesClient.Build()
 
-			srv, err := auth.InitAuthServer(context.Background(), logr.Discard(), fakeKubernetesClient, tt.cliOIDCConfig, tt.oidcSecretName, "test-namespace", tt.authMethods)
+			srv, err := auth.InitAuthServer(context.Background(), logr.Discard(), fakeKubernetesClient, auth.AuthParams{
+				AuthMethodStrings: tt.authMethods,
+				OIDCConfig:        tt.cliOIDCConfig,
+				Namespace:         "test-namespace",
+				OIDCSecretName:    tt.oidcSecretName,
+				SessionManager:    scs.New(),
+			})
 
 			if tt.expectErr {
 				g.Expect(err).To(gomega.HaveOccurred())

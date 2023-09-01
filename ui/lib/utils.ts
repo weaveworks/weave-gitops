@@ -253,7 +253,7 @@ export const createYamlCommand = (
   return null;
 };
 
-export const Fade = styled(Flex)<{
+export const Fade = styled<any>(Flex)<{
   fade: boolean;
 }>`
   opacity: ${({ fade }) => (fade ? 0 : 1)};
