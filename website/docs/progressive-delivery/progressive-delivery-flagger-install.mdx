@@ -29,11 +29,11 @@ How to use WGE's progressive delivery offering:
 - if you choose, enable the progressive delivery feature through a feature flag
 
 Supported deployment strategies include: 
-- **Canary Release** [canary release icon](/img/canary.svg): the user gradually shifts traffic to
+- **Canary Release** ![canary release icon](/img/canary.svg): the user gradually shifts traffic to
 a new version of an application and assesses performance—either promoting the release or abandoning it, based on performance.  
-- **A/B Testing** [a b testing icon](/img/ab.svg): uses HTTP headers or cookies to ensure users remain on the same version of an application during a canary analysis.
-- **Blue/Green** [blue green testing icon](/img/blue-green.svg): Traffic is switched from the current application to a new version based on the success of testing.
-- **Blue/Green with Traffic Mirroring** [blue green mirroring icon](/img/mirroring.svg): sends copies of incoming requests to the new version of an application. The user receives the response from the current application and the other is discarded. The new version is promoted only if metrics are healthy.
+- **A/B Testing** ![a b testing icon](/img/ab.svg): uses HTTP headers or cookies to ensure users remain on the same version of an application during a canary analysis.
+- **Blue/Green** ![blue green testing icon](/img/blue-green.svg): Traffic is switched from the current application to a new version based on the success of testing.
+- **Blue/Green with Traffic Mirroring** ![blue green mirroring icon](/img/mirroring.svg): sends copies of incoming requests to the new version of an application. The user receives the response from the current application and the other is discarded. The new version is promoted only if metrics are healthy.
 
 This guide uses Flux manifests to install Flagger and [Linkerd](https://github.com/linkerd), a [CNCF](https://www.cncf.io/) project and service mesh for Kubernetes and beyond. We will walk you through a full end-to-end scenario where you will:
 - [Install the Linkerd service mesh](#installing-linkerd-using-flux)
