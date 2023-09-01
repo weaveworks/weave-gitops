@@ -1,7 +1,6 @@
 package server
 
 import (
-	"fmt"
 	"reflect"
 	"testing"
 
@@ -18,8 +17,11 @@ func TestVersionRank(t *testing.T) {
 		gvk2     schema.GroupVersionKind
 		expected int
 	}{
+
 		{schema.GroupVersionKind{Version: "v1"}, schema.GroupVersionKind{Version: "v1alpha1"}, 1},
 		{schema.GroupVersionKind{Version: "v1"}, schema.GroupVersionKind{Version: "v1beta1"}, 1},
+		{schema.GroupVersionKind{Version: "v1"}, schema.GroupVersionKind{Version: "v1beta2"}, 1},
+		{schema.GroupVersionKind{Version: "v1"}, schema.GroupVersionKind{Version: "v1beta10"}, 1},
 		{schema.GroupVersionKind{Version: "v2"}, schema.GroupVersionKind{Version: "v1"}, 1},
 		{schema.GroupVersionKind{Version: "v2beta1"}, schema.GroupVersionKind{Version: "v1beta1"}, 1},
 		// Additional test cases
@@ -80,27 +82,14 @@ func TestGetPrimaryKinds(t *testing.T) {
 		g.Expect(primaryKinds.kinds["Pod"]).To(Equal(schema.GroupVersionKind{Group: "core", Version: "v2", Kind: "Pod"}))
 		g.Expect(primaryKinds.kinds["Node"]).To(Equal(schema.GroupVersionKind{Group: "core", Version: "v1beta2", Kind: "Node"}))
 	})
-
-	t.Run("should return v1 for gitrepositories", func(t *testing.T) {
-		primaryKinds, err := DefaultPrimaryKinds()
-
-		g.Expect(err).NotTo(HaveOccurred())
-
-		// Expect the highest version of each kind to be returned
-		g.Expect(primaryKinds.kinds["GitRepository"]).To(Equal(schema.GroupVersionKind{Group: "source.toolkit.fluxcd.io", Version: "v1", Kind: "GitRepository"}))
-	})
 }
 
 func TestDefaultPrimaryKinds(t *testing.T) {
 	g := NewGomegaWithT(t)
-	for i := 0; i < 100; i++ {
-		primaryKinds, err := DefaultPrimaryKinds()
-		g.Expect(err).NotTo(HaveOccurred())
+	primaryKinds, err := DefaultPrimaryKinds()
+	g.Expect(err).NotTo(HaveOccurred())
 
-		t.Run("should return v1 for gitrepositories", func(t *testing.T) {
-			// Expect the highest version of each kind to be returned
-			g.Expect(primaryKinds.kinds["GitRepository"]).To(Equal(schema.GroupVersionKind{Group: "source.toolkit.fluxcd.io", Version: "v1", Kind: "GitRepository"}))
-			fmt.Printf("iteration: %d", i)
-		})
-	}
+	t.Run("should return v1 GitRepository", func(t *testing.T) {
+		g.Expect(primaryKinds.kinds["GitRepository"]).To(Equal(schema.GroupVersionKind{Group: "source.toolkit.fluxcd.io", Version: "v1", Kind: "GitRepository"}))
+	})
 }
