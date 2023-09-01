@@ -42,6 +42,17 @@ Next, [open the dashboard](http://localhost:9001/) and login using either the [e
 
    ![Weave GitOps login screen](/img/dashboard-login.png)
 
+The label of the OIDC button on the login screen is configurable via a feature flag environment variable.
+This can give your users a more familiar experience when logging in.
+
+Adjust the configuration in the Helm `values.yaml` file or the `spec.values` section of the Weave GitOps `HelmRelease` resource:
+
+```yaml
+envVars:
+  - name: WEAVE_GITOPS_FEATURE_OIDC_BUTTON_LABEL
+    value: "Login with ACME"
+```
+
 ## The Applications View
 
 Upon login you're taken to the Applications view, which allows you to quickly understand the state of your deployments and shows summary information from [`Kustomization`](https://fluxcd.io/flux/components/kustomize/kustomization/) and [`HelmRelease`](https://fluxcd.io/flux/components/helm/helmreleases/) objects. You can apply dark mode using the toggle switch in the top right corner.
