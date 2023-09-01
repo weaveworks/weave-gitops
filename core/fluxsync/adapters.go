@@ -11,6 +11,7 @@ import (
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 	tfctrl "github.com/weaveworks/tf-controller/api/v1alpha1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -63,6 +64,8 @@ func NewReconcileable(obj client.Object) Reconcilable {
 		return ImageRepositoryAdapter{ImageRepository: o}
 	case *imgautomationv1.ImageUpdateAutomation:
 		return ImageUpdateAutomationAdapter{ImageUpdateAutomation: o}
+	case *tfctrl.Terraform:
+		return TerraformAdapter{Terraform: o}
 	}
 	return nil
 }
@@ -325,6 +328,10 @@ func (obj TerraformAdapter) SetSuspended(suspend bool) {
 
 func (obj TerraformAdapter) DeepCopyClientObject() client.Object {
 	return obj.DeepCopy()
+}
+
+func (obj TerraformAdapter) GetConditions() []metav1.Condition {
+	return *obj.GetStatusConditions()
 }
 
 type sRef struct {
