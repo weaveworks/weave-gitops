@@ -10,6 +10,7 @@ import (
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
+	tfctrl "github.com/weaveworks/tf-controller/api/v1alpha1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -302,6 +303,30 @@ func (obj ImageUpdateAutomationAdapter) DeepCopyClientObject() client.Object {
 	return obj.DeepCopy()
 }
 
+type TerraformAdapter struct {
+	*tfctrl.Terraform
+}
+
+func (obj TerraformAdapter) GetLastHandledReconcileRequest() string {
+	return obj.Status.GetLastHandledReconcileRequest()
+}
+
+func (obj TerraformAdapter) AsClientObject() client.Object {
+	return obj.Terraform
+}
+
+func (obj TerraformAdapter) GroupVersionKind() schema.GroupVersionKind {
+	return tfctrl.GroupVersion.WithKind(tfctrl.TerraformKind)
+}
+
+func (obj TerraformAdapter) SetSuspended(suspend bool) {
+	obj.Spec.Suspend = suspend
+}
+
+func (obj TerraformAdapter) DeepCopyClientObject() client.Object {
+	return obj.DeepCopy()
+}
+
 type sRef struct {
 	apiVersion string
 	name       string
@@ -353,7 +378,9 @@ func ToReconcileable(kind string) (client.ObjectList, Reconcilable, error) {
 
 	case imgautomationv1.ImageUpdateAutomationKind:
 		return &imgautomationv1.ImageUpdateAutomationList{}, NewReconcileable(&imgautomationv1.ImageUpdateAutomation{}), nil
-	}
 
+	case tfctrl.TerraformKind:
+		return &tfctrl.TerraformList{}, NewReconcileable(&tfctrl.Terraform{}), nil
+	}
 	return nil, nil, errors.New("could not find source type")
 }
