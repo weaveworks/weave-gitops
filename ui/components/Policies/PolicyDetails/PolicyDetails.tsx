@@ -11,7 +11,7 @@ import SubRouterTabs, { RouterTab } from "../../SubRouterTabs";
 import Text from "../../Text";
 import YamlView from "../../YamlView";
 import { PolicyViolationsList } from "../PolicyViolations/Table";
-import HeaderRows, { Header } from "../Utils/HeaderRows";
+import HeaderRows, { RowItem } from "../Utils/HeaderRows";
 import { MarkdownEditor } from "../Utils/MarkdownEditor";
 import Parameters from "../Utils/Parameters";
 import PolicyMode from "../Utils/PolicyMode";
@@ -40,7 +40,7 @@ const PolicyDetails = ({ policy }: Props) => {
   const { path } = useRouteMatch();
 
   const { isFlagEnabled } = useFeatureFlags();
-  const defaultHeaders: Header[] = [
+  const items: RowItem[] = [
     {
       rowkey: "Policy ID",
       value: id,
@@ -102,7 +102,7 @@ const PolicyDetails = ({ policy }: Props) => {
     <SubRouterTabs rootPath={`${path}/details`}>
       <RouterTab name="Details" path={`${path}/details`}>
         <Flex wide tall column gap="32">
-          <HeaderRows headers={defaultHeaders} />
+          <HeaderRows items={items} />
           <SectionWrapper title="Description:">
             <MarkdownEditor children={description || ""} />
           </SectionWrapper>

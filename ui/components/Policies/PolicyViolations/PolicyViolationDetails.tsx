@@ -13,7 +13,7 @@ import { FluxObject } from "../../../lib/objects";
 import { V2Routes } from "../../../lib/types";
 import ClusterDashboardLink from "../../ClusterDashboardLink";
 import Link from "../../Link";
-import HeaderRows,{ Header } from "../Utils/HeaderRows";
+import HeaderRows, { RowItem } from "../Utils/HeaderRows";
 import { MarkdownEditor } from "../Utils/MarkdownEditor";
 import Parameters from "../Utils/Parameters";
 import { SectionWrapper } from "../Utils/PolicyUtils";
@@ -45,7 +45,7 @@ export const ViolationDetails = ({
     parameters,
     policyId,
   } = violation || {};
-  const headers: Header[] = [
+  const items: RowItem[] = [
     {
       rowkey: "Policy Name",
       children: (
@@ -101,7 +101,7 @@ export const ViolationDetails = ({
 
   return (
     <Flex wide tall column gap="32">
-      <HeaderRows headers={headers} />
+      <HeaderRows items={items} />
       <SectionWrapper title={` Occurrences ( ${occurrences?.length} )`}>
         <ul className="occurrences">
           {occurrences?.map((item) => (

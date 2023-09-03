@@ -2,13 +2,13 @@ import React from "react";
 import Flex from "../../Flex";
 import Text from "../../Text";
 
-export interface Header {
+export interface RowItem {
   rowkey: string;
   value?: any;
   children?: any;
   visible?: boolean;
 }
-export function RowHeader({ children, rowkey, value }: Header) {
+export function RowHeader({ children, rowkey, value }: RowItem) {
   return (
     <Flex alignItems="center" center gap="8" data-testid={rowkey}>
       <Text color="neutral30" semiBold size="medium" minWidth="150">
@@ -25,20 +25,35 @@ export function RowHeader({ children, rowkey, value }: Header) {
   );
 }
 interface Props {
-  headers: Header[];
+  items: RowItem[];
 }
-function HeaderRows({ headers }: Props) {
+const HeaderRows = ({ items }: Props) => {
   return (
     <Flex column gap="8">
-      {headers
-        .filter((h) => h.visible)
-        .map((h) => {
-          return (
-            <RowHeader rowkey={h.rowkey} value={h.value} key={h.rowkey}>
-              {h.children}
-            </RowHeader>
-          );
-        })}
+      {items.map((h) => {
+        return (
+          h.visible !== false && (
+            <Flex
+              alignItems="center"
+              center
+              gap="8"
+              data-testid={h.rowkey}
+              key={h.rowkey}
+            >
+              <Text color="neutral30" semiBold size="medium" minWidth="150">
+                {h.rowkey}:
+              </Text>
+              {h.children ? (
+                h.children
+              ) : (
+                <Text color="neutral40" size="medium">
+                  {h.value || "-"}
+                </Text>
+              )}
+            </Flex>
+          )
+        );
+      })}
     </Flex>
   );
 }
