@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/NYTimes/gziphandler"
+	"github.com/alexedwards/scs/v2"
 	"github.com/go-logr/logr"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -186,12 +187,16 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("couldn't get current namespace")
 	}
 
+	sessionManager := scs.New()
+	// TODO: Make this configurable
+	sessionManager.Lifetime = 24 * time.Hour
 	authServer, err := auth.InitAuthServer(cmd.Context(), log, rawClient, auth.AuthParams{
 		OIDCConfig:        options.OIDC,
 		OIDCSecretName:    options.OIDCSecret,
 		AuthMethodStrings: options.AuthMethods,
 		NoAuthUser:        options.NoAuthUser,
 		Namespace:         namespace,
+		SessionManager:    sessionManager,
 	})
 	if err != nil {
 		return fmt.Errorf("could not initialise authentication server: %w", err)
@@ -257,6 +262,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 			CoreServerConfig: coreConfig,
 			AuthServer:       authServer,
 		},
+		sessionManager,
 	)
 	if err != nil {
 		return fmt.Errorf("could not create handler: %w", err)
@@ -283,10 +289,12 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		mdlw := httpmiddleware.New(httpmiddleware.Config{
 			Recorder: metrics.NewRecorder(metrics.Config{}),
 		})
-		handler = httpmiddlewarestd.Handler("", mdlw, mux)
+		handler = httpmiddlewarestd.Handler("", mdlw, handler)
 	}
 
 	handler = middleware.WithLogging(log, handler)
+
+	handler = sessionManager.LoadAndSave(handler)
 
 	addr := net.JoinHostPort(options.Host, options.Port)
 	srv := &http.Server{

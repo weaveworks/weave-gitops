@@ -1,15 +1,10 @@
 package main
 
 import (
-	"fmt"
-	"os"
-
+	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops/cmd/gitops-server/cmd"
 )
 
 func main() {
-	if err := cmd.NewCommand().Execute(); err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		os.Exit(1)
-	}
+	cobra.CheckErr(cmd.NewCommand().Execute())
 }

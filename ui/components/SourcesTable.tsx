@@ -11,6 +11,7 @@ import {
   Source,
 } from "../lib/objects";
 import { showInterval } from "../lib/time";
+import { SearchedNamespaces } from "../lib/types";
 import { convertGitURLToGitProvider, statusSortHelper } from "../lib/utils";
 import DataTable, {
   Field,
@@ -20,15 +21,15 @@ import DataTable, {
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
 import Timestamp from "./Timestamp";
-import { VerifiableSource, VerifiedStatus } from "./VerifiedStatus";
+import { SourceIsVerifiedStatus } from "./VerifiedStatus";
 
 type Props = {
   className?: string;
   sources?: Source[];
-  appName?: string;
+  searchedNamespaces?: SearchedNamespaces;
 };
 
-function SourcesTable({ className, sources }: Props) {
+function SourcesTable({ className, sources, searchedNamespaces }: Props) {
   const { isFlagEnabled } = useFeatureFlags();
 
   let initialFilterState = {
@@ -73,7 +74,7 @@ function SourcesTable({ className, sources }: Props) {
     { label: "Namespace", value: "namespace" },
     {
       label: "Verified",
-      value: (s: VerifiableSource) => <VerifiedStatus source={s} />,
+      value: (s: Source) => <SourceIsVerifiedStatus source={s} />,
     },
     ...(isFlagEnabled("WEAVE_GITOPS_FEATURE_TENANCY")
       ? [{ label: "Tenant", value: "tenant" }]
@@ -169,6 +170,7 @@ function SourcesTable({ className, sources }: Props) {
       hasCheckboxes
       rows={sources}
       fields={fields}
+      searchedNamespaces={searchedNamespaces}
     />
   );
 }

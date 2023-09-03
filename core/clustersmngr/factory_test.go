@@ -1,7 +1,6 @@
 package clustersmngr_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/go-logr/logr"
@@ -110,8 +109,7 @@ func TestUseUserClientForNamespaces(t *testing.T) {
 		g.Expect(userClient.Namespaces()["test"]).To(HaveLen(1))
 		g.Expect(userClient.Namespaces()["test"][0].GetName()).To(Equal(ns2.Name))
 
-		a, b, nss := nsChecker.FilterAccessibleNamespacesArgsForCall(0)
-		fmt.Println(a, b, nss)
+		_, _, nss := nsChecker.FilterAccessibleNamespacesArgsForCall(0)
 		nsFound := 0
 		for _, n := range nss {
 			if n.Name == ns1.Name || n.Name == ns2.Name {

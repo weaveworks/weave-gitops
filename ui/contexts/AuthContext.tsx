@@ -19,7 +19,7 @@ export const AuthCheck = ({ children, Loader }: AuthCheckProps) => {
   const { userInfo } = React.useContext(Auth);
   // Wait until userInfo is loaded before showing signin or app content
   if (!userInfo) {
-    return Loader ? <Loader /> : null;
+    return Loader ? Loader : null;
   }
   // Signed in! Show app
   if (userInfo?.id) {

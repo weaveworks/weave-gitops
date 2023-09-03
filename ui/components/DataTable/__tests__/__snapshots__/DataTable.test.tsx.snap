@@ -327,6 +327,9 @@ exports[`DataTable snapshots renders 1`] = `
   className="c0 c1"
 >
   <div
+    className=""
+  />
+  <div
     className="c2 c3"
   />
   <div

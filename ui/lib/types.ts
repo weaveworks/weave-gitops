@@ -1,5 +1,5 @@
 import { UseQueryOptions } from "react-query";
-import { ListError } from "./api/core/core.pb";
+import { ClusterNamespaceList, ListError } from "./api/core/core.pb";
 import { Condition, Interval, Kind } from "./api/core/types.pb";
 
 export enum PageRoute {
@@ -17,6 +17,10 @@ export enum GrpcErrorCodes {
 
 export type RequestError = Error & {
   code?: number;
+};
+
+export type SearchedNamespaces = {
+  [kind: string]: ClusterNamespaceList[];
 };
 
 export enum V2Routes {
