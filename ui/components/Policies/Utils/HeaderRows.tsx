@@ -56,6 +56,6 @@ const HeaderRows = ({ items }: Props) => {
       })}
     </Flex>
   );
-}
+};
 
 export default HeaderRows;

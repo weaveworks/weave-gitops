@@ -253,6 +253,5 @@ export {
   useNavigation,
   useRequestState,
   useSyncFluxObject,
-  useToggleSuspend
+  useToggleSuspend,
 };
-
