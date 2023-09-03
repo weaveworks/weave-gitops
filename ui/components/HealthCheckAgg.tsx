@@ -45,7 +45,7 @@ interface Prop {
 
 const HealthCheckAgg = ({ health }: Prop) => {
   return (
-    <Flex wide align gap="16">
+    <Flex wide align gap="8">
       {health.unhealthy > 0 ? (
         <>
           <Icon
