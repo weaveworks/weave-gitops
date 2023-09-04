@@ -117,5 +117,8 @@
   },
   "alias": {
     "yaml": "yaml/browser/dist/index.js"
+  },
+  "resolutions": {
+    "htmlnano": "2.0.3"
   }
 }
