@@ -73,7 +73,7 @@ function SubRouterTabs({ className, children, rootPath, clearQuery }: Props) {
   }));
 
   return (
-    <Flex wide tall column start className={className}>
+    <Flex wide tall column start className={className} gap="16">
       <Tabs
         indicatorColor="primary"
         value={routesToIndex(routes, window.location.pathname)}
@@ -91,7 +91,6 @@ function SubRouterTabs({ className, children, rootPath, clearQuery }: Props) {
           );
         })}
       </Tabs>
-      <Spacer padding="xs" />
       <Switch>
         {children}
         <Redirect from="*" to={formatURL(rootPath, clearQuery ? "" : query)} />
@@ -100,4 +99,34 @@ function SubRouterTabs({ className, children, rootPath, clearQuery }: Props) {
   );
 }
 
-export default styled(SubRouterTabs).attrs({ className: SubRouterTabs.name })``;
+export default styled(SubRouterTabs).attrs({ className: SubRouterTabs.name })`
+  //MuiTabs
+  .horizontal-tabs {
+    min-height: ${(props) => props.theme.spacing.large};
+    margin: ${(props) => props.theme.spacing.xs} 0;
+    width: 100%;
+    border-bottom: 1px solid ${(props) => props.theme.colors.neutral20};
+    .MuiTab-root {
+      line-height: 1;
+      letter-spacing: 1px;
+      height: 32px;
+      min-height: 32px;
+      width: fit-content;
+      @media (min-width: 600px) {
+        min-width: 132px;
+      }
+      .MuiTab-wrapper{
+        span{
+          font-weight: 600;
+        }
+      }
+    }
+    .MuiTabs-fixed {
+      height: 32px;
+    }
+    .MuiTabs-indicator {
+      height: 3px;
+      background-color: ${(props) => props.theme.colors.primary};
+    }
+  }
+`;
