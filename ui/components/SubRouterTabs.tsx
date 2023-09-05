@@ -113,11 +113,6 @@ export default styled(SubRouterTabs).attrs({ className: SubRouterTabs.name })`
       @media (min-width: 600px) {
         min-width: 132px;
       }
-      .MuiTab-wrapper{
-        span{
-          font-weight: 600;
-        }
-      }
     }
     .MuiTabs-indicator {
       height: 3px;
