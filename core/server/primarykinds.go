@@ -25,7 +25,7 @@ const (
 	// It's multiplied with the digit following the "beta" suffix.
 	// Beta versions are more stable than alpha versions but might still contain bugs.
 	// They are given a higher weight than alpha versions.
-	betaWeight = 500
+	betaWeight = 50
 
 	// stableWeight is a weight assigned to stable versions (those without an "alpha" or "beta" suffix).
 	// Stable versions are the final, production-ready releases of software, hence they have the highest weight.
