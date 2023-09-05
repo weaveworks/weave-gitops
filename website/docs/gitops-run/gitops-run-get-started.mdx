@@ -289,6 +289,24 @@ spec:
 When you hit save, you'll see GitOps Run upload new files, and once
 it's reconciled the `podinfo` background will have been changed to a bright red.
 
+## Troubleshooting Tips
+
+Tips originate from issues reported by GitOps Run users. Experience a problem? [Report it here](https://github.com/weaveworks/weave-gitops/issues). 
+
+**GitOps Run failed on macOS using a local [k3d](https://k3d.io/v5.6.0/) cluster, can't mount `/etc/machine-id`**
+
+[Reported by a community user](https://github.com/weaveworks/weave-gitops/issues/3956) who found a workaround and shared it:
+
+Update your [k3d config file](https://k3d.io/v5.6.0/usage/configfile/) to include the following section:
+
+```yaml
+volumes:
+  - volume: /etc/machine-id:/etc/machine-id
+    nodeFilters:
+      - server:*
+      - agent:*
+```
+
 ## Next Steps: GitOps Mode
 
 Now that we've used this interactive environment to set up the
