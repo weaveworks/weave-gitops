@@ -70,6 +70,7 @@ type RunCommandFlags struct {
 	DashboardHashedPassword string
 	SkipDashboardInstall    bool
 	DashboardImage          string
+	DashboardValuesFiles    []string
 
 	// Session
 	SessionName         string
@@ -152,6 +153,7 @@ gitops beta run ./charts/podinfo --timeout 3m --port-forward namespace=flux-syst
 	cmdFlags.BoolVar(&flags.SkipResourceCleanup, "skip-resource-cleanup", false, "Skip resource cleanup. If not specified, the GitOps Run resources will be deleted by default.")
 	cmdFlags.StringVar(&flags.DecryptionKeyFile, "decryption-key-file", "", "Path to an age key file used for decrypting Secrets using SOPS.")
 
+	cmdFlags.StringSliceVar(&flags.DashboardValuesFiles, "values", nil, "local path to values.yaml files for HelmRelease, also accepts comma-separated values")
 	cmdFlags.StringVar(&flags.DashboardImage, "dashboard-image", "", "Override GitOps Dashboard image")
 	_ = cmdFlags.MarkHidden("dashboard-image")
 
@@ -352,7 +354,7 @@ func fluentBitStep(ctx context.Context, log logger.Logger, kubeClient *kube.Kube
 	}, nil
 }
 
-func dashboardStep(ctx context.Context, log logger.Logger, kubeClient *kube.KubeHTTP, generateManifestsOnly bool, dashboardHashedPassword string) (install.DashboardType, []byte, string, error) {
+func dashboardStep(ctx context.Context, log logger.Logger, kubeClient *kube.KubeHTTP, generateManifestsOnly bool, dashboardHashedPassword string, dashboardValuesFiles []string) (install.DashboardType, []byte, string, error) {
 	log.Actionf("Checking if GitOps Dashboard is already installed ...")
 
 	dashboardType, dashboardName, err := install.GetInstalledDashboard(ctx, kubeClient, flags.Namespace, map[install.DashboardType]bool{
@@ -418,7 +420,7 @@ func dashboardStep(ctx context.Context, log logger.Logger, kubeClient *kube.Kube
 			passwordHash = dashboardHashedPassword
 		}
 
-		dashboardObjects, err := install.CreateDashboardObjects(log, defaultDashboardName, flags.Namespace, adminUsername, passwordHash, HelmChartVersion, flags.DashboardImage)
+		dashboardObjects, err := install.CreateDashboardObjects(log, defaultDashboardName, flags.Namespace, adminUsername, passwordHash, HelmChartVersion, flags.DashboardImage, dashboardValuesFiles)
 		if err != nil {
 			return install.DashboardTypeNone, nil, "", fmt.Errorf("error creating dashboard objects: %w", err)
 		}
@@ -489,7 +491,7 @@ func runCommandOuterProcess(cmd *cobra.Command, args []string) (retErr error) {
 		return fmt.Errorf("failed to detect or install Flux on the host cluster: %v", err)
 	}
 
-	dashboardType, dashboardManifests, dashboardHashedPassword, err := dashboardStep(context.Background(), log, kubeClient, true, flags.DashboardHashedPassword)
+	dashboardType, dashboardManifests, dashboardHashedPassword, err := dashboardStep(context.Background(), log, kubeClient, true, flags.DashboardHashedPassword, flags.DashboardValuesFiles)
 	if err != nil && !errors.Is(err, install.ErrDashboardInstalled) {
 		return fmt.Errorf("failed to generate dashboard manifests: %v", err)
 	}
@@ -765,7 +767,7 @@ func runCommandInnerProcess(cmd *cobra.Command, args []string) error {
 		dashboardManifests []byte
 	)
 
-	dashboardType, dashboardManifests, _, dashboardErr = dashboardStep(ctx, log, kubeClient, false, flags.DashboardHashedPassword)
+	dashboardType, dashboardManifests, _, dashboardErr = dashboardStep(ctx, log, kubeClient, false, flags.DashboardHashedPassword, flags.DashboardValuesFiles)
 	if err != nil && !errors.Is(err, install.ErrDashboardInstalled) {
 		cancel()
 		return err
