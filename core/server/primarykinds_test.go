@@ -1,9 +1,10 @@
 package server
 
 import (
-	. "github.com/onsi/gomega"
 	"reflect"
 	"testing"
+
+	. "github.com/onsi/gomega"
 
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
@@ -16,8 +17,11 @@ func TestVersionRank(t *testing.T) {
 		gvk2     schema.GroupVersionKind
 		expected int
 	}{
+
 		{schema.GroupVersionKind{Version: "v1"}, schema.GroupVersionKind{Version: "v1alpha1"}, 1},
 		{schema.GroupVersionKind{Version: "v1"}, schema.GroupVersionKind{Version: "v1beta1"}, 1},
+		{schema.GroupVersionKind{Version: "v1"}, schema.GroupVersionKind{Version: "v1beta2"}, 1},
+		{schema.GroupVersionKind{Version: "v1"}, schema.GroupVersionKind{Version: "v1beta10"}, 1},
 		{schema.GroupVersionKind{Version: "v2"}, schema.GroupVersionKind{Version: "v1"}, 1},
 		{schema.GroupVersionKind{Version: "v2beta1"}, schema.GroupVersionKind{Version: "v1beta1"}, 1},
 		// Additional test cases
@@ -77,5 +81,15 @@ func TestGetPrimaryKinds(t *testing.T) {
 		// Expect the highest version of each kind to be returned
 		g.Expect(primaryKinds.kinds["Pod"]).To(Equal(schema.GroupVersionKind{Group: "core", Version: "v2", Kind: "Pod"}))
 		g.Expect(primaryKinds.kinds["Node"]).To(Equal(schema.GroupVersionKind{Group: "core", Version: "v1beta2", Kind: "Node"}))
+	})
+}
+
+func TestDefaultPrimaryKinds(t *testing.T) {
+	g := NewGomegaWithT(t)
+	primaryKinds, err := DefaultPrimaryKinds()
+	g.Expect(err).NotTo(HaveOccurred())
+
+	t.Run("should return v1 GitRepository", func(t *testing.T) {
+		g.Expect(primaryKinds.kinds["GitRepository"]).To(Equal(schema.GroupVersionKind{Group: "source.toolkit.fluxcd.io", Version: "v1", Kind: "GitRepository"}))
 	})
 }
