@@ -36,14 +36,22 @@ kubectl create secret generic demo-01-kubeconfig \
 
 Here's how to create a kubeconfig secret.
 
-1. Create a new service account on the remote cluster:
+1. Create a new service account on the remote cluster with a token:
 
 	```yaml
 	apiVersion: v1
 	kind: ServiceAccount
 	metadata:
-		name: demo-01
-		namespace: default
+      name: demo-01
+	  namespace: default
+    ---
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      name: demo-01-token
+      annotations:
+        kubernetes.io/service-account.name: demo-01
+    type: kubernetes.io/service-account-token
 	```
 
 2. Add RBAC permissions for the service account:
@@ -58,8 +66,8 @@ Here's how to create a kubeconfig secret.
 		name: impersonate-user-groups
 	subjects:
 		- kind: ServiceAccount
-			name: demo-01
-			namespace: default
+          name: demo-01
+		  namespace: default
 	roleRef:
 		kind: ClusterRole
 		name: user-groups-impersonator
@@ -71,11 +79,11 @@ Here's how to create a kubeconfig secret.
 		name: user-groups-impersonator
 	rules:
 		- apiGroups: [""]
-			resources: ["users", "groups"]
-			verbs: ["impersonate"]
+		  resources: ["users", "groups"]
+		  verbs: ["impersonate"]
 		- apiGroups: [""]
-			resources: ["namespaces"]
-			verbs: ["get", "list"]
+		  resources: ["namespaces"]
+		  verbs: ["get", "list"]
 	```
 
 	</details>
@@ -87,18 +95,7 @@ Here's how to create a kubeconfig secret.
 3. Retrieve the token from the service account. First, run this command to get the list of secrets of the service accounts:
 
 	```bash
-	kubectl get secrets --field-selector type=kubernetes.io/service-account-token
-	NAME                      TYPE                                  DATA   AGE
-	default-token-lsjz4       kubernetes.io/service-account-token   3      13d
-	demo-01-token-gqz7p       kubernetes.io/service-account-token   3      99m
-	```
-
-	(`demo-01-token-gqz7p` is the secret that holds the token for `demo-01` service account.)
-
-	Then, run the following command to get the service account token:
-
-	```bash
-	TOKEN=$(kubectl get secret demo-01-token-gqz7p -o jsonpath={.data.token} | base64 -d)
+	TOKEN=$(kubectl get secret demo-01-token -o jsonpath={.data.token} | base64 -d)
 	```
 
 4. Create a kubeconfig secret. We'll use a helper script to generate the kubeconfig, and then save it into `static-kubeconfig.sh`:
