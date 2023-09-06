@@ -4,10 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"os"
 	"strings"
 	"time"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
+	"github.com/fluxcd/pkg/runtime/transform"
 	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo/v2"
@@ -40,6 +42,16 @@ var testValues = map[string]interface{}{
 		"port": "9000",
 	},
 }
+
+var testValues2 = map[string]interface{}{
+	"service": map[string]interface{}{
+		"type": "nodePort",
+	},
+}
+
+var testValuesMerge = transform.MergeMaps(testValues, testValues2)
+
+var testValuesFiles = []string{"/tmp/testvalues.yaml", "/tmp/testvalues2.yaml"}
 
 var helmReleaseFixtures = []runtime.Object{
 	&helmv2.HelmRelease{
@@ -144,6 +156,28 @@ var _ = Describe("InstallDashboard", func() {
 
 		err = InstallDashboard(fakeContext, fakeLogger, fakeClient, manifests)
 		Expect(err).NotTo(HaveOccurred())
+	})
+
+	It("should correctly read values", func() {
+		d, err := yaml.Marshal(testValues)
+		Expect(err).NotTo(HaveOccurred())
+
+		err = os.WriteFile(testValuesFiles[0], d, 0644)
+		Expect(err).NotTo(HaveOccurred())
+
+		d, err = yaml.Marshal(testValues2)
+		Expect(err).NotTo(HaveOccurred())
+
+		err = os.WriteFile(testValuesFiles[1], d, 0644)
+		Expect(err).NotTo(HaveOccurred())
+
+		manifests, err := CreateDashboardObjects(fakeLogger, testDashboardName, testNamespace, testAdminUser, testPasswordHash, helmChartVersion, "", testValuesFiles)
+		Expect(err).NotTo(HaveOccurred())
+
+		values := map[string]interface{}{}
+		err = json.Unmarshal(manifests.HelmRelease.Spec.Values.Raw, &values)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(values["service"]).To(Equal(testValuesMerge["service"]))
 	})
 
 	It("should return an apply all error if the resource manager returns an apply all error", func() {
@@ -297,9 +331,7 @@ var _ = Describe("generateManifestsForDashboard", func() {
 		values := map[string]interface{}{}
 		err = json.Unmarshal(actualHelmRelease.Spec.Values.Raw, &values)
 		Expect(err).NotTo(HaveOccurred())
-		Expect(values["service"]).To(Equal(map[string]interface{}{
-			"port": "9000",
-		}))
+		Expect(values["service"]).To(Equal(testValues["service"]))
 	})
 })
 

@@ -82,9 +82,8 @@ type DashboardObjects struct {
 func CreateDashboardObjects(log logger.Logger, name, namespace, username, passwordHash, chartVersion, dashboardImage string, valuesFiles []string) (*DashboardObjects, error) {
 	log.Actionf("Creating GitOps Dashboard objects ...")
 
-	var valuesFromFiles map[string]interface{}
+	valuesFromFiles := make(map[string]interface{})
 	if len(valuesFiles) > 0 {
-		valuesMap := make(map[string]interface{})
 		for _, v := range valuesFiles {
 			data, err := os.ReadFile(v)
 			if err != nil {
@@ -101,7 +100,7 @@ func CreateDashboardObjects(log logger.Logger, name, namespace, username, passwo
 				return nil, fmt.Errorf("unmarshaling values from %s failed: %w", v, err)
 			}
 
-			valuesFromFiles = transform.MergeMaps(valuesMap, jsonMap)
+			valuesFromFiles = transform.MergeMaps(valuesFromFiles, jsonMap)
 		}
 	}
 
