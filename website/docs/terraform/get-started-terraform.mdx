@@ -165,6 +165,12 @@ spec:
 
 For a full list of features and how to use them, please visit the [Terraform overview](../terraform-intro).
 
+### Troubleshooting
+
+#### Getting a `drift detected` event message when it's a change of source that triggered the update
+
+Whenever you change a source, you will get a new plan. TF-controller picks up the new plan and applies it. Drift happens if, and only if, the live system changes intentionally. Then TF-controller will generate a lengthy message [see an example](https://github.com/weaveworks/tf-controller/issues/890#issuecomment-1691610117) stating that a drift has occurred. If there is drift, the icon will be red in the TF Objects > Status column of the WGE UI.
+
 ## Other Examples
   * A Terraform GitOps with Flux to automatically reconcile your [AWS IAM Policies](https://github.com/tf-controller/aws-iam-policies).
   * GitOps an existing EKS cluster by partially importing its nodegroup and managing it with TF-controller: [An EKS scaling example](https://github.com/tf-controller/eks-scaling).
