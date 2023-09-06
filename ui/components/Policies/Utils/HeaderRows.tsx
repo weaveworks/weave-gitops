@@ -2,20 +2,35 @@ import React from "react";
 import Flex from "../../Flex";
 import Text from "../../Text";
 
-export interface Header {
+export interface RowItem {
   rowkey: string;
   value?: any;
   children?: any;
   visible?: boolean;
 }
-
-interface Props {
-  headers: Header[];
+export function RowHeader({ children, rowkey, value }: RowItem) {
+  return (
+    <Flex alignItems="center" center gap="8" data-testid={rowkey}>
+      <Text color="neutral30" semiBold size="medium" minWidth="150">
+        {rowkey}:
+      </Text>
+      {children ? (
+        children
+      ) : (
+        <Text color="neutral40" size="medium">
+          {value || "--"}
+        </Text>
+      )}
+    </Flex>
+  );
 }
-const HeaderRows = ({ headers }: Props) => {
+interface Props {
+  items: RowItem[];
+}
+const HeaderRows = ({ items }: Props) => {
   return (
     <Flex column gap="8">
-      {headers.map((h) => {
+      {items.map((h) => {
         return (
           h.visible !== false && (
             <Flex
@@ -25,7 +40,7 @@ const HeaderRows = ({ headers }: Props) => {
               data-testid={h.rowkey}
               key={h.rowkey}
             >
-              <Text color="neutral30" semiBold size="medium">
+              <Text color="neutral30" semiBold size="medium" minWidth="150">
                 {h.rowkey}:
               </Text>
               {h.children ? (

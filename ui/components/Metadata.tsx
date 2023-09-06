@@ -16,15 +16,9 @@ type Props = {
 const Label = styled(Text)`
   padding: ${(props) => props.theme.spacing.xs}
     ${(props) => props.theme.spacing.small};
-  margin-right: ${(props) => props.theme.spacing.xxs};
   border-radius: 15px;
   white-space: nowrap;
   background-color: ${(props) => props.theme.colors.neutralGray};
-`;
-
-const LabelFlex = styled(Flex)`
-  padding: ${(props) => props.theme.spacing.xxs} 0;
-  overflow-x: scroll;
 `;
 
 function Metadata({ metadata = [], labels = [], className }: Props) {
@@ -49,22 +43,22 @@ function Metadata({ metadata = [], labels = [], className }: Props) {
   });
 
   return (
-    <Flex wide column className={className}>
+    <Flex wide column className={className} gap="16">
       {metadataCopy.length > 0 && (
-        <>
+        <Flex column gap="8">
           <Text size="large" color="neutral30">
             Metadata
           </Text>
           <InfoList items={metadataCopy} />
           <Spacer padding="small" />
-        </>
+        </Flex>
       )}
       {labels.length > 0 && (
-        <>
+        <Flex column gap="8">
           <Text size="large" color="neutral30">
             Labels
           </Text>
-          <LabelFlex wide start>
+          <Flex wide start wrap gap="4">
             {labels.map((label, index) => {
               return (
                 <Label key={index}>
@@ -72,9 +66,8 @@ function Metadata({ metadata = [], labels = [], className }: Props) {
                 </Label>
               );
             })}
-          </LabelFlex>
-          <Spacer padding="small" />
-        </>
+          </Flex>
+        </Flex>
       )}
     </Flex>
   );

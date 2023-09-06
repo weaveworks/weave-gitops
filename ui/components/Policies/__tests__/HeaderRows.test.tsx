@@ -1,9 +1,9 @@
 import { render } from "@testing-library/react";
 import React from "react";
 import { withTheme } from "../../../lib/test-utils";
-import HeaderRows, { Header } from "../Utils/HeaderRows";
+import HeaderRows, { RowItem } from "../Utils/HeaderRows";
 
-const headers: Header[] = [
+const items: RowItem[] = [
   {
     rowkey: "Policy Name",
     value: "Controller ServiceAccount Tokens Automount",
@@ -25,8 +25,8 @@ const headers: Header[] = [
 
 describe("HeaderRows", () => {
   it("validate rows", async () => {
-    render(withTheme(<HeaderRows headers={headers} />));
-    headers.forEach((h) => {
+    render(withTheme(<HeaderRows items={items} />));
+    items.forEach((h) => {
       const ele = document.querySelector(
         `[data-testid="${h.rowkey}"]`
       ) as HTMLElement;
