@@ -8,7 +8,6 @@ import { formatURL } from "../lib/nav";
 import Flex from "./Flex";
 import Link from "./Link";
 import MuiTab from "./MuiTab";
-import Spacer from "./Spacer";
 
 type Props = {
   className?: string;
