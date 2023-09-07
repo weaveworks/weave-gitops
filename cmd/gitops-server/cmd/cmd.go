@@ -49,6 +49,7 @@ const (
 	// Allowed login requests per second
 	loginRequestRateLimit            = 20
 	InsecureNoAuthenticationUserFlag = "insecure-no-authentication-user"
+	BasePathHeader                   = "X-Base-Path"
 )
 
 // Options contains all the options for the gitops-server command.
@@ -58,6 +59,7 @@ type Options struct {
 	LogLevel                      string
 	NotificationControllerAddress string
 	Path                          string
+	SubPath                       string
 	Port                          string
 	AuthMethods                   []string
 	// TLS config
@@ -100,7 +102,8 @@ func NewCommand() *cobra.Command {
 	cmd.Flags().StringVar(&options.Host, "host", server.DefaultHost, "UI host")
 	cmd.Flags().StringVar(&options.LogLevel, "log-level", logger.DefaultLogLevel, "log level")
 	cmd.Flags().StringVar(&options.NotificationControllerAddress, "notification-controller-address", "", "the address of the notification-controller running in the cluster")
-	cmd.Flags().StringVar(&options.Path, "path", "", "Path url")
+	cmd.Flags().StringVar(&options.Path, "path", "", "Path url, DEPRECATED")
+	cmd.Flags().StringVar(&options.SubPath, "sub-path", "", "Run the UI on a subpath, for example: /gitops/")
 	cmd.Flags().StringVar(&options.Port, "port", server.DefaultPort, "UI port")
 	cmd.Flags().StringSliceVar(&options.AuthMethods, "auth-methods", auth.DefaultAuthMethodStrings(), fmt.Sprintf("Which auth methods to use, valid values are %s", strings.Join(auth.AllUserAuthMethods(), ",")))
 	cmd.Flags().BoolVar(&options.UseK8sCachedClients, "use-k8s-cached-clients", false, "Enables the use of cached clients")
@@ -158,7 +161,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	assetFS := getAssets()
 	assetHandler := http.FileServer(http.FS(assetFS))
-	redirector := createRedirector(assetFS, log)
+	redirector := createRedirector(assetFS, log, options.SubPath)
 	clusterName := kube.InClusterConfigClusterName()
 
 	rest, err := config.GetConfig()
@@ -296,6 +299,11 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	handler = sessionManager.LoadAndSave(handler)
 
+	// // mount the handler underneath the subpath if present
+	// if options.SubPath != "" {
+	// 	handler = http.StripPrefix(options.SubPath, handler)
+	// }
+
 	addr := net.JoinHostPort(options.Host, options.Port)
 	srv := &http.Server{
 		Addr:    addr,
@@ -403,7 +411,8 @@ func getAssets() fs.FS {
 
 // A redirector ensures that index.html always gets served.
 // The JS router will take care of actual navigation once the index.html page lands.
-func createRedirector(fsys fs.FS, log logr.Logger) http.HandlerFunc {
+func createRedirector(fsys fs.FS, log logr.Logger, configSubPath string) http.HandlerFunc {
+	log.Info("Creating redirector with config", "subPath", configSubPath)
 	return func(w http.ResponseWriter, r *http.Request) {
 		indexPage, err := fsys.Open("index.html")
 
@@ -430,6 +439,16 @@ func createRedirector(fsys fs.FS, log logr.Logger) http.HandlerFunc {
 			w.WriteHeader(http.StatusInternalServerError)
 
 			return
+		}
+
+		subPath := configSubPath
+		if r.Header.Get(BasePathHeader) != "" {
+			subPath = r.Header.Get(BasePathHeader)
+		}
+
+		// inject base tag into index.html
+		if subPath != "" {
+			bt = []byte(strings.Replace(string(bt), "<head>", fmt.Sprintf("<head><base href=\"%s\">", subPath), 1))
 		}
 
 		_, err = w.Write(bt)

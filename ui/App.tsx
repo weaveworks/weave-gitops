@@ -53,6 +53,7 @@ import PolicyDetailsPage from "./pages/v2/PolicyDetailsPage";
 import ProviderPage from "./pages/v2/ProviderPage";
 import Sources from "./pages/v2/Sources";
 import UserInfo from "./pages/v2/UserInfo";
+import { getBaseURL } from "./lib/utils";
 
 const queryClient = new QueryClient();
 
@@ -224,7 +225,7 @@ const StylesProvider = ({ children }) => {
 export default function AppContainer() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Router>
+      <Router basename={getBaseURL()}>
         <AppContextProvider footer={<Footer />}>
           <StylesProvider>
             <AuthContextProvider>

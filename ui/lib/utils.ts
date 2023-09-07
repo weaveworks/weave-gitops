@@ -260,3 +260,31 @@ export const Fade = styled<any>(Flex)<{
   transition: opacity 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
   ${({ fade }) => fade && "pointer-events: none"};
 `;
+
+export const getBaseURL = () => {
+  const baseElement = document.querySelector("base");
+  if (baseElement) {
+    return new URL(document.baseURI).pathname;
+  }
+  return "";
+};
+
+export function withBaseURL(pathname: string) {
+  const baseURL = getBaseURL();
+  const normalizedPath = baseURL.endsWith("/") ? baseURL.slice(0, -1) : baseURL;
+  return `${normalizedPath}${pathname}`;
+}
+
+export function stripBaseURL(pathname: string) {
+  const basePath = getBaseURL();
+
+  // Ensure basePath has a leading slash
+  const normalizedBasePath = basePath.startsWith("/")
+    ? basePath
+    : "/" + basePath;
+
+  if (pathname.startsWith(normalizedBasePath)) {
+    return pathname.slice(normalizedBasePath.length) || "/";
+  }
+  return pathname;
+}

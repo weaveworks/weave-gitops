@@ -29,3 +29,16 @@ envVars:
     value: "Login with SSO"
   - name: WEAVE_GITOPS_FEATURE_DEV_MODE
     value: "true"
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      more_set_input_headers "X-Base-Path: /foo/";
+  hosts:
+  - host: ""
+    paths:
+      - path: /foo(/|$)(.*)
+        pathType: ImplementationSpecific

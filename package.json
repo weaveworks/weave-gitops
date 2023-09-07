@@ -6,7 +6,8 @@
     "default": {
       "distDir": "bin/dist",
       "source": "ui/index.html",
-      "sourceMap": false
+      "sourceMap": false,
+      "publicUrl": "./"
     },
     "lib": {
       "includeNodeModules": false,
@@ -23,6 +24,7 @@
     "typedefs": "tsc --declaration --skipLibCheck --emitDeclarationOnly --outDir dist -p .",
     "start": "parcel serve --port 4567 ui/index.html",
     "lint": "eslint ui --max-warnings 0",
+    "preview": "node ui/server.js",
     "prettify:check": "prettier --check ui",
     "prettify:format": "prettier --write ui",
     "test": "jest",
@@ -105,6 +107,7 @@
     "buffer": "^5.7.1",
     "eslint": "^7.28.0",
     "eslint-plugin-import": "^2.25.4",
+    "express": "^4.18.2",
     "jest": "^27.3.1",
     "jest-styled-components": "^7.0.4",
     "parcel": "^2.8.3",

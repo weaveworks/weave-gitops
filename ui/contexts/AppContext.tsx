@@ -3,7 +3,7 @@ import { useHistory } from "react-router-dom";
 import { DetailViewProps } from "../components/DetailModal";
 import { formatURL } from "../lib/nav";
 import { PageRoute, V2Routes } from "../lib/types";
-import { notifySuccess } from "../lib/utils";
+import { notifySuccess, withBaseURL } from "../lib/utils";
 
 type AppState = {
   error: null | { fatal: boolean; message: string; detail?: string };
@@ -119,7 +119,15 @@ export default function AppContextProvider({ ...props }: AppProps) {
         window.location.href = url;
       },
     },
-    request: window.fetch,
+    request: (
+      input: RequestInfo | URL,
+      init?: RequestInit
+    ): Promise<Response> => {
+      if (typeof input === "string") {
+        input = withBaseURL(input);
+      }
+      return window.fetch(input, init);
+    },
   };
 
   return <AppContext.Provider {...props} value={value} />;

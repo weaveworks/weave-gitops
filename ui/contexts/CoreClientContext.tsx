@@ -2,8 +2,9 @@ import qs from "query-string";
 import * as React from "react";
 import { useQuery } from "react-query";
 import { Core, GetFeatureFlagsResponse } from "../lib/api/core/core.pb";
-import { RequestError } from "../lib/types";
 import { TokenRefreshWrapper } from "../lib/requests";
+import { RequestError } from "../lib/types";
+import { getBaseURL, stripBaseURL, withBaseURL } from "../lib/utils";
 import { AuthRoutes } from "./AuthContext";
 
 type Props = {
@@ -34,13 +35,13 @@ function FeatureFlags(api) {
 }
 
 export async function refreshToken() {
-  const res = await fetch("/oauth2/refresh", { method: "POST" });
+  const res = await fetch(withBaseURL("/oauth2/refresh"), { method: "POST" });
   if (!res.ok) {
     window.location.replace(
-      AuthRoutes.AUTH_PATH_SIGNIN +
+      withBaseURL(AuthRoutes.AUTH_PATH_SIGNIN) +
         "?" +
         qs.stringify({
-          redirect: location.pathname + location.search,
+          redirect: stripBaseURL(location.pathname + location.search),
         })
     );
 
@@ -55,8 +56,23 @@ export function UnAuthorizedInterceptor(api: typeof Core): typeof Core {
   return TokenRefreshWrapper.wrap(api, refreshToken);
 }
 
+export function setBaseURL(api: any) {
+  const wrapped: any = {};
+  for (const method of Object.getOwnPropertyNames(api)) {
+    if (typeof api[method] != "function") {
+      continue;
+    }
+    wrapped[method] = (req: any, initReq: any) => {
+      const initWithBaseURL = { pathPrefix: getBaseURL(), ...initReq };
+      return api[method](req, initWithBaseURL);
+    };
+  }
+  return wrapped;
+}
+
 export default function CoreClientContextProvider({ api, children }: Props) {
-  const wrapped = UnAuthorizedInterceptor(api);
+  let wrapped = UnAuthorizedInterceptor(api);
+  wrapped = setBaseURL(api);
 
   return (
     <CoreClientContext.Provider
