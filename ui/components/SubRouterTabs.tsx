@@ -60,7 +60,6 @@ export function RouterTab({ children }: TabProps) {
 }
 
 function SubRouterTabs({ className, children, rootPath, clearQuery }: Props) {
-  // const location = useLocation
   const query = qs.parse(window.location.search);
   const childs = findChildren(children);
 

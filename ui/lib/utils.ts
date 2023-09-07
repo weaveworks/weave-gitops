@@ -1,10 +1,12 @@
 import _ from "lodash";
 import { DateTime } from "luxon";
+import qs from "query-string";
 import { toast } from "react-toastify";
 import styled from "styled-components";
 import Flex from "../components/Flex";
 import { computeReady, ReadyType } from "../components/KubeStatusIndicator";
 import { AppVersion, repoUrl } from "../components/Version";
+import { AuthRoutes } from "../contexts/AuthContext";
 import { GetVersionResponse } from "../lib/api/core/core.pb";
 import { Condition, Kind, ObjectRef } from "./api/core/types.pb";
 import { Automation, HelmRelease, Kustomization } from "./objects";
@@ -261,30 +263,37 @@ export const Fade = styled<any>(Flex)<{
   ${({ fade }) => fade && "pointer-events: none"};
 `;
 
+export const reloadBrowserSignIn = (redirect?: string) => {
+  let path = withBaseURL(AuthRoutes.AUTH_PATH_SIGNIN);
+
+  if (redirect) {
+    const queryString = qs.stringify({ redirect });
+    path = `${path}?${queryString}`;
+  }
+
+  // hard reload the browser to wipe anything that might be memory
+  window.location.replace(path);
+};
+
 export const getBaseURL = () => {
   const baseElement = document.querySelector("base");
   if (baseElement) {
-    return new URL(document.baseURI).pathname;
+    const { pathname } = new URL(document.baseURI);
+    return pathname.replace(/\/$/, "");
   }
   return "";
 };
 
 export function withBaseURL(pathname: string) {
-  const baseURL = getBaseURL();
-  const normalizedPath = baseURL.endsWith("/") ? baseURL.slice(0, -1) : baseURL;
-  return `${normalizedPath}${pathname}`;
+  return getBaseURL() + pathname;
 }
 
 export function stripBaseURL(pathname: string) {
   const basePath = getBaseURL();
 
-  // Ensure basePath has a leading slash
-  const normalizedBasePath = basePath.startsWith("/")
-    ? basePath
-    : "/" + basePath;
-
-  if (pathname.startsWith(normalizedBasePath)) {
-    return pathname.slice(normalizedBasePath.length) || "/";
+  if (pathname.startsWith(basePath)) {
+    return pathname.slice(basePath.length);
   }
+
   return pathname;
 }

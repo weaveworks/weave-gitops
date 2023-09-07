@@ -1,11 +1,14 @@
-import qs from "query-string";
 import * as React from "react";
 import { useQuery } from "react-query";
 import { Core, GetFeatureFlagsResponse } from "../lib/api/core/core.pb";
 import { TokenRefreshWrapper } from "../lib/requests";
 import { RequestError } from "../lib/types";
-import { getBaseURL, stripBaseURL, withBaseURL } from "../lib/utils";
-import { AuthRoutes } from "./AuthContext";
+import {
+  getBaseURL,
+  reloadBrowserSignIn,
+  stripBaseURL,
+  withBaseURL,
+} from "../lib/utils";
 
 type Props = {
   api: typeof Core;
@@ -37,13 +40,9 @@ function FeatureFlags(api) {
 export async function refreshToken() {
   const res = await fetch(withBaseURL("/oauth2/refresh"), { method: "POST" });
   if (!res.ok) {
-    window.location.replace(
-      withBaseURL(AuthRoutes.AUTH_PATH_SIGNIN) +
-        "?" +
-        qs.stringify({
-          redirect: stripBaseURL(location.pathname + location.search),
-        })
-    );
+    // The login redirect system is aware of the base URL and will add it,
+    // so we need to strip it off here.
+    reloadBrowserSignIn(stripBaseURL(location.pathname) + location.search);
 
     // Return a promse that does not resolve.
     // This stops any more API requests or refreshToken requests from being
@@ -56,7 +55,7 @@ export function UnAuthorizedInterceptor(api: typeof Core): typeof Core {
   return TokenRefreshWrapper.wrap(api, refreshToken);
 }
 
-export function setBaseURL(api: any) {
+export function setAPIPathPrefix(api: any) {
   const wrapped: any = {};
   for (const method of Object.getOwnPropertyNames(api)) {
     if (typeof api[method] != "function") {
@@ -72,7 +71,7 @@ export function setBaseURL(api: any) {
 
 export default function CoreClientContextProvider({ api, children }: Props) {
   let wrapped = UnAuthorizedInterceptor(api);
-  wrapped = setBaseURL(api);
+  wrapped = setAPIPathPrefix(api);
 
   return (
     <CoreClientContext.Provider

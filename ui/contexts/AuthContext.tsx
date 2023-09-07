@@ -1,7 +1,7 @@
 import qs from "query-string";
 import * as React from "react";
 import { Redirect, useHistory, useLocation } from "react-router-dom";
-import { withBaseURL } from "../lib/utils";
+import { reloadBrowserSignIn } from "../lib/utils";
 import { AppContext } from "./AppContext";
 
 export enum AuthRoutes {
@@ -111,7 +111,7 @@ export default function AuthContextProvider({ children }) {
           setError(response);
           return;
         }
-        window.location.replace(withBaseURL(AuthRoutes.AUTH_PATH_SIGNIN));
+        reloadBrowserSignIn();
       })
       .finally(() => setLoading(false));
   }, []);

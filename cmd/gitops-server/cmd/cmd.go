@@ -460,9 +460,9 @@ func createRedirector(fsys fs.FS, log logr.Logger, routePrefix string) http.Hand
 				baseHref = "/" + baseHref
 			}
 			if !strings.HasSuffix(baseHref, "/") {
-				baseHref = baseHref + "/"
+				baseHref += "/"
 			}
-			bt = []byte(strings.Replace(string(bt), "<head>", fmt.Sprintf("<head><base href=\"%s\">", baseHref), 1))
+			bt = []byte(strings.Replace(string(bt), "<head>", fmt.Sprintf("<head><base href=%q>", baseHref), 1))
 		}
 
 		_, err = w.Write(bt)
