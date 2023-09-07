@@ -6,6 +6,10 @@
         "plugin:@typescript-eslint/recommended",
         "plugin:import/typescript"
     ],
+    "plugins": [
+        "@typescript-eslint",
+        "import"
+    ],
     "rules": {
         "import/default": 0,
         "import/no-named-as-default-member": 0,
@@ -14,7 +18,8 @@
             2,
             {
                 "alphabetize": {
-                    "order": "asc"
+                    "order": "asc",
+                    "caseInsensitive": true
                 }
             }
         ],

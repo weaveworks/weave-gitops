@@ -28,7 +28,6 @@ import InfoModal from "../InfoModal";
 import SearchField from "../SearchField";
 import Spacer from "../Spacer";
 import Text from "../Text";
-import SortableLabel from "./SortableLabel";
 import {
   filterRows,
   filterSelectionsToQueryString,
@@ -38,6 +37,7 @@ import {
   sortByField,
   toPairs,
 } from "./helpers";
+import SortableLabel from "./SortableLabel";
 import { Field, FilterState } from "./types";
 
 /** DataTable Properties  */
