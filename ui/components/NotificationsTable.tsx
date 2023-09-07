@@ -12,8 +12,8 @@ import DataTable, {
 } from "./DataTable";
 import Flex from "./Flex";
 import KubeStatusIndicator from "./KubeStatusIndicator";
-import MessageBox from "./MessageBox";
 import Link from "./Link";
+import MessageBox from "./MessageBox";
 import Spacer from "./Spacer";
 import Text from "./Text";
 

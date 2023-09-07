@@ -13,6 +13,7 @@ import * as React from "react";
 import { useHistory, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import { ThemeTypes } from "../../contexts/AppContext";
+import { SearchedNamespaces } from "../../lib/types";
 import { IconButton } from "../Button";
 import CheckboxActions from "../CheckboxActions";
 import ChipGroup from "../ChipGroup";
@@ -23,11 +24,10 @@ import FilterDialog, {
 } from "../FilterDialog";
 import Flex from "../Flex";
 import Icon, { IconType } from "../Icon";
+import InfoModal from "../InfoModal";
 import SearchField from "../SearchField";
 import Spacer from "../Spacer";
 import Text from "../Text";
-import InfoModal from "../InfoModal";
-import { SearchedNamespaces } from "../../lib/types";
 import SortableLabel from "./SortableLabel";
 import {
   filterRows,

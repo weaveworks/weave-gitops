@@ -10,7 +10,14 @@
         "import/default": 0,
         "import/no-named-as-default-member": 0,
         "import/named": 2,
-        "import/order": 2,
+        "import/order": [
+            2,
+            {
+                "alphabetize": {
+                    "order": "asc"
+                }
+            }
+        ],
         "@typescript-eslint/explicit-module-boundary-types": 0,
         "@typescript-eslint/no-explicit-any": 0,
         "@typescript-eslint/ban-ts-comment": 0,
@@ -20,5 +27,5 @@
     "ignorePatterns": "rpc",
     "parserOptions": {
         "project": "./tsconfig.json"
-     }
+    }
 }
