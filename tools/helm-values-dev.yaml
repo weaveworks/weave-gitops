@@ -32,8 +32,8 @@ envVars:
 
 
 # Run the UI and API under /wego
-# additionalArgs:
-#   - "--route-prefix=/wego"
+additionalArgs:
+  - "--route-prefix=/wego"
 
 # Enable ingress running under a path
 # Note:

@@ -1,6 +1,7 @@
 package server
 
 import (
+	"bytes"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -50,8 +51,7 @@ func TestWithRoutePrefix(t *testing.T) {
 }
 
 func TestInjectHTMLBaseTag(t *testing.T) {
-
-	baseHtml := []byte("<head><title>Test</title></head>")
+	baseHTML := []byte("<head><title>Test</title></head>")
 	// should always have leading and trailing slash
 	expectedWithValue := []byte(`<head><base href="/test/"><title>Test</title></head>`)
 
@@ -64,8 +64,8 @@ func TestInjectHTMLBaseTag(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.routePrefix, func(t *testing.T) {
-			actual := InjectHTMLBaseTag(baseHtml, tc.routePrefix)
-			if string(actual) != string(expectedWithValue) {
+			actual := InjectHTMLBaseTag(baseHTML, tc.routePrefix)
+			if !bytes.Equal(actual, expectedWithValue) {
 				t.Errorf("expected %s, got %s", expectedWithValue, actual)
 			}
 		})
