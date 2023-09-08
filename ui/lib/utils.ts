@@ -264,7 +264,7 @@ export const Fade = styled<any>(Flex)<{
 `;
 
 export const reloadBrowserSignIn = (redirect?: string) => {
-  let path = withBaseURL(AuthRoutes.AUTH_PATH_SIGNIN);
+  let path = withBasePath(AuthRoutes.AUTH_PATH_SIGNIN);
 
   if (redirect) {
     const queryString = qs.stringify({ redirect });
@@ -275,21 +275,21 @@ export const reloadBrowserSignIn = (redirect?: string) => {
   window.location.replace(path);
 };
 
-export const getBaseURL = () => {
-  const baseElement = document.querySelector("base");
+export const getBasePath = (doc: Document = window.document) => {
+  const baseElement = doc.querySelector("base");
   if (baseElement) {
-    const { pathname } = new URL(document.baseURI);
+    const { pathname } = new URL(doc.baseURI);
     return pathname.replace(/\/$/, "");
   }
   return "";
 };
 
-export function withBaseURL(pathname: string) {
-  return getBaseURL() + pathname;
+export function withBasePath(pathname: string) {
+  return getBasePath() + pathname;
 }
 
-export function stripBaseURL(pathname: string) {
-  const basePath = getBaseURL();
+export function stripBasePath(pathname: string) {
+  const basePath = getBasePath();
 
   if (pathname.startsWith(basePath)) {
     return pathname.slice(basePath.length);

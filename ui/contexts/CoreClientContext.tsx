@@ -4,10 +4,10 @@ import { Core, GetFeatureFlagsResponse } from "../lib/api/core/core.pb";
 import { TokenRefreshWrapper } from "../lib/requests";
 import { RequestError } from "../lib/types";
 import {
-  getBaseURL,
+  getBasePath,
   reloadBrowserSignIn,
-  stripBaseURL,
-  withBaseURL,
+  stripBasePath,
+  withBasePath,
 } from "../lib/utils";
 
 type Props = {
@@ -38,11 +38,11 @@ function FeatureFlags(api) {
 }
 
 export async function refreshToken() {
-  const res = await fetch(withBaseURL("/oauth2/refresh"), { method: "POST" });
+  const res = await fetch(withBasePath("/oauth2/refresh"), { method: "POST" });
   if (!res.ok) {
     // The login redirect system is aware of the base URL and will add it,
     // so we need to strip it off here.
-    reloadBrowserSignIn(stripBaseURL(location.pathname) + location.search);
+    reloadBrowserSignIn(stripBasePath(location.pathname) + location.search);
 
     // Return a promse that does not resolve.
     // This stops any more API requests or refreshToken requests from being
@@ -62,7 +62,7 @@ export function setAPIPathPrefix(api: any) {
       continue;
     }
     wrapped[method] = (req: any, initReq: any) => {
-      const initWithBaseURL = { pathPrefix: getBaseURL(), ...initReq };
+      const initWithBaseURL = { pathPrefix: getBasePath(), ...initReq };
       return api[method](req, initWithBaseURL);
     };
   }
@@ -70,8 +70,7 @@ export function setAPIPathPrefix(api: any) {
 }
 
 export default function CoreClientContextProvider({ api, children }: Props) {
-  let wrapped = UnAuthorizedInterceptor(api);
-  wrapped = setAPIPathPrefix(api);
+  const wrapped = UnAuthorizedInterceptor(setAPIPathPrefix(api));
 
   return (
     <CoreClientContext.Provider

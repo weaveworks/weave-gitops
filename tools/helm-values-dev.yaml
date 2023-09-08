@@ -30,10 +30,19 @@ envVars:
   - name: WEAVE_GITOPS_FEATURE_DEV_MODE
     value: "true"
 
-ingress:
-  enabled: true
-  hosts:
-  - host: ""
-    paths:
-      - path: /foo
-        pathType: Prefix
+
+# Run the UI and API under /wego
+# additionalArgs:
+#   - "--route-prefix=/wego"
+
+# Enable ingress running under a path
+# Note:
+# Run ./tools/kind-with-ingress.sh # create a kind cluster with ingress
+# Open http://localhost:30080/wego # access the wego app
+# ingress:
+#   enabled: true
+#   hosts:
+#   - host: ""
+#     paths:
+#       - path: /wego
+#         pathType: Prefix

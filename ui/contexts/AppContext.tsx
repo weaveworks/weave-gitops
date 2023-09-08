@@ -3,7 +3,7 @@ import { useHistory } from "react-router-dom";
 import { DetailViewProps } from "../components/DetailModal";
 import { formatURL } from "../lib/nav";
 import { PageRoute, V2Routes } from "../lib/types";
-import { notifySuccess, withBaseURL } from "../lib/utils";
+import { notifySuccess, withBasePath } from "../lib/utils";
 
 type AppState = {
   error: null | { fatal: boolean; message: string; detail?: string };
@@ -124,7 +124,7 @@ export default function AppContextProvider({ ...props }: AppProps) {
       init?: RequestInit
     ): Promise<Response> => {
       if (typeof input === "string") {
-        input = withBaseURL(input);
+        input = withBasePath(input);
       }
       return window.fetch(input, init);
     },
