@@ -34,10 +34,9 @@ const Sync = styled(Button)<{ $hideDropdown: boolean }>`
   &.MuiButton-outlined {
     margin-right: 0;
     ${(props) =>
-      !props.$hideDropdown && `border-radius: 2px 0 0 2px; border-right: none`}
-  }
-  &.MuiButton-outlined.Mui-disabled {
-    border-right: none;
+      !props.$hideDropdown &&
+      `border-radius: 2px 0 0 2px; border-right: none; &.MuiButton-outlined.Mui-disabled {
+        border-right: none };`}
   }
 `;
 

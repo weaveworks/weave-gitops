@@ -63,17 +63,22 @@ function SourceDetail({ className, source, info, type, customActions }: Props) {
   });
 
   return (
-    <Flex wide tall column className={className}>
-      <PageStatus conditions={source.conditions} suspended={source.suspended} />
-      <SyncActions
-        name={name}
-        namespace={namespace}
-        clusterName={clusterName}
-        kind={type}
-        suspended={suspended}
-        hideDropdown
-        customActions={customActions}
-      />
+    <Flex wide tall column className={className} gap="32">
+      <Flex column gap="8">
+        <PageStatus
+          conditions={source.conditions}
+          suspended={source.suspended}
+        />
+        <SyncActions
+          name={name}
+          namespace={namespace}
+          clusterName={clusterName}
+          kind={type}
+          suspended={suspended}
+          hideDropdown
+          customActions={customActions}
+        />
+      </Flex>
 
       <SubRouterTabs rootPath={`${path}/details`}>
         <RouterTab name="Details" path={`${path}/details`}>

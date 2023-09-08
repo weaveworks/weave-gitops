@@ -49,6 +49,7 @@ import PolicyDetails from "./components/Policies/PolicyDetails/PolicyDetails";
 import { PolicyTable } from "./components/Policies/PolicyList/PolicyTable";
 import { ViolationDetails } from "./components/Policies/PolicyViolations/PolicyViolationDetails";
 import { PolicyViolationsList } from "./components/Policies/PolicyViolations/Table";
+import HeaderRows, { RowHeader } from "./components/Policies/Utils/HeaderRows";
 import Severity from "./components/Policies/Utils/Severity";
 import ProviderDetail from "./components/ProviderDetail";
 import ReconciledObjectsTable from "./components/ReconciledObjectsTable";
@@ -159,6 +160,7 @@ export {
   GitRepository,
   GitRepositoryDetail,
   Graph,
+  HeaderRows,
   HelmChart,
   HelmChartDetail,
   HelmRelease,
@@ -208,6 +210,7 @@ export {
   ReconciliationGraph,
   RequestStateHandler,
   RouterTab,
+  RowHeader,
   Severity,
   SignIn,
   SourceLink,

@@ -6,7 +6,6 @@ import { Kind } from "../lib/api/core/types.pb";
 import Button from "./Button";
 import CustomActions from "./CustomActions";
 import Flex from "./Flex";
-import Spacer from "./Spacer";
 import SyncButton from "./SyncButton";
 
 interface Props {
@@ -59,14 +58,13 @@ const SyncActions = ({
     : (opts) => sync.mutateAsync(opts);
 
   return (
-    <Flex start className={className}>
+    <Flex start className={className} gap="12">
       <SyncButton
         onClick={syncHandler}
         loading={sync.isLoading}
         disabled={suspended}
         hideDropdown={hideDropdown}
       />
-      <Spacer padding="xs" />
       <Button onClick={() => suspend.mutateAsync()} loading={suspend.isLoading}>
         {suspended ? "Resume" : "Suspend"}
       </Button>
