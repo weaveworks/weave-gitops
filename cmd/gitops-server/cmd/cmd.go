@@ -286,20 +286,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	})))
 
 	if options.RoutePrefix != "" {
-		// ensure that the route prefix begins with a slash
-		if !strings.HasPrefix(options.RoutePrefix, "/") {
-			options.RoutePrefix = "/" + options.RoutePrefix
-		}
-		// ensure route prefix doesn't have a trainling slash
-		options.RoutePrefix = strings.TrimSuffix(options.RoutePrefix, "/")
-
-		routePrefixMux := http.NewServeMux()
-		routePrefixMux.Handle(options.RoutePrefix+"/", http.StripPrefix(options.RoutePrefix, mux))
-		// Redirect to the route prefix if the user hits the root of the server
-		// e.g. if they port-forward
-		routePrefixMux.Handle("/", http.RedirectHandler(options.RoutePrefix+"/", http.StatusFound))
-
-		mux = routePrefixMux
+		mux = server.WithRoutePrefix(mux, options.RoutePrefix)
 	}
 
 	handler := http.Handler(mux)
@@ -454,15 +441,7 @@ func createRedirector(fsys fs.FS, log logr.Logger, routePrefix string) http.Hand
 
 		// inject base tag into index.html
 		if routePrefix != "" {
-			baseHref := routePrefix
-			// ensure baseHref begins and ends with a slash
-			if !strings.HasPrefix(baseHref, "/") {
-				baseHref = "/" + baseHref
-			}
-			if !strings.HasSuffix(baseHref, "/") {
-				baseHref += "/"
-			}
-			bt = []byte(strings.Replace(string(bt), "<head>", fmt.Sprintf("<head><base href=%q>", baseHref), 1))
+			bt = server.InjectHTMLBaseTag(bt, routePrefix)
 		}
 
 		_, err = w.Write(bt)
