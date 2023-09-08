@@ -11,7 +11,7 @@ func WithRoutePrefix(mux *http.ServeMux, routePrefix string) *http.ServeMux {
 	if !strings.HasPrefix(routePrefix, "/") {
 		routePrefix = "/" + routePrefix
 	}
-	// ensure route prefix doesn't have a trainling slash
+	// ensure route prefix doesn't have a trailing slash
 	routePrefix = strings.TrimSuffix(routePrefix, "/")
 
 	routePrefixMux := http.NewServeMux()
