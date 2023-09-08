@@ -240,7 +240,7 @@ export {
   setAPIPathPrefix,
   showInterval,
   statusSortHelper,
-  stripBasePath as stripBaseURL,
+  stripBasePath,
   theme,
   useCheckCRDInstalled,
   useDebounce,
@@ -258,5 +258,5 @@ export {
   useRequestState,
   useSyncFluxObject,
   useToggleSuspend,
-  withBasePath as withBaseURL,
+  withBasePath,
 };

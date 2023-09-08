@@ -426,9 +426,6 @@ describe("createYamlCommand", () => {
     );
   });
 
-  /**
-   * @jest-environment node
-   */
   describe("getBasePath", () => {
     describe("without a base tag set in the dom", () => {
       let dom: JSDOM;
