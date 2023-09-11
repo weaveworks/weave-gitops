@@ -50,24 +50,40 @@ func TestWithRoutePrefix(t *testing.T) {
 	}
 }
 
-func TestInjectHTMLBaseTag(t *testing.T) {
-	baseHTML := []byte("<head><title>Test</title></head>")
-	// should always have leading and trailing slash
-	expectedWithValue := []byte(`<head><base href="/test/"><title>Test</title></head>`)
-
-	testCases := []struct{ routePrefix string }{
-		{routePrefix: "test"},
-		{routePrefix: "/test"},
-		{routePrefix: "test/"},
-		{routePrefix: "/test/"},
+func TestGetBaseHref(t *testing.T) {
+	testCases := []struct {
+		routePrefix string
+		expected    string
+	}{
+		{routePrefix: "test", expected: "/test/"},
+		{routePrefix: "/test", expected: "/test/"},
+		{routePrefix: "test/", expected: "/test/"},
+		{routePrefix: "/test/", expected: "/test/"},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.routePrefix, func(t *testing.T) {
-			actual := InjectHTMLBaseTag(baseHTML, tc.routePrefix)
-			if !bytes.Equal(actual, expectedWithValue) {
-				t.Errorf("expected %s, got %s", expectedWithValue, actual)
+			actual := GetBaseHref(tc.routePrefix)
+			if actual != tc.expected {
+				t.Errorf("expected %s, got %s", tc.expected, actual)
 			}
 		})
+	}
+}
+
+func TestInjectHTMLBaseTag(t *testing.T) {
+	// if html has a head tag then we should inject a base tag
+	htmlWithHead := []byte("<html><head></head><body></body></html>")
+	expected := []byte("<html><head><base href=\"/test/\"></head><body></body></html>")
+	actual := InjectHTMLBaseTag(htmlWithHead, "/test/")
+	if !bytes.Equal(expected, actual) {
+		t.Errorf("expected %s, got %s", expected, actual)
+	}
+
+	// if html doesn't have a head tag then we should not inject a base tag
+	htmlWithoutHead := []byte("<html><body></body></html>")
+	actual = InjectHTMLBaseTag(htmlWithoutHead, "/test/")
+	if !bytes.Equal(htmlWithoutHead, actual) {
+		t.Errorf("expected %s, got %s", htmlWithoutHead, actual)
 	}
 }

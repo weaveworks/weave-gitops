@@ -23,7 +23,7 @@ func WithRoutePrefix(mux *http.ServeMux, routePrefix string) *http.ServeMux {
 	return routePrefixMux
 }
 
-func InjectHTMLBaseTag(html []byte, routePrefix string) []byte {
+func GetBaseHref(routePrefix string) string {
 	baseHref := routePrefix
 	// ensure baseHref begins and ends with a slash
 	if !strings.HasPrefix(baseHref, "/") {
@@ -32,5 +32,9 @@ func InjectHTMLBaseTag(html []byte, routePrefix string) []byte {
 	if !strings.HasSuffix(baseHref, "/") {
 		baseHref += "/"
 	}
+	return baseHref
+}
+
+func InjectHTMLBaseTag(html []byte, baseHref string) []byte {
 	return []byte(strings.Replace(string(html), "<head>", fmt.Sprintf("<head><base href=%q>", baseHref), 1))
 }

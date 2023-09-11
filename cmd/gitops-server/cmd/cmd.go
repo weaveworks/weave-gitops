@@ -101,7 +101,6 @@ func NewCommand() *cobra.Command {
 	cmd.Flags().StringVar(&options.Host, "host", server.DefaultHost, "UI host")
 	cmd.Flags().StringVar(&options.LogLevel, "log-level", logger.DefaultLogLevel, "log level")
 	cmd.Flags().StringVar(&options.NotificationControllerAddress, "notification-controller-address", "", "the address of the notification-controller running in the cluster")
-	cmd.Flags().StringVar(&options.Path, "path", "", "Path url, DEPRECATED")
 	cmd.Flags().StringVar(&options.RoutePrefix, "route-prefix", "", "Mount the UI and API endpoint under a path prefix, e.g. /weave-gitops")
 	cmd.Flags().StringVar(&options.Port, "port", server.DefaultPort, "UI port")
 	cmd.Flags().StringSliceVar(&options.AuthMethods, "auth-methods", auth.DefaultAuthMethodStrings(), fmt.Sprintf("Which auth methods to use, valid values are %s", strings.Join(auth.AllUserAuthMethods(), ",")))
@@ -411,6 +410,12 @@ func getAssets() fs.FS {
 // The JS router will take care of actual navigation once the index.html page lands.
 func createRedirector(fsys fs.FS, log logr.Logger, routePrefix string) http.HandlerFunc {
 	log.Info("Creating redirector", "routePrefix", routePrefix)
+
+	baseHref := ""
+	if routePrefix != "" {
+		baseHref = server.GetBaseHref(routePrefix)
+	}
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		indexPage, err := fsys.Open("index.html")
 
@@ -440,8 +445,8 @@ func createRedirector(fsys fs.FS, log logr.Logger, routePrefix string) http.Hand
 		}
 
 		// inject base tag into index.html
-		if routePrefix != "" {
-			bt = server.InjectHTMLBaseTag(bt, routePrefix)
+		if baseHref != "" {
+			bt = server.InjectHTMLBaseTag(bt, baseHref)
 		}
 
 		_, err = w.Write(bt)
