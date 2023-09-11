@@ -1,12 +1,11 @@
 ---
 title: Weave GitOps Enterprise
 hide_title: true
-pagination_next: getting-started/ui
 ---
 
 import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
-import TierLabel from "../../_components/TierLabel";
+import TierLabel from "@site/docs/_components/TierLabel";
 import CurlCodeBlock from "../../_components/CurlCodeBlock";
 import oauthBitbucket from '/img/oauth-bitbucket.png';
 import oauthAzureDevOps from '/img/oauth-azure-devops.png';
@@ -15,9 +14,7 @@ import oauthAzureDevOpsSuccess from '/img/oauth-azure-devops-success.png';
 ## Installing Weave GitOps Enterprise<TierLabel tiers="Enterprise" />
 
 :::info
-To purchase entitlement to Weave GitOps Enterprise Edition please contact [sales@weave.works](mailto:sales@weave.works)
-
-For more information about Weave GitOps Enterprise Edition, see the [Enterprise feature page](../../intro-ee.mdx).
+To purchase entitlement to Weave GitOps Enterprise Edition please contact [sales@weave.works](mailto:sales@weave.works).
 :::
 
 Follow the instructions on this page to:
@@ -418,15 +415,6 @@ curl --silent --location "https://artifacts.wge.dev.weave.works/releases/bin/0.2
 sudo mv /tmp/gitops /usr/local/bin
 gitops version
 ```
-
-## Next steps
-
-In our following [Get Started document](../../getting-started/ui.mdx), we will walk you through logging into the GitOps Dashboard and deploying an application.
-
-Then you can head over to either:
-
-- [Cluster Management - Getting started](../../cluster-management/getting-started.mdx) to create your first CAPI Cluster with `kind`/CAPD
-- [Deploying CAPA with EKS](../../guides/deploying-capa.mdx) to create your first CAPI Cluster with EKS/CAPA.
 
 ### (Optional) Install the TF-Controller
 
