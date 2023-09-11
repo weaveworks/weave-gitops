@@ -52,7 +52,7 @@ function SourceDetail({ className, source, info, type, customActions }: Props) {
   }
 
   const isNameRelevant = (expectedName) => {
-    return expectedName === name;
+    return expectedName == name;
   };
 
   const isRelevant = (expectedType, expectedName) => {

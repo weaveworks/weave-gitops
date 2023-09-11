@@ -43,6 +43,30 @@ const makeMetadata = (metadata: [string, string][]): [string, any][] => {
   return metadataCopy;
 };
 
+const MetadataSection: React.FC<{ title: string; items: [string, any][] }> = ({
+  title,
+  items,
+}) => {
+  return (
+    <Flex column gap="8">
+      <Text size="large" color="neutral30">
+        {title}
+      </Text>
+      {title === "Labels" ? (
+        items.map((label, index) => {
+          return (
+            <Label key={index}>
+              {label[0]}: {label[1]}
+            </Label>
+          );
+        })
+      ) : (
+        <InfoList items={items} />
+      )}
+    </Flex>
+  );
+};
+
 function Metadata({
   metadata = [],
   labels = [],
@@ -55,37 +79,15 @@ function Metadata({
   return (
     <Flex wide column className={className} gap="12">
       {metadataCopy.length > 0 && (
-        <Flex column gap="8">
-          <Text size="large" color="neutral30">
-            Metadata
-          </Text>
-          <InfoList items={metadataCopy} />
-        </Flex>
+        <MetadataSection title="Metadata" items={metadataCopy} />
       )}
       {artifactMetadataCopy.length > 0 && (
-        <Flex column gap="8">
-          <Text size="large" color="neutral30">
-            Artifact Metadata
-          </Text>
-          <InfoList items={artifactMetadataCopy} />
-        </Flex>
+        <MetadataSection
+          title="Artifact Metadata"
+          items={artifactMetadataCopy}
+        />
       )}
-      {labels.length > 0 && (
-        <Flex column gap="8">
-          <Text size="large" color="neutral30">
-            Labels
-          </Text>
-          <Flex wide start wrap gap="4">
-            {labels.map((label, index) => {
-              return (
-                <Label key={index}>
-                  {label[0]}: {label[1]}
-                </Label>
-              );
-            })}
-          </Flex>
-        </Flex>
-      )}
+      {labels.length > 0 && <MetadataSection title="Labels" items={labels} />}
     </Flex>
   );
 }
