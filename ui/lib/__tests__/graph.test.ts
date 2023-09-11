@@ -1,9 +1,9 @@
 import _ from "lodash";
+import { pod, rs } from "../__fixtures__/graph";
 import { Core, GetChildObjectsResponse } from "../api/core/core.pb";
 import { Kind } from "../api/core/types.pb";
 import { getChildren } from "../graph";
 import { createCoreMockClient } from "../test-utils";
-import { pod, rs } from "../__fixtures__/graph";
 
 describe("graph lib", () => {
   let client: typeof Core;

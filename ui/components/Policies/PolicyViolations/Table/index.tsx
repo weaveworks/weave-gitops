@@ -1,16 +1,16 @@
 import React from "react";
+import { useFeatureFlags } from "../../../../hooks/featureflags";
 import { useListPolicyValidations } from "../../../../hooks/policyViolations";
 import { ListPolicyValidationsRequest } from "../../../../lib/api/core/core.pb";
+import { Kind } from "../../../../lib/api/core/types.pb";
 import { formatURL } from "../../../../lib/nav";
 import { V2Routes } from "../../../../lib/types";
 import DataTable, { Field, filterConfig } from "../../../DataTable";
 import Link from "../../../Link";
 import RequestStateHandler from "../../../RequestStateHandler";
+import Text from "../../../Text";
 import Timestamp from "../../../Timestamp";
 import Severity from "../../Utils/Severity";
-import { useFeatureFlags } from "../../../../hooks/featureflags";
-import { Kind } from "../../../../lib/api/core/types.pb";
-import Text from "../../../Text";
 
 interface Props {
   req: ListPolicyValidationsRequest;

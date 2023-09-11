@@ -1,7 +1,7 @@
 import * as React from "react";
-import { Auth } from "../../contexts/AuthContext";
 import Page from "../../components/Page";
 import UserGroupsTable from "../../components/UserGroupsTable";
+import { Auth } from "../../contexts/AuthContext";
 type Props = {
   className?: string;
 };

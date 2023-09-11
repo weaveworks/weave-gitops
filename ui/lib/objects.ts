@@ -8,8 +8,8 @@ import {
   Interval,
   Kind,
   NamespacedObjectReference,
-  Object as ResponseObject,
   ObjectRef,
+  Object as ResponseObject,
 } from "./api/core/types.pb";
 export type Automation = HelmRelease | Kustomization;
 export type Source =
@@ -342,7 +342,7 @@ export class ImagePolicy extends ImageUpdateAutomation {
     super(response);
   }
   get imagePolicy(): ImgPolicy {
-    const { policy } = this.obj?.spec;
+    const { policy } = this.obj?.spec || {};
     const [type] = Object.keys(policy);
     if (type) {
       const [val] = Object.values(policy[type]);

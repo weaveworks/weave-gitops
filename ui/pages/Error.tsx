@@ -1,7 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
-import Content from "../components/Page";
 import Flex from "../components/Flex";
+import Content from "../components/Page";
 
 type Props = {
   className?: string;
