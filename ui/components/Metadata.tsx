@@ -53,13 +53,15 @@ const MetadataSection: React.FC<{ title: string; items: [string, any][] }> = ({
         {title}
       </Text>
       {title === "Labels" ? (
-        items.map((label, index) => {
-          return (
-            <Label key={index}>
-              {label[0]}: {label[1]}
-            </Label>
-          );
-        })
+        <Flex wide start wrap gap="4">
+          {items.map((label, index) => {
+            return (
+              <Label key={index}>
+                {label[0]}: {label[1]}
+              </Label>
+            );
+          })}
+        </Flex>
       ) : (
         <InfoList items={items} />
       )}
