@@ -4,12 +4,12 @@ import { formatMetadataKey, isHTTP } from "../lib/utils";
 import Flex from "./Flex";
 import InfoList from "./InfoList";
 import Link from "./Link";
-import Spacer from "./Spacer";
 import Text from "./Text";
 
 type Props = {
   className?: string;
   metadata?: [string, string][];
+  artifactMetadata?: [string, string][];
   labels?: [string, string][];
 };
 
@@ -21,9 +21,8 @@ const Label = styled(Text)`
   background-color: ${(props) => props.theme.colors.neutralGray};
 `;
 
-function Metadata({ metadata = [], labels = [], className }: Props) {
+const makeMetadata = (metadata: [string, string][]): [string, any][] => {
   const metadataCopy = [];
-
   for (let i = 0; i < metadata.length; i++) {
     metadataCopy[i] = metadata[i].slice();
   }
@@ -41,16 +40,34 @@ function Metadata({ metadata = [], labels = [], className }: Props) {
         </Link>
       );
   });
+  return metadataCopy;
+};
+
+function Metadata({
+  metadata = [],
+  labels = [],
+  artifactMetadata = [],
+  className,
+}: Props) {
+  const metadataCopy = makeMetadata(metadata);
+  const artifactMetadataCopy = makeMetadata(artifactMetadata);
 
   return (
-    <Flex wide column className={className} gap="16">
+    <Flex wide column className={className} gap="12">
       {metadataCopy.length > 0 && (
         <Flex column gap="8">
           <Text size="large" color="neutral30">
             Metadata
           </Text>
           <InfoList items={metadataCopy} />
-          <Spacer padding="small" />
+        </Flex>
+      )}
+      {artifactMetadataCopy.length > 0 && (
+        <Flex column gap="8">
+          <Text size="large" color="neutral30">
+            Artifact Metadata
+          </Text>
+          <InfoList items={artifactMetadataCopy} />
         </Flex>
       )}
       {labels.length > 0 && (
@@ -76,5 +93,5 @@ function Metadata({ metadata = [], labels = [], className }: Props) {
 export default styled(Metadata).attrs({
   className: Metadata.name,
 })`
-  margin-top: ${(props) => props.theme.spacing.medium};
+  margin: ${(props) => props.theme.spacing.small} 0;
 `;
