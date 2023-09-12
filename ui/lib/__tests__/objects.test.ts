@@ -1,5 +1,5 @@
-import { Kind } from "../api/core/types.pb";
 import { pod, rs } from "../__fixtures__/graph";
+import { Kind } from "../api/core/types.pb";
 import {
   Bucket,
   FluxObject,

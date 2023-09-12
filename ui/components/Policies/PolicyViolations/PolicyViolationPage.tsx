@@ -2,13 +2,13 @@ import React from "react";
 
 import styled from "styled-components";
 import { useGetPolicyValidationDetails } from "../../../hooks/policyViolations";
+import { PolicyValidation } from "../../../lib/api/core/core.pb";
 import { Kind } from "../../../lib/api/core/types.pb";
 import { formatURL } from "../../../lib/nav";
+import { FluxObject } from "../../../lib/objects";
 import { V2Routes } from "../../../lib/types";
 import Page from "../../Page";
 
-import { PolicyValidation } from "../../../lib/api/core/core.pb";
-import { FluxObject } from "../../../lib/objects";
 import { ViolationDetails } from "./PolicyViolationDetails";
 
 const getPath = (kind: string, violation?: PolicyValidation) => {

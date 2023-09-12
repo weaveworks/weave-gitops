@@ -2,8 +2,8 @@ import qs from "query-string";
 import * as React from "react";
 import { useQuery } from "react-query";
 import { Core, GetFeatureFlagsResponse } from "../lib/api/core/core.pb";
-import { RequestError } from "../lib/types";
 import { TokenRefreshWrapper } from "../lib/requests";
+import { RequestError } from "../lib/types";
 import { AuthRoutes } from "./AuthContext";
 
 type Props = {
