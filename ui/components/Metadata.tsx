@@ -43,10 +43,10 @@ const makeMetadata = (metadata: [string, string][]): [string, any][] => {
   return metadataCopy;
 };
 
-const MetadataSection: React.FC<{ title: string; items: [string, any][] }> = ({
-  title,
-  items,
-}) => {
+const MetadataSection: React.FC<{
+  title: string;
+  items: [string, string | JSX.Element][];
+}> = ({ title, items }) => {
   return (
     <Flex column gap="8">
       <Text size="large" color="neutral30">
