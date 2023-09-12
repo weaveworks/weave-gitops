@@ -33,7 +33,7 @@ service Core {
      */
     rpc GetObject(GetObjectRequest) returns (GetObjectResponse) {
         option (google.api.http) = {
-            get: "/v1/object/{name}"
+            get: "/v1/namespaces/{cluster_namespace}/clusters/{cluster_name}/namespaces/{namespace}/object/{name}"
         };
     }
 
@@ -54,13 +54,13 @@ service Core {
     rpc ListFluxRuntimeObjects(ListFluxRuntimeObjectsRequest)
         returns (ListFluxRuntimeObjectsResponse) {
         option (google.api.http) = {
-            get: "/v1/flux_runtime_objects"
+            get: "/v1/flux-runtime-objects"
         };
     }
 
     rpc ListFluxCrds(ListFluxCrdsRequest) returns (ListFluxCrdsResponse) {
         option (google.api.http) = {
-            get: "/v1/flux_crds"
+            get: "/v1/flux-crds"
         };
     }
 
@@ -73,7 +73,7 @@ service Core {
     rpc GetReconciledObjects(GetReconciledObjectsRequest)
         returns (GetReconciledObjectsResponse) {
         option (google.api.http) = {
-            post: "/v1/reconciled_objects"
+            post: "/v1/reconciled-objects"
             body: "*"
         };
     };
@@ -87,7 +87,7 @@ service Core {
     rpc GetChildObjects(GetChildObjectsRequest)
         returns (GetChildObjectsResponse) {
         option (google.api.http) = {
-            post: "/v1/child_objects"
+            post: "/v1/child-objects"
             body: "*"
         };
     };
@@ -145,7 +145,7 @@ service Core {
     rpc GetFeatureFlags(GetFeatureFlagsRequest)
         returns (GetFeatureFlagsResponse) {
         option (google.api.http) = {
-            get: "/v1/featureflags"
+            get: "/v1/feature-flags"
         };
     }
 
@@ -165,7 +165,7 @@ service Core {
      */
     rpc GetSessionLogs(GetSessionLogsRequest) returns (GetSessionLogsResponse) {
         option (google.api.http) = {
-            post: "/v1/session_logs"
+            post: "/v1/session-logs"
             body: "*"
         };
     }
@@ -177,7 +177,7 @@ service Core {
      */
     rpc IsCRDAvailable(IsCRDAvailableRequest) returns (IsCRDAvailableResponse) {
         option (google.api.http) = {
-            get : "/v1/crd/is_available",
+            get : "/v1/crd/is-available",
         };
     }
 
@@ -197,7 +197,7 @@ service Core {
     // GetPolicy gets a policy by name
     rpc GetPolicy(GetPolicyRequest) returns (GetPolicyResponse) {
         option (google.api.http) = {
-        get : "/v1/policies/{policyName}"
+        get : "/v1/policies/{policy_name}"
         };
     }
     /*
@@ -206,7 +206,7 @@ service Core {
     rpc ListPolicyValidations(ListPolicyValidationsRequest)
         returns (ListPolicyValidationsResponse) {
         option (google.api.http) = {
-        post : "/v1/policyvalidations"
+        post : "/v1/policy-validations"
         body : "*"
         };
     }
@@ -217,7 +217,7 @@ service Core {
     rpc GetPolicyValidation(GetPolicyValidationRequest)
         returns (GetPolicyValidationResponse) {
         option (google.api.http) = {
-        get : "/v1/policyvalidations/{validationId}"
+        get : "/v1/policy-validations/{validation_id}"
         };
     }
 }
@@ -226,8 +226,8 @@ message GetInventoryRequest {
     string kind         = 1;
     string name         = 2;
     string namespace    = 3;
-    string clusterName  = 4;
-    bool   withChildren = 5;
+    string cluster_name  = 4;
+    bool   with_children = 5;
 }
 
 message GetInventoryResponse {
@@ -237,20 +237,20 @@ message GetInventoryResponse {
 message PolicyValidation {
     string   id                                     = 1;
     string   message                                = 2;
-    string   clusterId                              = 3;
+    string   cluster_id                             = 3;
     string   category                               = 4;
     string   severity                               = 5;
-    string   createdAt                              = 6;
+    string   created_at                             = 6;
     string   entity                                 = 7;
-    string   entityKind                             = 8;
+    string   entity_kind                            = 8;
     string   namespace                              = 9;
-    string   violatingEntity                        = 10;
+    string   violating_entity                       = 10;
     string   description                            = 11;
-    string   howToSolve                             = 12;
+    string   how_to_solve                           = 12;
     string   name                                   = 13;
-    string   clusterName                            = 14;
+    string   cluster_name                           = 14;
     repeated PolicyValidationOccurrence occurrences = 15;
-    string   policyId                               = 16;
+    string   policy_id                              = 16;
     repeated PolicyValidationParam parameters       = 17;
 }
 
@@ -260,21 +260,21 @@ message ListPolicyValidationsRequest {
     string application = 3;
     string namespace = 4;
     string kind = 5;
-    string policyId = 6;
-    string validationType = 7;
+    string policy_id = 6;
+    string validation_type = 7;
 }
 
 message ListPolicyValidationsResponse {
     repeated PolicyValidation violations = 1;
     int32    total                       = 2;
-    string   nextPageToken               = 3;
+    string   next_page_token             = 3;
     repeated ListError errors            = 4;
 }
 
 message GetPolicyValidationRequest {
-    string validationId = 1;
-    string clusterName = 2;
-    string validationType = 3;
+    string validation_id = 1;
+    string cluster_name = 2;
+    string validation_type = 3;
 }
 
 message GetPolicyValidationResponse {
@@ -286,11 +286,11 @@ message PolicyValidationOccurrence {
 }
 
 message PolicyValidationParam {
-    string              name      = 1;
-    string              type      = 2;
-    google.protobuf.Any value     = 3;
-    bool                required  = 4;
-    string              configRef = 5;
+    string              name       = 1;
+    string              type       = 2;
+    google.protobuf.Any value      = 3;
+    bool                required   = 4;
+    string              config_ref = 5;
 }
 
 message PolicyParamRepeatedString {
@@ -298,19 +298,19 @@ message PolicyParamRepeatedString {
 }
 
 message Pagination {
-    int32  pageSize  = 1;
-    string pageToken = 2;
+    int32  page_size  = 1;
+    string page_token = 2;
 }
 
 message ListError {
-    string clusterName = 1;
-    string namespace   = 2;
-    string message     = 3;
+    string cluster_name = 1;
+    string namespace    = 2;
+    string message      = 3;
 }
 
 message ListFluxRuntimeObjectsRequest {
-    string namespace   = 1;
-    string clusterName = 2;
+    string namespace    = 1;
+    string cluster_name = 2;
 }
 
 message ListFluxRuntimeObjectsResponse {
@@ -319,7 +319,7 @@ message ListFluxRuntimeObjectsResponse {
 }
 
 message ListFluxCrdsRequest {
-    string clusterName = 1;
+    string cluster_name = 1;
 }
 
 message ListFluxCrdsResponse {
@@ -328,10 +328,11 @@ message ListFluxCrdsResponse {
 }
 
 message GetObjectRequest {
-    string name        = 1;
-    string namespace   = 2;
-    string kind        = 3;
-    string clusterName = 4;
+    string name              = 1;
+    string namespace         = 2;
+    string kind              = 3;
+    string cluster_name      = 4;
+    string cluster_namespace = 5;
 }
 
 message GetObjectResponse {
@@ -339,29 +340,29 @@ message GetObjectResponse {
 }
 
 message ListObjectsRequest {
-    string     namespace       = 1;
-    string     kind            = 2;
-    string     clusterName     = 3;
-    map<string, string> labels = 4;
+    string     namespace        = 1;
+    string     kind             = 2;
+    string     cluster_name     = 3;
+    map<string, string> labels  = 4;
 }
 
 message ClusterNamespaceList { 
-    string clusterName = 1;
+    string cluster_name = 1;
     repeated string namespaces = 2; 
 }
 
 message ListObjectsResponse {
     repeated Object objects   = 1;
     repeated ListError errors = 2;
-    repeated ClusterNamespaceList searchedNamespaces = 3;
+    repeated ClusterNamespaceList searched_namespaces = 3;
 }
 
 message GetReconciledObjectsRequest {
-    string   automationName         = 1;
-    string   namespace              = 2;
-    string   automationKind         = 3;
-    repeated GroupVersionKind kinds = 4;
-    string   clusterName            = 5;
+    string   automation_name         = 1;
+    string   namespace               = 2;
+    string   automation_kind         = 3;
+    repeated GroupVersionKind kinds  = 4;
+    string   cluster_name            = 5;
 }
 
 message GetReconciledObjectsResponse {
@@ -369,10 +370,10 @@ message GetReconciledObjectsResponse {
 }
 
 message GetChildObjectsRequest {
-    GroupVersionKind groupVersionKind = 1;
-    string           namespace        = 2;
-    string           parentUid        = 3;
-    string           clusterName      = 4;
+    GroupVersionKind groupVersion_kind = 1;
+    string           namespace         = 2;
+    string           parent_uid        = 3;
+    string           cluster_name      = 4;
 }
 
 message GetChildObjectsResponse {
@@ -392,7 +393,7 @@ message ListNamespacesResponse {
 }
 
 message ListEventsRequest {
-    ObjectRef involvedObject = 1;
+    ObjectRef involved_object = 1;
 }
 
 message ListEventsResponse {
@@ -400,8 +401,8 @@ message ListEventsResponse {
 }
 
 message SyncFluxObjectRequest {
-    repeated ObjectRef objects = 1;
-    bool     withSource        = 2;
+    repeated ObjectRef objects  = 1;
+    bool     with_source        = 2;
 }
 
 message SyncFluxObjectResponse {
@@ -410,11 +411,11 @@ message SyncFluxObjectResponse {
 message GetVersionRequest {}
 
 message GetVersionResponse {
-    string semver      = 1;
-    string commit      = 2;
-    string branch      = 3;
-    string buildTime   = 4;
-    string kubeVersion = 5;
+    string semver       = 1;
+    string commit       = 2;
+    string branch       = 3;
+    string build_time   = 4;
+    string kube_version = 5;
 }
 
 message GetFeatureFlagsRequest {}
@@ -432,26 +433,26 @@ message ToggleSuspendResourceResponse {
 }
 
 message GetSessionLogsRequest {
-    string sessionNamespace = 1;
-    string sessionId        = 2;
-    string token            = 3;
-    string logSourceFilter  = 4;
-    string logLevelFilter   = 5;
+    string session_namespace  = 1;
+    string session_id         = 2;
+    string token              = 3;
+    string log_source_filter  = 4;
+    string log_level_filter   = 5;
 }
 
 message LogEntry {
-    string timestamp  = 1;
-    string source     = 2;
-    string level      = 3;
-    string message    = 4;
-    string sortingKey = 5;
+    string timestamp   = 1;
+    string source      = 2;
+    string level       = 3;
+    string message     = 4;
+    string sorting_key = 5;
 }
 
 message GetSessionLogsResponse {
-    repeated LogEntry logs       = 1;
-    string   nextToken           = 2;
-    string   error               = 3;
-    repeated string   logSources = 4;
+    repeated LogEntry logs        = 1;
+    string   next_token           = 2;
+    string   error                = 3;
+    repeated string   log_sources = 4;
 }
 
 message IsCRDAvailableRequest {
@@ -463,25 +464,25 @@ message IsCRDAvailableResponse {
 }
 
 message ListPoliciesRequest {
-    string clusterName = 1;
+    string cluster_name = 1;
     Pagination pagination = 2;
 }
 
 message ListPoliciesResponse {
     repeated PolicyObj policies = 1;
     int32 total = 2;
-    string nextPageToken = 3;
+    string next_page_token = 3;
     repeated ListError errors = 4;
 }
 
 message GetPolicyRequest {
-    string policyName = 1;
-    string clusterName = 2;
+    string policy_name = 1;
+    string cluster_name = 2;
 }
 
 message GetPolicyResponse {
     PolicyObj policy = 1;
-    string clusterName = 2;
+    string cluster_name = 2;
 }
 
 message PolicyObj {
@@ -489,16 +490,16 @@ message PolicyObj {
     string id = 2;
     string code = 3;
     string description = 4;
-    string howToSolve = 5;
+    string how_to_solve = 5;
     string category = 6;
     repeated string tags = 7;
     string severity = 8;
     repeated PolicyStandard standards = 9;
-    string gitCommit = 10;
+    string git_commit = 10;
     repeated PolicyParam parameters = 11;
     PolicyTargets targets = 12;
-    string createdAt = 13;
-    string clusterName = 14;
+    string created_at = 13;
+    string cluster_name = 14;
     string tenant = 15;
     repeated string modes = 16;
 }
