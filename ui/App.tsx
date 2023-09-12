@@ -35,6 +35,7 @@ import Fonts from "./lib/fonts";
 import { getParentNavRouteValue } from "./lib/nav";
 import theme, { GlobalStyle, muiTheme } from "./lib/theme";
 import { V2Routes } from "./lib/types";
+import { getBasePath } from "./lib/utils";
 import Error from "./pages/Error";
 import SignIn from "./pages/SignIn";
 import Automations from "./pages/v2/Automations";
@@ -53,7 +54,6 @@ import PolicyDetailsPage from "./pages/v2/PolicyDetailsPage";
 import ProviderPage from "./pages/v2/ProviderPage";
 import Sources from "./pages/v2/Sources";
 import UserInfo from "./pages/v2/UserInfo";
-import { getBasePath } from "./lib/utils";
 
 const queryClient = new QueryClient();
 
