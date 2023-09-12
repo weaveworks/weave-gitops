@@ -2,13 +2,13 @@ import { useContext } from "react";
 import { useQuery } from "react-query";
 
 import { CoreClientContext } from "../contexts/CoreClientContext";
-import { ReactQueryOptions, RequestError } from "../lib/types";
 import {
   ListPoliciesRequest,
   ListPoliciesResponse,
   GetPolicyRequest,
   GetPolicyResponse,
 } from "../lib/api/core/core.pb";
+import { ReactQueryOptions, RequestError } from "../lib/types";
 
 const LIST_POLICIES_QUERY_KEY = "list-policy";
 
