@@ -1,5 +1,6 @@
 import { ReconciledObjectsAutomation } from "./components/AutomationDetail";
 import AutomationsTable from "./components/AutomationsTable";
+import { Breadcrumb } from "./components/Breadcrumbs";
 import BucketDetail from "./components/BucketDetail";
 import Button from "./components/Button";
 import ChipGroup from "./components/ChipGroup";
@@ -10,6 +11,7 @@ import DataTable, {
   filterByStatusCallback,
   filterConfig,
 } from "./components/DataTable";
+import { Field } from "./components/DataTable/types";
 import DependenciesView from "./components/DependenciesView";
 import DetailModal from "./components/DetailModal";
 import DirectedGraph from "./components/DirectedGraph";
@@ -92,7 +94,27 @@ import useNavigation from "./hooks/navigation";
 import { useListAlerts, useListProviders } from "./hooks/notifications";
 import { useGetObject, useListObjects } from "./hooks/objects";
 import { useListSources } from "./hooks/sources";
-import { Core as coreClient } from "./lib/api/core/core.pb";
+import {
+  GetObjectRequest,
+  GetObjectResponse,
+  IsCRDAvailableRequest,
+  IsCRDAvailableResponse,
+  ListObjectsRequest,
+  ListObjectsResponse,
+  GetPolicyRequest,
+  GetPolicyResponse,
+  GetPolicyValidationRequest,
+  GetPolicyValidationResponse,
+  ListPoliciesRequest,
+  ListPoliciesResponse,
+  GetSessionLogsResponse,
+  ListError,
+  LogEntry,
+  PolicyValidation,
+  PolicyObj,
+  PolicyParam,
+  Core as coreClient,
+} from "./lib/api/core/core.pb";
 import { Kind } from "./lib/api/core/types.pb";
 import { PARENT_CHILD_LOOKUP } from "./lib/graph";
 import { formatURL, getParentNavRouteValue } from "./lib/nav";
@@ -101,6 +123,7 @@ import {
   Automation,
   Bucket,
   FluxObject,
+  FluxObjectNode,
   GitRepository,
   HelmChart,
   HelmRelease,
@@ -111,10 +134,16 @@ import {
   Kustomization,
   OCIRepository,
   Provider,
+  Source,
 } from "./lib/objects";
 import { baseTheme, muiTheme, theme } from "./lib/theme";
 import { showInterval } from "./lib/time";
-import { V2Routes } from "./lib/types";
+import {
+  V2Routes,
+  RequestError,
+  ReactQueryOptions,
+  PageRoute,
+} from "./lib/types";
 import {
   createYamlCommand,
   formatLogTimestamp,
@@ -126,7 +155,6 @@ import {
   withBasePath,
 } from "./lib/utils";
 import SignIn from "./pages/SignIn";
-
 export {
   Alert,
   AppContext,
@@ -136,6 +164,7 @@ export {
   AuthContextProvider,
   Automation,
   AutomationsTable,
+  Breadcrumb,
   Bucket,
   BucketDetail,
   Button,
@@ -152,12 +181,22 @@ export {
   DirectedGraph,
   ErrorList,
   EventsTable,
+  Field,
   Flex,
   FluxObject,
+  FluxObjectNode,
   FluxObjectsTable,
   FluxRuntime,
   Footer,
   GitRepository,
+  GetObjectRequest,
+  GetObjectResponse,
+  GetPolicyRequest,
+  GetPolicyResponse,
+  GetPolicyValidationRequest,
+  GetPolicyValidationResponse,
+  ListPoliciesRequest,
+  GetSessionLogsResponse,
   GitRepositoryDetail,
   Graph,
   HeaderRows,
@@ -178,6 +217,8 @@ export {
   Input,
   InputProps,
   Interval,
+  IsCRDAvailableRequest,
+  IsCRDAvailableResponse,
   Kind,
   KubeStatusIndicator,
   Kustomization,
@@ -186,7 +227,12 @@ export {
   Layout,
   Link,
   LinkResolverProvider,
+  ListError,
+  ListObjectsRequest,
+  ListObjectsResponse,
+  ListPoliciesResponse,
   LoadingPage,
+  LogEntry,
   Logo,
   MessageBox,
   Metadata,
@@ -199,20 +245,27 @@ export {
   PARENT_CHILD_LOOKUP,
   Page,
   PageStatus,
+  PageRoute,
   Pendo,
   PolicyDetails,
   PolicyTable,
+  PolicyObj,
+  PolicyParam,
+  PolicyValidation,
   PolicyViolationsList,
   Provider,
   ProviderDetail,
+  ReactQueryOptions,
   ReconciledObjectsAutomation,
   ReconciledObjectsTable,
   ReconciliationGraph,
+  RequestError,
   RequestStateHandler,
   RouterTab,
   RowHeader,
   Severity,
   SignIn,
+  Source,
   SourceLink,
   SourcesIcon,
   SourcesTable,
