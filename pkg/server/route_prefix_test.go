@@ -59,6 +59,8 @@ func TestGetBaseHref(t *testing.T) {
 		{routePrefix: "/test", expected: "/test/"},
 		{routePrefix: "test/", expected: "/test/"},
 		{routePrefix: "/test/", expected: "/test/"},
+		{routePrefix: "", expected: "/"},
+		{routePrefix: "/", expected: "/"},
 	}
 
 	for _, tc := range testCases {

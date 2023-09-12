@@ -409,12 +409,8 @@ func getAssets() fs.FS {
 // A redirector ensures that index.html always gets served.
 // The JS router will take care of actual navigation once the index.html page lands.
 func createRedirector(fsys fs.FS, log logr.Logger, routePrefix string) http.HandlerFunc {
-	log.Info("Creating redirector", "routePrefix", routePrefix)
-
-	baseHref := ""
-	if routePrefix != "" {
-		baseHref = server.GetBaseHref(routePrefix)
-	}
+	baseHref := server.GetBaseHref(routePrefix)
+	log.Info("Creating redirector", "routePrefix", routePrefix, "baseHref", baseHref)
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		indexPage, err := fsys.Open("index.html")
@@ -445,9 +441,7 @@ func createRedirector(fsys fs.FS, log logr.Logger, routePrefix string) http.Hand
 		}
 
 		// inject base tag into index.html
-		if baseHref != "" {
-			bt = server.InjectHTMLBaseTag(bt, baseHref)
-		}
+		bt = server.InjectHTMLBaseTag(bt, baseHref)
 
 		_, err = w.Write(bt)
 
