@@ -81,6 +81,11 @@ const navItems: NavItem[] = [
     icon: IconType.ImageAutomationIcon,
   },
   {
+    label: "Policies",
+    link: { value: V2Routes.Policies },
+    icon: IconType.PoliciesIcon,
+  },
+  {
     label: "Flux Runtime",
     link: { value: V2Routes.FluxRuntime },
     icon: IconType.FluxIcon,
