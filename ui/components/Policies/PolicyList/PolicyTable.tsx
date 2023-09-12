@@ -1,14 +1,14 @@
 import React, { FC } from "react";
 import { useFeatureFlags } from "../../../hooks/featureflags";
+import { PolicyObj as Policy } from "../../../lib/api/core/core.pb";
 import { formatURL } from "../../../lib/nav";
 import { V2Routes } from "../../../lib/types";
 import DataTable, { filterConfig } from "../../DataTable";
 import Link from "../../Link";
 import Text from "../../Text";
+import Timestamp from "../../Timestamp";
 import PolicyMode from "../Utils/PolicyMode";
 import Severity from "../Utils/Severity";
-import { PolicyObj as Policy } from "../../../lib/api/core/core.pb";
-import Timestamp from "../../Timestamp";
 
 interface CustomPolicy extends Policy {
   audit?: string;
