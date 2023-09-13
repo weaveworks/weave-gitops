@@ -73,11 +73,7 @@ function UnstyledYamlView({
 
       <div className="code-wrapper">
         <div className="copy-wrapper">
-          <CopyToClipboard
-            value={yaml}
-            className="yaml-copy"
-            size="base"
-          />
+          <CopyToClipboard value={yaml} className="yaml-copy" size="base" />
         </div>
         <SyntaxHighlighter
           language={type}
