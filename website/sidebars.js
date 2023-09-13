@@ -257,7 +257,17 @@
         'workspaces/multi-tenancy',
         'workspaces/view-workspaces',
       ],
-    }
+    },
+    {
+      type: 'category',
+      label: 'Backstage',
+      link: {
+        type: 'doc',
+        id: 'backstage/intro'
+      },
+      items: [],
+    },
+
   ],
   ref: [
     {
