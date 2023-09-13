@@ -73,6 +73,7 @@ import AuthContextProvider, { Auth, AuthCheck } from "./contexts/AuthContext";
 import CoreClientContextProvider, {
   CoreClientContext,
   UnAuthorizedInterceptor,
+  setAPIPathPrefix,
 } from "./contexts/CoreClientContext";
 import {
   LinkResolverProvider,
@@ -120,6 +121,9 @@ import {
   isAllowedLink,
   poller,
   statusSortHelper,
+  getBasePath,
+  stripBasePath,
+  withBasePath,
 } from "./lib/utils";
 import SignIn from "./pages/SignIn";
 
@@ -231,12 +235,15 @@ export {
   filterConfig,
   formatLogTimestamp,
   formatURL,
+  getBasePath,
   getParentNavRouteValue,
   isAllowedLink,
   muiTheme,
   poller,
+  setAPIPathPrefix,
   showInterval,
   statusSortHelper,
+  stripBasePath,
   theme,
   useCheckCRDInstalled,
   useDebounce,
@@ -254,4 +261,5 @@ export {
   useRequestState,
   useSyncFluxObject,
   useToggleSuspend,
+  withBasePath,
 };

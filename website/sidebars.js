@@ -29,6 +29,7 @@
             'open-source/getting-started/ui-OSS',
             'open-source/getting-started/deploy-OSS',
             'open-source/getting-started/aws-marketplace',
+            'open-source/getting-started/run-ui-subpath',
           ],
         },
         {

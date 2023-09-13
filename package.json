@@ -6,7 +6,8 @@
     "default": {
       "distDir": "bin/dist",
       "source": "ui/index.html",
-      "sourceMap": false
+      "sourceMap": false,
+      "publicUrl": "./"
     },
     "lib": {
       "includeNodeModules": false,
@@ -100,19 +101,20 @@
     "@types/react-dom": "^17.0.5",
     "@types/react-router-dom": "^5.1.6",
     "@types/styled-components": "^5.1.9",
-    "@typescript-eslint/eslint-plugin": "^4.33.0",
-    "@typescript-eslint/parser": "^4.33.0",
+    "@typescript-eslint/eslint-plugin": "^6.6.0",
+    "@typescript-eslint/parser": "^6.6.0",
     "buffer": "^5.7.1",
-    "eslint": "^7.28.0",
+    "eslint": "^8.48.0",
     "eslint-plugin-import": "^2.25.4",
     "jest": "^27.3.1",
     "jest-styled-components": "^7.0.4",
+    "jsdom": "^16.6.0",
     "parcel": "^2.8.3",
     "prettier": "^2.6.2",
     "process": "^0.11.10",
     "react-test-renderer": "^17.0.2",
     "ts-jest": "^27.1.1",
-    "typescript": "4.9.3",
+    "typescript": "^5.2.2",
     "yarn-audit-fix": "^10.0.1"
   },
   "alias": {
