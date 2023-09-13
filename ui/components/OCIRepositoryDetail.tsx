@@ -56,11 +56,6 @@ function OCIRepositoryDetail({
         ["Interval", <Interval interval={ociRepository.interval} />],
         ...clusterInfo,
         ["Namespace", ociRepository.namespace],
-        [
-          "Source",
-          <Link href={ociRepository.source}>{ociRepository.source}</Link>,
-        ],
-        ["Revision", ociRepository.revision],
         ...tenancyInfo,
       ]}
     />
