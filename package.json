@@ -6,7 +6,8 @@
     "default": {
       "distDir": "bin/dist",
       "source": "ui/index.html",
-      "sourceMap": false
+      "sourceMap": false,
+      "publicUrl": "./"
     },
     "lib": {
       "includeNodeModules": false,
@@ -107,6 +108,7 @@
     "eslint-plugin-import": "^2.25.4",
     "jest": "^27.3.1",
     "jest-styled-components": "^7.0.4",
+    "jsdom": "^16.6.0",
     "parcel": "^2.8.3",
     "prettier": "^2.6.2",
     "process": "^0.11.10",

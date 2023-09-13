@@ -35,6 +35,7 @@ import Fonts from "./lib/fonts";
 import { getParentNavRouteValue } from "./lib/nav";
 import theme, { GlobalStyle, muiTheme } from "./lib/theme";
 import { V2Routes } from "./lib/types";
+import { getBasePath } from "./lib/utils";
 import Error from "./pages/Error";
 import SignIn from "./pages/SignIn";
 import Automations from "./pages/v2/Automations";
@@ -229,7 +230,7 @@ const StylesProvider = ({ children }) => {
 export default function AppContainer() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Router>
+      <Router basename={getBasePath()}>
         <AppContextProvider footer={<Footer />}>
           <StylesProvider>
             <AuthContextProvider>

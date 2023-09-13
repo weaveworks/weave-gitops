@@ -16,8 +16,8 @@ nameOverride: ""
 fullnameOverride: ""
 # -- What log level to output. Valid levels are 'debug', 'info', 'warn' and 'error'
 logLevel: info
-# Additional arguments to pass in
-# additionalArgs:
+# -- Additional arguments to pass in to the gitops-server
+additionalArgs: []
 # Any other environment variables:
 envVars:
   - name: WEAVE_GITOPS_FEATURE_TENANCY

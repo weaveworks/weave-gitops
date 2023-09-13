@@ -172,6 +172,9 @@ ui-lint: ## Run linter against the UI
 	yarn lint
 	yarn typecheck
 
+ui-lint-fix:
+	yarn lint --fix
+
 ui-prettify-check: ## Check format of the UI code with Prettier
 	yarn prettify:check
 
