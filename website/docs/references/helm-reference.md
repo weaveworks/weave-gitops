@@ -5,12 +5,13 @@ This is a reference of all the configurable values in Weave GitOps's
 Helm chart. This is intended for customizing your installation after
 you've gone through the [getting started](../intro-weave-gitops.mdx) guide.
 
-This reference was generated for the chart version 4.0.29 which installs weave gitops v0.31.2.
+This reference was generated for the chart version 4.0.30 which installs weave gitops v0.32.0.
 
 ## Values
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
+| additionalArgs | list | `[]` | Additional arguments to pass in to the gitops-server |
 | adminUser.create | bool | `false` | Whether the local admin user should be created. If you use this make sure you add it to `rbac.impersonationResourceNames`. |
 | adminUser.createClusterRole | bool | `true` | Specifies whether the clusterRole & binding to the admin user should be created. Will be created only if `adminUser.create` is enabled. Without this, the adminUser will only be able to see resources in the target namespace. |
 | adminUser.createSecret | bool | `true` | Whether we should create the secret for the local adminUser. Will be created only if `adminUser.create` is enabled. Without this, we'll still set up the roles and permissions, but the secret with username and password has to be provided separately. |
@@ -27,7 +28,7 @@ This reference was generated for the chart version 4.0.29 which installs weave g
 | fullnameOverride | string | `""` |  |
 | image.pullPolicy | string | `"IfNotPresent"` |  |
 | image.repository | string | `"ghcr.io/weaveworks/wego-app"` |  |
-| image.tag | string | `"v0.31.2"` |  |
+| image.tag | string | `"v0.32.0"` |  |
 | imagePullSecrets | list | `[]` |  |
 | ingress.annotations | object | `{}` |  |
 | ingress.className | string | `""` |  |
