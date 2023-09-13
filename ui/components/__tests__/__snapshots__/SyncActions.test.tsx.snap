@@ -13,13 +13,14 @@ exports[`SyncActions snapshots hideDropdown 1`] = `
   -webkit-box-align: start;
   -ms-flex-align: start;
   align-items: start;
+  gap: 12px;
   -webkit-box-pack: start;
   -webkit-justify-content: flex-start;
   -ms-flex-pack: start;
   justify-content: flex-start;
 }
 
-.c1 {
+.c2 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -33,11 +34,7 @@ exports[`SyncActions snapshots hideDropdown 1`] = `
   align-items: start;
 }
 
-.c5 {
-  padding: 8px;
-}
-
-.c2.MuiButton-root {
+.c3.MuiButton-root {
   height: 32px;
   font-size: 12px;
   -webkit-letter-spacing: 1px;
@@ -49,19 +46,15 @@ exports[`SyncActions snapshots hideDropdown 1`] = `
   font-weight: 600;
 }
 
-.c2.MuiButton-outlined {
+.c3.MuiButton-outlined {
   padding: 8px 12px;
 }
 
-.c2.MuiButton-outlinedPrimary {
-  border-color: #d8d8d8;
-}
-
-.c3.MuiButton-outlined {
+.c4.MuiButton-outlined {
   margin-right: 0;
 }
 
-.c4 {
+.c5 {
   position: absolute;
   overflow: hidden;
   background: #fff;
@@ -75,8 +68,12 @@ exports[`SyncActions snapshots hideDropdown 1`] = `
   z-index: 1;
 }
 
+.c1 {
+  width: 50%;
+}
+
 <div
-  className="c0"
+  className="c0 c1"
 >
   <div
     className="SyncButton"
@@ -88,10 +85,10 @@ exports[`SyncActions snapshots hideDropdown 1`] = `
     }
   >
     <div
-      className="c1"
+      className="c2"
     >
       <button
-        className="MuiButtonBase-root MuiButton-root MuiButton-outlined c2 c3 MuiButton-outlinedPrimary MuiButton-disableElevation"
+        className="MuiButtonBase-root MuiButton-root MuiButton-outlined c3 c4 MuiButton-outlinedPrimary MuiButton-disableElevation"
         disabled={false}
         onBlur={[Function]}
         onClick={[Function]}
@@ -113,16 +110,13 @@ exports[`SyncActions snapshots hideDropdown 1`] = `
         >
           Sync
         </span>
-        <span
-          className="MuiTouchRipple-root"
-        />
       </button>
     </div>
     <div
-      className="c1 c4"
+      className="c2 c5"
     >
       <button
-        className="MuiButtonBase-root MuiButton-root MuiButton-outlined c2 MuiButton-outlinedPrimary MuiButton-disableElevation"
+        className="MuiButtonBase-root MuiButton-root MuiButton-outlined c3 MuiButton-outlinedPrimary MuiButton-disableElevation"
         disabled={false}
         onBlur={[Function]}
         onClick={[Function]}
@@ -149,17 +143,11 @@ exports[`SyncActions snapshots hideDropdown 1`] = `
         >
           Sync Without Source
         </span>
-        <span
-          className="MuiTouchRipple-root"
-        />
       </button>
     </div>
   </div>
-  <div
-    className="c5"
-  />
   <button
-    className="MuiButtonBase-root MuiButton-root MuiButton-outlined c2 MuiButton-outlinedPrimary MuiButton-disableElevation"
+    className="MuiButtonBase-root MuiButton-root MuiButton-outlined c3 MuiButton-outlinedPrimary MuiButton-disableElevation"
     disabled={false}
     onBlur={[Function]}
     onClick={[Function]}
@@ -181,9 +169,6 @@ exports[`SyncActions snapshots hideDropdown 1`] = `
     >
       Suspend
     </span>
-    <span
-      className="MuiTouchRipple-root"
-    />
   </button>
 </div>
 `;
@@ -201,13 +186,14 @@ exports[`SyncActions snapshots non-suspended 1`] = `
   -webkit-box-align: start;
   -ms-flex-align: start;
   align-items: start;
+  gap: 12px;
   -webkit-box-pack: start;
   -webkit-justify-content: flex-start;
   -ms-flex-pack: start;
   justify-content: flex-start;
 }
 
-.c1 {
+.c2 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -221,7 +207,7 @@ exports[`SyncActions snapshots non-suspended 1`] = `
   align-items: start;
 }
 
-.c6 {
+.c7 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -235,59 +221,55 @@ exports[`SyncActions snapshots non-suspended 1`] = `
   align-items: center;
 }
 
-.c7 svg {
+.c8 svg {
   height: 16px;
   width: 16px;
 }
 
-.c7 svg path.path-fill,
-.c7 svg line.path-fill,
-.c7 svg polygon.path-fill,
-.c7 svg rect.path-fill,
-.c7 svg circle.path-fill,
-.c7 svg polyline.path-fill {
+.c8 svg path.path-fill,
+.c8 svg line.path-fill,
+.c8 svg polygon.path-fill,
+.c8 svg rect.path-fill,
+.c8 svg circle.path-fill,
+.c8 svg polyline.path-fill {
   fill: !important;
   -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
-.c7 svg path.stroke-fill,
-.c7 svg line.stroke-fill,
-.c7 svg polygon.stroke-fill,
-.c7 svg rect.stroke-fill,
-.c7 svg circle.stroke-fill,
-.c7 svg polyline.stroke-fill {
+.c8 svg path.stroke-fill,
+.c8 svg line.stroke-fill,
+.c8 svg polygon.stroke-fill,
+.c8 svg rect.stroke-fill,
+.c8 svg circle.stroke-fill,
+.c8 svg polyline.stroke-fill {
   stroke: !important;
   -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
-.c7 svg rect.rect-height {
+.c8 svg rect.rect-height {
   height: 16px;
   width: 16px;
 }
 
-.c7.downward {
+.c8.downward {
   -webkit-transform: rotate(180deg);
   -ms-transform: rotate(180deg);
   transform: rotate(180deg);
 }
 
-.c7.upward {
+.c8.upward {
   -webkit-transform: initial;
   -ms-transform: initial;
   transform: initial;
 }
 
-.c7 img {
+.c8 img {
   width: 16px;
 }
 
-.c9 {
-  padding: 8px;
-}
-
-.c2.MuiButton-root {
+.c3.MuiButton-root {
   height: 32px;
   font-size: 12px;
   -webkit-letter-spacing: 1px;
@@ -299,50 +281,50 @@ exports[`SyncActions snapshots non-suspended 1`] = `
   font-weight: 600;
 }
 
-.c2.MuiButton-outlined {
+.c3.MuiButton-outlined {
   padding: 8px 12px;
 }
 
-.c2.MuiButton-outlinedPrimary {
-  border-color: #d8d8d8;
-}
-
-.c4.MuiButton-root {
+.c5.MuiButton-root {
   border-radius: 50%;
   min-width: 38px;
   height: 38px;
   padding: 0;
 }
 
-.c4.MuiButton-text {
+.c5.MuiButton-text {
   padding: 0;
 }
 
-.c5.MuiButton-outlined {
+.c6.MuiButton-outlined {
   border-radius: 0 2px 2px 0;
 }
 
-.c5.MuiButton-outlinedPrimary {
+.c6.MuiButton-outlinedPrimary {
   border-color: #d8d8d8;
 }
 
-.c5.MuiButton-root {
+.c6.MuiButton-root {
   min-width: 0;
   height: 32px;
   padding: 8px 4px;
 }
 
-.c5.MuiButton-text {
+.c6.MuiButton-text {
   padding: 0;
 }
 
-.c3.MuiButton-outlined {
+.c4.MuiButton-outlined {
   margin-right: 0;
   border-radius: 2px 0 0 2px;
   border-right: none;
 }
 
-.c8 {
+.c4.MuiButton-outlined.MuiButton-outlined.Mui-disabled {
+  border-right: none;
+}
+
+.c9 {
   position: absolute;
   overflow: hidden;
   background: #fff;
@@ -356,8 +338,12 @@ exports[`SyncActions snapshots non-suspended 1`] = `
   z-index: 1;
 }
 
+.c1 {
+  width: 50%;
+}
+
 <div
-  className="c0"
+  className="c0 c1"
 >
   <div
     className="SyncButton"
@@ -369,10 +355,10 @@ exports[`SyncActions snapshots non-suspended 1`] = `
     }
   >
     <div
-      className="c1"
+      className="c2"
     >
       <button
-        className="MuiButtonBase-root MuiButton-root MuiButton-outlined c2 c3 MuiButton-outlinedPrimary MuiButton-disableElevation"
+        className="MuiButtonBase-root MuiButton-root MuiButton-outlined c3 c4 MuiButton-outlinedPrimary MuiButton-disableElevation"
         disabled={false}
         onBlur={[Function]}
         onClick={[Function]}
@@ -396,7 +382,7 @@ exports[`SyncActions snapshots non-suspended 1`] = `
         </span>
       </button>
       <button
-        className="MuiButtonBase-root MuiButton-root MuiButton-outlined c4 c5 MuiButton-outlinedPrimary MuiButton-disableElevation"
+        className="MuiButtonBase-root MuiButton-root MuiButton-outlined c5 c6 MuiButton-outlinedPrimary MuiButton-disableElevation"
         disabled={false}
         onBlur={[Function]}
         onClick={[Function]}
@@ -417,7 +403,7 @@ exports[`SyncActions snapshots non-suspended 1`] = `
           className="MuiButton-label"
         >
           <div
-            className="c6 c7"
+            className="c7 c8"
           >
             <svg
               aria-hidden={true}
@@ -434,10 +420,10 @@ exports[`SyncActions snapshots non-suspended 1`] = `
       </button>
     </div>
     <div
-      className="c1 c8"
+      className="c2 c9"
     >
       <button
-        className="MuiButtonBase-root MuiButton-root MuiButton-outlined c2 MuiButton-outlinedPrimary MuiButton-disableElevation"
+        className="MuiButtonBase-root MuiButton-root MuiButton-outlined c3 MuiButton-outlinedPrimary MuiButton-disableElevation"
         disabled={false}
         onBlur={[Function]}
         onClick={[Function]}
@@ -467,11 +453,8 @@ exports[`SyncActions snapshots non-suspended 1`] = `
       </button>
     </div>
   </div>
-  <div
-    className="c9"
-  />
   <button
-    className="MuiButtonBase-root MuiButton-root MuiButton-outlined c2 MuiButton-outlinedPrimary MuiButton-disableElevation"
+    className="MuiButtonBase-root MuiButton-root MuiButton-outlined c3 MuiButton-outlinedPrimary MuiButton-disableElevation"
     disabled={false}
     onBlur={[Function]}
     onClick={[Function]}
@@ -510,13 +493,14 @@ exports[`SyncActions snapshots suspended 1`] = `
   -webkit-box-align: start;
   -ms-flex-align: start;
   align-items: start;
+  gap: 12px;
   -webkit-box-pack: start;
   -webkit-justify-content: flex-start;
   -ms-flex-pack: start;
   justify-content: flex-start;
 }
 
-.c1 {
+.c2 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -530,7 +514,7 @@ exports[`SyncActions snapshots suspended 1`] = `
   align-items: start;
 }
 
-.c6 {
+.c7 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -544,59 +528,55 @@ exports[`SyncActions snapshots suspended 1`] = `
   align-items: center;
 }
 
-.c7 svg {
+.c8 svg {
   height: 16px;
   width: 16px;
 }
 
-.c7 svg path.path-fill,
-.c7 svg line.path-fill,
-.c7 svg polygon.path-fill,
-.c7 svg rect.path-fill,
-.c7 svg circle.path-fill,
-.c7 svg polyline.path-fill {
+.c8 svg path.path-fill,
+.c8 svg line.path-fill,
+.c8 svg polygon.path-fill,
+.c8 svg rect.path-fill,
+.c8 svg circle.path-fill,
+.c8 svg polyline.path-fill {
   fill: !important;
   -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
-.c7 svg path.stroke-fill,
-.c7 svg line.stroke-fill,
-.c7 svg polygon.stroke-fill,
-.c7 svg rect.stroke-fill,
-.c7 svg circle.stroke-fill,
-.c7 svg polyline.stroke-fill {
+.c8 svg path.stroke-fill,
+.c8 svg line.stroke-fill,
+.c8 svg polygon.stroke-fill,
+.c8 svg rect.stroke-fill,
+.c8 svg circle.stroke-fill,
+.c8 svg polyline.stroke-fill {
   stroke: !important;
   -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
-.c7 svg rect.rect-height {
+.c8 svg rect.rect-height {
   height: 16px;
   width: 16px;
 }
 
-.c7.downward {
+.c8.downward {
   -webkit-transform: rotate(180deg);
   -ms-transform: rotate(180deg);
   transform: rotate(180deg);
 }
 
-.c7.upward {
+.c8.upward {
   -webkit-transform: initial;
   -ms-transform: initial;
   transform: initial;
 }
 
-.c7 img {
+.c8 img {
   width: 16px;
 }
 
-.c9 {
-  padding: 8px;
-}
-
-.c2.MuiButton-root {
+.c3.MuiButton-root {
   height: 32px;
   font-size: 12px;
   -webkit-letter-spacing: 1px;
@@ -608,50 +588,50 @@ exports[`SyncActions snapshots suspended 1`] = `
   font-weight: 600;
 }
 
-.c2.MuiButton-outlined {
+.c3.MuiButton-outlined {
   padding: 8px 12px;
 }
 
-.c2.MuiButton-outlinedPrimary {
-  border-color: #d8d8d8;
-}
-
-.c4.MuiButton-root {
+.c5.MuiButton-root {
   border-radius: 50%;
   min-width: 38px;
   height: 38px;
   padding: 0;
 }
 
-.c4.MuiButton-text {
+.c5.MuiButton-text {
   padding: 0;
 }
 
-.c5.MuiButton-outlined {
+.c6.MuiButton-outlined {
   border-radius: 0 2px 2px 0;
 }
 
-.c5.MuiButton-outlinedPrimary {
+.c6.MuiButton-outlinedPrimary {
   border-color: #d8d8d8;
 }
 
-.c5.MuiButton-root {
+.c6.MuiButton-root {
   min-width: 0;
   height: 32px;
   padding: 8px 4px;
 }
 
-.c5.MuiButton-text {
+.c6.MuiButton-text {
   padding: 0;
 }
 
-.c3.MuiButton-outlined {
+.c4.MuiButton-outlined {
   margin-right: 0;
   border-radius: 2px 0 0 2px;
   border-right: none;
 }
 
-.c8 {
+.c4.MuiButton-outlined.MuiButton-outlined.Mui-disabled {
+  border-right: none;
+}
+
+.c9 {
   position: absolute;
   overflow: hidden;
   background: #fff;
@@ -665,8 +645,12 @@ exports[`SyncActions snapshots suspended 1`] = `
   z-index: 1;
 }
 
+.c1 {
+  width: 50%;
+}
+
 <div
-  className="c0"
+  className="c0 c1"
 >
   <div
     className="SyncButton"
@@ -678,10 +662,10 @@ exports[`SyncActions snapshots suspended 1`] = `
     }
   >
     <div
-      className="c1"
+      className="c2"
     >
       <button
-        className="MuiButtonBase-root MuiButton-root MuiButton-outlined c2 c3 MuiButton-outlinedPrimary MuiButton-disableElevation Mui-disabled Mui-disabled"
+        className="MuiButtonBase-root MuiButton-root MuiButton-outlined c3 c4 MuiButton-outlinedPrimary MuiButton-disableElevation Mui-disabled Mui-disabled"
         disabled={true}
         onBlur={[Function]}
         onClick={[Function]}
@@ -705,7 +689,7 @@ exports[`SyncActions snapshots suspended 1`] = `
         </span>
       </button>
       <button
-        className="MuiButtonBase-root MuiButton-root MuiButton-outlined c4 c5 MuiButton-outlinedPrimary MuiButton-disableElevation Mui-disabled Mui-disabled"
+        className="MuiButtonBase-root MuiButton-root MuiButton-outlined c5 c6 MuiButton-outlinedPrimary MuiButton-disableElevation Mui-disabled Mui-disabled"
         disabled={true}
         onBlur={[Function]}
         onClick={[Function]}
@@ -726,7 +710,7 @@ exports[`SyncActions snapshots suspended 1`] = `
           className="MuiButton-label"
         >
           <div
-            className="c6 c7"
+            className="c7 c8"
           >
             <svg
               aria-hidden={true}
@@ -743,10 +727,10 @@ exports[`SyncActions snapshots suspended 1`] = `
       </button>
     </div>
     <div
-      className="c1 c8"
+      className="c2 c9"
     >
       <button
-        className="MuiButtonBase-root MuiButton-root MuiButton-outlined c2 MuiButton-outlinedPrimary MuiButton-disableElevation"
+        className="MuiButtonBase-root MuiButton-root MuiButton-outlined c3 MuiButton-outlinedPrimary MuiButton-disableElevation"
         disabled={false}
         onBlur={[Function]}
         onClick={[Function]}
@@ -779,11 +763,8 @@ exports[`SyncActions snapshots suspended 1`] = `
       </button>
     </div>
   </div>
-  <div
-    className="c9"
-  />
   <button
-    className="MuiButtonBase-root MuiButton-root MuiButton-outlined c2 MuiButton-outlinedPrimary MuiButton-disableElevation"
+    className="MuiButtonBase-root MuiButton-root MuiButton-outlined c3 MuiButton-outlinedPrimary MuiButton-disableElevation"
     disabled={false}
     onBlur={[Function]}
     onClick={[Function]}
@@ -808,316 +789,6 @@ exports[`SyncActions snapshots suspended 1`] = `
     <span
       className="MuiTouchRipple-root"
     />
-  </button>
-</div>
-`;
-
-exports[`SyncActions snapshots wide 1`] = `
-.c0 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
-  flex-direction: row;
-  -webkit-align-items: start;
-  -webkit-box-align: start;
-  -ms-flex-align: start;
-  align-items: start;
-  width: 100%;
-  -webkit-box-pack: start;
-  -webkit-justify-content: flex-start;
-  -ms-flex-pack: start;
-  justify-content: flex-start;
-}
-
-.c1 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
-  flex-direction: row;
-  -webkit-align-items: start;
-  -webkit-box-align: start;
-  -ms-flex-align: start;
-  align-items: start;
-}
-
-.c6 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
-  flex-direction: row;
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-}
-
-.c7 svg {
-  height: 16px;
-  width: 16px;
-}
-
-.c7 svg path.path-fill,
-.c7 svg line.path-fill,
-.c7 svg polygon.path-fill,
-.c7 svg rect.path-fill,
-.c7 svg circle.path-fill,
-.c7 svg polyline.path-fill {
-  fill: !important;
-  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-}
-
-.c7 svg path.stroke-fill,
-.c7 svg line.stroke-fill,
-.c7 svg polygon.stroke-fill,
-.c7 svg rect.stroke-fill,
-.c7 svg circle.stroke-fill,
-.c7 svg polyline.stroke-fill {
-  stroke: !important;
-  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-}
-
-.c7 svg rect.rect-height {
-  height: 16px;
-  width: 16px;
-}
-
-.c7.downward {
-  -webkit-transform: rotate(180deg);
-  -ms-transform: rotate(180deg);
-  transform: rotate(180deg);
-}
-
-.c7.upward {
-  -webkit-transform: initial;
-  -ms-transform: initial;
-  transform: initial;
-}
-
-.c7 img {
-  width: 16px;
-}
-
-.c9 {
-  padding: 8px;
-}
-
-.c2.MuiButton-root {
-  height: 32px;
-  font-size: 12px;
-  -webkit-letter-spacing: 1px;
-  -moz-letter-spacing: 1px;
-  -ms-letter-spacing: 1px;
-  letter-spacing: 1px;
-  line-height: 1;
-  border-radius: 2px;
-  font-weight: 600;
-}
-
-.c2.MuiButton-outlined {
-  padding: 8px 12px;
-}
-
-.c2.MuiButton-outlinedPrimary {
-  border-color: #d8d8d8;
-}
-
-.c4.MuiButton-root {
-  border-radius: 50%;
-  min-width: 38px;
-  height: 38px;
-  padding: 0;
-}
-
-.c4.MuiButton-text {
-  padding: 0;
-}
-
-.c5.MuiButton-outlined {
-  border-radius: 0 2px 2px 0;
-}
-
-.c5.MuiButton-outlinedPrimary {
-  border-color: #d8d8d8;
-}
-
-.c5.MuiButton-root {
-  min-width: 0;
-  height: 32px;
-  padding: 8px 4px;
-}
-
-.c5.MuiButton-text {
-  padding: 0;
-}
-
-.c3.MuiButton-outlined {
-  margin-right: 0;
-  border-radius: 2px 0 0 2px;
-  border-right: none;
-}
-
-.c8 {
-  position: absolute;
-  overflow: hidden;
-  background: #fff;
-  height: 0px;
-  -webkit-transition-property: height;
-  transition-property: height;
-  -webkit-transition-duration: 0.2s;
-  transition-duration: 0.2s;
-  -webkit-transition-timing-function: ease-in-out;
-  transition-timing-function: ease-in-out;
-  z-index: 1;
-}
-
-<div
-  className="c0"
->
-  <div
-    className="SyncButton"
-    style={
-      Object {
-        "display": "inline-block",
-        "position": "relative",
-      }
-    }
-  >
-    <div
-      className="c1"
-    >
-      <button
-        className="MuiButtonBase-root MuiButton-root MuiButton-outlined c2 c3 MuiButton-outlinedPrimary MuiButton-disableElevation"
-        disabled={false}
-        onBlur={[Function]}
-        onClick={[Function]}
-        onDragLeave={[Function]}
-        onFocus={[Function]}
-        onKeyDown={[Function]}
-        onKeyUp={[Function]}
-        onMouseDown={[Function]}
-        onMouseLeave={[Function]}
-        onMouseUp={[Function]}
-        onTouchEnd={[Function]}
-        onTouchMove={[Function]}
-        onTouchStart={[Function]}
-        tabIndex={0}
-        type="button"
-      >
-        <span
-          className="MuiButton-label"
-        >
-          Sync
-        </span>
-      </button>
-      <button
-        className="MuiButtonBase-root MuiButton-root MuiButton-outlined c4 c5 MuiButton-outlinedPrimary MuiButton-disableElevation"
-        disabled={false}
-        onBlur={[Function]}
-        onClick={[Function]}
-        onDragLeave={[Function]}
-        onFocus={[Function]}
-        onKeyDown={[Function]}
-        onKeyUp={[Function]}
-        onMouseDown={[Function]}
-        onMouseLeave={[Function]}
-        onMouseUp={[Function]}
-        onTouchEnd={[Function]}
-        onTouchMove={[Function]}
-        onTouchStart={[Function]}
-        tabIndex={0}
-        type="button"
-      >
-        <span
-          className="MuiButton-label"
-        >
-          <div
-            className="c6 c7"
-          >
-            <svg
-              aria-hidden={true}
-              className="MuiSvgIcon-root"
-              focusable="false"
-              viewBox="0 0 24 24"
-            >
-              <path
-                d="M7 10l5 5 5-5z"
-              />
-            </svg>
-          </div>
-        </span>
-      </button>
-    </div>
-    <div
-      className="c1 c8"
-    >
-      <button
-        className="MuiButtonBase-root MuiButton-root MuiButton-outlined c2 MuiButton-outlinedPrimary MuiButton-disableElevation"
-        disabled={false}
-        onBlur={[Function]}
-        onClick={[Function]}
-        onDragLeave={[Function]}
-        onFocus={[Function]}
-        onKeyDown={[Function]}
-        onKeyUp={[Function]}
-        onMouseDown={[Function]}
-        onMouseLeave={[Function]}
-        onMouseUp={[Function]}
-        onTouchEnd={[Function]}
-        onTouchMove={[Function]}
-        onTouchStart={[Function]}
-        style={
-          Object {
-            "whiteSpace": "nowrap",
-          }
-        }
-        tabIndex={0}
-        type="button"
-      >
-        <span
-          className="MuiButton-label"
-        >
-          Sync Without Source
-        </span>
-      </button>
-    </div>
-  </div>
-  <div
-    className="c9"
-  />
-  <button
-    className="MuiButtonBase-root MuiButton-root MuiButton-outlined c2 MuiButton-outlinedPrimary MuiButton-disableElevation"
-    disabled={false}
-    onBlur={[Function]}
-    onClick={[Function]}
-    onDragLeave={[Function]}
-    onFocus={[Function]}
-    onKeyDown={[Function]}
-    onKeyUp={[Function]}
-    onMouseDown={[Function]}
-    onMouseLeave={[Function]}
-    onMouseUp={[Function]}
-    onTouchEnd={[Function]}
-    onTouchMove={[Function]}
-    onTouchStart={[Function]}
-    tabIndex={0}
-    type="button"
-  >
-    <span
-      className="MuiButton-label"
-    >
-      Suspend
-    </span>
   </button>
 </div>
 `;

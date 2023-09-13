@@ -1,6 +1,7 @@
 import qs from "query-string";
 import * as React from "react";
-import { Redirect, useHistory } from "react-router-dom";
+import { Redirect, useHistory, useLocation } from "react-router-dom";
+import { reloadBrowserSignIn } from "../lib/utils";
 import { AppContext } from "./AppContext";
 
 export enum AuthRoutes {
@@ -19,12 +20,13 @@ export const AuthCheck = ({ children, Loader }: AuthCheckProps) => {
   const { userInfo } = React.useContext(Auth);
   // Wait until userInfo is loaded before showing signin or app content
   if (!userInfo) {
-    return Loader ? <Loader /> : null;
+    return Loader ? Loader : null;
   }
   // Signed in! Show app
-  if (userInfo?.email) {
+  if (userInfo?.id) {
     return children;
   }
+  const location = useLocation();
   // User appears not be logged in, off to signin
   return (
     <Redirect
@@ -41,6 +43,7 @@ export type AuthContext = {
   userInfo: {
     email: string;
     groups: string[];
+    id: string;
   };
   error: { status: number; statusText: string };
   setError: any;
@@ -56,6 +59,7 @@ export default function AuthContextProvider({ children }) {
   const [userInfo, setUserInfo] = React.useState<{
     email: string;
     groups: string[];
+    id: string;
   }>(null);
   const [loading, setLoading] = React.useState<boolean>(true);
   const [error, setError] = React.useState(null);
@@ -90,7 +94,9 @@ export default function AuthContextProvider({ children }) {
         }
         return response.json();
       })
-      .then((data) => setUserInfo({ email: data?.email, groups: data?.groups }))
+      .then((data) =>
+        setUserInfo({ email: data?.email, groups: data?.groups, id: data?.id })
+      )
       .catch((err) => console.log(err))
       .finally(() => setLoading(false));
   }, []);
@@ -105,7 +111,7 @@ export default function AuthContextProvider({ children }) {
           setError(response);
           return;
         }
-        window.location.replace(AuthRoutes.AUTH_PATH_SIGNIN);
+        reloadBrowserSignIn();
       })
       .finally(() => setLoading(false));
   }, []);

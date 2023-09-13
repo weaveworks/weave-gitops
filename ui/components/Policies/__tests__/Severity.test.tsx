@@ -1,7 +1,7 @@
 import { render } from "@testing-library/react";
 import React from "react";
-import Severity from "../Utils/Severity";
 import { withTheme } from "../../../lib/test-utils";
+import Severity from "../Utils/Severity";
 
 function checkSeverity(severity: string) {
   render(withTheme(<Severity severity={severity} />));

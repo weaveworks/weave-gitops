@@ -13,6 +13,7 @@ import * as React from "react";
 import { useHistory, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import { ThemeTypes } from "../../contexts/AppContext";
+import { SearchedNamespaces } from "../../lib/types";
 import { IconButton } from "../Button";
 import CheckboxActions from "../CheckboxActions";
 import ChipGroup from "../ChipGroup";
@@ -23,10 +24,10 @@ import FilterDialog, {
 } from "../FilterDialog";
 import Flex from "../Flex";
 import Icon, { IconType } from "../Icon";
+import InfoModal from "../InfoModal";
 import SearchField from "../SearchField";
 import Spacer from "../Spacer";
 import Text from "../Text";
-import SortableLabel from "./SortableLabel";
 import {
   filterRows,
   filterSelectionsToQueryString,
@@ -36,7 +37,9 @@ import {
   sortByField,
   toPairs,
 } from "./helpers";
+import SortableLabel from "./SortableLabel";
 import { Field, FilterState } from "./types";
+
 /** DataTable Properties  */
 export interface Props {
   /** The ID of the table. */
@@ -54,6 +57,7 @@ export interface Props {
   emptyMessagePlaceholder?: React.ReactNode;
   onColumnHeaderClick?: (field: Field) => void;
   disableSort?: boolean;
+  searchedNamespaces?: SearchedNamespaces;
 }
 //styled components
 const EmptyRow = styled(TableRow)<{ colSpan: number }>`
@@ -84,6 +88,7 @@ function UnstyledDataTable({
   emptyMessagePlaceholder,
   onColumnHeaderClick,
   disableSort,
+  searchedNamespaces,
 }: Props) {
   //URL info
   const history = useHistory();
@@ -92,6 +97,8 @@ function UnstyledDataTable({
   const state = parseFilterStateFromURL(search);
 
   const [filterDialogOpen, setFilterDialogOpen] = React.useState(dialogOpen);
+  const [searchedNamespacesModalOpen, setSearchedNamespacesModalOpen] =
+    React.useState(false);
   const [filterState, setFilterState] = React.useState<FilterState>({
     filters: selectionsToFilters(state.initialSelections, filters),
     formState: initialFormState(filters, state.initialSelections),
@@ -210,6 +217,8 @@ function UnstyledDataTable({
     disableSort
   );
 
+  const numFields = fields.length + (checkboxes ? 1 : 0);
+
   const [checked, setChecked] = React.useState([]);
 
   const r = _.map(sorted, (r, i) => {
@@ -248,8 +257,14 @@ function UnstyledDataTable({
       </TableRow>
     );
   });
+
   return (
     <Flex wide tall column className={className}>
+      <InfoModal
+        searchedNamespaces={searchedNamespaces}
+        open={searchedNamespacesModalOpen}
+        onCloseModal={setSearchedNamespacesModalOpen}
+      />
       <TopBar wide align end>
         {checkboxes && <CheckboxActions checked={checked} rows={filtered} />}
         {filters && !hideSearchAndFilters && (
@@ -260,6 +275,20 @@ function UnstyledDataTable({
               onClearAll={handleClearAll}
             />
             <IconFlex align>
+              {searchedNamespaces && (
+                <IconButton
+                  onClick={() =>
+                    setSearchedNamespacesModalOpen(!searchedNamespacesModalOpen)
+                  }
+                  variant="text"
+                >
+                  <Icon
+                    type={IconType.InfoIcon}
+                    size="medium"
+                    color="neutral20"
+                  />
+                </IconButton>
+              )}
               <SearchField onSubmit={handleTextSearchSubmit} />
               <IconButton
                 onClick={() => setFilterDialogOpen(!filterDialogOpen)}
@@ -284,10 +313,10 @@ function UnstyledDataTable({
                 {checkboxes && (
                   <TableCell key={"checkboxes"}>
                     <Checkbox
-                      checked={filtered.length === checked.length}
+                      checked={filtered?.length === checked.length}
                       onChange={(e) =>
                         e.target.checked
-                          ? setChecked(filtered.map((r) => r.uid))
+                          ? setChecked(filtered?.map((r) => r.uid))
                           : setChecked([])
                       }
                       color="primary"
@@ -328,8 +357,8 @@ function UnstyledDataTable({
               {r.length > 0 ? (
                 r
               ) : (
-                <EmptyRow colSpan={fields.length}>
-                  <TableCell colSpan={fields.length}>
+                <EmptyRow colSpan={numFields}>
+                  <TableCell colSpan={numFields}>
                     <Flex center align>
                       <Icon
                         color="neutral20"
@@ -382,6 +411,13 @@ export const DataTable = styled(UnstyledDataTable)`
         ? props.theme.colors.blueWithOpacity
         : props.theme.colors.neutral10};
     transition: background 0.5s ease-in-out;
+  }
+
+  .MuiTableCell-root {
+    border-color: ${(props) =>
+      props.theme.mode === ThemeTypes.Dark
+        ? props.theme.colors.primary30
+        : props.theme.colors.neutral20};
   }
   table {
     margin-top: ${(props) => props.theme.spacing.small};

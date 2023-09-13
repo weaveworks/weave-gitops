@@ -171,7 +171,7 @@ function AutomationDetail({
   ];
   return (
     <Flex wide tall column className={className} gap="16">
-      <Flex wide>
+      <Flex wide wrap between gap="8">
         <SyncActions
           name={name}
           namespace={namespace}
@@ -180,7 +180,7 @@ function AutomationDetail({
           suspended={suspended}
           customActions={customActions}
         />
-        <Flex wide end gap="14">
+        <Flex gap="14">
           {automation?.type === "HelmRelease" ? (
             <LargeInfo
               title={"Chart Version"}
@@ -209,12 +209,12 @@ function AutomationDetail({
       )}
 
       <Collapsible>
-        <div className="collapse-wrapper ">
+        <div className="collapse-wrapper">
           <div className="grid grid-items">
             {info.map(([k, v]) => {
               return (
                 <Flex id={k} gap="8" key={k}>
-                  <Text capitalize semiBold color="neutral30">
+                  <Text capitalize semiBold color="neutral30" minWidth="150">
                     {k}:
                   </Text>
                   {v || "-"}
@@ -246,8 +246,7 @@ export default styled(AutomationDetail).attrs({
     width: 100%;
   }
   .collapse-wrapper {
-    padding: 16px 44px;
-    width: 100%;
+    padding: 16px;
   }
   .grid {
     width: 100%;
@@ -255,6 +254,6 @@ export default styled(AutomationDetail).attrs({
     gap: 8px;
   }
   .grid-items {
-    grid-template-columns: repeat(auto-fit, minmax(calc(50% - 8px), 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
   }
 `;

@@ -14,6 +14,7 @@ export interface TextProps {
   noWrap?: boolean;
   titleHeight?: boolean;
   pointer?: boolean;
+  minWidth?: string;
 }
 
 function textTransform(props) {
@@ -44,6 +45,7 @@ const Text = styled.span<TextProps>`
   ${(props) => props.noWrap && "white-space: nowrap"};
   ${(props) => props.titleHeight && "line-height: 1.75"};
   ${(props) => props.pointer && "cursor: pointer"};
+  ${(props) => props.minWidth && `min-width: ${props.minWidth}px`};
 `;
 
 Text.defaultProps = {

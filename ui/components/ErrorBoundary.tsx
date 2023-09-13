@@ -1,13 +1,15 @@
-import React, { useState, useEffect, FC } from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import Page from "./Page";
 
 interface Props {
-  hasError: boolean;
-  error: Error | null;
+  hasError?: boolean;
+  error?: Error | null;
+  children?: any;
+  setHasError?: (hasError: boolean) => void;
 }
 
-class ErrorBoundaryDetail extends React.Component<any, Props> {
+class ErrorBoundaryDetail extends React.Component<Props, any> {
   constructor(props: any) {
     super(props);
     this.state = { hasError: false, error: null };
@@ -44,7 +46,7 @@ class ErrorBoundaryDetail extends React.Component<any, Props> {
 }
 
 /** Function component wrapper as we need useEffect to set the state back to false on location changing **/
-const ErrorBoundary: FC<{ children: React.ReactNode }> = ({ children }) => {
+function ErrorBoundary({ children }: Props) {
   const [hasError, setHasError] = useState<boolean>(false);
   const location = useLocation();
 
@@ -59,6 +61,6 @@ const ErrorBoundary: FC<{ children: React.ReactNode }> = ({ children }) => {
       {children}
     </ErrorBoundaryDetail>
   );
-};
+}
 
 export default ErrorBoundary;

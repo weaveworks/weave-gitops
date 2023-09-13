@@ -10,7 +10,7 @@ This example uses [Dex][tool-dex] and its GitHub connector, and assumes Weave Gi
 
 - A Kubernetes cluster such as [Kind](https://kind.sigs.k8s.io/docs/user/quick-start/) cluster running a
 [Flux-supported version of Kubernetes](https://fluxcd.io/docs/installation/#prerequisites)
-- Weave GitOps is [installed](../installation/index.mdx) and [TLS has been enabled](../configuration/tls.md).
+- Weave GitOps is [installed](../open-source/getting-started/install-OSS.mdx) and [TLS has been enabled](../configuration/tls.md).
 
 ## What is Dex?
 

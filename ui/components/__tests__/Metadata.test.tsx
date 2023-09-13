@@ -21,6 +21,11 @@ describe("Metadata", () => {
                 ["link-to-google", "https://google.com"],
                 ["multi-lines", "This is first line\nThis is second line\n"],
               ]}
+              artifactMetadata={[
+                ["description", "Value 1"],
+                ["html", "<p><b>html</b></p>"],
+                ["link-to-google", "https://google.com"],
+              ]}
               labels={[
                 ["label", "label"],
                 ["goose", "goose"],

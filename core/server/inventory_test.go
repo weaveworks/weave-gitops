@@ -128,6 +128,74 @@ func TestGetInventoryKustomization(t *testing.T) {
 	g.Expect(res.Entries[0].Tenant).To(Equal("tenant"))
 }
 
+func TestGetBlankInventoryKustomization(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	ctx := context.Background()
+
+	automationName := "my-automation"
+	ns := "test-namespace"
+
+	deployment := &appsv1.Deployment{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "my-deployment",
+			Namespace: ns,
+			UID:       "this-is-not-an-uid",
+		},
+		Spec: appsv1.DeploymentSpec{
+			Selector: &metav1.LabelSelector{
+				MatchLabels: map[string]string{
+					types.AppLabel: automationName,
+				},
+			},
+			Template: corev1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: map[string]string{types.AppLabel: automationName},
+				},
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{{
+						Name:  "nginx",
+						Image: "nginx",
+					}},
+				},
+			},
+		},
+	}
+
+	kust := &kustomizev1.Kustomization{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      automationName,
+			Namespace: ns,
+		},
+		Spec: kustomizev1.KustomizationSpec{
+			SourceRef: kustomizev1.CrossNamespaceSourceReference{
+				Kind: sourcev1.GitRepositoryKind,
+			},
+		},
+		Status: kustomizev1.KustomizationStatus{
+			Inventory: nil, // blank inventory
+		},
+	}
+
+	scheme, err := kube.CreateScheme()
+	g.Expect(err).To(BeNil())
+
+	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(kust, deployment).Build()
+	cfg := makeServerConfig(client, t, "")
+	c := makeServer(cfg, t)
+
+	res, err := c.GetInventory(ctx, &pb.GetInventoryRequest{
+		Namespace:    ns,
+		ClusterName:  cluster.DefaultCluster,
+		Kind:         "Kustomization",
+		Name:         kust.Name,
+		WithChildren: true,
+	})
+
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(res.Entries).To(HaveLen(0))
+}
+
 func TestGetInventoryHelmRelease(t *testing.T) {
 	g := NewGomegaWithT(t)
 

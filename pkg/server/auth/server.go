@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"net/url"
 	"strings"
 	"time"
 
@@ -27,9 +26,9 @@ const (
 	ClusterUserAuthSecretName  string = "cluster-user-auth"
 	DefaultOIDCAuthSecretName  string = "oidc-auth"
 	FeatureFlagClusterUser     string = "CLUSTER_USER_AUTH"
+	FeatureFlagAnonymousAuth   string = "ANONYMOUS_AUTH"
 	FeatureFlagOIDCAuth        string = "OIDC_AUTH"
 	FeatureFlagOIDCPassthrough string = "WEAVE_GITOPS_FEATURE_OIDC_AUTH_PASSTHROUGH"
-	FeatureFlagSet             string = "true"
 
 	// ClaimUsername is the default claim for getting the user from OIDC for
 	// auth
@@ -66,8 +65,8 @@ type OIDCConfig struct {
 // that is set then it is used for both OIDC cookies and other cookies.
 const defaultCookieDuration time.Duration = time.Hour
 
-// AuthConfig is used to configure an AuthServer.
-type AuthConfig struct {
+// AuthServerConfig is used to configure an AuthServer.
+type AuthServerConfig struct {
 	Log                 logr.Logger
 	client              *http.Client
 	kubernetesClient    ctrlclient.Client
@@ -75,12 +74,16 @@ type AuthConfig struct {
 	OIDCConfig          OIDCConfig
 	authMethods         map[AuthMethod]bool
 	namespace           string
+
+	noAuthUser     string
+	SessionManager SessionManager
 }
 
 // AuthServer interacts with an OIDC issuer to handle the OAuth2 process flow.
 type AuthServer struct {
-	AuthConfig
+	AuthServerConfig
 	provider *oidc.Provider
+	sm       SessionManager
 }
 
 // LoginRequest represents the data submitted by client when the auth flow (non-OIDC) is used.
@@ -171,30 +174,26 @@ func claimsConfigFromSecret(secret corev1.Secret) *ClaimsConfig {
 	return nil
 }
 
-func NewAuthServerConfig(log logr.Logger, oidcCfg OIDCConfig, kubernetesClient ctrlclient.Client, tsv TokenSignerVerifier, namespace string, authMethods map[AuthMethod]bool) (AuthConfig, error) {
-	if authMethods[OIDC] {
-		if _, err := url.Parse(oidcCfg.IssuerURL); err != nil {
-			return AuthConfig{}, fmt.Errorf("invalid issuer URL: %w", err)
-		}
-
-		if _, err := url.Parse(oidcCfg.RedirectURL); err != nil {
-			return AuthConfig{}, fmt.Errorf("invalid redirect URL: %w", err)
-		}
-	}
-
-	return AuthConfig{
+// NewAuthServerConfig creates and returns a new AuthServerConfig.
+//
+// The oidcCfg.IssuerURL and oidcCfg.RedirectURL are given a light validation to
+// ensure they are valid URLs.
+func NewAuthServerConfig(log logr.Logger, oidcCfg OIDCConfig, kubernetesClient ctrlclient.Client, tsv TokenSignerVerifier, namespace string, authMethods map[AuthMethod]bool, noAuthUser string, sm SessionManager) (*AuthServerConfig, error) {
+	return &AuthServerConfig{
 		Log:                 log.WithName("auth-server"),
 		client:              http.DefaultClient,
 		kubernetesClient:    kubernetesClient,
 		tokenSignerVerifier: tsv,
 		OIDCConfig:          oidcCfg,
 		namespace:           namespace,
+		noAuthUser:          noAuthUser,
 		authMethods:         authMethods,
+		SessionManager:      sm,
 	}, nil
 }
 
 // NewAuthServer creates a new AuthServer object.
-func NewAuthServer(ctx context.Context, cfg AuthConfig) (*AuthServer, error) {
+func NewAuthServer(ctx context.Context, cfg *AuthServerConfig) (*AuthServer, error) {
 	if cfg.authMethods[UserAccount] {
 		var secret corev1.Secret
 		err := cfg.kubernetesClient.Get(ctx, ctrlclient.ObjectKey{
@@ -205,16 +204,16 @@ func NewAuthServer(ctx context.Context, cfg AuthConfig) (*AuthServer, error) {
 		if err != nil {
 			return nil, fmt.Errorf("could not get secret for cluster user, %w", err)
 		} else {
-			featureflags.Set(FeatureFlagClusterUser, FeatureFlagSet)
+			featureflags.SetBoolean(FeatureFlagClusterUser, true)
 		}
 	} else {
-		featureflags.Set(FeatureFlagClusterUser, "false")
+		featureflags.SetBoolean(FeatureFlagClusterUser, false)
 	}
 
 	var provider *oidc.Provider
 
 	if cfg.OIDCConfig.IssuerURL == "" {
-		featureflags.Set(FeatureFlagOIDCAuth, "false")
+		featureflags.SetBoolean(FeatureFlagOIDCAuth, false)
 	} else if cfg.authMethods[OIDC] {
 		var err error
 
@@ -222,14 +221,20 @@ func NewAuthServer(ctx context.Context, cfg AuthConfig) (*AuthServer, error) {
 		if err != nil {
 			return nil, fmt.Errorf("could not create provider: %w", err)
 		}
-		featureflags.Set(FeatureFlagOIDCAuth, FeatureFlagSet)
+		featureflags.SetBoolean(FeatureFlagOIDCAuth, true)
 	}
 
-	if featureflags.Get(FeatureFlagOIDCAuth) != FeatureFlagSet && featureflags.Get(FeatureFlagClusterUser) != FeatureFlagSet {
-		return nil, fmt.Errorf("neither OIDC auth or local auth enabled, can't start")
+	if cfg.authMethods[Anonymous] {
+		featureflags.SetBoolean(FeatureFlagAnonymousAuth, true)
 	}
 
-	return &AuthServer{cfg, provider}, nil
+	if !featureflags.IsSet(FeatureFlagOIDCAuth) &&
+		!featureflags.IsSet(FeatureFlagClusterUser) &&
+		!featureflags.IsSet(FeatureFlagAnonymousAuth) {
+		return nil, fmt.Errorf("OIDC auth, local auth or anonymous mode must be enabled, can't start")
+	}
+
+	return &AuthServer{*cfg, provider, cfg.SessionManager}, nil
 }
 
 // SetRedirectURL is used to set the redirect URL. This is meant to be used
@@ -239,11 +244,11 @@ func (s *AuthServer) SetRedirectURL(url string) {
 }
 
 func (s *AuthServer) oidcEnabled() bool {
-	return featureflags.Get(FeatureFlagOIDCAuth) == FeatureFlagSet
+	return featureflags.IsSet(FeatureFlagOIDCAuth)
 }
 
 func (s *AuthServer) oidcPassthroughEnabled() bool {
-	return featureflags.Get(FeatureFlagOIDCPassthrough) == FeatureFlagSet
+	return featureflags.IsSet(FeatureFlagOIDCPassthrough)
 }
 
 func (s *AuthServer) verifier() *oidc.IDTokenVerifier {
@@ -305,24 +310,24 @@ func (s *AuthServer) Callback(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cookie, err := r.Cookie(StateCookieName)
-	if err != nil {
-		s.Log.Error(err, "cookie was not found in the request", "cookie", StateCookieName)
+	stateCookie := s.SessionManager.GetString(r.Context(), StateCookieName)
+	if stateCookie == "" {
+		s.Log.Info("cookie was not found in the request", "cookie", StateCookieName)
 		rw.WriteHeader(http.StatusBadRequest)
 
 		return
 	}
 
-	if state := r.FormValue("state"); state != cookie.Value {
+	if state := r.FormValue("state"); state != stateCookie {
 		s.Log.Info("cookie value does not match state form value")
 		rw.WriteHeader(http.StatusBadRequest)
 
 		return
 	}
 
-	b, err := base64.StdEncoding.DecodeString(cookie.Value)
+	b, err := base64.StdEncoding.DecodeString(stateCookie)
 	if err != nil {
-		s.Log.Error(err, "cannot base64 decode cookie", "cookie", StateCookieName, "cookie_value", cookie.Value)
+		s.Log.Error(err, "cannot base64 decode cookie", "cookie", StateCookieName, "cookie_value", stateCookie)
 		rw.WriteHeader(http.StatusBadRequest)
 
 		return
@@ -356,25 +361,22 @@ func (s *AuthServer) Callback(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.setCookies(rw, rawIDToken, token.AccessToken, token.RefreshToken)
+	s.setCookies(r.Context(), rawIDToken, token.AccessToken, token.RefreshToken)
 	// Clear state cookie
-	http.SetCookie(rw, s.clearCookie(StateCookieName))
+	s.SessionManager.Remove(r.Context(), StateCookieName)
 
 	http.Redirect(rw, r, state.ReturnURL, http.StatusSeeOther)
 }
 
-func (s *AuthServer) setCookies(rw http.ResponseWriter, idToken, accessToken, refreshToken string) {
-	// Issue ID token cookie
-	baseExpiry := s.cookieExpiryTime()
+func (s *AuthServer) setCookies(ctx context.Context, idToken, accessToken, refreshToken string) {
 	s.Log.V(logger.LogLevelDebug).Info("setting ID token cookie", "size", len(idToken))
-	http.SetCookie(rw, s.createCookie(IDTokenCookieName, idToken, baseExpiry))
+	s.sm.Put(ctx, IDTokenCookieName, idToken)
+
 	s.Log.V(logger.LogLevelDebug).Info("setting access token cookie", "size", len(accessToken))
-	http.SetCookie(rw, s.createCookie(AccessTokenCookieName, accessToken, baseExpiry))
-	// Make the Refresh token expire after the ID token so that we have a
-	// token we can refresh with.
+	s.sm.Put(ctx, AccessTokenCookieName, accessToken)
 
 	s.Log.V(logger.LogLevelDebug).Info("setting refresh token cookie", "size", len(refreshToken))
-	http.SetCookie(rw, s.createCookie(RefreshTokenCookieName, refreshToken, baseExpiry.Add(time.Hour)))
+	s.sm.Put(ctx, RefreshTokenCookieName, refreshToken)
 }
 
 func (s *AuthServer) SignIn() http.HandlerFunc {
@@ -430,13 +432,9 @@ func (s *AuthServer) SignIn() http.HandlerFunc {
 			return
 		}
 
-		http.SetCookie(rw, s.createCookie(IDTokenCookieName, signed, s.cookieExpiryTime()))
+		s.SessionManager.Put(r.Context(), IDTokenCookieName, signed)
 		rw.WriteHeader(http.StatusOK)
 	}
-}
-
-func (s *AuthServer) cookieExpiryTime() time.Time {
-	return time.Now().UTC().Add(s.OIDCConfig.TokenDuration)
 }
 
 // UserInfo inspects the cookie and attempts to verify it as an admin token. If successful,
@@ -451,15 +449,23 @@ func (s *AuthServer) UserInfo(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c, err := r.Cookie(IDTokenCookieName)
-	if err != nil {
-		s.Log.Error(err, "failed to get ID Token cookie from request")
+	if s.noAuthUser != "" {
+		ui := UserInfo{
+			ID: s.noAuthUser,
+		}
+		toJSON(rw, ui, s.Log)
+		return
+	}
+
+	idCookie := s.SessionManager.GetString(r.Context(), IDTokenCookieName)
+	if idCookie == "" {
+		s.Log.Info("failed to get ID Token from request")
 		rw.WriteHeader(http.StatusBadRequest)
 
 		return
 	}
 
-	claims, err := s.tokenSignerVerifier.Verify(c.Value)
+	claims, err := s.tokenSignerVerifier.Verify(idCookie)
 	if err == nil {
 		ui := UserInfo{
 			ID:    claims.Subject,
@@ -477,7 +483,7 @@ func (s *AuthServer) UserInfo(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	info, err := s.verifier().Verify(r.Context(), c.Value)
+	info, err := s.verifier().Verify(r.Context(), idCookie)
 	if err != nil {
 		s.Log.Error(err, "failed to parse user ID token")
 		JSONError(s.Log, rw, fmt.Sprintf("failed to parse id token: %v", err), http.StatusUnauthorized)
@@ -524,15 +530,15 @@ func (s *AuthServer) RefreshHandler(rw http.ResponseWriter, r *http.Request) {
 func (s *AuthServer) Refresh(rw http.ResponseWriter, r *http.Request) (*UserPrincipal, error) {
 	ctx := oidc.ClientContext(r.Context(), s.client)
 
-	refreshTokenCookie, err := r.Cookie(RefreshTokenCookieName)
-	if err != nil {
+	refreshTokenCookie := s.SessionManager.GetString(r.Context(), RefreshTokenCookieName)
+	if refreshTokenCookie == "" {
 		return nil, errors.New("couldn't fetch refresh token from cookie")
 	}
 
 	token, err := s.oauth2Config(nil).TokenSource(
 		ctx,
 		&oauth2.Token{
-			RefreshToken: refreshTokenCookie.Value,
+			RefreshToken: refreshTokenCookie,
 		}).Token()
 	if err != nil {
 		return nil, fmt.Errorf("failed to refresh token: %w", err)
@@ -543,7 +549,7 @@ func (s *AuthServer) Refresh(rw http.ResponseWriter, r *http.Request) (*UserPrin
 		return nil, errors.New("no id_token in token response")
 	}
 
-	s.setCookies(rw, rawIDToken, token.AccessToken, token.RefreshToken)
+	s.setCookies(r.Context(), rawIDToken, token.AccessToken, token.RefreshToken)
 
 	return parseJWTToken(ctx, s.verifier(), rawIDToken, s.OIDCConfig.ClaimsConfig, s.Log)
 }
@@ -588,48 +594,26 @@ func (s *AuthServer) startAuthFlow(rw http.ResponseWriter, r *http.Request) {
 	authCodeURL := s.oauth2Config(s.OIDCConfig.Scopes).AuthCodeURL(state)
 
 	// Issue state cookie
-	http.SetCookie(rw, s.createCookie(StateCookieName, state, s.cookieExpiryTime()))
+	s.SessionManager.Put(r.Context(), StateCookieName, state)
 
 	http.Redirect(rw, r, authCodeURL, http.StatusSeeOther)
 }
 
-func (s *AuthServer) Logout() http.HandlerFunc {
-	return func(rw http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPost {
-			s.Log.Info("Only POST requests allowed")
-			rw.WriteHeader(http.StatusMethodNotAllowed)
+func (s *AuthServer) Logout(rw http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		s.Log.Info("Only POST requests allowed")
+		rw.WriteHeader(http.StatusMethodNotAllowed)
 
-			return
-		}
-
-		http.SetCookie(rw, s.clearCookie(IDTokenCookieName))
-		http.SetCookie(rw, s.clearCookie(AccessTokenCookieName))
-		rw.WriteHeader(http.StatusOK)
-	}
-}
-
-func (s *AuthServer) createCookie(name, value string, expires time.Time) *http.Cookie {
-	cookie := &http.Cookie{
-		Name:     name,
-		Value:    value,
-		Path:     "/",
-		Expires:  expires,
-		HttpOnly: true,
-		Secure:   false,
+		return
 	}
 
-	return cookie
-}
-
-func (s *AuthServer) clearCookie(name string) *http.Cookie {
-	cookie := &http.Cookie{
-		Name:    name,
-		Value:   "",
-		Path:    "/",
-		Expires: time.Unix(0, 0),
+	if err := s.SessionManager.Destroy(r.Context()); err != nil {
+		s.Log.Error(err, "failed to destroy session")
+		rw.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
-	return cookie
+	rw.WriteHeader(http.StatusOK)
 }
 
 // SessionState represents the state that needs to be persisted between

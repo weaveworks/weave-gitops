@@ -49,6 +49,7 @@ import PolicyDetails from "./components/Policies/PolicyDetails/PolicyDetails";
 import { PolicyTable } from "./components/Policies/PolicyList/PolicyTable";
 import { ViolationDetails } from "./components/Policies/PolicyViolations/PolicyViolationDetails";
 import { PolicyViolationsList } from "./components/Policies/PolicyViolations/Table";
+import HeaderRows, { RowHeader } from "./components/Policies/Utils/HeaderRows";
 import Severity from "./components/Policies/Utils/Severity";
 import ProviderDetail from "./components/ProviderDetail";
 import ReconciledObjectsTable from "./components/ReconciledObjectsTable";
@@ -72,6 +73,7 @@ import AuthContextProvider, { Auth, AuthCheck } from "./contexts/AuthContext";
 import CoreClientContextProvider, {
   CoreClientContext,
   UnAuthorizedInterceptor,
+  setAPIPathPrefix,
 } from "./contexts/CoreClientContext";
 import {
   LinkResolverProvider,
@@ -119,6 +121,9 @@ import {
   isAllowedLink,
   poller,
   statusSortHelper,
+  getBasePath,
+  stripBasePath,
+  withBasePath,
 } from "./lib/utils";
 import SignIn from "./pages/SignIn";
 
@@ -145,8 +150,8 @@ export {
   DetailModal,
   DialogYamlView,
   DirectedGraph,
-  EventsTable,
   ErrorList,
+  EventsTable,
   Flex,
   FluxObject,
   FluxObjectsTable,
@@ -155,6 +160,7 @@ export {
   GitRepository,
   GitRepositoryDetail,
   Graph,
+  HeaderRows,
   HelmChart,
   HelmChartDetail,
   HelmRelease,
@@ -204,6 +210,7 @@ export {
   ReconciliationGraph,
   RequestStateHandler,
   RouterTab,
+  RowHeader,
   Severity,
   SignIn,
   SourceLink,
@@ -228,12 +235,15 @@ export {
   filterConfig,
   formatLogTimestamp,
   formatURL,
+  getBasePath,
   getParentNavRouteValue,
   isAllowedLink,
   muiTheme,
   poller,
+  setAPIPathPrefix,
   showInterval,
   statusSortHelper,
+  stripBasePath,
   theme,
   useCheckCRDInstalled,
   useDebounce,
@@ -251,4 +261,5 @@ export {
   useRequestState,
   useSyncFluxObject,
   useToggleSuspend,
+  withBasePath,
 };

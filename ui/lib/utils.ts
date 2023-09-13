@@ -1,10 +1,12 @@
 import _ from "lodash";
 import { DateTime } from "luxon";
+import qs from "query-string";
 import { toast } from "react-toastify";
 import styled from "styled-components";
 import Flex from "../components/Flex";
 import { computeReady, ReadyType } from "../components/KubeStatusIndicator";
 import { AppVersion, repoUrl } from "../components/Version";
+import { AuthRoutes } from "../contexts/AuthContext";
 import { GetVersionResponse } from "../lib/api/core/core.pb";
 import { Condition, Kind, ObjectRef } from "./api/core/types.pb";
 import { Automation, HelmRelease, Kustomization } from "./objects";
@@ -253,10 +255,45 @@ export const createYamlCommand = (
   return null;
 };
 
-export const Fade = styled(Flex)<{
+export const Fade = styled<any>(Flex)<{
   fade: boolean;
 }>`
   opacity: ${({ fade }) => (fade ? 0 : 1)};
   transition: opacity 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
   ${({ fade }) => fade && "pointer-events: none"};
 `;
+
+export const reloadBrowserSignIn = (redirect?: string) => {
+  let path = withBasePath(AuthRoutes.AUTH_PATH_SIGNIN);
+
+  if (redirect) {
+    const queryString = qs.stringify({ redirect });
+    path = `${path}?${queryString}`;
+  }
+
+  // hard reload the browser to wipe anything that might be memory
+  window.location.replace(path);
+};
+
+export const getBasePath = (doc: Document = window.document) => {
+  const baseElement = doc.querySelector("base");
+  if (baseElement) {
+    const { pathname } = new URL(doc.baseURI);
+    return pathname.replace(/\/$/, "");
+  }
+  return "";
+};
+
+export function withBasePath(pathname: string) {
+  return getBasePath() + pathname;
+}
+
+export function stripBasePath(pathname: string) {
+  const basePath = getBasePath();
+
+  if (pathname.startsWith(basePath)) {
+    return pathname.slice(basePath.length);
+  }
+
+  return pathname;
+}

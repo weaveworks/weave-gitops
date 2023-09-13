@@ -37,11 +37,21 @@ First, expose the service running on the cluster with this command:
    kubectl port-forward svc/ww-gitops-weave-gitops -n flux-system 9001:9001
    ```
 
-Next, [open the dashboard](http://localhost:9001/) and login using either the [emergency cluster user](../../configuration/emergency-user.mdx)
-	or OIDC, based on your [configuration](../../configuration/securing-access-to-the-dashboard.mdx).
+Next, [open the dashboard](http://localhost:9001/) and login using either the [emergency cluster user](../../enterprise/getting-started/install-enterprise.mdx#configuring-the-emergency-user) or OIDC, based on your [configuration](../../enterprise/getting-started/install-enterprise.mdx#securing-access-to-the-dashboard).
 	If you followed the example above, the emergency user will be configured with the username set to `admin`. This means that you can use “admin” as your user name, and the password that you set earlier during installation as `$PASSWORD`.
 
    ![Weave GitOps login screen](/img/dashboard-login.png)
+
+The label of the OIDC button on the login screen is configurable via a feature flag environment variable.
+This can give your users a more familiar experience when logging in.
+
+Adjust the configuration in the Helm `values.yaml` file or the `spec.values` section of the Weave GitOps `HelmRelease` resource:
+
+```yaml
+envVars:
+  - name: WEAVE_GITOPS_FEATURE_OIDC_BUTTON_LABEL
+    value: "Login with ACME"
+```
 
 ## The Applications View
 
@@ -123,6 +133,18 @@ Go back to the Details tab, and click `GitRepository/flux-system` from the summa
 ![Source detail view showing details for an object](/img/dashboard-source-flux.png)
 
 As with an Application detail view, you can see key information about how the resource is defined.
+
+## The Image Automation View
+
+Maybe you're an app developer who wants to deploy the latest image in a dev/staging environment with as minimal fuss as possible and reduce GitOps friction. Or you might be a platform engineer who wants to keep your platform up-to-date with the latest approved versions—for example, patch releases to reduce exposure to CVEs—or auto-deploy when approval is gated before adding an image to an internal registry. The Image Automation view can help.
+
+WeGO's Image Automation view allows users to configure automatic updates to their workloads based on the detection of a new image tag in a repository. For application developers, this means faster deployments and shorter feedback cycles to easily verify changes to an application in a Kubernetes environment. The view still supports GitOps workflows as the changes are committed back to Git—either to the branch already reconciled by Flux, or to an alternative branch so that a Pull Request can be generated and peer review can occur. 
+
+Image Automation refers to Flux's ability to update the image tag specified in a manifest based on detection of a newer image and automatically deploy to a cluster. It involves three required objects—[ImageRepositories](https://fluxcd.io/flux/components/image/imagerepositories), [ImagePolicies](https://fluxcd.io/flux/components/image/imagepolicies), and [ImageUpdateAutomations](https://fluxcd.io/flux/components/image/imageupdateautomations/)—which WeGO OSS users can discover on their clusters. Users can also view object details either through a YAML-like view, as we do for most non-Flux objects, or a details view. The UI makes it possible to suspend or resume ImageRepositories and ImageUpdateAutomations so that Flux stops looking for new updates or committing these to Git. Also, the UI shows whether all required resources are configured and assists with Image Policy to show the latest image. 
+
+ImageRepositories, ImagePolicies, and ImageUpdateAutomations are used by Flux's [Image Automation](https://fluxcd.io/flux/components/image/) Controllers. The [Image Reflector controller](https://github.com/fluxcd/image-reflector-controller) and the [Image Automation controller](https://github.com/fluxcd/image-automation-controller) work together to update a Git repository when new container images are available. In WeGO OSS, if the image-reflector-controller and or image-automation-controller are not installed on a cluster, a warning message will display.
+
+If you make a mistake configuring one of the resources, you can use WeGO to easily trace from the Image Repository scan, see whether it is able to select the image based on the Image Policy, and detect whether an Image Update has successfully run. This provides greater visibility into the machinery provided by Flux and enables quicker troubleshooting than what's possible by hunting via the Flux CLI. App devs can triage issues without depending on their platform teams.
 
 ## The Flux Runtime view
 

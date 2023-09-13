@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/NYTimes/gziphandler"
+	"github.com/alexedwards/scs/v2"
 	"github.com/go-logr/logr"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -46,7 +47,8 @@ import (
 
 const (
 	// Allowed login requests per second
-	loginRequestRateLimit = 20
+	loginRequestRateLimit            = 20
+	InsecureNoAuthenticationUserFlag = "insecure-no-authentication-user"
 )
 
 // Options contains all the options for the gitops-server command.
@@ -56,6 +58,7 @@ type Options struct {
 	LogLevel                      string
 	NotificationControllerAddress string
 	Path                          string
+	RoutePrefix                   string
 	Port                          string
 	AuthMethods                   []string
 	// TLS config
@@ -69,6 +72,8 @@ type Options struct {
 	// OIDC
 	OIDC       auth.OIDCConfig
 	OIDCSecret string
+	// Auth
+	NoAuthUser string
 	// Dev mode
 	DevMode bool
 	// Metrics
@@ -96,9 +101,9 @@ func NewCommand() *cobra.Command {
 	cmd.Flags().StringVar(&options.Host, "host", server.DefaultHost, "UI host")
 	cmd.Flags().StringVar(&options.LogLevel, "log-level", logger.DefaultLogLevel, "log level")
 	cmd.Flags().StringVar(&options.NotificationControllerAddress, "notification-controller-address", "", "the address of the notification-controller running in the cluster")
-	cmd.Flags().StringVar(&options.Path, "path", "", "Path url")
+	cmd.Flags().StringVar(&options.RoutePrefix, "route-prefix", "", "Mount the UI and API endpoint under a path prefix, e.g. /weave-gitops")
 	cmd.Flags().StringVar(&options.Port, "port", server.DefaultPort, "UI port")
-	cmd.Flags().StringSliceVar(&options.AuthMethods, "auth-methods", auth.DefaultAuthMethodStrings(), fmt.Sprintf("Which auth methods to use, valid values are %s", strings.Join(auth.DefaultAuthMethodStrings(), ",")))
+	cmd.Flags().StringSliceVar(&options.AuthMethods, "auth-methods", auth.DefaultAuthMethodStrings(), fmt.Sprintf("Which auth methods to use, valid values are %s", strings.Join(auth.AllUserAuthMethods(), ",")))
 	cmd.Flags().BoolVar(&options.UseK8sCachedClients, "use-k8s-cached-clients", false, "Enables the use of cached clients")
 	//  TLS
 	cmd.Flags().BoolVar(&options.Insecure, "insecure", false, "do not attempt to read TLS certificates")
@@ -118,6 +123,8 @@ func NewCommand() *cobra.Command {
 	// OIDC prefixes
 	cmd.Flags().StringVar(&options.OIDC.UsernamePrefix, "oidc-username-prefix", "", "Prefix to add to the username when impersonating")
 	cmd.Flags().StringVar(&options.OIDC.GroupsPrefix, "oidc-group-prefix", "", "Prefix to add to the groups when impersonating")
+	// auth
+	cmd.Flags().StringVar(&options.NoAuthUser, InsecureNoAuthenticationUserFlag, "", "A kubernetes user to impersonate for all requests, no authentication will be performed")
 
 	// Metrics
 	cmd.Flags().BoolVar(&options.EnableMetrics, "enable-metrics", false, "Starts the metrics listener")
@@ -136,6 +143,10 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	featureflags.SetFromEnv(os.Environ())
 
+	if cmd.Flags().Changed(InsecureNoAuthenticationUserFlag) && options.NoAuthUser == "" {
+		return fmt.Errorf("%s flag set but no user specified", InsecureNoAuthenticationUserFlag)
+	}
+
 	mux := http.NewServeMux()
 
 	mux.Handle("/health/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -148,7 +159,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	assetFS := getAssets()
 	assetHandler := http.FileServer(http.FS(assetFS))
-	redirector := createRedirector(assetFS, log)
+	redirector := createRedirector(assetFS, log, options.RoutePrefix)
 	clusterName := kube.InClusterConfigClusterName()
 
 	rest, err := config.GetConfig()
@@ -177,8 +188,17 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("couldn't get current namespace")
 	}
 
-	authServer, err := auth.InitAuthServer(cmd.Context(), log, rawClient, options.OIDC, options.OIDCSecret, namespace, options.AuthMethods)
-
+	sessionManager := scs.New()
+	// TODO: Make this configurable
+	sessionManager.Lifetime = 24 * time.Hour
+	authServer, err := auth.InitAuthServer(cmd.Context(), log, rawClient, auth.AuthParams{
+		OIDCConfig:        options.OIDC,
+		OIDCSecretName:    options.OIDCSecret,
+		AuthMethodStrings: options.AuthMethods,
+		NoAuthUser:        options.NoAuthUser,
+		Namespace:         namespace,
+		SessionManager:    sessionManager,
+	})
 	if err != nil {
 		return fmt.Errorf("could not initialise authentication server: %w", err)
 	}
@@ -197,13 +217,13 @@ func runCmd(cmd *cobra.Command, args []string) error {
 	}
 
 	// Incorporate values from authServer.AuthConfig.OIDCConfig
-	if authServer.AuthConfig.OIDCConfig.UsernamePrefix != "" {
+	if authServer.OIDCConfig.UsernamePrefix != "" {
 		log.V(logger.LogLevelWarn).Info("OIDC username prefix configured by both CLI and secret. Secret values will take precedence.")
-		oidcPrefixes.UsernamePrefix = authServer.AuthConfig.OIDCConfig.UsernamePrefix
+		oidcPrefixes.UsernamePrefix = authServer.OIDCConfig.UsernamePrefix
 	}
-	if authServer.AuthConfig.OIDCConfig.GroupsPrefix != "" {
+	if authServer.OIDCConfig.GroupsPrefix != "" {
 		log.V(logger.LogLevelWarn).Info("OIDC groups prefix configured by both CLI and secret. Secret values will take precedence.")
-		oidcPrefixes.GroupsPrefix = authServer.AuthConfig.OIDCConfig.GroupsPrefix
+		oidcPrefixes.GroupsPrefix = authServer.OIDCConfig.GroupsPrefix
 	}
 
 	cl, err := cluster.NewSingleCluster(cluster.DefaultCluster, rest, scheme, oidcPrefixes, cluster.DefaultKubeConfigOptions...)
@@ -243,6 +263,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 			CoreServerConfig: coreConfig,
 			AuthServer:       authServer,
 		},
+		sessionManager,
 	)
 	if err != nil {
 		return fmt.Errorf("could not create handler: %w", err)
@@ -263,16 +284,22 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		assetHandler.ServeHTTP(w, req)
 	})))
 
+	if options.RoutePrefix != "" {
+		mux = server.WithRoutePrefix(mux, options.RoutePrefix)
+	}
+
 	handler := http.Handler(mux)
 
 	if options.EnableMetrics {
 		mdlw := httpmiddleware.New(httpmiddleware.Config{
 			Recorder: metrics.NewRecorder(metrics.Config{}),
 		})
-		handler = httpmiddlewarestd.Handler("", mdlw, mux)
+		handler = httpmiddlewarestd.Handler("", mdlw, handler)
 	}
 
 	handler = middleware.WithLogging(log, handler)
+
+	handler = sessionManager.LoadAndSave(handler)
 
 	addr := net.JoinHostPort(options.Host, options.Port)
 	srv := &http.Server{
@@ -381,7 +408,10 @@ func getAssets() fs.FS {
 
 // A redirector ensures that index.html always gets served.
 // The JS router will take care of actual navigation once the index.html page lands.
-func createRedirector(fsys fs.FS, log logr.Logger) http.HandlerFunc {
+func createRedirector(fsys fs.FS, log logr.Logger, routePrefix string) http.HandlerFunc {
+	baseHref := server.GetBaseHref(routePrefix)
+	log.Info("Creating redirector", "routePrefix", routePrefix, "baseHref", baseHref)
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		indexPage, err := fsys.Open("index.html")
 
@@ -409,6 +439,9 @@ func createRedirector(fsys fs.FS, log logr.Logger) http.HandlerFunc {
 
 			return
 		}
+
+		// inject base tag into index.html
+		bt = server.InjectHTMLBaseTag(bt, baseHref)
 
 		_, err = w.Write(bt)
 
