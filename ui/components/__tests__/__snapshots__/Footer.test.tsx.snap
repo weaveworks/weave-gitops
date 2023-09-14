@@ -169,7 +169,7 @@ exports[`Footer snapshots default 1`] = `
       />
       <a
         class="c5 Link"
-        href="https://github.com/weaveworks/weave-gitops/commit/123abcd"
+        href="https://github.com/weaveworks/weave-gitops/releases/tag/v0.0.1"
         rel="noreferrer"
         target="_blank"
       >
@@ -180,7 +180,7 @@ exports[`Footer snapshots default 1`] = `
           <span
             class="c10"
           >
-            mybranch-123abcd
+            v0.0.1
           </span>
         </span>
       </a>
@@ -368,7 +368,7 @@ exports[`Footer snapshots no api version 1`] = `
       />
       <a
         class="c5 Link"
-        href="https://github.com/weaveworks/weave-gitops/releases/tag/v0.32.0"
+        href="https://github.com/weaveworks/weave-gitops/releases/tag/v0.0.1"
         rel="noreferrer"
         target="_blank"
       >
@@ -379,7 +379,7 @@ exports[`Footer snapshots no api version 1`] = `
           <span
             class="c10"
           >
-            v0.32.0
+            v0.0.1
           </span>
         </span>
       </a>
