@@ -6,7 +6,8 @@
 [![Release](https://img.shields.io/github/v/release/weaveworks/weave-gitops?include_prereleases)](https://github.com/weaveworks/weave-gitops/releases/latest)
 [![FOSSA Status](https://app.fossa.com/api/projects/custom%2B19155%2Fgithub.com%2Fweaveworks%2Fweave-gitops.svg?type=shield)](https://app.fossa.com/reports/005da7c4-1f10-4889-9432-8b97c2084e41)
 
-Weave GitOps is a simple, open source developer platform for people who want cloud native applications but who don't have
+Weave GitOps is a simple,
+open source developer platform for people who want cloud native applications but who don't have
 Kubernetes expertise. Experience how easy it is to enable GitOps and run your apps in a cluster. Use Git to collaborate
 with team members making new deployments easy and secure. Start with what developers need to run apps, and then easily
 extend to define and run your own enterprise platform.
