@@ -338,7 +338,6 @@ exports[`Page snapshots default 1`] = `
         onTouchEnd={[Function]}
         onTouchMove={[Function]}
         onTouchStart={[Function]}
-        open={false}
         tabIndex={0}
         title="Docs"
       >
