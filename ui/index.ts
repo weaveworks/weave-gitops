@@ -140,9 +140,9 @@ import { baseTheme, muiTheme, theme } from "./lib/theme";
 import { showInterval } from "./lib/time";
 import {
   V2Routes,
+  PageRoute,
   RequestError,
   ReactQueryOptions,
-  PageRoute,
 } from "./lib/types";
 import {
   createYamlCommand,
