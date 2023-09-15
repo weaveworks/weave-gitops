@@ -34,7 +34,7 @@ const SettingsMenu = styled(Menu)`
   }
 `;
 
-const PersonButton = styled(IconButton)<{ open: boolean }>`
+const PersonButton = styled(IconButton)<{ open?: boolean }>`
   &.MuiIconButton-root {
     padding: ${(props) => props.theme.spacing.xs};
     background-color: ${(props) => props.theme.colors.neutralGray};
@@ -68,12 +68,7 @@ function UserSettings({ className, darkModeEnabled = true }: Props) {
     <Flex className={className} gap="8" align>
       <DarkModeSwitch darkModeEnabled={darkModeEnabled} />
       <Tooltip title="Docs" enterDelay={500} enterNextDelay={500}>
-        <Link
-          as={PersonButton}
-          open={false}
-          href="https://docs.gitops.weave.works/"
-          newTab
-        >
+        <Link as={PersonButton} href="https://docs.gitops.weave.works/" newTab>
           <Icon size="medium" type={IconType.FindInPage} />
         </Link>
       </Tooltip>
