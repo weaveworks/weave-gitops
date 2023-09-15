@@ -9,8 +9,8 @@ const InfoList = styled(
   ({ items }: { className?: string; items: InfoField[] }) => {
     return (
       <Flex column wide gap="8">
-        {items.map(([k, v]) => (
-          <RowHeader rowkey={k} value={v} key={k} />
+        {items.map(([k, v], index) => (
+          <RowHeader rowkey={k} value={v} key={index} />
         ))}
       </Flex>
     );
