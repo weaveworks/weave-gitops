@@ -53,7 +53,7 @@ function UnstyledYamlView({
       },
     },
 
-    lineProps: { style: { flexWrap: "wrap" } },
+    lineProps: { style: { TextWrap: "wrap" } },
 
     ...(dark && { style: darcula }),
   };
@@ -78,7 +78,6 @@ function UnstyledYamlView({
         <SyntaxHighlighter
           language={type}
           {...styleProps}
-          wrapLongLines
           wrapLines
           showLineNumbers
         >
