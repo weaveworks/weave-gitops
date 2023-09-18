@@ -53,7 +53,7 @@ function UnstyledYamlView({
       },
     },
 
-    lineProps: { style: { TextWrap: "wrap" } },
+    lineProps: { style: { textWrap: "wrap" } },
 
     ...(dark && { style: darcula }),
   };

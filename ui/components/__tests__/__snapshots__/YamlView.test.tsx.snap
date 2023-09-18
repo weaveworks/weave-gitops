@@ -254,7 +254,7 @@ exports[`YamlView snapshots renders 1`] = `
       <code
         style={
           Object {
-            "whiteSpace": "pre-wrap",
+            "whiteSpace": "pre",
             "wordBreak": "break-word",
           }
         }
@@ -262,8 +262,7 @@ exports[`YamlView snapshots renders 1`] = `
         <span
           style={
             Object {
-              "display": "flex",
-              "flexWrap": "wrap",
+              "textWrap": "wrap",
             }
           }
         >
