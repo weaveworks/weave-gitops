@@ -58,6 +58,7 @@ type Options struct {
 	LogLevel                      string
 	NotificationControllerAddress string
 	Path                          string
+	RoutePrefix                   string
 	Port                          string
 	AuthMethods                   []string
 	// TLS config
@@ -100,7 +101,7 @@ func NewCommand() *cobra.Command {
 	cmd.Flags().StringVar(&options.Host, "host", server.DefaultHost, "UI host")
 	cmd.Flags().StringVar(&options.LogLevel, "log-level", logger.DefaultLogLevel, "log level")
 	cmd.Flags().StringVar(&options.NotificationControllerAddress, "notification-controller-address", "", "the address of the notification-controller running in the cluster")
-	cmd.Flags().StringVar(&options.Path, "path", "", "Path url")
+	cmd.Flags().StringVar(&options.RoutePrefix, "route-prefix", "", "Mount the UI and API endpoint under a path prefix, e.g. /weave-gitops")
 	cmd.Flags().StringVar(&options.Port, "port", server.DefaultPort, "UI port")
 	cmd.Flags().StringSliceVar(&options.AuthMethods, "auth-methods", auth.DefaultAuthMethodStrings(), fmt.Sprintf("Which auth methods to use, valid values are %s", strings.Join(auth.AllUserAuthMethods(), ",")))
 	cmd.Flags().BoolVar(&options.UseK8sCachedClients, "use-k8s-cached-clients", false, "Enables the use of cached clients")
@@ -158,7 +159,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	assetFS := getAssets()
 	assetHandler := http.FileServer(http.FS(assetFS))
-	redirector := createRedirector(assetFS, log)
+	redirector := createRedirector(assetFS, log, options.RoutePrefix)
 	clusterName := kube.InClusterConfigClusterName()
 
 	rest, err := config.GetConfig()
@@ -283,6 +284,10 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		assetHandler.ServeHTTP(w, req)
 	})))
 
+	if options.RoutePrefix != "" {
+		mux = server.WithRoutePrefix(mux, options.RoutePrefix)
+	}
+
 	handler := http.Handler(mux)
 
 	if options.EnableMetrics {
@@ -403,7 +408,10 @@ func getAssets() fs.FS {
 
 // A redirector ensures that index.html always gets served.
 // The JS router will take care of actual navigation once the index.html page lands.
-func createRedirector(fsys fs.FS, log logr.Logger) http.HandlerFunc {
+func createRedirector(fsys fs.FS, log logr.Logger, routePrefix string) http.HandlerFunc {
+	baseHref := server.GetBaseHref(routePrefix)
+	log.Info("Creating redirector", "routePrefix", routePrefix, "baseHref", baseHref)
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		indexPage, err := fsys.Open("index.html")
 
@@ -431,6 +439,9 @@ func createRedirector(fsys fs.FS, log logr.Logger) http.HandlerFunc {
 
 			return
 		}
+
+		// inject base tag into index.html
+		bt = server.InjectHTMLBaseTag(bt, baseHref)
 
 		_, err = w.Write(bt)
 

@@ -29,6 +29,7 @@
             'open-source/getting-started/ui-OSS',
             'open-source/getting-started/deploy-OSS',
             'open-source/getting-started/aws-marketplace',
+            'open-source/getting-started/run-ui-subpath',
           ],
         },
         {
@@ -256,7 +257,17 @@
         'workspaces/multi-tenancy',
         'workspaces/view-workspaces',
       ],
-    }
+    },
+    {
+      type: 'category',
+      label: 'Backstage',
+      link: {
+        type: 'doc',
+        id: 'backstage/intro'
+      },
+      items: [],
+    },
+
   ],
   ref: [
     {

@@ -8,8 +8,8 @@ import {
   Interval,
   Kind,
   NamespacedObjectReference,
-  Object as ResponseObject,
   ObjectRef,
+  Object as ResponseObject,
 } from "./api/core/types.pb";
 export type Automation = HelmRelease | Kustomization;
 export type Source =
@@ -200,20 +200,12 @@ export class OCIRepository extends FluxObject {
     return this.obj.spec?.url || "";
   }
 
-  get source(): string {
-    const metadata = this.obj.status?.artifact?.metadata;
-    if (!metadata) {
-      return "";
-    }
-    return metadata["org.opencontainers.image.source"] || "";
-  }
-
-  get revision(): string {
-    const metadata = this.obj.status?.artifact?.metadata;
-    if (!metadata) {
-      return "";
-    }
-    return metadata["org.opencontainers.image.revision"] || "";
+  get artifactMetadata(): [string, string][] {
+    const metadata = this.obj.status?.artifact?.metadata || {};
+    const prefix = "org.opencontainers.image/";
+    return Object.keys(metadata).flatMap((key) => {
+      return [[key.slice(prefix.length), metadata[key] as string]];
+    });
   }
 
   get isVerifiable(): boolean {
@@ -342,7 +334,7 @@ export class ImagePolicy extends ImageUpdateAutomation {
     super(response);
   }
   get imagePolicy(): ImgPolicy {
-    const { policy } = this.obj?.spec;
+    const { policy } = this.obj?.spec || {};
     const [type] = Object.keys(policy);
     if (type) {
       const [val] = Object.values(policy[type]);

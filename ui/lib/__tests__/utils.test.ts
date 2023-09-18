@@ -1,3 +1,4 @@
+import { JSDOM } from "jsdom";
 import { GetVersionResponse } from "../api/core/core.pb";
 import { Kind } from "../api/core/types.pb";
 import { Automation, HelmRelease, Kustomization } from "../objects";
@@ -14,6 +15,7 @@ import {
   makeImageString,
   pageTitleWithAppName,
   statusSortHelper,
+  getBasePath,
 } from "../utils";
 
 describe("utils lib", () => {
@@ -422,5 +424,43 @@ describe("createYamlCommand", () => {
     expect(createYamlCommand(undefined, undefined, "flux-system")).toEqual(
       null
     );
+  });
+
+  describe("getBasePath", () => {
+    describe("without a base tag set in the dom", () => {
+      let dom: JSDOM;
+      beforeEach(() => {
+        dom = new JSDOM(
+          "<!DOCTYPE html><html><head></head><body></body></html>",
+          { url: "https://example.org/" }
+        );
+      });
+
+      it("should return an empty string", () => {
+        expect(getBasePath(dom.window.document)).toEqual("");
+      });
+
+      afterEach(() => {
+        dom.window.close();
+      });
+    });
+
+    describe("with a base tag set in the dom", () => {
+      let dom: JSDOM;
+      beforeEach(() => {
+        dom = new JSDOM(
+          "<!DOCTYPE html><html><head><base href='/base/'></head><body></body></html>",
+          { url: "https://example.org/" }
+        );
+      });
+
+      it("should return the base URL, stripped of trailing slashes", () => {
+        expect(getBasePath(dom.window.document)).toEqual("/base");
+      });
+
+      afterEach(() => {
+        dom.window.close();
+      });
+    });
   });
 });
