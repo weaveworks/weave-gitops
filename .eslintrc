@@ -27,7 +27,8 @@
         "@typescript-eslint/no-explicit-any": 0,
         "@typescript-eslint/ban-ts-comment": 0,
         "import/no-named-as-default": 0,
-        "@typescript-eslint/switch-exhaustiveness-check": "error"
+        "@typescript-eslint/switch-exhaustiveness-check": "error",
+        "import/no-unresolved": 0
     },
     "ignorePatterns": "rpc",
     "parserOptions": {
