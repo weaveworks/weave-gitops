@@ -11,7 +11,9 @@ import styled from "styled-components";
 import { Auth } from "../contexts/AuthContext";
 import { V2Routes } from "../lib/types";
 import DarkModeSwitch from "./DarkModeSwitch";
+import Flex from "./Flex";
 import Icon, { IconType } from "./Icon";
+import Link from "./Link";
 
 const SettingsMenu = styled(Menu)`
   .MuiPaper-root {
@@ -32,10 +34,9 @@ const SettingsMenu = styled(Menu)`
   }
 `;
 
-const PersonButton = styled(IconButton)<{ open: boolean }>`
-  height: 40px;
-  width: 40px;
+const PersonButton = styled(IconButton)<{ open?: boolean }>`
   &.MuiIconButton-root {
+    padding: ${(props) => props.theme.spacing.xs};
     background-color: ${(props) => props.theme.colors.neutralGray};
     color: ${(props) => props.theme.colors.neutral30};
     :hover {
@@ -64,8 +65,13 @@ function UserSettings({ className, darkModeEnabled = true }: Props) {
   };
 
   return (
-    <div className={className}>
+    <Flex className={className} gap="8" align>
       <DarkModeSwitch darkModeEnabled={darkModeEnabled} />
+      <Tooltip title="Docs" enterDelay={500} enterNextDelay={500}>
+        <Link as={PersonButton} href="https://docs.gitops.weave.works/" newTab>
+          <Icon size="medium" type={IconType.FindInPage} />
+        </Link>
+      </Tooltip>
       <Tooltip title="Account settings" enterDelay={500} enterNextDelay={500}>
         <PersonButton
           onClick={handleClick}
@@ -95,7 +101,7 @@ function UserSettings({ className, darkModeEnabled = true }: Props) {
           Logout
         </MenuItem>
       </SettingsMenu>
-    </div>
+    </Flex>
   );
 }
 
