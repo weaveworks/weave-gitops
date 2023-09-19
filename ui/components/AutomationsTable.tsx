@@ -139,7 +139,7 @@ function AutomationsTable({
       value: (a: Automation) =>
         a.conditions.length > 0 ? (
           <KubeStatusIndicator
-            short
+            noText
             conditions={a.conditions}
             suspended={a.suspended}
           />
