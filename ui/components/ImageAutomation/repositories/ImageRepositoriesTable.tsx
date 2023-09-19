@@ -1,4 +1,5 @@
 import React from "react";
+import { useFeatureFlags } from "../../../hooks/featureflags";
 import { useListImageAutomation } from "../../../hooks/imageautomation";
 import { Kind } from "../../../lib/api/core/types.pb";
 import { formatURL } from "../../../lib/nav";
@@ -16,6 +17,7 @@ const ImageRepositoriesTable = () => {
   const initialFilterState = {
     ...filterConfig(data?.objects, "name"),
   };
+  const { isFlagEnabled } = useFeatureFlags();
   return (
     <RequestStateHandler loading={isLoading} error={error}>
       <DataTable
@@ -44,6 +46,15 @@ const ImageRepositoriesTable = () => {
             label: "Namespace",
             value: "namespace",
           },
+          ...(isFlagEnabled("WEAVE_GITOPS_FEATURE_CLUSTER")
+            ? [
+                {
+                  label: "Cluster",
+                  value: "clusterName",
+                  sortValue: ({ clusterName }) => clusterName,
+                },
+              ]
+            : []),
           {
             label: "Status",
             value: (s: Source) => (

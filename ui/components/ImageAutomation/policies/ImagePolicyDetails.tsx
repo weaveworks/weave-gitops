@@ -1,5 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
+import { useFeatureFlags } from "../../../hooks/featureflags";
 import { useGetObject } from "../../../hooks/objects";
 import { Kind } from "../../../lib/api/core/types.pb";
 import { ImagePolicy } from "../../../lib/objects";
@@ -30,6 +31,7 @@ function ImagePolicyDetails({
       refetchInterval: 5000,
     }
   );
+  const { isFlagEnabled } = useFeatureFlags();
   const rootPath = V2Routes.ImagePolicyDetails;
   return (
     <Page
@@ -48,6 +50,10 @@ function ImagePolicyDetails({
           infoFields={[
             ["Kind", Kind.ImagePolicy],
             ["Namespace", data?.namespace],
+            isFlagEnabled("WEAVE_GITOPS_FEATURE_CLUSTER") && [
+              "Cluster",
+              clusterName,
+            ],
             ["Image Policy", data?.imagePolicy?.type || ""],
             ["Order/Range", data?.imagePolicy?.value],
           ]}

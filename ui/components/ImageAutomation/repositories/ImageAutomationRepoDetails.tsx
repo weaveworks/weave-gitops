@@ -1,5 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
+import { useFeatureFlags } from "../../../hooks/featureflags";
 import { useGetObject } from "../../../hooks/objects";
 import { Kind } from "../../../lib/api/core/types.pb";
 import { ImageRepository } from "../../../lib/objects";
@@ -32,6 +33,7 @@ function ImageAutomationRepoDetails({
       refetchInterval: 5000,
     }
   );
+  const { isFlagEnabled } = useFeatureFlags();
   const rootPath = V2Routes.ImageAutomationRepositoryDetails;
   return (
     <Page
@@ -50,6 +52,10 @@ function ImageAutomationRepoDetails({
           infoFields={[
             ["Kind", Kind.ImageRepository],
             ["Namespace", data.namespace],
+            isFlagEnabled("WEAVE_GITOPS_FEATURE_CLUSTER") && [
+              "Cluster",
+              clusterName,
+            ],
             [
               "Image",
               <Link newTab={true} to={data.obj?.spec?.image}>
