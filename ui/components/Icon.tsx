@@ -13,10 +13,11 @@ import ErrorIcon from "@material-ui/icons/Error";
 import LogoutIcon from "@material-ui/icons/ExitToApp";
 import FileCopyIcon from "@material-ui/icons/FileCopyOutlined";
 import FilterIcon from "@material-ui/icons/FilterList";
+import FindInPage from "@material-ui/icons/FindInPage";
 import HourglassFullIcon from "@material-ui/icons/HourglassFull";
+import InfoIcon from "@material-ui/icons/Info";
 import KeyboardArrowDownIcon from "@material-ui/icons/KeyboardArrowDown";
 import KeyboardArrowRightIcon from "@material-ui/icons/KeyboardArrowRight";
-import InfoIcon from "@material-ui/icons/Info";
 import LaunchIcon from "@material-ui/icons/Launch";
 import NavigateBeforeIcon from "@material-ui/icons/NavigateBefore";
 import NavigateNextIcon from "@material-ui/icons/NavigateNext";
@@ -116,6 +117,7 @@ export enum IconType {
   EditIcon,
   VerifiedUser,
   Policy,
+  FindInPage,
 }
 
 type Props = {
@@ -297,6 +299,9 @@ function getIcon(i: IconType) {
 
     case IconType.EditIcon:
       return EditIcon;
+
+    case IconType.FindInPage:
+      return FindInPage;
 
     default:
       break;
