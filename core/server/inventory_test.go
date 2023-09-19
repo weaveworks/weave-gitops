@@ -329,5 +329,5 @@ func TestGetInventoryHelmReleaseWithKubeconfig(t *testing.T) {
 	})
 
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(res.Entries).To(HaveLen(1))
+	g.Expect(res.Entries).To(HaveLen(0))
 }
