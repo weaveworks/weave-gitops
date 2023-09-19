@@ -197,7 +197,7 @@ func TestGetBlankInventoryKustomization(t *testing.T) {
 	g.Expect(res.Entries).To(HaveLen(0))
 }
 
-func TestGetInventoryHelmReleaseWithSecret(t *testing.T) {
+func TestGetInventoryHelmRelease(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	scheme, err := kube.CreateScheme()
@@ -316,7 +316,7 @@ func TestGetInventoryHelmReleaseWithKubeconfig(t *testing.T) {
 		},
 	}
 
-	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ns, helm1, nil, cm).Build()
+	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ns, helm1, cm).Build()
 	cfg := makeServerConfig(client, t, "")
 	c := makeServer(cfg, t)
 
