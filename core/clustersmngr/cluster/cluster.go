@@ -30,8 +30,9 @@ const (
 )
 
 var (
-	kubeClientTimeout        = getEnvDuration("WEAVE_GITOPS_KUBE_CLIENT_TIMEOUT", 30*time.Second)
-	DefaultKubeConfigOptions = []KubeConfigOption{WithFlowControl}
+	kubeClientTimeout = getEnvDuration("WEAVE_GITOPS_KUBE_CLIENT_TIMEOUT", 30*time.Second)
+	// DefaultKubeConfigOptions = []KubeConfigOption{WithFlowControl}
+	DefaultKubeConfigOptions = []KubeConfigOption{}
 )
 
 type KubeConfigOption func(*rest.Config) (*rest.Config, error)
