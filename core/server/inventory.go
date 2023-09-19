@@ -198,10 +198,10 @@ func getHelmReleaseObjects(ctx context.Context, k8sClient client.Client, helmRel
 	if helmRelease.Spec.KubeConfig != nil {
 		// helmrelease secret is on another cluster so we cannot inspect it to figure out the inventory and version and other things
 		return nil, nil
-	} else {
-		if err := k8sClient.Get(ctx, key, storageSecret); err != nil {
-			return nil, err
-		}
+	}
+
+	if err := k8sClient.Get(ctx, key, storageSecret); err != nil {
+		return nil, err
 	}
 
 	releaseData, releaseFound := storageSecret.Data["release"]
