@@ -37,8 +37,13 @@ func getHelmReleaseInventory(ctx context.Context, helmRelease helmv2.HelmRelease
 		Namespace: storageNamespace,
 	}
 
-	if err := c.Get(ctx, cluster, key, storageSecret); err != nil {
-		return nil, err
+	if helmRelease.Spec.KubeConfig != nil {
+		// helmrelease secret is on another cluster so we cannot inspect it to figure out the inventory and version and other things
+		return nil, nil
+	} else {
+		if err := c.Get(ctx, cluster, key, storageSecret); err != nil {
+			return nil, err
+		}
 	}
 
 	releaseData, releaseFound := storageSecret.Data["release"]
