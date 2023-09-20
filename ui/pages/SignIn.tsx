@@ -92,7 +92,7 @@ function SignIn({ darkModeEnabled = true }: Props) {
 
   const handleOIDCSubmit = () => {
     const CURRENT_URL = window.origin;
-    return (window.location.href = `/oauth2?return_url=${encodeURIComponent(
+    return (window.location.href = `./oauth2?return_url=${encodeURIComponent(
       CURRENT_URL
     )}`);
   };
