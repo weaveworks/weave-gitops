@@ -302,21 +302,7 @@ func TestGetInventoryHelmReleaseWithKubeconfig(t *testing.T) {
 		},
 	}
 
-	cm := &corev1.ConfigMap{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "ConfigMap",
-			APIVersion: "v1",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "config-map",
-			Namespace: ns.Name,
-		},
-		Data: map[string]string{
-			"key": "value",
-		},
-	}
-
-	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ns, helm1, cm).Build()
+	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ns, helm1).Build()
 	cfg := makeServerConfig(client, t, "")
 	c := makeServer(cfg, t)
 

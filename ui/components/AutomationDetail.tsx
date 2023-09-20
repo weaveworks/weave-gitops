@@ -24,6 +24,10 @@ import SyncActions from "./SyncActions";
 import Text from "./Text";
 import Timestamp from "./Timestamp";
 import YamlView from "./YamlView";
+import Alert from "./Alert";
+
+const hrInfoMessage =
+  "spec.Kubeconfig is set on this HelmRelease. Details about reconciled objects are not available.";
 
 type Props = {
   automation: Automation;
@@ -87,10 +91,15 @@ function AutomationDetail({
       component: () => {
         return (
           <RequestStateHandler loading={isLoading} error={error}>
-            <ReconciledObjectsTable
-              className={className}
-              objects={data?.objects}
-            />
+            {automation.type === "HelmRelease" &&
+            (automation as HelmRelease).kubeConfig === "" ? (
+              <ReconciledObjectsTable
+                className={className}
+                objects={data?.objects}
+              />
+            ) : (
+              <Alert severity="info" title="Note" message={hrInfoMessage} />
+            )}
           </RequestStateHandler>
         );
       },
