@@ -147,6 +147,9 @@ To login via your OIDC provider, create a Kubernetes secret to store the OIDC co
 | `clientSecret`    |  The client secret set up for Weave GitOps in the issuer                                                             |           |
 | `redirectURL`     |  The redirect URL set up for Weave GitOps in the issuer—typically the dashboard URL, followed by `/oauth2/callback ` |           |
 | `tokenDuration`   |  The time duration that the ID Token will remain valid after successful authentication                                           | "1h0m0s"  |
+| `tokenDuration`   |  The time duration that the ID Token will remain valid after successful authentication                                           | "1h0m0s"  |
+| `oidcUsernamePrefix` | The prefix added to users when impersonating API calls to the Kubernetes API, equivalent to --oidc-username-prefix | |
+| `oidcGroupsPrefix` | The prefix added to groups when impersonating API calls to the Kubernetes API, equivalent to --oidc-groups-prefix | |
 
 Ensure that your OIDC provider has been set up with a client ID/secret and the dashboard's redirect URL.
 
@@ -168,11 +171,13 @@ Once the HTTP server starts, unauthenticated users will have to click 'Login Wit
 
 For some OIDC configurations, you may need to customise the requested [scopes](https://openid.net/specs/openid-connect-core-1_0.html#ScopeClaims) or [claims](https://openid.net/specs/openid-connect-core-1_0.html#Claims).
 
+The `oidcUsernamePrefix` and `oidcGroupsPrefix` work in the same way as the Kubernetes [kube-apiserver](https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/) command-line options, if you need them for Kubernetes, you will likely need them here.
+
 #### Scopes
 
 By default, the following scopes are requested: "openid","offline_access","email","groups".
 
-The "openid" scope is **mandatory** for OpenID auth. The "email" and "groups" scopes are commonly used as unique identifiers in organisations.
+The "openid" scope is **mandatory** for OpenID auth and will be added if not provided. The "email" and "groups" scopes are commonly used as unique identifiers in organisations.
 
 "offline_access" allows us to refresh OIDC tokens to keep login sessions alive for as long as a refresh token is valid. You can, however, change the defaults.
 ```sh

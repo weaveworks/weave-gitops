@@ -68,7 +68,12 @@ function UserSettings({ className, darkModeEnabled = true }: Props) {
     <Flex className={className} gap="8" align>
       <DarkModeSwitch darkModeEnabled={darkModeEnabled} />
       <Tooltip title="Docs" enterDelay={500} enterNextDelay={500}>
-        <Link as={PersonButton} href="https://docs.gitops.weave.works/" newTab>
+        <Link
+          as={PersonButton}
+          href="https://docs.gitops.weave.works/"
+          target="_blank"
+          rel="noreferrer"
+        >
           <Icon size="medium" type={IconType.FindInPage} />
         </Link>
       </Tooltip>

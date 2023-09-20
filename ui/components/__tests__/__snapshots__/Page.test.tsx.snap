@@ -325,7 +325,6 @@ exports[`Page snapshots default 1`] = `
         aria-disabled={false}
         className="MuiButtonBase-root MuiIconButton-root c10 c11 Link"
         href="https://docs.gitops.weave.works/"
-        newTab={true}
         onBlur={[Function]}
         onDragLeave={[Function]}
         onFocus={[Function]}
@@ -338,7 +337,9 @@ exports[`Page snapshots default 1`] = `
         onTouchEnd={[Function]}
         onTouchMove={[Function]}
         onTouchStart={[Function]}
+        rel="noreferrer"
         tabIndex={0}
+        target="_blank"
         title="Docs"
       >
         <span

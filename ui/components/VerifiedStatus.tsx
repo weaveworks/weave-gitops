@@ -2,7 +2,12 @@ import { Tooltip } from "@material-ui/core";
 import React from "react";
 import { useGetObject } from "../hooks/objects";
 import { Condition, Kind, ObjectRef } from "../lib/api/core/types.pb";
-import { GitRepository, OCIRepository, Source } from "../lib/objects";
+import {
+  Automation,
+  GitRepository,
+  OCIRepository,
+  Source,
+} from "../lib/objects";
 import Flex from "./Flex";
 import Icon, { IconType } from "./Icon";
 
@@ -53,9 +58,10 @@ const VerifiedStatus = ({
 };
 
 export const SourceIsVerifiedStatus: React.FC<{
+  automation?: Automation;
   sourceRef?: ObjectRef;
   source?: Source;
-}> = ({ sourceRef, source }): JSX.Element => {
+}> = ({ automation, sourceRef, source }): JSX.Element => {
   const isVerifiable = source
     ? checkVerifiable({
         name: source.name,
@@ -69,9 +75,9 @@ export const SourceIsVerifiedStatus: React.FC<{
   if (source) return <VerifiedStatus source={source as VerifiableSource} />;
   const {
     name = "",
-    namespace = "",
+    namespace = automation.namespace,
     kind = "",
-    clusterName = "",
+    clusterName = automation.clusterName,
   } = sourceRef || {};
   const { data: verifiable } = useGetObject<VerifiableSource>(
     name,
