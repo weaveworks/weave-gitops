@@ -6,6 +6,7 @@ import { Kind } from "../../../lib/api/core/types.pb";
 import { ImageRepository } from "../../../lib/objects";
 import { V2Routes } from "../../../lib/types";
 import Button from "../../Button";
+import ClusterDashboardLink from "../../ClusterDashboardLink";
 import Interval from "../../Interval";
 import Link from "../../Link";
 import Page from "../../Page";
@@ -35,6 +36,7 @@ function ImageAutomationRepoDetails({
   );
   const { isFlagEnabled } = useFeatureFlags();
   const rootPath = V2Routes.ImageAutomationRepositoryDetails;
+
   return (
     <Page
       error={error}
@@ -50,20 +52,35 @@ function ImageAutomationRepoDetails({
           data={data}
           kind={Kind.ImageRepository}
           infoFields={[
-            ["Kind", Kind.ImageRepository],
-            ["Namespace", data.namespace],
-            isFlagEnabled("WEAVE_GITOPS_FEATURE_CLUSTER") && [
-              "Cluster",
-              clusterName,
-            ],
-            [
-              "Image",
-              <Link newTab={true} to={data.obj?.spec?.image}>
-                {data.obj?.spec?.image}
-              </Link>,
-            ],
-            ["Interval", <Interval interval={data.interval} />],
-            ["Tag Count", data.tagCount],
+            {
+              rowkey: "Kind",
+              value: Kind.ImageRepository,
+            },
+            {
+              rowkey: "Namespace",
+              value: data.namespace,
+            },
+            {
+              rowkey: "Cluster",
+              children: <ClusterDashboardLink clusterName={clusterName} />,
+              visible: isFlagEnabled("WEAVE_GITOPS_FEATURE_CLUSTER"),
+            },
+            {
+              rowkey: "Image",
+              children: (
+                <Link newTab={true} to={data.obj?.spec?.image}>
+                  {data.obj?.spec?.image}
+                </Link>
+              ),
+            },
+            {
+              rowkey: "Interval",
+              value: <Interval interval={data.interval} />,
+            },
+            {
+              rowkey: "Tag Count",
+              value: data.tagCount,
+            },
           ]}
           rootPath={rootPath}
         >
