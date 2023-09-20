@@ -5,6 +5,7 @@ import { createCanaryCondition, useGetInventory } from "../hooks/inventory";
 import { Condition, Kind, ObjectRef } from "../lib/api/core/types.pb";
 import { Automation, HelmRelease } from "../lib/objects";
 import { automationLastUpdated } from "../lib/utils";
+import Alert from "./Alert";
 import Collapsible from "./Collapsible";
 import DependenciesView from "./DependenciesView";
 import EventsTable from "./EventsTable";
@@ -24,7 +25,6 @@ import SyncActions from "./SyncActions";
 import Text from "./Text";
 import Timestamp from "./Timestamp";
 import YamlView from "./YamlView";
-import Alert from "./Alert";
 
 const hrInfoMessage =
   "spec.Kubeconfig is set on this HelmRelease. Details about reconciled objects are not available.";

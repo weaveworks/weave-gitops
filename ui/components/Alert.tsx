@@ -1,10 +1,10 @@
 import { Alert as MaterialAlert, AlertTitle } from "@material-ui/lab";
 import * as React from "react";
 import styled from "styled-components";
+import { ThemeTypes } from "../contexts/AppContext";
 import Flex from "./Flex";
 import Icon, { IconType } from "./Icon";
 import Text from "./Text";
-import { ThemeTypes } from "../contexts/AppContext";
 
 /** Alert Properties */
 export interface Props {
