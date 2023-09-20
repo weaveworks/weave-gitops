@@ -174,7 +174,6 @@ func (uc *UsersClients) Set(user *auth.UserPrincipal, clusterName string, client
 	} else {
 		uc.log.Info("not found after set")
 	}
-
 }
 
 func (uc *UsersClients) Get(user *auth.UserPrincipal, clusterName string) (client.Client, bool) {

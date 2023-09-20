@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 	"sync"
 	"time"
 
@@ -34,24 +33,8 @@ const (
 )
 
 var (
-	usersClientsTTL = getEnvDuration("WEAVE_GITOPS_USERS_CLIENTS_TTL", 24*time.Hour)
+	usersClientsTTL = 24 * time.Hour
 )
-
-func getEnvDuration(key string, defaultDuration time.Duration) time.Duration {
-	val := os.Getenv(key)
-	if val == "" {
-		return defaultDuration
-	}
-
-	d, err := time.ParseDuration(val)
-
-	// on error return the default duration
-	if err != nil {
-		return defaultDuration
-	}
-
-	return d
-}
 
 var (
 	opsUpdateClusters = prometheus.NewCounter(
