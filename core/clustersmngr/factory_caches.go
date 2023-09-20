@@ -165,9 +165,16 @@ func (uc *UsersClients) cacheKey(user *auth.UserPrincipal, clusterName string) u
 
 func (uc *UsersClients) Set(user *auth.UserPrincipal, clusterName string, client client.Client) {
 	cacheKey := uc.cacheKey(user, clusterName)
-	uc.log.Info("set cached connection", "user", user, "cluster", clusterName, "cacheKey", cacheKey)
+	uc.log.Info("set cached connection", "user", user, "cluster", clusterName, "cacheKey", cacheKey, "ttl", usersClientsTTL)
 
 	uc.Cache.Set(cacheKey, client, usersClientsTTL)
+
+	if _, found := uc.Cache.Get(cacheKey); found {
+		uc.log.Info("found after set")
+	} else {
+		uc.log.Info("not found after set")
+	}
+
 }
 
 func (uc *UsersClients) Get(user *auth.UserPrincipal, clusterName string) (client.Client, bool) {
