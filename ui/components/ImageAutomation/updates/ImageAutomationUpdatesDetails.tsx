@@ -1,5 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
+import { useFeatureFlags } from "../../../hooks/featureflags";
 import { useGetObject } from "../../../hooks/objects";
 import { Kind } from "../../../lib/api/core/types.pb";
 import { ImageUpdateAutomation } from "../../../lib/objects";
@@ -26,10 +27,12 @@ function getInfoList(
   } = data.obj;
   const { path } = update;
   const { commit, checkout, push } = git;
+  const { isFlagEnabled } = useFeatureFlags();
 
   return [
     ["Kind", kind],
     ["Namespace", data.namespace],
+    isFlagEnabled("WEAVE_GITOPS_FEATURE_CLUSTER") && ["Cluster", clusterName],
     [
       "Source",
       <SourceLink sourceRef={data.sourceRef} clusterName={clusterName} />,
