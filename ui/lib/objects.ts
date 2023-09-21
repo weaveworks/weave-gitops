@@ -301,6 +301,10 @@ export class HelmRelease extends FluxObject {
   get lastAttemptedRevision(): string {
     return this.obj.status?.lastAttemptedRevision || "";
   }
+
+  get kubeConfig(): string {
+    return this.obj.spec?.kubeConfig?.secretRef?.name || "";
+  }
 }
 
 export class Provider extends FluxObject {
