@@ -19,9 +19,9 @@ A quick preview of what the Weave GitOps Open Source UI provides:
 * a **Sources view** that shows summary information from gitrepository, helmrepository and bucket objects and tells you the current status of resources that are synchronizing content from where you’ve declared the desired state of your system—for example, Git repositories.
 * a **Flux Runtime view** that provides the status of the GitOps engine that continuously reconciles your desired and live state. It shows your installed [GitOps Toolkit Controllers](https://fluxcd.io/flux/components/) and version.
 * an **Image Automation view** that reduces GitOps friction, particularly in non-production environments, by enabling you to discover repositories, policies, and updates on your cluster. Deploy the latest image in a dev or staging environment with minimal fuss, and keep your platform updated with the latest approved versions—for example, patch releases to reduce exposure to CVEs. Auto-deploy when approval is gated before the image is added to an internal registry.
-* A **Notifications View** that makes it easy to understand which notifications are already configured within the UI, so that you can simply set up and receive notifications from Weave GitOps. If you’re a platform operator, this view will help you to understand your egress topology across clusters so you’ll know where events are being sent beyond your clusters.
-* multiple views for debugging
-* a dark mode option
+* A **Notifications View** that leverages Flux's [notification controller](https://fluxcd.io/flux/components/notification/) to show which notifications are already configured within the UI. This enables WeGO users to set up and receive notifications from Weave GitOps. Here you can find [the list of providers](https://fluxcd.io/flux/components/notification/providers/#type). If you’re a platform operator, this view will help you to understand your egress topology across clusters so you’ll know where events are being sent beyond your clusters.
+* multiple views for debugging.
+* a dark mode option.
 
 It also enables you to:
 * sync your latest Git commits directly from the UI
@@ -79,6 +79,7 @@ More actions you can take:
 * Click the magnifying glass icon to search for and filter objects by `Name`.
 * Filter by `Type` by clicking the strawberry icon to its right.
 * Click the `Name` of an object to get a detailed view for the given `Kustomization` or `HelmRelease`. (You'll see this again in the Sources view.)
+* In the main Applications view, you can use the checkbox to the left of your listed applications to select them and perform actions from the actions menu at the top. These actions are Sync (reconcile), Suspend, and Resume, and they affect Flux resources.
 
 ### A Closer Look: Exploring the flux-system Deployment
 
@@ -109,7 +110,7 @@ Underneath the summary information you'll find:
 **Yaml tab**
 ![Application detail view showing the yaml display](/img/dashboard-application-yaml.png)
 
-## The Sources view
+## The Sources View
 
 In the left-hand menu of the UI, click on the Sources view. This will show you where Flux pulls its application definitions from—for example, Git repositories—and the current state of that synchronization. Sources shows summary information from `GitRepository`, `HelmRepository`, `HelmChart`, and `Bucket` objects.
 
@@ -146,9 +147,9 @@ ImageRepositories, ImagePolicies, and ImageUpdateAutomations are used by Flux's 
 
 If you make a mistake configuring one of the resources, you can use WeGO to easily trace from the Image Repository scan, see whether it is able to select the image based on the Image Policy, and detect whether an Image Update has successfully run. This provides greater visibility into the machinery provided by Flux and enables quicker troubleshooting than what's possible by hunting via the Flux CLI. App devs can triage issues without depending on their platform teams.
 
-## The Flux Runtime view
+## The Flux Runtime View
 
-Let's go back to the left-hand menu of the UI and click on `Flux Runtime`. This view provides information on the GitOps engine, which continuously reconciles your desired and live state. It comes with two tabs: one for controllers, and other for custom resource definitions (CRDs).
+Let's go back to the left-hand menu of the UI and click on `Flux Runtime`. This view provides information on the GitOps engine, which continuously reconciles your desired and live state, and helps users to know which apiVersion to use in manifests. It comes with two tabs: one for controllers, and other for custom resource definitions (CRDs).
 
 #### Controllers
 

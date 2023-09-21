@@ -12,6 +12,7 @@ type Props = {
   conditions: Condition[];
   short?: boolean;
   suspended?: boolean;
+  noText?: boolean;
 };
 
 export enum ReadyType {
@@ -190,11 +191,14 @@ function KubeStatusIndicator({
   conditions,
   short,
   suspended,
+  noText,
 }: Props) {
   const { type, color, icon } = getIndicatorInfo(suspended, conditions);
 
-  let text = computeMessage(conditions);
-  if (short || suspended) text = type;
+  let text;
+  if (noText) text = null;
+  else if (short || suspended) text = type;
+  else text = computeMessage(conditions);
 
   return (
     <Flex start className={className} align>
