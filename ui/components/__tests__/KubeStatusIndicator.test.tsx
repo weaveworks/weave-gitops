@@ -108,7 +108,7 @@ describe("KubeStatusIndicator", () => {
     ];
 
     render(
-      withTheme(<KubeStatusIndicator conditions={conditions} suspended short />)
+      withTheme(<KubeStatusIndicator conditions={conditions} suspended />)
     );
     const msg = screen.getByText("Suspended");
     expect(msg).toBeTruthy();
@@ -224,6 +224,23 @@ describe("KubeStatusIndicator", () => {
       const tree = renderer
         .create(
           withTheme(<KubeStatusIndicator conditions={conditions} short />)
+        )
+        .toJSON();
+      expect(tree).toMatchSnapshot();
+    });
+    it("renders with noText prop", () => {
+      const conditions = [
+        {
+          type: "Ready",
+          status: "False",
+          reason: "BigTrouble",
+          message: "There was a problem",
+          timestamp: "2022-03-03 17:00:38 +0000 UTC",
+        },
+      ];
+      const tree = renderer
+        .create(
+          withTheme(<KubeStatusIndicator conditions={conditions} noText />)
         )
         .toJSON();
       expect(tree).toMatchSnapshot();
