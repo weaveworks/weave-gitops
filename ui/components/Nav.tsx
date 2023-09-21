@@ -67,7 +67,7 @@ const NavContent = styled.div<{ collapsed: boolean }>`
   .link-flex,
   .header {
     height: 32px;
-    padding: 0px 20px;
+    padding: 0px 0px 0px 5px;
     ${Text} {
       letter-spacing: 1px;
       //matches MuiIcon
