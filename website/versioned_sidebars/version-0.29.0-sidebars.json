@@ -115,7 +115,7 @@
       "items": [
         "gitopssets/gitopssets-intro",
         "gitopssets/gitopssets-installation",
-        "gitopssets/gitopssets-guide",
+        "gitopssets/gitopssets-templating-from-generators",
         "gitopssets/gitopssets-api-reference",
         "gitopssets/gitopssets-releases"
       ]
