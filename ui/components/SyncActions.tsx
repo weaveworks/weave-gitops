@@ -75,4 +75,5 @@ const SyncActions = ({
 
 export default styled(SyncActions)`
   width: 50%;
+  min-width: fit-content;
 `;
