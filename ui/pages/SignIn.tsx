@@ -93,9 +93,12 @@ function SignIn({ darkModeEnabled = true }: Props) {
   const [showPassword, setShowPassword] = React.useState<boolean>(false);
 
   const handleOIDCSubmit = () => {
-    return (window.location.href = `./oauth2?return_url=${encodeURIComponent(
-      withBasePath(qs.parse(location.search).redirect || "")
-    )}`);
+    const redirect = qs.parse(window.location.search).redirect || "/";
+    return (window.location.href =
+      withBasePath("/oauth2?") +
+      qs.stringify({
+        return_url: withBasePath(redirect),
+      }));
   };
 
   const handleUserPassSubmit = () => signIn({ username, password });
