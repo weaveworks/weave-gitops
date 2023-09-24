@@ -24,6 +24,14 @@ import HelmChartDetail from "./components/HelmChartDetail";
 import HelmReleaseDetail from "./components/HelmReleaseDetail";
 import HelmRepositoryDetail from "./components/HelmRepositoryDetail";
 import Icon, { IconType } from "./components/Icon";
+import ImageAutomation from "./components/ImageAutomation/ImageAutomation";
+import ImageAutomationDetails from "./components/ImageAutomation/ImageAutomationDetails";
+import ImagePoliciesTable from "./components/ImageAutomation/policies/ImagePoliciesTable";
+import ImagePolicyDetails from "./components/ImageAutomation/policies/ImagePolicyDetails";
+import ImageAutomationRepoDetails from "./components/ImageAutomation/repositories/ImageAutomationRepoDetails";
+import ImageRepositoriesTable from "./components/ImageAutomation/repositories/ImageRepositoriesTable";
+import ImageAutomationUpdatesDetails from "./components/ImageAutomation/updates/ImageAutomationUpdatesDetails";
+import ImageAutomationUpdatesTable from "./components/ImageAutomation/updates/ImageAutomationUpdatesTable";
 import InfoList, { InfoField } from "./components/InfoList";
 import Input, { InputProps } from "./components/Input";
 import Interval from "./components/Interval";
@@ -118,10 +126,10 @@ import { V2Routes } from "./lib/types";
 import {
   createYamlCommand,
   formatLogTimestamp,
+  getBasePath,
   isAllowedLink,
   poller,
   statusSortHelper,
-  getBasePath,
   stripBasePath,
   withBasePath,
 } from "./lib/utils";
@@ -169,8 +177,16 @@ export {
   HelmRepositoryDetail,
   Icon,
   IconType,
+  ImageAutomation,
+  ImageAutomationDetails,
   ImageAutomationIcon,
+  ImageRepositoriesTable,
+  ImageAutomationRepoDetails,
+  ImageAutomationUpdatesTable,
+  ImageAutomationUpdatesDetails,
   ImagePolicy,
+  ImagePoliciesTable,
+  ImagePolicyDetails,
   ImageRepository,
   ImageUpdateAutomation,
   InfoField,

@@ -3,9 +3,8 @@ import styled from "styled-components";
 import { Kind } from "../../lib/api/core/types.pb";
 import EventsTable from "../EventsTable";
 import Flex from "../Flex";
-import InfoList, { InfoField } from "../InfoList";
 import PageStatus from "../PageStatus";
-import Spacer from "../Spacer";
+import HeaderRows, { RowItem } from "../Policies/Utils/HeaderRows";
 import SubRouterTabs, { RouterTab } from "../SubRouterTabs";
 import SyncActions from "../SyncActions";
 import YamlView from "../YamlView";
@@ -15,7 +14,7 @@ interface Props {
   data: any;
   kind: Kind;
   rootPath: string;
-  infoFields: InfoField[];
+  infoFields: RowItem[];
   children?: any;
 }
 
@@ -30,7 +29,7 @@ const ImageAutomationDetails = ({
   const { name, namespace, clusterName, suspended, conditions } = data;
 
   return (
-    <Flex wide tall column className={className}>
+    <Flex wide tall column className={className} gap="4">
       <PageStatus conditions={conditions} suspended={suspended} />
       {kind !== Kind.ImagePolicy && (
         <SyncActions
@@ -45,11 +44,10 @@ const ImageAutomationDetails = ({
 
       <SubRouterTabs rootPath={`${rootPath}/details`}>
         <RouterTab name="Details" path={`${rootPath}/details`}>
-          <>
-            <InfoList items={infoFields} />
-            <Spacer margin="xs" />
+          <Flex column gap="4">
+            <HeaderRows items={infoFields} />
             {children}
-          </>
+          </Flex>
         </RouterTab>
         <RouterTab name="Events" path={`${rootPath}/events`}>
           <EventsTable

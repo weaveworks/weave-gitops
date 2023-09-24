@@ -7,6 +7,7 @@ import { useInDarkMode } from "../hooks/theme";
 import { ObjectRef } from "../lib/api/core/types.pb";
 import { createYamlCommand } from "../lib/utils";
 import CopyToClipboard from "./CopyToCliboard";
+import Flex from "./Flex";
 
 export type YamlViewProps = {
   className?: string;
@@ -16,10 +17,9 @@ export type YamlViewProps = {
   theme?: ThemeTypes;
 };
 
-const YamlHeader = styled.div`
+const YamlHeader = styled(Flex)`
   background: ${(props) => props.theme.colors.neutralGray};
   padding: ${(props) => props.theme.spacing.small};
-  width: 100%;
   border-bottom: 1px solid ${(props) => props.theme.colors.neutral20};
   font-family: monospace;
   color: ${(props) => props.theme.colors.primary10};
@@ -53,7 +53,7 @@ function UnstyledYamlView({
       },
     },
 
-    lineProps: { style: { flexWrap: "wrap" } },
+    lineProps: { style: { textWrap: "wrap" } },
 
     ...(dark && { style: darcula }),
   };
@@ -61,25 +61,29 @@ function UnstyledYamlView({
   return (
     <div className={className}>
       {headerText && (
-        <YamlHeader>
+        <YamlHeader wide gap="4" alignItems="center">
           {headerText}
           <CopyToClipboard
             value={headerText}
-            className="yaml-copy"
+            className="yamlheader-copy"
             size="small"
           />
         </YamlHeader>
       )}
 
-      <SyntaxHighlighter
-        language={type}
-        {...styleProps}
-        wrapLongLines
-        wrapLines
-        showLineNumbers
-      >
-        {yaml}
-      </SyntaxHighlighter>
+      <div className="code-wrapper">
+        <div className="copy-wrapper">
+          <CopyToClipboard value={yaml} className="yaml-copy" size="base" />
+        </div>
+        <SyntaxHighlighter
+          language={type}
+          {...styleProps}
+          wrapLines
+          showLineNumbers
+        >
+          {yaml}
+        </SyntaxHighlighter>
+      </div>
     </div>
   );
 }
@@ -94,6 +98,17 @@ const YamlView = styled(UnstyledYamlView).attrs({
   border-radius: 8px;
   overflow: hidden;
 
+  .code-wrapper {
+    position: relative;
+  }
+  .copy-wrapper {
+    position: absolute;
+    right: 4px;
+    top: 8px;
+    background: ${(props) => props.theme.colors.neutralGray};
+    padding: 4px 8px;
+    border-radius: 2px;
+  }
   pre {
     padding: ${(props) => props.theme.spacing.medium}
       ${(props) => props.theme.spacing.small} !important;

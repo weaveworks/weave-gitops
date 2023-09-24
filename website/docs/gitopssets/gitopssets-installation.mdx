@@ -60,3 +60,22 @@ spec:
 ```
 
 After adding the Namespace, HelmRepository and HelmRelease to a Git repository synced by Flux, commit the changes to complete the installation process.
+
+## Customising the Generators
+
+Not all generators are enabled by default, this is because not all CRDs are required by the generators.
+
+You might want to enable or disable individual generators via the Helm Chart:
+
+```yaml
+gitopssets-controller:
+  enabled: true
+  controllerManager:
+    manager:
+      args:
+        - --health-probe-bind-address=:8081
+        - --metrics-bind-address=127.0.0.1:8080
+        - --leader-elect
+        # enable the cluster generator which is not enabled by default
+        - --enabled-generators=GitRepository,Cluster,PullRequests,List,APIClient,Matrix,Config
+```

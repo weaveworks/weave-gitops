@@ -96,15 +96,6 @@ const navItems: NavItem[] = [
     link: { value: V2Routes.Notifications },
     icon: IconType.NotificationsIcon,
   },
-  {
-    label: "Docs",
-    link: {
-      value: "docs",
-      href: "https://docs.gitops.weave.works/",
-      newTab: true,
-    },
-    icon: IconType.DocsIcon,
-  },
 ];
 
 const App = () => {
