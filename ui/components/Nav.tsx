@@ -67,11 +67,12 @@ const NavContent = styled.div<{ collapsed: boolean }>`
   .link-flex,
   .header {
     height: 32px;
-    padding: 0px 0px 0px 5px;
+    padding: 0px 20px;
     ${Text} {
       letter-spacing: 1px;
       //matches MuiIcon
       transition: color 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+      text-wrap: wrap;
     }
   }
   .link-flex {
