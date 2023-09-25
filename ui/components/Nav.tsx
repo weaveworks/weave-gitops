@@ -66,7 +66,7 @@ const NavContent = styled.div<{ collapsed: boolean }>`
   //navItems
   .link-flex,
   .header {
-    height: 32px;
+    height: 36px;
     padding: 0px 20px;
     ${Text} {
       letter-spacing: 1px;
