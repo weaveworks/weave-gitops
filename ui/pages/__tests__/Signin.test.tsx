@@ -52,27 +52,31 @@ describe("SignIn", () => {
     renderSignIn({ OIDC_AUTH: "true" });
     fireEvent.click(screen.queryByText(defaultButtonLabel));
 
-    expect(window.location.href).toEqual("/oauth2?return_url=%2F");
+    expect(window.location.href).toEqual(
+      "/oauth2?return_url=http%3A%2F%2Flocalhost"
+    );
   });
 
   it("should redirect to the oauth2 endpoint with an absolute URL when baseHref is set", async () => {
+    const signInWithBaseTag = (
+      <>
+        <base href="/wego/" />
+        <SignIn />
+      </>
+    );
+
     render(
       withTheme(
-        withContext(
-          <>
-            <base href="/wego/" />
-            <SignIn />
-          </>,
-          "/sign_in",
-          {
-            featureFlags: { OIDC_AUTH: "true" },
-          }
-        )
+        withContext(signInWithBaseTag, "/sign_in", {
+          featureFlags: { OIDC_AUTH: "true" },
+        })
       )
     );
 
     fireEvent.click(screen.queryByText(defaultButtonLabel));
-    expect(window.location.href).toEqual("/wego/oauth2?return_url=%2Fwego%2F");
+    expect(window.location.href).toEqual(
+      "/wego/oauth2?return_url=http%3A%2F%2Flocalhost%2Fwego"
+    );
   });
 
   it("should show both buttons if both flags are set", async () => {

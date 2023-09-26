@@ -93,11 +93,16 @@ function SignIn({ darkModeEnabled = true }: Props) {
   const [showPassword, setShowPassword] = React.useState<boolean>(false);
 
   const handleOIDCSubmit = () => {
-    const redirect = qs.parse(window.location.search).redirect || "/";
+    const redirect = qs.parse(window.location.search).redirect || "";
+
+    // Head to the BE to start the OIDC flow so we do not use any of
+    // react-router or other client-side routing
     return (window.location.href =
       withBasePath("/oauth2?") +
       qs.stringify({
-        return_url: withBasePath(redirect),
+        // BE handles the redirect to return_url after authentication
+        // so add the base path
+        return_url: window.origin + withBasePath(redirect),
       }));
   };
 
