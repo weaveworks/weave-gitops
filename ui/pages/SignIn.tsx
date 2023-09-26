@@ -1,5 +1,6 @@
 import { IconButton, Input, InputAdornment } from "@material-ui/core";
 import { Visibility, VisibilityOff } from "@material-ui/icons";
+import qs from "query-string";
 import * as React from "react";
 import styled from "styled-components";
 import Alert from "../components/Alert";
@@ -11,6 +12,7 @@ import { Auth } from "../contexts/AuthContext";
 import { useFeatureFlags } from "../hooks/featureflags";
 import { useInDarkMode } from "../hooks/theme";
 import images from "../lib/images";
+import { withBasePath } from "../lib/utils";
 
 export const FormWrapper = styled(Flex)`
   background-color: ${(props) => props.theme.colors.white};
@@ -91,10 +93,17 @@ function SignIn({ darkModeEnabled = true }: Props) {
   const [showPassword, setShowPassword] = React.useState<boolean>(false);
 
   const handleOIDCSubmit = () => {
-    const CURRENT_URL = window.origin;
-    return (window.location.href = `./oauth2?return_url=${encodeURIComponent(
-      CURRENT_URL
-    )}`);
+    const redirect = qs.parse(window.location.search).redirect || "";
+
+    // Head to the BE to start the OIDC flow so we do not use any of
+    // react-router or other client-side routing
+    return (window.location.href =
+      withBasePath("/oauth2?") +
+      qs.stringify({
+        // BE handles the redirect to return_url after authentication
+        // so add the base path
+        return_url: window.origin + withBasePath(redirect),
+      }));
   };
 
   const handleUserPassSubmit = () => signIn({ username, password });
