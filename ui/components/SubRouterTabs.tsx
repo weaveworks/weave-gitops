@@ -103,19 +103,21 @@ export default styled(SubRouterTabs).attrs({ className: SubRouterTabs.name })`
   .horizontal-tabs {
     min-height: ${(props) => props.theme.spacing.large};
     width: 100%;
-    border-bottom: 1px solid ${(props) => props.theme.colors.neutral20};
-    .MuiTab-root {
-      line-height: 1;
-      letter-spacing: 1px;
-      min-height: 32px;
-      width: fit-content;
-      @media (min-width: 600px) {
-        min-width: 132px;
+    .MuiTabs-flexContainer {
+      border-bottom: 3px solid ${(props) => props.theme.colors.neutral20};
+      .MuiTab-root {
+        line-height: 1;
+        letter-spacing: 1px;
+        min-height: 32px;
+        width: fit-content;
+        @media (min-width: 600px) {
+          min-width: 132px;
+        }
       }
     }
     .MuiTabs-indicator {
-      height: 3px;
-      background-color: ${(props) => props.theme.colors.primary};
+      height: 0;
+      border-block-end: 3px solid ${(props) => props.theme.colors.primary};
     }
   }
 `;
