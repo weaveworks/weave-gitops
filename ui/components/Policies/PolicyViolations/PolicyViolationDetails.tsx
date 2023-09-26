@@ -1,19 +1,19 @@
 import React from "react";
 import remarkGfm from "remark-gfm";
-import { PolicyValidation } from "../../../lib/api/core/core.pb";
-import Flex from "../../Flex";
-import Text from "../../Text";
-import Timestamp from "../../Timestamp";
 
 import { AppContext } from "../../../contexts/AppContext";
 import { useFeatureFlags } from "../../../hooks/featureflags";
+import { PolicyValidation } from "../../../lib/api/core/core.pb";
 import { Kind } from "../../../lib/api/core/types.pb";
 import { formatURL } from "../../../lib/nav";
 import { FluxObject } from "../../../lib/objects";
 import { V2Routes } from "../../../lib/types";
 import ClusterDashboardLink from "../../ClusterDashboardLink";
+import Flex from "../../Flex";
 import Link from "../../Link";
-import HeaderRows, { Header } from "../Utils/HeaderRows";
+import Text from "../../Text";
+import Timestamp from "../../Timestamp";
+import HeaderRows, { RowItem } from "../Utils/HeaderRows";
 import { MarkdownEditor } from "../Utils/MarkdownEditor";
 import Parameters from "../Utils/Parameters";
 import { SectionWrapper } from "../Utils/PolicyUtils";
@@ -45,7 +45,7 @@ export const ViolationDetails = ({
     parameters,
     policyId,
   } = violation || {};
-  const headers: Header[] = [
+  const items: RowItem[] = [
     {
       rowkey: "Policy Name",
       children: (
@@ -101,7 +101,7 @@ export const ViolationDetails = ({
 
   return (
     <Flex wide tall column gap="32">
-      <HeaderRows headers={headers} />
+      <HeaderRows items={items} />
       <SectionWrapper title={` Occurrences ( ${occurrences?.length} )`}>
         <ul className="occurrences">
           {occurrences?.map((item) => (

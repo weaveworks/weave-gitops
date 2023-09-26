@@ -2,13 +2,13 @@ import { useContext } from "react";
 import { useQuery } from "react-query";
 
 import { CoreClientContext } from "../contexts/CoreClientContext";
-import { ReactQueryOptions, RequestError } from "../lib/types";
 import {
   GetPolicyValidationRequest,
   GetPolicyValidationResponse,
   ListPolicyValidationsRequest,
   ListPolicyValidationsResponse,
 } from "../lib/api/core/core.pb";
+import { ReactQueryOptions, RequestError } from "../lib/types";
 
 const LIST_POLICY_VIOLATION_QUERY_KEY = "list-policy-violations";
 

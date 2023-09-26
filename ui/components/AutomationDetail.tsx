@@ -5,6 +5,7 @@ import { createCanaryCondition, useGetInventory } from "../hooks/inventory";
 import { Condition, Kind, ObjectRef } from "../lib/api/core/types.pb";
 import { Automation, HelmRelease } from "../lib/objects";
 import { automationLastUpdated } from "../lib/utils";
+import Alert from "./Alert";
 import Collapsible from "./Collapsible";
 import DependenciesView from "./DependenciesView";
 import EventsTable from "./EventsTable";
@@ -24,6 +25,9 @@ import SyncActions from "./SyncActions";
 import Text from "./Text";
 import Timestamp from "./Timestamp";
 import YamlView from "./YamlView";
+
+const hrInfoMessage =
+  "spec.Kubeconfig is set on this HelmRelease. Details about reconciled objects are not available.";
 
 type Props = {
   automation: Automation;
@@ -87,10 +91,15 @@ function AutomationDetail({
       component: () => {
         return (
           <RequestStateHandler loading={isLoading} error={error}>
-            <ReconciledObjectsTable
-              className={className}
-              objects={data?.objects}
-            />
+            {automation.type === "HelmRelease" &&
+            (automation as HelmRelease).kubeConfig === "" ? (
+              <ReconciledObjectsTable
+                className={className}
+                objects={data?.objects}
+              />
+            ) : (
+              <Alert severity="info" title="Note" message={hrInfoMessage} />
+            )}
           </RequestStateHandler>
         );
       },
@@ -209,12 +218,12 @@ function AutomationDetail({
       )}
 
       <Collapsible>
-        <div className="collapse-wrapper ">
+        <div className="collapse-wrapper">
           <div className="grid grid-items">
             {info.map(([k, v]) => {
               return (
                 <Flex id={k} gap="8" key={k}>
-                  <Text capitalize semiBold color="neutral30">
+                  <Text capitalize semiBold color="neutral30" minWidth="150">
                     {k}:
                   </Text>
                   {v || "-"}
@@ -246,8 +255,7 @@ export default styled(AutomationDetail).attrs({
     width: 100%;
   }
   .collapse-wrapper {
-    padding: 16px 44px;
-    width: 100%;
+    padding: 16px;
   }
   .grid {
     width: 100%;
@@ -255,6 +263,6 @@ export default styled(AutomationDetail).attrs({
     gap: 8px;
   }
   .grid-items {
-    grid-template-columns: repeat(auto-fit, minmax(calc(50% - 8px), 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
   }
 `;

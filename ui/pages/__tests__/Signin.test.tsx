@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import * as React from "react";
 import { withContext, withTheme } from "../../lib/test-utils";
 import SignIn from "../SignIn";
@@ -17,6 +17,19 @@ const renderSignIn = (featureFlags: Record<string, string>) => {
 };
 
 describe("SignIn", () => {
+  const location = window.location;
+
+  beforeEach(() => {
+    Object.defineProperty(window, "location", {
+      writable: true,
+      value: { assign: jest.fn() },
+    });
+  });
+
+  afterEach(() => {
+    window.location = location;
+  });
+
   it("should show no buttons or user/password fields with no flags set", async () => {
     renderSignIn({});
     expect(screen.queryByText(defaultButtonLabel)).toBeNull();
@@ -33,6 +46,15 @@ describe("SignIn", () => {
   it("should show OIDC button if OIDC_AUTH feature flag is set", async () => {
     renderSignIn({ OIDC_AUTH: "true" });
     expect(screen.queryByText(defaultButtonLabel)).toBeTruthy();
+  });
+
+  it("should redirect to the oauth2 endpoint with a relative URL to support running under a subpath", async () => {
+    renderSignIn({ OIDC_AUTH: "true" });
+    fireEvent.click(screen.queryByText(defaultButtonLabel));
+
+    expect(window.location.href).toEqual(
+      "./oauth2?return_url=http%3A%2F%2Flocalhost"
+    );
   });
 
   it("should show both buttons if both flags are set", async () => {

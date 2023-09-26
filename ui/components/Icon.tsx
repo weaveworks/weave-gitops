@@ -13,7 +13,9 @@ import ErrorIcon from "@material-ui/icons/Error";
 import LogoutIcon from "@material-ui/icons/ExitToApp";
 import FileCopyIcon from "@material-ui/icons/FileCopyOutlined";
 import FilterIcon from "@material-ui/icons/FilterList";
+import FindInPage from "@material-ui/icons/FindInPage";
 import HourglassFullIcon from "@material-ui/icons/HourglassFull";
+import InfoIcon from "@material-ui/icons/Info";
 import KeyboardArrowDownIcon from "@material-ui/icons/KeyboardArrowDown";
 import KeyboardArrowRightIcon from "@material-ui/icons/KeyboardArrowRight";
 import LaunchIcon from "@material-ui/icons/Launch";
@@ -107,12 +109,14 @@ export enum IconType {
   ClustersIcon,
   ExploreIcon,
   PendingActionIcon,
+  InfoIcon,
   CallReceived,
   CallMade,
   Remove,
   EditIcon,
   VerifiedUser,
   Policy,
+  FindInPage,
 }
 
 type Props = {
@@ -280,6 +284,9 @@ function getIcon(i: IconType) {
     case IconType.ExploreIcon:
       return ExploreIcon;
 
+    case IconType.InfoIcon:
+      return InfoIcon;
+
     case IconType.CallReceived:
       return CallReceived;
 
@@ -291,6 +298,9 @@ function getIcon(i: IconType) {
 
     case IconType.EditIcon:
       return EditIcon;
+
+    case IconType.FindInPage:
+      return FindInPage;
 
     default:
       break;

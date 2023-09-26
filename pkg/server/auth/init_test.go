@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/alexedwards/scs/v2"
 	"github.com/go-logr/logr"
 	"github.com/oauth2-proxy/mockoidc"
 	"github.com/onsi/gomega"
@@ -132,6 +133,7 @@ func TestInitAuthServer(t *testing.T) {
 				OIDCConfig:        tt.cliOIDCConfig,
 				Namespace:         "test-namespace",
 				OIDCSecretName:    tt.oidcSecretName,
+				SessionManager:    scs.New(),
 			})
 
 			if tt.expectErr {

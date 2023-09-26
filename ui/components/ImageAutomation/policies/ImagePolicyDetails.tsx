@@ -1,9 +1,11 @@
 import * as React from "react";
 import styled from "styled-components";
+import { useFeatureFlags } from "../../../hooks/featureflags";
 import { useGetObject } from "../../../hooks/objects";
 import { Kind } from "../../../lib/api/core/types.pb";
 import { ImagePolicy } from "../../../lib/objects";
 import { V2Routes } from "../../../lib/types";
+import ClusterDashboardLink from "../../ClusterDashboardLink";
 import Metadata from "../../Metadata";
 import Page from "../../Page";
 import ImageAutomationDetails from "../ImageAutomationDetails";
@@ -30,7 +32,9 @@ function ImagePolicyDetails({
       refetchInterval: 5000,
     }
   );
+  const { isFlagEnabled } = useFeatureFlags();
   const rootPath = V2Routes.ImagePolicyDetails;
+
   return (
     <Page
       error={error}
@@ -46,10 +50,27 @@ function ImagePolicyDetails({
           data={data}
           kind={Kind.ImagePolicy}
           infoFields={[
-            ["Kind", Kind.ImagePolicy],
-            ["Namespace", data?.namespace],
-            ["Image Policy", data?.imagePolicy?.type || ""],
-            ["Order/Range", data?.imagePolicy?.value],
+            {
+              rowkey: "Kind",
+              value: Kind.ImagePolicy,
+            },
+            {
+              rowkey: "Namespace",
+              value: data?.namespace,
+            },
+            {
+              rowkey: "Cluster",
+              children: <ClusterDashboardLink clusterName={clusterName} />,
+              visible: isFlagEnabled("WEAVE_GITOPS_FEATURE_CLUSTER"),
+            },
+            {
+              rowkey: "Image Policy",
+              value: data?.imagePolicy?.type,
+            },
+            {
+              rowkey: "Order/Range",
+              value: data?.imagePolicy?.value,
+            },
           ]}
           rootPath={rootPath}
         >

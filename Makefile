@@ -166,11 +166,14 @@ ui: node_modules $(shell find ui -type f) ## Build the UI
 
 node_modules: ## Install node modules
 	rm -rf .parcel-cache
-	yarn --pure-lockfile
+	yarn config set network-timeout 600000 && yarn --pure-lockfile
 
 ui-lint: ## Run linter against the UI
 	yarn lint
 	yarn typecheck
+
+ui-lint-fix:
+	yarn lint --fix
 
 ui-prettify-check: ## Check format of the UI code with Prettier
 	yarn prettify:check

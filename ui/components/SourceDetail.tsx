@@ -4,7 +4,7 @@ import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
 import { useListAutomations } from "../hooks/automations";
 import { Kind } from "../lib/api/core/types.pb";
-import { HelmRelease, Source } from "../lib/objects";
+import { HelmRelease, OCIRepository, Source } from "../lib/objects";
 import { getSourceRefForAutomation } from "../lib/utils";
 import AutomationsTable from "./AutomationsTable";
 import EventsTable from "./EventsTable";
@@ -17,6 +17,11 @@ import SubRouterTabs, { RouterTab } from "./SubRouterTabs";
 import SyncActions from "./SyncActions";
 import YamlView from "./YamlView";
 
+//must specify OCIRepository type, artifactMetadata causes errors on the Source type
+const getArtifactMetadata = (source: OCIRepository) => {
+  return source.artifactMetadata || null;
+};
+
 type Props = {
   className?: string;
   type: Kind;
@@ -27,7 +32,16 @@ type Props = {
 };
 
 function SourceDetail({ className, source, info, type, customActions }: Props) {
-  const { name, namespace, clusterName, suspended } = source;
+  const {
+    name,
+    namespace,
+    yaml,
+    clusterName,
+    conditions,
+    suspended,
+    metadata,
+    labels,
+  } = source;
 
   const { data: automations, isLoading: automationsLoading } =
     useListAutomations();
@@ -38,18 +52,18 @@ function SourceDetail({ className, source, info, type, customActions }: Props) {
   }
 
   const isNameRelevant = (expectedName) => {
-    return expectedName == source.name;
+    return expectedName == name;
   };
 
   const isRelevant = (expectedType, expectedName) => {
-    return expectedType == source.type && isNameRelevant(expectedName);
+    return expectedType == type && isNameRelevant(expectedName);
   };
 
   const relevantAutomations = _.filter(automations?.result, (a) => {
     if (!source) {
       return false;
     }
-    if (a.clusterName != source.clusterName) {
+    if (a.clusterName != clusterName) {
       return false;
     }
 
@@ -63,44 +77,53 @@ function SourceDetail({ className, source, info, type, customActions }: Props) {
   });
 
   return (
-    <Flex wide tall column className={className}>
-      <PageStatus conditions={source.conditions} suspended={source.suspended} />
-      <SyncActions
-        name={name}
-        namespace={namespace}
-        clusterName={clusterName}
-        kind={type}
-        suspended={suspended}
-        hideDropdown
-        customActions={customActions}
-      />
+    <Flex wide tall column className={className} gap="32">
+      <Flex column gap="8">
+        <PageStatus conditions={conditions} suspended={suspended} />
+        <SyncActions
+          name={name}
+          namespace={namespace}
+          clusterName={clusterName}
+          kind={type}
+          suspended={suspended}
+          hideDropdown
+          customActions={customActions}
+        />
+      </Flex>
 
       <SubRouterTabs rootPath={`${path}/details`}>
         <RouterTab name="Details" path={`${path}/details`}>
           <>
             <InfoList items={info} />
-            <Metadata metadata={source.metadata} labels={source.labels} />
+            <Metadata
+              metadata={metadata}
+              labels={labels}
+              artifactMetadata={
+                type === Kind.OCIRepository &&
+                getArtifactMetadata(source as OCIRepository)
+              }
+            />
             <AutomationsTable automations={relevantAutomations} hideSource />
           </>
         </RouterTab>
         <RouterTab name="Events" path={`${path}/events`}>
           <EventsTable
-            namespace={source.namespace}
+            namespace={namespace}
             involvedObject={{
-              kind: source.type,
-              name: source.name,
-              namespace: source.namespace,
-              clusterName: source.clusterName,
+              kind: type,
+              name: name,
+              namespace: namespace,
+              clusterName: clusterName,
             }}
           />
         </RouterTab>
         <RouterTab name="yaml" path={`${path}/yaml`}>
           <YamlView
-            yaml={source.yaml}
+            yaml={yaml}
             object={{
-              kind: source.type,
-              name: source.name,
-              namespace: source.namespace,
+              kind: type,
+              name: name,
+              namespace: namespace,
             }}
           />
         </RouterTab>

@@ -13,6 +13,7 @@ exports[`SyncActions snapshots hideDropdown 1`] = `
   -webkit-box-align: start;
   -ms-flex-align: start;
   align-items: start;
+  gap: 12px;
   -webkit-box-pack: start;
   -webkit-justify-content: flex-start;
   -ms-flex-pack: start;
@@ -31,10 +32,6 @@ exports[`SyncActions snapshots hideDropdown 1`] = `
   -webkit-box-align: start;
   -ms-flex-align: start;
   align-items: start;
-}
-
-.c6 {
-  padding: 8px;
 }
 
 .c3.MuiButton-root {
@@ -57,10 +54,6 @@ exports[`SyncActions snapshots hideDropdown 1`] = `
   margin-right: 0;
 }
 
-.c4.MuiButton-outlined.Mui-disabled {
-  border-right: none;
-}
-
 .c5 {
   position: absolute;
   overflow: hidden;
@@ -77,6 +70,9 @@ exports[`SyncActions snapshots hideDropdown 1`] = `
 
 .c1 {
   width: 50%;
+  min-width: -webkit-fit-content;
+  min-width: -moz-fit-content;
+  min-width: fit-content;
 }
 
 <div
@@ -153,9 +149,6 @@ exports[`SyncActions snapshots hideDropdown 1`] = `
       </button>
     </div>
   </div>
-  <div
-    className="c6"
-  />
   <button
     className="MuiButtonBase-root MuiButton-root MuiButton-outlined c3 MuiButton-outlinedPrimary MuiButton-disableElevation"
     disabled={false}
@@ -196,6 +189,7 @@ exports[`SyncActions snapshots non-suspended 1`] = `
   -webkit-box-align: start;
   -ms-flex-align: start;
   align-items: start;
+  gap: 12px;
   -webkit-box-pack: start;
   -webkit-justify-content: flex-start;
   -ms-flex-pack: start;
@@ -278,10 +272,6 @@ exports[`SyncActions snapshots non-suspended 1`] = `
   width: 16px;
 }
 
-.c10 {
-  padding: 8px;
-}
-
 .c3.MuiButton-root {
   height: 32px;
   font-size: 12px;
@@ -333,7 +323,7 @@ exports[`SyncActions snapshots non-suspended 1`] = `
   border-right: none;
 }
 
-.c4.MuiButton-outlined.Mui-disabled {
+.c4.MuiButton-outlined.MuiButton-outlined.Mui-disabled {
   border-right: none;
 }
 
@@ -353,6 +343,9 @@ exports[`SyncActions snapshots non-suspended 1`] = `
 
 .c1 {
   width: 50%;
+  min-width: -webkit-fit-content;
+  min-width: -moz-fit-content;
+  min-width: fit-content;
 }
 
 <div
@@ -466,9 +459,6 @@ exports[`SyncActions snapshots non-suspended 1`] = `
       </button>
     </div>
   </div>
-  <div
-    className="c10"
-  />
   <button
     className="MuiButtonBase-root MuiButton-root MuiButton-outlined c3 MuiButton-outlinedPrimary MuiButton-disableElevation"
     disabled={false}
@@ -509,6 +499,7 @@ exports[`SyncActions snapshots suspended 1`] = `
   -webkit-box-align: start;
   -ms-flex-align: start;
   align-items: start;
+  gap: 12px;
   -webkit-box-pack: start;
   -webkit-justify-content: flex-start;
   -ms-flex-pack: start;
@@ -591,10 +582,6 @@ exports[`SyncActions snapshots suspended 1`] = `
   width: 16px;
 }
 
-.c10 {
-  padding: 8px;
-}
-
 .c3.MuiButton-root {
   height: 32px;
   font-size: 12px;
@@ -646,7 +633,7 @@ exports[`SyncActions snapshots suspended 1`] = `
   border-right: none;
 }
 
-.c4.MuiButton-outlined.Mui-disabled {
+.c4.MuiButton-outlined.MuiButton-outlined.Mui-disabled {
   border-right: none;
 }
 
@@ -666,6 +653,9 @@ exports[`SyncActions snapshots suspended 1`] = `
 
 .c1 {
   width: 50%;
+  min-width: -webkit-fit-content;
+  min-width: -moz-fit-content;
+  min-width: fit-content;
 }
 
 <div
@@ -782,9 +772,6 @@ exports[`SyncActions snapshots suspended 1`] = `
       </button>
     </div>
   </div>
-  <div
-    className="c10"
-  />
   <button
     className="MuiButtonBase-root MuiButton-root MuiButton-outlined c3 MuiButton-outlinedPrimary MuiButton-disableElevation"
     disabled={false}

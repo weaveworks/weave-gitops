@@ -1,5 +1,5 @@
-import { Kind } from "../api/core/types.pb";
 import { pod, rs } from "../__fixtures__/graph";
+import { Kind } from "../api/core/types.pb";
 import {
   Bucket,
   FluxObject,
@@ -259,14 +259,12 @@ describe("objects lib", () => {
 
     const obj = new OCIRepository(response.object);
 
-    it("extracts source", () => {
-      expect(obj.source).toEqual("https://github.com/stefanprodan/podinfo.git");
-    });
-
-    it("extracts revision", () => {
-      expect(obj.revision).toEqual(
-        "6.1.8/b3b00fe35424a45d373bf4c7214178bc36fd7872"
-      );
+    it("extracts artifact metadata", () => {
+      expect(obj.artifactMetadata).toEqual([
+        ["created", "2022-08-08T12:31:41+03:00"],
+        ["revision", "6.1.8/b3b00fe35424a45d373bf4c7214178bc36fd7872"],
+        ["source", "https://github.com/stefanprodan/podinfo.git"],
+      ]);
     });
   });
 
@@ -275,8 +273,7 @@ describe("objects lib", () => {
       payload: '{"status": {"artifact": {"metadata": {}}}}',
     });
     it("handles empty metadata", () => {
-      expect(obj.source).toEqual("");
-      expect(obj.revision).toEqual("");
+      expect(obj.artifactMetadata).toEqual([]);
     });
   });
 

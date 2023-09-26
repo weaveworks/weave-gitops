@@ -1,6 +1,7 @@
 import qs from "query-string";
 import * as React from "react";
-import { Redirect, useHistory } from "react-router-dom";
+import { Redirect, useHistory, useLocation } from "react-router-dom";
+import { reloadBrowserSignIn } from "../lib/utils";
 import { AppContext } from "./AppContext";
 
 export enum AuthRoutes {
@@ -25,6 +26,7 @@ export const AuthCheck = ({ children, Loader }: AuthCheckProps) => {
   if (userInfo?.id) {
     return children;
   }
+  const location = useLocation();
   // User appears not be logged in, off to signin
   return (
     <Redirect
@@ -109,7 +111,7 @@ export default function AuthContextProvider({ children }) {
           setError(response);
           return;
         }
-        window.location.replace(AuthRoutes.AUTH_PATH_SIGNIN);
+        reloadBrowserSignIn();
       })
       .finally(() => setLoading(false));
   }, []);

@@ -24,6 +24,14 @@ import HelmChartDetail from "./components/HelmChartDetail";
 import HelmReleaseDetail from "./components/HelmReleaseDetail";
 import HelmRepositoryDetail from "./components/HelmRepositoryDetail";
 import Icon, { IconType } from "./components/Icon";
+import ImageAutomation from "./components/ImageAutomation/ImageAutomation";
+import ImageAutomationDetails from "./components/ImageAutomation/ImageAutomationDetails";
+import ImagePoliciesTable from "./components/ImageAutomation/policies/ImagePoliciesTable";
+import ImagePolicyDetails from "./components/ImageAutomation/policies/ImagePolicyDetails";
+import ImageAutomationRepoDetails from "./components/ImageAutomation/repositories/ImageAutomationRepoDetails";
+import ImageRepositoriesTable from "./components/ImageAutomation/repositories/ImageRepositoriesTable";
+import ImageAutomationUpdatesDetails from "./components/ImageAutomation/updates/ImageAutomationUpdatesDetails";
+import ImageAutomationUpdatesTable from "./components/ImageAutomation/updates/ImageAutomationUpdatesTable";
 import InfoList, { InfoField } from "./components/InfoList";
 import Input, { InputProps } from "./components/Input";
 import Interval from "./components/Interval";
@@ -49,6 +57,7 @@ import PolicyDetails from "./components/Policies/PolicyDetails/PolicyDetails";
 import { PolicyTable } from "./components/Policies/PolicyList/PolicyTable";
 import { ViolationDetails } from "./components/Policies/PolicyViolations/PolicyViolationDetails";
 import { PolicyViolationsList } from "./components/Policies/PolicyViolations/Table";
+import HeaderRows, { RowHeader } from "./components/Policies/Utils/HeaderRows";
 import Severity from "./components/Policies/Utils/Severity";
 import ProviderDetail from "./components/ProviderDetail";
 import ReconciledObjectsTable from "./components/ReconciledObjectsTable";
@@ -72,6 +81,7 @@ import AuthContextProvider, { Auth, AuthCheck } from "./contexts/AuthContext";
 import CoreClientContextProvider, {
   CoreClientContext,
   UnAuthorizedInterceptor,
+  setAPIPathPrefix,
 } from "./contexts/CoreClientContext";
 import {
   LinkResolverProvider,
@@ -116,9 +126,12 @@ import { V2Routes } from "./lib/types";
 import {
   createYamlCommand,
   formatLogTimestamp,
+  getBasePath,
   isAllowedLink,
   poller,
   statusSortHelper,
+  stripBasePath,
+  withBasePath,
 } from "./lib/utils";
 import SignIn from "./pages/SignIn";
 
@@ -145,8 +158,8 @@ export {
   DetailModal,
   DialogYamlView,
   DirectedGraph,
-  EventsTable,
   ErrorList,
+  EventsTable,
   Flex,
   FluxObject,
   FluxObjectsTable,
@@ -155,6 +168,7 @@ export {
   GitRepository,
   GitRepositoryDetail,
   Graph,
+  HeaderRows,
   HelmChart,
   HelmChartDetail,
   HelmRelease,
@@ -163,8 +177,16 @@ export {
   HelmRepositoryDetail,
   Icon,
   IconType,
+  ImageAutomation,
+  ImageAutomationDetails,
   ImageAutomationIcon,
+  ImageRepositoriesTable,
+  ImageAutomationRepoDetails,
+  ImageAutomationUpdatesTable,
+  ImageAutomationUpdatesDetails,
   ImagePolicy,
+  ImagePoliciesTable,
+  ImagePolicyDetails,
   ImageRepository,
   ImageUpdateAutomation,
   InfoField,
@@ -204,6 +226,7 @@ export {
   ReconciliationGraph,
   RequestStateHandler,
   RouterTab,
+  RowHeader,
   Severity,
   SignIn,
   SourceLink,
@@ -228,12 +251,15 @@ export {
   filterConfig,
   formatLogTimestamp,
   formatURL,
+  getBasePath,
   getParentNavRouteValue,
   isAllowedLink,
   muiTheme,
   poller,
+  setAPIPathPrefix,
   showInterval,
   statusSortHelper,
+  stripBasePath,
   theme,
   useCheckCRDInstalled,
   useDebounce,
@@ -251,4 +277,5 @@ export {
   useRequestState,
   useSyncFluxObject,
   useToggleSuspend,
+  withBasePath,
 };

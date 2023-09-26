@@ -130,9 +130,15 @@ export type ListObjectsRequest = {
   labels?: {[key: string]: string}
 }
 
+export type ClusterNamespaceList = {
+  clusterName?: string
+  namespaces?: string[]
+}
+
 export type ListObjectsResponse = {
   objects?: Gitops_coreV1Types.Object[]
   errors?: ListError[]
+  searchedNamespaces?: ClusterNamespaceList[]
 }
 
 export type GetReconciledObjectsRequest = {
