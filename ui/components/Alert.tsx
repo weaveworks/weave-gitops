@@ -35,6 +35,10 @@ function UnstyledAlert({ center, title, message, severity, className }: Props) {
 }
 
 const Alert = styled(UnstyledAlert)`
+  .MuiAlert-root {
+    border-radius: 8px;
+    line-height: 16px;
+  }
   .MuiAlert-standardError {
     svg {
       color: ${(props) => props.theme.colors.alertDark};
@@ -46,12 +50,12 @@ const Alert = styled(UnstyledAlert)`
   }
   .MuiAlert-standardInfo {
     svg {
-      color: ${(props) => props.theme.colors.primary10};
+      color: ${(props) => props.theme.colors.primaryLight10};
     }
     background-color: ${(props) =>
       props.theme.mode === ThemeTypes.Dark
         ? props.theme.colors.primary20
-        : null};
+        : props.theme.colors.primaryLight05};
   }
 `;
 
