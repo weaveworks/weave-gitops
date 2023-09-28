@@ -29,7 +29,7 @@ jobs:
       old-version: ${{ steps.old-version.outputs.version }}
       new-version: ${{ steps.new-version.outputs.version }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
         with:
           fetch-depth: 0
       - name: Find new version
@@ -49,7 +49,7 @@ jobs:
     needs: helm-new-version
     if: github.event_name == 'pull_request' && needs.helm-new-version.outputs.old-version != needs.helm-new-version.outputs.new-version
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
         with:
           fetch-depth: 0
       - name: Find out if there's more changes to release
@@ -81,7 +81,7 @@ jobs:
     needs: helm-new-version
     if: (github.event_name == 'push' && needs.helm-new-version.outputs.old-version != needs.helm-new-version.outputs.new-version) || github.event_name == 'workflow_dispatch'
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
       - name: Find new version
         id: new_version
         run: |

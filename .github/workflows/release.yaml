@@ -17,7 +17,7 @@ jobs:
       version: ${{ steps.release-version.outputs.version }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
         with:
           ref: ${{ github.event.pull_request.head.sha }}
       - name: Find release version
@@ -37,7 +37,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
         with:
           ref: ${{ github.event.pull_request.head.sha }}
       - uses: actions/setup-node@v3
@@ -57,7 +57,7 @@ jobs:
       packages: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
         with:
           ref: ${{ github.event.pull_request.head.sha }}
       - name: Unshallow
@@ -109,7 +109,7 @@ jobs:
       - build-and-push-image
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
         with:
           ref: ${{ github.event.pull_request.head.sha }}
       - name: Unshallow
@@ -161,7 +161,7 @@ jobs:
     needs: goreleaser
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
         with:
           ref: ${{ github.event.pull_request.head.sha }}
       #  'Unlock Release PR Merge' sets 'release' status check state to success to unlock merging the release PR. See ../../doc/incidents/issues-3907 for full context.
