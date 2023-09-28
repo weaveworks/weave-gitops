@@ -34,7 +34,7 @@ jobs:
             ${{ runner.os }}-build-
             ${{ runner.os }}-
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # v3.8.1
         with:
           node-version: ${{ matrix.node-version }}
       - run: make node_modules
@@ -224,7 +224,7 @@ jobs:
           # We want the correct sha so we can tag the npm package correctly
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # v3.8.1
         with:
           node-version: "16.X"
           registry-url: "https://npm.pkg.github.com"
