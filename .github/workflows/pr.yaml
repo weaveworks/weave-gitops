@@ -132,7 +132,7 @@ jobs:
       - name: Load docker image
         run: docker load --input /tmp/${{ matrix.docker-image }}.tar
       - name: Cache docker image
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3.1.3
         with:
           name: ${{ matrix.docker-image }}
           path: /tmp/${{ matrix.docker-image }}.tar
