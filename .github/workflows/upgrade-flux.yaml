@@ -5,6 +5,9 @@ on:
   schedule:
     - cron: "0 10 * * *"
 
+permissions:
+  contents: read # for actions/checkout to fetch code
+
 jobs:
   has-new-flux:
     runs-on: ubuntu-latest
@@ -39,11 +42,6 @@ jobs:
           sed -i 's/^FLUX_VERSION=.*/FLUX_VERSION=${{ needs.has-new-flux.outputs.version }}/' Makefile
           go get -u github.com/fluxcd/flux2
           go mod tidy
-          # Extract e.g. 0.34 from 0.34.5
-          series="$(echo ${{ needs.has-new-flux.outputs.version }} | awk 'BEGIN{FS=OFS="."} NF--')"
-          if ! grep -qe "^\* $series$" website/docs/installation.mdx; then
-            sed -i -e "/Flux releases:$/,/^$/ s/^$/* $series\n/" website/docs/installation.mdx
-          fi
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v3
         with:
