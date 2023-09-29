@@ -33,6 +33,7 @@ jobs:
           GA_KEY: "dummy"
           ALGOLIA_API_KEY: ${{ secrets.ALGOLIA_API_KEY }}
           NODE_OPTIONS: "--max-old-space-size=4096"
+          GITHUB_HEAD_REF: ${{ github.head_ref }}
         run: |
           if [ -e yarn.lock ]; then
           yarn install --frozen-lockfile
@@ -42,7 +43,7 @@ jobs:
           npm i
           fi
           sed -i 's#url:.*$#url: "https://staging.docs.gitops.weave.works",#' docusaurus.config.js
-          sed -i 's#baseUrl:.*$#baseUrl: "/${{ github.head_ref }}/",#' docusaurus.config.js
+          sed -i 's#baseUrl:.*$#baseUrl: "/$GITHUB_HEAD_REF/",#' docusaurus.config.js
           yarn clear
           npm run build
       - id: auth
@@ -58,6 +59,8 @@ jobs:
           headers: |-
             cache-control: no-cache
       - id: add-docs-status
+        env:
+          GITHUB_HEAD_REF: ${{ github.head_ref }}
         run: |
           curl --request POST \
             --url https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }} \
@@ -66,7 +69,7 @@ jobs:
             --data '{
               "state": "success",
               "context": "Doc site preview",
-              "target_url": "https://staging.docs.gitops.weave.works/${{ github.head_ref }}"
+              "target_url": "https://staging.docs.gitops.weave.works/$GITHUB_HEAD_REF"
               }' \
             --fail
 

@@ -22,8 +22,10 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
       - name: Find release version
         id: release-version
+        env:
+          GITHUB_EVENT_PULL_REQUEST_HEAD_REF: ${{ github.event.pull_request.head.ref }}
         run: |
-          version=$(echo ${{ github.event.pull_request.head.ref }} | cut -d'/' -f2)
+          version=$(echo $GITHUB_EVENT_PULL_REQUEST_HEAD_REF | cut -d'/' -f2)
           echo "::set-output name=version::$version"
       - name: Set tag
         run: |
@@ -125,8 +127,10 @@ jobs:
         with:
           node-version: 16.X
       - name: Set env var
+        env:
+          GITHUB_EVENT_PULL_REQUEST_HEAD_REF: ${{ github.event.pull_request.head.ref }}
         run: |
-          echo "BRANCH=${{ github.event.pull_request.head.ref }}" >> $GITHUB_ENV
+          echo "BRANCH=$GITHUB_EVENT_PULL_REQUEST_HEAD_REF" >> $GITHUB_ENV
           echo "GORELEASER_PREVIOUS_TAG=$(git describe --abbrev=0 --tags $(git rev-list --tags --skip=1 --max-count=1))" >> $GITHUB_ENV
           echo "GORELEASER_CURRENT_TAG=${{ needs.tag-release.outputs.version }}" >> $GITHUB_ENV
           echo "DEV_BUCKET_CONTAINER_IMAGE=$(make echo-dev-bucket-container)" >> $GITHUB_ENV
@@ -140,9 +144,11 @@ jobs:
         run: cat .goreleaser.brew.yml >> .goreleaser.yml
         if: ${{ !contains(github.event.pull_request.head.ref, '-') }}
       - name: Store changelog
+        env:
+          GITHUB_EVENT_PULL_REQUEST_BODY: ${{ github.event.pull_request.body }}
         run: |
           cat > ${{ runner.temp }}/changelog.md <<'END_OF_CHANGELOG'
-          ${{ github.event.pull_request.body }}
+          $GITHUB_EVENT_PULL_REQUEST_BODY
           END_OF_CHANGELOG
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v3
