@@ -47,7 +47,7 @@ require (
 	github.com/spf13/viper v1.13.0
 	github.com/tomwright/dasel v1.22.1
 	github.com/weaveworks/policy-agent/api v1.0.5
-	github.com/weaveworks/tf-controller/tfctl v0.0.0-20230523160934-c6613bfc7fff
+	github.com/weaveworks/tf-controller/tfctl v0.0.0-20230928144856-b5af76df3000
 	github.com/yannh/kubeconform v0.5.0
 	go.uber.org/zap v1.24.0
 	golang.org/x/crypto v0.13.0
