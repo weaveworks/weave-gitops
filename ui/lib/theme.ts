@@ -201,30 +201,6 @@ export const GlobalStyle = createGlobalStyle`
   ::-webkit-scrollbar-thumb:hover {
     background-color: ${(props) => props.theme.colors.neutral30};
   }
-  //MuiTabs
-  .horizontal-tabs {
-    .MuiTab-root {
-      line-height: 1;
-      letter-spacing: 1px;
-      height: 32px;
-      min-height: 32px;
-      width: fit-content;
-      @media (min-width: 600px) {
-        min-width: 132px;
-      }
-    }
-    .MuiTabs-root {
-      min-height: 32px;
-      margin: ${(props) => props.theme.spacing.xs} 0;
-    }
-    .MuiTabs-fixed {
-      height: 32px;
-    }
-    .MuiTabs-indicator {
-      height: 3px;
-      background-color: ${(props) => props.theme.colors.primary};
-    }
-  }
 //prevents white autofill background in dark mode
 input:-webkit-autofill,
 input:-webkit-autofill:hover, 
@@ -233,7 +209,6 @@ input:-webkit-autofill:focus {
       props.theme.mode === ThemeTypes.Dark &&
       `background-color: ${props.theme.colors.blueWithOpacity};`}
   }
-
 `;
 
 export const muiTheme = (colors, mode) =>
