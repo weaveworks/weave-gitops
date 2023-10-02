@@ -43,7 +43,7 @@ jobs:
           go get -u github.com/fluxcd/flux2
           go mod tidy
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v3
+        uses: peter-evans/create-pull-request@153407881ec5c347639a548ade7d8ad1d6740e38 # v5.0.2
         with:
           author: weave-gitops-bot <weave-gitops-bot@weave.works>
           signoff: true
@@ -53,5 +53,5 @@ jobs:
           title: "Upgrade flux to ${{ needs.has-new-flux.outputs.version }}"
           token: ${{ secrets.WEAVE_GITOPS_BOT_ACCESS_TOKEN }}
           body: |
-            Upgrade the flux version used by gitops run, the package
-            dependencies, and the supported flux version in the manual.
+            Upgrade the flux version used by gitops run and the package
+            dependencies.
