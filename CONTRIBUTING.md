@@ -23,8 +23,8 @@ These things will make a PR more likely to be accepted:
 - tests for old code!
 - new code and tests follow the conventions in old code and tests
 - a good commit message (see below)
-- all code must abide [Go Code Review Comments](https://github.com/golang/go/wiki/CodeReviewComments)
-- names should abide [What's in a name](https://talks.golang.org/2014/names.slide#1)
+- all code must abide by [Go Code Review Comments](https://github.com/golang/go/wiki/CodeReviewComments)
+- names should abide by [What's in a name](https://talks.golang.org/2014/names.slide#1)
 - code must build on both Linux and Darwin, via plain `go build`
 - code should have appropriate test coverage and tests should be written
   to work with `go test`
