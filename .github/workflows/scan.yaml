@@ -4,12 +4,15 @@ on:
   push:
     branches:
       - main
-      - v2
   pull_request:
     branches:
       - main
-      - v2
+  schedule:
+    - cron: '0 12 * * 1'
   workflow_dispatch:
+
+permissions:
+  contents: read # for actions/checkout to fetch code
 
 jobs:
   fossa:
@@ -23,7 +26,24 @@ jobs:
         with:
           go-version: 1.20.X
       - name: Run FOSSA scan and upload build data
-        uses: fossa-contrib/fossa-action@v2
+        uses: fossa-contrib/fossa-action@6728dc6fe9a068c648d080c33829ffbe56565023 # v2.0.0
         with:
           fossa-api-key: 93622b4d45d39a92872a9593c815d7f3
           github-token: ${{ github.token }}
+
+  codeql:
+    name: CodeQL
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write # for codeQL to write security events
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@04daf014b50eaf774287bf3f0f1869d4b4c4b913 # v2.21.7
+        with:
+          languages: go
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@04daf014b50eaf774287bf3f0f1869d4b4c4b913 # v2.21.7
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@04daf014b50eaf774287bf3f0f1869d4b4c4b913 # v2.21.7
