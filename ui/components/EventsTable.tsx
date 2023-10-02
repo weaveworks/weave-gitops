@@ -28,7 +28,7 @@ function EventsTable({ className, involvedObject }: Props) {
               return (
                 <h2
                   className="reason"
-                  title="It refers to what triggered the event. It can be different according to each component."
+                  title="This refers to what triggered the event, and can vary by component."
                 >
                   Reason
                   <Icon
