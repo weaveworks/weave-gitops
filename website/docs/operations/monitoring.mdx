@@ -5,19 +5,27 @@ toc_max_heading_level: 5
 
 ---
 
-# Monitoring
+import TierLabel from "./../_components/TierLabel";
 
-Weave Gitops provides the following telemetry to use for operations.
+# Monitoring <TierLabel tiers="Enterprise" />
+
+Weave GitOps Enterprise provides the following telemetry to use for monitoring.
 
 ### Metrics
 
-Weave Gitops exports [Prometheus](https://prometheus.io/) metrics. In terms of setup it follows
-[Flux Monitoring](https://fluxcd.io/flux/monitoring/metrics/) .
+It generates [Prometheus](https://prometheus.io/) metrics for monitoring both performance and business operations.
 
-In order to have Weave Gitops metrics monitoring follow these steps:
+#### Setup
+
+:::info
+This setup follows [Flux Monitoring](https://fluxcd.io/flux/monitoring/metrics/) approach based on [Prometheus Operator](https://prometheus-operator.dev/). Adapt it to your context as needed.
+:::
+
 
 1. Install [Kube Prometheus Stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack).
 2. Enable Prometheus Metrics Configuration happens during releasing as shown below.
+
+<details><summary>Expand to see manifest contents</summary>
 
 ```yaml
 ---
@@ -34,7 +42,11 @@ spec:
       enabled: true
 ```
 
-3. Deploy Weave Gitops Grafana Dashboards
+</details>
+
+3. Deploy Weave GitOps Monitoring Config
+
+<details><summary>Expand to see manifest contents</summary>
 
 ```yaml
 apiVersion: source.toolkit.fluxcd.io/v1
@@ -61,18 +73,29 @@ spec:
   path: ./monitoring
   prune: true
 ```
+
+</details>
+
 4. See the dashboards in Grafana
 
-Adapt the url to your scenario but in case of using port-forwarding like
+You could filter by tags `flux` or `weave-gitops`
 
-```
-kubectl port-forward -n monitoring svc/kube-prometheus-stack-grafana 3000:80
-```
+![weave gitops dashboard list](imgs/monitoring-dashboard-list.png)
 
-The following are able:
+### Dashboards
 
--
+**Weave Gitops Overview**
 
+Monitor Weave Gitops golden signals for API server and Controllers:
 
-Open the different available
+![weave gitops dashboard list](imgs/monitoring-dashboard-overview.png)
 
+**Weave Gitops Runtime**
+
+Monitor Weave Gitops GO runtime metrics like Memory Usage, Memory Heap, Goroutines, etc ...
+
+![weave gitops dashboard list](imgs/monitoring-dashboard-runtime.png)
+
+**Explorer**
+
+Monitor Explorer golden signals. More info [here](../../explorer/operations#monitoring)
