@@ -1,12 +1,10 @@
-import { CircularProgress } from "@material-ui/core";
 import * as React from "react";
 import styled from "styled-components";
 import { useListEvents } from "../hooks/events";
 import { Event, ObjectRef } from "../lib/api/core/types.pb";
-import Alert from "./Alert";
 import DataTable from "./DataTable";
-import Flex from "./Flex";
-import Spacer from "./Spacer";
+import Icon, { IconType } from "./Icon";
+import RequestStateHandler from "./RequestStateHandler";
 import Text from "./Text";
 import Timestamp from "./Timestamp";
 
@@ -19,43 +17,44 @@ type Props = {
 function EventsTable({ className, involvedObject }: Props) {
   const { data, isLoading, error } = useListEvents(involvedObject);
 
-  if (isLoading) {
-    return (
-      <Flex wide center align>
-        <CircularProgress />
-      </Flex>
-    );
-  }
-
-  if (error) {
-    return (
-      <Spacer padding="small">
-        <Alert title="Error" message={error.message} severity="error" />
-      </Spacer>
-    );
-  }
-
   return (
-    <DataTable
-      className={className}
-      fields={[
-        {
-          value: (e: Event) => <Text capitalize>{e.reason}</Text>,
-          label: "Reason",
-          sortValue: (e: Event) => e.reason,
-        },
-        { value: "message", label: "Message", maxWidth: 600 },
-        { value: "component", label: "Component" },
-        {
-          label: "Timestamp",
-          value: (e: Event) => <Timestamp time={e.timestamp} />,
-          sortValue: (e: Event) => -Date.parse(e.timestamp),
-          defaultSort: true,
-          secondarySort: true,
-        },
-      ]}
-      rows={data.events}
-    />
+    <RequestStateHandler loading={isLoading} error={error}>
+      <DataTable
+        className={className}
+        fields={[
+          {
+            label: "Reason",
+            labelRenderer: () => {
+              return (
+                <h2
+                  className="reason"
+                  title="It refers to what triggered the event. It can be different according to each component."
+                >
+                  Reason
+                  <Icon
+                    size="base"
+                    type={IconType.InfoIcon}
+                    color="neutral30"
+                  />
+                </h2>
+              );
+            },
+            value: (e: Event) => <Text capitalize>{e.reason}</Text>,
+            sortValue: (e: Event) => e.reason,
+          },
+          { label: "Message", value: "message", maxWidth: 600 },
+          { label: "From", value: "component" },
+          {
+            label: "Last Updated",
+            value: (e: Event) => <Timestamp time={e.timestamp} />,
+            sortValue: (e: Event) => -Date.parse(e.timestamp),
+            defaultSort: true,
+            secondarySort: true,
+          },
+        ]}
+        rows={data?.events}
+      />
+    </RequestStateHandler>
   );
 }
 
@@ -68,5 +67,11 @@ export default styled(EventsTable).attrs({ className: EventsTable.name })`
       overflow-wrap: break-word;
       word-wrap: break-word;
     }
+  }
+  .reason {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 16px !important;
   }
 `;
