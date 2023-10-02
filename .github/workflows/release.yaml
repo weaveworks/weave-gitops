@@ -5,6 +5,9 @@ on:
     types:
       - submitted
 
+permissions:
+  contents: read # for actions/checkout to fetch code
+
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: weaveworks/wego-app
@@ -15,6 +18,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.release-version.outputs.version }}
+    permissions:
+      contents: write # for action to git push a tag
     steps:
       - name: Checkout
         uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
@@ -37,6 +42,8 @@ jobs:
   publish_npm_package:
     needs: tag-release
     runs-on: ubuntu-latest
+    permissions:
+      packages: write # needed for GitHub Packages registry access
     steps:
       - name: Checkout
         uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
@@ -51,11 +58,11 @@ jobs:
       - run: make ui-lib && cd dist && npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   build-and-push-image:
     needs: tag-release
     runs-on: ubuntu-latest
     permissions:
-      contents: read
       packages: write
     steps:
       - name: Checkout

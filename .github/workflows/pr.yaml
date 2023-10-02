@@ -7,6 +7,9 @@ on:
       - main
   workflow_dispatch:
 
+permissions:
+  contents: read # for actions/checkout to fetch code
+
 env:
   CI_CONTAINER_REGISTRY: europe-west1-docker.pkg.dev
   CI_CONTAINER_REPOSITORY: europe-west1-docker.pkg.dev/weave-gitops-clusters/weave-gitops
