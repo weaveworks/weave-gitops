@@ -30,6 +30,8 @@ The website is live [here](https://docs.gitops.weave.works/).
     This will open a browser window. Your changes will be automatically loaded by
     the server.
 
+    *to view latest local changes, update the url with `next`* e.g. `http://localhost:3000/docs/next/intro-weave-gitops/`
+
 ### Making changes to the docs
 
 Below are some things to be aware of when adding content, such as where we store
