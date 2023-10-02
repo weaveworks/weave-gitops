@@ -13,8 +13,10 @@ on:
       - 'website/**'
   workflow_dispatch:
 
-jobs:
+permissions:
+  contents: read # for actions/checkout to fetch code
 
+jobs:
   staging-release:
     permissions:
       statuses: write
