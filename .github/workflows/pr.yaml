@@ -63,7 +63,7 @@ jobs:
         with:
           go-version: ${{ matrix.go-version }}
       - name: Setup Flux CLI
-        uses: fluxcd/flux2/action@main
+        uses: fluxcd/flux2/action@709b17ce59d184427c1395bc70f496ba528d3bee # main
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
       - run: make unit-tests
