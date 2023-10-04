@@ -1,0 +1,515 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Weave GitOps Pipelines API",
+    "description": "The API handles operations for Weave GitOps Pipelines",
+    "version": "0.1"
+  },
+  "tags": [
+    {
+      "name": "Pipelines"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/v1/namespaces/{namespace}/pipelines/{name}": {
+      "get": {
+        "operationId": "Pipelines_GetPipeline",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetPipelineResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "namespace",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Pipelines"
+        ]
+      }
+    },
+    "/v1/pipelines": {
+      "get": {
+        "operationId": "Pipelines_ListPipelines",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListPipelinesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "namespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Pipelines"
+        ]
+      }
+    },
+    "/v1/pipelines/approve/{name}": {
+      "post": {
+        "operationId": "Pipelines_ApprovePromotion",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ApprovePromotionResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "namespace": {
+                  "type": "string"
+                },
+                "env": {
+                  "type": "string"
+                },
+                "revision": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "Pipelines"
+        ]
+      }
+    },
+    "/v1/pipelines/list-prs/{pipelineName}": {
+      "post": {
+        "operationId": "Pipelines_ListPullRequests",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListPullRequestsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "pipelineName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "pipelineNamespace": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "Pipelines"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "PipelineStatusEnvironmentStatus": {
+      "type": "object",
+      "properties": {
+        "waitingStatus": {
+          "$ref": "#/definitions/v1WaitingStatus"
+        },
+        "targetsStatuses": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1PipelineTargetStatus"
+          }
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v1AppRef": {
+      "type": "object",
+      "properties": {
+        "apiVersion": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "v1ApprovePromotionResponse": {
+      "type": "object",
+      "properties": {
+        "pullRequestURL": {
+          "type": "string"
+        }
+      }
+    },
+    "v1ClusterRef": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        }
+      }
+    },
+    "v1Condition": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string"
+        }
+      }
+    },
+    "v1Environment": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "targets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1Target"
+          }
+        }
+      }
+    },
+    "v1GetPipelineResponse": {
+      "type": "object",
+      "properties": {
+        "pipeline": {
+          "$ref": "#/definitions/v1Pipeline"
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v1ListError": {
+      "type": "object",
+      "properties": {
+        "namespace": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "v1ListPipelinesResponse": {
+      "type": "object",
+      "properties": {
+        "pipelines": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1Pipeline"
+          }
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1ListError"
+          }
+        }
+      }
+    },
+    "v1ListPullRequestsResponse": {
+      "type": "object",
+      "properties": {
+        "pullRequests": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v1LocalObjectReference": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "v1Notification": {
+      "type": "object"
+    },
+    "v1Pipeline": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "appRef": {
+          "$ref": "#/definitions/v1AppRef"
+        },
+        "environments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1Environment"
+          }
+        },
+        "targets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1Target"
+          }
+        },
+        "status": {
+          "$ref": "#/definitions/v1PipelineStatus"
+        },
+        "yaml": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "promotion": {
+          "$ref": "#/definitions/v1Promotion"
+        }
+      }
+    },
+    "v1PipelineStatus": {
+      "type": "object",
+      "properties": {
+        "environments": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/PipelineStatusEnvironmentStatus"
+          }
+        }
+      }
+    },
+    "v1PipelineTargetStatus": {
+      "type": "object",
+      "properties": {
+        "clusterRef": {
+          "$ref": "#/definitions/v1ClusterRef"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "workloads": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1WorkloadStatus"
+          }
+        }
+      }
+    },
+    "v1Promotion": {
+      "type": "object",
+      "properties": {
+        "manual": {
+          "type": "boolean"
+        },
+        "strategy": {
+          "$ref": "#/definitions/v1Strategy"
+        }
+      }
+    },
+    "v1PullRequestPromotion": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        },
+        "branch": {
+          "type": "string"
+        }
+      }
+    },
+    "v1Strategy": {
+      "type": "object",
+      "properties": {
+        "pullRequest": {
+          "$ref": "#/definitions/v1PullRequestPromotion"
+        },
+        "notification": {
+          "$ref": "#/definitions/v1Notification"
+        },
+        "secretRef": {
+          "$ref": "#/definitions/v1LocalObjectReference"
+        }
+      }
+    },
+    "v1Target": {
+      "type": "object",
+      "properties": {
+        "namespace": {
+          "type": "string"
+        },
+        "clusterRef": {
+          "$ref": "#/definitions/v1ClusterRef"
+        }
+      }
+    },
+    "v1WaitingStatus": {
+      "type": "object",
+      "properties": {
+        "revision": {
+          "type": "string"
+        }
+      }
+    },
+    "v1WorkloadStatus": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "lastAppliedRevision": {
+          "type": "string"
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1Condition"
+          }
+        },
+        "suspended": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

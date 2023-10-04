@@ -1,0 +1,51 @@
+---
+title: Reference
+---
+
+import SwaggerUI from "swagger-ui-react"
+import "swagger-ui-react/swagger-ui.css"
+
+
+export const APIUI = ({ url }) => (
+  // FIXME: implement dark mode for swagger-ui somehow.
+  // Adds a white background to the Swagger UI
+  // So you can still use it in dark mode.
+  <div
+    style={{
+      backgroundColor: "#fff",
+      borderRadius: '4px',
+      padding: '2px 0',
+      margin: '0 -20px',
+    }}>
+    <SwaggerUI
+    url={url}
+    // Turn on hash based deeplinking so that each API call can be linked to directly.
+    // Seems to work okay w/ docusaurus' routing.
+    deepLinking
+    // turn off the "try this out" stuff.
+    supportedSubmitMethods={[]}
+    // Collapse all models sections by default, they're very verbose.
+    defaultModelsExpandDepth={0}
+    />
+  </div>
+);
+
+## OSS Core
+
+<APIUI url="/swagger/core.swagger.json" />
+
+## Enterprise Core
+
+<APIUI url="/swagger/cluster_services.swagger.json" />
+
+## Query
+
+<APIUI url="/swagger/query.swagger.json" />
+
+## Terraform
+
+<APIUI url="/swagger/terraform.swagger.json" />
+
+## GitOpsSets
+
+<APIUI url="/swagger/gitopssets.swagger.json" />

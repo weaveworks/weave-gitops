@@ -137,6 +137,7 @@ proto: ## Generate protobuf files
 	@go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.1.0
 	@go install github.com/bufbuild/buf/cmd/buf@v1.1.0
 	buf generate
+	cp api/core/core.swagger.json website/static/swagger/core.swagger.json
 #	This job is complaining about a missing plugin and error-ing out
 #	oapi-codegen -config oapi-codegen.config.yaml api/applications/applications.swagger.json
 

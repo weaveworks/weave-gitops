@@ -38,3 +38,30 @@
   top: 0;
   left: 0;
 }
+
+
+/*
+Remove some of the title block margins.
+They are very big headline things designed to be
+at the top of pages.
+*/
+.swagger-ui .info {
+  margin: 0 !important;
+}
+
+/*
+Make the titles smaller.
+We provide our own bigger titles in docusaurus to get a
+basic TOC on the left side.
+*/
+.swagger-ui h2.title {
+  font-size: 1em !important;
+}
+
+/* 
+Hide the little version bubbles.
+The versions mentioned there are not correct.
+*/
+.swagger-ui h2.title small {
+  display: none !important;
+}
