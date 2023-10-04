@@ -271,15 +271,13 @@ spec:
   chart:
     spec:
       chart: dex
-      version: 0.6.5
+      version: 0.15.3
       sourceRef:
         kind: HelmRepository
         name: dex
         namespace: dex
       interval: 1m
   values:
-    image:
-      tag: v2.31.0
     envVars:
     - name: GITHUB_CLIENT_ID
       valueFrom:
@@ -300,7 +298,7 @@ spec:
         type: memory
 
       staticClients:
-      - name: 'Weave GitOps Core'
+      - name: 'Weave GitOps'
         id: weave-gitops
         secret: AiAImuXKhoI5ApvKWF988txjZ+6rG3S7o6X5En
         redirectURIs:
