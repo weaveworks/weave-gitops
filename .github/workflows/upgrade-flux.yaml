@@ -5,6 +5,9 @@ on:
   schedule:
     - cron: "0 10 * * *"
 
+permissions:
+  contents: read # for actions/checkout to fetch code
+
 jobs:
   has-new-flux:
     runs-on: ubuntu-latest
@@ -12,7 +15,7 @@ jobs:
       version: ${{ steps.version.outputs.version }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
       - name: Set new version if different
         id: version
         run: |
@@ -29,9 +32,9 @@ jobs:
     if: needs.has-new-flux.outputs.version
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
       - name: Setup Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe # v4.1.0
         with:
           go-version: 1.20.X
       - name: Upgrade flux
@@ -39,13 +42,8 @@ jobs:
           sed -i 's/^FLUX_VERSION=.*/FLUX_VERSION=${{ needs.has-new-flux.outputs.version }}/' Makefile
           go get -u github.com/fluxcd/flux2
           go mod tidy
-          # Extract e.g. 0.34 from 0.34.5
-          series="$(echo ${{ needs.has-new-flux.outputs.version }} | awk 'BEGIN{FS=OFS="."} NF--')"
-          if ! grep -qe "^\* $series$" website/docs/installation.mdx; then
-            sed -i -e "/Flux releases:$/,/^$/ s/^$/* $series\n/" website/docs/installation.mdx
-          fi
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v3
+        uses: peter-evans/create-pull-request@153407881ec5c347639a548ade7d8ad1d6740e38 # v5.0.2
         with:
           author: weave-gitops-bot <weave-gitops-bot@weave.works>
           signoff: true
@@ -55,5 +53,5 @@ jobs:
           title: "Upgrade flux to ${{ needs.has-new-flux.outputs.version }}"
           token: ${{ secrets.WEAVE_GITOPS_BOT_ACCESS_TOKEN }}
           body: |
-            Upgrade the flux version used by gitops run, the package
-            dependencies, and the supported flux version in the manual.
+            Upgrade the flux version used by gitops run and the package
+            dependencies.
