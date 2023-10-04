@@ -83,6 +83,10 @@ function AutomationDetail({
 
   const canaryStatus = createCanaryCondition(data?.objects);
   const health = computeAggHealthCheck(data?.objects || []);
+  // We cannot show reconciled objects for remote HelmReleases
+  const skipReconciledObjectsTable =
+    automation.type === "HelmRelease" &&
+    (automation as HelmRelease).kubeConfig !== "";
 
   const defaultTabs: Array<routeTab> = [
     {
@@ -91,9 +95,7 @@ function AutomationDetail({
       component: () => {
         return (
           <RequestStateHandler loading={isLoading} error={error}>
-            {automation.type === "Kustomization" ||
-            (automation.type === "HelmRelease" &&
-              (automation as HelmRelease).kubeConfig === "") ? (
+            {!skipReconciledObjectsTable ? (
               <ReconciledObjectsTable
                 className={className}
                 objects={data?.objects}
