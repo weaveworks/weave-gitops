@@ -27,7 +27,7 @@ import Timestamp from "./Timestamp";
 import YamlView from "./YamlView";
 
 const hrInfoMessage =
-  "spec.Kubeconfig is set on this HelmRelease. Details about reconciled objects are not available.";
+  "spec.kubeConfig is set on this HelmRelease. Details about reconciled objects are not available.";
 
 type Props = {
   automation: Automation;
@@ -83,6 +83,10 @@ function AutomationDetail({
 
   const canaryStatus = createCanaryCondition(data?.objects);
   const health = computeAggHealthCheck(data?.objects || []);
+  // We cannot show reconciled objects for remote HelmReleases
+  const skipReconciledObjectsTable =
+    automation.type === "HelmRelease" &&
+    (automation as HelmRelease).kubeConfig !== "";
 
   const defaultTabs: Array<routeTab> = [
     {
@@ -91,8 +95,7 @@ function AutomationDetail({
       component: () => {
         return (
           <RequestStateHandler loading={isLoading} error={error}>
-            {automation.type === "HelmRelease" &&
-            (automation as HelmRelease).kubeConfig === "" ? (
+            {!skipReconciledObjectsTable ? (
               <ReconciledObjectsTable
                 className={className}
                 objects={data?.objects}
