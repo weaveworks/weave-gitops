@@ -55,9 +55,9 @@ metadata:
   name: weave-gitops-quickstart
   namespace: flux-system
 spec:
-  interval: 1m0s
+  interval: 10m0s
   ref:
-    branch: add-monitoring
+    branch: main
   url: https://github.com/weaveworks/weave-gitops-quickstart
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
@@ -66,7 +66,7 @@ metadata:
   name: monitoring-config
   namespace: flux-system
 spec:
-  interval: 1m0s
+  interval: 10m0s
   sourceRef:
     kind: GitRepository
     name: weave-gitops-quickstart
