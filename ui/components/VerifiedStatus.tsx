@@ -4,6 +4,7 @@ import { useListSources } from "../hooks/sources";
 import { Condition, ObjectRef } from "../lib/api/core/types.pb";
 import { GitRepository, OCIRepository } from "../lib/objects";
 import Icon, { IconType } from "./Icon";
+import Flex from "./Flex";
 
 export interface VerifiableSource {
   isVerifiable: boolean;
@@ -45,7 +46,7 @@ export const VerifiedStatus = ({
 }: {
   source: VerifiableSource;
 }): JSX.Element | null => {
-  if (!source.isVerifiable) return null;
+  if (!source.isVerifiable) return <Flex>-</Flex>;
 
   return getStatusIcon(source);
 };
@@ -58,7 +59,7 @@ export const SourceIsVerifiedStatus: React.FC<{ sourceRef: ObjectRef }> = ({
     (source) => sourceRef?.name === source.name
   ) as GitRepository | OCIRepository | undefined;
 
-  if (!currentSource?.isVerifiable) return null;
+  if (!currentSource?.isVerifiable) return <Flex>-</Flex>;
 
   return getStatusIcon(currentSource);
 };
