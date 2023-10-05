@@ -23,6 +23,45 @@ This setup follows [Flux Monitoring](https://fluxcd.io/flux/monitoring/metrics/)
 
 
 1. Install [Kube Prometheus Stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack).
+
+<details><summary>Expand to see manifest contents</summary>
+
+```yaml
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: weave-gitops-quickstart
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  ref:
+    branch: main
+  url: https://github.com/weaveworks/weave-gitops-quickstart
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: monitoring
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: kube-prometheus-stack
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  sourceRef:
+    kind: GitRepository
+    name: weave-gitops-quickstart
+  path: ./monitoring/kube-prometheus-stack
+  prune: true
+  targetNamespace: monitoring
+  wait: true
+```
+
+</details>
+
+
 2. Enable Prometheus Metrics Configuration happens during releasing as shown below.
 
 <details><summary>Expand to see manifest contents</summary>
@@ -49,17 +88,6 @@ spec:
 <details><summary>Expand to see manifest contents</summary>
 
 ```yaml
-apiVersion: source.toolkit.fluxcd.io/v1
-kind: GitRepository
-metadata:
-  name: weave-gitops-quickstart
-  namespace: flux-system
-spec:
-  interval: 10m0s
-  ref:
-    branch: main
-  url: https://github.com/weaveworks/weave-gitops-quickstart
----
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
@@ -70,8 +98,11 @@ spec:
   sourceRef:
     kind: GitRepository
     name: weave-gitops-quickstart
-  path: ./monitoring
+  path: ./monitoring/weave-gitops
+  dependsOn:
+    - name: kube-prometheus-stack
   prune: true
+  targetNamespace: monitoring
 ```
 
 </details>
