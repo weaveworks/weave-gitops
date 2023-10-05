@@ -56,6 +56,13 @@
     },
     {
       type: 'category',
+      label: 'Operations',
+      items: [
+        'operations/monitoring',
+      ],
+    },
+    {
+      type: 'category',
       label: 'Cluster Management',
       link: {
         type: 'doc',
