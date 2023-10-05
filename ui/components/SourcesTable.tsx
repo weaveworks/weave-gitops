@@ -21,11 +21,7 @@ import DataTable, {
 import KubeStatusIndicator, { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
 import Timestamp from "./Timestamp";
-import {
-  SourceIsVerifiedStatus,
-  VerifiableSource,
-  VerifiedStatus,
-} from "./VerifiedStatus";
+import { VerifiableSource, VerifiedStatus } from "./VerifiedStatus";
 
 type Props = {
   className?: string;

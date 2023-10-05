@@ -1,8 +1,8 @@
-import React from "react";
 import { Tooltip } from "@material-ui/core";
+import React from "react";
+import { useListSources } from "../hooks/sources";
 import { Condition, ObjectRef } from "../lib/api/core/types.pb";
 import { GitRepository, OCIRepository } from "../lib/objects";
-import { useListSources } from "../hooks/sources";
 import Icon, { IconType } from "./Icon";
 
 export interface VerifiableSource {
