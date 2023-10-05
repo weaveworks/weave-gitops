@@ -22,18 +22,7 @@ const getVerifiedStatusColor = (status?: string) => {
   return color;
 };
 
-export const findVerificationCondition = (
-  a: VerifiableSource
-): Condition | undefined =>
-  a?.conditions?.find((condition) => condition.type === "SourceVerified");
-
-export const VerifiedStatus = ({
-  source,
-}: {
-  source: VerifiableSource;
-}): JSX.Element | null => {
-  if (!source.isVerifiable) return null;
-
+const getStatusIcon = (source) => {
   const condition = findVerificationCondition(source);
   const color = getVerifiedStatusColor(condition?.status);
 
@@ -46,6 +35,21 @@ export const VerifiedStatus = ({
   );
 };
 
+export const findVerificationCondition = (
+  a: VerifiableSource
+): Condition | undefined =>
+  a?.conditions?.find((condition) => condition.type === "SourceVerified");
+
+export const VerifiedStatus = ({
+  source,
+}: {
+  source: VerifiableSource;
+}): JSX.Element | null => {
+  if (!source.isVerifiable) return null;
+
+  return getStatusIcon(source);
+};
+
 export const SourceIsVerifiedStatus: React.FC<{ sourceRef: ObjectRef }> = ({
   sourceRef,
 }): JSX.Element | null => {
@@ -56,14 +60,5 @@ export const SourceIsVerifiedStatus: React.FC<{ sourceRef: ObjectRef }> = ({
 
   if (!currentSource?.isVerifiable) return null;
 
-  const condition = findVerificationCondition(currentSource);
-  const color = getVerifiedStatusColor(condition?.status);
-
-  return (
-    <Tooltip title={condition?.message || "pending verification"}>
-      <div>
-        <Icon type={IconType.VerifiedUser} color={color} size="base" />
-      </div>
-    </Tooltip>
-  );
+  return getStatusIcon(currentSource);
 };
