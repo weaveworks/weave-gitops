@@ -5,7 +5,7 @@ import styled from "styled-components";
 import { useListAutomations } from "../hooks/automations";
 import { Kind } from "../lib/api/core/types.pb";
 import { HelmRelease, OCIRepository, Source } from "../lib/objects";
-import { getSourceRefForAutomation } from "../lib/utils";
+import { createYamlCommand, getSourceRefForAutomation } from "../lib/utils";
 import AutomationsTable from "./AutomationsTable";
 import EventsTable from "./EventsTable";
 import Flex from "./Flex";
@@ -120,11 +120,7 @@ function SourceDetail({ className, source, info, type, customActions }: Props) {
         <RouterTab name="yaml" path={`${path}/yaml`}>
           <YamlView
             yaml={yaml}
-            object={{
-              kind: type,
-              name: name,
-              namespace: namespace,
-            }}
+            header={createYamlCommand(type, name, namespace)}
           />
         </RouterTab>
       </SubRouterTabs>

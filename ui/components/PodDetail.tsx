@@ -2,6 +2,7 @@ import { Tabs } from "@material-ui/core";
 import * as React from "react";
 import styled from "styled-components";
 import { Container, FluxObject } from "../lib/objects";
+import { createYamlCommand } from "../lib/utils";
 import DataTable from "./DataTable";
 import Flex from "./Flex";
 import InfoList from "./InfoList";
@@ -142,12 +143,7 @@ function PodDetail({ className, pod }: Props) {
         return (
           <DialogYamlView
             yaml={pod.yaml}
-            object={{
-              kind: pod.type,
-              name: pod.name,
-              namespace: pod.namespace,
-              clusterName: pod.clusterName,
-            }}
+            header={createYamlCommand(pod.type, pod.name, pod.namespace)}
           />
         );
     }

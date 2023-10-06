@@ -4,13 +4,16 @@ import React, { useContext } from "react";
 import styled from "styled-components";
 import { AppContext } from "../contexts/AppContext";
 import { FluxObject, FluxObjectNode } from "../lib/objects";
+import { createYamlCommand } from "../lib/utils";
 import Flex from "./Flex";
 import Text from "./Text";
 import { DialogYamlView } from "./YamlView";
 
+type PRPreviewProps = { path: string; yaml: string; name: string };
+
 export type DetailViewProps = {
   className?: string;
-  object: FluxObject | FluxObjectNode;
+  object: FluxObject | FluxObjectNode | PRPreviewProps;
 };
 
 const HeaderFlex = styled(Flex)`
@@ -22,20 +25,16 @@ export enum AltKinds {
 }
 
 const content = (object) => {
-  switch (object.type) {
+  const { type, name, namespace, yaml } = object;
+  switch (type) {
     // PodDetail Page - turned off for now
     // case AltKinds.Pod:
     //   return <PodPage object={object} />;
     default:
       return (
         <DialogYamlView
-          object={{
-            name: object.name,
-            namespace: object.namespace,
-            clusterName: object.clusterName,
-            kind: object.type,
-          }}
-          yaml={object.yaml}
+          header={createYamlCommand(type, name, namespace, object.path || "")}
+          yaml={yaml}
         />
       );
   }
