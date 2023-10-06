@@ -425,6 +425,11 @@ describe("createYamlCommand", () => {
       null
     );
   });
+  it("uses the path prop if it is defined", () => {
+    expect(createYamlCommand(undefined, undefined, undefined, "http")).toEqual(
+      "http"
+    );
+  });
 
   describe("getBasePath", () => {
     describe("without a base tag set in the dom", () => {
