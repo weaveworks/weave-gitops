@@ -19,7 +19,7 @@
   "paths": {
     "/v1/authenticate/{providerName}": {
       "post": {
-        "summary": "Authenticate generates jwt token using git provider name\nand git provider token arguments",
+        "summary": "Wrap a git provider token in a JWT",
         "operationId": "GitAuth_Authenticate",
         "responses": {
           "200": {
@@ -65,7 +65,7 @@
     },
     "/v1/gitauth/auth-providers/azuredevops": {
       "get": {
-        "summary": "GetAzureDevOpsAuthURL returns the Azure DevOps authorization URL\nused to initiate the OAuth flow.",
+        "summary": "Get the Azure DevOps authorization URL used to initiate the OAuth flow.",
         "operationId": "GitAuth_GetAzureDevOpsAuthURL",
         "responses": {
           "200": {
@@ -97,7 +97,8 @@
     },
     "/v1/gitauth/auth-providers/azuredevops/authorize": {
       "post": {
-        "summary": "AuthorizeAzureDevOps returns a token after a user authorizes\nAzure DevOps to grant access to their account\non behalf of Weave GitOps Enterprise.",
+        "summary": "Exchange an Azure DevOps code obtained via OAuth callback.",
+        "description": "Get a token after a user authorizes Azure DevOps to grant access to their account\non behalf of Weave GitOps Enterprise.",
         "operationId": "GitAuth_AuthorizeAzureDevOps",
         "responses": {
           "200": {
@@ -130,6 +131,7 @@
     },
     "/v1/gitauth/auth-providers/bitbucketserver": {
       "get": {
+        "summary": "Get the URL to initiate a Bitbucket Server OAuth flow.",
         "operationId": "GitAuth_GetBitbucketServerAuthURL",
         "responses": {
           "200": {
@@ -161,6 +163,8 @@
     },
     "/v1/gitauth/auth-providers/bitbucketserver/authorize": {
       "post": {
+        "summary": "Exchange a Bitbucket Server code obtained via OAuth callback.",
+        "description": "The returned token is useable for authentication with the GitOps server only.",
         "operationId": "GitAuth_AuthorizeBitbucketServer",
         "responses": {
           "200": {
@@ -193,7 +197,8 @@
     },
     "/v1/gitauth/auth-providers/github": {
       "get": {
-        "summary": "GetGithubDeviceCode retrieves a temporary device code\nfor Github authentication.\nThis code is used to start the Github device-flow.",
+        "summary": "Get a temporary device code for Github authentication",
+        "description": "This code is used to start the Github device-flow.",
         "operationId": "GitAuth_GetGithubDeviceCode",
         "responses": {
           "200": {
@@ -216,7 +221,8 @@
     },
     "/v1/gitauth/auth-providers/github/status": {
       "post": {
-        "summary": "GetGithubAuthStatus gets the status of the Github device flow\nauthentication requests. Once the user has completed\nthe Github device flow, an access token will be returned.\nThis token will expire in 15 minutes,\nafter which the user will need to complete the flow again\nto do Git Provider operations.",
+        "summary": "Get the status of the Github device flow authentication requests",
+        "description": "Once the user has completed the Github device flow, an access token will be returned.\nThis token will expire in 15 minutes,\nafter which the user will need to complete the flow again\nto do Git Provider operations.",
         "operationId": "GitAuth_GetGithubAuthStatus",
         "responses": {
           "200": {
@@ -249,7 +255,8 @@
     },
     "/v1/gitauth/auth-providers/gitlab": {
       "get": {
-        "summary": "GetGitlabAuthURL returns the URL to initiate a GitLab OAuth PKCE flow.\nThe user must browse to the returned URL to authorize the OAuth callback\nto the GitOps UI.\nSee the GitLab OAuth docs for more more information:\nhttps://docs.gitlab.com/ee/api/oauth2.html#supported-oauth-20-flows",
+        "summary": "Get the URL to initiate a GitLab OAuth flow.",
+        "description": "The user must browse to the returned URL to authorize the OAuth callback\nto the GitOps UI.\nSee the GitLab OAuth docs for more more information:\nhttps://docs.gitlab.com/ee/api/oauth2.html#supported-oauth-20-flows",
         "operationId": "GitAuth_GetGitlabAuthURL",
         "responses": {
           "200": {
@@ -281,7 +288,8 @@
     },
     "/v1/gitauth/auth-providers/gitlab/authorize": {
       "post": {
-        "summary": "AuthorizeGitlab exchanges a GitLab code obtained via OAuth callback.\nThe returned token is useable for authentication\nwith the GitOps server only.\nSee the GitLab OAuth docs for more more information:\nhttps://docs.gitlab.com/ee/api/oauth2.html#supported-oauth-20-flows",
+        "summary": "Exchange a GitLab code obtained via OAuth callback.",
+        "description": "The returned token is useable for authentication with the GitOps server only.\nSee the GitLab OAuth docs for more more information:\nhttps://docs.gitlab.com/ee/api/oauth2.html#supported-oauth-20-flows",
         "operationId": "GitAuth_AuthorizeGitlab",
         "responses": {
           "200": {
@@ -314,7 +322,7 @@
     },
     "/v1/gitauth/parse-repo-url": {
       "get": {
-        "summary": "ParseRepoURL returns structured data about a git repository URL",
+        "summary": "Get structured data about a git repository URL",
         "operationId": "GitAuth_ParseRepoURL",
         "responses": {
           "200": {
@@ -346,7 +354,7 @@
     },
     "/v1/gitauth/validate-token": {
       "post": {
-        "summary": "ValidateProviderToken check to see if the git provider token\nis still valid",
+        "summary": "Check if a git provider token is still valid",
         "operationId": "GitAuth_ValidateProviderToken",
         "responses": {
           "200": {

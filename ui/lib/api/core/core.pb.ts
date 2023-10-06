@@ -117,7 +117,6 @@ export type GetObjectRequest = {
   namespace?: string
   kind?: string
   clusterName?: string
-  clusterNamespace?: string
 }
 
 export type GetObjectResponse = {
@@ -333,12 +332,6 @@ export class Core {
   }
   static GetChildObjects(req: GetChildObjectsRequest, initReq?: fm.InitReq): Promise<GetChildObjectsResponse> {
     return fm.fetchReq<GetChildObjectsRequest, GetChildObjectsResponse>(`/v1/child-objects`, {...initReq, method: "POST", body: JSON.stringify(req)})
-  }
-  static GetFluxNamespace(req: GetFluxNamespaceRequest, initReq?: fm.InitReq): Promise<GetFluxNamespaceResponse> {
-    return fm.fetchReq<GetFluxNamespaceRequest, GetFluxNamespaceResponse>(`/v1/namespace/flux`, {...initReq, method: "POST", body: JSON.stringify(req)})
-  }
-  static ListNamespaces(req: ListNamespacesRequest, initReq?: fm.InitReq): Promise<ListNamespacesResponse> {
-    return fm.fetchReq<ListNamespacesRequest, ListNamespacesResponse>(`/v1/namespaces?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static ListEvents(req: ListEventsRequest, initReq?: fm.InitReq): Promise<ListEventsResponse> {
     return fm.fetchReq<ListEventsRequest, ListEventsResponse>(`/v1/events?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})

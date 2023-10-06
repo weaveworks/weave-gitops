@@ -29,7 +29,7 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
  */
 service Core {
     /*
-     * GetObject gets data about a single primary object from a cluster.
+     * Get data about a single primary object from a cluster
      */
     rpc GetObject(GetObjectRequest) returns (GetObjectResponse) {
         option (google.api.http) = {
@@ -38,7 +38,7 @@ service Core {
     }
 
     /*
-     * ListObjects gets data about primary objects.
+     * List primary objects
      */
     rpc ListObjects(ListObjectsRequest) returns (ListObjectsResponse) {
         option (google.api.http) = {
@@ -47,9 +47,8 @@ service Core {
         };
     }
 
-    // Misc
     /*
-     * ListFluxRuntimeObjects lists the flux runtime deployments from a cluster.
+     * Lists the Flux runtime deployments on a cluster
      */
     rpc ListFluxRuntimeObjects(ListFluxRuntimeObjectsRequest)
         returns (ListFluxRuntimeObjectsResponse) {
@@ -58,6 +57,9 @@ service Core {
         };
     }
 
+    /*
+     * Lists the Flux CRDs on a cluster
+     */
     rpc ListFluxCrds(ListFluxCrdsRequest) returns (ListFluxCrdsResponse) {
         option (google.api.http) = {
             get: "/v1/flux-crds"
@@ -65,8 +67,8 @@ service Core {
     }
 
     /*
-     * GetReconciledObjects returns a list of objects that were created
-     * as a result of reconciling a Flux automation.
+     * Get the objects created by a Flux automation
+     *
      * This list is derived by looking at the Kustomization or HelmRelease
      * specified in the request body.
      */
@@ -79,8 +81,9 @@ service Core {
     };
 
     /*
-     * GetChildObjects returns the children of a given object,
-     * specified by a GroupVersionKind.
+     * Get the children of an object
+     *
+     * Specified by a GroupVersionKind.
      * Not all Kubernets objects have children. For example, a Deployment
      * has a child ReplicaSet, but a Service has no child objects.
      */
@@ -93,26 +96,7 @@ service Core {
     };
 
     /*
-     * GetFluxNamespace returns with a namespace with a specific label.
-     */
-    rpc GetFluxNamespace(GetFluxNamespaceRequest)
-        returns (GetFluxNamespaceResponse) {
-        option (google.api.http) = {
-            post: "/v1/namespace/flux"
-            body: "*"
-        };
-    }
-
-    /*
-     * ListNamespaces returns with the list of available namespaces.
-     */
-    rpc ListNamespaces(ListNamespacesRequest) returns (ListNamespacesResponse) {
-        option (google.api.http) = {
-            get: "/v1/namespaces"
-        };
-    }
-    /*
-     * ListEvents returns with a list of events
+     * List events for an object
      */
     rpc ListEvents(ListEventsRequest) returns (ListEventsResponse) {
         option (google.api.http) = {
@@ -121,7 +105,7 @@ service Core {
     }
 
     /*
-     * SyncResource forces a reconciliation of a Flux resource
+     * Trigger reconciliation of multiple Flux objects
      */
     rpc SyncFluxObject(SyncFluxObjectRequest) returns (SyncFluxObjectResponse) {
         option (google.api.http) = {
@@ -131,7 +115,7 @@ service Core {
     }
 
     /*
-     * GetVersion returns version information about the server
+     * Get version information about the server
      */
     rpc GetVersion(GetVersionRequest) returns (GetVersionResponse){
         option (google.api.http) = {
@@ -140,8 +124,8 @@ service Core {
     }
 
     /*
-    * GetFeatureFlags returns configuration information about the server
-    */
+     * Get feature flags
+     */
     rpc GetFeatureFlags(GetFeatureFlagsRequest)
         returns (GetFeatureFlagsResponse) {
         option (google.api.http) = {
@@ -150,7 +134,7 @@ service Core {
     }
 
     /*
-     * ToggleSuspendResource suspends or resumes a flux object.
+     * Suspend or resume reconciling mulitple Flux objects
      */
     rpc ToggleSuspendResource(ToggleSuspendResourceRequest)
         returns (ToggleSuspendResourceResponse) {
@@ -161,7 +145,7 @@ service Core {
     }
 
     /*
-     * GetSessionLogs returns the logs for a given session
+     * Get the logs for a GitOpsRun session
      */
     rpc GetSessionLogs(GetSessionLogsRequest) returns (GetSessionLogsResponse) {
         option (google.api.http) = {
@@ -171,7 +155,9 @@ service Core {
     }
 
     /*
-     * IsCRDAvailable returns with a hashmap where the keys are the names of
+     * Check which clusters have a given CRD installed
+     *
+     * Returns a hashmap where the keys are the names of
      * the clusters, and the value is a boolean indicating whether given CRD is
      * installed or not on that cluster.
      */
@@ -181,27 +167,35 @@ service Core {
         };
     }
 
+    /*
+     * Get the inventory of an object
+     */
     rpc GetInventory(GetInventoryRequest) returns (GetInventoryResponse) {
         option (google.api.http) = {
             get : "/v1/inventory",
         };
     }
 
-    // ListPolicies list policies available on the cluster
+    /*
+     * List policies available on a cluster
+     */
     rpc ListPolicies(ListPoliciesRequest) returns (ListPoliciesResponse) {
         option (google.api.http) = {
         get : "/v1/policies"
         };
     }
 
-    // GetPolicy gets a policy by name
+    /*
+     * Gets a policy
+     */
     rpc GetPolicy(GetPolicyRequest) returns (GetPolicyResponse) {
         option (google.api.http) = {
         get : "/v1/policies/{policy_name}"
         };
     }
+
     /*
-    * ListPolicyValidations lists policy validations
+    * Lists policy validations
     */
     rpc ListPolicyValidations(ListPolicyValidationsRequest)
         returns (ListPolicyValidationsResponse) {
@@ -212,7 +206,7 @@ service Core {
     }
 
     /*
-    * GetPolicyValidation gets a policy validation by id
+    * Gets a policy validation
     */
     rpc GetPolicyValidation(GetPolicyValidationRequest)
         returns (GetPolicyValidationResponse) {
@@ -255,7 +249,7 @@ message PolicyValidation {
 }
 
 message ListPolicyValidationsRequest {
-    string clusterName = 1;
+    string cluster_name = 1;
     Pagination pagination = 2;
     string application = 3;
     string namespace = 4;
@@ -332,7 +326,6 @@ message GetObjectRequest {
     string namespace         = 2;
     string kind              = 3;
     string cluster_name      = 4;
-    string cluster_namespace = 5;
 }
 
 message GetObjectResponse {
@@ -370,7 +363,7 @@ message GetReconciledObjectsResponse {
 }
 
 message GetChildObjectsRequest {
-    GroupVersionKind groupVersion_kind = 1;
+    GroupVersionKind group_version_kind = 1;
     string           namespace         = 2;
     string           parent_uid        = 3;
     string           cluster_name      = 4;

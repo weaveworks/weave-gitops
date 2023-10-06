@@ -19,6 +19,7 @@
   "paths": {
     "/v1/debug/access-rules": {
       "get": {
+        "summary": "Get debug access rules",
         "operationId": "Query_DebugGetAccessRules",
         "responses": {
           "200": {
@@ -41,6 +42,7 @@
     },
     "/v1/facets": {
       "get": {
+        "summary": "List facets available for querying",
         "operationId": "Query_ListFacets",
         "responses": {
           "200": {
@@ -63,6 +65,7 @@
     },
     "/v1/query": {
       "post": {
+        "summary": "Query for resources across clusters",
         "operationId": "Query_DoQuery",
         "responses": {
           "200": {

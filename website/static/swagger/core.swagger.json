@@ -17,9 +17,10 @@
     "application/json"
   ],
   "paths": {
-    "/v1/child_objects": {
+    "/v1/child-objects": {
       "post": {
-        "summary": "GetChildObjects returns the children of a given object,\nspecified by a GroupVersionKind.\nNot all Kubernets objects have children. For example, a Deployment\nhas a child ReplicaSet, but a Service has no child objects.",
+        "summary": "Get the children of an object",
+        "description": "Specified by a GroupVersionKind.\nNot all Kubernets objects have children. For example, a Deployment\nhas a child ReplicaSet, but a Service has no child objects.",
         "operationId": "Core_GetChildObjects",
         "responses": {
           "200": {
@@ -50,9 +51,10 @@
         ]
       }
     },
-    "/v1/crd/is_available": {
+    "/v1/crd/is-available": {
       "get": {
-        "summary": "IsCRDAvailable returns with a hashmap where the keys are the names of\nthe clusters, and the value is a boolean indicating whether given CRD is\ninstalled or not on that cluster.",
+        "summary": "Check which clusters have a given CRD installed",
+        "description": "Returns a hashmap where the keys are the names of\nthe clusters, and the value is a boolean indicating whether given CRD is\ninstalled or not on that cluster.",
         "operationId": "Core_IsCRDAvailable",
         "responses": {
           "200": {
@@ -83,7 +85,7 @@
     },
     "/v1/events": {
       "get": {
-        "summary": "ListEvents returns with a list of events",
+        "summary": "List events for an object",
         "operationId": "Core_ListEvents",
         "responses": {
           "200": {
@@ -130,9 +132,9 @@
         ]
       }
     },
-    "/v1/featureflags": {
+    "/v1/feature-flags": {
       "get": {
-        "summary": "GetFeatureFlags returns configuration information about the server",
+        "summary": "Get feature flags",
         "operationId": "Core_GetFeatureFlags",
         "responses": {
           "200": {
@@ -153,8 +155,9 @@
         ]
       }
     },
-    "/v1/flux_crds": {
+    "/v1/flux-crds": {
       "get": {
+        "summary": "Lists the Flux CRDs on a cluster",
         "operationId": "Core_ListFluxCrds",
         "responses": {
           "200": {
@@ -183,9 +186,9 @@
         ]
       }
     },
-    "/v1/flux_runtime_objects": {
+    "/v1/flux-runtime-objects": {
       "get": {
-        "summary": "ListFluxRuntimeObjects lists the flux runtime deployments from a cluster.",
+        "summary": "Lists the Flux runtime deployments on a cluster",
         "operationId": "Core_ListFluxRuntimeObjects",
         "responses": {
           "200": {
@@ -222,6 +225,7 @@
     },
     "/v1/inventory": {
       "get": {
+        "summary": "Get the inventory of an object",
         "operationId": "Core_GetInventory",
         "responses": {
           "200": {
@@ -274,65 +278,9 @@
         ]
       }
     },
-    "/v1/namespace/flux": {
-      "post": {
-        "summary": "GetFluxNamespace returns with a namespace with a specific label.",
-        "operationId": "Core_GetFluxNamespace",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1GetFluxNamespaceResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1GetFluxNamespaceRequest"
-            }
-          }
-        ],
-        "tags": [
-          "Core"
-        ]
-      }
-    },
-    "/v1/namespaces": {
-      "get": {
-        "summary": "ListNamespaces returns with the list of available namespaces.",
-        "operationId": "Core_ListNamespaces",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1ListNamespacesResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "tags": [
-          "Core"
-        ]
-      }
-    },
     "/v1/object/{name}": {
       "get": {
-        "summary": "GetObject gets data about a single primary object from a cluster.",
+        "summary": "Get data about a single primary object from a cluster",
         "operationId": "Core_GetObject",
         "responses": {
           "200": {
@@ -381,7 +329,7 @@
     },
     "/v1/objects": {
       "post": {
-        "summary": "ListObjects gets data about primary objects.",
+        "summary": "List primary objects",
         "operationId": "Core_ListObjects",
         "responses": {
           "200": {
@@ -414,7 +362,7 @@
     },
     "/v1/policies": {
       "get": {
-        "summary": "ListPolicies list policies available on the cluster",
+        "summary": "List policies available on a cluster",
         "operationId": "Core_ListPolicies",
         "responses": {
           "200": {
@@ -458,7 +406,7 @@
     },
     "/v1/policies/{policyName}": {
       "get": {
-        "summary": "GetPolicy gets a policy by name",
+        "summary": "Gets a policy",
         "operationId": "Core_GetPolicy",
         "responses": {
           "200": {
@@ -493,9 +441,9 @@
         ]
       }
     },
-    "/v1/policyvalidations": {
+    "/v1/policy-validations": {
       "post": {
-        "summary": "ListPolicyValidations lists policy validations",
+        "summary": "Lists policy validations",
         "operationId": "Core_ListPolicyValidations",
         "responses": {
           "200": {
@@ -526,9 +474,9 @@
         ]
       }
     },
-    "/v1/policyvalidations/{validationId}": {
+    "/v1/policy-validations/{validationId}": {
       "get": {
-        "summary": "GetPolicyValidation gets a policy validation by id",
+        "summary": "Gets a policy validation",
         "operationId": "Core_GetPolicyValidation",
         "responses": {
           "200": {
@@ -569,9 +517,10 @@
         ]
       }
     },
-    "/v1/reconciled_objects": {
+    "/v1/reconciled-objects": {
       "post": {
-        "summary": "GetReconciledObjects returns a list of objects that were created\nas a result of reconciling a Flux automation.\nThis list is derived by looking at the Kustomization or HelmRelease\nspecified in the request body.",
+        "summary": "Get the objects created by a Flux automation",
+        "description": "This list is derived by looking at the Kustomization or HelmRelease\nspecified in the request body.",
         "operationId": "Core_GetReconciledObjects",
         "responses": {
           "200": {
@@ -602,9 +551,9 @@
         ]
       }
     },
-    "/v1/session_logs": {
+    "/v1/session-logs": {
       "post": {
-        "summary": "GetSessionLogs returns the logs for a given session",
+        "summary": "Get the logs for a GitOpsRun session",
         "operationId": "Core_GetSessionLogs",
         "responses": {
           "200": {
@@ -637,7 +586,7 @@
     },
     "/v1/suspend": {
       "post": {
-        "summary": "ToggleSuspendResource suspends or resumes a flux object.",
+        "summary": "Suspend or resume reconciling mulitple Flux objects",
         "operationId": "Core_ToggleSuspendResource",
         "responses": {
           "200": {
@@ -670,7 +619,7 @@
     },
     "/v1/sync": {
       "post": {
-        "summary": "SyncResource forces a reconciliation of a Flux resource",
+        "summary": "Trigger reconciliation of multiple Flux objects",
         "operationId": "Core_SyncFluxObject",
         "responses": {
           "200": {
@@ -703,7 +652,7 @@
     },
     "/v1/version": {
       "get": {
-        "summary": "GetVersion returns version information about the server",
+        "summary": "Get version information about the server",
         "operationId": "Core_GetVersion",
         "responses": {
           "200": {
@@ -746,7 +695,7 @@
         }
       },
       "additionalProperties": {},
-      "description": "`Any` contains an arbitrary serialized protocol buffer message along with a\nURL that describes the type of the serialized message.\n\nProtobuf library provides support to pack/unpack Any values in the form\nof utility functions or additional generated methods of the Any type.\n\nExample 1: Pack and unpack a message in C++.\n\n    Foo foo = ...;\n    Any any;\n    any.PackFrom(foo);\n    ...\n    if (any.UnpackTo(\u0026foo)) {\n      ...\n    }\n\nExample 2: Pack and unpack a message in Java.\n\n    Foo foo = ...;\n    Any any = Any.pack(foo);\n    ...\n    if (any.is(Foo.class)) {\n      foo = any.unpack(Foo.class);\n    }\n\n Example 3: Pack and unpack a message in Python.\n\n    foo = Foo(...)\n    any = Any()\n    any.Pack(foo)\n    ...\n    if any.Is(Foo.DESCRIPTOR):\n      any.Unpack(foo)\n      ...\n\n Example 4: Pack and unpack a message in Go\n\n     foo := \u0026pb.Foo{...}\n     any, err := anypb.New(foo)\n     if err != nil {\n       ...\n     }\n     ...\n     foo := \u0026pb.Foo{}\n     if err := any.UnmarshalTo(foo); err != nil {\n       ...\n     }\n\nThe pack methods provided by protobuf library will by default use\n'type.googleapis.com/full.type.name' as the type URL and the unpack\nmethods only use the fully qualified type name after the last '/'\nin the type URL, for example \"foo.bar.com/x/y.z\" will yield type\nname \"y.z\".\n\n\nJSON\n====\nThe JSON representation of an `Any` value uses the regular\nrepresentation of the deserialized, embedded message, with an\nadditional field `@type` which contains the type URL. Example:\n\n    package google.profile;\n    message Person {\n      string first_name = 1;\n      string last_name = 2;\n    }\n\n    {\n      \"@type\": \"type.googleapis.com/google.profile.Person\",\n      \"firstName\": \u003cstring\u003e,\n      \"lastName\": \u003cstring\u003e\n    }\n\nIf the embedded message type is well-known and has a custom JSON\nrepresentation, that representation will be embedded adding a field\n`value` which holds the custom JSON in addition to the `@type`\nfield. Example (for message [google.protobuf.Duration][]):\n\n    {\n      \"@type\": \"type.googleapis.com/google.protobuf.Duration\",\n      \"value\": \"1.212s\"\n    }"
+      "description": "`Any` contains an arbitrary serialized protocol buffer message along with a\nURL that describes the type of the serialized message.\n\nProtobuf library provides support to pack/unpack Any values in the form\nof utility functions or additional generated methods of the Any type.\n\nExample 1: Pack and unpack a message in C++.\n\n    Foo foo = ...;\n    Any any;\n    any.PackFrom(foo);\n    ...\n    if (any.UnpackTo(\u0026foo)) {\n      ...\n    }\n\nExample 2: Pack and unpack a message in Java.\n\n    Foo foo = ...;\n    Any any = Any.pack(foo);\n    ...\n    if (any.is(Foo.class)) {\n      foo = any.unpack(Foo.class);\n    }\n\nExample 3: Pack and unpack a message in Python.\n\n    foo = Foo(...)\n    any = Any()\n    any.Pack(foo)\n    ...\n    if any.Is(Foo.DESCRIPTOR):\n      any.Unpack(foo)\n      ...\n\nExample 4: Pack and unpack a message in Go\n\n     foo := \u0026pb.Foo{...}\n     any, err := anypb.New(foo)\n     if err != nil {\n       ...\n     }\n     ...\n     foo := \u0026pb.Foo{}\n     if err := any.UnmarshalTo(foo); err != nil {\n       ...\n     }\n\nThe pack methods provided by protobuf library will by default use\n'type.googleapis.com/full.type.name' as the type URL and the unpack\nmethods only use the fully qualified type name after the last '/'\nin the type URL, for example \"foo.bar.com/x/y.z\" will yield type\nname \"y.z\".\n\n\nJSON\n\nThe JSON representation of an `Any` value uses the regular\nrepresentation of the deserialized, embedded message, with an\nadditional field `@type` which contains the type URL. Example:\n\n    package google.profile;\n    message Person {\n      string first_name = 1;\n      string last_name = 2;\n    }\n\n    {\n      \"@type\": \"type.googleapis.com/google.profile.Person\",\n      \"firstName\": \u003cstring\u003e,\n      \"lastName\": \u003cstring\u003e\n    }\n\nIf the embedded message type is well-known and has a custom JSON\nrepresentation, that representation will be embedded adding a field\n`value` which holds the custom JSON in addition to the `@type`\nfield. Example (for message [google.protobuf.Duration][]):\n\n    {\n      \"@type\": \"type.googleapis.com/google.protobuf.Duration\",\n      \"value\": \"1.212s\"\n    }"
     },
     "rpcStatus": {
       "type": "object",
@@ -923,17 +872,6 @@
           "additionalProperties": {
             "type": "string"
           }
-        }
-      }
-    },
-    "v1GetFluxNamespaceRequest": {
-      "type": "object"
-    },
-    "v1GetFluxNamespaceResponse": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
         }
       }
     },
@@ -1191,17 +1129,6 @@
         }
       }
     },
-    "v1ListNamespacesResponse": {
-      "type": "object",
-      "properties": {
-        "namespaces": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1Namespace"
-          }
-        }
-      }
-    },
     "v1ListObjectsRequest": {
       "type": "object",
       "properties": {
@@ -1335,32 +1262,6 @@
           "type": "string"
         },
         "sortingKey": {
-          "type": "string"
-        }
-      }
-    },
-    "v1Namespace": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "status": {
-          "type": "string"
-        },
-        "annotations": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          }
-        },
-        "labels": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          }
-        },
-        "clusterName": {
           "type": "string"
         }
       }
