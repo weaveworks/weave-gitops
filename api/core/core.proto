@@ -33,7 +33,7 @@ service Core {
      */
     rpc GetObject(GetObjectRequest) returns (GetObjectResponse) {
         option (google.api.http) = {
-            get: "/v1/namespaces/{cluster_namespace}/clusters/{cluster_name}/namespaces/{namespace}/object/{name}"
+            get: "/v1/object/{name}"
         };
     }
 
