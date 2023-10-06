@@ -1,0 +1,3 @@
+api/core/*.swagger.json linguist-generated=true
+**/*.pb.* linguist-generated=true
+
