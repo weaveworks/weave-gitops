@@ -3,9 +3,12 @@ title: Reference
 ---
 
 import BrowserOnly from "@docusaurus/BrowserOnly";
+import useBaseUrl from '@docusaurus/useBaseUrl';
 import "swagger-ui-react/swagger-ui.css";
 
+
 export const APIUI = ({ url }) => (
+  const swaggerUrl = useBaseUrl(url);
   // FIXME: implement dark mode for swagger-ui somehow.
   // Adds a white background to the Swagger UI
   // So you can still use it in dark mode.
@@ -22,7 +25,7 @@ export const APIUI = ({ url }) => (
         const SwaggerUI = require("swagger-ui-react").default;
         return (
           <SwaggerUI
-            url={url}
+            url={swaggerUrl}
             // Turn on hash based deeplinking so that each API call can be linked to directly.
             // Seems to work okay w/ docusaurus' routing.
             deepLinking
