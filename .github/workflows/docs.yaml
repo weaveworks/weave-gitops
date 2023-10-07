@@ -45,6 +45,8 @@ jobs:
           npm i
           fi
           sed -i 's#url:.*$#url: "https://staging.docs.gitops.weave.works",#' docusaurus.config.js
+          echo "substitute command:"
+          echo "s#baseUrl:.*\$#baseUrl: \"/$GITHUB_HEAD_REF/\",#"
           sed -i "s#baseUrl:.*\$#baseUrl: \"/$GITHUB_HEAD_REF/\",#" docusaurus.config.js
           yarn clear
           DISABLE_VERSIONING=true npm run build
