@@ -4,7 +4,7 @@ import styled from "styled-components";
 import { createCanaryCondition, useGetInventory } from "../hooks/inventory";
 import { Condition, Kind, ObjectRef } from "../lib/api/core/types.pb";
 import { Automation, HelmRelease } from "../lib/objects";
-import { automationLastUpdated } from "../lib/utils";
+import { automationLastUpdated, createYamlCommand } from "../lib/utils";
 import Alert from "./Alert";
 import Collapsible from "./Collapsible";
 import DependenciesView from "./DependenciesView";
@@ -152,11 +152,11 @@ function AutomationDetail({
         return (
           <YamlView
             yaml={automation.yaml}
-            object={{
-              kind: automation.type,
-              name: automation.name,
-              namespace: automation.namespace,
-            }}
+            header={createYamlCommand(
+              automation.type,
+              automation.name,
+              automation.namespace
+            )}
           />
         );
       },

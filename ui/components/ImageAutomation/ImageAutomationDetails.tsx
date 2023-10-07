@@ -1,6 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 import { Kind } from "../../lib/api/core/types.pb";
+import { createYamlCommand } from "../../lib/utils";
 import EventsTable from "../EventsTable";
 import Flex from "../Flex";
 import PageStatus from "../PageStatus";
@@ -8,7 +9,6 @@ import HeaderRows, { RowItem } from "../Policies/Utils/HeaderRows";
 import SubRouterTabs, { RouterTab } from "../SubRouterTabs";
 import SyncActions from "../SyncActions";
 import YamlView from "../YamlView";
-
 interface Props {
   className?: string;
   data: any;
@@ -26,7 +26,7 @@ const ImageAutomationDetails = ({
   infoFields,
   children,
 }: Props) => {
-  const { name, namespace, clusterName, suspended, conditions } = data;
+  const { name, namespace, clusterName, suspended, conditions, yaml } = data;
 
   return (
     <Flex wide tall column className={className} gap="4">
@@ -62,12 +62,8 @@ const ImageAutomationDetails = ({
         </RouterTab>
         <RouterTab name="yaml" path={`${rootPath}/yaml`}>
           <YamlView
-            yaml={data.yaml}
-            object={{
-              kind: kind,
-              name: name,
-              namespace: namespace,
-            }}
+            yaml={yaml}
+            header={createYamlCommand(kind, name, namespace)}
           />
         </RouterTab>
       </SubRouterTabs>

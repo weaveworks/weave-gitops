@@ -244,10 +244,12 @@ export function formatLogTimestamp(timestamp?: string, zone?: string): string {
 }
 
 export const createYamlCommand = (
-  kind: string,
-  name: string,
-  namespace: string
+  kind?: string,
+  name?: string,
+  namespace?: string,
+  path?: string
 ): string => {
+  if (path) return path;
   if (kind && name) {
     const namespaceString = namespace ? ` -n ${namespace}` : "";
     return `kubectl get ${kind.toLowerCase()} ${name}${namespaceString} -o yaml`;
