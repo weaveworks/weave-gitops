@@ -2,9 +2,8 @@
 title: Reference
 ---
 
-import SwaggerUI from "swagger-ui-react"
-import "swagger-ui-react/swagger-ui.css"
-
+import BrowserOnly from "@docusaurus/BrowserOnly";
+import "swagger-ui-react/swagger-ui.css";
 
 export const APIUI = ({ url }) => (
   // FIXME: implement dark mode for swagger-ui somehow.
@@ -13,20 +12,28 @@ export const APIUI = ({ url }) => (
   <div
     style={{
       backgroundColor: "#fff",
-      borderRadius: '4px',
-      padding: '2px 0',
-      margin: '0 -20px',
-    }}>
-    <SwaggerUI
-    url={url}
-    // Turn on hash based deeplinking so that each API call can be linked to directly.
-    // Seems to work okay w/ docusaurus' routing.
-    deepLinking
-    // turn off the "try this out" stuff.
-    supportedSubmitMethods={[]}
-    // Collapse all models sections by default, they're very verbose.
-    defaultModelsExpandDepth={0}
-    />
+      borderRadius: "4px",
+      padding: "2px 0",
+      margin: "0 -20px",
+    }}
+  >
+    <BrowserOnly fallback={<div>Loading...</div>}>
+      {() => {
+        const SwaggerUI = require("swagger-ui-react").default;
+        return (
+          <SwaggerUI
+            url={url}
+            // Turn on hash based deeplinking so that each API call can be linked to directly.
+            // Seems to work okay w/ docusaurus' routing.
+            deepLinking
+            // turn off the "try this out" stuff.
+            supportedSubmitMethods={[]}
+            // Collapse all models sections by default, they're very verbose.
+            defaultModelsExpandDepth={0}
+          />
+        );
+      }}
+    </BrowserOnly>
   </div>
 );
 
