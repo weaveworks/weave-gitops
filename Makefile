@@ -141,6 +141,11 @@ proto: ## Generate protobuf files
 #	This job is complaining about a missing plugin and error-ing out
 #	oapi-codegen -config oapi-codegen.config.yaml api/applications/applications.swagger.json
 
+# Sometimes we get whitespace differences when running this on linux vs mac
+# So here's how you can do it under linux, on mac
+proto-linux:
+	docker run --rm -v "$(CURRENT_DIR):/app" -w /app golang:1.20 make proto
+
 ##@ Docker
 _docker:
 	DOCKER_BUILDKIT=1 docker build $(DOCKERARGS)\
