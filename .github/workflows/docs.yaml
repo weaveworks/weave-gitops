@@ -47,7 +47,7 @@ jobs:
           sed -i 's#url:.*$#url: "https://staging.docs.gitops.weave.works",#' docusaurus.config.js
           sed -i "s#baseUrl:.*\$#baseUrl: \"/$GITHUB_HEAD_REF/\",#" docusaurus.config.js
           yarn clear
-          DISABLE_VERSIONING=true npm run build
+          npm run build
       - id: auth
         uses: google-github-actions/auth@35b0e87d162680511bf346c299f71c9c5c379033 # v1.1.1
         with:
