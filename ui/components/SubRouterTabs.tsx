@@ -111,6 +111,9 @@ export default styled(SubRouterTabs).attrs({ className: SubRouterTabs.name })`
         min-height: 32px;
         width: fit-content;
         @media (min-width: 600px) {
+          min-width: auto;
+        }
+        @media (min-width: 1440px) {
           min-width: 132px;
         }
       }
