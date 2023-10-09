@@ -187,6 +187,7 @@ module.exports = {
           id: 'default',
           sidebarPath: require.resolve("./sidebars.js"),
           editUrl: "https://github.com/weaveworks/weave-gitops/edit/main/website",
+          disableVersioning: process.env.DISABLE_VERSIONING === "true",
         },
         blog: {
           showReadingTime: true,
