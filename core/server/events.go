@@ -16,16 +16,12 @@ import (
 )
 
 func (cs *coreServer) ListEvents(ctx context.Context, msg *pb.ListEventsRequest) (*pb.ListEventsResponse, error) {
-	if msg.InvolvedObject == nil {
-		return nil, status.Errorf(codes.InvalidArgument, "bad request: no object was specified")
-	}
-
 	var clustersClient clustersmngr.Client
 
 	var err error
 
-	if msg.InvolvedObject.ClusterName != "" {
-		clustersClient, err = cs.clustersManager.GetImpersonatedClientForCluster(ctx, auth.Principal(ctx), msg.InvolvedObject.ClusterName)
+	if msg.ClusterName != "" {
+		clustersClient, err = cs.clustersManager.GetImpersonatedClientForCluster(ctx, auth.Principal(ctx), msg.ClusterName)
 	} else {
 		clustersClient, err = cs.clustersManager.GetImpersonatedClient(ctx, auth.Principal(ctx))
 	}
@@ -38,7 +34,7 @@ func (cs *coreServer) ListEvents(ctx context.Context, msg *pb.ListEventsRequest)
 		return &corev1.EventList{}
 	})
 
-	kind := msg.InvolvedObject.Kind
+	kind := msg.Kind
 
 	gvk, err := cs.primaryKinds.Lookup(kind)
 	if err != nil {
@@ -47,11 +43,11 @@ func (cs *coreServer) ListEvents(ctx context.Context, msg *pb.ListEventsRequest)
 
 	fields := client.MatchingFields{
 		"involvedObject.kind":      gvk.Kind,
-		"involvedObject.name":      msg.InvolvedObject.Name,
-		"involvedObject.namespace": msg.InvolvedObject.Namespace,
+		"involvedObject.name":      msg.Name,
+		"involvedObject.namespace": msg.Namespace,
 	}
 
-	if err := list(ctx, clustersClient, temporarilyEmptyAppName, msg.InvolvedObject.Namespace, clist, fields); err != nil {
+	if err := list(ctx, clustersClient, temporarilyEmptyAppName, msg.Namespace, clist, fields); err != nil {
 		return nil, fmt.Errorf("could not get events: %w", err)
 	}
 

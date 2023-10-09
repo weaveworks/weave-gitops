@@ -142,9 +142,9 @@ export type ListObjectsResponse = {
 }
 
 export type GetReconciledObjectsRequest = {
-  automationName?: string
+  name?: string
   namespace?: string
-  automationKind?: string
+  kind?: string
   kinds?: Gitops_coreV1Types.GroupVersionKind[]
   clusterName?: string
 }
@@ -179,7 +179,10 @@ export type ListNamespacesResponse = {
 }
 
 export type ListEventsRequest = {
-  involvedObject?: Gitops_coreV1Types.ObjectRef
+  kind?: string
+  name?: string
+  namespace?: string
+  clusterName?: string
 }
 
 export type ListEventsResponse = {
@@ -316,7 +319,7 @@ export type PolicyTargetLabel = {
 
 export class Core {
   static GetObject(req: GetObjectRequest, initReq?: fm.InitReq): Promise<GetObjectResponse> {
-    return fm.fetchReq<GetObjectRequest, GetObjectResponse>(`/v1/object/${req["name"]}?${fm.renderURLSearchParams(req, ["name"])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<GetObjectRequest, GetObjectResponse>(`/v1/namespaces/${req["namespace"]}/objects/${req["kind"]}/${req["name"]}?${fm.renderURLSearchParams(req, ["namespace", "kind", "name"])}`, {...initReq, method: "GET"})
   }
   static ListObjects(req: ListObjectsRequest, initReq?: fm.InitReq): Promise<ListObjectsResponse> {
     return fm.fetchReq<ListObjectsRequest, ListObjectsResponse>(`/v1/objects`, {...initReq, method: "POST", body: JSON.stringify(req)})
@@ -328,13 +331,13 @@ export class Core {
     return fm.fetchReq<ListFluxCrdsRequest, ListFluxCrdsResponse>(`/v1/flux-crds?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static GetReconciledObjects(req: GetReconciledObjectsRequest, initReq?: fm.InitReq): Promise<GetReconciledObjectsResponse> {
-    return fm.fetchReq<GetReconciledObjectsRequest, GetReconciledObjectsResponse>(`/v1/reconciled-objects`, {...initReq, method: "POST", body: JSON.stringify(req)})
+    return fm.fetchReq<GetReconciledObjectsRequest, GetReconciledObjectsResponse>(`/v1/namespaces/${req["namespace"]}/objects/${req["kind"]}/${req["name"]}/reconciled-objects`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static GetChildObjects(req: GetChildObjectsRequest, initReq?: fm.InitReq): Promise<GetChildObjectsResponse> {
     return fm.fetchReq<GetChildObjectsRequest, GetChildObjectsResponse>(`/v1/child-objects`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static ListEvents(req: ListEventsRequest, initReq?: fm.InitReq): Promise<ListEventsResponse> {
-    return fm.fetchReq<ListEventsRequest, ListEventsResponse>(`/v1/events?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<ListEventsRequest, ListEventsResponse>(`/v1/namespaces/${req["namespace"]}/objects/${req["kind"]}/${req["name"]}/events`, {...initReq, method: "POST"})
   }
   static SyncFluxObject(req: SyncFluxObjectRequest, initReq?: fm.InitReq): Promise<SyncFluxObjectResponse> {
     return fm.fetchReq<SyncFluxObjectRequest, SyncFluxObjectResponse>(`/v1/sync`, {...initReq, method: "POST", body: JSON.stringify(req)})
@@ -355,7 +358,7 @@ export class Core {
     return fm.fetchReq<IsCRDAvailableRequest, IsCRDAvailableResponse>(`/v1/crd/is-available?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static GetInventory(req: GetInventoryRequest, initReq?: fm.InitReq): Promise<GetInventoryResponse> {
-    return fm.fetchReq<GetInventoryRequest, GetInventoryResponse>(`/v1/inventory?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<GetInventoryRequest, GetInventoryResponse>(`/v1/namespaces/${req["namespace"]}/objects/${req["kind"]}/${req["name"]}/inventory?${fm.renderURLSearchParams(req, ["namespace", "kind", "name"])}`, {...initReq, method: "GET"})
   }
   static ListPolicies(req: ListPoliciesRequest, initReq?: fm.InitReq): Promise<ListPoliciesResponse> {
     return fm.fetchReq<ListPoliciesRequest, ListPoliciesResponse>(`/v1/policies?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})

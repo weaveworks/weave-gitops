@@ -50,6 +50,7 @@ export const getChildrenRecursive = async (
 
   const k = lookup[object.type];
 
+  console.log({ k });
   if (k && k.children) {
     for (let i = 0; i < k.children.length; i++) {
       const child: GroupVersionKind = k.children[i];
@@ -79,16 +80,16 @@ export const getChildrenRecursive = async (
 // Gets the "child" objects that result from an Application
 export const getChildren = async (
   client: typeof Core,
-  automationName,
+  name,
   namespace,
-  automationKind: Kind,
+  kind: Kind,
   kinds: GroupVersionKind[],
   clusterName
 ): Promise<FluxObject[]> => {
   const { objects } = await client.GetReconciledObjects({
-    automationName,
+    name,
     namespace,
-    automationKind,
+    kind,
     kinds,
     clusterName,
   });
@@ -96,6 +97,7 @@ export const getChildren = async (
   const fluxObjs = _.map(objects, (o) => convertResponse(null, o));
   fluxObjs.sort(sortFn);
 
+  console.log({ fluxObjs });
   const result: FluxObject[] = [];
   for (let o = 0; o < fluxObjs.length; o++) {
     const obj = fluxObjs[o];

@@ -159,9 +159,9 @@ func TestGetReconciledObjects(t *testing.T) {
 			md := metadata.Pairs(MetadataUserKey, tt.user, MetadataGroupsKey, tt.group)
 			outgoingCtx := metadata.NewOutgoingContext(ctx, md)
 			res, err := c.GetReconciledObjects(outgoingCtx, &pb.GetReconciledObjectsRequest{
-				AutomationName: automationName,
-				Namespace:      ns1.Name,
-				AutomationKind: kustomizev1.KustomizationKind,
+				Name:      automationName,
+				Namespace: ns1.Name,
+				Kind:      kustomizev1.KustomizationKind,
 				Kinds: []*pb.GroupVersionKind{
 					{Group: appsv1.SchemeGroupVersion.Group, Version: appsv1.SchemeGroupVersion.Version, Kind: "Deployment"},
 					{Group: corev1.SchemeGroupVersion.Group, Version: corev1.SchemeGroupVersion.Version, Kind: "ConfigMap"},
@@ -227,11 +227,11 @@ func TestGetReconciledObjectsWithSecret(t *testing.T) {
 	md := metadata.Pairs(MetadataUserKey, "anne", MetadataGroupsKey, "system:masters")
 	outgoingCtx := metadata.NewOutgoingContext(ctx, md)
 	res, err := c.GetReconciledObjects(outgoingCtx, &pb.GetReconciledObjectsRequest{
-		AutomationName: automationName,
-		Namespace:      ns.Name,
-		AutomationKind: kustomizev1.KustomizationKind,
-		Kinds:          []*pb.GroupVersionKind{{Group: "", Version: "v1", Kind: "Secret"}},
-		ClusterName:    cluster.DefaultCluster,
+		Name:        automationName,
+		Namespace:   ns.Name,
+		Kind:        kustomizev1.KustomizationKind,
+		Kinds:       []*pb.GroupVersionKind{{Group: "", Version: "v1", Kind: "Secret"}},
+		ClusterName: cluster.DefaultCluster,
 	})
 
 	g.Expect(err).NotTo(HaveOccurred())

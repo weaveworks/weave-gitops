@@ -214,19 +214,19 @@ func (cs *coreServer) GetReconciledObjects(ctx context.Context, msg *pb.GetRecon
 
 	var opts client.MatchingLabels
 
-	switch msg.AutomationKind {
+	switch msg.Kind {
 	case kustomizev1.KustomizationKind:
 		opts = client.MatchingLabels{
-			KustomizeNameKey:      msg.AutomationName,
+			KustomizeNameKey:      msg.Name,
 			KustomizeNamespaceKey: msg.Namespace,
 		}
 	case helmv2.HelmReleaseKind:
 		opts = client.MatchingLabels{
-			HelmNameKey:      msg.AutomationName,
+			HelmNameKey:      msg.Name,
 			HelmNamespaceKey: msg.Namespace,
 		}
 	default:
-		return nil, fmt.Errorf("unsupported application kind: %s", msg.AutomationKind)
+		return nil, fmt.Errorf("unsupported application kind: %s", msg.Kind)
 	}
 
 	var (
@@ -264,7 +264,7 @@ func (cs *coreServer) GetReconciledObjects(ctx context.Context, msg *pb.GetRecon
 							cs.logger.V(logger.LogLevelDebug).Info(
 								"forbidden list request",
 								"cluster", msg.ClusterName,
-								"automation", msg.AutomationName,
+								"automation", msg.Name,
 								"namespace", msg.Namespace,
 								"gvk", gvk.String(),
 							)
