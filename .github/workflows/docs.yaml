@@ -45,9 +45,9 @@ jobs:
           npm i
           fi
           sed -i 's#url:.*$#url: "https://staging.docs.gitops.weave.works",#' docusaurus.config.js
-          sed -i 's#baseUrl:.*$#baseUrl: "/$GITHUB_HEAD_REF/",#' docusaurus.config.js
+          sed -i "s#baseUrl:.*\$#baseUrl: \"/$GITHUB_HEAD_REF/\",#" docusaurus.config.js
           yarn clear
-          npm run build
+          DISABLE_VERSIONING=true npm run build
       - id: auth
         uses: google-github-actions/auth@35b0e87d162680511bf346c299f71c9c5c379033 # v1.1.1
         with:
@@ -64,15 +64,21 @@ jobs:
         env:
           GITHUB_HEAD_REF: ${{ github.head_ref }}
         run: |
+          # Pull this out to a heredoc so we can easily interpolate variables
+          PAYLOAD=$(cat <<EOF
+          {
+            "state": "success",
+            "context": "Doc site preview",
+            "target_url": "https://staging.docs.gitops.weave.works/$GITHUB_HEAD_REF"
+          }
+          EOF
+          )
+
           curl --request POST \
             --url https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }} \
             --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' \
             --header 'content-type: application/json' \
-            --data '{
-              "state": "success",
-              "context": "Doc site preview",
-              "target_url": "https://staging.docs.gitops.weave.works/$GITHUB_HEAD_REF"
-              }' \
+            --data "$PAYLOAD" \
             --fail
 
   prod-release:
