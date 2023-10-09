@@ -103,9 +103,8 @@ service Core {
      * List events for an object
      */
     rpc ListEvents(ListEventsRequest) returns (ListEventsResponse) {
-        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["objects"]; };
         option (google.api.http) = {
-            post: "/v1/namespaces/{namespace}/objects/{kind}/{name}/events"
+            post: "/v1/events"
         };
     }
 
@@ -394,10 +393,7 @@ message ListNamespacesResponse {
 }
 
 message ListEventsRequest {
-    string         kind      = 1;
-    string         name      = 2;
-    string         namespace = 3;
-    string         cluster_name = 4;
+    ObjectRef involved_object = 1;
 }
 
 message ListEventsResponse {

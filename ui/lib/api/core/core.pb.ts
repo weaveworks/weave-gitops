@@ -179,10 +179,7 @@ export type ListNamespacesResponse = {
 }
 
 export type ListEventsRequest = {
-  kind?: string
-  name?: string
-  namespace?: string
-  clusterName?: string
+  involvedObject?: Gitops_coreV1Types.ObjectRef
 }
 
 export type ListEventsResponse = {
@@ -337,7 +334,7 @@ export class Core {
     return fm.fetchReq<GetChildObjectsRequest, GetChildObjectsResponse>(`/v1/child-objects`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static ListEvents(req: ListEventsRequest, initReq?: fm.InitReq): Promise<ListEventsResponse> {
-    return fm.fetchReq<ListEventsRequest, ListEventsResponse>(`/v1/namespaces/${req["namespace"]}/objects/${req["kind"]}/${req["name"]}/events`, {...initReq, method: "POST"})
+    return fm.fetchReq<ListEventsRequest, ListEventsResponse>(`/v1/events`, {...initReq, method: "POST"})
   }
   static SyncFluxObject(req: SyncFluxObjectRequest, initReq?: fm.InitReq): Promise<SyncFluxObjectResponse> {
     return fm.fetchReq<SyncFluxObjectRequest, SyncFluxObjectResponse>(`/v1/sync`, {...initReq, method: "POST", body: JSON.stringify(req)})
