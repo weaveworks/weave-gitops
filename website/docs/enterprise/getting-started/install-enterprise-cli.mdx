@@ -1,0 +1,138 @@
+---
+title: Install Weave GitOps Enterprise via CLI
+hide_title: true
+toc_max_heading_level: 4
+---
+
+import TierLabel from "../../_components/TierLabel";
+
+# Install Weave GitOps Enterprise via CLI
+
+## Prerequisites
+
+#### Git Repository
+
+To be used as the repository of the WeaveGitOps Enterprise repo.
+
+#### Flux Installed Locally (binary)
+
+To be used in reconciling sources, Kustomizations, HelmReleases
+
+#### Kubectl binary
+
+To be used in port-forwarding
+
+#### A Kubernetes Cluster
+
+To install weave gitops enterprise. We also require a kubeconfig with admin permissions to create resources.
+
+#### Entitlments File
+
+To get the entitlement secret please contact *sales@weave.works*, then apply it on your management cluster with the name `weave-gitops-enterprise-credentials` under `flux-system` namespace. 
+
+#### Flux bootstrapped via SSH
+
+To boostrap Weave Gitops we require flux to be bootstrapped using the configuration repo specified earlier via SSH [here](https://fluxcd.io/flux/cmd/flux_bootstrap_git/)
+
+#### SSH private key for Git Repo 
+
+Bootstrap command writes manifests to the git repo via ssh.
+
+#### [Phase 1] Flux on Management Cluster 
+
+On the management cluster, Flux (>v1.x.x) needs to be installed on the management cluster. There are different ways to bootstrap flux on your Kubernetes clusters, please follow the instructions found on flux bootstrap documentation [here](https://fluxcd.io/flux/installation/bootstrap/)
+
+#### [Phase 2] Flux on Management Cluster (Optional)
+
+If your cluster doesn’t have flux installed on the management cluster, `gitops-ee bootstrap` offer a way to bootstrap flux using the git generic approach. If you need more tailored or advanced configurations for the installed flux binary installed on your cluster, please follow the instructions found on flux bootstrap documentation [here](https://fluxcd.io/flux/installation/bootstrap/).  
+
+#### `gitops-ee` CLI v.?.?
+
+Weave GitOps Enterprise Bootstrap functionality is available on Weave GitOps Enterprise CLI starting from version x.x.x. Use the following command to install the latest `gitops-ee` CLI.
+`brew install weaveworks/tap/gitops-ee`
+
+## Installing Weave GitOps Enterprise via CLI
+
+Please use the following command to start the installation wizard of Weave GitOps Enterprise.
+
+```bash
+gitops-ee bootstrap
+```
+
+The bootstrap wizard will take you step-by-step into configuring Weave GitOps Enterprise. To understand more about the CLI configurations experience, check the below sections [here](#cli-configurations). 
+
+## Understanding `gitops-ee bootstrap`
+
+### Overview
+
+`gitops-ee bootstrap` command is a wizard-like command line that helps you to install Weave GitOps Enterprise on their management cluster by guiding them step by step to configure it. 
+
+The following are the steps the wizard will take you through it.
+
+1. [Verifying Entitlement](#verifying-entitlement): Verify entitlement secret content (username, password, entitlement)
+2. [Verifying flux](#verifying-flux): Verify flux installation on management cluster
+3. [Adding private key path and private key password](#adding-private-key-path-and-private-key-password): to push WGE resources to the cluster's repository
+4. [Selecting WGE version](#selecting-wge-version): from the latest 3 available releases
+5. [Create admin credentials](#create-admin-credentials): create admin secret with username and password to be able to access the dashboard
+6. [Select the domain](#select-the-domain): choose between 2 methods to access the dashboard either locally or via external domain
+7. [Configure OIDC](#configure-oidc): to enable login to dashboard via OIDC providers.
+8. [Access the dashboard](#access-the-dashboard): via the link from the installation success message
+
+### Verifying Entitlement
+
+Weave GitOps Enterprise Entitlement is your obtained license to use our product. The entitlement file is a kubernetes secret that contains your licence. The bootstrap CLI will check if the entitlement manifest exists on the management cluster, and it will check if it has valid content and the entitlement is not expired. 
+To get the entitlement secret please contact *sales@weave.works*, then apply it on your management cluster with the name `weave-gitops-enterprise-credentials` under `flux-system` namespace. 
+
+### Verifying flux
+
+Weave GitOps Enterprise runs on top of flux, the bootstrap CLI will check if flux is installed on the management cluster, and it will verify that it has the right version with valid git repository setup, and it is able to reconcile flux components properly. 
+If flux is installed, but doesn't have a valid installation, the bootstrap CLI will terminate pending the fix or uninstall of current flux installation.
+If flux is not installed at all, the bootstrap CLI offers the option to bootstrap flux. 
+
+### Adding private key path and private key password
+
+Private key will be used to push WGE resources to the cluster's git repository.
+Priave key password is not optional if the private key is encrypted with it
+
+### Selecting WGE version
+
+The bootstrap CLI will prompt you to choose from the latest 3 versions of Weave GitOps Enterprise.
+
+### Create admin credentials
+
+Creates admin secret with username and password to be able to access the dashboard. If you already have previous admin credentials on your cluster, the installation will prompt you if you want to continue with the old credentials or exit and revoke them and re-run the installation.
+
+### Select the domain
+
+choose between 2 methods to access the dashboard either locally or via external domain
+Localhost can be useful in air-gapped environments or testing on local-host
+External Domain will provide you with a domain to access your dashboard UI.
+It will need to be configured by your service provider for example in AWS you need to configure your route 53: https://aws.amazon.com/route53/
+
+{/* TODO: @waleedhammam to add more information about external dns */}
+
+### Configure OIDC
+
+OIDC configuration will enable you to login with OIDC provider beside admin credentials.
+Add your OIDC `DiscoveryUrl` this will verify that OIDC is accessible and get the issuerUrl from the OIDC settings.
+Then add the `clientID` & `clientSecret` that you have configured on your OIDC static-clients.
+Note: don't forget to add a new static-client on your OIDC provider settings with the redirectURI `your-domain/oauth2/callback` for example `http://localhost:3000/oauth2/callback`
+Also you can configure the OIDC later by running the following command `bootstrap auth --type=oidc`
+
+### Access the dashboard
+
+Via the link from the installation success message
+
+## Appendix
+
+### CLI configurations
+
+- `--kube-config`:                  allows to choose the kubeconfig for your cluster, default would be ~/.kube/config
+- `-d`, `--domain externaldns`:     indicate the domain to use in case of using externaldns
+- `-t`, `--domain-type`:            dashboard domain type: could be 'localhost' or 'externaldns'
+- `-h`, `--help`:                   help for bootstrap
+- `-p`, `--password`:               Dashboard admin password
+- `-k`, `--private-key`:            Private key path. This key will be used to push the Weave GitOps Enterprise's resources to the default cluster repository
+- `-c`, `--private-key-password`:   Private key password. If the private key is encrypted using password
+- `-u`, `--username`:               Dashboard admin username
+- `-v`, `--version`:                Weave GitOps Enterprise version to install
