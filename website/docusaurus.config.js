@@ -3,8 +3,8 @@ const versions = require("./versions.json");
 module.exports = {
   title: "Weave GitOps",
   tagline: "The Flux expansion pack from the founders of Flux",
-  url: process.env.DOC_URL || "https://docs.gitops.weave.works",
-  baseUrl: process.env.DOC_BASE_URL || "/",
+  url: 'https://docusaurus-2.netlify.app', // Url to your site with no trailing slash
+  baseUrl: '/', // Base directory of your site relative to your repo
   onBrokenLinks: "throw",
   onBrokenMarkdownLinks: "warn",
   favicon: "img/favicon_150px.png",
