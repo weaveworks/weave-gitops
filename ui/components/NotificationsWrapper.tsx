@@ -1,11 +1,8 @@
 import { Alert } from "@material-ui/lab";
-import React, { FC, useContext, useEffect } from "react";
+import React, { FC, useEffect } from "react";
 import styled from "styled-components";
 
-import {
-  NotificationData,
-  Notification,
-} from "../contexts/NotificationsContext";
+import { NotificationData } from "../contexts/NotificationsContext";
 import { ListError } from "../lib/api/core/core.pb";
 import { AlertListErrors } from "./AlertListErrors";
 import Flex from "./Flex";
@@ -23,6 +20,8 @@ interface Props {
   errors?: ListError[];
   warningMsg?: string;
   versionEntitlement?: string;
+  notifications: NotificationData[];
+  setNotifications: any;
 }
 
 export const NotificationsWrapperOSS: FC<Props> = ({
@@ -30,9 +29,9 @@ export const NotificationsWrapperOSS: FC<Props> = ({
   errors,
   warningMsg,
   versionEntitlement,
+  notifications,
+  setNotifications,
 }) => {
-  const { notifications, setNotifications } = useContext(Notification);
-
   const WarningWrapper = styled(Alert)`
     background: ${(props) => props.theme.colors.feedbackLight} !important;
     margin-bottom: ${(props) => props.theme.spacing.small};
@@ -68,7 +67,6 @@ export const NotificationsWrapperOSS: FC<Props> = ({
   );
   return (
     <div style={{ width: "100%" }}>
-      ERoRRRRRRRRRRRRRRRRRRRRRRRR
       {errors && (
         <AlertListErrors
           errors={errors.filter((error) => error.message !== ENTITLEMENT_ERROR)}
@@ -84,11 +82,11 @@ export const NotificationsWrapperOSS: FC<Props> = ({
           <span>{warningMsg}</span>
         </WarningWrapper>
       )}
-      <Notifications notifications={topNotifications || []} />
+      <Notifications notifications={topNotifications || []} setNotifications={setNotifications} />
       {children}
       {bottomNotifications && !!bottomNotifications.length && (
         <Flex wide style={{ paddingTop: "16px" }}>
-          <Notifications notifications={bottomNotifications} />
+          <Notifications notifications={bottomNotifications} setNotifications={setNotifications} />
         </Flex>
       )}
     </div>

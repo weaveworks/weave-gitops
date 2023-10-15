@@ -1,8 +1,8 @@
 import { Box, Collapse } from "@material-ui/core";
 import Alert from "@material-ui/lab/Alert";
-import React, { FC, useContext } from "react";
+import React, { FC } from "react";
 import styled from "styled-components";
-import { NotificationData, Notification } from "../contexts/NotificationsContext";
+import { NotificationData } from "../contexts/NotificationsContext";
 import Icon, { IconType } from "./Icon";
 import Text from "./Text";
 
@@ -57,10 +57,10 @@ const BoxWrapper = styled(Box)<{ severity: string }>`
   }
 `;
 
-const Notifications: FC<{ notifications: NotificationData[] }> = ({
+const Notifications: FC<{ notifications: NotificationData[] , setNotifications: any}> = ({
   notifications,
+  setNotifications
 }) => {
-  const { setNotifications } = useContext(Notification);
 
   const handleDelete = (n: NotificationData) =>
     setNotifications(
