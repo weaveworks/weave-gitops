@@ -187,7 +187,7 @@ ui-test: ## Run UI tests
 ui-audit: ## Run audit against the UI
 	yarn audit --production
 
-ui-audit-fix: ## Run audit against the UI
+ui-audit-fix: ## Fix UI audit errors
 	yarn yarn-audit-fix
 
 # Build the UI as an NPM package (hosted on github)
