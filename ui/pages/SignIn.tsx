@@ -15,7 +15,7 @@ import images from "../lib/images";
 import { withBasePath } from "../lib/utils";
 
 export const FormWrapper = styled(Flex)`
-  background-color: ${(props) => props.theme.colors.white};
+  background-color: ${(props) => props.theme.colors.neutral00};
   border-radius: ${(props) => props.theme.borderRadius.soft};
   width: 500px;
   align-content: space-between;

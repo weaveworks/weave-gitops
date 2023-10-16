@@ -1,4 +1,4 @@
-import { Alert as MaterialAlert, AlertTitle } from "@material-ui/lab";
+import { AlertTitle, Alert as MaterialAlert } from "@material-ui/lab";
 import * as React from "react";
 import styled from "styled-components";
 import { ThemeTypes } from "../contexts/AppContext";
@@ -28,7 +28,7 @@ function UnstyledAlert({ center, title, message, severity, className }: Props) {
         severity={severity}
       >
         <AlertTitle>{title}</AlertTitle>
-        <Text color="black">{message}</Text>
+        <Text color="neutral40">{message}</Text>
       </MaterialAlert>
     </Flex>
   );
@@ -46,7 +46,7 @@ const Alert = styled(UnstyledAlert)`
     background-color: ${(props) => props.theme.colors.alertLight};
   }
   .MuiAlertTitle-root {
-    color: ${(props) => props.theme.colors.black};
+    color: ${(props) => props.theme.colors.neutral40};
   }
   .MuiAlert-standardInfo {
     svg {
