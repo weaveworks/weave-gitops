@@ -17,7 +17,7 @@
     "application/json"
   ],
   "paths": {
-    "/v1/crd/is-available": {
+    "/v1/crds/{name}/is-available": {
       "get": {
         "summary": "Check which clusters have a given CRD installed",
         "description": "Returns a hashmap where the keys are the names of\nthe clusters, and the value is a boolean indicating whether given CRD is\ninstalled or not on that cluster.",
@@ -39,8 +39,8 @@
         "parameters": [
           {
             "name": "name",
-            "in": "query",
-            "required": false,
+            "in": "path",
+            "required": true,
             "type": "string"
           }
         ],
@@ -72,9 +72,9 @@
         ]
       }
     },
-    "/v1/flux-crds": {
+    "/v1/flux/crds": {
       "get": {
-        "summary": "Lists the Flux CRDs on a cluster",
+        "summary": "Lists the Flux CRDs across all clusters",
         "operationId": "Core_ListFluxCrds",
         "responses": {
           "200": {
@@ -103,9 +103,9 @@
         ]
       }
     },
-    "/v1/flux-runtime-objects": {
+    "/v1/flux/deployments": {
       "get": {
-        "summary": "Lists the Flux runtime deployments on a cluster",
+        "summary": "Lists the Flux runtime deployments across all clusters",
         "operationId": "Core_ListFluxRuntimeObjects",
         "responses": {
           "200": {
@@ -142,7 +142,7 @@
     },
     "/v1/namespaces/{namespace}/objects/{kind}/{name}": {
       "get": {
-        "summary": "Get data about a single primary object from a cluster",
+        "summary": "Get details of an object",
         "operationId": "Core_GetObject",
         "responses": {
           "200": {
@@ -167,6 +167,7 @@
           },
           {
             "name": "kind",
+            "description": "A flux object (e.g. `Kustomization`) or Kubernates resource (e.g. `Deployment`) kind",
             "in": "path",
             "required": true,
             "type": "string"
@@ -293,9 +294,9 @@
         ]
       }
     },
-    "/v1/objects": {
+    "/v1/objects/{kind}": {
       "get": {
-        "summary": "List primary objects",
+        "summary": "List objects of kind across all clusters",
         "operationId": "Core_ListObjects",
         "responses": {
           "200": {
@@ -313,13 +314,13 @@
         },
         "parameters": [
           {
-            "name": "namespace",
-            "in": "query",
-            "required": false,
+            "name": "kind",
+            "in": "path",
+            "required": true,
             "type": "string"
           },
           {
-            "name": "kind",
+            "name": "namespace",
             "in": "query",
             "required": false,
             "type": "string"
@@ -386,7 +387,7 @@
         ]
       }
     },
-    "/v1/policies/{policyName}": {
+    "/v1/policies/{name}": {
       "get": {
         "summary": "Gets a policy",
         "operationId": "Core_GetPolicy",
@@ -406,7 +407,7 @@
         },
         "parameters": [
           {
-            "name": "policyName",
+            "name": "name",
             "in": "path",
             "required": true,
             "type": "string"

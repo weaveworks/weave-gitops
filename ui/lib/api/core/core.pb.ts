@@ -267,7 +267,7 @@ export type ListPoliciesResponse = {
 }
 
 export type GetPolicyRequest = {
-  policyName?: string
+  name?: string
   clusterName?: string
 }
 
@@ -322,13 +322,13 @@ export class Core {
     return fm.fetchReq<GetObjectRequest, GetObjectResponse>(`/v1/namespaces/${req["namespace"]}/objects/${req["kind"]}/${req["name"]}?${fm.renderURLSearchParams(req, ["namespace", "kind", "name"])}`, {...initReq, method: "GET"})
   }
   static ListObjects(req: ListObjectsRequest, initReq?: fm.InitReq): Promise<ListObjectsResponse> {
-    return fm.fetchReq<ListObjectsRequest, ListObjectsResponse>(`/v1/objects?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<ListObjectsRequest, ListObjectsResponse>(`/v1/objects/${req["kind"]}?${fm.renderURLSearchParams(req, ["kind"])}`, {...initReq, method: "GET"})
   }
   static ListFluxRuntimeObjects(req: ListFluxRuntimeObjectsRequest, initReq?: fm.InitReq): Promise<ListFluxRuntimeObjectsResponse> {
-    return fm.fetchReq<ListFluxRuntimeObjectsRequest, ListFluxRuntimeObjectsResponse>(`/v1/flux-runtime-objects?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<ListFluxRuntimeObjectsRequest, ListFluxRuntimeObjectsResponse>(`/v1/flux/deployments?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static ListFluxCrds(req: ListFluxCrdsRequest, initReq?: fm.InitReq): Promise<ListFluxCrdsResponse> {
-    return fm.fetchReq<ListFluxCrdsRequest, ListFluxCrdsResponse>(`/v1/flux-crds?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<ListFluxCrdsRequest, ListFluxCrdsResponse>(`/v1/flux/crds?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static ListEvents(req: ListEventsRequest, initReq?: fm.InitReq): Promise<ListEventsResponse> {
     return fm.fetchReq<ListEventsRequest, ListEventsResponse>(`/v1/namespaces/${req["namespace"]}/objects/${req["kind"]}/${req["name"]}/events?${fm.renderURLSearchParams(req, ["namespace", "kind", "name"])}`, {...initReq, method: "GET"})
@@ -349,7 +349,7 @@ export class Core {
     return fm.fetchReq<GetSessionLogsRequest, GetSessionLogsResponse>(`/v1/session-logs?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static IsCRDAvailable(req: IsCRDAvailableRequest, initReq?: fm.InitReq): Promise<IsCRDAvailableResponse> {
-    return fm.fetchReq<IsCRDAvailableRequest, IsCRDAvailableResponse>(`/v1/crd/is-available?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<IsCRDAvailableRequest, IsCRDAvailableResponse>(`/v1/crds/${req["name"]}/is-available?${fm.renderURLSearchParams(req, ["name"])}`, {...initReq, method: "GET"})
   }
   static GetInventory(req: GetInventoryRequest, initReq?: fm.InitReq): Promise<GetInventoryResponse> {
     return fm.fetchReq<GetInventoryRequest, GetInventoryResponse>(`/v1/namespaces/${req["namespace"]}/objects/${req["kind"]}/${req["name"]}/inventory?${fm.renderURLSearchParams(req, ["namespace", "kind", "name"])}`, {...initReq, method: "GET"})
@@ -358,7 +358,7 @@ export class Core {
     return fm.fetchReq<ListPoliciesRequest, ListPoliciesResponse>(`/v1/policies?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static GetPolicy(req: GetPolicyRequest, initReq?: fm.InitReq): Promise<GetPolicyResponse> {
-    return fm.fetchReq<GetPolicyRequest, GetPolicyResponse>(`/v1/policies/${req["policyName"]}?${fm.renderURLSearchParams(req, ["policyName"])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<GetPolicyRequest, GetPolicyResponse>(`/v1/policies/${req["name"]}?${fm.renderURLSearchParams(req, ["name"])}`, {...initReq, method: "GET"})
   }
   static ListPolicyValidations(req: ListPolicyValidationsRequest, initReq?: fm.InitReq): Promise<ListPolicyValidationsResponse> {
     return fm.fetchReq<ListPolicyValidationsRequest, ListPolicyValidationsResponse>(`/v1/policy-validations?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})

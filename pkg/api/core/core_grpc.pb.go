@@ -18,13 +18,13 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type CoreClient interface {
-	// Get data about a single primary object from a cluster
+	// Get details of an object
 	GetObject(ctx context.Context, in *GetObjectRequest, opts ...grpc.CallOption) (*GetObjectResponse, error)
-	// List primary objects
+	// List objects of kind across all clusters
 	ListObjects(ctx context.Context, in *ListObjectsRequest, opts ...grpc.CallOption) (*ListObjectsResponse, error)
-	// Lists the Flux runtime deployments on a cluster
+	// Lists the Flux runtime deployments across all clusters
 	ListFluxRuntimeObjects(ctx context.Context, in *ListFluxRuntimeObjectsRequest, opts ...grpc.CallOption) (*ListFluxRuntimeObjectsResponse, error)
-	// Lists the Flux CRDs on a cluster
+	// Lists the Flux CRDs across all clusters
 	ListFluxCrds(ctx context.Context, in *ListFluxCrdsRequest, opts ...grpc.CallOption) (*ListFluxCrdsResponse, error)
 	// List events for an object
 	ListEvents(ctx context.Context, in *ListEventsRequest, opts ...grpc.CallOption) (*ListEventsResponse, error)
@@ -212,13 +212,13 @@ func (c *coreClient) GetPolicyValidation(ctx context.Context, in *GetPolicyValid
 // All implementations must embed UnimplementedCoreServer
 // for forward compatibility
 type CoreServer interface {
-	// Get data about a single primary object from a cluster
+	// Get details of an object
 	GetObject(context.Context, *GetObjectRequest) (*GetObjectResponse, error)
-	// List primary objects
+	// List objects of kind across all clusters
 	ListObjects(context.Context, *ListObjectsRequest) (*ListObjectsResponse, error)
-	// Lists the Flux runtime deployments on a cluster
+	// Lists the Flux runtime deployments across all clusters
 	ListFluxRuntimeObjects(context.Context, *ListFluxRuntimeObjectsRequest) (*ListFluxRuntimeObjectsResponse, error)
-	// Lists the Flux CRDs on a cluster
+	// Lists the Flux CRDs across all clusters
 	ListFluxCrds(context.Context, *ListFluxCrdsRequest) (*ListFluxCrdsResponse, error)
 	// List events for an object
 	ListEvents(context.Context, *ListEventsRequest) (*ListEventsResponse, error)

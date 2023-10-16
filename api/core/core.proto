@@ -10,6 +10,7 @@ import "google/api/annotations.proto";
 import "google/protobuf/any.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
 
+
 import "api/core/types.proto";
 
 option go_package = "github.com/weaveworks/weave-gitops/core/api";
@@ -29,7 +30,7 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
  */
 service Core {
     /*
-     * Get data about a single primary object from a cluster
+     * Get details of an object
      */
     rpc GetObject(GetObjectRequest) returns (GetObjectResponse) {
         option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["objects"]; };
@@ -39,31 +40,31 @@ service Core {
     }
 
     /*
-     * List primary objects
+     * List objects of kind across all clusters
      */
     rpc ListObjects(ListObjectsRequest) returns (ListObjectsResponse) {
         option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["objects"]; };
         option (google.api.http) = {
-            get: "/v1/objects"
+            get: "/v1/objects/{kind}"
         };
     }
 
     /*
-     * Lists the Flux runtime deployments on a cluster
+     * Lists the Flux runtime deployments across all clusters
      */
     rpc ListFluxRuntimeObjects(ListFluxRuntimeObjectsRequest)
         returns (ListFluxRuntimeObjectsResponse) {
         option (google.api.http) = {
-            get: "/v1/flux-runtime-objects"
+            get: "/v1/flux/deployments"
         };
     }
 
     /*
-     * Lists the Flux CRDs on a cluster
+     * Lists the Flux CRDs across all clusters
      */
     rpc ListFluxCrds(ListFluxCrdsRequest) returns (ListFluxCrdsResponse) {
         option (google.api.http) = {
-            get: "/v1/flux-crds"
+            get: "/v1/flux/crds"
         };
     }
 
@@ -137,7 +138,7 @@ service Core {
      */
     rpc IsCRDAvailable(IsCRDAvailableRequest) returns (IsCRDAvailableResponse) {
         option (google.api.http) = {
-            get : "/v1/crd/is-available",
+            get : "/v1/crds/{name}/is-available",
         };
     }
 
@@ -165,7 +166,7 @@ service Core {
      */
     rpc GetPolicy(GetPolicyRequest) returns (GetPolicyResponse) {
         option (google.api.http) = {
-        get : "/v1/policies/{policy_name}"
+        get : "/v1/policies/{name}"
         };
     }
 
@@ -298,6 +299,9 @@ message ListFluxCrdsResponse {
 message GetObjectRequest {
     string name              = 1;
     string namespace         = 2;
+    /*
+     * A flux object (e.g. `Kustomization`) or Kubernates resource (e.g. `Deployment`) kind
+     */
     string kind              = 3;
     string cluster_name      = 4;
 }
@@ -446,7 +450,7 @@ message ListPoliciesResponse {
 }
 
 message GetPolicyRequest {
-    string policy_name = 1;
+    string name = 1;
     string cluster_name = 2;
 }
 

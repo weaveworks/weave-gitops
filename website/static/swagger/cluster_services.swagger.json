@@ -284,30 +284,6 @@
         ]
       }
     },
-    "/v1/credentials": {
-      "get": {
-        "summary": "List available credentials",
-        "description": "These templates can be used when renderer certain templates",
-        "operationId": "ClustersService_ListCredentials",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1ListCredentialsResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "tags": [
-          "templates"
-        ]
-      }
-    },
     "/v1/encrypt-sops-secret": {
       "post": {
         "summary": "Encrypts a sops secret",
@@ -500,7 +476,7 @@
         ]
       }
     },
-    "/v1/namespaces/{clusterNamespace}/clusters/{clusterName}/kubeconfig": {
+    "/v1/namespaces/{namespace}/clusters/{name}/kubeconfig": {
       "get": {
         "summary": "Get the kubeconfig for a GitOpsCluster",
         "operationId": "ClustersService_GetKubeconfig",
@@ -520,13 +496,13 @@
         },
         "parameters": [
           {
-            "name": "clusterNamespace",
+            "name": "namespace",
             "in": "path",
             "required": true,
             "type": "string"
           },
           {
-            "name": "clusterName",
+            "name": "name",
             "description": "The name of the workload cluster.",
             "in": "path",
             "required": true,
@@ -538,7 +514,7 @@
         ]
       }
     },
-    "/v1/namespaces/{namespace}/external-secrets/{externalSecretName}": {
+    "/v1/namespaces/{namespace}/external-secrets/{name}": {
       "get": {
         "summary": "Get secret details",
         "operationId": "ClustersService_GetExternalSecret",
@@ -564,7 +540,7 @@
             "type": "string"
           },
           {
-            "name": "externalSecretName",
+            "name": "name",
             "in": "path",
             "required": true,
             "type": "string"
@@ -581,7 +557,7 @@
         ]
       }
     },
-    "/v1/namespaces/{templateNamespace}/templates/{templateName}": {
+    "/v1/namespaces/{namespace}/templates/{name}": {
       "get": {
         "summary": "Get template details",
         "operationId": "ClustersService_GetTemplate",
@@ -601,13 +577,13 @@
         },
         "parameters": [
           {
-            "name": "templateNamespace",
+            "name": "namespace",
             "in": "path",
             "required": true,
             "type": "string"
           },
           {
-            "name": "templateName",
+            "name": "name",
             "in": "path",
             "required": true,
             "type": "string"
@@ -624,7 +600,7 @@
         ]
       }
     },
-    "/v1/namespaces/{templateNamespace}/templates/{templateName}/params": {
+    "/v1/namespaces/{namespace}/templates/{name}/params": {
       "get": {
         "summary": "List the params of a template",
         "operationId": "ClustersService_ListTemplateParams",
@@ -644,13 +620,13 @@
         },
         "parameters": [
           {
-            "name": "templateNamespace",
+            "name": "namespace",
             "in": "path",
             "required": true,
             "type": "string"
           },
           {
-            "name": "templateName",
+            "name": "name",
             "in": "path",
             "required": true,
             "type": "string"
@@ -667,7 +643,7 @@
         ]
       }
     },
-    "/v1/namespaces/{templateNamespace}/templates/{templateName}/profiles": {
+    "/v1/namespaces/{namespace}/templates/{name}/profiles": {
       "get": {
         "summary": "List the profiles of a template",
         "description": "Includes default and required profiles specified by the template",
@@ -688,13 +664,13 @@
         },
         "parameters": [
           {
-            "name": "templateNamespace",
+            "name": "namespace",
             "in": "path",
             "required": true,
             "type": "string"
           },
           {
-            "name": "templateName",
+            "name": "name",
             "in": "path",
             "required": true,
             "type": "string"
@@ -711,7 +687,134 @@
         ]
       }
     },
-    "/v1/namespaces/{templateNamespace}/templates/{templateName}/render": {
+    "/v1/namespaces/{namespace}/templates/{name}/pull-request": {
+      "post": {
+        "summary": "Create a pull request from a rendered template",
+        "operationId": "ClustersService_CreatePullRequest",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1CreatePullRequestResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "namespace",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "name",
+            "description": "The name of the template to create a pull request for.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "repositoryUrl": {
+                  "type": "string",
+                  "description": "The repository to use."
+                },
+                "headBranch": {
+                  "type": "string",
+                  "description": "The new branch that will be created."
+                },
+                "baseBranch": {
+                  "type": "string",
+                  "description": "The target branch."
+                },
+                "title": {
+                  "type": "string",
+                  "description": "The title of the pull request."
+                },
+                "description": {
+                  "type": "string",
+                  "title": "The description of the pull request"
+                },
+                "parameterValues": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "description": "The values that populate the template's parameters."
+                },
+                "commitMessage": {
+                  "type": "string",
+                  "title": "The commit message"
+                },
+                "credentials": {
+                  "$ref": "#/definitions/v1Credential",
+                  "title": "Credentials"
+                },
+                "values": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/v1ProfileValues"
+                  },
+                  "description": "The values for each profile that will be installed."
+                },
+                "repositoryApiUrl": {
+                  "type": "string",
+                  "description": "The repo api url."
+                },
+                "kustomizations": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/v1Kustomization"
+                  }
+                },
+                "templateNamespace": {
+                  "type": "string"
+                },
+                "templateKind": {
+                  "type": "string"
+                },
+                "previousValues": {
+                  "$ref": "#/definitions/v1PreviousValues"
+                },
+                "externalSecrets": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/v1ExternalSecret"
+                  }
+                },
+                "policyConfigs": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/v1PolicyConfigObject"
+                  }
+                },
+                "sopsSecrets": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/v1SopsSecret"
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "templates"
+        ]
+      }
+    },
+    "/v1/namespaces/{namespace}/templates/{name}/render": {
       "post": {
         "summary": "Renders a template using given values.",
         "operationId": "ClustersService_RenderTemplate",
@@ -731,13 +834,13 @@
         },
         "parameters": [
           {
-            "name": "templateNamespace",
+            "name": "namespace",
             "in": "path",
             "required": true,
             "type": "string"
           },
           {
-            "name": "templateName",
+            "name": "name",
             "in": "path",
             "required": true,
             "type": "string"
@@ -761,9 +864,6 @@
                 "templateKind": {
                   "type": "string"
                 },
-                "clusterNamespace": {
-                  "type": "string"
-                },
                 "profiles": {
                   "type": "array",
                   "items": {
@@ -775,6 +875,9 @@
                   "items": {
                     "$ref": "#/definitions/v1Kustomization"
                   }
+                },
+                "templateNamespace": {
+                  "type": "string"
                 },
                 "externalSecrets": {
                   "type": "array",
@@ -919,6 +1022,30 @@
         ]
       }
     },
+    "/v1/templates/credentials": {
+      "get": {
+        "summary": "List available credentials",
+        "description": "These templates can be used when renderer certain templates",
+        "operationId": "ClustersService_ListCredentials",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListCredentialsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "templates"
+        ]
+      }
+    },
     "/v1/templates/deletion-pull-request": {
       "post": {
         "summary": "Create a pull request to delete templated resources",
@@ -945,39 +1072,6 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/v1CreateDeletionPullRequestRequest"
-            }
-          }
-        ],
-        "tags": [
-          "templates"
-        ]
-      }
-    },
-    "/v1/templates/pull-request": {
-      "post": {
-        "summary": "Create a pull request from a rendered template",
-        "operationId": "ClustersService_CreatePullRequest",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1CreatePullRequestResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1CreatePullRequestRequest"
             }
           }
         ],
@@ -1059,7 +1153,7 @@
         ]
       }
     },
-    "/v1/workspaces/{workspaceName}": {
+    "/v1/workspaces/{name}": {
       "get": {
         "summary": "Get workspace details",
         "operationId": "ClustersService_GetWorkspace",
@@ -1079,7 +1173,7 @@
         },
         "parameters": [
           {
-            "name": "workspaceName",
+            "name": "name",
             "in": "path",
             "required": true,
             "type": "string"
@@ -1096,7 +1190,7 @@
         ]
       }
     },
-    "/v1/workspaces/{workspaceName}/policies": {
+    "/v1/workspaces/{name}/policies": {
       "get": {
         "summary": "List workspace service accounts",
         "operationId": "ClustersService_GetWorkspacePolicies",
@@ -1116,7 +1210,7 @@
         },
         "parameters": [
           {
-            "name": "workspaceName",
+            "name": "name",
             "in": "path",
             "required": true,
             "type": "string"
@@ -1133,7 +1227,7 @@
         ]
       }
     },
-    "/v1/workspaces/{workspaceName}/rolebindings": {
+    "/v1/workspaces/{name}/rolebindings": {
       "get": {
         "summary": "List workspace role bindings",
         "operationId": "ClustersService_GetWorkspaceRoleBindings",
@@ -1153,7 +1247,7 @@
         },
         "parameters": [
           {
-            "name": "workspaceName",
+            "name": "name",
             "in": "path",
             "required": true,
             "type": "string"
@@ -1170,7 +1264,7 @@
         ]
       }
     },
-    "/v1/workspaces/{workspaceName}/roles": {
+    "/v1/workspaces/{name}/roles": {
       "get": {
         "summary": "List workspace roles",
         "operationId": "ClustersService_GetWorkspaceRoles",
@@ -1190,7 +1284,7 @@
         },
         "parameters": [
           {
-            "name": "workspaceName",
+            "name": "name",
             "in": "path",
             "required": true,
             "type": "string"
@@ -1207,7 +1301,7 @@
         ]
       }
     },
-    "/v1/workspaces/{workspaceName}/serviceaccounts": {
+    "/v1/workspaces/{name}/serviceaccounts": {
       "get": {
         "summary": "List workspace service accounts",
         "operationId": "ClustersService_GetWorkspaceServiceAccounts",
@@ -1227,7 +1321,7 @@
         },
         "parameters": [
           {
-            "name": "workspaceName",
+            "name": "name",
             "in": "path",
             "required": true,
             "type": "string"
@@ -1605,97 +1699,6 @@
         }
       }
     },
-    "v1CreatePullRequestRequest": {
-      "type": "object",
-      "properties": {
-        "repositoryUrl": {
-          "type": "string",
-          "description": "The repository to use."
-        },
-        "headBranch": {
-          "type": "string",
-          "description": "The new branch that will be created."
-        },
-        "baseBranch": {
-          "type": "string",
-          "description": "The target branch."
-        },
-        "title": {
-          "type": "string",
-          "description": "The title of the pull request."
-        },
-        "description": {
-          "type": "string",
-          "title": "The description of the pull request"
-        },
-        "templateName": {
-          "type": "string",
-          "description": "The name of the template to create a pull request for."
-        },
-        "parameterValues": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          },
-          "description": "The values that populate the template's parameters."
-        },
-        "commitMessage": {
-          "type": "string",
-          "title": "The commit message"
-        },
-        "credentials": {
-          "$ref": "#/definitions/v1Credential",
-          "title": "Credentials"
-        },
-        "values": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1ProfileValues"
-          },
-          "description": "The values for each profile that will be installed."
-        },
-        "repositoryApiUrl": {
-          "type": "string",
-          "description": "The repo api url."
-        },
-        "clusterNamespace": {
-          "type": "string"
-        },
-        "kustomizations": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1Kustomization"
-          }
-        },
-        "templateNamespace": {
-          "type": "string"
-        },
-        "templateKind": {
-          "type": "string"
-        },
-        "previousValues": {
-          "$ref": "#/definitions/v1PreviousValues"
-        },
-        "externalSecrets": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1ExternalSecret"
-          }
-        },
-        "policyConfigs": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1PolicyConfigObject"
-          }
-        },
-        "sopsSecrets": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1SopsSecret"
-          }
-        }
-      }
-    },
     "v1CreatePullRequestResponse": {
       "type": "object",
       "properties": {
@@ -1728,7 +1731,7 @@
           "type": "string",
           "title": "The description of the pull request"
         },
-        "templateName": {
+        "name": {
           "type": "string",
           "description": "The name of the template to create a pull request for."
         },
@@ -1747,7 +1750,7 @@
           "type": "string",
           "description": "The repo api url."
         },
-        "templateNamespace": {
+        "namespace": {
           "type": "string"
         }
       }
@@ -1918,7 +1921,7 @@
         "secretName": {
           "type": "string"
         },
-        "externalSecretName": {
+        "name": {
           "type": "string"
         },
         "namespace": {
@@ -2055,7 +2058,7 @@
         "secretName": {
           "type": "string"
         },
-        "externalSecretName": {
+        "name": {
           "type": "string"
         },
         "clusterName": {
@@ -3062,7 +3065,7 @@
         "namespace": {
           "type": "string"
         },
-        "externalSecretName": {
+        "name": {
           "type": "string"
         }
       }

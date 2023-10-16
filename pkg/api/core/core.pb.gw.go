@@ -142,12 +142,29 @@ func local_request_Core_GetObject_0(ctx context.Context, marshaler runtime.Marsh
 }
 
 var (
-	filter_Core_ListObjects_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+	filter_Core_ListObjects_0 = &utilities.DoubleArray{Encoding: map[string]int{"kind": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
 )
 
 func request_Core_ListObjects_0(ctx context.Context, marshaler runtime.Marshaler, client CoreClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq ListObjectsRequest
 	var metadata runtime.ServerMetadata
+
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["kind"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "kind")
+	}
+
+	protoReq.Kind, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "kind", err)
+	}
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
@@ -164,6 +181,23 @@ func request_Core_ListObjects_0(ctx context.Context, marshaler runtime.Marshaler
 func local_request_Core_ListObjects_0(ctx context.Context, marshaler runtime.Marshaler, server CoreServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq ListObjectsRequest
 	var metadata runtime.ServerMetadata
+
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["kind"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "kind")
+	}
+
+	protoReq.Kind, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "kind", err)
+	}
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
@@ -499,19 +533,25 @@ func local_request_Core_GetSessionLogs_0(ctx context.Context, marshaler runtime.
 
 }
 
-var (
-	filter_Core_IsCRDAvailable_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
-)
-
 func request_Core_IsCRDAvailable_0(ctx context.Context, marshaler runtime.Marshaler, client CoreClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq IsCRDAvailableRequest
 	var metadata runtime.ServerMetadata
 
-	if err := req.ParseForm(); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["name"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Core_IsCRDAvailable_0); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+
+	protoReq.Name, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
 	}
 
 	msg, err := client.IsCRDAvailable(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -523,11 +563,21 @@ func local_request_Core_IsCRDAvailable_0(ctx context.Context, marshaler runtime.
 	var protoReq IsCRDAvailableRequest
 	var metadata runtime.ServerMetadata
 
-	if err := req.ParseForm(); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["name"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Core_IsCRDAvailable_0); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+
+	protoReq.Name, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
 	}
 
 	msg, err := server.IsCRDAvailable(ctx, &protoReq)
@@ -682,7 +732,7 @@ func local_request_Core_ListPolicies_0(ctx context.Context, marshaler runtime.Ma
 }
 
 var (
-	filter_Core_GetPolicy_0 = &utilities.DoubleArray{Encoding: map[string]int{"policy_name": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
+	filter_Core_GetPolicy_0 = &utilities.DoubleArray{Encoding: map[string]int{"name": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
 )
 
 func request_Core_GetPolicy_0(ctx context.Context, marshaler runtime.Marshaler, client CoreClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -696,14 +746,14 @@ func request_Core_GetPolicy_0(ctx context.Context, marshaler runtime.Marshaler, 
 		_   = err
 	)
 
-	val, ok = pathParams["policy_name"]
+	val, ok = pathParams["name"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "policy_name")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
 	}
 
-	protoReq.PolicyName, err = runtime.String(val)
+	protoReq.Name, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "policy_name", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
 	}
 
 	if err := req.ParseForm(); err != nil {
@@ -729,14 +779,14 @@ func local_request_Core_GetPolicy_0(ctx context.Context, marshaler runtime.Marsh
 		_   = err
 	)
 
-	val, ok = pathParams["policy_name"]
+	val, ok = pathParams["name"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "policy_name")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
 	}
 
-	protoReq.PolicyName, err = runtime.String(val)
+	protoReq.Name, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "policy_name", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
 	}
 
 	if err := req.ParseForm(); err != nil {
@@ -892,7 +942,7 @@ func RegisterCoreHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/ListObjects", runtime.WithHTTPPathPattern("/v1/objects"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/ListObjects", runtime.WithHTTPPathPattern("/v1/objects/{kind}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -915,7 +965,7 @@ func RegisterCoreHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/ListFluxRuntimeObjects", runtime.WithHTTPPathPattern("/v1/flux-runtime-objects"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/ListFluxRuntimeObjects", runtime.WithHTTPPathPattern("/v1/flux/deployments"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -938,7 +988,7 @@ func RegisterCoreHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/ListFluxCrds", runtime.WithHTTPPathPattern("/v1/flux-crds"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/ListFluxCrds", runtime.WithHTTPPathPattern("/v1/flux/crds"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1099,7 +1149,7 @@ func RegisterCoreHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/IsCRDAvailable", runtime.WithHTTPPathPattern("/v1/crd/is-available"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/IsCRDAvailable", runtime.WithHTTPPathPattern("/v1/crds/{name}/is-available"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1168,7 +1218,7 @@ func RegisterCoreHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/GetPolicy", runtime.WithHTTPPathPattern("/v1/policies/{policy_name}"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/GetPolicy", runtime.WithHTTPPathPattern("/v1/policies/{name}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1296,7 +1346,7 @@ func RegisterCoreHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/ListObjects", runtime.WithHTTPPathPattern("/v1/objects"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/ListObjects", runtime.WithHTTPPathPattern("/v1/objects/{kind}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1316,7 +1366,7 @@ func RegisterCoreHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/ListFluxRuntimeObjects", runtime.WithHTTPPathPattern("/v1/flux-runtime-objects"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/ListFluxRuntimeObjects", runtime.WithHTTPPathPattern("/v1/flux/deployments"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1336,7 +1386,7 @@ func RegisterCoreHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/ListFluxCrds", runtime.WithHTTPPathPattern("/v1/flux-crds"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/ListFluxCrds", runtime.WithHTTPPathPattern("/v1/flux/crds"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1476,7 +1526,7 @@ func RegisterCoreHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/IsCRDAvailable", runtime.WithHTTPPathPattern("/v1/crd/is-available"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/IsCRDAvailable", runtime.WithHTTPPathPattern("/v1/crds/{name}/is-available"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1536,7 +1586,7 @@ func RegisterCoreHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/GetPolicy", runtime.WithHTTPPathPattern("/v1/policies/{policy_name}"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/GetPolicy", runtime.WithHTTPPathPattern("/v1/policies/{name}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1598,11 +1648,11 @@ func RegisterCoreHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 var (
 	pattern_Core_GetObject_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 1, 0, 4, 1, 5, 5}, []string{"v1", "namespaces", "namespace", "objects", "kind", "name"}, ""))
 
-	pattern_Core_ListObjects_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "objects"}, ""))
+	pattern_Core_ListObjects_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "objects", "kind"}, ""))
 
-	pattern_Core_ListFluxRuntimeObjects_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "flux-runtime-objects"}, ""))
+	pattern_Core_ListFluxRuntimeObjects_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "flux", "deployments"}, ""))
 
-	pattern_Core_ListFluxCrds_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "flux-crds"}, ""))
+	pattern_Core_ListFluxCrds_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "flux", "crds"}, ""))
 
 	pattern_Core_ListEvents_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 1, 0, 4, 1, 5, 5, 2, 6}, []string{"v1", "namespaces", "namespace", "objects", "kind", "name", "events"}, ""))
 
@@ -1616,13 +1666,13 @@ var (
 
 	pattern_Core_GetSessionLogs_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "session-logs"}, ""))
 
-	pattern_Core_IsCRDAvailable_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "crd", "is-available"}, ""))
+	pattern_Core_IsCRDAvailable_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"v1", "crds", "name", "is-available"}, ""))
 
 	pattern_Core_GetInventory_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 1, 0, 4, 1, 5, 5, 2, 6}, []string{"v1", "namespaces", "namespace", "objects", "kind", "name", "inventory"}, ""))
 
 	pattern_Core_ListPolicies_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "policies"}, ""))
 
-	pattern_Core_GetPolicy_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "policies", "policy_name"}, ""))
+	pattern_Core_GetPolicy_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "policies", "name"}, ""))
 
 	pattern_Core_ListPolicyValidations_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "policy-validations"}, ""))
 
