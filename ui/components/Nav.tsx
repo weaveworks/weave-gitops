@@ -49,7 +49,7 @@ const NavContent = styled.div<{ collapsed: boolean }>`
   width: 100%;
   height: 100%;
   border-top-right-radius: 10px;
-  background-color: ${(props) => props.theme.colors.neutral00};
+  background-color: ${(props) => props.theme.colors.white};
   //28px bottom padding is medium + xxs - in the theme these are strings with px at the end so you can't add them together. This lines up with the footer.
   padding: ${(props) => props.theme.spacing.medium} 0px 28px 0px;
   box-sizing: border-box;
@@ -179,7 +179,7 @@ function Nav({
               return (
                 <Text
                   uppercase
-                  color="neutral40"
+                  color="black"
                   semiBold
                   className="header"
                   key={n.label}

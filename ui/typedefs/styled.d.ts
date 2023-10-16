@@ -21,7 +21,6 @@ export namespace colors {
   const neutral20: string;
   const neutral30: string;
   const neutral40: string;
-  const blackToBlack: string;
   const whiteToPrimary: string;
   const grayToPrimary: string;
   const neutral20ToPrimary: string;

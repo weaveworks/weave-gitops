@@ -15,7 +15,7 @@ const FluxVersionText = styled(Text)`
   margin-bottom: ${(props) => props.theme.spacing.medium};
 
   span {
-    color: ${(props) => props.theme.colors.neutral40};
+    color: ${(props) => props.theme.colors.black};
     font-weight: 400;
     margin-left: ${(props) => props.theme.spacing.xs};
   }

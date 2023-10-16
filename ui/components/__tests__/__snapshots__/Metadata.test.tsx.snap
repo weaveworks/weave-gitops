@@ -207,7 +207,7 @@ exports[`Metadata snapshots renders with data 1`] = `
         </span>
         <span
           className="c7"
-          color="neutral40"
+          color="black"
           size="medium"
         >
           Value 2
@@ -227,7 +227,7 @@ exports[`Metadata snapshots renders with data 1`] = `
         </span>
         <span
           className="c7"
-          color="neutral40"
+          color="black"
           size="medium"
         >
           Value 3
@@ -247,7 +247,7 @@ exports[`Metadata snapshots renders with data 1`] = `
         </span>
         <span
           className="c7"
-          color="neutral40"
+          color="black"
           size="medium"
         >
           Value 4
@@ -267,7 +267,7 @@ exports[`Metadata snapshots renders with data 1`] = `
         </span>
         <span
           className="c7"
-          color="neutral40"
+          color="black"
           size="medium"
         >
           Value 1
@@ -287,7 +287,7 @@ exports[`Metadata snapshots renders with data 1`] = `
         </span>
         <span
           className="c7"
-          color="neutral40"
+          color="black"
           size="medium"
         >
           &lt;p&gt;&lt;b&gt;html&lt;/b&gt;&lt;/p&gt;
@@ -307,7 +307,7 @@ exports[`Metadata snapshots renders with data 1`] = `
         </span>
         <span
           className="c7"
-          color="neutral40"
+          color="black"
           size="medium"
         >
           <a
@@ -340,7 +340,7 @@ exports[`Metadata snapshots renders with data 1`] = `
         </span>
         <span
           className="c7"
-          color="neutral40"
+          color="black"
           size="medium"
         >
           This is first line
@@ -362,7 +362,7 @@ This is second line
         </span>
         <span
           className="c7"
-          color="neutral40"
+          color="black"
           size="medium"
         >
           some version
@@ -397,7 +397,7 @@ This is second line
         </span>
         <span
           className="c7"
-          color="neutral40"
+          color="black"
           size="medium"
         >
           Value 1
@@ -417,7 +417,7 @@ This is second line
         </span>
         <span
           className="c7"
-          color="neutral40"
+          color="black"
           size="medium"
         >
           &lt;p&gt;&lt;b&gt;html&lt;/b&gt;&lt;/p&gt;
@@ -437,7 +437,7 @@ This is second line
         </span>
         <span
           className="c7"
-          color="neutral40"
+          color="black"
           size="medium"
         >
           <a

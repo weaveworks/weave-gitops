@@ -13,10 +13,10 @@ import HealthCheckStatusIndicator, {
 } from "./HealthCheckStatusIndicator";
 import ImageLink from "./ImageLink";
 import KubeStatusIndicator, {
-  computeMessage,
-  createSyntheticCondition,
   ReadyStatusValue,
   SpecialObject,
+  computeMessage,
+  createSyntheticCondition,
 } from "./KubeStatusIndicator";
 import Link from "./Link";
 import Text from "./Text";
@@ -70,7 +70,7 @@ function FluxObjectsTable({
                         object: u,
                       })
                 }
-                color={secret ? "neutral40" : "primary10"}
+                color={secret ? "black" : "primary10"}
                 pointer={!secret}
               >
                 {u.name}

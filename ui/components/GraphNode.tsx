@@ -135,7 +135,7 @@ function GraphNode({ className, object }: Props) {
                         object: object,
                       })
                 }
-                color={secret ? "neutral40" : "primary10"}
+                color={secret ? "black" : "primary10"}
                 pointer={!secret}
                 semiBold={object.isCurrentNode}
               >

@@ -262,7 +262,7 @@ exports[`Page snapshots default 1`] = `
         <span
           aria-describedby={null}
           className="c5 c6 c7 ellipsis"
-          color="neutral40"
+          color="black"
           data-testid="text-test"
           onBlur={[Function]}
           onFocus={[Function]}

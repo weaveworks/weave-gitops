@@ -75,12 +75,11 @@ export const theme = (mode: ThemeTypes = ThemeTypes.Light): DefaultTheme => {
         alertDark: "#9F3119",
         neutralGray: "#32324B",
         pipelineGray: "#4b5778",
-        neutral00: "#1a1a1a",
+        neutral00: "#ffffff",
         neutral10: "#737373",
         neutral20: "#d8d8d8",
         neutral30: "#f5f5f5",
-        neutral40: "#ffffff",
-        blackToBlack: "#1a1a1a",
+        neutral40: "#1a1a1a",
         whiteToPrimary: "#32324B",
         grayToPrimary: "#009CCC",
         neutral20ToPrimary: "#32324B",
@@ -126,7 +125,6 @@ export const theme = (mode: ThemeTypes = ThemeTypes.Light): DefaultTheme => {
         neutral20: "#d8d8d8",
         neutral30: "#737373",
         neutral40: "#1a1a1a",
-        blackToBlack: "#1a1a1a",
         whiteToPrimary: "#fff",
         grayToPrimary: "#737373",
         neutral20ToPrimary: "#d8d8d8",
@@ -230,8 +228,8 @@ export const muiTheme = (colors, mode) =>
         main: colors.alertOriginal,
       },
       text: {
-        //Neutral - Neutral - 40
-        primary: colors.neutral40,
+        //Neutral - black will switch to white, neutral40 will stay
+        primary: colors.black,
         //Neutral - Neutral - 30
         secondary: colors.neutral30,
         disabled: colors.neutral30,
@@ -287,7 +285,7 @@ export const muiTheme = (colors, mode) =>
       MuiCheckbox: {
         colorSecondary: {
           "&$disabled": {
-            color: mode === ThemeTypes.Dark && colors.neutral40,
+            color: mode === ThemeTypes.Dark && colors.black,
           },
         },
       },
@@ -295,7 +293,7 @@ export const muiTheme = (colors, mode) =>
         underline: {
           "&::before": {
             borderBottom:
-              mode === ThemeTypes.Dark && `1px solid ${colors.neutral40}`,
+              mode === ThemeTypes.Dark && `1px solid ${colors.black}`,
           },
         },
       },

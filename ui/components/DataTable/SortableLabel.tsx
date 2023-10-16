@@ -24,7 +24,7 @@ const TableButton = styled(Button)`
   &.MuiButton-text {
     min-width: 0px;
     .selected {
-      color: ${(props) => props.theme.colors.neutral40};
+      color: ${(props) => props.theme.colors.black};
     }
   }
   &.arrow {
