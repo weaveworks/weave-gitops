@@ -89,7 +89,7 @@ const FilterSection = ({
                 name={`${header}${filterSeparator}${option}`}
               />
             </ListItemIcon>
-            <Text color="black" size="small">
+            <Text color="neutral40" size="small">
               {_.toString(option) || "-"}
             </Text>
           </ListItem>

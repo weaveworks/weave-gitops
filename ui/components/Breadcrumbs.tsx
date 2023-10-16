@@ -30,21 +30,21 @@ export const Breadcrumbs = ({ path = [] }: Props) => {
                 <Link
                   data-testid={`link-${label}`}
                   to={url}
-                  textProps={{ bold: true, size: "large", color: "black" }}
+                  textProps={{ bold: true, size: "large", color: "neutral40" }}
                 >
                   {label}
                 </Link>
                 <Icon
                   type={IconType.NavigateNextIcon}
                   size="large"
-                  color="black"
+                  color="neutral40"
                 />
               </>
             ) : (
               <Tooltip title={label} placement="bottom">
                 <EllipsesText
                   size="large"
-                  color="black"
+                  color="neutral40"
                   className="ellipsis"
                   data-testid={`text-${label}`}
                 >

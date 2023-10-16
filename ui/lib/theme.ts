@@ -56,8 +56,8 @@ export const theme = (mode: ThemeTypes = ThemeTypes.Light): DefaultTheme => {
     return {
       ...baseTheme,
       colors: {
-        black: "#fff",
-        white: "#1a1a1a",
+        black: "#1a1a1a",
+        white: "#ffffff",
         primary: "#009CCC",
         //only used in nav text when collapsed + selected/hover
         primaryLight05: "rgba(0,179,236,0.05)",
@@ -75,11 +75,11 @@ export const theme = (mode: ThemeTypes = ThemeTypes.Light): DefaultTheme => {
         alertDark: "#9F3119",
         neutralGray: "#32324B",
         pipelineGray: "#4b5778",
-        neutral00: "#ffffff",
+        neutral00: "#1a1a1a",
         neutral10: "#737373",
         neutral20: "#d8d8d8",
         neutral30: "#f5f5f5",
-        neutral40: "#1a1a1a",
+        neutral40: "#ffffff",
         whiteToPrimary: "#32324B",
         grayToPrimary: "#009CCC",
         neutral20ToPrimary: "#32324B",
@@ -103,7 +103,7 @@ export const theme = (mode: ThemeTypes = ThemeTypes.Light): DefaultTheme => {
       ...baseTheme,
       colors: {
         black: "#1a1a1a",
-        white: "#fff",
+        white: "#ffffff",
         primary: "#00b3ec",
         primaryLight05: "#E5F7FD",
         primaryLight10: "#98E0F7",
@@ -163,7 +163,7 @@ export const GlobalStyle = createGlobalStyle`
   body {
     font-family: ${(props) => props.theme.fontFamilies.regular};
     font-size: ${(props) => props.theme.fontSizes.medium};
-    color: ${(props) => props.theme.colors.black};
+    color: ${(props) => props.theme.colors.neutral40};
     padding: 0;
     margin: 0;
     min-width: fit-content;
@@ -228,8 +228,8 @@ export const muiTheme = (colors, mode) =>
         main: colors.alertOriginal,
       },
       text: {
-        //Neutral - black will switch to white, neutral40 will stay
-        primary: colors.black,
+        //Neutral - Neutral - 40
+        primary: colors.neutral40,
         //Neutral - Neutral - 30
         secondary: colors.neutral30,
         disabled: colors.neutral30,
@@ -285,7 +285,7 @@ export const muiTheme = (colors, mode) =>
       MuiCheckbox: {
         colorSecondary: {
           "&$disabled": {
-            color: mode === ThemeTypes.Dark && colors.black,
+            color: mode === ThemeTypes.Dark && colors.neutral40,
           },
         },
       },
@@ -293,7 +293,7 @@ export const muiTheme = (colors, mode) =>
         underline: {
           "&::before": {
             borderBottom:
-              mode === ThemeTypes.Dark && `1px solid ${colors.black}`,
+              mode === ThemeTypes.Dark && `1px solid ${colors.neutral40}`,
           },
         },
       },

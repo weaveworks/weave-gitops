@@ -70,7 +70,7 @@ function FluxObjectsTable({
                         object: u,
                       })
                 }
-                color={secret ? "black" : "primary10"}
+                color={secret ? "neutral40" : "primary10"}
                 pointer={!secret}
               >
                 {u.name}

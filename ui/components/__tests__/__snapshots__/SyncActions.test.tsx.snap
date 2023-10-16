@@ -57,7 +57,7 @@ exports[`SyncActions snapshots hideDropdown 1`] = `
 .c5 {
   position: absolute;
   overflow: hidden;
-  background: #fff;
+  background: #ffffff;
   height: 0px;
   -webkit-transition-property: height;
   transition-property: height;
@@ -330,7 +330,7 @@ exports[`SyncActions snapshots non-suspended 1`] = `
 .c9 {
   position: absolute;
   overflow: hidden;
-  background: #fff;
+  background: #ffffff;
   height: 0px;
   -webkit-transition-property: height;
   transition-property: height;
@@ -640,7 +640,7 @@ exports[`SyncActions snapshots suspended 1`] = `
 .c9 {
   position: absolute;
   overflow: hidden;
-  background: #fff;
+  background: #ffffff;
   height: 0px;
   -webkit-transition-property: height;
   transition-property: height;

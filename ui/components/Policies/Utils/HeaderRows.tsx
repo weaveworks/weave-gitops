@@ -17,7 +17,7 @@ export function RowHeader({ children, rowkey, value }: RowItem) {
       {children ? (
         children
       ) : (
-        <Text color="black" size="medium">
+        <Text color="neutral40" size="medium">
           {value || "--"}
         </Text>
       )}
@@ -47,7 +47,7 @@ const HeaderRows = ({ items }: Props) => {
               {h.children ? (
                 h.children
               ) : (
-                <Text color="black" size="medium">
+                <Text color="neutral40" size="medium">
                   {h.value || "-"}
                 </Text>
               )}

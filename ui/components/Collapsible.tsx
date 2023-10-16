@@ -29,7 +29,7 @@ const Collapsible = ({ children }) => {
                   : IconType.KeyboardArrowRightIcon
               }
               size="medium"
-              color="black"
+              color="neutral40"
             />
             <Text color="neutral30">More Information</Text>
           </Flex>
