@@ -6,8 +6,9 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
-	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"testing"
+
+	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
@@ -748,11 +749,9 @@ func TestListObjectsLabels(t *testing.T) {
 	c := makeServer(cfg, t)
 
 	res, err := c.ListObjects(ctx, &pb.ListObjectsRequest{
-		Kind:        "Deployment",
-		ClusterName: "Default",
-		Labels: map[string]string{
-			"key": "the-value",
-		},
+		Kind:          "Deployment",
+		ClusterName:   "Default",
+		LabelSelector: "key=the-value",
 	})
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(res.Objects).To(HaveLen(1))

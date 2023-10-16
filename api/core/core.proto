@@ -44,8 +44,7 @@ service Core {
     rpc ListObjects(ListObjectsRequest) returns (ListObjectsResponse) {
         option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["objects"]; };
         option (google.api.http) = {
-            post: "/v1/objects"
-            body: "*"
+            get: "/v1/objects"
         };
     }
 
@@ -69,42 +68,12 @@ service Core {
     }
 
     /*
-     * Get the objects created by a Flux automation
-     *
-     * This list is derived by looking at the Kustomization or HelmRelease
-     * specified in the request body.
-     */
-    rpc GetReconciledObjects(GetReconciledObjectsRequest)
-        returns (GetReconciledObjectsResponse) {
-        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["objects"]; };
-        option (google.api.http) = {
-            post: "/v1/namespaces/{namespace}/objects/{kind}/{name}/reconciled-objects"
-            body: "*"
-        };
-    };
-
-    /*
-     * Get the children of an object
-     *
-     * Specified by a GroupVersionKind.
-     * Not all Kubernets objects have children. For example, a Deployment
-     * has a child ReplicaSet, but a Service has no child objects.
-     */
-    rpc GetChildObjects(GetChildObjectsRequest)
-        returns (GetChildObjectsResponse) {
-        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["objects"]; };
-        option (google.api.http) = {
-            post: "/v1/child-objects"
-            body: "*"
-        };
-    };
-
-    /*
      * List events for an object
      */
     rpc ListEvents(ListEventsRequest) returns (ListEventsResponse) {
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["objects"]; };
         option (google.api.http) = {
-            post: "/v1/events"
+            get: "/v1/namespaces/{namespace}/objects/{kind}/{name}/events"
         };
     }
 
@@ -155,8 +124,7 @@ service Core {
      */
     rpc GetSessionLogs(GetSessionLogsRequest) returns (GetSessionLogsResponse) {
         option (google.api.http) = {
-            post: "/v1/session-logs"
-            body: "*"
+            get: "/v1/session-logs"
         };
     }
 
@@ -207,8 +175,7 @@ service Core {
     rpc ListPolicyValidations(ListPolicyValidationsRequest)
         returns (ListPolicyValidationsResponse) {
         option (google.api.http) = {
-        post : "/v1/policy-validations"
-        body : "*"
+        get : "/v1/policy-validations"
         };
     }
 
@@ -340,10 +307,10 @@ message GetObjectResponse {
 }
 
 message ListObjectsRequest {
-    string     namespace        = 1;
-    string     kind             = 2;
-    string     cluster_name     = 3;
-    map<string, string> labels  = 4;
+    string     namespace      = 1;
+    string     kind           = 2;
+    string     cluster_name   = 3;
+    string     label_selector = 4;
 }
 
 message ClusterNamespaceList { 
@@ -393,7 +360,10 @@ message ListNamespacesResponse {
 }
 
 message ListEventsRequest {
-    ObjectRef involved_object = 1;
+    string         kind      = 1;
+    string         name      = 2;
+    string         namespace = 3;
+    string         cluster_name = 4;
 }
 
 message ListEventsResponse {

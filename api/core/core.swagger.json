@@ -17,40 +17,6 @@
     "application/json"
   ],
   "paths": {
-    "/v1/child-objects": {
-      "post": {
-        "summary": "Get the children of an object",
-        "description": "Specified by a GroupVersionKind.\nNot all Kubernets objects have children. For example, a Deployment\nhas a child ReplicaSet, but a Service has no child objects.",
-        "operationId": "Core_GetChildObjects",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1GetChildObjectsResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1GetChildObjectsRequest"
-            }
-          }
-        ],
-        "tags": [
-          "objects"
-        ]
-      }
-    },
     "/v1/crd/is-available": {
       "get": {
         "summary": "Check which clusters have a given CRD installed",
@@ -73,55 +39,6 @@
         "parameters": [
           {
             "name": "name",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Core"
-        ]
-      }
-    },
-    "/v1/events": {
-      "post": {
-        "summary": "List events for an object",
-        "operationId": "Core_ListEvents",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1ListEventsResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "involvedObject.kind",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "involvedObject.name",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "involvedObject.namespace",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "involvedObject.clusterName",
             "in": "query",
             "required": false,
             "type": "string"
@@ -272,6 +189,55 @@
         ]
       }
     },
+    "/v1/namespaces/{namespace}/objects/{kind}/{name}/events": {
+      "get": {
+        "summary": "List events for an object",
+        "operationId": "Core_ListEvents",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListEventsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "namespace",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "kind",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "objects"
+        ]
+      }
+    },
     "/v1/namespaces/{namespace}/objects/{kind}/{name}/inventory": {
       "get": {
         "summary": "Get the inventory of an object",
@@ -327,71 +293,8 @@
         ]
       }
     },
-    "/v1/namespaces/{namespace}/objects/{kind}/{name}/reconciled-objects": {
-      "post": {
-        "summary": "Get the objects created by a Flux automation",
-        "description": "This list is derived by looking at the Kustomization or HelmRelease\nspecified in the request body.",
-        "operationId": "Core_GetReconciledObjects",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1GetReconciledObjectsResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "namespace",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "kind",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "name",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "kinds": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/definitions/v1GroupVersionKind"
-                  }
-                },
-                "clusterName": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        ],
-        "tags": [
-          "objects"
-        ]
-      }
-    },
     "/v1/objects": {
-      "post": {
+      "get": {
         "summary": "List primary objects",
         "operationId": "Core_ListObjects",
         "responses": {
@@ -410,12 +313,28 @@
         },
         "parameters": [
           {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1ListObjectsRequest"
-            }
+            "name": "namespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "labelSelector",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -505,7 +424,7 @@
       }
     },
     "/v1/policy-validations": {
-      "post": {
+      "get": {
         "summary": "Lists policy validations",
         "operationId": "Core_ListPolicyValidations",
         "responses": {
@@ -524,12 +443,53 @@
         },
         "parameters": [
           {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1ListPolicyValidationsRequest"
-            }
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "pagination.pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pagination.pageToken",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "application",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "namespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "policyId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "validationType",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -581,7 +541,7 @@
       }
     },
     "/v1/session-logs": {
-      "post": {
+      "get": {
         "summary": "Get the logs for a GitOpsRun session",
         "operationId": "Core_GetSessionLogs",
         "responses": {
@@ -600,12 +560,34 @@
         },
         "parameters": [
           {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1GetSessionLogsRequest"
-            }
+            "name": "sessionNamespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "sessionId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "token",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "logSourceFilter",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "logLevelFilter",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -724,7 +706,7 @@
         }
       },
       "additionalProperties": {},
-      "description": "`Any` contains an arbitrary serialized protocol buffer message along with a\nURL that describes the type of the serialized message.\n\nProtobuf library provides support to pack/unpack Any values in the form\nof utility functions or additional generated methods of the Any type.\n\nExample 1: Pack and unpack a message in C++.\n\n    Foo foo = ...;\n    Any any;\n    any.PackFrom(foo);\n    ...\n    if (any.UnpackTo(\u0026foo)) {\n      ...\n    }\n\nExample 2: Pack and unpack a message in Java.\n\n    Foo foo = ...;\n    Any any = Any.pack(foo);\n    ...\n    if (any.is(Foo.class)) {\n      foo = any.unpack(Foo.class);\n    }\n\n Example 3: Pack and unpack a message in Python.\n\n    foo = Foo(...)\n    any = Any()\n    any.Pack(foo)\n    ...\n    if any.Is(Foo.DESCRIPTOR):\n      any.Unpack(foo)\n      ...\n\n Example 4: Pack and unpack a message in Go\n\n     foo := \u0026pb.Foo{...}\n     any, err := anypb.New(foo)\n     if err != nil {\n       ...\n     }\n     ...\n     foo := \u0026pb.Foo{}\n     if err := any.UnmarshalTo(foo); err != nil {\n       ...\n     }\n\nThe pack methods provided by protobuf library will by default use\n'type.googleapis.com/full.type.name' as the type URL and the unpack\nmethods only use the fully qualified type name after the last '/'\nin the type URL, for example \"foo.bar.com/x/y.z\" will yield type\nname \"y.z\".\n\n\nJSON\n====\nThe JSON representation of an `Any` value uses the regular\nrepresentation of the deserialized, embedded message, with an\nadditional field `@type` which contains the type URL. Example:\n\n    package google.profile;\n    message Person {\n      string first_name = 1;\n      string last_name = 2;\n    }\n\n    {\n      \"@type\": \"type.googleapis.com/google.profile.Person\",\n      \"firstName\": \u003cstring\u003e,\n      \"lastName\": \u003cstring\u003e\n    }\n\nIf the embedded message type is well-known and has a custom JSON\nrepresentation, that representation will be embedded adding a field\n`value` which holds the custom JSON in addition to the `@type`\nfield. Example (for message [google.protobuf.Duration][]):\n\n    {\n      \"@type\": \"type.googleapis.com/google.protobuf.Duration\",\n      \"value\": \"1.212s\"\n    }"
+      "description": "`Any` contains an arbitrary serialized protocol buffer message along with a\nURL that describes the type of the serialized message.\n\nProtobuf library provides support to pack/unpack Any values in the form\nof utility functions or additional generated methods of the Any type.\n\nExample 1: Pack and unpack a message in C++.\n\n    Foo foo = ...;\n    Any any;\n    any.PackFrom(foo);\n    ...\n    if (any.UnpackTo(\u0026foo)) {\n      ...\n    }\n\nExample 2: Pack and unpack a message in Java.\n\n    Foo foo = ...;\n    Any any = Any.pack(foo);\n    ...\n    if (any.is(Foo.class)) {\n      foo = any.unpack(Foo.class);\n    }\n\nExample 3: Pack and unpack a message in Python.\n\n    foo = Foo(...)\n    any = Any()\n    any.Pack(foo)\n    ...\n    if any.Is(Foo.DESCRIPTOR):\n      any.Unpack(foo)\n      ...\n\nExample 4: Pack and unpack a message in Go\n\n     foo := \u0026pb.Foo{...}\n     any, err := anypb.New(foo)\n     if err != nil {\n       ...\n     }\n     ...\n     foo := \u0026pb.Foo{}\n     if err := any.UnmarshalTo(foo); err != nil {\n       ...\n     }\n\nThe pack methods provided by protobuf library will by default use\n'type.googleapis.com/full.type.name' as the type URL and the unpack\nmethods only use the fully qualified type name after the last '/'\nin the type URL, for example \"foo.bar.com/x/y.z\" will yield type\nname \"y.z\".\n\n\nJSON\n\nThe JSON representation of an `Any` value uses the regular\nrepresentation of the deserialized, embedded message, with an\nadditional field `@type` which contains the type URL. Example:\n\n    package google.profile;\n    message Person {\n      string first_name = 1;\n      string last_name = 2;\n    }\n\n    {\n      \"@type\": \"type.googleapis.com/google.profile.Person\",\n      \"firstName\": \u003cstring\u003e,\n      \"lastName\": \u003cstring\u003e\n    }\n\nIf the embedded message type is well-known and has a custom JSON\nrepresentation, that representation will be embedded adding a field\n`value` which holds the custom JSON in addition to the `@type`\nfield. Example (for message [google.protobuf.Duration][]):\n\n    {\n      \"@type\": \"type.googleapis.com/google.protobuf.Duration\",\n      \"value\": \"1.212s\"\n    }"
     },
     "rpcStatus": {
       "type": "object",
@@ -865,34 +847,6 @@
         }
       }
     },
-    "v1GetChildObjectsRequest": {
-      "type": "object",
-      "properties": {
-        "groupVersionKind": {
-          "$ref": "#/definitions/v1GroupVersionKind"
-        },
-        "namespace": {
-          "type": "string"
-        },
-        "parentUid": {
-          "type": "string"
-        },
-        "clusterName": {
-          "type": "string"
-        }
-      }
-    },
-    "v1GetChildObjectsResponse": {
-      "type": "object",
-      "properties": {
-        "objects": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1Object"
-          }
-        }
-      }
-    },
     "v1GetFeatureFlagsResponse": {
       "type": "object",
       "properties": {
@@ -939,37 +893,6 @@
       "properties": {
         "validation": {
           "$ref": "#/definitions/v1PolicyValidation"
-        }
-      }
-    },
-    "v1GetReconciledObjectsResponse": {
-      "type": "object",
-      "properties": {
-        "objects": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1Object"
-          }
-        }
-      }
-    },
-    "v1GetSessionLogsRequest": {
-      "type": "object",
-      "properties": {
-        "sessionNamespace": {
-          "type": "string"
-        },
-        "sessionId": {
-          "type": "string"
-        },
-        "token": {
-          "type": "string"
-        },
-        "logSourceFilter": {
-          "type": "string"
-        },
-        "logLevelFilter": {
-          "type": "string"
         }
       }
     },
@@ -1135,26 +1058,6 @@
         }
       }
     },
-    "v1ListObjectsRequest": {
-      "type": "object",
-      "properties": {
-        "namespace": {
-          "type": "string"
-        },
-        "kind": {
-          "type": "string"
-        },
-        "clusterName": {
-          "type": "string"
-        },
-        "labels": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          }
-        }
-      }
-    },
     "v1ListObjectsResponse": {
       "type": "object",
       "properties": {
@@ -1199,32 +1102,6 @@
           "items": {
             "$ref": "#/definitions/v1ListError"
           }
-        }
-      }
-    },
-    "v1ListPolicyValidationsRequest": {
-      "type": "object",
-      "properties": {
-        "clusterName": {
-          "type": "string"
-        },
-        "pagination": {
-          "$ref": "#/definitions/v1Pagination"
-        },
-        "application": {
-          "type": "string"
-        },
-        "namespace": {
-          "type": "string"
-        },
-        "kind": {
-          "type": "string"
-        },
-        "policyId": {
-          "type": "string"
-        },
-        "validationType": {
-          "type": "string"
         }
       }
     },
