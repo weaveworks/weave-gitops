@@ -212,6 +212,7 @@ jobs:
   ci-publish-js-lib:
     name: Publish js library
     runs-on: ubuntu-latest
+    if: github.repository == 'weaveworks/weave-gitops'
     needs: [ci-js]
     permissions:
       packages: write
