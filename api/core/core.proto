@@ -7,6 +7,7 @@ syntax = "proto3";
 package gitops_core.v1;
 
 import "google/api/annotations.proto";
+import "google/api/visibility.proto";
 import "google/protobuf/any.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
 
@@ -69,6 +70,36 @@ service Core {
     }
 
     /*
+     * GetReconciledObjects returns a list of objects that were created
+     * as a result of reconciling a Flux automation.
+     * This list is derived by looking at the Kustomization or HelmRelease
+     * specified in the request body.
+     */
+    rpc GetReconciledObjects(GetReconciledObjectsRequest)
+        returns (GetReconciledObjectsResponse) {
+        option (google.api.method_visibility).restriction = "INTERNAL";
+        option (google.api.http) = {
+            post: "/v1/reconciled_objects"
+            body: "*"
+        };
+    };
+
+    /*
+     * GetChildObjects returns the children of a given object,
+     * specified by a GroupVersionKind.
+     * Not all Kubernets objects have children. For example, a Deployment
+     * has a child ReplicaSet, but a Service has no child objects.
+     */
+    rpc GetChildObjects(GetChildObjectsRequest)
+        returns (GetChildObjectsResponse) {
+        option (google.api.method_visibility).restriction = "INTERNAL";
+        option (google.api.http) = {
+            post: "/v1/child_objects"
+            body: "*"
+        };
+    };
+
+    /*
      * List events for an object
      */
     rpc ListEvents(ListEventsRequest) returns (ListEventsResponse) {
@@ -84,7 +115,7 @@ service Core {
     rpc SyncFluxObject(SyncFluxObjectRequest) returns (SyncFluxObjectResponse) {
         option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["objects"]; };
         option (google.api.http) = {
-            post: "/v1/sync"
+            patch: "/v1/sync"
             body: "*"
         };
     }
@@ -115,7 +146,7 @@ service Core {
         returns (ToggleSuspendResourceResponse) {
         option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["objects"]; };
         option (google.api.http) = {
-            post: "/v1/suspend"
+            patch: "/v1/suspend"
             body: "*"
         };
     }
@@ -124,6 +155,7 @@ service Core {
      * Get the logs for a GitOpsRun session
      */
     rpc GetSessionLogs(GetSessionLogsRequest) returns (GetSessionLogsResponse) {
+        option (google.api.method_visibility).restriction = "INTERNAL";
         option (google.api.http) = {
             get: "/v1/session-logs"
         };
@@ -137,6 +169,7 @@ service Core {
      * installed or not on that cluster.
      */
     rpc IsCRDAvailable(IsCRDAvailableRequest) returns (IsCRDAvailableResponse) {
+        option (google.api.method_visibility).restriction = "INTERNAL";
         option (google.api.http) = {
             get : "/v1/crds/{name}/is-available",
         };

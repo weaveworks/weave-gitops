@@ -330,11 +330,17 @@ export class Core {
   static ListFluxCrds(req: ListFluxCrdsRequest, initReq?: fm.InitReq): Promise<ListFluxCrdsResponse> {
     return fm.fetchReq<ListFluxCrdsRequest, ListFluxCrdsResponse>(`/v1/flux/crds?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
+  static GetReconciledObjects(req: GetReconciledObjectsRequest, initReq?: fm.InitReq): Promise<GetReconciledObjectsResponse> {
+    return fm.fetchReq<GetReconciledObjectsRequest, GetReconciledObjectsResponse>(`/v1/reconciled_objects`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
+  static GetChildObjects(req: GetChildObjectsRequest, initReq?: fm.InitReq): Promise<GetChildObjectsResponse> {
+    return fm.fetchReq<GetChildObjectsRequest, GetChildObjectsResponse>(`/v1/child_objects`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
   static ListEvents(req: ListEventsRequest, initReq?: fm.InitReq): Promise<ListEventsResponse> {
     return fm.fetchReq<ListEventsRequest, ListEventsResponse>(`/v1/namespaces/${req["namespace"]}/objects/${req["kind"]}/${req["name"]}/events?${fm.renderURLSearchParams(req, ["namespace", "kind", "name"])}`, {...initReq, method: "GET"})
   }
   static SyncFluxObject(req: SyncFluxObjectRequest, initReq?: fm.InitReq): Promise<SyncFluxObjectResponse> {
-    return fm.fetchReq<SyncFluxObjectRequest, SyncFluxObjectResponse>(`/v1/sync`, {...initReq, method: "POST", body: JSON.stringify(req)})
+    return fm.fetchReq<SyncFluxObjectRequest, SyncFluxObjectResponse>(`/v1/sync`, {...initReq, method: "PATCH", body: JSON.stringify(req)})
   }
   static GetVersion(req: GetVersionRequest, initReq?: fm.InitReq): Promise<GetVersionResponse> {
     return fm.fetchReq<GetVersionRequest, GetVersionResponse>(`/v1/version?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
@@ -343,7 +349,7 @@ export class Core {
     return fm.fetchReq<GetFeatureFlagsRequest, GetFeatureFlagsResponse>(`/v1/feature-flags?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static ToggleSuspendResource(req: ToggleSuspendResourceRequest, initReq?: fm.InitReq): Promise<ToggleSuspendResourceResponse> {
-    return fm.fetchReq<ToggleSuspendResourceRequest, ToggleSuspendResourceResponse>(`/v1/suspend`, {...initReq, method: "POST", body: JSON.stringify(req)})
+    return fm.fetchReq<ToggleSuspendResourceRequest, ToggleSuspendResourceResponse>(`/v1/suspend`, {...initReq, method: "PATCH", body: JSON.stringify(req)})
   }
   static GetSessionLogs(req: GetSessionLogsRequest, initReq?: fm.InitReq): Promise<GetSessionLogsResponse> {
     return fm.fetchReq<GetSessionLogsRequest, GetSessionLogsResponse>(`/v1/session-logs?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})

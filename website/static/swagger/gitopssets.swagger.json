@@ -91,15 +91,15 @@
         ]
       }
     },
-    "/v1/namespaces/{namespace}/gitopssets/{name}/reconciled-objects": {
-      "post": {
-        "summary": "Get the reconciled objects for a GitOpsSet",
-        "operationId": "GitOpsSets_GetReconciledObjects",
+    "/v1/namespaces/{namespace}/gitopssets/{name}/inventory": {
+      "get": {
+        "summary": "Get the inventory of an object",
+        "operationId": "GitOpsSets_GetInventory",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1GetReconciledObjectsResponse"
+              "$ref": "#/definitions/v1GetInventoryResponse"
             }
           },
           "default": {
@@ -123,27 +123,22 @@
             "type": "string"
           },
           {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "automationKind": {
-                  "type": "string"
-                },
-                "kinds": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "$ref": "#/definitions/v1GroupVersionKind"
-                  }
-                },
-                "clusterName": {
-                  "type": "string"
-                }
-              }
-            }
+            "name": "kind",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "withChildren",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
           }
         ],
         "tags": [
@@ -152,7 +147,7 @@
       }
     },
     "/v1/namespaces/{namespace}/gitopssets/{name}/suspend": {
-      "post": {
+      "patch": {
         "summary": "Toggle suspend on a GitOpsSet",
         "operationId": "GitOpsSets_ToggleSuspendGitOpsSet",
         "responses": {
@@ -205,7 +200,7 @@
       }
     },
     "/v1/namespaces/{namespace}/gitopssets/{name}/sync": {
-      "post": {
+      "patch": {
         "summary": "Trigger reconciliation of a GitOpsSet",
         "operationId": "GitOpsSets_SyncGitOpsSet",
         "responses": {
@@ -312,14 +307,14 @@
         }
       }
     },
-    "v1GetReconciledObjectsResponse": {
+    "v1GetInventoryResponse": {
       "type": "object",
       "properties": {
-        "objects": {
+        "entries": {
           "type": "array",
           "items": {
             "type": "object",
-            "$ref": "#/definitions/v1Object"
+            "$ref": "#/definitions/v1InventoryEntry"
           }
         }
       }
@@ -394,20 +389,40 @@
         }
       }
     },
-    "v1GroupVersionKind": {
+    "v1HealthStatus": {
       "type": "object",
       "properties": {
-        "group": {
+        "status": {
           "type": "string"
         },
-        "kind": {
-          "type": "string"
-        },
-        "version": {
+        "message": {
           "type": "string"
         }
-      },
-      "title": "GroupVersionKind represents an objects Kubernetes API type data"
+      }
+    },
+    "v1InventoryEntry": {
+      "type": "object",
+      "properties": {
+        "payload": {
+          "type": "string"
+        },
+        "tenant": {
+          "type": "string"
+        },
+        "clusterName": {
+          "type": "string"
+        },
+        "health": {
+          "$ref": "#/definitions/v1HealthStatus"
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1InventoryEntry"
+          }
+        }
+      }
     },
     "v1ListGitOpsSetsResponse": {
       "type": "object",
@@ -424,30 +439,6 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/v1GitOpsSetListError"
-          }
-        }
-      }
-    },
-    "v1Object": {
-      "type": "object",
-      "properties": {
-        "payload": {
-          "type": "string"
-        },
-        "clusterName": {
-          "type": "string"
-        },
-        "tenant": {
-          "type": "string"
-        },
-        "uid": {
-          "type": "string"
-        },
-        "inventory": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v1GroupVersionKind"
           }
         }
       }

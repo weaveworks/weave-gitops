@@ -26,6 +26,16 @@ type CoreClient interface {
 	ListFluxRuntimeObjects(ctx context.Context, in *ListFluxRuntimeObjectsRequest, opts ...grpc.CallOption) (*ListFluxRuntimeObjectsResponse, error)
 	// Lists the Flux CRDs across all clusters
 	ListFluxCrds(ctx context.Context, in *ListFluxCrdsRequest, opts ...grpc.CallOption) (*ListFluxCrdsResponse, error)
+	// GetReconciledObjects returns a list of objects that were created
+	// as a result of reconciling a Flux automation.
+	// This list is derived by looking at the Kustomization or HelmRelease
+	// specified in the request body.
+	GetReconciledObjects(ctx context.Context, in *GetReconciledObjectsRequest, opts ...grpc.CallOption) (*GetReconciledObjectsResponse, error)
+	// GetChildObjects returns the children of a given object,
+	// specified by a GroupVersionKind.
+	// Not all Kubernets objects have children. For example, a Deployment
+	// has a child ReplicaSet, but a Service has no child objects.
+	GetChildObjects(ctx context.Context, in *GetChildObjectsRequest, opts ...grpc.CallOption) (*GetChildObjectsResponse, error)
 	// List events for an object
 	ListEvents(ctx context.Context, in *ListEventsRequest, opts ...grpc.CallOption) (*ListEventsResponse, error)
 	// Trigger reconciliation of multiple Flux objects
@@ -94,6 +104,24 @@ func (c *coreClient) ListFluxRuntimeObjects(ctx context.Context, in *ListFluxRun
 func (c *coreClient) ListFluxCrds(ctx context.Context, in *ListFluxCrdsRequest, opts ...grpc.CallOption) (*ListFluxCrdsResponse, error) {
 	out := new(ListFluxCrdsResponse)
 	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/ListFluxCrds", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *coreClient) GetReconciledObjects(ctx context.Context, in *GetReconciledObjectsRequest, opts ...grpc.CallOption) (*GetReconciledObjectsResponse, error) {
+	out := new(GetReconciledObjectsResponse)
+	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/GetReconciledObjects", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *coreClient) GetChildObjects(ctx context.Context, in *GetChildObjectsRequest, opts ...grpc.CallOption) (*GetChildObjectsResponse, error) {
+	out := new(GetChildObjectsResponse)
+	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/GetChildObjects", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -220,6 +248,16 @@ type CoreServer interface {
 	ListFluxRuntimeObjects(context.Context, *ListFluxRuntimeObjectsRequest) (*ListFluxRuntimeObjectsResponse, error)
 	// Lists the Flux CRDs across all clusters
 	ListFluxCrds(context.Context, *ListFluxCrdsRequest) (*ListFluxCrdsResponse, error)
+	// GetReconciledObjects returns a list of objects that were created
+	// as a result of reconciling a Flux automation.
+	// This list is derived by looking at the Kustomization or HelmRelease
+	// specified in the request body.
+	GetReconciledObjects(context.Context, *GetReconciledObjectsRequest) (*GetReconciledObjectsResponse, error)
+	// GetChildObjects returns the children of a given object,
+	// specified by a GroupVersionKind.
+	// Not all Kubernets objects have children. For example, a Deployment
+	// has a child ReplicaSet, but a Service has no child objects.
+	GetChildObjects(context.Context, *GetChildObjectsRequest) (*GetChildObjectsResponse, error)
 	// List events for an object
 	ListEvents(context.Context, *ListEventsRequest) (*ListEventsResponse, error)
 	// Trigger reconciliation of multiple Flux objects
@@ -266,6 +304,12 @@ func (UnimplementedCoreServer) ListFluxRuntimeObjects(context.Context, *ListFlux
 }
 func (UnimplementedCoreServer) ListFluxCrds(context.Context, *ListFluxCrdsRequest) (*ListFluxCrdsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListFluxCrds not implemented")
+}
+func (UnimplementedCoreServer) GetReconciledObjects(context.Context, *GetReconciledObjectsRequest) (*GetReconciledObjectsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetReconciledObjects not implemented")
+}
+func (UnimplementedCoreServer) GetChildObjects(context.Context, *GetChildObjectsRequest) (*GetChildObjectsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetChildObjects not implemented")
 }
 func (UnimplementedCoreServer) ListEvents(context.Context, *ListEventsRequest) (*ListEventsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListEvents not implemented")
@@ -384,6 +428,42 @@ func _Core_ListFluxCrds_Handler(srv interface{}, ctx context.Context, dec func(i
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CoreServer).ListFluxCrds(ctx, req.(*ListFluxCrdsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Core_GetReconciledObjects_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetReconciledObjectsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CoreServer).GetReconciledObjects(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gitops_core.v1.Core/GetReconciledObjects",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CoreServer).GetReconciledObjects(ctx, req.(*GetReconciledObjectsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Core_GetChildObjects_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetChildObjectsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CoreServer).GetChildObjects(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gitops_core.v1.Core/GetChildObjects",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CoreServer).GetChildObjects(ctx, req.(*GetChildObjectsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -626,6 +706,14 @@ var Core_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListFluxCrds",
 			Handler:    _Core_ListFluxCrds_Handler,
+		},
+		{
+			MethodName: "GetReconciledObjects",
+			Handler:    _Core_GetReconciledObjects_Handler,
+		},
+		{
+			MethodName: "GetChildObjects",
+			Handler:    _Core_GetChildObjects_Handler,
 		},
 		{
 			MethodName: "ListEvents",

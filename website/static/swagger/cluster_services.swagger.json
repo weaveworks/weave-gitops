@@ -444,7 +444,7 @@
       }
     },
     "/v1/external-secrets/sync": {
-      "post": {
+      "patch": {
         "summary": "Sync externalSecret Operator secrets",
         "operationId": "ClustersService_SyncExternalSecrets",
         "responses": {
