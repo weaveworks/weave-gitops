@@ -197,7 +197,7 @@ exports[`Page snapshots default 1`] = `
 }
 
 .c10.MuiIconButton-root:hover {
-  background-color: #fff;
+  background-color: #ffffff;
   color: #009CCC;
 }
 
@@ -221,7 +221,7 @@ exports[`Page snapshots default 1`] = `
 }
 
 .c15 {
-  background-color: #fff;
+  background-color: #ffffff;
   border-radius: 10px;
   box-sizing: border-box;
   margin: 0 auto;

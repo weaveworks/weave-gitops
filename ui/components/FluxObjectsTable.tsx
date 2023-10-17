@@ -13,10 +13,10 @@ import HealthCheckStatusIndicator, {
 } from "./HealthCheckStatusIndicator";
 import ImageLink from "./ImageLink";
 import KubeStatusIndicator, {
-  computeMessage,
-  createSyntheticCondition,
   ReadyStatusValue,
   SpecialObject,
+  computeMessage,
+  createSyntheticCondition,
 } from "./KubeStatusIndicator";
 import Link from "./Link";
 import Text from "./Text";

@@ -73,7 +73,7 @@ export default styled(HealthCheckStatusIndicator).attrs({
   className: HealthCheckStatusIndicator.name,
 })`
   ${Icon} ${Text} {
-    color: ${(props) => props.theme.colors.black};
+    color: ${(props) => props.theme.colors.neutral40};
     font-weight: 400;
   }
 `;

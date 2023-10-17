@@ -42,7 +42,7 @@ const ContainerDivider = styled(Flex)`
   border-bottom: 3px solid;
   border-image-slice: 1;
   border-image-source: ${(props) =>
-    `linear-gradient(to right, ${props.theme.colors.neutral30} 0%, ${props.theme.colors.white} 100%)`};
+    `linear-gradient(to right, ${props.theme.colors.neutral30} 0%, ${props.theme.colors.neutral00} 100%)`};
 `;
 
 type ListProps = {

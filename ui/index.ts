@@ -35,7 +35,9 @@ import ImageAutomationUpdatesTable from "./components/ImageAutomation/updates/Im
 import InfoList, { InfoField } from "./components/InfoList";
 import Input, { InputProps } from "./components/Input";
 import Interval from "./components/Interval";
-import KubeStatusIndicator from "./components/KubeStatusIndicator";
+import KubeStatusIndicator, {
+  computeReady,
+} from "./components/KubeStatusIndicator";
 import KustomizationDetail from "./components/KustomizationDetail";
 import LargeInfo from "./components/LargeInfo";
 import Layout from "./components/Layout";
@@ -180,13 +182,13 @@ export {
   ImageAutomation,
   ImageAutomationDetails,
   ImageAutomationIcon,
-  ImageRepositoriesTable,
   ImageAutomationRepoDetails,
-  ImageAutomationUpdatesTable,
   ImageAutomationUpdatesDetails,
-  ImagePolicy,
+  ImageAutomationUpdatesTable,
   ImagePoliciesTable,
+  ImagePolicy,
   ImagePolicyDetails,
+  ImageRepositoriesTable,
   ImageRepository,
   ImageUpdateAutomation,
   InfoField,
@@ -245,6 +247,7 @@ export {
   ViolationDetails,
   YamlView,
   baseTheme,
+  computeReady,
   coreClient,
   createYamlCommand,
   filterByStatusCallback,
