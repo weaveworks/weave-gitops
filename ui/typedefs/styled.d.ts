@@ -15,6 +15,7 @@ export namespace colors {
   const alertMedium: string;
   const alertDark: string;
   const neutralGray: string;
+  const pipelineGray: string;
   const neutral00: string;
   const neutral10: string;
   const neutral20: string;
@@ -24,6 +25,7 @@ export namespace colors {
   const grayToPrimary: string;
   const neutral20ToPrimary: string;
   const backGray: string;
+  const pipelinesBackGray: string;
   const blueWithOpacity: string;
   const feedbackLight: string;
   const feedbackMedium: string;

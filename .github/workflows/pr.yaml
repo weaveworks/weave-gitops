@@ -212,6 +212,7 @@ jobs:
   ci-publish-js-lib:
     name: Publish js library
     runs-on: ubuntu-latest
+    if: ${{ !github.event.pull_request.head.repo.fork }}
     needs: [ci-js]
     permissions:
       packages: write
@@ -272,7 +273,7 @@ jobs:
 
   #  release step updates 'release' status check for non releases branches. See ../../doc/incidents/issues-3907 for full context.
   release:
-    if: ${{ github.event_name == 'pull_request' && !startsWith(github.event.pull_request.head.ref, 'releases/') }}
+    if: ${{ github.event_name == 'pull_request' && !startsWith(github.event.pull_request.head.ref, 'releases/') && !github.event.pull_request.head.repo.fork }}
     runs-on: ubuntu-latest
     steps:
       - name: Release
