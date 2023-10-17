@@ -362,11 +362,11 @@ message ListObjectsResponse {
 }
 
 message GetReconciledObjectsRequest {
-    string   name         = 1;
-    string   namespace               = 2;
-    string   kind         = 3;
-    repeated GroupVersionKind kinds  = 4;
-    string   cluster_name            = 5;
+    string   automationName         = 1;
+    string   namespace              = 2;
+    string   automationKind         = 3;
+    repeated GroupVersionKind kinds = 4;
+    string   clusterName            = 5;
 }
 
 message GetReconciledObjectsResponse {

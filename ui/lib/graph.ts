@@ -50,7 +50,6 @@ export const getChildrenRecursive = async (
 
   const k = lookup[object.type];
 
-  console.log({ k });
   if (k && k.children) {
     for (let i = 0; i < k.children.length; i++) {
       const child: GroupVersionKind = k.children[i];
@@ -97,7 +96,6 @@ export const getChildren = async (
   const fluxObjs = _.map(objects, (o) => convertResponse(null, o));
   fluxObjs.sort(sortFn);
 
-  console.log({ fluxObjs });
   const result: FluxObject[] = [];
   for (let o = 0; o < fluxObjs.length; o++) {
     const obj = fluxObjs[o];
