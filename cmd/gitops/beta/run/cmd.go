@@ -153,7 +153,7 @@ gitops beta run ./charts/podinfo --timeout 3m --port-forward namespace=flux-syst
 	cmdFlags.BoolVar(&flags.SkipResourceCleanup, "skip-resource-cleanup", false, "Skip resource cleanup. If not specified, the GitOps Run resources will be deleted by default.")
 	cmdFlags.StringVar(&flags.DecryptionKeyFile, "decryption-key-file", "", "Path to an age key file used for decrypting Secrets using SOPS.")
 
-	cmdFlags.StringSliceVar(&flags.DashboardValuesFiles, "values", nil, "local path to values.yaml files for HelmRelease, also accepts comma-separated values")
+	cmdFlags.StringSliceVar(&flags.DashboardValuesFiles, "values", nil, "Local path to values.yaml files for HelmRelease, also accepts comma-separated values.")
 	cmdFlags.StringVar(&flags.DashboardImage, "dashboard-image", "", "Override GitOps Dashboard image")
 	_ = cmdFlags.MarkHidden("dashboard-image")
 
