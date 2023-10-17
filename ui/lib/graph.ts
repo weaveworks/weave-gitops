@@ -79,16 +79,16 @@ export const getChildrenRecursive = async (
 // Gets the "child" objects that result from an Application
 export const getChildren = async (
   client: typeof Core,
-  name,
+  automationName,
   namespace,
-  kind: Kind,
+  automationKind: Kind,
   kinds: GroupVersionKind[],
   clusterName
 ): Promise<FluxObject[]> => {
   const { objects } = await client.GetReconciledObjects({
-    name,
+    automationName,
     namespace,
-    kind,
+    automationKind,
     kinds,
     clusterName,
   });
