@@ -43,7 +43,7 @@ const Sync = styled(Button)<{ $hideDropdown: boolean }>`
 export const DropDown = styled(Flex)`
   position: absolute;
   overflow: hidden;
-  background: ${(props) => props.theme.colors.white};
+  background: ${(props) => props.theme.colors.neutral00};
   height: ${(props) => (props.open ? "100%" : "0px")};
   transition-property: height;
   transition-duration: 0.2s;

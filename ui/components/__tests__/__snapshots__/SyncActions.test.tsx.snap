@@ -57,7 +57,7 @@ exports[`SyncActions snapshots hideDropdown 1`] = `
 .c5 {
   position: absolute;
   overflow: hidden;
-  background: #fff;
+  background: #ffffff;
   height: 0px;
   -webkit-transition-property: height;
   transition-property: height;
@@ -70,6 +70,9 @@ exports[`SyncActions snapshots hideDropdown 1`] = `
 
 .c1 {
   width: 50%;
+  min-width: -webkit-fit-content;
+  min-width: -moz-fit-content;
+  min-width: fit-content;
 }
 
 <div
@@ -327,7 +330,7 @@ exports[`SyncActions snapshots non-suspended 1`] = `
 .c9 {
   position: absolute;
   overflow: hidden;
-  background: #fff;
+  background: #ffffff;
   height: 0px;
   -webkit-transition-property: height;
   transition-property: height;
@@ -340,6 +343,9 @@ exports[`SyncActions snapshots non-suspended 1`] = `
 
 .c1 {
   width: 50%;
+  min-width: -webkit-fit-content;
+  min-width: -moz-fit-content;
+  min-width: fit-content;
 }
 
 <div
@@ -634,7 +640,7 @@ exports[`SyncActions snapshots suspended 1`] = `
 .c9 {
   position: absolute;
   overflow: hidden;
-  background: #fff;
+  background: #ffffff;
   height: 0px;
   -webkit-transition-property: height;
   transition-property: height;
@@ -647,6 +653,9 @@ exports[`SyncActions snapshots suspended 1`] = `
 
 .c1 {
   width: 50%;
+  min-width: -webkit-fit-content;
+  min-width: -moz-fit-content;
+  min-width: fit-content;
 }
 
 <div

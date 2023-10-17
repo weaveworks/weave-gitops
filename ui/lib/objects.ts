@@ -200,20 +200,12 @@ export class OCIRepository extends FluxObject {
     return this.obj.spec?.url || "";
   }
 
-  get source(): string {
-    const metadata = this.obj.status?.artifact?.metadata;
-    if (!metadata) {
-      return "";
-    }
-    return metadata["org.opencontainers.image.source"] || "";
-  }
-
-  get revision(): string {
-    const metadata = this.obj.status?.artifact?.metadata;
-    if (!metadata) {
-      return "";
-    }
-    return metadata["org.opencontainers.image.revision"] || "";
+  get artifactMetadata(): [string, string][] {
+    const metadata = this.obj.status?.artifact?.metadata || {};
+    const prefix = "org.opencontainers.image/";
+    return Object.keys(metadata).flatMap((key) => {
+      return [[key.slice(prefix.length), metadata[key] as string]];
+    });
   }
 
   get isVerifiable(): boolean {
@@ -308,6 +300,10 @@ export class HelmRelease extends FluxObject {
 
   get lastAttemptedRevision(): string {
     return this.obj.status?.lastAttemptedRevision || "";
+  }
+
+  get kubeConfig(): string {
+    return this.obj.spec?.kubeConfig?.secretRef?.name || "";
   }
 }
 

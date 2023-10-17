@@ -24,10 +24,20 @@ import HelmChartDetail from "./components/HelmChartDetail";
 import HelmReleaseDetail from "./components/HelmReleaseDetail";
 import HelmRepositoryDetail from "./components/HelmRepositoryDetail";
 import Icon, { IconType } from "./components/Icon";
+import ImageAutomation from "./components/ImageAutomation/ImageAutomation";
+import ImageAutomationDetails from "./components/ImageAutomation/ImageAutomationDetails";
+import ImagePoliciesTable from "./components/ImageAutomation/policies/ImagePoliciesTable";
+import ImagePolicyDetails from "./components/ImageAutomation/policies/ImagePolicyDetails";
+import ImageAutomationRepoDetails from "./components/ImageAutomation/repositories/ImageAutomationRepoDetails";
+import ImageRepositoriesTable from "./components/ImageAutomation/repositories/ImageRepositoriesTable";
+import ImageAutomationUpdatesDetails from "./components/ImageAutomation/updates/ImageAutomationUpdatesDetails";
+import ImageAutomationUpdatesTable from "./components/ImageAutomation/updates/ImageAutomationUpdatesTable";
 import InfoList, { InfoField } from "./components/InfoList";
 import Input, { InputProps } from "./components/Input";
 import Interval from "./components/Interval";
-import KubeStatusIndicator from "./components/KubeStatusIndicator";
+import KubeStatusIndicator, {
+  computeReady,
+} from "./components/KubeStatusIndicator";
 import KustomizationDetail from "./components/KustomizationDetail";
 import LargeInfo from "./components/LargeInfo";
 import Layout from "./components/Layout";
@@ -73,6 +83,7 @@ import AuthContextProvider, { Auth, AuthCheck } from "./contexts/AuthContext";
 import CoreClientContextProvider, {
   CoreClientContext,
   UnAuthorizedInterceptor,
+  setAPIPathPrefix,
 } from "./contexts/CoreClientContext";
 import {
   LinkResolverProvider,
@@ -117,9 +128,12 @@ import { V2Routes } from "./lib/types";
 import {
   createYamlCommand,
   formatLogTimestamp,
+  getBasePath,
   isAllowedLink,
   poller,
   statusSortHelper,
+  stripBasePath,
+  withBasePath,
 } from "./lib/utils";
 import SignIn from "./pages/SignIn";
 
@@ -165,8 +179,16 @@ export {
   HelmRepositoryDetail,
   Icon,
   IconType,
+  ImageAutomation,
+  ImageAutomationDetails,
   ImageAutomationIcon,
+  ImageAutomationRepoDetails,
+  ImageAutomationUpdatesDetails,
+  ImageAutomationUpdatesTable,
+  ImagePoliciesTable,
   ImagePolicy,
+  ImagePolicyDetails,
+  ImageRepositoriesTable,
   ImageRepository,
   ImageUpdateAutomation,
   InfoField,
@@ -225,18 +247,22 @@ export {
   ViolationDetails,
   YamlView,
   baseTheme,
+  computeReady,
   coreClient,
   createYamlCommand,
   filterByStatusCallback,
   filterConfig,
   formatLogTimestamp,
   formatURL,
+  getBasePath,
   getParentNavRouteValue,
   isAllowedLink,
   muiTheme,
   poller,
+  setAPIPathPrefix,
   showInterval,
   statusSortHelper,
+  stripBasePath,
   theme,
   useCheckCRDInstalled,
   useDebounce,
@@ -254,4 +280,5 @@ export {
   useRequestState,
   useSyncFluxObject,
   useToggleSuspend,
+  withBasePath,
 };

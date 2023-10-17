@@ -1,6 +1,7 @@
-import { Alert as MaterialAlert, AlertTitle } from "@material-ui/lab";
+import { AlertTitle, Alert as MaterialAlert } from "@material-ui/lab";
 import * as React from "react";
 import styled from "styled-components";
+import { ThemeTypes } from "../contexts/AppContext";
 import Flex from "./Flex";
 import Icon, { IconType } from "./Icon";
 import Text from "./Text";
@@ -23,24 +24,38 @@ function UnstyledAlert({ center, title, message, severity, className }: Props) {
   return (
     <Flex wide start={!center} className={className}>
       <MaterialAlert
-        icon={
-          <Icon type={IconType.ErrorIcon} size="medium" color="alertDark" />
-        }
+        icon={<Icon type={IconType.ErrorIcon} size="medium" />}
         severity={severity}
       >
         <AlertTitle>{title}</AlertTitle>
-        <Text color="black">{message}</Text>
+        <Text color="neutral40">{message}</Text>
       </MaterialAlert>
     </Flex>
   );
 }
 
 const Alert = styled(UnstyledAlert)`
+  .MuiAlert-root {
+    border-radius: 8px;
+    line-height: 16px;
+  }
   .MuiAlert-standardError {
+    svg {
+      color: ${(props) => props.theme.colors.alertDark};
+    }
     background-color: ${(props) => props.theme.colors.alertLight};
   }
   .MuiAlertTitle-root {
-    color: ${(props) => props.theme.colors.black};
+    color: ${(props) => props.theme.colors.neutral40};
+  }
+  .MuiAlert-standardInfo {
+    svg {
+      color: ${(props) => props.theme.colors.primaryLight10};
+    }
+    background-color: ${(props) =>
+      props.theme.mode === ThemeTypes.Dark
+        ? props.theme.colors.primary20
+        : props.theme.colors.primaryLight05};
   }
 `;
 

@@ -1,29 +1,16 @@
 import * as React from "react";
 import { useCallback, useState } from "react";
-import styled from "styled-components";
-import { IconButton } from "./Button";
 import Icon, { IconType } from "./Icon";
-
-const CopyButton = styled(IconButton)`
-  &.MuiButton-outlinedPrimary {
-    margin-left: ${(props) => props.theme.spacing.xxs};
-    padding: ${(props) => props.theme.spacing.xxs};
-  }
-  &.MuiButton-root {
-    height: initial;
-    width: initial;
-    min-width: 0px;
-  }
-`;
 
 export default function CopyToClipboard({
   value,
-  className,
   size,
+  showText,
 }: {
   value: string;
   className?: string;
-  size?: "small" | "medium" | "large";
+  size?: "small" | "base" | "medium" | "large";
+  showText?: boolean;
 }) {
   const [copied, setCopied] = useState(false);
   const handleCopy = useCallback(() => {
@@ -34,13 +21,17 @@ export default function CopyToClipboard({
       }, 1500);
     });
   }, [value]);
-
+  let text = undefined;
+  if (showText) {
+    text = copied ? "Copied" : "Copy";
+  }
   return (
-    <CopyButton onClick={handleCopy} className={className}>
+    <div onClick={handleCopy} style={{ cursor: "pointer" }}>
       <Icon
         type={copied ? IconType.CheckMark : IconType.FileCopyIcon}
         size={size}
+        text={text}
       />
-    </CopyButton>
+    </div>
   );
 }

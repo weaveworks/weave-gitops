@@ -5,6 +5,7 @@
 [![Contributors](https://img.shields.io/github/contributors/weaveworks/weave-gitops)](https://github.com/weaveworks/weave-gitops/graphs/contributors)
 [![Release](https://img.shields.io/github/v/release/weaveworks/weave-gitops?include_prereleases)](https://github.com/weaveworks/weave-gitops/releases/latest)
 [![FOSSA Status](https://app.fossa.com/api/projects/custom%2B19155%2Fgithub.com%2Fweaveworks%2Fweave-gitops.svg?type=shield)](https://app.fossa.com/reports/005da7c4-1f10-4889-9432-8b97c2084e41)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/7820/badge)](https://www.bestpractices.dev/projects/7820)
 
 Weave GitOps is a simple, open source developer platform for people who want cloud native applications but who don't have
 Kubernetes expertise. Experience how easy it is to enable GitOps and run your apps in a cluster. Use Git to collaborate
@@ -63,7 +64,7 @@ Weave GitOps Open Source provides:
 Mac / Linux
 
 ```console
-curl --silent --location "https://github.com/weaveworks/weave-gitops/releases/download/v0.31.2/gitops-$(uname)-$(uname -m).tar.gz" | tar xz -C /tmp
+curl --silent --location "https://github.com/weaveworks/weave-gitops/releases/download/v0.34.0/gitops-$(uname)-$(uname -m).tar.gz" | tar xz -C /tmp
 sudo mv /tmp/gitops /usr/local/bin
 gitops version
 ```
@@ -75,7 +76,7 @@ brew tap weaveworks/tap
 brew install weaveworks/tap/gitops
 ```
 
-Please see the [getting started guide](https://docs.gitops.weave.works/docs/getting-started/intro).
+Please see the [getting started guide](https://docs.gitops.weave.works/docs/next/open-source/getting-started/install-OSS/).
 
 ## CLI Reference
 
@@ -129,7 +130,7 @@ Please see our Weave GitOps OSS [FAQ](https://www.weave.works/faqs-for-weave-git
 Need help or want to contribute? Please see the links below.
 
 - Getting Started?
-    - Follow our [Get Started guide](https://docs.gitops.weave.works/docs/getting-started/intro) and give us feedback
+    - Follow our [Get Started guide](https://docs.gitops.weave.works/docs/next/open-source/getting-started/install-OSS/) and give us feedback
 - Need help?
     - Talk to us in
       the [#weave-gitops channel](https://app.slack.com/client/T2NDH1D9D/C0248LVC719/thread/C2ND76PAA-1621532937.019800)

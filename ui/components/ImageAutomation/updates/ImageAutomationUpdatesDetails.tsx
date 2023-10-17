@@ -1,12 +1,14 @@
 import * as React from "react";
 import styled from "styled-components";
+import { useFeatureFlags } from "../../../hooks/featureflags";
 import { useGetObject } from "../../../hooks/objects";
 import { Kind } from "../../../lib/api/core/types.pb";
 import { ImageUpdateAutomation } from "../../../lib/objects";
 import { V2Routes } from "../../../lib/types";
-import { InfoField } from "../../InfoList";
+import ClusterDashboardLink from "../../ClusterDashboardLink";
 import Metadata from "../../Metadata";
 import Page from "../../Page";
+import { RowItem } from "../../Policies/Utils/HeaderRows";
 import SourceLink from "../../SourceLink";
 import ImageAutomationDetails from "../ImageAutomationDetails";
 
@@ -19,27 +21,59 @@ type Props = {
 function getInfoList(
   data: ImageUpdateAutomation,
   clusterName: string
-): InfoField[] {
+): RowItem[] {
   const {
     kind,
     spec: { update, git },
   } = data.obj;
   const { path } = update;
   const { commit, checkout, push } = git;
+  const { isFlagEnabled } = useFeatureFlags();
 
   return [
-    ["Kind", kind],
-    ["Namespace", data.namespace],
-    [
-      "Source",
-      <SourceLink sourceRef={data.sourceRef} clusterName={clusterName} />,
-    ],
-    ["Update Path", path],
-    ["Checkout Branch", checkout?.ref?.branch],
-    ["Push Branch", push?.branch],
-    ["Author Name", commit.author?.name],
-    ["Author Email", commit.author?.email],
-    ["Commit Template", <code> {commit.messageTemplate}</code>],
+    {
+      rowkey: "Kind",
+      value: kind,
+    },
+    {
+      rowkey: "Namespace",
+      value: data.namespace,
+    },
+    {
+      rowkey: "Cluster",
+      children: <ClusterDashboardLink clusterName={clusterName} />,
+      visible: isFlagEnabled("WEAVE_GITOPS_FEATURE_CLUSTER"),
+    },
+    {
+      rowkey: "Source",
+      children: (
+        <SourceLink sourceRef={data.sourceRef} clusterName={clusterName} />
+      ),
+    },
+    {
+      rowkey: "Update Path",
+      value: path,
+    },
+    {
+      rowkey: "Checkout Branch",
+      value: checkout?.ref?.branch,
+    },
+    {
+      rowkey: "Push Branch",
+      value: push?.branch,
+    },
+    {
+      rowkey: "Author Name",
+      value: commit.author?.name,
+    },
+    {
+      rowkey: "Author Email",
+      value: commit.author?.email,
+    },
+    {
+      rowkey: "Commit Template",
+      children: <code> {commit.messageTemplate}</code>,
+    },
   ];
 }
 

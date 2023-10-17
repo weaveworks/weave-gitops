@@ -1,21 +1,20 @@
 import React from "react";
 import styled from "styled-components";
 import { Kind } from "../../lib/api/core/types.pb";
+import { createYamlCommand } from "../../lib/utils";
 import EventsTable from "../EventsTable";
 import Flex from "../Flex";
-import InfoList, { InfoField } from "../InfoList";
 import PageStatus from "../PageStatus";
-import Spacer from "../Spacer";
+import HeaderRows, { RowItem } from "../Policies/Utils/HeaderRows";
 import SubRouterTabs, { RouterTab } from "../SubRouterTabs";
 import SyncActions from "../SyncActions";
 import YamlView from "../YamlView";
-
 interface Props {
   className?: string;
   data: any;
   kind: Kind;
   rootPath: string;
-  infoFields: InfoField[];
+  infoFields: RowItem[];
   children?: any;
 }
 
@@ -27,10 +26,10 @@ const ImageAutomationDetails = ({
   infoFields,
   children,
 }: Props) => {
-  const { name, namespace, clusterName, suspended, conditions } = data;
+  const { name, namespace, clusterName, suspended, conditions, yaml } = data;
 
   return (
-    <Flex wide tall column className={className}>
+    <Flex wide tall column className={className} gap="4">
       <PageStatus conditions={conditions} suspended={suspended} />
       {kind !== Kind.ImagePolicy && (
         <SyncActions
@@ -45,11 +44,10 @@ const ImageAutomationDetails = ({
 
       <SubRouterTabs rootPath={`${rootPath}/details`}>
         <RouterTab name="Details" path={`${rootPath}/details`}>
-          <>
-            <InfoList items={infoFields} />
-            <Spacer margin="xs" />
+          <Flex column gap="4">
+            <HeaderRows items={infoFields} />
             {children}
-          </>
+          </Flex>
         </RouterTab>
         <RouterTab name="Events" path={`${rootPath}/events`}>
           <EventsTable
@@ -64,12 +62,8 @@ const ImageAutomationDetails = ({
         </RouterTab>
         <RouterTab name="yaml" path={`${rootPath}/yaml`}>
           <YamlView
-            yaml={data.yaml}
-            object={{
-              kind: kind,
-              name: name,
-              namespace: namespace,
-            }}
+            yaml={yaml}
+            header={createYamlCommand(kind, name, namespace)}
           />
         </RouterTab>
       </SubRouterTabs>

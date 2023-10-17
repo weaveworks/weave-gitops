@@ -128,9 +128,7 @@ function AutomationsTable({
     {
       label: "Verified",
       value: (a: Automation) => (
-        <SourceIsVerifiedStatus
-          sourceRef={getSourceRefForAutomation(a) || {}}
-        />
+        <SourceIsVerifiedStatus sourceRef={getSourceRefForAutomation(a)} />
       ),
     },
     {

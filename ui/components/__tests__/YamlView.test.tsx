@@ -3,6 +3,7 @@ import React from "react";
 import renderer from "react-test-renderer";
 import { Kind } from "../../lib/api/core/types.pb";
 import { withContext, withTheme } from "../../lib/test-utils";
+import { createYamlCommand } from "../../lib/utils";
 import YamlView from "../YamlView";
 
 describe("YamlView", () => {
@@ -13,11 +14,11 @@ describe("YamlView", () => {
           withTheme(
             withContext(
               <YamlView
-                object={{
-                  kind: Kind.Kustomization,
-                  name: "podinfo",
-                  namespace: "flux-system",
-                }}
+                header={createYamlCommand(
+                  Kind.Kustomization,
+                  "podinfo",
+                  "flux-system"
+                )}
                 yaml="yaml\nyaml\nyaml\n"
               />,
               "",

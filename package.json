@@ -1,12 +1,13 @@
 {
   "name": "@weaveworks/weave-gitops",
-  "version": "0.31.2",
+  "version": "0.34.0",
   "description": "Weave GitOps core",
   "targets": {
     "default": {
       "distDir": "bin/dist",
       "source": "ui/index.html",
-      "sourceMap": false
+      "sourceMap": false,
+      "publicUrl": "./"
     },
     "lib": {
       "includeNodeModules": false,
@@ -60,7 +61,7 @@
     "lodash": "^4.17.21",
     "luxon": "^3.2.1",
     "mnemonic-browser": "^0.0.1",
-    "postcss": "^8.3.11",
+    "postcss": "^8.4.31",
     "query-string": "^4.3.4",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
@@ -107,6 +108,7 @@
     "eslint-plugin-import": "^2.25.4",
     "jest": "^27.3.1",
     "jest-styled-components": "^7.0.4",
+    "jsdom": "^16.6.0",
     "parcel": "^2.8.3",
     "prettier": "^2.6.2",
     "process": "^0.11.10",

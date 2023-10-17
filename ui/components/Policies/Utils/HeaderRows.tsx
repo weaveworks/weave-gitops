@@ -30,9 +30,10 @@ interface Props {
 const HeaderRows = ({ items }: Props) => {
   return (
     <Flex column gap="8">
-      {items.map((h) => {
-        return (
-          h.visible !== false && (
+      {items
+        .filter((h) => h.visible !== false)
+        .map((h) => {
+          return (
             <Flex
               alignItems="center"
               center
@@ -51,9 +52,8 @@ const HeaderRows = ({ items }: Props) => {
                 </Text>
               )}
             </Flex>
-          )
-        );
-      })}
+          );
+        })}
     </Flex>
   );
 };

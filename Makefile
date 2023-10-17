@@ -172,6 +172,9 @@ ui-lint: ## Run linter against the UI
 	yarn lint
 	yarn typecheck
 
+ui-lint-fix:
+	yarn lint --fix
+
 ui-prettify-check: ## Check format of the UI code with Prettier
 	yarn prettify:check
 
@@ -184,7 +187,7 @@ ui-test: ## Run UI tests
 ui-audit: ## Run audit against the UI
 	yarn audit --production
 
-ui-audit-fix: ## Run audit against the UI
+ui-audit-fix: ## Fix UI audit errors
 	yarn yarn-audit-fix
 
 # Build the UI as an NPM package (hosted on github)

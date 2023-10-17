@@ -9,6 +9,7 @@ import (
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
+	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
@@ -269,4 +270,50 @@ func TestGetInventoryHelmRelease(t *testing.T) {
 
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(res.Entries).To(HaveLen(1))
+}
+
+func TestGetInventoryHelmReleaseWithKubeconfig(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	scheme, err := kube.CreateScheme()
+	g.Expect(err).NotTo(HaveOccurred())
+
+	ctx := context.Background()
+
+	ns := &corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "test-namespace",
+		},
+	}
+	helm1 := &helmv2.HelmRelease{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "first-helm-name",
+			Namespace: ns.Name,
+		},
+		Spec: helmv2.HelmReleaseSpec{
+			KubeConfig: &meta.KubeConfigReference{
+				SecretRef: meta.SecretKeyReference{
+					Name: "kubeconfig",
+				},
+			},
+		},
+		Status: helmv2.HelmReleaseStatus{
+			LastReleaseRevision: 1,
+		},
+	}
+
+	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ns, helm1).Build()
+	cfg := makeServerConfig(client, t, "")
+	c := makeServer(cfg, t)
+
+	res, err := c.GetInventory(ctx, &pb.GetInventoryRequest{
+		Namespace:    ns.Name,
+		ClusterName:  cluster.DefaultCluster,
+		Kind:         "HelmRelease",
+		Name:         helm1.Name,
+		WithChildren: true,
+	})
+
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(res.Entries).To(HaveLen(0))
 }
