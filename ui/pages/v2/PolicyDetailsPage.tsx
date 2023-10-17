@@ -14,7 +14,7 @@ type Props = {
 const PolicyDetailsPage = ({ className, clusterName, id }: Props) => {
   const { data, isLoading, error } = useGetPolicyDetails({
     clusterName,
-    policyName: id,
+    name: id,
   });
 
   return (
