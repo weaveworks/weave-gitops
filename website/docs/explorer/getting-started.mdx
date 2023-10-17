@@ -35,7 +35,20 @@ metadata:
 spec:
   # ... other spec components
   values:
-    enableExplorer: true
+  explorer:
+    enabled: true
+    collector:
+      # ServiceAccount that explorer will use to watch clusters for resources
+      serviceAccount:
+        name: "collector"
+        namespace: "flux-system"
+    cleaner:
+      disabled: false
+    enabledFor:
+      - applications
+      - sources
+      - gitopssets
+      - templates
 ```
 
 For a complete overview on the configuration you could see [configuration](./configuration.mdx).
