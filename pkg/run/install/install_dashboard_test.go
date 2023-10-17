@@ -162,13 +162,13 @@ var _ = Describe("InstallDashboard", func() {
 		d, err := yaml.Marshal(testValues)
 		Expect(err).NotTo(HaveOccurred())
 
-		err = os.WriteFile(testValuesFiles[0], d, 0644)
+		err = os.WriteFile(testValuesFiles[0], d, 0o644)
 		Expect(err).NotTo(HaveOccurred())
 
 		d, err = yaml.Marshal(testValues2)
 		Expect(err).NotTo(HaveOccurred())
 
-		err = os.WriteFile(testValuesFiles[1], d, 0644)
+		err = os.WriteFile(testValuesFiles[1], d, 0o644)
 		Expect(err).NotTo(HaveOccurred())
 
 		manifests, err := CreateDashboardObjects(fakeLogger, testDashboardName, testNamespace, testAdminUser, testPasswordHash, helmChartVersion, "", testValuesFiles)
