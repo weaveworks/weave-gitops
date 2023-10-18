@@ -142,15 +142,15 @@ Monitor Explorer golden signals. More info [here](../../explorer/operations#moni
 
 ### Profiling
 
-Profiling can be useful during operation to help you to gain deeper understanding of the management cluster is behaving a runtime.
-Given Weave GitOps is writen in Go,profiling happens using [pprof](https://pkg.go.dev/runtime/pprof) that Weave GitOps
-exposes via [pprof http handler](https://pkg.go.dev/net/http/pprof)
+Profiling can be useful during operations to help you to gain a deeper understanding, of how weave gitops runtime behaves.
+Given Weave GitOps is written in Go, profiling happens through [pprof](https://pkg.go.dev/runtime/pprof), and it is
+exposed as web endpoint by [pprof http](https://pkg.go.dev/net/http/pprof).
 
 
 #### Get Started
 
 1. You have [enabled](#setup) the monitoring server with the profiling endpoint.
-2. Navigate to your monitoring server url to the `/debug/pprof` path where the pprof web interface is exposed.
+2. Navigate to your monitoring server URL to the `/debug/pprof` path where the pprof web interface is exposed.
 
 ![profiling web ui](imgs/profiling-pprof-web-ui.png)
 
