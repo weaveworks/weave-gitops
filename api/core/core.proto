@@ -184,6 +184,9 @@ service Core {
 
     /*
      * Get the inventory of an object
+     *
+     * Only works for resources that have an inventory e.g. Kustomization,
+     * HelmRelease, GitOpsSet.
      */
     rpc GetInventory(GetInventoryRequest) returns (GetInventoryResponse) {
         option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["objects"]; };
@@ -416,7 +419,14 @@ message ListEventsResponse {
 
 message SyncFluxObjectRequest {
     repeated ObjectRef objects  = 1;
-    bool     with_source        = 2;
+
+    // with_source can be used for resources like Kustomizations to trigger
+    // synchronisation of the dependent Source resource.
+    bool     with_source        = 2 [
+      (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
+        description: "If with_source is true, the dependent Source resource will be synced too, e.g. syncing a Kustomization with_source will sync an attached GitRepository"
+      }
+    ];
 }
 
 message SyncFluxObjectResponse {

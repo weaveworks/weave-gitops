@@ -10,6 +10,7 @@ VERSION?=$(shell which git > /dev/null && git describe --always --match "v*")
 FLUX_VERSION=2.0.1
 CHART_VERSION=$(shell which yq > /dev/null && yq e '.version' charts/gitops-server/Chart.yaml)
 DEV_BUCKET_CONTAINER_IMAGE?=ghcr.io/weaveworks/gitops-bucket-server@sha256:9fa2a68032b9d67197a3d41a46b5029ffdf9a7bc415e4e7e9794faec8bc3b8e4
+CURRENT_DIR := $(shell pwd)
 TIER=oss
 
 # Go build args
@@ -252,3 +253,8 @@ ifeq ($(OS),Windows_NT)
 else
 				@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n make \033[36m<target>\033[0m\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-40s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 endif
+
+.PHONY: swagger-docs
+swagger-docs:
+	@echo "Swagger docs available at http://localhost:6001"
+	docker run -p 6001:8080 -e SWAGGER_JSON=/api/core/core.swagger.json -v $(CURRENT_DIR)/api:/api swaggerapi/swagger-ui
