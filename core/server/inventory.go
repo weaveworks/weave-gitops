@@ -67,14 +67,10 @@ func (cs *coreServer) GetInventory(ctx context.Context, msg *pb.GetInventoryRequ
 		return nil, fmt.Errorf("failed getting objects with children: %w", err)
 	}
 
-	entries := []*pb.InventoryEntry{}
 	clusterUserNamespaces := cs.clustersManager.GetUserNamespaces(auth.Principal(ctx))
-	for _, oc := range objsWithChildren {
-		entry, err := unstructuredToInventoryEntry(msg.ClusterName, *oc, clusterUserNamespaces, cs.healthChecker)
-		if err != nil {
-			return nil, fmt.Errorf("failed converting inventory entry: %w", err)
-		}
-		entries = append(entries, entry)
+	entries, err := unstructuredToInventoryEntry(msg.ClusterName, objsWithChildren, clusterUserNamespaces, cs.healthChecker)
+	if err != nil {
+		return nil, fmt.Errorf("failed converting inventory entry: %w", err)
 	}
 
 	return &pb.GetInventoryResponse{
@@ -210,50 +206,54 @@ func getHelmReleaseObjects(ctx context.Context, k8sClient client.Client, helmRel
 	return objects, nil
 }
 
-func unstructuredToInventoryEntry(clusterName string, objWithChildren ObjectWithChildren, clusterUserNamespaces map[string][]v1.Namespace, healthChecker health.HealthChecker) (*pb.InventoryEntry, error) {
-	unstructuredObj := *objWithChildren.Object
-	if unstructuredObj.GetKind() == "Secret" {
-		var err error
-		unstructuredObj, err = SanitizeUnstructuredSecret(unstructuredObj)
-		if err != nil {
-			return nil, fmt.Errorf("error sanitizing secrets: %w", err)
+func unstructuredToInventoryEntry(clusterName string, objWithChildren []*ObjectWithChildren, clusterUserNamespaces map[string][]v1.Namespace, healthChecker health.HealthChecker) ([]*pb.InventoryEntry, error) {
+	entries := []*pb.InventoryEntry{}
+	for _, c := range objWithChildren {
+		unstructuredObj := *c.Object
+		if unstructuredObj.GetKind() == "Secret" {
+			var err error
+			unstructuredObj, err = SanitizeUnstructuredSecret(unstructuredObj)
+			if err != nil {
+				return nil, fmt.Errorf("error sanitizing secrets: %w", err)
+			}
 		}
-	}
-	bytes, err := unstructuredObj.MarshalJSON()
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal unstructured object: %w", err)
-	}
+		bytes, err := unstructuredObj.MarshalJSON()
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal unstructured object: %w", err)
+		}
 
-	tenant := GetTenant(unstructuredObj.GetNamespace(), clusterName, clusterUserNamespaces)
+		tenant := GetTenant(unstructuredObj.GetNamespace(), clusterName, clusterUserNamespaces)
 
-	health, err := healthChecker.Check(unstructuredObj)
-	if err != nil {
-		return nil, fmt.Errorf("failed to check health: %w", err)
-	}
+		health, err := healthChecker.Check(unstructuredObj)
+		if err != nil {
+			return nil, fmt.Errorf("failed to check health: %w", err)
+		}
 
-	children := []*pb.InventoryEntry{}
-	for _, c := range objWithChildren.Children {
-		child, err := unstructuredToInventoryEntry(clusterName, *c, clusterUserNamespaces, healthChecker)
+		children, err := unstructuredToInventoryEntry(clusterName, c.Children, clusterUserNamespaces, healthChecker)
 		if err != nil {
 			return nil, fmt.Errorf("failed converting child inventory entry: %w", err)
 		}
-		children = append(children, child)
+
+		entry := &pb.InventoryEntry{
+			Payload:     string(bytes),
+			Tenant:      tenant,
+			ClusterName: clusterName,
+			Children:    children,
+			Health: &pb.HealthStatus{
+				Status:  string(health.Status),
+				Message: health.Message,
+			},
+		}
+
+		entries = append(entries, entry)
 	}
 
-	entry := &pb.InventoryEntry{
-		Payload:     string(bytes),
-		Tenant:      tenant,
-		ClusterName: clusterName,
-		Children:    children,
-		Health: &pb.HealthStatus{
-			Status:  string(health.Status),
-			Message: health.Message,
-		},
-	}
-
-	return entry, nil
+	return entries, nil
 }
 
+// GetObjectsWithChildren returns objects with their children populated if withChildren is true.
+// Objects are retrieved in parallel.
+// Children are retrieved recusively, e.g. Deployment -> ReplicaSet -> Pod
 func GetObjectsWithChildren(ctx context.Context, objects []*unstructured.Unstructured, k8sClient client.Client, withChildren bool, logger logr.Logger) ([]*ObjectWithChildren, error) {
 	result := []*ObjectWithChildren{}
 	resultMu := sync.Mutex{}
@@ -274,7 +274,7 @@ func GetObjectsWithChildren(ctx context.Context, objects []*unstructured.Unstruc
 			children := []*ObjectWithChildren{}
 			if withChildren {
 				var err error
-				children, err = GetChildren(ctx, k8sClient, obj)
+				children, err = getChildren(ctx, k8sClient, obj)
 				if err != nil {
 					logger.Error(err, "failed getting children", "entry", obj)
 					return
@@ -297,7 +297,7 @@ func GetObjectsWithChildren(ctx context.Context, objects []*unstructured.Unstruc
 	return result, nil
 }
 
-func GetChildren(ctx context.Context, k8sClient client.Client, parentObj unstructured.Unstructured) ([]*ObjectWithChildren, error) {
+func getChildren(ctx context.Context, k8sClient client.Client, parentObj unstructured.Unstructured) ([]*ObjectWithChildren, error) {
 	listResult := unstructured.UnstructuredList{}
 
 	switch parentObj.GetObjectKind().GroupVersionKind().Kind {
@@ -341,7 +341,7 @@ func GetChildren(ctx context.Context, k8sClient client.Client, parentObj unstruc
 
 	for _, c := range unstructuredChildren {
 		var err error
-		children, err = GetChildren(ctx, k8sClient, c)
+		children, err = getChildren(ctx, k8sClient, c)
 		if err != nil {
 			return nil, err
 		}
@@ -356,6 +356,7 @@ func GetChildren(ctx context.Context, k8sClient client.Client, parentObj unstruc
 	return children, nil
 }
 
+// ResourceRefToUnstructured converts a flux like resource entry pair of (id, version) into a unstructured object
 func ResourceRefToUnstructured(id, version string) (unstructured.Unstructured, error) {
 	u := unstructured.Unstructured{}
 
@@ -375,6 +376,7 @@ func ResourceRefToUnstructured(id, version string) (unstructured.Unstructured, e
 	return u, nil
 }
 
+// SanitizeUnstructuredSecret redacts the data field of a Secret object
 func SanitizeUnstructuredSecret(obj unstructured.Unstructured) (unstructured.Unstructured, error) {
 	redactedUnstructured := unstructured.Unstructured{}
 	s := &v1.Secret{}
