@@ -106,7 +106,7 @@ function UnstyledDataTable({
     if (sortedItem) {
       sorted = _.orderBy(
         filtered,
-        [sortedItem.value],
+        [sortedItem.sortValue ||sortedItem.value],
         [sortedItem.reverseSort ? "desc" : "asc"]
       );
     }
