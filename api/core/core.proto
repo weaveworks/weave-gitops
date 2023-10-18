@@ -52,6 +52,8 @@ service Core {
 
     /*
      * Lists the Flux runtime deployments across all clusters
+     *
+     * Determine which controllers are installed, their image versions, status, etc.
      */
     rpc ListFluxRuntimeObjects(ListFluxRuntimeObjectsRequest)
         returns (ListFluxRuntimeObjectsResponse) {
@@ -62,6 +64,8 @@ service Core {
 
     /*
      * Lists the Flux CRDs across all clusters
+     *
+     * Determine which flux CRDs are installed and their versions
      */
     rpc ListFluxCrds(ListFluxCrdsRequest) returns (ListFluxCrdsResponse) {
         option (google.api.http) = {
@@ -131,6 +135,9 @@ service Core {
 
     /*
      * Get feature flags
+     *
+     * New features are sometimes hidden behind feature flags. This endpoint
+     * returns a list of feature flags and their values.
      */
     rpc GetFeatureFlags(GetFeatureFlagsRequest)
         returns (GetFeatureFlagsResponse) {
@@ -332,9 +339,6 @@ message ListFluxCrdsResponse {
 message GetObjectRequest {
     string name              = 1;
     string namespace         = 2;
-    /*
-     * A flux object (e.g. `Kustomization`) or Kubernates resource (e.g. `Deployment`) kind
-     */
     string kind              = 3;
     string cluster_name      = 4;
 }
@@ -345,6 +349,9 @@ message GetObjectResponse {
 
 message ListObjectsRequest {
     string     namespace      = 1;
+    /*
+     * A flux object kind e.g. `Kustomization` or `GitRepository` etc
+     */
     string     kind           = 2;
     string     cluster_name   = 3;
     string     label_selector = 4;

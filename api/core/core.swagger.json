@@ -20,6 +20,7 @@
     "/v1/feature-flags": {
       "get": {
         "summary": "Get feature flags",
+        "description": "New features are sometimes hidden behind feature flags. This endpoint\nreturns a list of feature flags and their values.",
         "operationId": "Core_GetFeatureFlags",
         "responses": {
           "200": {
@@ -43,6 +44,7 @@
     "/v1/flux/crds": {
       "get": {
         "summary": "Lists the Flux CRDs across all clusters",
+        "description": "Determine which flux CRDs are installed and their versions",
         "operationId": "Core_ListFluxCrds",
         "responses": {
           "200": {
@@ -74,6 +76,7 @@
     "/v1/flux/deployments": {
       "get": {
         "summary": "Lists the Flux runtime deployments across all clusters",
+        "description": "Determine which controllers are installed, their image versions, status, etc.",
         "operationId": "Core_ListFluxRuntimeObjects",
         "responses": {
           "200": {
@@ -135,7 +138,6 @@
           },
           {
             "name": "kind",
-            "description": "A flux object (e.g. `Kustomization`) or Kubernates resource (e.g. `Deployment`) kind",
             "in": "path",
             "required": true,
             "type": "string"
@@ -283,6 +285,7 @@
         "parameters": [
           {
             "name": "kind",
+            "description": "A flux object kind e.g. `Kustomization` or `GitRepository` etc",
             "in": "path",
             "required": true,
             "type": "string"

@@ -23,8 +23,12 @@ type CoreClient interface {
 	// List objects of kind across all clusters
 	ListObjects(ctx context.Context, in *ListObjectsRequest, opts ...grpc.CallOption) (*ListObjectsResponse, error)
 	// Lists the Flux runtime deployments across all clusters
+	//
+	// Determine which controllers are installed, their image versions, status, etc.
 	ListFluxRuntimeObjects(ctx context.Context, in *ListFluxRuntimeObjectsRequest, opts ...grpc.CallOption) (*ListFluxRuntimeObjectsResponse, error)
 	// Lists the Flux CRDs across all clusters
+	//
+	// Determine which flux CRDs are installed and their versions
 	ListFluxCrds(ctx context.Context, in *ListFluxCrdsRequest, opts ...grpc.CallOption) (*ListFluxCrdsResponse, error)
 	// GetReconciledObjects returns a list of objects that were created
 	// as a result of reconciling a Flux automation.
@@ -43,6 +47,9 @@ type CoreClient interface {
 	// Get version information about the server
 	GetVersion(ctx context.Context, in *GetVersionRequest, opts ...grpc.CallOption) (*GetVersionResponse, error)
 	// Get feature flags
+	//
+	// New features are sometimes hidden behind feature flags. This endpoint
+	// returns a list of feature flags and their values.
 	GetFeatureFlags(ctx context.Context, in *GetFeatureFlagsRequest, opts ...grpc.CallOption) (*GetFeatureFlagsResponse, error)
 	// Suspend or resume reconciling mulitple Flux objects
 	ToggleSuspendResource(ctx context.Context, in *ToggleSuspendResourceRequest, opts ...grpc.CallOption) (*ToggleSuspendResourceResponse, error)
@@ -245,8 +252,12 @@ type CoreServer interface {
 	// List objects of kind across all clusters
 	ListObjects(context.Context, *ListObjectsRequest) (*ListObjectsResponse, error)
 	// Lists the Flux runtime deployments across all clusters
+	//
+	// Determine which controllers are installed, their image versions, status, etc.
 	ListFluxRuntimeObjects(context.Context, *ListFluxRuntimeObjectsRequest) (*ListFluxRuntimeObjectsResponse, error)
 	// Lists the Flux CRDs across all clusters
+	//
+	// Determine which flux CRDs are installed and their versions
 	ListFluxCrds(context.Context, *ListFluxCrdsRequest) (*ListFluxCrdsResponse, error)
 	// GetReconciledObjects returns a list of objects that were created
 	// as a result of reconciling a Flux automation.
@@ -265,6 +276,9 @@ type CoreServer interface {
 	// Get version information about the server
 	GetVersion(context.Context, *GetVersionRequest) (*GetVersionResponse, error)
 	// Get feature flags
+	//
+	// New features are sometimes hidden behind feature flags. This endpoint
+	// returns a list of feature flags and their values.
 	GetFeatureFlags(context.Context, *GetFeatureFlagsRequest) (*GetFeatureFlagsResponse, error)
 	// Suspend or resume reconciling mulitple Flux objects
 	ToggleSuspendResource(context.Context, *ToggleSuspendResourceRequest) (*ToggleSuspendResourceResponse, error)

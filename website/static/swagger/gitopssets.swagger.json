@@ -93,7 +93,7 @@
     },
     "/v1/namespaces/{namespace}/gitopssets/{name}/inventory": {
       "get": {
-        "summary": "Get the inventory of an object",
+        "summary": "Get the inventory of a GitOpsSet",
         "operationId": "GitOpsSets_GetInventory",
         "responses": {
           "200": {
