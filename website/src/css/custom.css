@@ -50,6 +50,26 @@ at the top of pages.
 }
 
 /*
+clear docusaurus table style
+*/
+.swagger-ui table tr,
+.swagger-ui table td,
+.swagger-ui table th {
+  border: none;
+}
+.swagger-ui table thead {
+  background: none;
+}
+
+/*
+docusaurus adds some top margin here
+Presumably for vertical lists
+*/
+.swagger-ui .tab li + li {
+  margin-top: 0;
+}
+
+/*
 Make the titles smaller.
 We provide our own bigger titles in docusaurus to get a
 basic TOC on the left side.

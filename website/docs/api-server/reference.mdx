@@ -28,8 +28,11 @@ export const APIUI = ({ url }) => {
               deepLinking
               // turn off the "try this out" stuff.
               supportedSubmitMethods={[]}
-              // Collapse all models sections by default, they're very verbose.
+              // Collapse top level models sections by default, they're very verbose.
               defaultModelsExpandDepth={0}
+              // Expand out the model section in each endpoint detail, otherwise its a bit
+              // tedious to click through the tree
+              defaultModelExpandDepth={5}
             />
           );
         }}
