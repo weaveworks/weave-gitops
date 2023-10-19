@@ -48,22 +48,22 @@ func (cs *coreServer) GetInventory(ctx context.Context, msg *pb.GetInventoryRequ
 	var inventoryRefs []*unstructured.Unstructured
 
 	switch msg.Kind {
-	case kustomizev1.KustomizationKind:
-		inventoryRefs, err = cs.getKustomizationInventory(ctx, client, msg.Name, msg.Namespace)
-		if err != nil {
-			return nil, fmt.Errorf("failed getting kustomization inventory: %w", err)
-		}
 	case helmv2.HelmReleaseKind:
 		inventoryRefs, err = cs.getHelmReleaseInventory(ctx, client, msg.Name, msg.Namespace)
 		if err != nil {
 			return nil, fmt.Errorf("failed getting helm Release inventory: %w", err)
 		}
+	// case kustomizev1.KustomizationKind:
+	// 	inventoryRefs, err = cs.getKustomizationInventory(ctx, client, msg.Name, msg.Namespace)
+	// 	if err != nil {
+	// 		return nil, fmt.Errorf("failed getting kustomization inventory: %w", err)
+	// 	}
 	default:
 		gvk, err := cs.primaryKinds.Lookup(msg.Kind)
 		if err != nil {
 			return nil, err
 		}
-		inventoryRefs, err = cs.getUnknownInventory(ctx, client, msg.Name, msg.Namespace, *gvk)
+		inventoryRefs, err = cs.getUnstructedInventory(ctx, client, msg.Name, msg.Namespace, *gvk)
 		if err != nil {
 			return nil, fmt.Errorf("failed getting %s inventory: %w", msg.Kind, err)
 		}
@@ -118,7 +118,7 @@ func (cs *coreServer) getKustomizationInventory(ctx context.Context, k8sClient c
 	return objects, nil
 }
 
-func (cs *coreServer) getUnknownInventory(ctx context.Context, k8sClient client.Client, name, namespace string, gvk schema.GroupVersionKind) ([]*unstructured.Unstructured, error) {
+func (cs *coreServer) getUnstructedInventory(ctx context.Context, k8sClient client.Client, name, namespace string, gvk schema.GroupVersionKind) ([]*unstructured.Unstructured, error) {
 	// Create an unstructured object with the desired GVK (GroupVersionKind)
 	obj := &unstructured.Unstructured{}
 	obj.SetGroupVersionKind(gvk)
@@ -152,8 +152,8 @@ func (cs *coreServer) getUnknownInventory(ctx context.Context, k8sClient client.
 			continue
 		}
 
-		id, _, _ := unstructured.NestedString(entry, "ID")
-		version, _, _ := unstructured.NestedString(entry, "Version")
+		id, _, _ := unstructured.NestedString(entry, "id")
+		version, _, _ := unstructured.NestedString(entry, "v")
 		obj, err := ResourceRefToUnstructured(id, version)
 		if err != nil {
 			cs.logger.Error(err, "failed converting inventory entry", "entry", entry)
