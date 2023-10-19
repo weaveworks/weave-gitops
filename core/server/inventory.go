@@ -59,7 +59,14 @@ func (cs *coreServer) GetInventory(ctx context.Context, msg *pb.GetInventoryRequ
 			return nil, fmt.Errorf("failed getting helm Release inventory: %w", err)
 		}
 	default:
-		return nil, fmt.Errorf("unknown kind: %s", msg.Kind)
+		gvk, err := cs.primaryKinds.Lookup(msg.Kind)
+		if err != nil {
+			return nil, err
+		}
+		inventoryRefs, err = cs.getUnknownInventory(ctx, client, msg.Name, msg.Namespace, *gvk)
+		if err != nil {
+			return nil, fmt.Errorf("failed getting %s inventory: %w", msg.Kind, err)
+		}
 	}
 
 	objsWithChildren, err := GetObjectsWithChildren(ctx, inventoryRefs, client, msg.WithChildren, cs.logger)
@@ -103,6 +110,53 @@ func (cs *coreServer) getKustomizationInventory(ctx context.Context, k8sClient c
 		obj, err := ResourceRefToUnstructured(ref.ID, ref.Version)
 		if err != nil {
 			cs.logger.Error(err, "failed converting inventory entry", "entry", ref)
+			return nil, err
+		}
+		objects = append(objects, &obj)
+	}
+
+	return objects, nil
+}
+
+func (cs *coreServer) getUnknownInventory(ctx context.Context, k8sClient client.Client, name, namespace string, gvk schema.GroupVersionKind) ([]*unstructured.Unstructured, error) {
+	// Create an unstructured object with the desired GVK (GroupVersionKind)
+	obj := &unstructured.Unstructured{}
+	obj.SetGroupVersionKind(gvk)
+	obj.SetName(name)
+	obj.SetNamespace(namespace)
+
+	// Get the object from the Kubernetes cluster
+	if err := k8sClient.Get(ctx, client.ObjectKeyFromObject(obj), obj); err != nil {
+		return nil, fmt.Errorf("failed to get kustomization: %w", err)
+	}
+
+	content := obj.UnstructuredContent()
+
+	// Check if status.inventory is present
+	inventory, found, err := unstructured.NestedMap(content, "status", "inventory")
+	if err != nil || !found {
+		return nil, nil
+	}
+
+	// Check if status.inventory.entries is present
+	entries, found, err := unstructured.NestedSlice(inventory, "entries")
+	if err != nil || !found {
+		return nil, nil
+	}
+
+	objects := []*unstructured.Unstructured{}
+	for _, entryInterface := range entries {
+		entry, ok := entryInterface.(map[string]interface{})
+		if !ok {
+			// Handle error, the type is not as expected
+			continue
+		}
+
+		id, _, _ := unstructured.NestedString(entry, "ID")
+		version, _, _ := unstructured.NestedString(entry, "Version")
+		obj, err := ResourceRefToUnstructured(id, version)
+		if err != nil {
+			cs.logger.Error(err, "failed converting inventory entry", "entry", entry)
 			return nil, err
 		}
 		objects = append(objects, &obj)
