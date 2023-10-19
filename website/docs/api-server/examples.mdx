@@ -1,0 +1,36 @@
+---
+title: Examples
+---
+
+### Create Pull Request Example
+
+This example demostrates rendering a template to a Github repository.
+
+It shows off:
+- Logging into the WGE API
+- Exchanging a local `GITHUB_TOKEN` for a JWT token we can then use to do git operations via the WGE API
+- Rendering a template and writing the result to a Pull Request
+
+It can be run with:
+
+```bash
+WEGO_PASSWORD=my-password
+GITHUB_TOKEN=my-github-token
+python3 templates.py create-pr \
+  --template default/vcluster-template-development \
+  --repository-url https://github.com/my-org/my-repo \
+  --parameter-values CLUSTER_NAME=ewq
+```
+
+import CodeBlock from "@theme/CodeBlock";
+import TemplatesExample from "!!raw-loader!./examples/templates.py";
+
+<CodeBlock
+  language="python"
+  title="templates.py"
+  showLineNumbers
+>
+  {TemplatesExample}
+</CodeBlock>
+
+
