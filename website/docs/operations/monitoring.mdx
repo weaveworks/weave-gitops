@@ -42,11 +42,11 @@ The monitoring server holds private services, so you likely do not require to ex
 case you need, ensure that it is properly secured.
 :::
 
-### Metrics
+## Metrics
 
 It generates [Prometheus](https://prometheus.io/) metrics for monitoring both performance and business operations.
 
-#### Get Started
+### Get Started
 
 :::info
 This setup follows [Flux Monitoring](https://fluxcd.io/flux/monitoring/metrics/) approach based on [Prometheus Operator](https://prometheus-operator.dev/). Adapt it to your context as needed.
@@ -140,7 +140,7 @@ Monitor Weave Gitops GO runtime metrics like Memory Usage, Memory Heap, Goroutin
 
 Monitor Explorer golden signals. More info [here](../../explorer/operations#monitoring)
 
-### Profiling
+## Profiling
 
 Profiling can be useful during operations to help you to gain a deeper understanding, of how weave gitops runtime behaves.
 Given Weave GitOps is written in Go, profiling happens through [pprof](https://pkg.go.dev/runtime/pprof), and it is
