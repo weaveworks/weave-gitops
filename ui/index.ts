@@ -1,3 +1,4 @@
+import { AlertListErrors } from "./components/AlertListErrors";
 import { ReconciledObjectsAutomation } from "./components/AutomationDetail";
 import AutomationsTable from "./components/AutomationsTable";
 import BucketDetail from "./components/BucketDetail";
@@ -49,7 +50,6 @@ import Nav, { NavItem } from "./components/Nav";
 import ImageAutomationIcon from "./components/NavIcons/ImageAutomationIcon";
 import SourcesIcon from "./components/NavIcons/SourcesIcon";
 import NotificationsTable from "./components/NotificationsTable";
-import { NotificationsWrapperOSS } from './components/NotificationsWrapper';
 import OCIRepositoryDetail from "./components/OCIRepositoryDetail";
 import Page from "./components/Page";
 import PageStatus from "./components/PageStatus";
@@ -139,7 +139,7 @@ import SignIn from "./pages/SignIn";
 export {
   Alert,
   AppContext,
-  NotificationsWrapperOSS,
+  AlertListErrors,
   AppContextProvider,
   Auth,
   AuthCheck,

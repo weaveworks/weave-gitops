@@ -8,7 +8,6 @@ import Flex from "./Flex";
 import Icon, { IconType } from "./Icon";
 import Text from "./Text";
 
-
 const BoxWrapper = styled(Box)`
   .MuiAlert-root {
     width: auto;
@@ -49,7 +48,9 @@ const ErrorsCount = styled.span`
   border-radius: 4px;
   margin: 0 4px;
 `;
-export const AlertListErrors: FC<{ errors?: ListError[] }> = ({ errors }) => {
+export const AlertListErrors: FC<{
+  errors?: ListError[];
+}> = ({ errors }) => {
   const [index, setIndex] = useState<number>(0);
   const [filteredErrors, setFilteredErrors] = useState<ListError[]>([]);
   const [show, setShow] = useState<boolean>(true);
@@ -76,7 +77,7 @@ export const AlertListErrors: FC<{ errors?: ListError[] }> = ({ errors }) => {
         {!!filteredErrors[index] && (
           <Alert severity="error" onClose={() => setShow(false)}>
             <Flex align center>
-              <Icon type={IconType.ErrorIcon} size="medium" />
+              <Icon type={IconType.ErrorIcon} size="medium" color="alertDark" />
               <ErrorText data-testid="error-message" color="black">
                 {filteredErrors[index].clusterName}:&nbsp;
                 {filteredErrors[index].message}
