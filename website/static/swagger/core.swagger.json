@@ -335,12 +335,6 @@
         },
         "parameters": [
           {
-            "name": "clusterName",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
             "name": "pagination.pageSize",
             "in": "query",
             "required": false,

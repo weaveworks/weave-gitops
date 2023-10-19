@@ -255,7 +255,6 @@ export type IsCRDAvailableResponse = {
 }
 
 export type ListPoliciesRequest = {
-  clusterName?: string
   pagination?: Pagination
 }
 

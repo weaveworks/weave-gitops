@@ -488,8 +488,7 @@ message IsCRDAvailableResponse {
 }
 
 message ListPoliciesRequest {
-    string cluster_name = 1;
-    Pagination pagination = 2;
+    Pagination pagination = 1;
 }
 
 message ListPoliciesResponse {
