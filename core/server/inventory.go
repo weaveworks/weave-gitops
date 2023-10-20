@@ -38,16 +38,16 @@ func (cs *coreServer) GetInventory(ctx context.Context, msg *pb.GetInventoryRequ
 		return nil, fmt.Errorf("error getting scoped client for cluster=%s: %w", msg.ClusterName, err)
 	}
 
-	var entries []*pb.InventoryEntry
+	var entries []*unstructured.Unstructured
 
 	switch msg.Kind {
 	case kustomizev1.KustomizationKind:
-		entries, err = cs.getKustomizationInventory(ctx, msg.ClusterName, client, msg.Name, msg.Namespace, msg.WithChildren)
+		entries, err = cs.getKustomizationInventory(ctx, msg.ClusterName, client, msg.Name, msg.Namespace)
 		if err != nil {
 			return nil, fmt.Errorf("failed getting kustomization inventory: %w", err)
 		}
 	case helmv2.HelmReleaseKind:
-		entries, err = cs.getHelmReleaseInventory(ctx, msg.ClusterName, client, msg.Name, msg.Namespace, msg.WithChildren)
+		entries, err = cs.getHelmReleaseInventory(ctx, msg.ClusterName, client, msg.Name, msg.Namespace)
 		if err != nil {
 			return nil, fmt.Errorf("failed getting helm Release inventory: %w", err)
 		}
@@ -56,22 +56,23 @@ func (cs *coreServer) GetInventory(ctx context.Context, msg *pb.GetInventoryRequ
 		if err != nil {
 			return nil, err
 		}
-		inventoryRefs, err := GetFluxLikeInventory(ctx, client, msg.Name, msg.Namespace, *gvk)
+		entries, err = GetFluxLikeInventory(ctx, client, msg.Name, msg.Namespace, *gvk)
 		if err != nil {
 			return nil, fmt.Errorf("failed getting flux like inventory: %w", err)
 		}
-		entries, err = cs.getInventoryResources(ctx, msg.ClusterName, client, inventoryRefs, msg.Namespace, msg.WithChildren)
-		if err != nil {
-			return nil, fmt.Errorf("failed getting inventory resources: %w", err)
-		}
+	}
+
+	resources, err := cs.getInventoryResources(ctx, msg.ClusterName, client, entries, msg.Namespace, msg.WithChildren)
+	if err != nil {
+		return nil, fmt.Errorf("failed getting inventory resources: %w", err)
 	}
 
 	return &pb.GetInventoryResponse{
-		Entries: entries,
+		Entries: resources,
 	}, nil
 }
 
-func (cs *coreServer) getKustomizationInventory(ctx context.Context, clusterName string, k8sClient client.Client, name, namespace string, withChildren bool) ([]*pb.InventoryEntry, error) {
+func (cs *coreServer) getKustomizationInventory(ctx context.Context, clusterName string, k8sClient client.Client, name, namespace string) ([]*unstructured.Unstructured, error) {
 	kust := &kustomizev1.Kustomization{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -100,10 +101,10 @@ func (cs *coreServer) getKustomizationInventory(ctx context.Context, clusterName
 		objects = append(objects, &obj)
 	}
 
-	return cs.getInventoryResources(ctx, clusterName, k8sClient, objects, namespace, withChildren)
+	return objects, nil
 }
 
-func (cs *coreServer) getHelmReleaseInventory(ctx context.Context, clusterName string, k8sClient client.Client, name, namespace string, withChildren bool) ([]*pb.InventoryEntry, error) {
+func (cs *coreServer) getHelmReleaseInventory(ctx context.Context, clusterName string, k8sClient client.Client, name, namespace string) ([]*unstructured.Unstructured, error) {
 	release := &helmv2.HelmRelease{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -120,15 +121,10 @@ func (cs *coreServer) getHelmReleaseInventory(ctx context.Context, clusterName s
 		return nil, fmt.Errorf("failed to get helm release objects: %w", err)
 	}
 
-	if len(objects) == 0 {
-		return []*pb.InventoryEntry{}, nil
-	}
-
-	return cs.getInventoryResources(ctx, clusterName, k8sClient, objects, namespace, withChildren)
+	return objects, nil
 }
 
 func (cs *coreServer) getInventoryResources(ctx context.Context, clusterName string, k8sClient client.Client, objects []*unstructured.Unstructured, namespace string, withChildren bool) ([]*pb.InventoryEntry, error) {
-
 	result := []*pb.InventoryEntry{}
 	resultMu := sync.Mutex{}
 
