@@ -414,12 +414,12 @@ func ParseInventoryFromUnstructured(obj *unstructured.Unstructured) ([]*unstruct
 		if !ok {
 			return nil, fmt.Errorf("failed converting inventory entry to map[string]interface{}: %+v", entry)
 		}
-		ref := kustomizev1.ResourceRef{}
+		ref := &kustomizev1.ResourceRef{}
 		err := runtime.DefaultUnstructuredConverter.FromUnstructured(entry, ref)
 		if err != nil {
 			return nil, fmt.Errorf("failed converting inventory entry: %w", err)
 		}
-		invEntry, err := resourceRefToUnstructured(ref)
+		invEntry, err := resourceRefToUnstructured(*ref)
 		if err != nil {
 			return nil, fmt.Errorf("failed converting inventory entry: %w", err)
 		}
