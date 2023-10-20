@@ -4,12 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
-	imgautomationv1 "github.com/fluxcd/image-automation-controller/api/v1beta1"
-	reflectorv1 "github.com/fluxcd/image-reflector-controller/api/v1beta2"
-	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1"
-	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/hashicorp/go-multierror"
 	"github.com/weaveworks/weave-gitops/core/fluxsync"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
@@ -39,7 +33,13 @@ func (cs *coreServer) SyncFluxObject(ctx context.Context, msg *pb.SyncFluxObject
 			Namespace: sync.Namespace,
 		}
 
-		obj, err := getFluxObject(sync.Kind)
+		gvk, err := cs.primaryKinds.Lookup(sync.Kind)
+		if err != nil {
+			respErrors = *multierror.Append(fmt.Errorf("looking up GVK for %q: %w", sync.Kind, err), respErrors.Errors...)
+			continue
+		}
+
+		_, obj, err := fluxsync.ToReconcileable(*gvk)
 		if err != nil {
 			respErrors = *multierror.Append(fmt.Errorf("error converting to object: %w", err), respErrors.Errors...)
 			continue
@@ -54,8 +54,12 @@ func (cs *coreServer) SyncFluxObject(ctx context.Context, msg *pb.SyncFluxObject
 		if msg.WithSource && isAutomation {
 			sourceRef := automation.SourceRef()
 
-			_, sourceObj, err := fluxsync.ToReconcileable(sourceRef.Kind())
+			sourceGVK, err := cs.primaryKinds.Lookup(sourceRef.Kind())
+			if err != nil {
+				return nil, err
+			}
 
+			_, sourceObj, err := fluxsync.ToReconcileable(*sourceGVK)
 			if err != nil {
 				respErrors = *multierror.Append(fmt.Errorf("getting source type for %q: %w", sourceRef.Kind(), err), respErrors.Errors...)
 				continue
@@ -105,8 +109,7 @@ func (cs *coreServer) SyncFluxObject(ctx context.Context, msg *pb.SyncFluxObject
 		)
 		log.Info("Syncing resource")
 
-		gvk := obj.GroupVersionKind()
-		if err := fluxsync.RequestReconciliation(ctx, c, key, gvk); err != nil {
+		if err := fluxsync.RequestReconciliation(ctx, c, key, *gvk); err != nil {
 			respErrors = *multierror.Append(fmt.Errorf("requesting reconciliation: %w", err), respErrors.Errors...)
 			continue
 		}
@@ -118,29 +121,4 @@ func (cs *coreServer) SyncFluxObject(ctx context.Context, msg *pb.SyncFluxObject
 	}
 
 	return &pb.SyncFluxObjectResponse{}, respErrors.ErrorOrNil()
-}
-
-func getFluxObject(kind string) (fluxsync.Reconcilable, error) {
-	switch kind {
-	case kustomizev1.KustomizationKind:
-		return &fluxsync.KustomizationAdapter{Kustomization: &kustomizev1.Kustomization{}}, nil
-	case helmv2.HelmReleaseKind:
-		return &fluxsync.HelmReleaseAdapter{HelmRelease: &helmv2.HelmRelease{}}, nil
-	case sourcev1.GitRepositoryKind:
-		return &fluxsync.GitRepositoryAdapter{GitRepository: &sourcev1.GitRepository{}}, nil
-	case sourcev1b2.BucketKind:
-		return &fluxsync.BucketAdapter{Bucket: &sourcev1b2.Bucket{}}, nil
-	case sourcev1b2.HelmChartKind:
-		return &fluxsync.HelmChartAdapter{HelmChart: &sourcev1b2.HelmChart{}}, nil
-	case sourcev1b2.HelmRepositoryKind:
-		return &fluxsync.HelmRepositoryAdapter{HelmRepository: &sourcev1b2.HelmRepository{}}, nil
-	case sourcev1b2.OCIRepositoryKind:
-		return &fluxsync.OCIRepositoryAdapter{OCIRepository: &sourcev1b2.OCIRepository{}}, nil
-	case reflectorv1.ImageRepositoryKind:
-		return &fluxsync.ImageRepositoryAdapter{ImageRepository: &reflectorv1.ImageRepository{}}, nil
-	case imgautomationv1.ImageUpdateAutomationKind:
-		return &fluxsync.ImageUpdateAutomationAdapter{ImageUpdateAutomation: &imgautomationv1.ImageUpdateAutomation{}}, nil
-	}
-
-	return nil, fmt.Errorf("not supported kind: %s", kind)
 }

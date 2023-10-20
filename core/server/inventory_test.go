@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -13,12 +14,14 @@ import (
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
+	"github.com/weaveworks/weave-gitops/core/server"
 	"github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
@@ -316,4 +319,189 @@ func TestGetInventoryHelmReleaseWithKubeconfig(t *testing.T) {
 
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(res.Entries).To(HaveLen(0))
+}
+
+func TestGetFluxLikeInventory(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	ctx := context.Background()
+
+	ks := &kustomizev1.Kustomization{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "my-kustomization",
+			Namespace: "my-namespace",
+		},
+		Spec: kustomizev1.KustomizationSpec{
+			SourceRef: kustomizev1.CrossNamespaceSourceReference{
+				Kind: sourcev1.GitRepositoryKind,
+			},
+		},
+		Status: kustomizev1.KustomizationStatus{
+			Inventory: &kustomizev1.ResourceInventory{
+				Entries: []kustomizev1.ResourceRef{
+					{
+						ID:      "my-namespace_my-deployment_apps_Deployment",
+						Version: "v1",
+					},
+				},
+			},
+		},
+	}
+
+	scheme, err := kube.CreateScheme()
+	g.Expect(err).To(BeNil())
+
+	k8sClient := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ks).Build()
+
+	gvk := kustomizev1.GroupVersion.WithKind("Kustomization")
+	entries, err := server.GetFluxLikeInventory(ctx, k8sClient, ks.Name, ks.Namespace, gvk)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(entries).To(HaveLen(1))
+
+	expected := &unstructured.Unstructured{
+		Object: map[string]interface{}{
+			"apiVersion": "apps/v1",
+			"kind":       "Deployment",
+			"metadata": map[string]interface{}{
+				"name":      "my-deployment",
+				"namespace": "my-namespace",
+			},
+		},
+	}
+
+	g.Expect(entries[0]).To(Equal(expected))
+}
+
+func TestParseInventoryFromUnstructured(t *testing.T) {
+	// inv lives at status.inventory.entries
+	stdErr := errors.New("no status.inventory found on resource, it hasn't been synced yet or is not queryable from this endpoint")
+
+	testCases := []struct {
+		name        string
+		obj         *unstructured.Unstructured
+		expected    []*unstructured.Unstructured
+		expectedErr error
+	}{
+		{
+			name:        "no status field",
+			obj:         &unstructured.Unstructured{},
+			expected:    nil,
+			expectedErr: stdErr,
+		},
+		{
+			name: "empty status",
+			obj: &unstructured.Unstructured{
+				Object: map[string]interface{}{
+					"status": map[string]interface{}{},
+				},
+			},
+			expected:    nil,
+			expectedErr: stdErr,
+		},
+		{
+			name: "empty inventory",
+			obj: &unstructured.Unstructured{
+				Object: map[string]interface{}{
+					"status": map[string]interface{}{
+						"inventory": map[string]interface{}{},
+					},
+				},
+			},
+			expected: nil,
+		},
+		{
+			name: "empty entry item",
+			obj: &unstructured.Unstructured{
+				Object: map[string]interface{}{
+					"status": map[string]interface{}{
+						"inventory": map[string]interface{}{
+							"entries": []interface{}{
+								map[string]interface{}{},
+							},
+						},
+					},
+				},
+			},
+			expected:    nil,
+			expectedErr: errors.New("unable to parse stored object metadata: "),
+		},
+		{
+			name: "invalid inventory",
+			obj: &unstructured.Unstructured{
+				Object: map[string]interface{}{
+					"status": map[string]interface{}{
+						"inventory": map[string]interface{}{
+							"entries": []interface{}{
+								map[string]interface{}{
+									"v":  "v1",
+									"id": "foo",
+								},
+							},
+						},
+					},
+				},
+			},
+			expected:    nil,
+			expectedErr: errors.New("unable to parse stored object metadata: foo"),
+		},
+		{
+			name: "valid inventory",
+			obj: &unstructured.Unstructured{
+				Object: map[string]interface{}{
+					"status": map[string]interface{}{
+						"inventory": map[string]interface{}{
+							"entries": []interface{}{
+								map[string]interface{}{
+									"v":  "v1",
+									"id": "my-namespace_my-deployment_apps_Deployment",
+								},
+								map[string]interface{}{
+									"v":  "v1",
+									"id": "my-other-namespace_my-configmap__ConfigMap",
+								},
+							},
+						},
+					},
+				},
+			},
+			expected: []*unstructured.Unstructured{
+				{
+					Object: map[string]interface{}{
+						"apiVersion": "apps/v1",
+						"kind":       "Deployment",
+						"metadata": map[string]interface{}{
+							"name":      "my-deployment",
+							"namespace": "my-namespace",
+						},
+					},
+				},
+				{
+					Object: map[string]interface{}{
+						"apiVersion": "v1",
+						"kind":       "ConfigMap",
+						"metadata": map[string]interface{}{
+							"name":      "my-configmap",
+							"namespace": "my-other-namespace",
+						},
+					},
+				},
+			},
+			expectedErr: nil,
+		},
+	}
+
+	for _, tc := range testCases {
+		// subtests...
+		t.Run(tc.name, func(tt *testing.T) {
+			gg := NewGomegaWithT(tt)
+			// Parse inventory from unstructured
+			entries, err := server.ParseInventoryFromUnstructured(tc.obj)
+
+			if err != nil || tc.expectedErr != nil {
+				gg.Expect(err).To(MatchError(tc.expectedErr))
+			}
+
+			gg.Expect(entries).To(ConsistOf(tc.expected))
+		})
+	}
 }

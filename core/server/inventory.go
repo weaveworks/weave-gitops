@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -53,17 +54,17 @@ func (cs *coreServer) GetInventory(ctx context.Context, msg *pb.GetInventoryRequ
 		if err != nil {
 			return nil, fmt.Errorf("failed getting helm Release inventory: %w", err)
 		}
-	// case kustomizev1.KustomizationKind:
-	// 	inventoryRefs, err = cs.getKustomizationInventory(ctx, client, msg.Name, msg.Namespace)
-	// 	if err != nil {
-	// 		return nil, fmt.Errorf("failed getting kustomization inventory: %w", err)
-	// 	}
+	case kustomizev1.KustomizationKind:
+		inventoryRefs, err = cs.getKustomizationInventory(ctx, client, msg.Name, msg.Namespace)
+		if err != nil {
+			return nil, fmt.Errorf("failed getting kustomization inventory: %w", err)
+		}
 	default:
 		gvk, err := cs.primaryKinds.Lookup(msg.Kind)
 		if err != nil {
 			return nil, err
 		}
-		inventoryRefs, err = cs.getUnstructedInventory(ctx, client, msg.Name, msg.Namespace, *gvk)
+		inventoryRefs, err = GetFluxLikeInventory(ctx, client, msg.Name, msg.Namespace, *gvk)
 		if err != nil {
 			return nil, fmt.Errorf("failed getting %s inventory: %w", msg.Kind, err)
 		}
@@ -109,55 +110,7 @@ func (cs *coreServer) getKustomizationInventory(ctx context.Context, k8sClient c
 	for _, ref := range ks.Status.Inventory.Entries {
 		obj, err := ResourceRefToUnstructured(ref.ID, ref.Version)
 		if err != nil {
-			cs.logger.Error(err, "failed converting inventory entry", "entry", ref)
-			return nil, err
-		}
-		objects = append(objects, &obj)
-	}
-
-	return objects, nil
-}
-
-func (cs *coreServer) getUnstructedInventory(ctx context.Context, k8sClient client.Client, name, namespace string, gvk schema.GroupVersionKind) ([]*unstructured.Unstructured, error) {
-	// Create an unstructured object with the desired GVK (GroupVersionKind)
-	obj := &unstructured.Unstructured{}
-	obj.SetGroupVersionKind(gvk)
-	obj.SetName(name)
-	obj.SetNamespace(namespace)
-
-	// Get the object from the Kubernetes cluster
-	if err := k8sClient.Get(ctx, client.ObjectKeyFromObject(obj), obj); err != nil {
-		return nil, fmt.Errorf("failed to get kustomization: %w", err)
-	}
-
-	content := obj.UnstructuredContent()
-
-	// Check if status.inventory is present
-	inventory, found, err := unstructured.NestedMap(content, "status", "inventory")
-	if err != nil || !found {
-		return nil, nil
-	}
-
-	// Check if status.inventory.entries is present
-	entries, found, err := unstructured.NestedSlice(inventory, "entries")
-	if err != nil || !found {
-		return nil, nil
-	}
-
-	objects := []*unstructured.Unstructured{}
-	for _, entryInterface := range entries {
-		entry, ok := entryInterface.(map[string]interface{})
-		if !ok {
-			// Handle error, the type is not as expected
-			continue
-		}
-
-		id, _, _ := unstructured.NestedString(entry, "id")
-		version, _, _ := unstructured.NestedString(entry, "v")
-		obj, err := ResourceRefToUnstructured(id, version)
-		if err != nil {
-			cs.logger.Error(err, "failed converting inventory entry", "entry", entry)
-			return nil, err
+			return nil, fmt.Errorf("failed converting inventory entry: %w", err)
 		}
 		objects = append(objects, &obj)
 	}
@@ -180,13 +133,6 @@ func (cs *coreServer) getHelmReleaseInventory(ctx context.Context, k8sClient cli
 	objects, err := getHelmReleaseObjects(ctx, k8sClient, release)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get helm release objects: %w", err)
-	}
-
-	// FIXME: do we need this?
-	for _, obj := range objects {
-		if obj.GetNamespace() == "" {
-			obj.SetNamespace(namespace)
-		}
 	}
 
 	return objects, nil
@@ -255,6 +201,67 @@ func getHelmReleaseObjects(ctx context.Context, k8sClient client.Client, helmRel
 	objects, err := ssa.ReadObjects(strings.NewReader(storage.Manifest))
 	if err != nil {
 		return nil, fmt.Errorf("failed to read the Helm storage object for HelmRelease '%s': %w", helmRelease.Name, err)
+	}
+
+	// FIXME: do we need this?
+	for _, obj := range objects {
+		if obj.GetNamespace() == "" {
+			obj.SetNamespace(helmRelease.Namespace)
+		}
+	}
+
+	return objects, nil
+}
+
+// GetFluxLikeInventory returns the inventory on a resource if
+// it matches the structure of the flux inventory format (e.g. kustomizations)
+// It returns an error if the inventory is not as expected
+func GetFluxLikeInventory(ctx context.Context, k8sClient client.Client, name, namespace string, gvk schema.GroupVersionKind) ([]*unstructured.Unstructured, error) {
+	// Create an unstructured object with the desired GVK (GroupVersionKind)
+	obj := &unstructured.Unstructured{}
+	obj.SetGroupVersionKind(gvk)
+	obj.SetName(name)
+	obj.SetNamespace(namespace)
+
+	// Get the object from the Kubernetes cluster
+	if err := k8sClient.Get(ctx, client.ObjectKeyFromObject(obj), obj); err != nil {
+		return nil, fmt.Errorf("failed to get kustomization: %w", err)
+	}
+
+	return ParseInventoryFromUnstructured(obj)
+}
+
+// Parse the inventory from an unstructured object
+// It returns an error if the inventory is not as expected (should look like a kustomization's inventory)
+func ParseInventoryFromUnstructured(obj *unstructured.Unstructured) ([]*unstructured.Unstructured, error) {
+	content := obj.UnstructuredContent()
+
+	// Check if status.inventory is present
+	inventory, found, err := unstructured.NestedMap(content, "status", "inventory")
+	if err != nil || !found {
+		return nil, errors.New("no status.inventory found on resource, it hasn't been synced yet or is not queryable from this endpoint")
+	}
+
+	// Check if status.inventory.entries is present
+	entries, found, err := unstructured.NestedSlice(inventory, "entries")
+	if err != nil || !found {
+		return nil, nil
+	}
+
+	objects := []*unstructured.Unstructured{}
+	for _, entryInterface := range entries {
+		entry, ok := entryInterface.(map[string]interface{})
+		if !ok {
+			return nil, fmt.Errorf("failed converting inventory entry to map[string]interface{}: %+v", entry)
+		}
+
+		id, _, _ := unstructured.NestedString(entry, "id")
+		version, _, _ := unstructured.NestedString(entry, "v")
+		obj, err := ResourceRefToUnstructured(id, version)
+		if err != nil {
+			return nil, fmt.Errorf("failed converting inventory entry: %w", err)
+		}
+		objects = append(objects, &obj)
 	}
 
 	return objects, nil

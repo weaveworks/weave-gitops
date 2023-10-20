@@ -1,8 +1,6 @@
 package fluxsync
 
 import (
-	"errors"
-
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	imgautomationv1 "github.com/fluxcd/image-automation-controller/api/v1beta1"
 	reflectorv1 "github.com/fluxcd/image-reflector-controller/api/v1beta2"
@@ -10,6 +8,9 @@ import (
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -302,6 +303,49 @@ func (obj ImageUpdateAutomationAdapter) DeepCopyClientObject() client.Object {
 	return obj.DeepCopy()
 }
 
+type UnstructuredAdapter struct {
+	*unstructured.Unstructured
+}
+
+func (obj UnstructuredAdapter) GetLastHandledReconcileRequest() string {
+	if val, found, _ := unstructured.NestedString(obj.Object, "status", "lastHandledReconcileAt"); found {
+		return val
+	}
+	return ""
+}
+
+func (obj UnstructuredAdapter) GetConditions() []metav1.Condition {
+	conditionsSlice, found, err := unstructured.NestedSlice(obj.Object, "status", "conditions")
+	if !found || err != nil {
+		return nil
+	}
+
+	var conditions []metav1.Condition
+	for _, c := range conditionsSlice {
+		var condition metav1.Condition
+		if err := runtime.DefaultUnstructuredConverter.FromUnstructured(c.(map[string]interface{}), &condition); err != nil {
+			continue
+		}
+		conditions = append(conditions, condition)
+	}
+
+	return conditions
+}
+
+func (obj UnstructuredAdapter) AsClientObject() client.Object {
+	// Important for the client reflection stuff to work
+	// We can't return just `obj` here as it seems to break stuff.
+	return obj.Unstructured
+}
+
+func (obj UnstructuredAdapter) SetSuspended(suspend bool) {
+	unstructured.SetNestedField(obj.Object, suspend, "spec", "suspend")
+}
+
+func (obj UnstructuredAdapter) DeepCopyClientObject() client.Object {
+	return obj.DeepCopy()
+}
+
 type sRef struct {
 	apiVersion string
 	name       string
@@ -325,8 +369,8 @@ func (s sRef) Kind() string {
 	return s.kind
 }
 
-func ToReconcileable(kind string) (client.ObjectList, Reconcilable, error) {
-	switch kind {
+func ToReconcileable(gvk schema.GroupVersionKind) (client.ObjectList, Reconcilable, error) {
+	switch gvk.Kind {
 	case kustomizev1.KustomizationKind:
 		return &kustomizev1.KustomizationList{}, NewReconcileable(&kustomizev1.Kustomization{}), nil
 
@@ -355,5 +399,15 @@ func ToReconcileable(kind string) (client.ObjectList, Reconcilable, error) {
 		return &imgautomationv1.ImageUpdateAutomationList{}, NewReconcileable(&imgautomationv1.ImageUpdateAutomation{}), nil
 	}
 
-	return nil, nil, errors.New("could not find source type")
+	return ToUnstructuredReconcilable(gvk)
+}
+
+func ToUnstructuredReconcilable(gvk schema.GroupVersionKind) (client.ObjectList, Reconcilable, error) {
+	obj := &unstructured.Unstructured{}
+	obj.SetGroupVersionKind(gvk)
+
+	objList := &unstructured.UnstructuredList{}
+	objList.SetGroupVersionKind(gvk)
+
+	return objList, UnstructuredAdapter{Unstructured: obj}, nil
 }

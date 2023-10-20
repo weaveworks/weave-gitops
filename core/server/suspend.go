@@ -33,7 +33,13 @@ func (cs *coreServer) ToggleSuspendResource(ctx context.Context, msg *pb.ToggleS
 			Namespace: obj.Namespace,
 		}
 
-		obj, err := getReconcilableObject(obj.Kind)
+		gvk, err := cs.primaryKinds.Lookup(obj.Kind)
+		if err != nil {
+			respErrors = *multierror.Append(fmt.Errorf("looking up GVK for %q: %w", obj.Kind, err), respErrors.Errors...)
+			continue
+		}
+
+		_, obj, err := fluxsync.ToReconcileable(*gvk)
 		if err != nil {
 			respErrors = *multierror.Append(fmt.Errorf("converting to reconcilable source: %w", err), respErrors.Errors...)
 			continue
@@ -67,10 +73,4 @@ func (cs *coreServer) ToggleSuspendResource(ctx context.Context, msg *pb.ToggleS
 	}
 
 	return &pb.ToggleSuspendResourceResponse{}, respErrors.ErrorOrNil()
-}
-
-func getReconcilableObject(kind string) (fluxsync.Reconcilable, error) {
-	_, s, err := fluxsync.ToReconcileable(kind)
-
-	return s, err
 }
