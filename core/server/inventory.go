@@ -112,7 +112,7 @@ func (cs *coreServer) getKustomizationInventory(ctx context.Context, k8sClient c
 			cs.logger.Error(err, "failed converting inventory entry", "entry", ref)
 			return nil, err
 		}
-		objects = append(objects, &obj)
+		objects = append(objects, obj)
 	}
 
 	return objects, nil
@@ -218,8 +218,8 @@ func unstructuredToInventoryEntry(clusterName string, objWithChildren []*ObjectW
 	for _, c := range objWithChildren {
 		unstructuredObj := *c.Object
 		if unstructuredObj.GetKind() == "Secret" {
-			var err error
-			unstructuredObj, err = SanitizeUnstructuredSecret(unstructuredObj)
+			sanitizedUnstructuredObj, err := SanitizeUnstructuredSecret(unstructuredObj)
+			unstructuredObj = *sanitizedUnstructuredObj
 			if err != nil {
 				return nil, fmt.Errorf("error sanitizing secrets: %w", err)
 			}
@@ -364,12 +364,12 @@ func getChildren(ctx context.Context, k8sClient client.Client, parentObj unstruc
 }
 
 // ResourceRefToUnstructured converts a flux like resource entry pair of (id, version) into a unstructured object
-func ResourceRefToUnstructured(id, version string) (unstructured.Unstructured, error) {
-	u := unstructured.Unstructured{}
+func ResourceRefToUnstructured(id, version string) (*unstructured.Unstructured, error) {
+	u := &unstructured.Unstructured{}
 
 	objMetadata, err := object.ParseObjMetadata(id)
 	if err != nil {
-		return u, err
+		return nil, fmt.Errorf("unable to parse inventory entry id: %w", err)
 	}
 
 	u.SetGroupVersionKind(schema.GroupVersionKind{
@@ -384,20 +384,20 @@ func ResourceRefToUnstructured(id, version string) (unstructured.Unstructured, e
 }
 
 // SanitizeUnstructuredSecret redacts the data field of a Secret object
-func SanitizeUnstructuredSecret(obj unstructured.Unstructured) (unstructured.Unstructured, error) {
-	redactedUnstructured := unstructured.Unstructured{}
+func SanitizeUnstructuredSecret(obj unstructured.Unstructured) (*unstructured.Unstructured, error) {
+	redactedUnstructured := &unstructured.Unstructured{}
 	s := &v1.Secret{}
 
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(obj.UnstructuredContent(), s)
 	if err != nil {
-		return redactedUnstructured, fmt.Errorf("converting unstructured to helmrelease: %w", err)
+		return nil, fmt.Errorf("converting unstructured to secret: %w", err)
 	}
 
 	s.Data = map[string][]byte{"redacted": []byte(nil)}
 
 	redactedObj, err := runtime.DefaultUnstructuredConverter.ToUnstructured(s)
 	if err != nil {
-		return redactedUnstructured, fmt.Errorf("converting unstructured to helmrelease: %w", err)
+		return nil, fmt.Errorf("converting unstructured to secret: %w", err)
 	}
 
 	redactedUnstructured.SetUnstructuredContent(redactedObj)

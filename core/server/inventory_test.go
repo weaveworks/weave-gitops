@@ -13,12 +13,14 @@ import (
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
+	"github.com/weaveworks/weave-gitops/core/server"
 	"github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
@@ -316,4 +318,89 @@ func TestGetInventoryHelmReleaseWithKubeconfig(t *testing.T) {
 
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(res.Entries).To(HaveLen(0))
+}
+
+func TestResourceRefToUnstructured(t *testing.T) {
+	testCases := []struct {
+		name        string
+		id          string
+		version     string
+		expected    *unstructured.Unstructured
+		expectedErr string
+	}{
+		{
+			name:    "valid id",
+			id:      "test-namespace_test-name_apps_Deployment",
+			version: "v1",
+			expected: &unstructured.Unstructured{
+				Object: map[string]interface{}{
+					"apiVersion": "apps/v1",
+					"kind":       "Deployment",
+					"metadata": map[string]interface{}{
+						"name":      "test-name",
+						"namespace": "test-namespace",
+					},
+				},
+			},
+		},
+		{
+			name:        "invalid id",
+			id:          "foo",
+			version:     "v1",
+			expectedErr: "unable to parse inventory entry id:",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			g := NewGomegaWithT(t)
+
+			res, err := server.ResourceRefToUnstructured(tc.id, tc.version)
+			if tc.expectedErr != "" {
+				g.Expect(err).To(MatchError(MatchRegexp(tc.expectedErr)))
+			} else {
+				g.Expect(err).NotTo(HaveOccurred())
+				g.Expect(res).To(Equal(tc.expected))
+			}
+		})
+	}
+}
+
+func TestSanitizeUnstructuredSecret(t *testing.T) {
+	unstructuredSecret := unstructured.Unstructured{
+		Object: map[string]interface{}{
+			"apiVersion": "v1",
+			"kind":       "Secret",
+			"metadata": map[string]interface{}{
+				"name":      "my-secret",
+				"namespace": "my-namespace",
+			},
+			"type": "Opaque",
+			"data": map[string]interface{}{
+				"key": "dGVzdA==",
+			},
+		},
+	}
+
+	expected := &unstructured.Unstructured{
+		Object: map[string]interface{}{
+			"apiVersion": "v1",
+			"kind":       "Secret",
+			"metadata": map[string]interface{}{
+				"name":              "my-secret",
+				"namespace":         "my-namespace",
+				"creationTimestamp": nil,
+			},
+			"type": "Opaque",
+			"data": map[string]interface{}{
+				"redacted": nil,
+			},
+		},
+	}
+
+	secret, err := server.SanitizeUnstructuredSecret(unstructuredSecret)
+
+	g := NewGomegaWithT(t)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(secret).To(Equal(expected))
 }
