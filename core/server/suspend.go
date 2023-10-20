@@ -59,7 +59,10 @@ func (cs *coreServer) ToggleSuspendResource(ctx context.Context, msg *pb.ToggleS
 
 		patch := client.MergeFrom(obj.DeepCopyClientObject())
 
-		obj.SetSuspended(msg.Suspend)
+		err = obj.SetSuspended(msg.Suspend)
+		if err != nil {
+			return nil, err
+		}
 
 		if msg.Suspend {
 			log.Info("Suspending resource")

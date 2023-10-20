@@ -24,7 +24,7 @@ type Reconcilable interface {
 	GetLastHandledReconcileRequest() string
 	AsClientObject() client.Object
 	GroupVersionKind() schema.GroupVersionKind
-	SetSuspended(suspend bool)
+	SetSuspended(suspend bool) error
 	DeepCopyClientObject() client.Object
 }
 
@@ -83,8 +83,9 @@ func (obj GitRepositoryAdapter) GroupVersionKind() schema.GroupVersionKind {
 	return sourcev1.GroupVersion.WithKind(sourcev1.GitRepositoryKind)
 }
 
-func (obj GitRepositoryAdapter) SetSuspended(suspend bool) {
+func (obj GitRepositoryAdapter) SetSuspended(suspend bool) error {
 	obj.Spec.Suspend = suspend
+	return nil
 }
 
 func (obj GitRepositoryAdapter) DeepCopyClientObject() client.Object {
@@ -107,8 +108,9 @@ func (obj BucketAdapter) GroupVersionKind() schema.GroupVersionKind {
 	return sourcev1b2.GroupVersion.WithKind(sourcev1b2.BucketKind)
 }
 
-func (obj BucketAdapter) SetSuspended(suspend bool) {
+func (obj BucketAdapter) SetSuspended(suspend bool) error {
 	obj.Spec.Suspend = suspend
+	return nil
 }
 
 func (obj BucketAdapter) DeepCopyClientObject() client.Object {
@@ -131,8 +133,9 @@ func (obj HelmChartAdapter) GroupVersionKind() schema.GroupVersionKind {
 	return sourcev1b2.GroupVersion.WithKind(sourcev1b2.HelmChartKind)
 }
 
-func (obj HelmChartAdapter) SetSuspended(suspend bool) {
+func (obj HelmChartAdapter) SetSuspended(suspend bool) error {
 	obj.Spec.Suspend = suspend
+	return nil
 }
 
 func (obj HelmChartAdapter) DeepCopyClientObject() client.Object {
@@ -155,8 +158,9 @@ func (obj HelmRepositoryAdapter) GroupVersionKind() schema.GroupVersionKind {
 	return sourcev1b2.GroupVersion.WithKind(sourcev1b2.HelmRepositoryKind)
 }
 
-func (obj HelmRepositoryAdapter) SetSuspended(suspend bool) {
+func (obj HelmRepositoryAdapter) SetSuspended(suspend bool) error {
 	obj.Spec.Suspend = suspend
+	return nil
 }
 
 func (obj HelmRepositoryAdapter) DeepCopyClientObject() client.Object {
@@ -179,8 +183,9 @@ func (obj OCIRepositoryAdapter) GroupVersionKind() schema.GroupVersionKind {
 	return sourcev1b2.GroupVersion.WithKind(sourcev1b2.OCIRepositoryKind)
 }
 
-func (obj OCIRepositoryAdapter) SetSuspended(suspend bool) {
+func (obj OCIRepositoryAdapter) SetSuspended(suspend bool) error {
 	obj.Spec.Suspend = suspend
+	return nil
 }
 
 func (obj OCIRepositoryAdapter) DeepCopyClientObject() client.Object {
@@ -214,8 +219,9 @@ func (obj HelmReleaseAdapter) GroupVersionKind() schema.GroupVersionKind {
 	return helmv2.GroupVersion.WithKind(helmv2.HelmReleaseKind)
 }
 
-func (obj HelmReleaseAdapter) SetSuspended(suspend bool) {
+func (obj HelmReleaseAdapter) SetSuspended(suspend bool) error {
 	obj.Spec.Suspend = suspend
+	return nil
 }
 
 func (obj HelmReleaseAdapter) DeepCopyClientObject() client.Object {
@@ -247,8 +253,9 @@ func (obj KustomizationAdapter) GroupVersionKind() schema.GroupVersionKind {
 	return kustomizev1.GroupVersion.WithKind(kustomizev1.KustomizationKind)
 }
 
-func (obj KustomizationAdapter) SetSuspended(suspend bool) {
+func (obj KustomizationAdapter) SetSuspended(suspend bool) error {
 	obj.Spec.Suspend = suspend
+	return nil
 }
 
 func (obj KustomizationAdapter) DeepCopyClientObject() client.Object {
@@ -271,8 +278,9 @@ func (obj ImageRepositoryAdapter) GroupVersionKind() schema.GroupVersionKind {
 	return reflectorv1.GroupVersion.WithKind(reflectorv1.ImageRepositoryKind)
 }
 
-func (obj ImageRepositoryAdapter) SetSuspended(suspend bool) {
+func (obj ImageRepositoryAdapter) SetSuspended(suspend bool) error {
 	obj.Spec.Suspend = suspend
+	return nil
 }
 
 func (obj ImageRepositoryAdapter) DeepCopyClientObject() client.Object {
@@ -295,8 +303,9 @@ func (obj ImageUpdateAutomationAdapter) GroupVersionKind() schema.GroupVersionKi
 	return imgautomationv1.GroupVersion.WithKind(imgautomationv1.ImageUpdateAutomationKind)
 }
 
-func (obj ImageUpdateAutomationAdapter) SetSuspended(suspend bool) {
+func (obj ImageUpdateAutomationAdapter) SetSuspended(suspend bool) error {
 	obj.Spec.Suspend = suspend
+	return nil
 }
 
 func (obj ImageUpdateAutomationAdapter) DeepCopyClientObject() client.Object {
@@ -338,8 +347,8 @@ func (obj UnstructuredAdapter) AsClientObject() client.Object {
 	return obj.Unstructured
 }
 
-func (obj UnstructuredAdapter) SetSuspended(suspend bool) {
-	unstructured.SetNestedField(obj.Object, suspend, "spec", "suspend")
+func (obj UnstructuredAdapter) SetSuspended(suspend bool) error {
+	return unstructured.SetNestedField(obj.Object, suspend, "spec", "suspend")
 }
 
 func (obj UnstructuredAdapter) DeepCopyClientObject() client.Object {

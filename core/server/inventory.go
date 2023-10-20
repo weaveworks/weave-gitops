@@ -42,12 +42,12 @@ func (cs *coreServer) GetInventory(ctx context.Context, msg *pb.GetInventoryRequ
 
 	switch msg.Kind {
 	case kustomizev1.KustomizationKind:
-		entries, err = cs.getKustomizationInventory(ctx, msg.ClusterName, client, msg.Name, msg.Namespace)
+		entries, err = cs.getKustomizationInventory(ctx, client, msg.Name, msg.Namespace)
 		if err != nil {
 			return nil, fmt.Errorf("failed getting kustomization inventory: %w", err)
 		}
 	case helmv2.HelmReleaseKind:
-		entries, err = cs.getHelmReleaseInventory(ctx, msg.ClusterName, client, msg.Name, msg.Namespace)
+		entries, err = cs.getHelmReleaseInventory(ctx, client, msg.Name, msg.Namespace)
 		if err != nil {
 			return nil, fmt.Errorf("failed getting helm Release inventory: %w", err)
 		}
@@ -62,17 +62,14 @@ func (cs *coreServer) GetInventory(ctx context.Context, msg *pb.GetInventoryRequ
 		}
 	}
 
-	resources, err := cs.getInventoryResources(ctx, msg.ClusterName, client, entries, msg.Namespace, msg.WithChildren)
-	if err != nil {
-		return nil, fmt.Errorf("failed getting inventory resources: %w", err)
-	}
+	resources := cs.getInventoryResources(ctx, msg.ClusterName, client, entries, msg.Namespace, msg.WithChildren)
 
 	return &pb.GetInventoryResponse{
 		Entries: resources,
 	}, nil
 }
 
-func (cs *coreServer) getKustomizationInventory(ctx context.Context, clusterName string, k8sClient client.Client, name, namespace string) ([]*unstructured.Unstructured, error) {
+func (cs *coreServer) getKustomizationInventory(ctx context.Context, k8sClient client.Client, name, namespace string) ([]*unstructured.Unstructured, error) {
 	kust := &kustomizev1.Kustomization{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -104,7 +101,7 @@ func (cs *coreServer) getKustomizationInventory(ctx context.Context, clusterName
 	return objects, nil
 }
 
-func (cs *coreServer) getHelmReleaseInventory(ctx context.Context, clusterName string, k8sClient client.Client, name, namespace string) ([]*unstructured.Unstructured, error) {
+func (cs *coreServer) getHelmReleaseInventory(ctx context.Context, k8sClient client.Client, name, namespace string) ([]*unstructured.Unstructured, error) {
 	release := &helmv2.HelmRelease{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -124,7 +121,7 @@ func (cs *coreServer) getHelmReleaseInventory(ctx context.Context, clusterName s
 	return objects, nil
 }
 
-func (cs *coreServer) getInventoryResources(ctx context.Context, clusterName string, k8sClient client.Client, objects []*unstructured.Unstructured, namespace string, withChildren bool) ([]*pb.InventoryEntry, error) {
+func (cs *coreServer) getInventoryResources(ctx context.Context, clusterName string, k8sClient client.Client, objects []*unstructured.Unstructured, namespace string, withChildren bool) []*pb.InventoryEntry {
 	result := []*pb.InventoryEntry{}
 	resultMu := sync.Mutex{}
 
@@ -155,7 +152,7 @@ func (cs *coreServer) getInventoryResources(ctx context.Context, clusterName str
 
 	wg.Wait()
 
-	return result, nil
+	return result
 }
 
 // Returns the list of resources applied in the helm chart.

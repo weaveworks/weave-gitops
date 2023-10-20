@@ -64,7 +64,8 @@ func TestSetSuspended(t *testing.T) {
 		},
 	}
 
-	obj.SetSuspended(true)
+	err := obj.SetSuspended(true)
+	g.Expect(err).NotTo(HaveOccurred())
 	suspend, _, _ := unstructured.NestedBool(obj.Object, "spec", "suspend")
 	g.Expect(suspend).To(BeTrue())
 }
