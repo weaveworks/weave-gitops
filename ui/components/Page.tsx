@@ -35,7 +35,7 @@ const PageLayout = styled(Flex)`
   overflow: hidden;
 `;
 export const Content = styled(Flex)`
-  background-color: ${(props) => props.theme.colors.white};
+  background-color: ${(props) => props.theme.colors.neutral00};
   border-radius: 10px;
   box-sizing: border-box;
   margin: 0 auto;

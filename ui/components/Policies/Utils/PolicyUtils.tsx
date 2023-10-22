@@ -34,7 +34,7 @@ export const SectionWrapper = ({ title, children }) => {
 
 export const ChipWrap = styled(Chip)`
   &.MuiChip-root {
-    color: ${(props) => props.theme.colors.black};
+    color: ${(props) => props.theme.colors.neutral40};
     background-color: ${(props) => props.theme.colors.neutralGray};
     padding: 2px 4px;
     height: inherit;
