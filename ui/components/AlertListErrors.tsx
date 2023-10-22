@@ -38,6 +38,7 @@ const BoxWrapper = styled(Box)`
     display: flex;
     justify-content: space-between;
     align-items: center;
+    padding: 0;
   }
 `;
 const ErrorText = styled(Text)`
@@ -91,34 +92,36 @@ export const AlertListErrors: FC<{
                 {filteredErrors[index].message}
               </ErrorText>
             </Flex>
-            <Flex align center>
-              <NavButton
-                disabled={index === 0}
-                data-testid="prevError"
-                onClick={() => setIndex((currIndex) => currIndex - 1)}
-              >
-                <Icon
-                  type={IconType.NavigateBeforeIcon}
-                  color="alertMedium"
-                  size="medium"
-                />
-              </NavButton>
-              <ErrorsCount data-testid="errorsCount">
-                {filteredErrors.length}
-              </ErrorsCount>
-              <NavButton
-                disabled={filteredErrors.length === index + 1}
-                id="nextError"
-                data-testid="nextError"
-                onClick={() => setIndex((currIndex) => currIndex + 1)}
-              >
-                <Icon
-                  type={IconType.NavigateNextIcon}
-                  color="alertMedium"
-                  size="medium"
-                />
-              </NavButton>
-            </Flex>
+            {filteredErrors.length !== 1 && (
+              <Flex align center>
+                <NavButton
+                  disabled={index === 0}
+                  data-testid="prevError"
+                  onClick={() => setIndex((currIndex) => currIndex - 1)}
+                >
+                  <Icon
+                    type={IconType.NavigateBeforeIcon}
+                    color="alertMedium"
+                    size="medium"
+                  />
+                </NavButton>
+                <ErrorsCount data-testid="errorsCount">
+                  {filteredErrors.length}
+                </ErrorsCount>
+                <NavButton
+                  disabled={filteredErrors.length === index + 1}
+                  id="nextError"
+                  data-testid="nextError"
+                  onClick={() => setIndex((currIndex) => currIndex + 1)}
+                >
+                  <Icon
+                    type={IconType.NavigateNextIcon}
+                    color="alertMedium"
+                    size="medium"
+                  />
+                </NavButton>
+              </Flex>
+            )}
           </Alert>
         )}
       </Collapse>
