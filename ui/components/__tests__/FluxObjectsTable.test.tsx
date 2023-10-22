@@ -60,7 +60,7 @@ describe("FluxObjectsTable", () => {
       )
     );
     const rows = document.querySelectorAll("tbody tr");
-    
+
     // Since our resolver does not specify any behavior for a Service,
     // this should not have a link.
     const serviceName = rows[0].querySelector("td:first-child");
