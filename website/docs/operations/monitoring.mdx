@@ -9,20 +9,51 @@ import TierLabel from "./../_components/TierLabel";
 
 # Monitoring <TierLabel tiers="Enterprise" />
 
-Weave GitOps Enterprise provides the following telemetry to use for monitoring.
+Weave GitOps Enterprise provides the following telemetry and tooling for monitoring:
+- [Metrics](#metrics)
+- [Profiling](#profiling)
 
-### Metrics
+## Setup
+
+The following configuration options are available for you to configure `montoring`:
+
+```yaml
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: weave-gitops-enterprise
+  namespace: flux-system
+spec:
+  values:
+    monitoring:
+      enabled: true # enable it if you want to expose a monitoring server
+      service:
+        name: monitoring
+        port: 8080 # port to expose the monitoring server
+      metrics:
+        enabled: true # enable it to expose a prometheus metrics endpoint in `/metrics`
+      profiling:
+        enabled: false # enable it to expose a pprof debug endpoint  `/debug/pprof`
+```
+
+:::caution
+The monitoring server holds private services, so you likely do not require to expose beyond your cluster. In
+case you need, ensure that it is properly secured.
+:::
+
+## Metrics
 
 It generates [Prometheus](https://prometheus.io/) metrics for monitoring both performance and business operations.
 
-#### Setup
+### Get Started
 
 :::info
 This setup follows [Flux Monitoring](https://fluxcd.io/flux/monitoring/metrics/) approach based on [Prometheus Operator](https://prometheus-operator.dev/). Adapt it to your context as needed.
 :::
 
-
-1. Install [Kube Prometheus Stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack).
+1. You have [enabled](#setup) the monitoring server with the metrics endpoint.
+2. Install [Kube Prometheus Stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack).
 
 <details><summary>Expand to see manifest contents</summary>
 
@@ -57,28 +88,6 @@ spec:
   prune: true
   targetNamespace: monitoring
   wait: true
-```
-
-</details>
-
-
-2. Enable Prometheus Metrics Configuration happens during releasing as shown below.
-
-<details><summary>Expand to see manifest contents</summary>
-
-```yaml
----
-apiVersion: helm.toolkit.fluxcd.io/v2beta1
-kind: HelmRelease
-metadata:
-  name: weave-gitops-enterprise
-  namespace: flux-system
-spec:
-  values:
-    #### Metrics - Prometheus metrics configuration
-    metrics:
-      # Enables metrics generation and prometheus endpoint
-      enabled: true
 ```
 
 </details>
@@ -130,3 +139,20 @@ Monitor Weave Gitops GO runtime metrics like Memory Usage, Memory Heap, Goroutin
 **Explorer**
 
 Monitor Explorer golden signals. More info [here](../../explorer/operations#monitoring)
+
+## Profiling
+
+Profiling can be useful during operations to help you to gain a deeper understanding, of how weave gitops runtime behaves.
+Given Weave GitOps is written in Go, profiling happens through [pprof](https://pkg.go.dev/runtime/pprof), and it is
+exposed as web endpoint by [pprof http](https://pkg.go.dev/net/http/pprof).
+
+
+#### Get Started
+
+1. You have [enabled](#setup) the monitoring server with the profiling endpoint.
+2. Navigate to your monitoring server URL to the `/debug/pprof` path where the pprof web interface is exposed.
+
+![profiling web ui](imgs/profiling-pprof-web-ui.png)
+
+For further info on using `pprof` see [here](https://github.com/google/pprof/blob/main/doc/README.md)
+

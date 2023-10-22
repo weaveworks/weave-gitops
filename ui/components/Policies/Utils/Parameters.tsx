@@ -22,7 +22,7 @@ export const ParameterCell = ({
   return (
     <Flex wide column data-testid={label} gap="4">
       <Text color="neutral30">{label}</Text>
-      <Text color="black">{value}</Text>
+      <Text color="neutral40">{value}</Text>
     </Flex>
   );
 };

@@ -57,7 +57,7 @@ const NavButton = styled(Button)`
 
 const ErrorsCount = styled.span`
   background: ${(props) => props.theme.colors.alertDark};
-  color: ${(props) => props.theme.colors.white};
+  color: ${(props) => props.theme.colors.neutral00};
   padding: 4px;
   border-radius: 4px;
   margin: 0 4px;
@@ -84,7 +84,11 @@ function ErrorList({ className, errors }: Props) {
         <Alert severity="error" onClose={() => setExpand(false)}>
           <Flex align center>
             <Icon size="medium" type={IconType.ErrorIcon} color="alertDark" />
-            <ErrorText size="medium" data-testid="error-message" color="black">
+            <ErrorText
+              size="medium"
+              data-testid="error-message"
+              color="neutral40"
+            >
               {currentError.clusterName}:&nbsp;
               {currentError.message}
             </ErrorText>

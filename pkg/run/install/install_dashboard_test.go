@@ -4,10 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"os"
 	"strings"
 	"time"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
+	"github.com/fluxcd/pkg/runtime/transform"
 	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo/v2"
@@ -34,6 +36,22 @@ const (
 
 	objectCreationErrorMsg = " \"\" is invalid: metadata.name: Required value: name is required"
 )
+
+var testValues = map[string]interface{}{
+	"service": map[string]interface{}{
+		"port": "9000",
+	},
+}
+
+var testValues2 = map[string]interface{}{
+	"service": map[string]interface{}{
+		"type": "nodePort",
+	},
+}
+
+var testValuesMerge = transform.MergeMaps(testValues, testValues2)
+
+var testValuesFiles = []string{"/tmp/testvalues.yaml", "/tmp/testvalues2.yaml"}
 
 var helmReleaseFixtures = []runtime.Object{
 	&helmv2.HelmRelease{
@@ -133,11 +151,33 @@ var _ = Describe("InstallDashboard", func() {
 	})
 
 	It("should install dashboard successfully", func() {
-		manifests, err := CreateDashboardObjects(fakeLogger, testDashboardName, testNamespace, testAdminUser, testPasswordHash, helmChartVersion, "")
+		manifests, err := CreateDashboardObjects(fakeLogger, testDashboardName, testNamespace, testAdminUser, testPasswordHash, helmChartVersion, "", nil)
 		Expect(err).NotTo(HaveOccurred())
 
 		err = InstallDashboard(fakeContext, fakeLogger, fakeClient, manifests)
 		Expect(err).NotTo(HaveOccurred())
+	})
+
+	It("should correctly read values", func() {
+		d, err := yaml.Marshal(testValues)
+		Expect(err).NotTo(HaveOccurred())
+
+		err = os.WriteFile(testValuesFiles[0], d, 0o644)
+		Expect(err).NotTo(HaveOccurred())
+
+		d, err = yaml.Marshal(testValues2)
+		Expect(err).NotTo(HaveOccurred())
+
+		err = os.WriteFile(testValuesFiles[1], d, 0o644)
+		Expect(err).NotTo(HaveOccurred())
+
+		manifests, err := CreateDashboardObjects(fakeLogger, testDashboardName, testNamespace, testAdminUser, testPasswordHash, helmChartVersion, "", testValuesFiles)
+		Expect(err).NotTo(HaveOccurred())
+
+		values := map[string]interface{}{}
+		err = json.Unmarshal(manifests.HelmRelease.Spec.Values.Raw, &values)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(values["service"]).To(Equal(testValuesMerge["service"]))
 	})
 
 	It("should return an apply all error if the resource manager returns an apply all error", func() {
@@ -259,7 +299,7 @@ var _ = Describe("generateManifestsForDashboard", func() {
 	It("generates manifests", func() {
 		helmRepository := makeHelmRepository(testDashboardName, testNamespace)
 
-		helmRelease, err := makeHelmRelease(fakeLogger, testDashboardName, testNamespace, testAdminUser, testPasswordHash, helmChartVersion, "")
+		helmRelease, err := makeHelmRelease(fakeLogger, testDashboardName, testNamespace, testAdminUser, testPasswordHash, helmChartVersion, "", testValues)
 		Expect(err).NotTo(HaveOccurred())
 
 		manifestsData, err := generateManifestsForDashboard(fakeLogger, helmRepository, helmRelease)
@@ -287,6 +327,11 @@ var _ = Describe("generateManifestsForDashboard", func() {
 		Expect(chart.Spec.Chart).To(Equal(ossDashboardHelmChartName))
 		Expect(chart.Spec.SourceRef.Name).To(Equal(testDashboardName))
 		Expect(chart.Spec.Version).To(Equal(helmChartVersion))
+
+		values := map[string]interface{}{}
+		err = json.Unmarshal(actualHelmRelease.Spec.Values.Raw, &values)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(values["service"]).To(Equal(testValues["service"]))
 	})
 })
 
@@ -303,7 +348,7 @@ var _ = Describe("makeHelmRelease", func() {
 			Analytics: true,
 		})
 
-		actual, err := makeHelmRelease(fakeLogger, testDashboardName, testNamespace, testAdminUser, testPasswordHash, helmChartVersion, "")
+		actual, err := makeHelmRelease(fakeLogger, testDashboardName, testNamespace, testAdminUser, testPasswordHash, helmChartVersion, "", testValues)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(actual.Kind).To(Equal(helmv2.HelmReleaseKind))
 		Expect(actual.APIVersion).To(Equal(helmv2.GroupVersion.Identifier()))
@@ -331,7 +376,7 @@ var _ = Describe("makeHelmRelease", func() {
 	})
 
 	It("creates helmrelease without chart version", func() {
-		actual, err := makeHelmRelease(fakeLogger, testDashboardName, testNamespace, testAdminUser, testPasswordHash, "", "")
+		actual, err := makeHelmRelease(fakeLogger, testDashboardName, testNamespace, testAdminUser, testPasswordHash, "", "", testValues)
 		Expect(err).NotTo(HaveOccurred())
 
 		chart := actual.Spec.Chart
@@ -344,9 +389,25 @@ var _ = Describe("makeHelmRelease", func() {
 			Analytics: false,
 		})
 
-		actual, err := makeHelmRelease(fakeLogger, testDashboardName, testNamespace, "", "", helmChartVersion, "")
+		actual, err := makeHelmRelease(fakeLogger, testDashboardName, testNamespace, "", "", helmChartVersion, "", nil)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(actual.Spec.Values).To(BeNil())
+	})
+
+	It("does not add values to helmrelease other than directly supply if username and secret are empty and analytics is off", func() {
+		config.SetConfig(&config.GitopsCLIConfig{
+			UserID:    testUserID,
+			Analytics: false,
+		})
+
+		values := map[string]interface{}{}
+		actual, err := makeHelmRelease(fakeLogger, testDashboardName, testNamespace, "", "", helmChartVersion, "", testValues)
+		Expect(err).NotTo(HaveOccurred())
+
+		err = json.Unmarshal(actual.Spec.Values.Raw, &values)
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(values).To(Equal(testValues))
 	})
 
 	It("adds only telemetry value to helmrelease if username and secret are empty but analytics is on", func() {
@@ -355,7 +416,7 @@ var _ = Describe("makeHelmRelease", func() {
 			Analytics: true,
 		})
 
-		actual, err := makeHelmRelease(fakeLogger, testDashboardName, testNamespace, "", "", helmChartVersion, "")
+		actual, err := makeHelmRelease(fakeLogger, testDashboardName, testNamespace, "", "", helmChartVersion, "", testValues)
 		Expect(err).NotTo(HaveOccurred())
 
 		values := map[string]interface{}{}
@@ -374,7 +435,7 @@ var _ = Describe("makeHelmRelease", func() {
 			Analytics: false,
 		})
 
-		actual, err := makeHelmRelease(fakeLogger, testDashboardName, testNamespace, testAdminUser, testPasswordHash, helmChartVersion, "")
+		actual, err := makeHelmRelease(fakeLogger, testDashboardName, testNamespace, testAdminUser, testPasswordHash, helmChartVersion, "", testValues)
 		Expect(err).NotTo(HaveOccurred())
 
 		values := map[string]interface{}{}
@@ -421,7 +482,7 @@ var _ = Describe("makeValues", func() {
 			Analytics: true,
 		})
 
-		values, err := makeValues(testAdminUser, testPasswordHash, "")
+		values, err := makeValues(testAdminUser, testPasswordHash, "", testValues)
 		Expect(err).NotTo(HaveOccurred())
 
 		actual := map[string]interface{}{}
@@ -463,7 +524,7 @@ var _ = Describe("SanitizeResourceData", func() {
 	})
 
 	It("sanitizes helmrelease data", func() {
-		helmRelease, err := makeHelmRelease(fakeLogger, testDashboardName, testNamespace, testAdminUser, testPasswordHash, helmChartVersion, "")
+		helmRelease, err := makeHelmRelease(fakeLogger, testDashboardName, testNamespace, testAdminUser, testPasswordHash, helmChartVersion, "", testValues)
 		Expect(err).NotTo(HaveOccurred())
 
 		resData, err := yaml.Marshal(helmRelease)
