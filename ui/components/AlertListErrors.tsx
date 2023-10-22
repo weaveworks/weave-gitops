@@ -8,12 +8,19 @@ import Flex from "./Flex";
 import Icon, { IconType } from "./Icon";
 import Text from "./Text";
 
+type compinedError = ListError & {
+  name?: string;
+  message?: string;
+  stack?: string;
+};
+
 const BoxWrapper = styled(Box)`
+  width: 100%;
   .MuiAlert-root {
-    width: auto;
     margin-bottom: ${(props) => props.theme.spacing.base};
     background: ${(props) => props.theme.colors.alertLight};
     border-radius: ${(props) => props.theme.spacing.xs};
+    align-items: center;
   }
   .MuiAlert-action {
     display: inline;
@@ -48,8 +55,9 @@ const ErrorsCount = styled.span`
   border-radius: 4px;
   margin: 0 4px;
 `;
+
 export const AlertListErrors: FC<{
-  errors?: ListError[];
+  errors?: compinedError[];
 }> = ({ errors }) => {
   const [index, setIndex] = useState<number>(0);
   const [filteredErrors, setFilteredErrors] = useState<ListError[]>([]);
