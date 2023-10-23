@@ -394,33 +394,24 @@ func ParseInventoryFromUnstructured(obj *unstructured.Unstructured) ([]*unstruct
 	content := obj.UnstructuredContent()
 
 	// Check if status.inventory is present
-	inventory, found, err := unstructured.NestedMap(content, "status", "inventory")
+	unstructuredInventory, found, err := unstructured.NestedMap(content, "status", "inventory")
 	if err != nil || !found {
 		return nil, errors.New("no status.inventory found on resource, it hasn't been synced yet or is not queryable from this endpoint")
 	}
 
-	// Check if status.inventory.entries is present
-	entries, found, err := unstructured.NestedSlice(inventory, "entries")
-	if err != nil || !found {
-		return nil, nil
+	resourceInventory := &kustomizev1.ResourceInventory{}
+	err = runtime.DefaultUnstructuredConverter.FromUnstructured(unstructuredInventory, resourceInventory)
+	if err != nil {
+		return nil, fmt.Errorf("error converting inventory to resource inventory: %w", err)
 	}
 
 	objects := []*unstructured.Unstructured{}
-	for _, entryInterface := range entries {
-		entry, ok := entryInterface.(map[string]interface{})
-		if !ok {
-			return nil, fmt.Errorf("failed converting inventory entry to map[string]interface{}: %+v", entry)
-		}
-		ref := &kustomizev1.ResourceRef{}
-		err := runtime.DefaultUnstructuredConverter.FromUnstructured(entry, ref)
+	for _, entry := range resourceInventory.Entries {
+		u, err := resourceRefToUnstructured(entry)
 		if err != nil {
-			return nil, fmt.Errorf("failed converting inventory entry: %w", err)
+			return nil, fmt.Errorf("error converting resource ref to unstructured: %w", err)
 		}
-		invEntry, err := resourceRefToUnstructured(*ref)
-		if err != nil {
-			return nil, fmt.Errorf("failed converting inventory entry: %w", err)
-		}
-		objects = append(objects, &invEntry)
+		objects = append(objects, &u)
 	}
 
 	return objects, nil
