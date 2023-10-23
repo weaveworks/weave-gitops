@@ -343,7 +343,8 @@ func (obj UnstructuredAdapter) GetConditions() []metav1.Condition {
 
 func (obj UnstructuredAdapter) AsClientObject() client.Object {
 	// Important for the client reflection stuff to work
-	// We can't return just `obj` here as it seems to break stuff.
+	// We can't return just `obj` here otherwise we get a:
+	// panic: reflect: call of reflect.Value.Elem on struct Value
 	return obj.Unstructured
 }
 

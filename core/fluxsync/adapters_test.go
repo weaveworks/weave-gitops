@@ -100,6 +100,7 @@ func TestAsClientObjectCompatibilityWithTestClient(t *testing.T) {
 					"name":      "test-cm",
 					"namespace": "default",
 				},
+				"data": map[string]interface{}{"key": "value"},
 			},
 		},
 	}
@@ -107,10 +108,18 @@ func TestAsClientObjectCompatibilityWithTestClient(t *testing.T) {
 	err := cl.Create(context.TODO(), obj.AsClientObject())
 	g.Expect(err).NotTo(HaveOccurred())
 
-	retrieved := &unstructured.Unstructured{}
-	retrieved.SetAPIVersion("v1")
-	retrieved.SetKind("ConfigMap")
-	err = cl.Get(context.TODO(), client.ObjectKey{Namespace: "default", Name: "test-cm"}, retrieved)
+	retrieved := &UnstructuredAdapter{
+		Unstructured: &unstructured.Unstructured{
+			Object: map[string]interface{}{
+				"apiVersion": "v1",
+				"kind":       "ConfigMap",
+			},
+		},
+	}
+	err = cl.Get(context.TODO(), client.ObjectKey{Namespace: "default", Name: "test-cm"}, retrieved.AsClientObject())
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(retrieved.GetName()).To(Equal("test-cm"))
+
+	// check the data key
+	data, _, _ := unstructured.NestedStringMap(retrieved.Object, "data")
+	g.Expect(data).To(Equal(map[string]string{"key": "value"}))
 }
