@@ -2,9 +2,9 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
-	"github.com/hashicorp/go-multierror"
 	"github.com/weaveworks/weave-gitops/core/fluxsync"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
@@ -13,18 +13,18 @@ import (
 
 func (cs *coreServer) SyncFluxObject(ctx context.Context, msg *pb.SyncFluxObjectRequest) (*pb.SyncFluxObjectResponse, error) {
 	principal := auth.Principal(ctx)
-	respErrors := multierror.Error{}
+	var syncErr error
 
 	for _, sync := range msg.Objects {
 		clustersClient, err := cs.clustersManager.GetImpersonatedClient(ctx, principal)
 		if err != nil {
-			respErrors = *multierror.Append(fmt.Errorf("error getting impersonating client: %w", err), respErrors.Errors...)
+			syncErr = errors.Join(syncErr, fmt.Errorf("error getting impersonating client: %w", err))
 			continue
 		}
 
 		c, err := clustersClient.Scoped(sync.ClusterName)
 		if err != nil {
-			respErrors = *multierror.Append(fmt.Errorf("getting cluster client: %w", err), respErrors.Errors...)
+			syncErr = errors.Join(syncErr, fmt.Errorf("getting cluster client: %w", err))
 			continue
 		}
 
@@ -35,13 +35,13 @@ func (cs *coreServer) SyncFluxObject(ctx context.Context, msg *pb.SyncFluxObject
 
 		gvk, err := cs.primaryKinds.Lookup(sync.Kind)
 		if err != nil {
-			respErrors = *multierror.Append(fmt.Errorf("looking up GVK for %q: %w", sync.Kind, err), respErrors.Errors...)
+			syncErr = errors.Join(syncErr, fmt.Errorf("looking up GVK for %q: %w", sync.Kind, err))
 			continue
 		}
 
 		obj := fluxsync.ToReconcileable(*gvk)
 		if err := c.Get(ctx, key, obj.AsClientObject()); err != nil {
-			respErrors = *multierror.Append(fmt.Errorf("error getting object: %w", err), respErrors.Errors...)
+			syncErr = errors.Join(syncErr, fmt.Errorf("error getting object: %w", err))
 			continue
 		}
 
@@ -81,12 +81,12 @@ func (cs *coreServer) SyncFluxObject(ctx context.Context, msg *pb.SyncFluxObject
 			log.Info("Syncing resource")
 
 			if err := fluxsync.RequestReconciliation(ctx, c, sourceKey, sourceGvk); err != nil {
-				respErrors = *multierror.Append(fmt.Errorf("requesting source reconciliation: %w", err), respErrors.Errors...)
+				syncErr = errors.Join(syncErr, fmt.Errorf("requesting source reconciliation: %w", err))
 				continue
 			}
 
 			if err := fluxsync.WaitForSync(ctx, c, sourceKey, sourceObj); err != nil {
-				respErrors = *multierror.Append(fmt.Errorf("syncing source: %w", err), respErrors.Errors...)
+				syncErr = errors.Join(syncErr, fmt.Errorf("syncing source: %w", err))
 				continue
 			}
 		}
@@ -100,15 +100,15 @@ func (cs *coreServer) SyncFluxObject(ctx context.Context, msg *pb.SyncFluxObject
 		log.Info("Syncing resource")
 
 		if err := fluxsync.RequestReconciliation(ctx, c, key, *gvk); err != nil {
-			respErrors = *multierror.Append(fmt.Errorf("requesting reconciliation: %w", err), respErrors.Errors...)
+			syncErr = errors.Join(syncErr, fmt.Errorf("requesting reconciliation: %w", err))
 			continue
 		}
 
 		if err := fluxsync.WaitForSync(ctx, c, key, obj); err != nil {
-			respErrors = *multierror.Append(fmt.Errorf("syncing automation: %w", err), respErrors.Errors...)
+			syncErr = errors.Join(syncErr, fmt.Errorf("syncing automation: %w", err))
 			continue
 		}
 	}
 
-	return &pb.SyncFluxObjectResponse{}, respErrors.ErrorOrNil()
+	return &pb.SyncFluxObjectResponse{}, syncErr
 }
