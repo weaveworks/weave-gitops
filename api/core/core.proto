@@ -19,11 +19,15 @@ option go_package = "github.com/weaveworks/weave-gitops/core/api";
 option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
     info: {
       title: "Weave GitOps Core API",
-      version: "0.1";
+      version: "0.1",
       description: "The API handles operations for Weave GitOps Core";
     };
-    consumes: "application/json";
-    produces: "application/json";
+    consumes: "application/json",
+    produces: "application/json",
+    tags: {
+        name: "internal",
+        description: "Internal APIs which should not be used"
+    };
 };
 
 /**
@@ -81,7 +85,7 @@ service Core {
      */
     rpc GetReconciledObjects(GetReconciledObjectsRequest)
         returns (GetReconciledObjectsResponse) {
-        option (google.api.method_visibility).restriction = "INTERNAL";
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["internal"]; };
         option (google.api.http) = {
             post: "/v1/reconciled_objects"
             body: "*"
@@ -96,7 +100,7 @@ service Core {
      */
     rpc GetChildObjects(GetChildObjectsRequest)
         returns (GetChildObjectsResponse) {
-        option (google.api.method_visibility).restriction = "INTERNAL";
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["internal"]; };
         option (google.api.http) = {
             post: "/v1/child_objects"
             body: "*"
@@ -162,7 +166,7 @@ service Core {
      * Get the logs for a GitOpsRun session
      */
     rpc GetSessionLogs(GetSessionLogsRequest) returns (GetSessionLogsResponse) {
-        option (google.api.method_visibility).restriction = "INTERNAL";
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["internal"]; };
         option (google.api.http) = {
             get: "/v1/session-logs"
         };
@@ -176,7 +180,7 @@ service Core {
      * installed or not on that cluster.
      */
     rpc IsCRDAvailable(IsCRDAvailableRequest) returns (IsCRDAvailableResponse) {
-        option (google.api.method_visibility).restriction = "INTERNAL";
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["internal"]; };
         option (google.api.http) = {
             get : "/v1/crds/{name}/is-available",
         };
