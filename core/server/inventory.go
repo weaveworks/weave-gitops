@@ -6,7 +6,6 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -56,7 +55,7 @@ func (cs *coreServer) GetInventory(ctx context.Context, msg *pb.GetInventoryRequ
 		if err != nil {
 			return nil, err
 		}
-		entries, err = GetFluxLikeInventory(ctx, client, msg.Name, msg.Namespace, *gvk)
+		entries, err = getFluxLikeInventory(ctx, client, msg.Name, msg.Namespace, *gvk)
 		if err != nil {
 			return nil, fmt.Errorf("failed getting flux like inventory: %w", err)
 		}
@@ -220,13 +219,6 @@ func getHelmReleaseObjects(ctx context.Context, k8sClient client.Client, helmRel
 		return nil, fmt.Errorf("failed to read the Helm storage object for HelmRelease '%s': %w", helmRelease.Name, err)
 	}
 
-	// FIXME: do we need this?
-	for _, obj := range objects {
-		if obj.GetNamespace() == "" {
-			obj.SetNamespace(helmRelease.GetNamespace())
-		}
-	}
-
 	return objects, nil
 }
 
@@ -370,10 +362,7 @@ func sanitizeUnstructuredSecret(obj unstructured.Unstructured) (unstructured.Uns
 	return redactedUnstructured, nil
 }
 
-// GetFluxLikeInventory returns the inventory on a resource if
-// it matches the structure of the flux inventory format (e.g. kustomizations)
-// It returns an error if the inventory is not as expected
-func GetFluxLikeInventory(ctx context.Context, k8sClient client.Client, name, namespace string, gvk schema.GroupVersionKind) ([]*unstructured.Unstructured, error) {
+func getFluxLikeInventory(ctx context.Context, k8sClient client.Client, name, namespace string, gvk schema.GroupVersionKind) ([]*unstructured.Unstructured, error) {
 	// Create an unstructured object with the desired GVK (GroupVersionKind)
 	obj := &unstructured.Unstructured{}
 	obj.SetGroupVersionKind(gvk)
@@ -385,18 +374,19 @@ func GetFluxLikeInventory(ctx context.Context, k8sClient client.Client, name, na
 		return nil, fmt.Errorf("failed to get kustomization: %w", err)
 	}
 
-	return ParseInventoryFromUnstructured(obj)
+	return parseInventoryFromUnstructured(obj)
 }
 
-// Parse the inventory from an unstructured object
-// It returns an error if the inventory is not as expected (should look like a kustomization's inventory)
-func ParseInventoryFromUnstructured(obj *unstructured.Unstructured) ([]*unstructured.Unstructured, error) {
+func parseInventoryFromUnstructured(obj *unstructured.Unstructured) ([]*unstructured.Unstructured, error) {
 	content := obj.UnstructuredContent()
 
 	// Check if status.inventory is present
 	unstructuredInventory, found, err := unstructured.NestedMap(content, "status", "inventory")
-	if err != nil || !found {
-		return nil, errors.New("no status.inventory found on resource, it hasn't been synced yet or is not queryable from this endpoint")
+	if err != nil {
+		return nil, fmt.Errorf("error getting status.inventory from object: %w", err)
+	}
+	if !found {
+		return nil, fmt.Errorf("status.inventory not found in object")
 	}
 
 	resourceInventory := &kustomizev1.ResourceInventory{}

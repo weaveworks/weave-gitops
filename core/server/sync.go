@@ -39,12 +39,7 @@ func (cs *coreServer) SyncFluxObject(ctx context.Context, msg *pb.SyncFluxObject
 			continue
 		}
 
-		_, obj, err := fluxsync.ToReconcileable(*gvk)
-		if err != nil {
-			respErrors = *multierror.Append(fmt.Errorf("error converting to object: %w", err), respErrors.Errors...)
-			continue
-		}
-
+		obj := fluxsync.ToReconcileable(*gvk)
 		if err := c.Get(ctx, key, obj.AsClientObject()); err != nil {
 			respErrors = *multierror.Append(fmt.Errorf("error getting object: %w", err), respErrors.Errors...)
 			continue
@@ -59,12 +54,7 @@ func (cs *coreServer) SyncFluxObject(ctx context.Context, msg *pb.SyncFluxObject
 				return nil, err
 			}
 
-			_, sourceObj, err := fluxsync.ToReconcileable(*sourceGVK)
-			if err != nil {
-				respErrors = *multierror.Append(fmt.Errorf("getting source type for %q: %w", sourceRef.Kind(), err), respErrors.Errors...)
-				continue
-			}
-
+			sourceObj := fluxsync.ToReconcileable(*sourceGVK)
 			sourceNs := sourceRef.Namespace()
 
 			// sourceRef.Namespace is an optional field in flux

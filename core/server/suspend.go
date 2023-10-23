@@ -39,11 +39,7 @@ func (cs *coreServer) ToggleSuspendResource(ctx context.Context, msg *pb.ToggleS
 			continue
 		}
 
-		_, obj, err := fluxsync.ToReconcileable(*gvk)
-		if err != nil {
-			respErrors = *multierror.Append(fmt.Errorf("converting to reconcilable source: %w", err), respErrors.Errors...)
-			continue
-		}
+		obj := fluxsync.ToReconcileable(*gvk)
 
 		log := cs.logger.WithValues(
 			"user", principal.ID,

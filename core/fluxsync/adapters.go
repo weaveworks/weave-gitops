@@ -43,30 +43,6 @@ type Automation interface {
 	SourceRef() SourceRef
 }
 
-func NewReconcileable(obj client.Object) Reconcilable {
-	switch o := obj.(type) {
-	case *kustomizev1.Kustomization:
-		return KustomizationAdapter{Kustomization: o}
-	case *helmv2.HelmRelease:
-		return HelmReleaseAdapter{HelmRelease: o}
-	case *sourcev1.GitRepository:
-		return GitRepositoryAdapter{GitRepository: o}
-	case *sourcev1b2.HelmRepository:
-		return HelmRepositoryAdapter{HelmRepository: o}
-	case *sourcev1b2.Bucket:
-		return BucketAdapter{Bucket: o}
-	case *sourcev1b2.HelmChart:
-		return HelmChartAdapter{HelmChart: o}
-	case *sourcev1b2.OCIRepository:
-		return OCIRepositoryAdapter{OCIRepository: o}
-	case *reflectorv1.ImageRepository:
-		return ImageRepositoryAdapter{ImageRepository: o}
-	case *imgautomationv1.ImageUpdateAutomation:
-		return ImageUpdateAutomationAdapter{ImageUpdateAutomation: o}
-	}
-	return nil
-}
-
 type GitRepositoryAdapter struct {
 	*sourcev1.GitRepository
 }
@@ -312,6 +288,8 @@ func (obj ImageUpdateAutomationAdapter) DeepCopyClientObject() client.Object {
 	return obj.DeepCopy()
 }
 
+// UnstructuredAdapter implements the Reconcilable interface for unstructured resources.
+// The underlying resource gvk should have the standard flux object sync/suspend fields
 type UnstructuredAdapter struct {
 	*unstructured.Unstructured
 }
@@ -342,8 +320,8 @@ func (obj UnstructuredAdapter) GetConditions() []metav1.Condition {
 }
 
 func (obj UnstructuredAdapter) AsClientObject() client.Object {
-	// Important for the client reflection stuff to work
-	// We can't return just `obj` here otherwise we get a:
+	// Important for the controller-runtime type reflection to work
+	// We can't return just `obj` here otherwise we get a
 	// panic: reflect: call of reflect.Value.Elem on struct Value
 	return obj.Unstructured
 }
@@ -379,45 +357,39 @@ func (s sRef) Kind() string {
 	return s.kind
 }
 
-func ToReconcileable(gvk schema.GroupVersionKind) (client.ObjectList, Reconcilable, error) {
+// ToReconcileable takes a GVK and returns a "Reconcilable" for it.
+// The reconcilable can be passed to a controller-runtime client to fetch it
+// from the cluster. Once fetched we can query it for the last sync time, whether
+// its suspended etc, using the Reconcilable interface.
+//
+// The generic unstructured case handles "flux like" objects that we don't explicitly
+// know about, but which follow the same patterns for suspend/sync as a stadard flux object.
+// E.g. `spec.suspend` and `status.lastHandledReconcileRequest` etc.
+func ToReconcileable(gvk schema.GroupVersionKind) Reconcilable {
 	switch gvk.Kind {
 	case kustomizev1.KustomizationKind:
-		return &kustomizev1.KustomizationList{}, NewReconcileable(&kustomizev1.Kustomization{}), nil
-
+		return KustomizationAdapter{Kustomization: &kustomizev1.Kustomization{}}
 	case helmv2.HelmReleaseKind:
-		return &helmv2.HelmReleaseList{}, NewReconcileable(&helmv2.HelmRelease{}), nil
-
+		return HelmReleaseAdapter{HelmRelease: &helmv2.HelmRelease{}}
+	// TODO: remove all these and let them fall through to the Unstructured case?
 	case sourcev1.GitRepositoryKind:
-		return &sourcev1.GitRepositoryList{}, NewReconcileable(&sourcev1.GitRepository{}), nil
-
+		return GitRepositoryAdapter{GitRepository: &sourcev1.GitRepository{}}
 	case sourcev1b2.BucketKind:
-		return &sourcev1b2.BucketList{}, NewReconcileable(&sourcev1b2.Bucket{}), nil
-
+		return BucketAdapter{Bucket: &sourcev1b2.Bucket{}}
 	case sourcev1b2.HelmRepositoryKind:
-		return &sourcev1b2.HelmRepositoryList{}, NewReconcileable(&sourcev1b2.HelmRepository{}), nil
-
+		return HelmRepositoryAdapter{HelmRepository: &sourcev1b2.HelmRepository{}}
 	case sourcev1b2.HelmChartKind:
-		return &sourcev1b2.HelmChartList{}, NewReconcileable(&sourcev1b2.HelmChart{}), nil
-
+		return HelmChartAdapter{HelmChart: &sourcev1b2.HelmChart{}}
 	case sourcev1b2.OCIRepositoryKind:
-		return &sourcev1b2.OCIRepositoryList{}, NewReconcileable(&sourcev1b2.OCIRepository{}), nil
-
+		return OCIRepositoryAdapter{OCIRepository: &sourcev1b2.OCIRepository{}}
 	case reflectorv1.ImageRepositoryKind:
-		return &reflectorv1.ImageRepositoryList{}, NewReconcileable(&reflectorv1.ImageRepository{}), nil
-
+		return ImageRepositoryAdapter{ImageRepository: &reflectorv1.ImageRepository{}}
 	case imgautomationv1.ImageUpdateAutomationKind:
-		return &imgautomationv1.ImageUpdateAutomationList{}, NewReconcileable(&imgautomationv1.ImageUpdateAutomation{}), nil
+		return ImageUpdateAutomationAdapter{ImageUpdateAutomation: &imgautomationv1.ImageUpdateAutomation{}}
 	}
 
-	return ToUnstructuredReconcilable(gvk)
-}
-
-func ToUnstructuredReconcilable(gvk schema.GroupVersionKind) (client.ObjectList, Reconcilable, error) {
+	// Return the UnstructuredAdapter for flux-like resources
 	obj := &unstructured.Unstructured{}
 	obj.SetGroupVersionKind(gvk)
-
-	objList := &unstructured.UnstructuredList{}
-	objList.SetGroupVersionKind(gvk)
-
-	return objList, UnstructuredAdapter{Unstructured: obj}, nil
+	return UnstructuredAdapter{Unstructured: obj}
 }
