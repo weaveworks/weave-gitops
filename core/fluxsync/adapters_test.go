@@ -79,9 +79,9 @@ func TestDeepCopyClientObject(t *testing.T) {
 		},
 	}
 
-	copy := obj.DeepCopyClientObject().(*unstructured.Unstructured)
-	g.Expect(copy.Object).To(Equal(obj.Object))
-	g.Expect(copy).ToNot(BeIdenticalTo(obj))
+	objCopy := obj.DeepCopyClientObject().(*unstructured.Unstructured)
+	g.Expect(objCopy.Object).To(Equal(obj.Object))
+	g.Expect(objCopy).ToNot(BeIdenticalTo(obj))
 }
 
 func TestAsClientObjectCompatibilityWithTestClient(t *testing.T) {
