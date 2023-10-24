@@ -1,8 +1,8 @@
 import { Table, TableContainer } from "@material-ui/core";
 import React from "react";
-import { TableViewProps } from "./modal";
 import TableBodyView from "./TableBody";
 import TableHeader from "./TableHeader";
+import { TableViewProps } from "./types";
 
 const TableView = ({
   rows,

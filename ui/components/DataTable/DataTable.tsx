@@ -24,9 +24,10 @@ import {
   parseFilterStateFromURL,
   toPairs,
 } from "./helpers";
-import { SortField } from "./TableView/modal";
+
 import SearchedNamespacesModal from "./TableView/SearchedNamespacesModal";
 import TableView from "./TableView/TableView";
+import { SortField } from "./TableView/types";
 import { Field, FilterState } from "./types";
 
 export interface Props {

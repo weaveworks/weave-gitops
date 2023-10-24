@@ -4,7 +4,7 @@ import styled from "styled-components";
 import Flex from "../../Flex";
 import Icon, { IconType } from "../../Icon";
 import Text from "../../Text";
-import { TableBodyViewProps } from "./modal";
+import { TableBodyViewProps } from "./types";
 
 const EmptyRow = styled(TableRow)<{ colSpan: number }>`
   td {

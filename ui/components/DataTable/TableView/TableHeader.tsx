@@ -1,7 +1,7 @@
 import { Checkbox, TableCell, TableHead, TableRow } from "@material-ui/core";
 import React from "react";
-import { SortField, TableHeaderProps } from "./modal";
 import SortableLabelView from "./SortableLabelView";
+import { SortField, TableHeaderProps } from "./types";
 
 const TableHeader = ({
   fields,
@@ -36,7 +36,7 @@ const TableHeader = ({
                 field={f}
                 sortedField={sortedField}
                 setSortedField={setSortedField}
-                onSortClick={(f) => {
+               onSortClick={(f) => {
                   onSortChange(f);
                 }}
               />

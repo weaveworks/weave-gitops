@@ -2,7 +2,7 @@ import React from "react";
 import Flex from "../../Flex";
 import Icon, { IconType } from "../../Icon";
 import { TableButton } from "../SortableLabel";
-import { SortableLabelViewProps } from "./modal";
+import { SortableLabelViewProps } from "./types";
 
 const SortableLabelView = ({
   field,
