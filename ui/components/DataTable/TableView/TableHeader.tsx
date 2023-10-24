@@ -36,7 +36,7 @@ const TableHeader = ({
                 field={f}
                 sortedField={sortedField}
                 setSortedField={setSortedField}
-               onSortClick={(f) => {
+                onSortClick={(f) => {
                   onSortChange(f);
                 }}
               />
