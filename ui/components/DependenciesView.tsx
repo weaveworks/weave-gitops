@@ -6,29 +6,11 @@ import { getGraphNodes } from "../lib/dependencies";
 import { Automation, FluxObjectNode, FluxObjectNodesMap } from "../lib/objects";
 import DagGraph from "./DagGraph";
 import Flex from "./Flex";
+import Link from "./Link";
 import MessageBox from "./MessageBox";
 import RequestStateHandler from "./RequestStateHandler";
 import Spacer from "./Spacer";
 import Text from "./Text";
-
-const NoDependenciesMessage = styled(MessageBox)`
-  & {
-    h2 {
-      margin-top: 0;
-      margin-bottom: 0;
-    }
-
-    p {
-      margin-top: 0;
-      margin-bottom: 0;
-      font-size: 16px;
-      line-height: 20px;
-    }
-  }
-`;
-
-const Heading = Text.withComponent("h2");
-const Paragraph = Text.withComponent("p");
 
 type DependenciesViewProps = {
   className?: string;
@@ -90,28 +72,38 @@ function DependenciesView({ className, automation }: DependenciesViewProps) {
       ) : (
         <Flex className={className} wide tall column align>
           <Spacer padding="xl" />
-          <NoDependenciesMessage>
-            <Heading semiBold size="large">
+          <MessageBox gap="12">
+            <Text semiBold size="large">
               No Dependencies
-            </Heading>
-            <Spacer padding="xs" />
-            <Paragraph>
-              There are no dependencies set up for your kustomizations or helm
-              releases at this time. You can set them up using the dependsOn
-              field on the kustomization or helm release object.
-            </Paragraph>
-            <Spacer padding="xs" />
-            <Heading semiBold size="large">
+            </Text>
+            <Text>
+              Currently no dependencies are set up for your Kustomizations or
+              HelmReleases. You can set them up using the dependsOn field on the{" "}
+              <Link
+                newTab
+                href="https://fluxcd.io/flux/components/kustomize/kustomizations/#dependencies"
+              >
+                Kustomization
+              </Link>{" "}
+              or{" "}
+              <Link
+                newTab
+                href="https://fluxcd.io/flux/components/helm/helmreleases/#helmrelease-dependencies"
+              >
+                Helm Release
+              </Link>{" "}
+              object.
+            </Text>
+            <Text semiBold size="large">
               What are dependencies for?
-            </Heading>
-            <Spacer padding="xs" />
-            <Paragraph>
-              Dependencies allow you to relate different kustomizations and helm
-              releases, as well as specifying an order in which your resources
-              should be started. For example, you can wait for a database to
-              report as 'Ready' before attempting to deploy other services.
-            </Paragraph>
-          </NoDependenciesMessage>
+            </Text>
+            <Text>
+              Dependencies allow you to relate different Kustomizations and Helm
+              Releases and to specify an order in which your resources should be
+              started. For example, you can wait for a database to report as
+              'Ready' before attempting to deploy other services.
+            </Text>
+          </MessageBox>
           <Spacer padding="xl" />
         </Flex>
       )}
