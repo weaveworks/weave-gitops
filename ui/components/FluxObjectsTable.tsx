@@ -93,47 +93,13 @@ function FluxObjectsTable({
           sortValue: ({ namespace }) => namespace,
         },
         {
-          label: "Health Check",
+          label: "Status",
           value: ({ health }) => {
             return health.status !== HealthStatusType.Unknown ? (
               <HealthCheckStatusIndicator health={health} />
             ) : null;
           },
           sortValue: ({ health }: FluxObject) => health.status,
-        },
-        {
-          label: "Status",
-          value: (u: FluxObject) => {
-            const status = u.obj.status;
-
-            if (!status || !status.conditions) {
-              const cond = createSyntheticCondition(
-                u.type as SpecialObject,
-                status
-              );
-
-              if (cond.status === ReadyStatusValue.Unknown) {
-                return null;
-              }
-
-              return (
-                <KubeStatusIndicator
-                  conditions={[cond]}
-                  suspended={u.suspended}
-                  short
-                />
-              );
-            }
-
-            return u.conditions.length > 0 ? (
-              <KubeStatusIndicator
-                conditions={u.conditions}
-                suspended={u.suspended}
-                short
-              />
-            ) : null;
-          },
-          sortValue: statusSortHelper,
         },
         {
           label: "Message",
