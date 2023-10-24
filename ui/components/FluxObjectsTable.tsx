@@ -5,7 +5,7 @@ import { useLinkResolver } from "../contexts/LinkResolverContext";
 import { Kind } from "../lib/api/core/types.pb";
 import { formatURL, objectTypeToRoute } from "../lib/nav";
 import { FluxObject } from "../lib/objects";
-import { makeImageString, statusSortHelper } from "../lib/utils";
+import { makeImageString } from "../lib/utils";
 import DataTable from "./DataTable";
 import { DetailViewProps } from "./DetailModal";
 import HealthCheckStatusIndicator, {
