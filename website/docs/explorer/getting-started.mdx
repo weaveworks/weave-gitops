@@ -21,7 +21,7 @@ Before using Explorer, please ensure that:
 
 ## Setup
 
-Explorer is enabled via configuration through the feature flag  `enableExplorer` that you could
+Explorer is enabled via configuration through the feature flag  `explorer.enabled` that you could
 configure in your Weave Gitops Enterprise HelmRelease values:
 
 
@@ -35,8 +35,23 @@ metadata:
 spec:
   # ... other spec components
   values:
-    enableExplorer: true
+  explorer:
+    enabled: true # global enable/disable flag
+    collector:
+      # ServiceAccount that explorer will use to watch clusters for resources
+      serviceAccount:
+        name: "collector"
+        namespace: "flux-system"
+    cleaner:
+      disabled: false
+    enabledFor: # controls which parts of the UI utilize the Explorer UI/Server components
+      - applications
+      - sources
+      - gitopssets
+      - templates
 ```
+
+The `enabledFor` field will control which parts of the UI utilize the Explorer backend for performant queries. Note that this does not control the collection of these objects, only the presentation of the objects in the UI.
 
 For a complete overview on the configuration you could see [configuration](./configuration.mdx).
 

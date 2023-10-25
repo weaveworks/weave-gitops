@@ -26,7 +26,7 @@ export const Body = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: space-evenly;
-  background-color: ${(props) => props.theme.colors.white};
+  background-color: ${(props) => props.theme.colors.neutral00};
   margin: 0 auto;
   max-width: 540px;
   padding: 16px 32px;

@@ -3,9 +3,9 @@ import qs from "query-string";
 import * as React from "react";
 import { QueryClient, QueryClientProvider } from "react-query";
 import {
-  BrowserRouter as Router,
   Redirect,
   Route,
+  BrowserRouter as Router,
   Switch,
 } from "react-router-dom";
 import { ToastContainer } from "react-toastify";

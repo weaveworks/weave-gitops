@@ -26,7 +26,7 @@ const SettingsMenu = styled(Menu)`
     justify-content: flex-end;
     .MuiListItemIcon-root {
       min-width: 0;
-      color: ${(props) => props.theme.colors.black};
+      color: ${(props) => props.theme.colors.neutral40};
     }
     .MuiSvgIcon-root {
       padding-right: ${(props) => props.theme.spacing.xs};
@@ -40,7 +40,7 @@ const PersonButton = styled(IconButton)<{ open?: boolean }>`
     background-color: ${(props) => props.theme.colors.neutralGray};
     color: ${(props) => props.theme.colors.neutral30};
     :hover {
-      background-color: ${(props) => props.theme.colors.white};
+      background-color: ${(props) => props.theme.colors.neutral00};
       color: ${(props) => props.theme.colors.primary10};
     }
   }

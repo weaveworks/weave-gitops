@@ -1,0 +1,109 @@
+---
+title: Profiles
+hide_title: true
+---
+
+import TierLabel from "../_components/TierLabel";
+
+# Adding Profiles to Templates <TierLabel tiers="Enterprise" />
+
+Profiles are enhanched Helm Charts which allow operators to make additional
+components either optional or required to developers using self-service
+templates.
+
+Default and required profiles can be added via the template `spec.charts` section.
+
+```yaml
+spec:
+  charts:
+    items:
+      - name: nginx
+        version: 1.0.0
+        targetNamespace: nginx
+      - name: cert-manager
+        targetNamespace: cert-manager
+```
+
+A template with the above profiles would offer Application Developers the option
+to add `nginx` and `cert-manager` resources to their templated resources, ready
+for deployment to their cluster.
+
+## Profile Operator Settings
+
+Keys available in the `spec.charts` section and the template variables available to them.
+
+| **Key**                       | **Description**                              | **Template vars** |
+| ----------------------------- | -------------------------------------------- | ----------------- |
+| `helmRepositoryTemplate.path` | Path the `HelmRepository` will be written to | `params`          |
+| `items`                       | list of charts to configure, see below       |                   |
+
+Keys available in the `spec.charts.items` entries and the template variables available to them.
+
+| **Key**            | **Description**                                                        | **Template vars** |
+| ------------------ | ---------------------------------------------------------------------- | ----------------- |
+| `template.content` | Full or partial `HelmRelease` CR template                              | `params`          |
+| `template.path`    | Path the HelmRelease will be written to                                | `params`          |
+| `chart`            | Shortcut to `HelmRelease.spec.chart.spec.chart`                        |                   |
+| `version`          | Shortcut to `HelmRelease.spec.chart.spec.version`                      |                   |
+| `targetNamespace`  | Shortcut to `HelmRelease.spec.targetNamespace`                         |                   |
+| `values`           | Shortcut to `HelmRelease.spec.values`                                  | `params`          |
+| `layer`            | Layer to install as                                                    |                   |
+| `required`         | (default=false) Allow the user to de-select this profile               |
+| `editable`         | (default=false) Allow the user to edit the values.yaml of this profile |
+
+<details><summary>Expand for a complete yaml example</summary>
+
+```yaml
+spec:
+  charts:
+    helmRepositoryTemplate:
+      path: clusters/${CLUSTER_NAME}/helm-repositories.yaml
+    items:
+      - chart: cert-manager
+        version: v1.5.3
+        editable: false
+        required: true
+        values:
+          installCRDs: ${CERT_MANAGER_INSTALL_CRDS}
+        targetNamespace: cert-manager
+        layer: layer-1
+        template:
+          path: clusters/${CLUSTER_NAME}/cert-manager.yaml
+          content:
+            metadata:
+              labels:
+                app.kubernetes.io/name: cert-manager
+            spec:
+              retries: ${CERT_MANAGER_RETRY_COUNT}
+```
+
+:::tip
+
+`template.content` will be merged over the top of a default `HelmRelease` CR so it does not need to be complete.
+
+:::
+
+</details>
+
+## Declaring Profiles with Annotations
+
+:::caution Deprecated feature
+
+Where possible please use the `spec.charts` section as detailed above to declare profiles.
+
+:::
+
+Profiles can also be included within templates by the
+`capi.weave.works/profile-INDEX` annotation.
+
+```yaml
+annotations:
+  capi.weave.works/profile-0: '{"name": "NAME", "version": "VERSION", "editable": EDITABLE, "namespace": "NAMESPACE"}'
+```
+
+Where:
+
+- `name` - is the name of the profile in the default profiles repository
+- `version` - (optional) will choose the default version
+- `namespace` - (optional) is the default target namespace for the profile
+- `editable` - (optional, default=`false`), allow the user to de-select this profile, making it a default instead of a requirement.
