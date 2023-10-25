@@ -47,13 +47,13 @@ require (
 	github.com/spf13/viper v1.13.0
 	github.com/tomwright/dasel v1.22.1
 	github.com/weaveworks/policy-agent/api v1.0.5
-	github.com/weaveworks/tf-controller/tfctl v0.0.0-20230523160934-c6613bfc7fff
+	github.com/weaveworks/tf-controller/tfctl v0.0.0-20231025134255-eac574d4bac7
 	github.com/yannh/kubeconform v0.5.0
 	go.uber.org/zap v1.25.0
 	golang.org/x/crypto v0.13.0
 	golang.org/x/oauth2 v0.7.0
-	google.golang.org/genproto v0.0.0-20220715211116-798f69b842b9
-	google.golang.org/grpc v1.51.0
+	google.golang.org/genproto v0.0.0-20230410155749-daa745c078e1
+	google.golang.org/grpc v1.56.3
 	google.golang.org/protobuf v1.30.0
 	gopkg.in/square/go-jose.v2 v2.6.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -84,7 +84,7 @@ require (
 	github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
-	github.com/golang/glog v1.0.0 // indirect
+	github.com/golang/glog v1.1.0 // indirect
 	github.com/google/gnostic v0.6.9 // indirect
 	github.com/google/go-github/v52 v52.0.0 // indirect
 	github.com/google/pprof v0.0.0-20210720184732-4bb14d4b1be1 // indirect
