@@ -151,11 +151,9 @@ jobs:
         run: cat .goreleaser.brew.yml >> .goreleaser.yml
         if: ${{ !contains(github.event.pull_request.head.ref, '-') }}
       - name: Store changelog
-        env:
-          GITHUB_EVENT_PULL_REQUEST_BODY: ${{ github.event.pull_request.body }}
         run: |
           cat > ${{ runner.temp }}/changelog.md <<'END_OF_CHANGELOG'
-          $GITHUB_EVENT_PULL_REQUEST_BODY
+          ${{ github.event.pull_request.body }}
           END_OF_CHANGELOG
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@7ec5c2b0c6cdda6e8bbb49444bc797dd33d74dd8 # v5.0.0

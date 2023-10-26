@@ -62,7 +62,6 @@ module.exports = {
     ],
   ],
   themeConfig: {
-    metadata: [{ name: "robots", content: "noindex, nofollow" }],
     navbar: {
       title: "Weave GitOps",
       logo: {
@@ -162,7 +161,7 @@ module.exports = {
     },
     algolia: {
       appId: "Z1KEXCDHZE",
-      apiKey: "c90c5ade2802df8213d6ac50cf3632f4",
+      apiKey: process.env.ALGOLIA_API_KEY,
       indexName: "weave",
       // Needed to handle the different versions of docs
       contextualSearch: true,
