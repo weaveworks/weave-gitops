@@ -211,7 +211,7 @@ export default styled(KubeStatusIndicator).attrs({
   className: KubeStatusIndicator.name,
 })`
   ${Icon} ${Text} {
-    color: ${(props) => props.theme.colors.black};
+    color: ${(props) => props.theme.colors.neutral40};
     font-weight: 400;
   }
 `;

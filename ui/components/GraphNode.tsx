@@ -29,7 +29,7 @@ const GraphIcon = styled.img`
 `;
 
 const Node = styled(Flex)`
-  background: ${(props) => props.theme.colors.white};
+  background: ${(props) => props.theme.colors.neutral00};
   border: 5px solid ${(props) => props.theme.colors.grayToPrimary};
   border-radius: ${nodeBorderRadius}px;
   user-select: none;

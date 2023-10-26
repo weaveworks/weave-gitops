@@ -5,6 +5,9 @@ on:
     types:
       - submitted
 
+permissions:
+  contents: read # for actions/checkout to fetch code
+
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: weaveworks/wego-app
@@ -15,15 +18,19 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.release-version.outputs.version }}
+    permissions:
+      contents: write # for action to git push a tag
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
         with:
           ref: ${{ github.event.pull_request.head.sha }}
       - name: Find release version
         id: release-version
+        env:
+          GITHUB_EVENT_PULL_REQUEST_HEAD_REF: ${{ github.event.pull_request.head.ref }}
         run: |
-          version=$(echo ${{ github.event.pull_request.head.ref }} | cut -d'/' -f2)
+          version=$(echo $GITHUB_EVENT_PULL_REQUEST_HEAD_REF | cut -d'/' -f2)
           echo "::set-output name=version::$version"
       - name: Set tag
         run: |
@@ -35,12 +42,14 @@ jobs:
   publish_npm_package:
     needs: tag-release
     runs-on: ubuntu-latest
+    permissions:
+      packages: write # needed for GitHub Packages registry access
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # v3.8.1
         with:
           node-version: "16.X"
           registry-url: "https://npm.pkg.github.com"
@@ -49,15 +58,15 @@ jobs:
       - run: make ui-lib && cd dist && npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   build-and-push-image:
     needs: tag-release
     runs-on: ubuntu-latest
     permissions:
-      contents: read
       packages: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
         with:
           ref: ${{ github.event.pull_request.head.sha }}
       - name: Unshallow
@@ -65,7 +74,7 @@ jobs:
           git fetch --prune --unshallow
           git fetch --tags -f
       - name: Log in to the Container registry
-        uses: docker/login-action@v2
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -76,7 +85,7 @@ jobs:
           echo "FLUX_VERSION=$(make echo-flux-version)" >> $GITHUB_ENV
       - name: Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@96383f45573cb7f253c731d3b3ab81c87ef81934 # v5.0.0
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
@@ -85,11 +94,11 @@ jobs:
           flavor: |
             latest=true
       - name: setup qemu
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@68827325e0b33c7199eb31dd4e31fbe9023e06e3 # v3.0.0
       - name: setup docker buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@f95db51fddba0c2d1ec667646a06c2ce06100226 # v3.0.0
       - name: Build and push Docker image
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
         with:
           context: .
           platforms: linux/amd64,linux/arm64
@@ -109,7 +118,7 @@ jobs:
       - build-and-push-image
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
         with:
           ref: ${{ github.event.pull_request.head.sha }}
       - name: Unshallow
@@ -117,16 +126,18 @@ jobs:
           git fetch --prune --unshallow
           git fetch --tags -f
       - name: Setup Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe # v4.1.0
         with:
           go-version: 1.20.X
       - name: Use Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # v3.8.1
         with:
           node-version: 16.X
       - name: Set env var
+        env:
+          GITHUB_EVENT_PULL_REQUEST_HEAD_REF: ${{ github.event.pull_request.head.ref }}
         run: |
-          echo "BRANCH=${{ github.event.pull_request.head.ref }}" >> $GITHUB_ENV
+          echo "BRANCH=$GITHUB_EVENT_PULL_REQUEST_HEAD_REF" >> $GITHUB_ENV
           echo "GORELEASER_PREVIOUS_TAG=$(git describe --abbrev=0 --tags $(git rev-list --tags --skip=1 --max-count=1))" >> $GITHUB_ENV
           echo "GORELEASER_CURRENT_TAG=${{ needs.tag-release.outputs.version }}" >> $GITHUB_ENV
           echo "DEV_BUCKET_CONTAINER_IMAGE=$(make echo-dev-bucket-container)" >> $GITHUB_ENV
@@ -145,7 +156,7 @@ jobs:
           ${{ github.event.pull_request.body }}
           END_OF_CHANGELOG
       - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v3
+        uses: goreleaser/goreleaser-action@7ec5c2b0c6cdda6e8bbb49444bc797dd33d74dd8 # v5.0.0
         with:
           version: latest
           args: release --rm-dist --skip-validate --release-notes=${{ runner.temp }}/changelog.md
@@ -161,7 +172,7 @@ jobs:
     needs: goreleaser
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
         with:
           ref: ${{ github.event.pull_request.head.sha }}
       #  'Unlock Release PR Merge' sets 'release' status check state to success to unlock merging the release PR. See ../../doc/incidents/issues-3907 for full context.

@@ -31,6 +31,7 @@ import SearchIcon from "@material-ui/icons/Search";
 import SkipNextIcon from "@material-ui/icons/SkipNext";
 import SkipPreviousIcon from "@material-ui/icons/SkipPrevious";
 import VerifiedUser from "@material-ui/icons/VerifiedUser";
+import WarningIcon from "@material-ui/icons/Warning";
 import * as React from "react";
 import styled from "styled-components";
 import images from "../lib/images";
@@ -117,6 +118,7 @@ export enum IconType {
   VerifiedUser,
   Policy,
   FindInPage,
+  WarningIcon,
 }
 
 type Props = {
@@ -301,6 +303,9 @@ function getIcon(i: IconType) {
 
     case IconType.FindInPage:
       return FindInPage;
+
+    case IconType.WarningIcon:
+      return WarningIcon;
 
     default:
       break;

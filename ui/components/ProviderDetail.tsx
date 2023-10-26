@@ -4,6 +4,7 @@ import styled from "styled-components";
 import { useListAlerts } from "../hooks/notifications";
 import { Kind } from "../lib/api/core/types.pb";
 import { Provider } from "../lib/objects";
+import { createYamlCommand } from "../lib/utils";
 import Alert from "./Alert";
 import AlertsTable from "./AlertsTable";
 import Flex from "./Flex";
@@ -30,11 +31,11 @@ function ProviderDetail({ className, provider }: Props) {
         </RouterTab>
         <RouterTab name="Yaml" path={`${path}/yaml`}>
           <YamlView
-            object={{
-              name: provider.name,
-              namespace: provider.namespace,
-              kind: Kind.Provider,
-            }}
+            header={createYamlCommand(
+              Kind.Provider,
+              provider.name,
+              provider.namespace
+            )}
             yaml={provider.yaml}
           />
         </RouterTab>

@@ -13,19 +13,21 @@ on:
       - 'website/**'
   workflow_dispatch:
 
-jobs:
+permissions:
+  contents: read # for actions/checkout to fetch code
 
+jobs:
   staging-release:
     permissions:
       statuses: write
-    if: github.event_name != 'push' && github.repository_owner == 'weaveworks'
+    if: ${{ github.event_name != 'push' && github.repository_owner == 'weaveworks' && !github.event.pull_request.head.repo.fork }}
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: website
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+      - uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # v3.8.1
         with:
           node-version: "16.x"
       - name: Test Build
@@ -33,6 +35,7 @@ jobs:
           GA_KEY: "dummy"
           ALGOLIA_API_KEY: ${{ secrets.ALGOLIA_API_KEY }}
           NODE_OPTIONS: "--max-old-space-size=4096"
+          GITHUB_HEAD_REF: ${{ github.head_ref }}
         run: |
           if [ -e yarn.lock ]; then
           yarn install --frozen-lockfile
@@ -41,16 +44,18 @@ jobs:
           else
           npm i
           fi
-          sed -i 's#url:.*$#url: "https://staging.docs.gitops.weave.works",#' docusaurus.config.js
-          sed -i 's#baseUrl:.*$#baseUrl: "/${{ github.head_ref }}/",#' docusaurus.config.js
           yarn clear
+
+          export DOC_BASE_URL="/$GITHUB_HEAD_REF/"
+          export DOC_URL=https://staging.docs.gitops.weave.works
+          export STAGING_BUILD=true
           npm run build
       - id: auth
-        uses: google-github-actions/auth@v1
+        uses: google-github-actions/auth@35b0e87d162680511bf346c299f71c9c5c379033 # v1.1.1
         with:
           credentials_json: ${{ secrets.PROD_DOCS_GITOPS_UPLOAD }}
       - id: upload-file
-        uses: google-github-actions/upload-cloud-storage@v1
+        uses: google-github-actions/upload-cloud-storage@e95a15f226403ed658d3e65f40205649f342ba2c # v1.0.3
         with:
           path: website/build
           destination: staging.docs.gitops.weave.works/${{ github.head_ref }}
@@ -58,16 +63,24 @@ jobs:
           headers: |-
             cache-control: no-cache
       - id: add-docs-status
+        env:
+          GITHUB_HEAD_REF: ${{ github.head_ref }}
         run: |
+          # Pull this out to a heredoc so we can easily interpolate variables
+          PAYLOAD=$(cat <<EOF
+          {
+            "state": "success",
+            "context": "Doc site preview",
+            "target_url": "https://staging.docs.gitops.weave.works/$GITHUB_HEAD_REF"
+          }
+          EOF
+          )
+
           curl --request POST \
             --url https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }} \
             --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' \
             --header 'content-type: application/json' \
-            --data '{
-              "state": "success",
-              "context": "Doc site preview",
-              "target_url": "https://staging.docs.gitops.weave.works/${{ github.head_ref }}"
-              }' \
+            --data "$PAYLOAD" \
             --fail
 
   prod-release:
@@ -77,8 +90,8 @@ jobs:
       run:
         working-directory: website
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+      - uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # v3.8.1
         with:
           node-version: "16.x"
       - uses: weaveworks/webfactory-ssh-agent@6b2f2c5354ff41f1edbbf7a17ea9b6178c89be9f
@@ -104,11 +117,11 @@ jobs:
           yarn clear
           npm run build
       - id: auth
-        uses: google-github-actions/auth@v1
+        uses: google-github-actions/auth@35b0e87d162680511bf346c299f71c9c5c379033 # v1.1.1
         with:
           credentials_json: ${{ secrets.PROD_DOCS_GITOPS_UPLOAD }}
       - id: upload-file
-        uses: google-github-actions/upload-cloud-storage@v1
+        uses: google-github-actions/upload-cloud-storage@e95a15f226403ed658d3e65f40205649f342ba2c # v1.0.3
         with:
           path: website/build
           destination: production.docs.gitops.weave.works

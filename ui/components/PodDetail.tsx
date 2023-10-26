@@ -2,6 +2,7 @@ import { Tabs } from "@material-ui/core";
 import * as React from "react";
 import styled from "styled-components";
 import { Container, FluxObject } from "../lib/objects";
+import { createYamlCommand } from "../lib/utils";
 import DataTable from "./DataTable";
 import Flex from "./Flex";
 import InfoList from "./InfoList";
@@ -41,7 +42,7 @@ const ContainerDivider = styled(Flex)`
   border-bottom: 3px solid;
   border-image-slice: 1;
   border-image-source: ${(props) =>
-    `linear-gradient(to right, ${props.theme.colors.neutral30} 0%, ${props.theme.colors.white} 100%)`};
+    `linear-gradient(to right, ${props.theme.colors.neutral30} 0%, ${props.theme.colors.neutral00} 100%)`};
 `;
 
 type ListProps = {
@@ -142,12 +143,7 @@ function PodDetail({ className, pod }: Props) {
         return (
           <DialogYamlView
             yaml={pod.yaml}
-            object={{
-              kind: pod.type,
-              name: pod.name,
-              namespace: pod.namespace,
-              clusterName: pod.clusterName,
-            }}
+            header={createYamlCommand(pod.type, pod.name, pod.namespace)}
           />
         );
     }

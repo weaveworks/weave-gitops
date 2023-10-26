@@ -4,8 +4,6 @@ import { darcula } from "react-syntax-highlighter/dist/cjs/styles/prism";
 import styled from "styled-components";
 import { ThemeTypes } from "../contexts/AppContext";
 import { useInDarkMode } from "../hooks/theme";
-import { ObjectRef } from "../lib/api/core/types.pb";
-import { createYamlCommand } from "../lib/utils";
 import CopyToClipboard from "./CopyToCliboard";
 import Flex from "./Flex";
 
@@ -13,7 +11,7 @@ export type YamlViewProps = {
   className?: string;
   type?: string;
   yaml: string;
-  object?: ObjectRef;
+  header?: string;
   theme?: ThemeTypes;
 };
 
@@ -28,17 +26,11 @@ const YamlHeader = styled(Flex)`
 
 function UnstyledYamlView({
   yaml,
-  object,
+  header,
   className,
   theme,
   type = "yaml",
 }: YamlViewProps) {
-  const headerText = createYamlCommand(
-    object?.kind,
-    object?.name,
-    object?.namespace
-  );
-
   const dark = theme ? theme === ThemeTypes.Dark : useInDarkMode();
 
   const styleProps = {
@@ -60,11 +52,11 @@ function UnstyledYamlView({
 
   return (
     <div className={className}>
-      {headerText && (
+      {header && (
         <YamlHeader wide gap="4" alignItems="center">
-          {headerText}
+          {header}
           <CopyToClipboard
-            value={headerText}
+            value={header}
             className="yamlheader-copy"
             size="small"
           />

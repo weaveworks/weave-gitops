@@ -1,0 +1,33 @@
+---
+title: 'Example: Template to Create a CAPI Cluster'
+hide_title: true
+---
+
+import TierLabel from "../_components/TierLabel";
+
+# CAPI Cluster Template Example <TierLabel tiers="Enterprise" />
+
+GitOps template objects need to be wrapped with the `GitOpsTemplate` custom
+resource and then loaded into the management cluster.
+
+```yaml
+apiVersion: templates.weave.works/v1alpha2
+kind: GitOpsTemplate
+metadata:
+  name: cluster-template-development
+  labels:
+    weave.works/template-type: cluster
+spec:
+  description: This is the std. CAPD template
+  renderType: templating
+  params:
+    - name: CLUSTER_NAME
+      description: This is used for the cluster naming.
+  resourcetemplates:
+    - apiVersion: cluster.x-k8s.io/v1alpha3
+      kind: Cluster
+      metadata:
+        name: "{{ .params.CLUSTER_NAME }}"
+```
+
+

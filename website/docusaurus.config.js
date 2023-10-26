@@ -3,8 +3,8 @@ const versions = require("./versions.json");
 module.exports = {
   title: "Weave GitOps",
   tagline: "The Flux expansion pack from the founders of Flux",
-  url: "https://docs.gitops.weave.works",
-  baseUrl: "/",
+  url: process.env.DOC_URL || "https://docs.gitops.weave.works",
+  baseUrl: process.env.DOC_BASE_URL || "/",
   onBrokenLinks: "throw",
   onBrokenMarkdownLinks: "warn",
   favicon: "img/favicon_150px.png",
@@ -62,7 +62,6 @@ module.exports = {
     ],
   ],
   themeConfig: {
-    metadata: [{ name: "robots", content: "noindex, nofollow" }],
     navbar: {
       title: "Weave GitOps",
       logo: {
@@ -162,7 +161,7 @@ module.exports = {
     },
     algolia: {
       appId: "Z1KEXCDHZE",
-      apiKey: "c90c5ade2802df8213d6ac50cf3632f4",
+      apiKey: process.env.ALGOLIA_API_KEY,
       indexName: "weave",
       // Needed to handle the different versions of docs
       contextualSearch: true,
@@ -187,6 +186,16 @@ module.exports = {
           id: 'default',
           sidebarPath: require.resolve("./sidebars.js"),
           editUrl: "https://github.com/weaveworks/weave-gitops/edit/main/website",
+          onlyIncludeVersions: (() => {
+            if (process.env.STAGING_BUILD === "true") {
+              // Build the last 3 versions for staging to speed it up a bit
+              return ["current", ...versions.slice(0, 3)];
+            }
+
+            // Return undefined which will fall back to the default of all versions
+            return undefined;
+          })(),
+          disableVersioning: process.env.DISABLE_VERSIONING === "true",
         },
         blog: {
           showReadingTime: true,

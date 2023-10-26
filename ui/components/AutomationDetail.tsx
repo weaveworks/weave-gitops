@@ -4,7 +4,7 @@ import styled from "styled-components";
 import { createCanaryCondition, useGetInventory } from "../hooks/inventory";
 import { Condition, Kind, ObjectRef } from "../lib/api/core/types.pb";
 import { Automation, HelmRelease } from "../lib/objects";
-import { automationLastUpdated } from "../lib/utils";
+import { automationLastUpdated, createYamlCommand } from "../lib/utils";
 import Alert from "./Alert";
 import Collapsible from "./Collapsible";
 import DependenciesView from "./DependenciesView";
@@ -27,7 +27,7 @@ import Timestamp from "./Timestamp";
 import YamlView from "./YamlView";
 
 const hrInfoMessage =
-  "spec.Kubeconfig is set on this HelmRelease. Details about reconciled objects are not available.";
+  "spec.kubeConfig is set on this HelmRelease. Details about reconciled objects are not available.";
 
 type Props = {
   automation: Automation;
@@ -83,6 +83,10 @@ function AutomationDetail({
 
   const canaryStatus = createCanaryCondition(data?.objects);
   const health = computeAggHealthCheck(data?.objects || []);
+  // We cannot show reconciled objects for remote HelmReleases
+  const skipReconciledObjectsTable =
+    automation.type === "HelmRelease" &&
+    (automation as HelmRelease).kubeConfig !== "";
 
   const defaultTabs: Array<routeTab> = [
     {
@@ -91,8 +95,7 @@ function AutomationDetail({
       component: () => {
         return (
           <RequestStateHandler loading={isLoading} error={error}>
-            {automation.type === "HelmRelease" &&
-            (automation as HelmRelease).kubeConfig === "" ? (
+            {!skipReconciledObjectsTable ? (
               <ReconciledObjectsTable
                 className={className}
                 objects={data?.objects}
@@ -149,11 +152,11 @@ function AutomationDetail({
         return (
           <YamlView
             yaml={automation.yaml}
-            object={{
-              kind: automation.type,
-              name: automation.name,
-              namespace: automation.namespace,
-            }}
+            header={createYamlCommand(
+              automation.type,
+              automation.name,
+              automation.namespace
+            )}
           />
         );
       },
