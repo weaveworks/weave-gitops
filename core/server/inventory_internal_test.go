@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"errors"
 	"testing"
 
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
@@ -67,17 +66,24 @@ func TestGetFluxLikeInventory(t *testing.T) {
 
 func TestParseInventoryFromUnstructured(t *testing.T) {
 	// inv lives at status.inventory.entries
-	stdErr := errors.New("status.inventory not found in object")
-
+	stdErr := "status.inventory not found in object my-namespace/my-resource"
 	testCases := []struct {
 		name        string
 		obj         *unstructured.Unstructured
 		expected    []*unstructured.Unstructured
-		expectedErr error
+		expectedErr string
 	}{
 		{
-			name:        "no status field",
-			obj:         &unstructured.Unstructured{},
+			name: "no status field",
+			obj: &unstructured.Unstructured{
+				Object: map[string]interface{}{
+					// include name to make sure its included in the error
+					"metadata": map[string]interface{}{
+						"name":      "my-resource",
+						"namespace": "my-namespace",
+					},
+				},
+			},
 			expected:    nil,
 			expectedErr: stdErr,
 		},
@@ -85,6 +91,10 @@ func TestParseInventoryFromUnstructured(t *testing.T) {
 			name: "empty status",
 			obj: &unstructured.Unstructured{
 				Object: map[string]interface{}{
+					"metadata": map[string]interface{}{
+						"name":      "my-resource",
+						"namespace": "my-namespace",
+					},
 					"status": map[string]interface{}{},
 				},
 			},
@@ -111,7 +121,7 @@ func TestParseInventoryFromUnstructured(t *testing.T) {
 					},
 				},
 			},
-			expectedErr: errors.New(".status.inventory accessor error: hi there is of the type string, expected map[string]interface{}"),
+			expectedErr: ".status.inventory accessor error: hi there is of the type string, expected map[string]interface{}",
 		},
 		{
 			name: "empty entry item",
@@ -127,7 +137,7 @@ func TestParseInventoryFromUnstructured(t *testing.T) {
 				},
 			},
 			expected:    nil,
-			expectedErr: errors.New("unable to parse stored object metadata: "),
+			expectedErr: "unable to parse stored object metadata: ",
 		},
 		{
 			name: "invalid inventory",
@@ -146,7 +156,7 @@ func TestParseInventoryFromUnstructured(t *testing.T) {
 				},
 			},
 			expected:    nil,
-			expectedErr: errors.New("unable to parse stored object metadata: foo"),
+			expectedErr: "unable to parse stored object metadata: foo",
 		},
 		{
 			name: "valid inventory",
@@ -190,7 +200,6 @@ func TestParseInventoryFromUnstructured(t *testing.T) {
 					},
 				},
 			},
-			expectedErr: nil,
 		},
 	}
 
@@ -201,8 +210,8 @@ func TestParseInventoryFromUnstructured(t *testing.T) {
 			// Parse inventory from unstructured
 			entries, err := parseInventoryFromUnstructured(tt.obj)
 
-			if err != nil || tt.expectedErr != nil {
-				g.Expect(err).To(MatchError(tt.expectedErr))
+			if err != nil || tt.expectedErr != "" {
+				g.Expect(err).To(MatchError(ContainSubstring(tt.expectedErr)))
 			}
 
 			g.Expect(entries).To(ConsistOf(tt.expected))

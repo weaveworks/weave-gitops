@@ -386,7 +386,7 @@ func parseInventoryFromUnstructured(obj *unstructured.Unstructured) ([]*unstruct
 		return nil, fmt.Errorf("error getting status.inventory from object: %w", err)
 	}
 	if !found {
-		return nil, fmt.Errorf("status.inventory not found in object")
+		return nil, fmt.Errorf("status.inventory not found in object %s/%s", obj.GetNamespace(), obj.GetName())
 	}
 
 	resourceInventory := &kustomizev1.ResourceInventory{}
