@@ -42,8 +42,7 @@ func Remove(kubeClient client.Client, session *InternalSession) error {
 		result = multierror.Append(result, err)
 	}
 
-	//nolint:staticcheck // deprecated, tracking issue: https://github.com/weaveworks/weave-gitops/issues/3812
-	if err := wait.Poll(2*time.Second, 5*time.Minute, func() (bool, error) {
+	if err := wait.PollUntilContextTimeout(context.Background(), time.Second*2, time.Minute*5, true, func(_ context.Context) (bool, error) {
 		instance := appsv1.StatefulSet{}
 		if err := kubeClient.Get(
 			context.Background(),
@@ -62,8 +61,7 @@ func Remove(kubeClient client.Client, session *InternalSession) error {
 		result = multierror.Append(result, err)
 	}
 
-	//nolint:staticcheck // deprecated, tracking issue: https://github.com/weaveworks/weave-gitops/issues/3812
-	if err := wait.Poll(2*time.Second, 5*time.Minute, func() (bool, error) {
+	if err := wait.PollUntilContextTimeout(context.Background(), time.Second*2, time.Minute*5, true, func(_ context.Context) (bool, error) {
 		pvc := corev1.PersistentVolumeClaim{}
 		if err := kubeClient.Get(
 			context.Background(),
