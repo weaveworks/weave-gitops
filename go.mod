@@ -231,14 +231,3 @@ require (
 
 // Use patched version that fixed recursive gets, and force delete for buckets
 replace github.com/johannesboyne/gofakes3 => github.com/chanwit/gofakes3 v0.0.0-20220715114300-3f51f1961f7b
-
-// Replace k8s.io packages v0.26 to downgrade controller-runtime to v0.14.6
-replace (
-	k8s.io/api => k8s.io/api v0.26.8
-	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.26.8
-	k8s.io/apimachinery => k8s.io/apimachinery v0.26.8
-	k8s.io/cli-runtime => k8s.io/cli-runtime v0.26.8
-	k8s.io/client-go => k8s.io/client-go v0.26.8
-
-	sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.14.6
-)
