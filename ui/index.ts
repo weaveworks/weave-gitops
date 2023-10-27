@@ -1,3 +1,4 @@
+import { AlertListErrors } from "./components/AlertListErrors";
 import { ReconciledObjectsAutomation } from "./components/AutomationDetail";
 import AutomationsTable from "./components/AutomationsTable";
 import BucketDetail from "./components/BucketDetail";
@@ -142,6 +143,7 @@ import SignIn from "./pages/SignIn";
 export {
   Alert,
   AppContext,
+  AlertListErrors,
   AppContextProvider,
   Auth,
   AuthCheck,
