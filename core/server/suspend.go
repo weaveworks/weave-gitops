@@ -33,11 +33,13 @@ func (cs *coreServer) ToggleSuspendResource(ctx context.Context, msg *pb.ToggleS
 			Namespace: obj.Namespace,
 		}
 
-		obj, err := getReconcilableObject(obj.Kind)
+		gvk, err := cs.primaryKinds.Lookup(obj.Kind)
 		if err != nil {
-			respErrors = *multierror.Append(fmt.Errorf("converting to reconcilable source: %w", err), respErrors.Errors...)
+			respErrors = *multierror.Append(fmt.Errorf("looking up GVK for %q: %w", obj.Kind, err), respErrors.Errors...)
 			continue
 		}
+
+		obj := fluxsync.ToReconcileable(*gvk)
 
 		log := cs.logger.WithValues(
 			"user", principal.ID,
@@ -53,7 +55,10 @@ func (cs *coreServer) ToggleSuspendResource(ctx context.Context, msg *pb.ToggleS
 
 		patch := client.MergeFrom(obj.DeepCopyClientObject())
 
-		obj.SetSuspended(msg.Suspend)
+		err = obj.SetSuspended(msg.Suspend)
+		if err != nil {
+			return nil, err
+		}
 
 		if msg.Suspend {
 			log.Info("Suspending resource")
@@ -67,10 +72,4 @@ func (cs *coreServer) ToggleSuspendResource(ctx context.Context, msg *pb.ToggleS
 	}
 
 	return &pb.ToggleSuspendResourceResponse{}, respErrors.ErrorOrNil()
-}
-
-func getReconcilableObject(kind string) (fluxsync.Reconcilable, error) {
-	_, s, err := fluxsync.ToReconcileable(kind)
-
-	return s, err
 }
