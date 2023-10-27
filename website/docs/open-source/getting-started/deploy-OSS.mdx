@@ -140,10 +140,13 @@ To resume updates, go back to the details page, click the resume button, and aft
 
 ## Delete Podinfo 
 
-To delete Podinfo in the GitOps way, run this command:
+To delete Podinfo in the GitOps way, run this command from the root of your working directory:
 
 ```
-flux/git cmd
+  rm ./clusters/management/podinfo-kustomization.yaml
+  rm ./clusters/management/podinfo-source.yaml
+  git add -A && git commit -m "Remove podinfo kustomization and source"
+  git push
 ```
 
 ## Complete!
