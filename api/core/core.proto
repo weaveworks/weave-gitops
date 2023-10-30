@@ -25,6 +25,10 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
     consumes: "application/json",
     produces: "application/json",
     tags: {
+        name: "objects",
+        description: "Query and trigger kubernetes resources"
+    };
+    tags: {
         name: "internal",
         description: "Internal APIs which should not be used"
     };
@@ -78,8 +82,8 @@ service Core {
     }
 
     /*
-     * GetReconciledObjects returns a list of objects that were created
-     * as a result of reconciling a Flux automation.
+     * Get the list of objects that were created as a result of reconciling a Flux automation.
+     *
      * This list is derived by looking at the Kustomization or HelmRelease
      * specified in the request body.
      */
@@ -93,7 +97,8 @@ service Core {
     };
 
     /*
-     * GetChildObjects returns the children of a given object,
+     * Returns the children of a given object
+     *
      * specified by a GroupVersionKind.
      * Not all Kubernets objects have children. For example, a Deployment
      * has a child ReplicaSet, but a Service has no child objects.
@@ -424,13 +429,9 @@ message ListEventsResponse {
 message SyncFluxObjectRequest {
     repeated ObjectRef objects  = 1;
 
-    // with_source can be used for resources like Kustomizations to trigger
-    // synchronisation of the dependent Source resource.
-    bool     with_source        = 2 [
-      (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_field) = {
-        description: "If with_source is true, the dependent Source resource will be synced too, e.g. syncing a Kustomization with_source will sync an attached GitRepository"
-      }
-    ];
+    // with_source is true the dependent Source resource will be synced too
+    // syncing a Kustomization with_source will sync an attached GitRepository.
+    bool     with_source        = 2;
 }
 
 message SyncFluxObjectResponse {

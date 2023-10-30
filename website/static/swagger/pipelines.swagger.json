@@ -17,42 +17,6 @@
     "application/json"
   ],
   "paths": {
-    "/v1/namespaces/{namespace}/pipelines/{name}": {
-      "get": {
-        "operationId": "Pipelines_GetPipeline",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1GetPipelineResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "namespace",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "name",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Pipelines"
-        ]
-      }
-    },
     "/v1/pipelines": {
       "get": {
         "operationId": "Pipelines_ListPipelines",
@@ -132,7 +96,7 @@
         ]
       }
     },
-    "/v1/pipelines/list-prs/{pipelineName}": {
+    "/v1/pipelines/list_prs/{pipelineName}": {
       "post": {
         "operationId": "Pipelines_ListPullRequests",
         "responses": {
@@ -168,6 +132,42 @@
                 }
               }
             }
+          }
+        ],
+        "tags": [
+          "Pipelines"
+        ]
+      }
+    },
+    "/v1/pipelines/{name}": {
+      "get": {
+        "operationId": "Pipelines_GetPipeline",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetPipelineResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "namespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -288,6 +288,9 @@
             "type": "object",
             "$ref": "#/definitions/v1Target"
           }
+        },
+        "promotion": {
+          "$ref": "#/definitions/v1Promotion"
         }
       }
     },

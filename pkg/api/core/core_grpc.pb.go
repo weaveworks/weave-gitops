@@ -30,12 +30,13 @@ type CoreClient interface {
 	//
 	// Determine which flux CRDs are installed and their versions
 	ListFluxCrds(ctx context.Context, in *ListFluxCrdsRequest, opts ...grpc.CallOption) (*ListFluxCrdsResponse, error)
-	// GetReconciledObjects returns a list of objects that were created
-	// as a result of reconciling a Flux automation.
+	// Get the list of objects that were created as a result of reconciling a Flux automation.
+	//
 	// This list is derived by looking at the Kustomization or HelmRelease
 	// specified in the request body.
 	GetReconciledObjects(ctx context.Context, in *GetReconciledObjectsRequest, opts ...grpc.CallOption) (*GetReconciledObjectsResponse, error)
-	// GetChildObjects returns the children of a given object,
+	// Returns the children of a given object
+	//
 	// specified by a GroupVersionKind.
 	// Not all Kubernets objects have children. For example, a Deployment
 	// has a child ReplicaSet, but a Service has no child objects.
@@ -262,12 +263,13 @@ type CoreServer interface {
 	//
 	// Determine which flux CRDs are installed and their versions
 	ListFluxCrds(context.Context, *ListFluxCrdsRequest) (*ListFluxCrdsResponse, error)
-	// GetReconciledObjects returns a list of objects that were created
-	// as a result of reconciling a Flux automation.
+	// Get the list of objects that were created as a result of reconciling a Flux automation.
+	//
 	// This list is derived by looking at the Kustomization or HelmRelease
 	// specified in the request body.
 	GetReconciledObjects(context.Context, *GetReconciledObjectsRequest) (*GetReconciledObjectsResponse, error)
-	// GetChildObjects returns the children of a given object,
+	// Returns the children of a given object
+	//
 	// specified by a GroupVersionKind.
 	// Not all Kubernets objects have children. For example, a Deployment
 	// has a child ReplicaSet, but a Service has no child objects.

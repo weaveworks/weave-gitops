@@ -10,6 +10,10 @@
       "name": "Core"
     },
     {
+      "name": "objects",
+      "description": "Query and trigger kubernetes resources"
+    },
+    {
       "name": "internal",
       "description": "Internal APIs which should not be used"
     }
@@ -23,7 +27,8 @@
   "paths": {
     "/v1/child_objects": {
       "post": {
-        "summary": "GetChildObjects returns the children of a given object,\nspecified by a GroupVersionKind.\nNot all Kubernets objects have children. For example, a Deployment\nhas a child ReplicaSet, but a Service has no child objects.",
+        "summary": "Returns the children of a given object",
+        "description": "specified by a GroupVersionKind.\nNot all Kubernets objects have children. For example, a Deployment\nhas a child ReplicaSet, but a Service has no child objects.",
         "operationId": "Core_GetChildObjects",
         "responses": {
           "200": {
@@ -578,7 +583,8 @@
     },
     "/v1/reconciled_objects": {
       "post": {
-        "summary": "GetReconciledObjects returns a list of objects that were created\nas a result of reconciling a Flux automation.\nThis list is derived by looking at the Kustomization or HelmRelease\nspecified in the request body.",
+        "summary": "Get the list of objects that were created as a result of reconciling a Flux automation.",
+        "description": "This list is derived by looking at the Kustomization or HelmRelease\nspecified in the request body.",
         "operationId": "Core_GetReconciledObjects",
         "responses": {
           "200": {
@@ -1597,7 +1603,7 @@
         },
         "withSource": {
           "type": "boolean",
-          "description": "If with_source is true, the dependent Source resource will be synced too, e.g. syncing a Kustomization with_source will sync an attached GitRepository"
+          "description": "with_source is true the dependent Source resource will be synced too\nsyncing a Kustomization with_source will sync an attached GitRepository."
         }
       }
     },

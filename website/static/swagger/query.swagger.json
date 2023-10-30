@@ -40,6 +40,28 @@
         ]
       }
     },
+    "/v1/enabled-components": {
+      "get": {
+        "operationId": "Query_ListEnabledComponents",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListEnabledComponentsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "Query"
+        ]
+      }
+    },
     "/v1/facets": {
       "get": {
         "summary": "List facets available for querying",
@@ -171,6 +193,18 @@
         }
       }
     },
+    "v1EnabledComponent": {
+      "type": "string",
+      "enum": [
+        "unknown",
+        "applications",
+        "sources",
+        "gitopssets",
+        "templates"
+      ],
+      "default": "unknown",
+      "title": "EnabledComponent represents a component of the UI that can be enabled or disabled"
+    },
     "v1Facet": {
       "type": "object",
       "properties": {
@@ -181,6 +215,17 @@
           "type": "array",
           "items": {
             "type": "string"
+          }
+        }
+      }
+    },
+    "v1ListEnabledComponentsResponse": {
+      "type": "object",
+      "properties": {
+        "components": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1EnabledComponent"
           }
         }
       }

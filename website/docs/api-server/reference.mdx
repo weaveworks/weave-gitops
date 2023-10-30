@@ -32,7 +32,7 @@ export const APIUI = ({ url }) => {
               defaultModelsExpandDepth={0}
               // Expand out the model section in each endpoint detail, otherwise its a bit
               // tedious to click through the tree
-              defaultModelExpandDepth={5}
+              defaultModelExpandDepth={8}
             />
           );
         }}
@@ -41,22 +41,34 @@ export const APIUI = ({ url }) => {
   );
 };
 
-## OSS Core
+### OSS Core
 
 <APIUI url="/swagger/core.swagger.json" />
 
-## Enterprise Core
+### Enterprise Core
 
 <APIUI url="/swagger/cluster_services.swagger.json" />
 
-## Query
-
-<APIUI url="/swagger/query.swagger.json" />
-
-## Terraform
+### Terraform
 
 <APIUI url="/swagger/terraform.swagger.json" />
 
-## GitOpsSets
+## Internal APIs
+
+APIs that are not yet considered stable
+
+### Query
+
+<APIUI url="/swagger/query.swagger.json" />
+
+### GitAuth
+
+<APIUI url="/swagger/gitauth.swagger.json" />
+
+### Pipelines
+
+<APIUI url="/swagger/pipelines.swagger.json" />
+
+### GitOpsSets
 
 <APIUI url="/swagger/gitopssets.swagger.json" />
