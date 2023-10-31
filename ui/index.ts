@@ -92,6 +92,7 @@ import {
 } from "./contexts/LinkResolverContext";
 import { useListAutomations, useSyncFluxObject } from "./hooks/automations";
 import { useDebounce, useRequestState } from "./hooks/common";
+import { useListEvents } from "./hooks/events";
 import { useFeatureFlags } from "./hooks/featureflags";
 import {
   useListFluxCrds,
@@ -99,6 +100,7 @@ import {
   useToggleSuspend,
 } from "./hooks/flux";
 import { useCheckCRDInstalled } from "./hooks/imageautomation";
+import { useGetInventory } from "./hooks/inventory";
 import useNavigation from "./hooks/navigation";
 import { useListAlerts, useListProviders } from "./hooks/notifications";
 import { useGetObject, useListObjects } from "./hooks/objects";
@@ -270,9 +272,11 @@ export {
   useDebounce,
   useFeatureFlags,
   useGetObject,
+  useGetInventory,
   useLinkResolver,
   useListAlerts,
   useListAutomations,
+  useListEvents,
   useListFluxCrds,
   useListFluxRuntimeObjects,
   useListObjects,

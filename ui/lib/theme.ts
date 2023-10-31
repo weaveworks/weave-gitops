@@ -181,30 +181,7 @@ export const GlobalStyle = createGlobalStyle`
   .auth-modal-size {
     min-height: 475px
   }
-  //scrollbar
-  ::-webkit-scrollbar-track {
-    margin-top: 5px;
-    -webkit-box-shadow: transparent;
-    -moz-box-shadow: transparent;
-    background-color: transparent;
-    border-radius: 5px;
-  }
 
-  ::-webkit-scrollbar{
-    width: 5px;
-    height: 5px;
-    background-color: transparent;
-  }
-  ::-webkit-scrollbar-corner{
-    background-color: transparent;
-  }
-  ::-webkit-scrollbar-thumb {
-    background-color: ${(props) => props.theme.colors.neutral20};
-    border-radius: 5px;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background-color: ${(props) => props.theme.colors.neutral30};
-  }
 //prevents white autofill background in dark mode
 input:-webkit-autofill,
 input:-webkit-autofill:hover, 
