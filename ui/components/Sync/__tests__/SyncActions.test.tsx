@@ -1,12 +1,12 @@
 import "jest-styled-components";
 import React from "react";
 import renderer from "react-test-renderer";
-import { CoreClientContext } from "../../contexts/CoreClientContext";
+import { CoreClientContext } from "../../../contexts/CoreClientContext";
 import {
   createCoreMockClient,
   withContext,
   withTheme,
-} from "../../lib/test-utils";
+} from "../../../lib/test-utils";
 import SyncActions from "../SyncActions";
 
 describe("SyncActions", () => {
@@ -45,13 +45,13 @@ describe("SyncActions", () => {
         .toJSON();
       expect(tree).toMatchSnapshot();
     });
-    it("hideDropdown", () => {
+    it("hideSyncOptions", () => {
       const tree = renderer
         .create(
           withTheme(
             withContext(
               <CoreClientContext.Provider value={mockContext}>
-                <SyncActions hideDropdown />
+                <SyncActions hideSyncOptions />
               </CoreClientContext.Provider>,
               "/",
               {}

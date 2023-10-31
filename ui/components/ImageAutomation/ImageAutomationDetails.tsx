@@ -7,7 +7,7 @@ import Flex from "../Flex";
 import PageStatus from "../PageStatus";
 import HeaderRows, { RowItem } from "../Policies/Utils/HeaderRows";
 import SubRouterTabs, { RouterTab } from "../SubRouterTabs";
-import SyncActions from "../SyncActions";
+import SyncActions from "../Sync/SyncActions";
 import YamlView from "../YamlView";
 interface Props {
   className?: string;
@@ -38,7 +38,7 @@ const ImageAutomationDetails = ({
           clusterName={clusterName}
           kind={kind}
           suspended={suspended}
-          hideDropdown
+          hideSyncOptions
         />
       )}
 

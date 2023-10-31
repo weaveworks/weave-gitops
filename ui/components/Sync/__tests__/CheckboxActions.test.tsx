@@ -1,5 +1,5 @@
 import "jest-styled-components";
-import { Kind } from "../../lib/api/core/types.pb";
+import { Kind } from "../../../lib/api/core/types.pb";
 import { makeObjects } from "../CheckboxActions";
 
 describe("CheckboxActions", () => {
