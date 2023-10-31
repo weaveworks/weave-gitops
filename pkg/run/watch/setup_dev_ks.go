@@ -429,8 +429,7 @@ func ReconcileDevBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeC
 	}
 
 	// wait for the reconciliation of dev-bucket to be done
-	//nolint:staticcheck // deprecated, tracking issue: https://github.com/weaveworks/weave-gitops/issues/3812
-	if err := wait.Poll(interval, timeout, func() (bool, error) {
+	if err := wait.PollUntilContextTimeout(context.Background(), interval, timeout, true, func(_ context.Context) (bool, error) {
 		devBucket := &sourcev1b2.Bucket{}
 		if err := kubeClient.Get(ctx, types.NamespacedName{
 			Name:      constants.RunDevBucketName,
@@ -445,8 +444,7 @@ func ReconcileDevBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeC
 	}
 
 	// wait for devBucket to be ready
-	//nolint:staticcheck // deprecated, tracking issue: https://github.com/weaveworks/weave-gitops/issues/3812
-	if err := wait.Poll(interval, timeout, func() (bool, error) {
+	if err := wait.PollUntilContextTimeout(context.Background(), interval, timeout, true, func(_ context.Context) (bool, error) {
 		devBucket := &sourcev1b2.Bucket{}
 		if err := kubeClient.Get(ctx, types.NamespacedName{
 			Name:      constants.RunDevBucketName,
@@ -473,8 +471,7 @@ func ReconcileDevBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeC
 		return err
 	}
 
-	//nolint:staticcheck // deprecated, tracking issue: https://github.com/weaveworks/weave-gitops/issues/3812
-	if err := wait.Poll(interval, timeout, func() (bool, error) {
+	if err := wait.PollUntilContextTimeout(context.Background(), interval, timeout, true, func(_ context.Context) (bool, error) {
 		devKs := &kustomizev1.Kustomization{}
 		if err := kubeClient.Get(ctx, types.NamespacedName{
 			Name:      constants.RunDevKsName,
@@ -489,8 +486,7 @@ func ReconcileDevBucketSourceAndKS(ctx context.Context, log logger.Logger, kubeC
 	}
 
 	devKs := &kustomizev1.Kustomization{}
-	//nolint:staticcheck // deprecated, tracking issue: https://github.com/weaveworks/weave-gitops/issues/3812
-	devKsErr := wait.Poll(interval, timeout, func() (bool, error) {
+	devKsErr := wait.PollUntilContextTimeout(context.Background(), interval, timeout, true, func(_ context.Context) (bool, error) {
 		if err := kubeClient.Get(ctx, types.NamespacedName{
 			Name:      constants.RunDevKsName,
 			Namespace: namespace,

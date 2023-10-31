@@ -55,7 +55,12 @@ func (c *singleCluster) GetHost() string {
 }
 
 func getClientFromConfig(config *rest.Config, scheme *apiruntime.Scheme) (client.Client, error) {
-	mapper, err := apiutil.NewDiscoveryRESTMapper(config)
+	httpClient, err := rest.HTTPClientFor(config)
+	if err != nil {
+		return nil, fmt.Errorf("could not create HTTP client from config: %w", err)
+	}
+
+	mapper, err := apiutil.NewDiscoveryRESTMapper(config, httpClient)
 	if err != nil {
 		return nil, fmt.Errorf("could not create RESTMapper from config: %w", err)
 	}
