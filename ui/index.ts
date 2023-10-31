@@ -70,7 +70,7 @@ import SourceLink from "./components/SourceLink";
 import SourcesTable from "./components/SourcesTable";
 import Spacer from "./components/Spacer";
 import SubRouterTabs, { RouterTab } from "./components/SubRouterTabs";
-import SyncButton from "./components/SyncButton";
+import SyncControls from "./components/Sync/SyncControls";
 import Text from "./components/Text";
 import Timestamp from "./components/Timestamp";
 import UserGroupsTable from "./components/UserGroupsTable";
@@ -240,7 +240,7 @@ export {
   SourcesTable,
   Spacer,
   SubRouterTabs,
-  SyncButton,
+  SyncControls,
   Text,
   ThemeTypes,
   Timestamp,

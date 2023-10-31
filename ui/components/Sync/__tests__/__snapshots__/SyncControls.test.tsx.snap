@@ -1,0 +1,2473 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SyncControls snapshots allButtonsDisabled 1`] = `
+.c0 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  width: 100%;
+  -webkit-box-pack: start;
+  -webkit-justify-content: flex-start;
+  -ms-flex-pack: start;
+  justify-content: flex-start;
+}
+
+.c3 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+}
+
+.c4 svg {
+  height: 24px;
+  width: 24px;
+}
+
+.c4 svg path.path-fill,
+.c4 svg line.path-fill,
+.c4 svg polygon.path-fill,
+.c4 svg rect.path-fill,
+.c4 svg circle.path-fill,
+.c4 svg polyline.path-fill {
+  fill: !important;
+  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
+.c4 svg path.stroke-fill,
+.c4 svg line.stroke-fill,
+.c4 svg polygon.stroke-fill,
+.c4 svg rect.stroke-fill,
+.c4 svg circle.stroke-fill,
+.c4 svg polyline.stroke-fill {
+  stroke: !important;
+  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
+.c4 svg rect.rect-height {
+  height: 24px;
+  width: 24px;
+}
+
+.c4.downward {
+  -webkit-transform: rotate(180deg);
+  -ms-transform: rotate(180deg);
+  transform: rotate(180deg);
+}
+
+.c4.upward {
+  -webkit-transform: initial;
+  -ms-transform: initial;
+  transform: initial;
+}
+
+.c4 img {
+  width: 24px;
+}
+
+.c8 svg {
+  fill: #009CCC;
+  height: 24px;
+  width: 24px;
+}
+
+.c8 svg path.path-fill,
+.c8 svg line.path-fill,
+.c8 svg polygon.path-fill,
+.c8 svg rect.path-fill,
+.c8 svg circle.path-fill,
+.c8 svg polyline.path-fill {
+  fill: #009CCC !important;
+  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
+.c8 svg path.stroke-fill,
+.c8 svg line.stroke-fill,
+.c8 svg polygon.stroke-fill,
+.c8 svg rect.stroke-fill,
+.c8 svg circle.stroke-fill,
+.c8 svg polyline.stroke-fill {
+  stroke: #009CCC !important;
+  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
+.c8 svg rect.rect-height {
+  height: 24px;
+  width: 24px;
+}
+
+.c8.downward {
+  -webkit-transform: rotate(180deg);
+  -ms-transform: rotate(180deg);
+  transform: rotate(180deg);
+}
+
+.c8.upward {
+  -webkit-transform: initial;
+  -ms-transform: initial;
+  transform: initial;
+}
+
+.c8 img {
+  width: 24px;
+}
+
+.c5 {
+  padding: 4px;
+}
+
+.c2.MuiButton-root {
+  height: 32px;
+  font-size: 12px;
+  -webkit-letter-spacing: 1px;
+  -moz-letter-spacing: 1px;
+  -ms-letter-spacing: 1px;
+  letter-spacing: 1px;
+  line-height: 1;
+  border-radius: 2px;
+  font-weight: 600;
+}
+
+.c2.MuiButton-outlined {
+  padding: 8px 12px;
+}
+
+.c6.MuiFormControlLabel-root {
+  margin-right: 0;
+  margin-left: 0;
+}
+
+.c6 .MuiFormControlLabel-label {
+  color: #1a1a1a;
+}
+
+.c6 .MuiFormControlLabel-label.Mui-disabled {
+  color: #d8d8d8;
+}
+
+.c6 .MuiTypography-root {
+  margin-left: 8px;
+}
+
+.c7.MuiButton-root {
+  border-radius: 50%;
+  min-width: 32px;
+  height: 32px;
+  padding: 0;
+}
+
+.c7.MuiButton-root:disabled svg {
+  fill: #d8d8d8;
+}
+
+.c7.MuiButton-root:hover {
+  background-color: rgba(0,179,236,0.1);
+}
+
+.c7.MuiButton-text {
+  padding: 0;
+}
+
+.c1 .sync-icon-button {
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.c1 .rotate-icon {
+  color: #009CCC;
+  -webkit-animation: 1s linear infinite dxlcOg;
+  animation: 1s linear infinite dxlcOg;
+}
+
+<div
+  className="c0 c1"
+>
+  <button
+    className="MuiButtonBase-root MuiButton-root MuiButton-text c2 sync-icon-button MuiButton-textPrimary MuiButton-disableElevation Mui-disabled Mui-disabled"
+    disabled={true}
+    onBlur={[Function]}
+    onDragLeave={[Function]}
+    onFocus={[Function]}
+    onKeyDown={[Function]}
+    onKeyUp={[Function]}
+    onMouseDown={[Function]}
+    onMouseLeave={[Function]}
+    onMouseUp={[Function]}
+    onTouchEnd={[Function]}
+    onTouchMove={[Function]}
+    onTouchStart={[Function]}
+    tabIndex={-1}
+    type="button"
+  >
+    <span
+      className="MuiButton-label"
+    >
+      <span
+        className="MuiButton-startIcon MuiButton-iconSizeMedium"
+      >
+        <div
+          className="c3 c4"
+        >
+          <svg
+            aria-hidden={true}
+            className="MuiSvgIcon-root"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"
+            />
+          </svg>
+        </div>
+      </span>
+      Sync
+    </span>
+  </button>
+  <div
+    className="c5"
+  />
+  <div
+    className="MuiFormControl-root"
+  >
+    <div
+      aria-labelledby="source-radio-buttons-group-label"
+      className="MuiFormGroup-root MuiFormGroup-row"
+      data-testid="sync-options"
+      role="radiogroup"
+    >
+      <label
+        className="MuiFormControlLabel-root c6 Mui-disabled"
+      >
+        <span
+          aria-disabled={true}
+          className="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-8 MuiRadio-root MuiRadio-colorSecondary PrivateSwitchBase-checked-9 Mui-checked PrivateSwitchBase-disabled-10 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
+          onBlur={[Function]}
+          onDragLeave={[Function]}
+          onFocus={[Function]}
+          onKeyDown={[Function]}
+          onKeyUp={[Function]}
+          onMouseDown={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          onTouchEnd={[Function]}
+          onTouchMove={[Function]}
+          onTouchStart={[Function]}
+          tabIndex={-1}
+        >
+          <span
+            className="MuiIconButton-label"
+          >
+            <input
+              checked={true}
+              className="PrivateSwitchBase-input-11"
+              disabled={true}
+              name="source-radio-buttons-group"
+              onChange={[Function]}
+              type="radio"
+              value="WithSource"
+            />
+            <div
+              className="PrivateRadioButtonIcon-root-12 PrivateRadioButtonIcon-checked-14"
+            >
+              <svg
+                aria-hidden={true}
+                className="MuiSvgIcon-root"
+                focusable="false"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
+                />
+              </svg>
+              <svg
+                aria-hidden={true}
+                className="MuiSvgIcon-root PrivateRadioButtonIcon-layer-13"
+                focusable="false"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M8.465 8.465C9.37 7.56 10.62 7 12 7C14.76 7 17 9.24 17 12C17 13.38 16.44 14.63 15.535 15.535C14.63 16.44 13.38 17 12 17C9.24 17 7 14.76 7 12C7 10.62 7.56 9.37 8.465 8.465Z"
+                />
+              </svg>
+            </div>
+          </span>
+        </span>
+        <span
+          className="MuiTypography-root MuiFormControlLabel-label Mui-disabled MuiTypography-body1"
+        >
+          with Source
+        </span>
+      </label>
+      <div
+        className="c5"
+      />
+      <label
+        className="MuiFormControlLabel-root c6 Mui-disabled"
+      >
+        <span
+          aria-disabled={true}
+          className="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-8 MuiRadio-root MuiRadio-colorSecondary PrivateSwitchBase-disabled-10 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
+          onBlur={[Function]}
+          onDragLeave={[Function]}
+          onFocus={[Function]}
+          onKeyDown={[Function]}
+          onKeyUp={[Function]}
+          onMouseDown={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          onTouchEnd={[Function]}
+          onTouchMove={[Function]}
+          onTouchStart={[Function]}
+          tabIndex={-1}
+        >
+          <span
+            className="MuiIconButton-label"
+          >
+            <input
+              checked={false}
+              className="PrivateSwitchBase-input-11"
+              disabled={true}
+              name="source-radio-buttons-group"
+              onChange={[Function]}
+              type="radio"
+              value="WithoutSource"
+            />
+            <div
+              className="PrivateRadioButtonIcon-root-12"
+            >
+              <svg
+                aria-hidden={true}
+                className="MuiSvgIcon-root"
+                focusable="false"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
+                />
+              </svg>
+              <svg
+                aria-hidden={true}
+                className="MuiSvgIcon-root PrivateRadioButtonIcon-layer-13"
+                focusable="false"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M8.465 8.465C9.37 7.56 10.62 7 12 7C14.76 7 17 9.24 17 12C17 13.38 16.44 14.63 15.535 15.535C14.63 16.44 13.38 17 12 17C9.24 17 7 14.76 7 12C7 10.62 7.56 9.37 8.465 8.465Z"
+                />
+              </svg>
+            </div>
+          </span>
+        </span>
+        <span
+          className="MuiTypography-root MuiFormControlLabel-label Mui-disabled MuiTypography-body1"
+        >
+          without Source
+        </span>
+      </label>
+    </div>
+  </div>
+  <div
+    className="c5"
+  />
+  <div
+    aria-describedby={null}
+    className=""
+    onBlur={[Function]}
+    onFocus={[Function]}
+    onMouseLeave={[Function]}
+    onMouseOver={[Function]}
+    onTouchEnd={[Function]}
+    onTouchStart={[Function]}
+    title="Sync"
+  >
+    <button
+      className="MuiButtonBase-root MuiButton-root MuiButton-outlined c2 c7 MuiButton-outlinedPrimary MuiButton-disableElevation Mui-disabled Mui-disabled"
+      data-testid="sync-button"
+      disabled={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onDragLeave={[Function]}
+      onFocus={[Function]}
+      onKeyDown={[Function]}
+      onKeyUp={[Function]}
+      onMouseDown={[Function]}
+      onMouseLeave={[Function]}
+      onMouseUp={[Function]}
+      onTouchEnd={[Function]}
+      onTouchMove={[Function]}
+      onTouchStart={[Function]}
+      tabIndex={-1}
+      type="button"
+    >
+      <span
+        className="MuiButton-label"
+      >
+        <div
+          className="c3 c4"
+        >
+          <svg
+            aria-hidden={true}
+            className="MuiSvgIcon-root"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M8 5v14l11-7z"
+            />
+          </svg>
+        </div>
+      </span>
+    </button>
+  </div>
+  <div
+    className="c5"
+  />
+  <div
+    aria-describedby={null}
+    className=""
+    onBlur={[Function]}
+    onFocus={[Function]}
+    onMouseLeave={[Function]}
+    onMouseOver={[Function]}
+    onTouchEnd={[Function]}
+    onTouchStart={[Function]}
+    title="Suspend"
+  >
+    <button
+      className="MuiButtonBase-root MuiButton-root MuiButton-outlined c2 c7 MuiButton-outlinedPrimary MuiButton-disableElevation Mui-disabled Mui-disabled"
+      data-testid="suspend-button"
+      disabled={true}
+      onBlur={[Function]}
+      onDragLeave={[Function]}
+      onFocus={[Function]}
+      onKeyDown={[Function]}
+      onKeyUp={[Function]}
+      onMouseDown={[Function]}
+      onMouseLeave={[Function]}
+      onMouseUp={[Function]}
+      onTouchEnd={[Function]}
+      onTouchMove={[Function]}
+      onTouchStart={[Function]}
+      tabIndex={-1}
+      type="button"
+    >
+      <span
+        className="MuiButton-label"
+      >
+        <div
+          className="c3 c4"
+        >
+          <svg
+            aria-hidden={true}
+            className="MuiSvgIcon-root"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"
+            />
+          </svg>
+        </div>
+      </span>
+    </button>
+  </div>
+  <div
+    className="c5"
+  />
+  <div
+    aria-describedby={null}
+    className=""
+    onBlur={[Function]}
+    onFocus={[Function]}
+    onMouseLeave={[Function]}
+    onMouseOver={[Function]}
+    onTouchEnd={[Function]}
+    onTouchStart={[Function]}
+    title="Resume"
+  >
+    <button
+      className="MuiButtonBase-root MuiButton-root MuiButton-outlined c2 c7 MuiButton-outlinedPrimary MuiButton-disableElevation Mui-disabled Mui-disabled"
+      data-testid="resume-button"
+      disabled={true}
+      onBlur={[Function]}
+      onDragLeave={[Function]}
+      onFocus={[Function]}
+      onKeyDown={[Function]}
+      onKeyUp={[Function]}
+      onMouseDown={[Function]}
+      onMouseLeave={[Function]}
+      onMouseUp={[Function]}
+      onTouchEnd={[Function]}
+      onTouchMove={[Function]}
+      onTouchStart={[Function]}
+      tabIndex={-1}
+      type="button"
+    >
+      <span
+        className="MuiButton-label"
+      >
+        <div
+          className="c3 c8"
+        >
+          <svg
+            height="24"
+            viewBox="0 0 24 24"
+            width="24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M4.08331 18.75V4.75H6.41665V18.75H4.08331ZM8.74998 18.75L20.4166 11.75L8.74998 4.75V18.75Z"
+            />
+          </svg>
+        </div>
+      </span>
+    </button>
+  </div>
+</div>
+`;
+
+exports[`SyncControls snapshots hasTooltipSuffix 1`] = `
+.c0 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  width: 100%;
+  -webkit-box-pack: start;
+  -webkit-justify-content: flex-start;
+  -ms-flex-pack: start;
+  justify-content: flex-start;
+}
+
+.c3 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+}
+
+.c4 svg {
+  height: 24px;
+  width: 24px;
+}
+
+.c4 svg path.path-fill,
+.c4 svg line.path-fill,
+.c4 svg polygon.path-fill,
+.c4 svg rect.path-fill,
+.c4 svg circle.path-fill,
+.c4 svg polyline.path-fill {
+  fill: !important;
+  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
+.c4 svg path.stroke-fill,
+.c4 svg line.stroke-fill,
+.c4 svg polygon.stroke-fill,
+.c4 svg rect.stroke-fill,
+.c4 svg circle.stroke-fill,
+.c4 svg polyline.stroke-fill {
+  stroke: !important;
+  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
+.c4 svg rect.rect-height {
+  height: 24px;
+  width: 24px;
+}
+
+.c4.downward {
+  -webkit-transform: rotate(180deg);
+  -ms-transform: rotate(180deg);
+  transform: rotate(180deg);
+}
+
+.c4.upward {
+  -webkit-transform: initial;
+  -ms-transform: initial;
+  transform: initial;
+}
+
+.c4 img {
+  width: 24px;
+}
+
+.c8 svg {
+  fill: #009CCC;
+  height: 24px;
+  width: 24px;
+}
+
+.c8 svg path.path-fill,
+.c8 svg line.path-fill,
+.c8 svg polygon.path-fill,
+.c8 svg rect.path-fill,
+.c8 svg circle.path-fill,
+.c8 svg polyline.path-fill {
+  fill: #009CCC !important;
+  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
+.c8 svg path.stroke-fill,
+.c8 svg line.stroke-fill,
+.c8 svg polygon.stroke-fill,
+.c8 svg rect.stroke-fill,
+.c8 svg circle.stroke-fill,
+.c8 svg polyline.stroke-fill {
+  stroke: #009CCC !important;
+  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
+.c8 svg rect.rect-height {
+  height: 24px;
+  width: 24px;
+}
+
+.c8.downward {
+  -webkit-transform: rotate(180deg);
+  -ms-transform: rotate(180deg);
+  transform: rotate(180deg);
+}
+
+.c8.upward {
+  -webkit-transform: initial;
+  -ms-transform: initial;
+  transform: initial;
+}
+
+.c8 img {
+  width: 24px;
+}
+
+.c5 {
+  padding: 4px;
+}
+
+.c2.MuiButton-root {
+  height: 32px;
+  font-size: 12px;
+  -webkit-letter-spacing: 1px;
+  -moz-letter-spacing: 1px;
+  -ms-letter-spacing: 1px;
+  letter-spacing: 1px;
+  line-height: 1;
+  border-radius: 2px;
+  font-weight: 600;
+}
+
+.c2.MuiButton-outlined {
+  padding: 8px 12px;
+}
+
+.c6.MuiFormControlLabel-root {
+  margin-right: 0;
+  margin-left: 0;
+}
+
+.c6 .MuiFormControlLabel-label {
+  color: #1a1a1a;
+}
+
+.c6 .MuiFormControlLabel-label.Mui-disabled {
+  color: #d8d8d8;
+}
+
+.c6 .MuiTypography-root {
+  margin-left: 8px;
+}
+
+.c7.MuiButton-root {
+  border-radius: 50%;
+  min-width: 32px;
+  height: 32px;
+  padding: 0;
+}
+
+.c7.MuiButton-root:disabled svg {
+  fill: #d8d8d8;
+}
+
+.c7.MuiButton-root:hover {
+  background-color: rgba(0,179,236,0.1);
+}
+
+.c7.MuiButton-text {
+  padding: 0;
+}
+
+.c1 .sync-icon-button {
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.c1 .rotate-icon {
+  color: #009CCC;
+  -webkit-animation: 1s linear infinite dxlcOg;
+  animation: 1s linear infinite dxlcOg;
+}
+
+<div
+  className="c0 c1"
+>
+  <button
+    className="MuiButtonBase-root MuiButton-root MuiButton-text c2 sync-icon-button MuiButton-textPrimary MuiButton-disableElevation"
+    disabled={false}
+    onBlur={[Function]}
+    onDragLeave={[Function]}
+    onFocus={[Function]}
+    onKeyDown={[Function]}
+    onKeyUp={[Function]}
+    onMouseDown={[Function]}
+    onMouseLeave={[Function]}
+    onMouseUp={[Function]}
+    onTouchEnd={[Function]}
+    onTouchMove={[Function]}
+    onTouchStart={[Function]}
+    tabIndex={0}
+    type="button"
+  >
+    <span
+      className="MuiButton-label"
+    >
+      <span
+        className="MuiButton-startIcon MuiButton-iconSizeMedium"
+      >
+        <div
+          className="c3 c4"
+        >
+          <svg
+            aria-hidden={true}
+            className="MuiSvgIcon-root"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"
+            />
+          </svg>
+        </div>
+      </span>
+      Sync
+    </span>
+    <span
+      className="MuiTouchRipple-root"
+    />
+  </button>
+  <div
+    className="c5"
+  />
+  <div
+    className="MuiFormControl-root"
+  >
+    <div
+      aria-labelledby="source-radio-buttons-group-label"
+      className="MuiFormGroup-root MuiFormGroup-row"
+      data-testid="sync-options"
+      role="radiogroup"
+    >
+      <label
+        className="MuiFormControlLabel-root c6"
+      >
+        <span
+          aria-disabled={false}
+          className="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-22 MuiRadio-root MuiRadio-colorSecondary PrivateSwitchBase-checked-23 Mui-checked MuiIconButton-colorSecondary"
+          onBlur={[Function]}
+          onDragLeave={[Function]}
+          onFocus={[Function]}
+          onKeyDown={[Function]}
+          onKeyUp={[Function]}
+          onMouseDown={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          onTouchEnd={[Function]}
+          onTouchMove={[Function]}
+          onTouchStart={[Function]}
+          tabIndex={null}
+        >
+          <span
+            className="MuiIconButton-label"
+          >
+            <input
+              checked={true}
+              className="PrivateSwitchBase-input-25"
+              disabled={false}
+              name="source-radio-buttons-group"
+              onChange={[Function]}
+              type="radio"
+              value="WithSource"
+            />
+            <div
+              className="PrivateRadioButtonIcon-root-26 PrivateRadioButtonIcon-checked-28"
+            >
+              <svg
+                aria-hidden={true}
+                className="MuiSvgIcon-root"
+                focusable="false"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
+                />
+              </svg>
+              <svg
+                aria-hidden={true}
+                className="MuiSvgIcon-root PrivateRadioButtonIcon-layer-27"
+                focusable="false"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M8.465 8.465C9.37 7.56 10.62 7 12 7C14.76 7 17 9.24 17 12C17 13.38 16.44 14.63 15.535 15.535C14.63 16.44 13.38 17 12 17C9.24 17 7 14.76 7 12C7 10.62 7.56 9.37 8.465 8.465Z"
+                />
+              </svg>
+            </div>
+          </span>
+          <span
+            className="MuiTouchRipple-root"
+          />
+        </span>
+        <span
+          className="MuiTypography-root MuiFormControlLabel-label MuiTypography-body1"
+        >
+          with Source
+        </span>
+      </label>
+      <div
+        className="c5"
+      />
+      <label
+        className="MuiFormControlLabel-root c6"
+      >
+        <span
+          aria-disabled={false}
+          className="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-22 MuiRadio-root MuiRadio-colorSecondary MuiIconButton-colorSecondary"
+          onBlur={[Function]}
+          onDragLeave={[Function]}
+          onFocus={[Function]}
+          onKeyDown={[Function]}
+          onKeyUp={[Function]}
+          onMouseDown={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          onTouchEnd={[Function]}
+          onTouchMove={[Function]}
+          onTouchStart={[Function]}
+          tabIndex={null}
+        >
+          <span
+            className="MuiIconButton-label"
+          >
+            <input
+              checked={false}
+              className="PrivateSwitchBase-input-25"
+              disabled={false}
+              name="source-radio-buttons-group"
+              onChange={[Function]}
+              type="radio"
+              value="WithoutSource"
+            />
+            <div
+              className="PrivateRadioButtonIcon-root-26"
+            >
+              <svg
+                aria-hidden={true}
+                className="MuiSvgIcon-root"
+                focusable="false"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
+                />
+              </svg>
+              <svg
+                aria-hidden={true}
+                className="MuiSvgIcon-root PrivateRadioButtonIcon-layer-27"
+                focusable="false"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M8.465 8.465C9.37 7.56 10.62 7 12 7C14.76 7 17 9.24 17 12C17 13.38 16.44 14.63 15.535 15.535C14.63 16.44 13.38 17 12 17C9.24 17 7 14.76 7 12C7 10.62 7.56 9.37 8.465 8.465Z"
+                />
+              </svg>
+            </div>
+          </span>
+          <span
+            className="MuiTouchRipple-root"
+          />
+        </span>
+        <span
+          className="MuiTypography-root MuiFormControlLabel-label MuiTypography-body1"
+        >
+          without Source
+        </span>
+      </label>
+    </div>
+  </div>
+  <div
+    className="c5"
+  />
+  <div
+    aria-describedby={null}
+    className=""
+    onBlur={[Function]}
+    onFocus={[Function]}
+    onMouseLeave={[Function]}
+    onMouseOver={[Function]}
+    onTouchEnd={[Function]}
+    onTouchStart={[Function]}
+    title="Synctest suffix"
+  >
+    <button
+      className="MuiButtonBase-root MuiButton-root MuiButton-outlined c2 c7 MuiButton-outlinedPrimary MuiButton-disableElevation"
+      data-testid="sync-button"
+      disabled={false}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onDragLeave={[Function]}
+      onFocus={[Function]}
+      onKeyDown={[Function]}
+      onKeyUp={[Function]}
+      onMouseDown={[Function]}
+      onMouseLeave={[Function]}
+      onMouseUp={[Function]}
+      onTouchEnd={[Function]}
+      onTouchMove={[Function]}
+      onTouchStart={[Function]}
+      tabIndex={0}
+      type="button"
+    >
+      <span
+        className="MuiButton-label"
+      >
+        <div
+          className="c3 c4"
+        >
+          <svg
+            aria-hidden={true}
+            className="MuiSvgIcon-root"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M8 5v14l11-7z"
+            />
+          </svg>
+        </div>
+      </span>
+      <span
+        className="MuiTouchRipple-root"
+      />
+    </button>
+  </div>
+  <div
+    className="c5"
+  />
+  <div
+    aria-describedby={null}
+    className=""
+    onBlur={[Function]}
+    onFocus={[Function]}
+    onMouseLeave={[Function]}
+    onMouseOver={[Function]}
+    onTouchEnd={[Function]}
+    onTouchStart={[Function]}
+    title="Suspendtest suffix"
+  >
+    <button
+      className="MuiButtonBase-root MuiButton-root MuiButton-outlined c2 c7 MuiButton-outlinedPrimary MuiButton-disableElevation"
+      data-testid="suspend-button"
+      disabled={false}
+      onBlur={[Function]}
+      onDragLeave={[Function]}
+      onFocus={[Function]}
+      onKeyDown={[Function]}
+      onKeyUp={[Function]}
+      onMouseDown={[Function]}
+      onMouseLeave={[Function]}
+      onMouseUp={[Function]}
+      onTouchEnd={[Function]}
+      onTouchMove={[Function]}
+      onTouchStart={[Function]}
+      tabIndex={0}
+      type="button"
+    >
+      <span
+        className="MuiButton-label"
+      >
+        <div
+          className="c3 c4"
+        >
+          <svg
+            aria-hidden={true}
+            className="MuiSvgIcon-root"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"
+            />
+          </svg>
+        </div>
+      </span>
+      <span
+        className="MuiTouchRipple-root"
+      />
+    </button>
+  </div>
+  <div
+    className="c5"
+  />
+  <div
+    aria-describedby={null}
+    className=""
+    onBlur={[Function]}
+    onFocus={[Function]}
+    onMouseLeave={[Function]}
+    onMouseOver={[Function]}
+    onTouchEnd={[Function]}
+    onTouchStart={[Function]}
+    title="Resumetest suffix"
+  >
+    <button
+      className="MuiButtonBase-root MuiButton-root MuiButton-outlined c2 c7 MuiButton-outlinedPrimary MuiButton-disableElevation"
+      data-testid="resume-button"
+      disabled={false}
+      onBlur={[Function]}
+      onDragLeave={[Function]}
+      onFocus={[Function]}
+      onKeyDown={[Function]}
+      onKeyUp={[Function]}
+      onMouseDown={[Function]}
+      onMouseLeave={[Function]}
+      onMouseUp={[Function]}
+      onTouchEnd={[Function]}
+      onTouchMove={[Function]}
+      onTouchStart={[Function]}
+      tabIndex={0}
+      type="button"
+    >
+      <span
+        className="MuiButton-label"
+      >
+        <div
+          className="c3 c8"
+        >
+          <svg
+            height="24"
+            viewBox="0 0 24 24"
+            width="24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M4.08331 18.75V4.75H6.41665V18.75H4.08331ZM8.74998 18.75L20.4166 11.75L8.74998 4.75V18.75Z"
+            />
+          </svg>
+        </div>
+      </span>
+      <span
+        className="MuiTouchRipple-root"
+      />
+    </button>
+  </div>
+</div>
+`;
+
+exports[`SyncControls snapshots hideSuspend 1`] = `
+.c0 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  width: 100%;
+  -webkit-box-pack: start;
+  -webkit-justify-content: flex-start;
+  -ms-flex-pack: start;
+  justify-content: flex-start;
+}
+
+.c3 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+}
+
+.c4 svg {
+  height: 24px;
+  width: 24px;
+}
+
+.c4 svg path.path-fill,
+.c4 svg line.path-fill,
+.c4 svg polygon.path-fill,
+.c4 svg rect.path-fill,
+.c4 svg circle.path-fill,
+.c4 svg polyline.path-fill {
+  fill: !important;
+  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
+.c4 svg path.stroke-fill,
+.c4 svg line.stroke-fill,
+.c4 svg polygon.stroke-fill,
+.c4 svg rect.stroke-fill,
+.c4 svg circle.stroke-fill,
+.c4 svg polyline.stroke-fill {
+  stroke: !important;
+  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
+.c4 svg rect.rect-height {
+  height: 24px;
+  width: 24px;
+}
+
+.c4.downward {
+  -webkit-transform: rotate(180deg);
+  -ms-transform: rotate(180deg);
+  transform: rotate(180deg);
+}
+
+.c4.upward {
+  -webkit-transform: initial;
+  -ms-transform: initial;
+  transform: initial;
+}
+
+.c4 img {
+  width: 24px;
+}
+
+.c5 {
+  padding: 4px;
+}
+
+.c2.MuiButton-root {
+  height: 32px;
+  font-size: 12px;
+  -webkit-letter-spacing: 1px;
+  -moz-letter-spacing: 1px;
+  -ms-letter-spacing: 1px;
+  letter-spacing: 1px;
+  line-height: 1;
+  border-radius: 2px;
+  font-weight: 600;
+}
+
+.c2.MuiButton-outlined {
+  padding: 8px 12px;
+}
+
+.c6.MuiFormControlLabel-root {
+  margin-right: 0;
+  margin-left: 0;
+}
+
+.c6 .MuiFormControlLabel-label {
+  color: #1a1a1a;
+}
+
+.c6 .MuiFormControlLabel-label.Mui-disabled {
+  color: #d8d8d8;
+}
+
+.c6 .MuiTypography-root {
+  margin-left: 8px;
+}
+
+.c7.MuiButton-root {
+  border-radius: 50%;
+  min-width: 32px;
+  height: 32px;
+  padding: 0;
+}
+
+.c7.MuiButton-root:disabled svg {
+  fill: #d8d8d8;
+}
+
+.c7.MuiButton-root:hover {
+  background-color: rgba(0,179,236,0.1);
+}
+
+.c7.MuiButton-text {
+  padding: 0;
+}
+
+.c1 .sync-icon-button {
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.c1 .rotate-icon {
+  color: #009CCC;
+  -webkit-animation: 1s linear infinite dxlcOg;
+  animation: 1s linear infinite dxlcOg;
+}
+
+<div
+  className="c0 c1"
+>
+  <button
+    className="MuiButtonBase-root MuiButton-root MuiButton-text c2 sync-icon-button MuiButton-textPrimary MuiButton-disableElevation"
+    disabled={false}
+    onBlur={[Function]}
+    onDragLeave={[Function]}
+    onFocus={[Function]}
+    onKeyDown={[Function]}
+    onKeyUp={[Function]}
+    onMouseDown={[Function]}
+    onMouseLeave={[Function]}
+    onMouseUp={[Function]}
+    onTouchEnd={[Function]}
+    onTouchMove={[Function]}
+    onTouchStart={[Function]}
+    tabIndex={0}
+    type="button"
+  >
+    <span
+      className="MuiButton-label"
+    >
+      <span
+        className="MuiButton-startIcon MuiButton-iconSizeMedium"
+      >
+        <div
+          className="c3 c4"
+        >
+          <svg
+            aria-hidden={true}
+            className="MuiSvgIcon-root"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"
+            />
+          </svg>
+        </div>
+      </span>
+      Sync
+    </span>
+    <span
+      className="MuiTouchRipple-root"
+    />
+  </button>
+  <div
+    className="c5"
+  />
+  <div
+    className="MuiFormControl-root"
+  >
+    <div
+      aria-labelledby="source-radio-buttons-group-label"
+      className="MuiFormGroup-root MuiFormGroup-row"
+      data-testid="sync-options"
+      role="radiogroup"
+    >
+      <label
+        className="MuiFormControlLabel-root c6"
+      >
+        <span
+          aria-disabled={false}
+          className="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-15 MuiRadio-root MuiRadio-colorSecondary PrivateSwitchBase-checked-16 Mui-checked MuiIconButton-colorSecondary"
+          onBlur={[Function]}
+          onDragLeave={[Function]}
+          onFocus={[Function]}
+          onKeyDown={[Function]}
+          onKeyUp={[Function]}
+          onMouseDown={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          onTouchEnd={[Function]}
+          onTouchMove={[Function]}
+          onTouchStart={[Function]}
+          tabIndex={null}
+        >
+          <span
+            className="MuiIconButton-label"
+          >
+            <input
+              checked={true}
+              className="PrivateSwitchBase-input-18"
+              disabled={false}
+              name="source-radio-buttons-group"
+              onChange={[Function]}
+              type="radio"
+              value="WithSource"
+            />
+            <div
+              className="PrivateRadioButtonIcon-root-19 PrivateRadioButtonIcon-checked-21"
+            >
+              <svg
+                aria-hidden={true}
+                className="MuiSvgIcon-root"
+                focusable="false"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
+                />
+              </svg>
+              <svg
+                aria-hidden={true}
+                className="MuiSvgIcon-root PrivateRadioButtonIcon-layer-20"
+                focusable="false"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M8.465 8.465C9.37 7.56 10.62 7 12 7C14.76 7 17 9.24 17 12C17 13.38 16.44 14.63 15.535 15.535C14.63 16.44 13.38 17 12 17C9.24 17 7 14.76 7 12C7 10.62 7.56 9.37 8.465 8.465Z"
+                />
+              </svg>
+            </div>
+          </span>
+          <span
+            className="MuiTouchRipple-root"
+          />
+        </span>
+        <span
+          className="MuiTypography-root MuiFormControlLabel-label MuiTypography-body1"
+        >
+          with Source
+        </span>
+      </label>
+      <div
+        className="c5"
+      />
+      <label
+        className="MuiFormControlLabel-root c6"
+      >
+        <span
+          aria-disabled={false}
+          className="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-15 MuiRadio-root MuiRadio-colorSecondary MuiIconButton-colorSecondary"
+          onBlur={[Function]}
+          onDragLeave={[Function]}
+          onFocus={[Function]}
+          onKeyDown={[Function]}
+          onKeyUp={[Function]}
+          onMouseDown={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          onTouchEnd={[Function]}
+          onTouchMove={[Function]}
+          onTouchStart={[Function]}
+          tabIndex={null}
+        >
+          <span
+            className="MuiIconButton-label"
+          >
+            <input
+              checked={false}
+              className="PrivateSwitchBase-input-18"
+              disabled={false}
+              name="source-radio-buttons-group"
+              onChange={[Function]}
+              type="radio"
+              value="WithoutSource"
+            />
+            <div
+              className="PrivateRadioButtonIcon-root-19"
+            >
+              <svg
+                aria-hidden={true}
+                className="MuiSvgIcon-root"
+                focusable="false"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
+                />
+              </svg>
+              <svg
+                aria-hidden={true}
+                className="MuiSvgIcon-root PrivateRadioButtonIcon-layer-20"
+                focusable="false"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M8.465 8.465C9.37 7.56 10.62 7 12 7C14.76 7 17 9.24 17 12C17 13.38 16.44 14.63 15.535 15.535C14.63 16.44 13.38 17 12 17C9.24 17 7 14.76 7 12C7 10.62 7.56 9.37 8.465 8.465Z"
+                />
+              </svg>
+            </div>
+          </span>
+          <span
+            className="MuiTouchRipple-root"
+          />
+        </span>
+        <span
+          className="MuiTypography-root MuiFormControlLabel-label MuiTypography-body1"
+        >
+          without Source
+        </span>
+      </label>
+    </div>
+  </div>
+  <div
+    className="c5"
+  />
+  <div
+    aria-describedby={null}
+    className=""
+    onBlur={[Function]}
+    onFocus={[Function]}
+    onMouseLeave={[Function]}
+    onMouseOver={[Function]}
+    onTouchEnd={[Function]}
+    onTouchStart={[Function]}
+    title="Sync"
+  >
+    <button
+      className="MuiButtonBase-root MuiButton-root MuiButton-outlined c2 c7 MuiButton-outlinedPrimary MuiButton-disableElevation"
+      data-testid="sync-button"
+      disabled={false}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onDragLeave={[Function]}
+      onFocus={[Function]}
+      onKeyDown={[Function]}
+      onKeyUp={[Function]}
+      onMouseDown={[Function]}
+      onMouseLeave={[Function]}
+      onMouseUp={[Function]}
+      onTouchEnd={[Function]}
+      onTouchMove={[Function]}
+      onTouchStart={[Function]}
+      tabIndex={0}
+      type="button"
+    >
+      <span
+        className="MuiButton-label"
+      >
+        <div
+          className="c3 c4"
+        >
+          <svg
+            aria-hidden={true}
+            className="MuiSvgIcon-root"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M8 5v14l11-7z"
+            />
+          </svg>
+        </div>
+      </span>
+      <span
+        className="MuiTouchRipple-root"
+      />
+    </button>
+  </div>
+</div>
+`;
+
+exports[`SyncControls snapshots hideSyncOptions 1`] = `
+.c0 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  width: 100%;
+  -webkit-box-pack: start;
+  -webkit-justify-content: flex-start;
+  -ms-flex-pack: start;
+  justify-content: flex-start;
+}
+
+.c3 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+}
+
+.c4 svg {
+  height: 24px;
+  width: 24px;
+}
+
+.c4 svg path.path-fill,
+.c4 svg line.path-fill,
+.c4 svg polygon.path-fill,
+.c4 svg rect.path-fill,
+.c4 svg circle.path-fill,
+.c4 svg polyline.path-fill {
+  fill: !important;
+  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
+.c4 svg path.stroke-fill,
+.c4 svg line.stroke-fill,
+.c4 svg polygon.stroke-fill,
+.c4 svg rect.stroke-fill,
+.c4 svg circle.stroke-fill,
+.c4 svg polyline.stroke-fill {
+  stroke: !important;
+  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
+.c4 svg rect.rect-height {
+  height: 24px;
+  width: 24px;
+}
+
+.c4.downward {
+  -webkit-transform: rotate(180deg);
+  -ms-transform: rotate(180deg);
+  transform: rotate(180deg);
+}
+
+.c4.upward {
+  -webkit-transform: initial;
+  -ms-transform: initial;
+  transform: initial;
+}
+
+.c4 img {
+  width: 24px;
+}
+
+.c7 svg {
+  fill: #009CCC;
+  height: 24px;
+  width: 24px;
+}
+
+.c7 svg path.path-fill,
+.c7 svg line.path-fill,
+.c7 svg polygon.path-fill,
+.c7 svg rect.path-fill,
+.c7 svg circle.path-fill,
+.c7 svg polyline.path-fill {
+  fill: #009CCC !important;
+  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
+.c7 svg path.stroke-fill,
+.c7 svg line.stroke-fill,
+.c7 svg polygon.stroke-fill,
+.c7 svg rect.stroke-fill,
+.c7 svg circle.stroke-fill,
+.c7 svg polyline.stroke-fill {
+  stroke: #009CCC !important;
+  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
+.c7 svg rect.rect-height {
+  height: 24px;
+  width: 24px;
+}
+
+.c7.downward {
+  -webkit-transform: rotate(180deg);
+  -ms-transform: rotate(180deg);
+  transform: rotate(180deg);
+}
+
+.c7.upward {
+  -webkit-transform: initial;
+  -ms-transform: initial;
+  transform: initial;
+}
+
+.c7 img {
+  width: 24px;
+}
+
+.c5 {
+  padding: 4px;
+}
+
+.c2.MuiButton-root {
+  height: 32px;
+  font-size: 12px;
+  -webkit-letter-spacing: 1px;
+  -moz-letter-spacing: 1px;
+  -ms-letter-spacing: 1px;
+  letter-spacing: 1px;
+  line-height: 1;
+  border-radius: 2px;
+  font-weight: 600;
+}
+
+.c2.MuiButton-outlined {
+  padding: 8px 12px;
+}
+
+.c6.MuiButton-root {
+  border-radius: 50%;
+  min-width: 32px;
+  height: 32px;
+  padding: 0;
+}
+
+.c6.MuiButton-root:disabled svg {
+  fill: #d8d8d8;
+}
+
+.c6.MuiButton-root:hover {
+  background-color: rgba(0,179,236,0.1);
+}
+
+.c6.MuiButton-text {
+  padding: 0;
+}
+
+.c1 .sync-icon-button {
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.c1 .rotate-icon {
+  color: #009CCC;
+  -webkit-animation: 1s linear infinite dxlcOg;
+  animation: 1s linear infinite dxlcOg;
+}
+
+<div
+  className="c0 c1"
+>
+  <button
+    className="MuiButtonBase-root MuiButton-root MuiButton-text c2 sync-icon-button MuiButton-textPrimary MuiButton-disableElevation"
+    disabled={false}
+    onBlur={[Function]}
+    onDragLeave={[Function]}
+    onFocus={[Function]}
+    onKeyDown={[Function]}
+    onKeyUp={[Function]}
+    onMouseDown={[Function]}
+    onMouseLeave={[Function]}
+    onMouseUp={[Function]}
+    onTouchEnd={[Function]}
+    onTouchMove={[Function]}
+    onTouchStart={[Function]}
+    tabIndex={0}
+    type="button"
+  >
+    <span
+      className="MuiButton-label"
+    >
+      <span
+        className="MuiButton-startIcon MuiButton-iconSizeMedium"
+      >
+        <div
+          className="c3 c4"
+        >
+          <svg
+            aria-hidden={true}
+            className="MuiSvgIcon-root"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"
+            />
+          </svg>
+        </div>
+      </span>
+      Sync
+    </span>
+    <span
+      className="MuiTouchRipple-root"
+    />
+  </button>
+  <div
+    className="c5"
+  />
+  <div
+    aria-describedby={null}
+    className=""
+    onBlur={[Function]}
+    onFocus={[Function]}
+    onMouseLeave={[Function]}
+    onMouseOver={[Function]}
+    onTouchEnd={[Function]}
+    onTouchStart={[Function]}
+    title="Sync"
+  >
+    <button
+      className="MuiButtonBase-root MuiButton-root MuiButton-outlined c2 c6 MuiButton-outlinedPrimary MuiButton-disableElevation"
+      data-testid="sync-button"
+      disabled={false}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onDragLeave={[Function]}
+      onFocus={[Function]}
+      onKeyDown={[Function]}
+      onKeyUp={[Function]}
+      onMouseDown={[Function]}
+      onMouseLeave={[Function]}
+      onMouseUp={[Function]}
+      onTouchEnd={[Function]}
+      onTouchMove={[Function]}
+      onTouchStart={[Function]}
+      tabIndex={0}
+      type="button"
+    >
+      <span
+        className="MuiButton-label"
+      >
+        <div
+          className="c3 c4"
+        >
+          <svg
+            aria-hidden={true}
+            className="MuiSvgIcon-root"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M8 5v14l11-7z"
+            />
+          </svg>
+        </div>
+      </span>
+      <span
+        className="MuiTouchRipple-root"
+      />
+    </button>
+  </div>
+  <div
+    className="c5"
+  />
+  <div
+    aria-describedby={null}
+    className=""
+    onBlur={[Function]}
+    onFocus={[Function]}
+    onMouseLeave={[Function]}
+    onMouseOver={[Function]}
+    onTouchEnd={[Function]}
+    onTouchStart={[Function]}
+    title="Suspend"
+  >
+    <button
+      className="MuiButtonBase-root MuiButton-root MuiButton-outlined c2 c6 MuiButton-outlinedPrimary MuiButton-disableElevation"
+      data-testid="suspend-button"
+      disabled={false}
+      onBlur={[Function]}
+      onDragLeave={[Function]}
+      onFocus={[Function]}
+      onKeyDown={[Function]}
+      onKeyUp={[Function]}
+      onMouseDown={[Function]}
+      onMouseLeave={[Function]}
+      onMouseUp={[Function]}
+      onTouchEnd={[Function]}
+      onTouchMove={[Function]}
+      onTouchStart={[Function]}
+      tabIndex={0}
+      type="button"
+    >
+      <span
+        className="MuiButton-label"
+      >
+        <div
+          className="c3 c4"
+        >
+          <svg
+            aria-hidden={true}
+            className="MuiSvgIcon-root"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"
+            />
+          </svg>
+        </div>
+      </span>
+      <span
+        className="MuiTouchRipple-root"
+      />
+    </button>
+  </div>
+  <div
+    className="c5"
+  />
+  <div
+    aria-describedby={null}
+    className=""
+    onBlur={[Function]}
+    onFocus={[Function]}
+    onMouseLeave={[Function]}
+    onMouseOver={[Function]}
+    onTouchEnd={[Function]}
+    onTouchStart={[Function]}
+    title="Resume"
+  >
+    <button
+      className="MuiButtonBase-root MuiButton-root MuiButton-outlined c2 c6 MuiButton-outlinedPrimary MuiButton-disableElevation"
+      data-testid="resume-button"
+      disabled={false}
+      onBlur={[Function]}
+      onDragLeave={[Function]}
+      onFocus={[Function]}
+      onKeyDown={[Function]}
+      onKeyUp={[Function]}
+      onMouseDown={[Function]}
+      onMouseLeave={[Function]}
+      onMouseUp={[Function]}
+      onTouchEnd={[Function]}
+      onTouchMove={[Function]}
+      onTouchStart={[Function]}
+      tabIndex={0}
+      type="button"
+    >
+      <span
+        className="MuiButton-label"
+      >
+        <div
+          className="c3 c7"
+        >
+          <svg
+            height="24"
+            viewBox="0 0 24 24"
+            width="24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M4.08331 18.75V4.75H6.41665V18.75H4.08331ZM8.74998 18.75L20.4166 11.75L8.74998 4.75V18.75Z"
+            />
+          </svg>
+        </div>
+      </span>
+      <span
+        className="MuiTouchRipple-root"
+      />
+    </button>
+  </div>
+</div>
+`;
+
+exports[`SyncControls snapshots non-suspended 1`] = `
+.c0 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  width: 100%;
+  -webkit-box-pack: start;
+  -webkit-justify-content: flex-start;
+  -ms-flex-pack: start;
+  justify-content: flex-start;
+}
+
+.c3 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+}
+
+.c4 svg {
+  height: 24px;
+  width: 24px;
+}
+
+.c4 svg path.path-fill,
+.c4 svg line.path-fill,
+.c4 svg polygon.path-fill,
+.c4 svg rect.path-fill,
+.c4 svg circle.path-fill,
+.c4 svg polyline.path-fill {
+  fill: !important;
+  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
+.c4 svg path.stroke-fill,
+.c4 svg line.stroke-fill,
+.c4 svg polygon.stroke-fill,
+.c4 svg rect.stroke-fill,
+.c4 svg circle.stroke-fill,
+.c4 svg polyline.stroke-fill {
+  stroke: !important;
+  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
+.c4 svg rect.rect-height {
+  height: 24px;
+  width: 24px;
+}
+
+.c4.downward {
+  -webkit-transform: rotate(180deg);
+  -ms-transform: rotate(180deg);
+  transform: rotate(180deg);
+}
+
+.c4.upward {
+  -webkit-transform: initial;
+  -ms-transform: initial;
+  transform: initial;
+}
+
+.c4 img {
+  width: 24px;
+}
+
+.c8 svg {
+  fill: #009CCC;
+  height: 24px;
+  width: 24px;
+}
+
+.c8 svg path.path-fill,
+.c8 svg line.path-fill,
+.c8 svg polygon.path-fill,
+.c8 svg rect.path-fill,
+.c8 svg circle.path-fill,
+.c8 svg polyline.path-fill {
+  fill: #009CCC !important;
+  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
+.c8 svg path.stroke-fill,
+.c8 svg line.stroke-fill,
+.c8 svg polygon.stroke-fill,
+.c8 svg rect.stroke-fill,
+.c8 svg circle.stroke-fill,
+.c8 svg polyline.stroke-fill {
+  stroke: #009CCC !important;
+  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
+.c8 svg rect.rect-height {
+  height: 24px;
+  width: 24px;
+}
+
+.c8.downward {
+  -webkit-transform: rotate(180deg);
+  -ms-transform: rotate(180deg);
+  transform: rotate(180deg);
+}
+
+.c8.upward {
+  -webkit-transform: initial;
+  -ms-transform: initial;
+  transform: initial;
+}
+
+.c8 img {
+  width: 24px;
+}
+
+.c5 {
+  padding: 4px;
+}
+
+.c2.MuiButton-root {
+  height: 32px;
+  font-size: 12px;
+  -webkit-letter-spacing: 1px;
+  -moz-letter-spacing: 1px;
+  -ms-letter-spacing: 1px;
+  letter-spacing: 1px;
+  line-height: 1;
+  border-radius: 2px;
+  font-weight: 600;
+}
+
+.c2.MuiButton-outlined {
+  padding: 8px 12px;
+}
+
+.c6.MuiFormControlLabel-root {
+  margin-right: 0;
+  margin-left: 0;
+}
+
+.c6 .MuiFormControlLabel-label {
+  color: #1a1a1a;
+}
+
+.c6 .MuiFormControlLabel-label.Mui-disabled {
+  color: #d8d8d8;
+}
+
+.c6 .MuiTypography-root {
+  margin-left: 8px;
+}
+
+.c7.MuiButton-root {
+  border-radius: 50%;
+  min-width: 32px;
+  height: 32px;
+  padding: 0;
+}
+
+.c7.MuiButton-root:disabled svg {
+  fill: #d8d8d8;
+}
+
+.c7.MuiButton-root:hover {
+  background-color: rgba(0,179,236,0.1);
+}
+
+.c7.MuiButton-text {
+  padding: 0;
+}
+
+.c1 .sync-icon-button {
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.c1 .rotate-icon {
+  color: #009CCC;
+  -webkit-animation: 1s linear infinite dxlcOg;
+  animation: 1s linear infinite dxlcOg;
+}
+
+<div
+  className="c0 c1"
+>
+  <button
+    className="MuiButtonBase-root MuiButton-root MuiButton-text c2 sync-icon-button MuiButton-textPrimary MuiButton-disableElevation"
+    disabled={false}
+    onBlur={[Function]}
+    onDragLeave={[Function]}
+    onFocus={[Function]}
+    onKeyDown={[Function]}
+    onKeyUp={[Function]}
+    onMouseDown={[Function]}
+    onMouseLeave={[Function]}
+    onMouseUp={[Function]}
+    onTouchEnd={[Function]}
+    onTouchMove={[Function]}
+    onTouchStart={[Function]}
+    tabIndex={0}
+    type="button"
+  >
+    <span
+      className="MuiButton-label"
+    >
+      <span
+        className="MuiButton-startIcon MuiButton-iconSizeMedium"
+      >
+        <div
+          className="c3 c4"
+        >
+          <svg
+            aria-hidden={true}
+            className="MuiSvgIcon-root"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"
+            />
+          </svg>
+        </div>
+      </span>
+      Sync
+    </span>
+    <span
+      className="MuiTouchRipple-root"
+    />
+  </button>
+  <div
+    className="c5"
+  />
+  <div
+    className="MuiFormControl-root"
+  >
+    <div
+      aria-labelledby="source-radio-buttons-group-label"
+      className="MuiFormGroup-root MuiFormGroup-row"
+      data-testid="sync-options"
+      role="radiogroup"
+    >
+      <label
+        className="MuiFormControlLabel-root c6"
+      >
+        <span
+          aria-disabled={false}
+          className="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-1 MuiRadio-root MuiRadio-colorSecondary PrivateSwitchBase-checked-2 Mui-checked MuiIconButton-colorSecondary"
+          onBlur={[Function]}
+          onDragLeave={[Function]}
+          onFocus={[Function]}
+          onKeyDown={[Function]}
+          onKeyUp={[Function]}
+          onMouseDown={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          onTouchEnd={[Function]}
+          onTouchMove={[Function]}
+          onTouchStart={[Function]}
+          tabIndex={null}
+        >
+          <span
+            className="MuiIconButton-label"
+          >
+            <input
+              checked={true}
+              className="PrivateSwitchBase-input-4"
+              disabled={false}
+              name="source-radio-buttons-group"
+              onChange={[Function]}
+              type="radio"
+              value="WithSource"
+            />
+            <div
+              className="PrivateRadioButtonIcon-root-5 PrivateRadioButtonIcon-checked-7"
+            >
+              <svg
+                aria-hidden={true}
+                className="MuiSvgIcon-root"
+                focusable="false"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
+                />
+              </svg>
+              <svg
+                aria-hidden={true}
+                className="MuiSvgIcon-root PrivateRadioButtonIcon-layer-6"
+                focusable="false"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M8.465 8.465C9.37 7.56 10.62 7 12 7C14.76 7 17 9.24 17 12C17 13.38 16.44 14.63 15.535 15.535C14.63 16.44 13.38 17 12 17C9.24 17 7 14.76 7 12C7 10.62 7.56 9.37 8.465 8.465Z"
+                />
+              </svg>
+            </div>
+          </span>
+          <span
+            className="MuiTouchRipple-root"
+          />
+        </span>
+        <span
+          className="MuiTypography-root MuiFormControlLabel-label MuiTypography-body1"
+        >
+          with Source
+        </span>
+      </label>
+      <div
+        className="c5"
+      />
+      <label
+        className="MuiFormControlLabel-root c6"
+      >
+        <span
+          aria-disabled={false}
+          className="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-1 MuiRadio-root MuiRadio-colorSecondary MuiIconButton-colorSecondary"
+          onBlur={[Function]}
+          onDragLeave={[Function]}
+          onFocus={[Function]}
+          onKeyDown={[Function]}
+          onKeyUp={[Function]}
+          onMouseDown={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          onTouchEnd={[Function]}
+          onTouchMove={[Function]}
+          onTouchStart={[Function]}
+          tabIndex={null}
+        >
+          <span
+            className="MuiIconButton-label"
+          >
+            <input
+              checked={false}
+              className="PrivateSwitchBase-input-4"
+              disabled={false}
+              name="source-radio-buttons-group"
+              onChange={[Function]}
+              type="radio"
+              value="WithoutSource"
+            />
+            <div
+              className="PrivateRadioButtonIcon-root-5"
+            >
+              <svg
+                aria-hidden={true}
+                className="MuiSvgIcon-root"
+                focusable="false"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
+                />
+              </svg>
+              <svg
+                aria-hidden={true}
+                className="MuiSvgIcon-root PrivateRadioButtonIcon-layer-6"
+                focusable="false"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M8.465 8.465C9.37 7.56 10.62 7 12 7C14.76 7 17 9.24 17 12C17 13.38 16.44 14.63 15.535 15.535C14.63 16.44 13.38 17 12 17C9.24 17 7 14.76 7 12C7 10.62 7.56 9.37 8.465 8.465Z"
+                />
+              </svg>
+            </div>
+          </span>
+          <span
+            className="MuiTouchRipple-root"
+          />
+        </span>
+        <span
+          className="MuiTypography-root MuiFormControlLabel-label MuiTypography-body1"
+        >
+          without Source
+        </span>
+      </label>
+    </div>
+  </div>
+  <div
+    className="c5"
+  />
+  <div
+    aria-describedby={null}
+    className=""
+    onBlur={[Function]}
+    onFocus={[Function]}
+    onMouseLeave={[Function]}
+    onMouseOver={[Function]}
+    onTouchEnd={[Function]}
+    onTouchStart={[Function]}
+    title="Sync"
+  >
+    <button
+      className="MuiButtonBase-root MuiButton-root MuiButton-outlined c2 c7 MuiButton-outlinedPrimary MuiButton-disableElevation"
+      data-testid="sync-button"
+      disabled={false}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onDragLeave={[Function]}
+      onFocus={[Function]}
+      onKeyDown={[Function]}
+      onKeyUp={[Function]}
+      onMouseDown={[Function]}
+      onMouseLeave={[Function]}
+      onMouseUp={[Function]}
+      onTouchEnd={[Function]}
+      onTouchMove={[Function]}
+      onTouchStart={[Function]}
+      tabIndex={0}
+      type="button"
+    >
+      <span
+        className="MuiButton-label"
+      >
+        <div
+          className="c3 c4"
+        >
+          <svg
+            aria-hidden={true}
+            className="MuiSvgIcon-root"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M8 5v14l11-7z"
+            />
+          </svg>
+        </div>
+      </span>
+      <span
+        className="MuiTouchRipple-root"
+      />
+    </button>
+  </div>
+  <div
+    className="c5"
+  />
+  <div
+    aria-describedby={null}
+    className=""
+    onBlur={[Function]}
+    onFocus={[Function]}
+    onMouseLeave={[Function]}
+    onMouseOver={[Function]}
+    onTouchEnd={[Function]}
+    onTouchStart={[Function]}
+    title="Suspend"
+  >
+    <button
+      className="MuiButtonBase-root MuiButton-root MuiButton-outlined c2 c7 MuiButton-outlinedPrimary MuiButton-disableElevation"
+      data-testid="suspend-button"
+      disabled={false}
+      onBlur={[Function]}
+      onDragLeave={[Function]}
+      onFocus={[Function]}
+      onKeyDown={[Function]}
+      onKeyUp={[Function]}
+      onMouseDown={[Function]}
+      onMouseLeave={[Function]}
+      onMouseUp={[Function]}
+      onTouchEnd={[Function]}
+      onTouchMove={[Function]}
+      onTouchStart={[Function]}
+      tabIndex={0}
+      type="button"
+    >
+      <span
+        className="MuiButton-label"
+      >
+        <div
+          className="c3 c4"
+        >
+          <svg
+            aria-hidden={true}
+            className="MuiSvgIcon-root"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"
+            />
+          </svg>
+        </div>
+      </span>
+      <span
+        className="MuiTouchRipple-root"
+      />
+    </button>
+  </div>
+  <div
+    className="c5"
+  />
+  <div
+    aria-describedby={null}
+    className=""
+    onBlur={[Function]}
+    onFocus={[Function]}
+    onMouseLeave={[Function]}
+    onMouseOver={[Function]}
+    onTouchEnd={[Function]}
+    onTouchStart={[Function]}
+    title="Resume"
+  >
+    <button
+      className="MuiButtonBase-root MuiButton-root MuiButton-outlined c2 c7 MuiButton-outlinedPrimary MuiButton-disableElevation"
+      data-testid="resume-button"
+      disabled={false}
+      onBlur={[Function]}
+      onDragLeave={[Function]}
+      onFocus={[Function]}
+      onKeyDown={[Function]}
+      onKeyUp={[Function]}
+      onMouseDown={[Function]}
+      onMouseLeave={[Function]}
+      onMouseUp={[Function]}
+      onTouchEnd={[Function]}
+      onTouchMove={[Function]}
+      onTouchStart={[Function]}
+      tabIndex={0}
+      type="button"
+    >
+      <span
+        className="MuiButton-label"
+      >
+        <div
+          className="c3 c8"
+        >
+          <svg
+            height="24"
+            viewBox="0 0 24 24"
+            width="24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M4.08331 18.75V4.75H6.41665V18.75H4.08331ZM8.74998 18.75L20.4166 11.75L8.74998 4.75V18.75Z"
+            />
+          </svg>
+        </div>
+      </span>
+      <span
+        className="MuiTouchRipple-root"
+      />
+    </button>
+  </div>
+</div>
+`;

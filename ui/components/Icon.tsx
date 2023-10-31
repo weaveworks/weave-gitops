@@ -28,8 +28,10 @@ import Remove from "@material-ui/icons/Remove";
 import RemoveCircleIcon from "@material-ui/icons/RemoveCircle";
 import SaveAltIcon from "@material-ui/icons/SaveAlt";
 import SearchIcon from "@material-ui/icons/Search";
+import SettingsIcon from "@material-ui/icons/Settings";
 import SkipNextIcon from "@material-ui/icons/SkipNext";
 import SkipPreviousIcon from "@material-ui/icons/SkipPrevious";
+import SyncIcon from "@material-ui/icons/Sync";
 import VerifiedUser from "@material-ui/icons/VerifiedUser";
 import WarningIcon from "@material-ui/icons/Warning";
 import * as React from "react";
@@ -56,69 +58,73 @@ import SourcesIcon from "./NavIcons/SourcesIcon";
 import TemplatesIcon from "./NavIcons/TemplatesIcon";
 import TerraformIcon from "./NavIcons/TerraformIcon";
 import WorkspacesIcon from "./NavIcons/WorkspacesIcon";
+import ResumeIcon from "./Sync/ResumeIcon";
 import Text from "./Text";
 
 export enum IconType {
-  CheckMark,
   Account,
-  ExternalTab,
   AddIcon,
-  ArrowUpwardIcon,
-  ArrowDropDownIcon,
+  ApplicationsIcon,
   ArrowDownwardRoundedIcon,
+  ArrowDropDownIcon,
+  ArrowUpwardIcon,
   ArrowUpwardRoundedIcon,
-  KeyboardArrowRightIcon,
-  KeyboardArrowDownIcon,
-  DeleteIcon,
-  SaveAltIcon,
-  ErrorIcon,
+  CallMade,
+  CallReceived,
   CheckCircleIcon,
-  HourglassFullIcon,
-  NavigateNextIcon,
-  NavigateBeforeIcon,
-  SkipNextIcon,
-  SkipPreviousIcon,
-  RemoveCircleIcon,
-  FilterIcon,
+  CheckMark,
   ClearIcon,
-  SearchIcon,
-  LogoutIcon,
-  SuccessIcon,
+  ClustersIcon,
+  DeleteIcon,
+  DeliveryIcon,
+  DocsIcon,
+  EditIcon,
+  ErrorIcon,
+  ExploreIcon,
+  ExternalTab,
   FailedIcon,
-  SuspendedIcon,
   FileCopyIcon,
-  ReconcileIcon,
+  FilterIcon,
+  FindInPage,
   FluxIcon,
   FluxIconHover,
-  DocsIcon,
-  ApplicationsIcon,
-  PlayIcon,
-  PauseIcon,
-  NotificationsIcon,
-  SourcesIcon,
-  ImageAutomationIcon,
-  DeliveryIcon,
   GitOpsRunIcon,
-  PipelinesIcon,
-  TerraformIcon,
   GitOpsSetsIcon,
-  PoliciesIcon,
-  PolicyConfigsIcon,
-  WorkspacesIcon,
-  SecretsIcon,
-  TemplatesIcon,
-  ClustersIcon,
-  ExploreIcon,
-  PendingActionIcon,
+  HourglassFullIcon,
+  ImageAutomationIcon,
   InfoIcon,
-  CallReceived,
-  CallMade,
-  Remove,
-  EditIcon,
-  VerifiedUser,
+  KeyboardArrowDownIcon,
+  KeyboardArrowRightIcon,
+  LogoutIcon,
+  NavigateBeforeIcon,
+  NavigateNextIcon,
+  NotificationsIcon,
+  PauseIcon,
+  PendingActionIcon,
+  PipelinesIcon,
+  PlayIcon,
+  PoliciesIcon,
   Policy,
-  FindInPage,
+  PolicyConfigsIcon,
+  ReconcileIcon,
+  Remove,
+  RemoveCircleIcon,
+  ResumeIcon,
+  SaveAltIcon,
+  SearchIcon,
+  SecretsIcon,
+  SettingsIcon,
+  SkipNextIcon,
+  SkipPreviousIcon,
+  SourcesIcon,
+  SuccessIcon,
+  SuspendedIcon,
+  SyncIcon,
+  TemplatesIcon,
+  TerraformIcon,
+  VerifiedUser,
   WarningIcon,
+  WorkspacesIcon,
 }
 
 type Props = {
@@ -132,45 +138,158 @@ type Props = {
 
 function getIcon(i: IconType) {
   switch (i) {
-    case IconType.CheckMark:
-      return CheckCircleIcon;
-
     case IconType.Account:
       return PersonIcon;
-
-    case IconType.ExternalTab:
-      return LaunchIcon;
 
     case IconType.AddIcon:
       return AddIcon;
 
+    case IconType.ApplicationsIcon:
+      return ApplicationsIcon;
+
+    case IconType.ArrowDownwardRoundedIcon:
+      return ArrowDownwardRoundedIcon;
+
+    case IconType.ArrowDropDownIcon:
+      return ArrowDropDownIcon;
+
     case IconType.ArrowUpwardIcon:
       return ArrowUpwardIcon;
-    case IconType.KeyboardArrowRightIcon:
-      return KeyboardArrowRightIcon;
-    case IconType.KeyboardArrowDownIcon:
-      return KeyboardArrowDownIcon;
 
-    case IconType.DeleteIcon:
-      return DeleteIcon;
+    case IconType.ArrowUpwardRoundedIcon:
+      return ArrowUpwardRoundedIcon;
 
-    case IconType.SaveAltIcon:
-      return SaveAltIcon;
+    case IconType.CallMade:
+      return CallMade;
+
+    case IconType.CallReceived:
+      return CallReceived;
 
     case IconType.CheckCircleIcon:
       return CheckCircleIcon;
 
-    case IconType.HourglassFullIcon:
-      return HourglassFullIcon;
+    case IconType.CheckMark:
+      return CheckCircleIcon;
+
+    case IconType.ClearIcon:
+      return ClearIcon;
+
+    case IconType.ClustersIcon:
+      return ClustersIcon;
+
+    case IconType.DeleteIcon:
+      return DeleteIcon;
+
+    case IconType.DeliveryIcon:
+      return DeliveryIcon;
+
+    case IconType.DocsIcon:
+      return DocsIcon;
+
+    case IconType.EditIcon:
+      return EditIcon;
 
     case IconType.ErrorIcon:
       return ErrorIcon;
 
-    case IconType.NavigateNextIcon:
-      return NavigateNextIcon;
+    case IconType.ExploreIcon:
+      return ExploreIcon;
+
+    case IconType.ExternalTab:
+      return LaunchIcon;
+
+    case IconType.FailedIcon:
+      return ErrorIcon;
+
+    case IconType.FileCopyIcon:
+      return FileCopyIcon;
+
+    case IconType.FilterIcon:
+      return FilterIcon;
+
+    case IconType.FindInPage:
+      return FindInPage;
+
+    case IconType.FluxIcon:
+      return FluxIcon;
+
+    case IconType.GitOpsRunIcon:
+      return GitOpsRunIcon;
+
+    case IconType.GitOpsSetsIcon:
+      return GitOpsSetsIcon;
+
+    case IconType.HourglassFullIcon:
+      return HourglassFullIcon;
+
+    case IconType.ImageAutomationIcon:
+      return ImageAutomationIcon;
+
+    case IconType.InfoIcon:
+      return InfoIcon;
+
+    case IconType.KeyboardArrowDownIcon:
+      return KeyboardArrowDownIcon;
+
+    case IconType.KeyboardArrowRightIcon:
+      return KeyboardArrowRightIcon;
+
+    case IconType.LogoutIcon:
+      return LogoutIcon;
 
     case IconType.NavigateBeforeIcon:
       return NavigateBeforeIcon;
+
+    case IconType.NavigateNextIcon:
+      return NavigateNextIcon;
+
+    case IconType.NotificationsIcon:
+      return NotificationsIcon;
+
+    case IconType.PauseIcon:
+      return PauseIcon;
+
+    case IconType.PendingActionIcon:
+      return () => <img src={images.pendingAction} />;
+
+    case IconType.PipelinesIcon:
+      return PipelinesIcon;
+
+    case IconType.PlayIcon:
+      return PlayIcon;
+
+    case IconType.PoliciesIcon:
+      return PoliciesIcon;
+
+    case IconType.Policy:
+      return Policy;
+
+    case IconType.PolicyConfigsIcon:
+      return PolicyConfigsIcon;
+
+    case IconType.ReconcileIcon:
+      return () => <img src={images.reconcileSrc} />;
+
+    case IconType.Remove:
+      return Remove;
+
+    case IconType.RemoveCircleIcon:
+      return RemoveCircleIcon;
+
+    case IconType.ResumeIcon:
+      return ResumeIcon;
+
+    case IconType.SaveAltIcon:
+      return SaveAltIcon;
+
+    case IconType.SearchIcon:
+      return SearchIcon;
+
+    case IconType.SecretsIcon:
+      return SecretsIcon;
+
+    case IconType.SettingsIcon:
+      return SettingsIcon;
 
     case IconType.SkipNextIcon:
       return SkipNextIcon;
@@ -178,134 +297,32 @@ function getIcon(i: IconType) {
     case IconType.SkipPreviousIcon:
       return SkipPreviousIcon;
 
-    case IconType.RemoveCircleIcon:
-      return RemoveCircleIcon;
-
-    case IconType.FilterIcon:
-      return FilterIcon;
-
-    case IconType.ClearIcon:
-      return ClearIcon;
-
-    case IconType.SearchIcon:
-      return SearchIcon;
-
-    case IconType.LogoutIcon:
-      return LogoutIcon;
+    case IconType.SourcesIcon:
+      return SourcesIcon;
 
     case IconType.SuccessIcon:
       return () => <img src={images.successSrc} />;
 
-    case IconType.FailedIcon:
-      return ErrorIcon;
-
     case IconType.SuspendedIcon:
       return () => <img src={images.suspendedSrc} />;
 
-    case IconType.ReconcileIcon:
-      return () => <img src={images.reconcileSrc} />;
-
-    case IconType.PendingActionIcon:
-      return () => <img src={images.pendingAction} />;
-
-    case IconType.ArrowDropDownIcon:
-      return ArrowDropDownIcon;
-
-    case IconType.ArrowDownwardRoundedIcon:
-      return ArrowDownwardRoundedIcon;
-
-    case IconType.ArrowUpwardRoundedIcon:
-      return ArrowUpwardRoundedIcon;
-
-    case IconType.FileCopyIcon:
-      return FileCopyIcon;
-
-    case IconType.PlayIcon:
-      return PlayIcon;
-
-    case IconType.PauseIcon:
-      return PauseIcon;
-
-    case IconType.SourcesIcon:
-      return SourcesIcon;
-
-    case IconType.ImageAutomationIcon:
-      return ImageAutomationIcon;
-
-    case IconType.DeliveryIcon:
-      return DeliveryIcon;
-
-    case IconType.GitOpsRunIcon:
-      return GitOpsRunIcon;
-
-    case IconType.PipelinesIcon:
-      return PipelinesIcon;
-
-    case IconType.TerraformIcon:
-      return TerraformIcon;
-
-    case IconType.ApplicationsIcon:
-      return ApplicationsIcon;
-
-    case IconType.DocsIcon:
-      return DocsIcon;
-
-    case IconType.FluxIcon:
-      return FluxIcon;
-
-    case IconType.GitOpsSetsIcon:
-      return GitOpsSetsIcon;
-
-    case IconType.NotificationsIcon:
-      return NotificationsIcon;
-
-    case IconType.PoliciesIcon:
-      return () => <PoliciesIcon filled={false} />;
-
-    case IconType.PolicyConfigsIcon:
-      return PolicyConfigsIcon;
-
-    case IconType.VerifiedUser:
-      return VerifiedUser;
-
-    case IconType.Policy:
-      return () => <PoliciesIcon filled />;
-
-    case IconType.SecretsIcon:
-      return SecretsIcon;
+    case IconType.SyncIcon:
+      return SyncIcon;
 
     case IconType.TemplatesIcon:
       return TemplatesIcon;
 
-    case IconType.WorkspacesIcon:
-      return WorkspacesIcon;
+    case IconType.TerraformIcon:
+      return TerraformIcon;
 
-    case IconType.ClustersIcon:
-      return ClustersIcon;
-
-    case IconType.ExploreIcon:
-      return ExploreIcon;
-
-    case IconType.InfoIcon:
-      return InfoIcon;
-
-    case IconType.CallReceived:
-      return CallReceived;
-
-    case IconType.CallMade:
-      return CallMade;
-
-    case IconType.Remove:
-      return Remove;
-
-    case IconType.EditIcon:
-      return EditIcon;
-
-    case IconType.FindInPage:
-      return FindInPage;
+    case IconType.VerifiedUser:
+      return VerifiedUser;
 
     case IconType.WarningIcon:
       return WarningIcon;
+
+    case IconType.WorkspacesIcon:
+      return WorkspacesIcon;
 
     default:
       break;

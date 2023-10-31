@@ -6,7 +6,6 @@ import styled from "styled-components";
 import { ThemeTypes } from "../../contexts/AppContext";
 import { SearchedNamespaces } from "../../lib/types";
 import { IconButton } from "../Button";
-import CheckboxActions from "../CheckboxActions";
 import ChipGroup from "../ChipGroup";
 import FilterDialog, {
   FilterConfig,
@@ -16,6 +15,7 @@ import FilterDialog, {
 import Flex from "../Flex";
 import Icon, { IconType } from "../Icon";
 import SearchField from "../SearchField";
+import CheckboxActions from "../Sync/CheckboxActions";
 import {
   filterRows,
   filterSelectionsToQueryString,
