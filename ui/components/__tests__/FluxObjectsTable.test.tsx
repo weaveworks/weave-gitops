@@ -61,17 +61,17 @@ describe("FluxObjectsTable", () => {
     );
     const rows = document.querySelectorAll("tbody tr");
 
-    const deploymentName = rows[0].querySelector("td:first-child");
-    const link = deploymentName.querySelector("a");
-
-    expect(link.href).toEqual("http://localhost/some-cool-url");
-
     // Since our resolver does not specify any behavior for a Service,
     // this should not have a link.
-    const serviceName = rows[1].querySelector("td:first-child");
+    const serviceName = rows[0].querySelector("td:first-child");
     const serviceLink = serviceName.querySelector("a");
 
     expect(serviceLink).toBeFalsy();
+
+    const deploymentName = rows[1].querySelector("td:first-child");
+    const link = deploymentName.querySelector("a");
+
+    expect(link.href).toEqual("http://localhost/some-cool-url");
   });
   it("runs the onClick handler", () => {
     const onClick = jest.fn();
