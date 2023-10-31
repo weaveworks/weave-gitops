@@ -333,7 +333,6 @@ exports[`DataTable snapshots renders 1`] = `
       className="MuiTableContainer-root"
     >
       <table
-        aria-label="simple table"
         className="MuiTable-root"
         role={null}
       >
