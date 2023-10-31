@@ -347,7 +347,7 @@ func TestResourceRefToUnstructured(t *testing.T) {
 			name:        "invalid id",
 			id:          "foo",
 			version:     "v1",
-			expectedErr: "unable to parse inventory entry id:",
+			expectedErr: "unable to parse stored object metadata:",
 		},
 	}
 
@@ -360,7 +360,7 @@ func TestResourceRefToUnstructured(t *testing.T) {
 				g.Expect(err).To(MatchError(MatchRegexp(tc.expectedErr)))
 			} else {
 				g.Expect(err).NotTo(HaveOccurred())
-				g.Expect(res).To(Equal(tc.expected))
+				g.Expect(&res).To(Equal(tc.expected))
 			}
 		})
 	}
@@ -402,5 +402,5 @@ func TestSanitizeUnstructuredSecret(t *testing.T) {
 
 	g := NewGomegaWithT(t)
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(secret).To(Equal(expected))
+	g.Expect(&secret).To(Equal(expected))
 }

@@ -63,7 +63,7 @@ func (cs *coreServer) GetInventory(ctx context.Context, msg *pb.GetInventoryRequ
 		if err != nil {
 			return nil, err
 		}
-		entries, err = getFluxLikeInventory(ctx, client, msg.Name, msg.Namespace, *gvk)
+		inventoryRefs, err = getFluxLikeInventory(ctx, client, msg.Name, msg.Namespace, *gvk)
 		if err != nil {
 			return nil, fmt.Errorf("failed getting flux like inventory: %w", err)
 		}
@@ -74,14 +74,18 @@ func (cs *coreServer) GetInventory(ctx context.Context, msg *pb.GetInventoryRequ
 		return nil, fmt.Errorf("failed getting objects with children: %w", err)
 	}
 
+	entries := []*pb.InventoryEntry{}
 	clusterUserNamespaces := cs.clustersManager.GetUserNamespaces(auth.Principal(ctx))
-	entries, err := unstructuredToInventoryEntry(msg.ClusterName, objsWithChildren, clusterUserNamespaces, cs.healthChecker)
-	if err != nil {
-		return nil, fmt.Errorf("failed converting inventory entry: %w", err)
+	for _, oc := range objsWithChildren {
+		entry, err := unstructuredToInventoryEntry(msg.ClusterName, *oc, clusterUserNamespaces, cs.healthChecker)
+		if err != nil {
+			return nil, fmt.Errorf("failed converting inventory entry: %w", err)
+		}
+		entries = append(entries, entry)
 	}
 
 	return &pb.GetInventoryResponse{
-		Entries: resources,
+		Entries: entries,
 	}, nil
 }
 
@@ -112,7 +116,7 @@ func (cs *coreServer) getKustomizationInventory(ctx context.Context, k8sClient c
 			cs.logger.Error(err, "failed converting inventory entry", "entry", ref)
 			return nil, err
 		}
-		objects = append(objects, obj)
+		objects = append(objects, &obj)
 	}
 
 	return objects, nil
@@ -213,49 +217,48 @@ func getHelmReleaseObjects(ctx context.Context, k8sClient client.Client, helmRel
 	return objects, nil
 }
 
-func unstructuredToInventoryEntry(clusterName string, objWithChildren []*ObjectWithChildren, clusterUserNamespaces map[string][]v1.Namespace, healthChecker health.HealthChecker) ([]*pb.InventoryEntry, error) {
-	entries := []*pb.InventoryEntry{}
-	for _, c := range objWithChildren {
-		unstructuredObj := *c.Object
-		if unstructuredObj.GetKind() == "Secret" {
-			sanitizedUnstructuredObj, err := SanitizeUnstructuredSecret(unstructuredObj)
-			unstructuredObj = *sanitizedUnstructuredObj
-			if err != nil {
-				return nil, fmt.Errorf("error sanitizing secrets: %w", err)
-			}
-		}
-		bytes, err := unstructuredObj.MarshalJSON()
+func unstructuredToInventoryEntry(clusterName string, objWithChildren ObjectWithChildren, clusterUserNamespaces map[string][]v1.Namespace, healthChecker health.HealthChecker) (*pb.InventoryEntry, error) {
+	unstructuredObj := *objWithChildren.Object
+	if unstructuredObj.GetKind() == "Secret" {
+		var err error
+		unstructuredObj, err = SanitizeUnstructuredSecret(unstructuredObj)
 		if err != nil {
-			return nil, fmt.Errorf("failed to marshal unstructured object: %w", err)
+			return nil, fmt.Errorf("error sanitizing secrets: %w", err)
 		}
+	}
+	bytes, err := unstructuredObj.MarshalJSON()
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal unstructured object: %w", err)
+	}
 
-		tenant := GetTenant(unstructuredObj.GetNamespace(), clusterName, clusterUserNamespaces)
+	tenant := GetTenant(unstructuredObj.GetNamespace(), clusterName, clusterUserNamespaces)
 
-		health, err := healthChecker.Check(unstructuredObj)
-		if err != nil {
-			return nil, fmt.Errorf("failed to check health: %w", err)
-		}
+	health, err := healthChecker.Check(unstructuredObj)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check health: %w", err)
+	}
 
-		children, err := unstructuredToInventoryEntry(clusterName, c.Children, clusterUserNamespaces, healthChecker)
+	children := []*pb.InventoryEntry{}
+	for _, c := range objWithChildren.Children {
+		child, err := unstructuredToInventoryEntry(clusterName, *c, clusterUserNamespaces, healthChecker)
 		if err != nil {
 			return nil, fmt.Errorf("failed converting child inventory entry: %w", err)
 		}
-
-		entry := &pb.InventoryEntry{
-			Payload:     string(bytes),
-			Tenant:      tenant,
-			ClusterName: clusterName,
-			Children:    children,
-			Health: &pb.HealthStatus{
-				Status:  string(health.Status),
-				Message: health.Message,
-			},
-		}
-
-		entries = append(entries, entry)
+		children = append(children, child)
 	}
 
-	return entries, nil
+	entry := &pb.InventoryEntry{
+		Payload:     string(bytes),
+		Tenant:      tenant,
+		ClusterName: clusterName,
+		Children:    children,
+		Health: &pb.HealthStatus{
+			Status:  string(health.Status),
+			Message: health.Message,
+		},
+	}
+
+	return entry, nil
 }
 
 // GetObjectsWithChildren returns objects with their children populated if withChildren is true.
@@ -281,7 +284,7 @@ func GetObjectsWithChildren(ctx context.Context, objects []*unstructured.Unstruc
 			children := []*ObjectWithChildren{}
 			if withChildren {
 				var err error
-				children, err = getChildren(ctx, k8sClient, obj)
+				children, err = GetChildren(ctx, k8sClient, obj)
 				if err != nil {
 					logger.Error(err, "failed getting children", "entry", obj)
 					return
@@ -304,7 +307,7 @@ func GetObjectsWithChildren(ctx context.Context, objects []*unstructured.Unstruc
 	return result, nil
 }
 
-func getChildren(ctx context.Context, k8sClient client.Client, parentObj unstructured.Unstructured) ([]*ObjectWithChildren, error) {
+func GetChildren(ctx context.Context, k8sClient client.Client, parentObj unstructured.Unstructured) ([]*ObjectWithChildren, error) {
 	listResult := unstructured.UnstructuredList{}
 
 	switch parentObj.GetObjectKind().GroupVersionKind().Kind {
@@ -348,7 +351,7 @@ func getChildren(ctx context.Context, k8sClient client.Client, parentObj unstruc
 
 	for _, c := range unstructuredChildren {
 		var err error
-		children, err = getChildren(ctx, k8sClient, c)
+		children, err = GetChildren(ctx, k8sClient, c)
 		if err != nil {
 			return nil, err
 		}
@@ -364,12 +367,12 @@ func getChildren(ctx context.Context, k8sClient client.Client, parentObj unstruc
 }
 
 // ResourceRefToUnstructured converts a flux like resource entry pair of (id, version) into a unstructured object
-func ResourceRefToUnstructured(id, version string) (*unstructured.Unstructured, error) {
-	u := &unstructured.Unstructured{}
+func ResourceRefToUnstructured(id, version string) (unstructured.Unstructured, error) {
+	u := unstructured.Unstructured{}
 
 	objMetadata, err := object.ParseObjMetadata(id)
 	if err != nil {
-		return nil, fmt.Errorf("unable to parse inventory entry id: %w", err)
+		return u, err
 	}
 
 	u.SetGroupVersionKind(schema.GroupVersionKind{
@@ -384,20 +387,20 @@ func ResourceRefToUnstructured(id, version string) (*unstructured.Unstructured, 
 }
 
 // SanitizeUnstructuredSecret redacts the data field of a Secret object
-func SanitizeUnstructuredSecret(obj unstructured.Unstructured) (*unstructured.Unstructured, error) {
-	redactedUnstructured := &unstructured.Unstructured{}
+func SanitizeUnstructuredSecret(obj unstructured.Unstructured) (unstructured.Unstructured, error) {
+	redactedUnstructured := unstructured.Unstructured{}
 	s := &v1.Secret{}
 
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(obj.UnstructuredContent(), s)
 	if err != nil {
-		return nil, fmt.Errorf("converting unstructured to secret: %w", err)
+		return redactedUnstructured, fmt.Errorf("converting unstructured to helmrelease: %w", err)
 	}
 
 	s.Data = map[string][]byte{"redacted": []byte(nil)}
 
 	redactedObj, err := runtime.DefaultUnstructuredConverter.ToUnstructured(s)
 	if err != nil {
-		return nil, fmt.Errorf("converting unstructured to secret: %w", err)
+		return redactedUnstructured, fmt.Errorf("converting unstructured to helmrelease: %w", err)
 	}
 
 	redactedUnstructured.SetUnstructuredContent(redactedObj)
@@ -439,8 +442,8 @@ func parseInventoryFromUnstructured(obj *unstructured.Unstructured) ([]*unstruct
 	}
 
 	objects := []*unstructured.Unstructured{}
-	for _, entry := range resourceInventory.Entries {
-		u, err := resourceRefToUnstructured(entry)
+	for _, ref := range resourceInventory.Entries {
+		u, err := ResourceRefToUnstructured(ref.ID, ref.Version)
 		if err != nil {
 			return nil, fmt.Errorf("error converting resource ref to unstructured: %w", err)
 		}
