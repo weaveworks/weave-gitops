@@ -607,7 +607,7 @@ func (conn *Connection) createServiceAccountToken(vKubeConfig api.Config) (strin
 	token := ""
 	conn.Log.Actionf("Create service account token for %s/%s", serviceAccountNamespace, serviceAccount)
 
-	err = wait.PollUntilContextTimeout(context.Background(), time.Second*2, time.Minute*5, true, func(_ context.Context) (bool, error) {
+	err = wait.PollUntilContextTimeout(context.Background(), time.Second, time.Minute*3, true, func(_ context.Context) (bool, error) {
 		// check if namespace exists
 		_, err := vKubeClient.CoreV1().Namespaces().Get(context.TODO(), serviceAccountNamespace, metav1.GetOptions{})
 		if err != nil {
