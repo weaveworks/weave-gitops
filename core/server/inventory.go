@@ -37,29 +37,38 @@ func (cs *coreServer) GetInventory(ctx context.Context, msg *pb.GetInventoryRequ
 		return nil, fmt.Errorf("error getting scoped client for cluster=%s: %w", msg.ClusterName, err)
 	}
 
-	var entries []*pb.InventoryEntry
+	var entries []*unstructured.Unstructured
 
 	switch msg.Kind {
 	case kustomizev1.KustomizationKind:
-		entries, err = cs.getKustomizationInventory(ctx, msg.ClusterName, client, msg.Name, msg.Namespace, msg.WithChildren)
+		entries, err = cs.getKustomizationInventory(ctx, client, msg.Name, msg.Namespace)
 		if err != nil {
 			return nil, fmt.Errorf("failed getting kustomization inventory: %w", err)
 		}
 	case helmv2.HelmReleaseKind:
-		entries, err = cs.getHelmReleaseInventory(ctx, msg.ClusterName, client, msg.Name, msg.Namespace, msg.WithChildren)
+		entries, err = cs.getHelmReleaseInventory(ctx, client, msg.Name, msg.Namespace)
 		if err != nil {
 			return nil, fmt.Errorf("failed getting helm Release inventory: %w", err)
 		}
 	default:
-		return nil, fmt.Errorf("unknown kind: %s", msg.Kind)
+		gvk, err := cs.primaryKinds.Lookup(msg.Kind)
+		if err != nil {
+			return nil, err
+		}
+		entries, err = getFluxLikeInventory(ctx, client, msg.Name, msg.Namespace, *gvk)
+		if err != nil {
+			return nil, fmt.Errorf("failed getting flux like inventory: %w", err)
+		}
 	}
 
+	resources := cs.getInventoryResources(ctx, msg.ClusterName, client, entries, msg.Namespace, msg.WithChildren)
+
 	return &pb.GetInventoryResponse{
-		Entries: entries,
+		Entries: resources,
 	}, nil
 }
 
-func (cs *coreServer) getKustomizationInventory(ctx context.Context, clusterName string, k8sClient client.Client, name, namespace string, withChildren bool) ([]*pb.InventoryEntry, error) {
+func (cs *coreServer) getKustomizationInventory(ctx context.Context, k8sClient client.Client, name, namespace string) ([]*unstructured.Unstructured, error) {
 	kust := &kustomizev1.Kustomization{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -79,46 +88,19 @@ func (cs *coreServer) getKustomizationInventory(ctx context.Context, clusterName
 		return nil, nil
 	}
 
-	result := []*pb.InventoryEntry{}
-	resultMu := sync.Mutex{}
-
-	wg := sync.WaitGroup{}
-
+	objects := []*unstructured.Unstructured{}
 	for _, e := range kust.Status.Inventory.Entries {
-		wg.Add(1)
-
-		go func(ref kustomizev1.ResourceRef) {
-			defer wg.Done()
-
-			obj, err := resourceRefToUnstructured(ref)
-			if err != nil {
-				cs.logger.Error(err, "failed converting inventory entry", "entry", ref)
-				return
-			}
-
-			if err := k8sClient.Get(ctx, client.ObjectKeyFromObject(&obj), &obj); err != nil {
-				cs.logger.Error(err, "failed to get object", "entry", ref)
-				return
-			}
-
-			entry, err := cs.unstructuredToInventoryEntry(ctx, clusterName, k8sClient, obj, namespace, withChildren)
-			if err != nil {
-				cs.logger.Error(err, "failed converting inventory entry", "entry", ref)
-				return
-			}
-
-			resultMu.Lock()
-			result = append(result, entry)
-			resultMu.Unlock()
-		}(e)
+		obj, err := resourceRefToUnstructured(e)
+		if err != nil {
+			return nil, fmt.Errorf("failed converting inventory entry: %w", err)
+		}
+		objects = append(objects, &obj)
 	}
 
-	wg.Wait()
-
-	return result, nil
+	return objects, nil
 }
 
-func (cs *coreServer) getHelmReleaseInventory(ctx context.Context, clusterName string, k8sClient client.Client, name, namespace string, withChildren bool) ([]*pb.InventoryEntry, error) {
+func (cs *coreServer) getHelmReleaseInventory(ctx context.Context, k8sClient client.Client, name, namespace string) ([]*unstructured.Unstructured, error) {
 	release := &helmv2.HelmRelease{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -135,10 +117,10 @@ func (cs *coreServer) getHelmReleaseInventory(ctx context.Context, clusterName s
 		return nil, fmt.Errorf("failed to get helm release objects: %w", err)
 	}
 
-	if len(objects) == 0 {
-		return []*pb.InventoryEntry{}, nil
-	}
+	return objects, nil
+}
 
+func (cs *coreServer) getInventoryResources(ctx context.Context, clusterName string, k8sClient client.Client, objects []*unstructured.Unstructured, namespace string, withChildren bool) []*pb.InventoryEntry {
 	result := []*pb.InventoryEntry{}
 	resultMu := sync.Mutex{}
 
@@ -149,10 +131,6 @@ func (cs *coreServer) getHelmReleaseInventory(ctx context.Context, clusterName s
 
 		go func(obj unstructured.Unstructured) {
 			defer wg.Done()
-
-			if obj.GetNamespace() == "" {
-				obj.SetNamespace(release.GetReleaseNamespace())
-			}
 
 			if err := k8sClient.Get(ctx, client.ObjectKeyFromObject(&obj), &obj); err != nil {
 				cs.logger.Error(err, "failed to get object", "entry", obj)
@@ -173,7 +151,7 @@ func (cs *coreServer) getHelmReleaseInventory(ctx context.Context, clusterName s
 
 	wg.Wait()
 
-	return result, nil
+	return result
 }
 
 // Returns the list of resources applied in the helm chart.
@@ -382,4 +360,49 @@ func sanitizeUnstructuredSecret(obj unstructured.Unstructured) (unstructured.Uns
 	redactedUnstructured.SetUnstructuredContent(redactedObj)
 
 	return redactedUnstructured, nil
+}
+
+func getFluxLikeInventory(ctx context.Context, k8sClient client.Client, name, namespace string, gvk schema.GroupVersionKind) ([]*unstructured.Unstructured, error) {
+	// Create an unstructured object with the desired GVK (GroupVersionKind)
+	obj := &unstructured.Unstructured{}
+	obj.SetGroupVersionKind(gvk)
+	obj.SetName(name)
+	obj.SetNamespace(namespace)
+
+	// Get the object from the Kubernetes cluster
+	if err := k8sClient.Get(ctx, client.ObjectKeyFromObject(obj), obj); err != nil {
+		return nil, fmt.Errorf("failed to get kustomization: %w", err)
+	}
+
+	return parseInventoryFromUnstructured(obj)
+}
+
+func parseInventoryFromUnstructured(obj *unstructured.Unstructured) ([]*unstructured.Unstructured, error) {
+	content := obj.UnstructuredContent()
+
+	// Check if status.inventory is present
+	unstructuredInventory, found, err := unstructured.NestedMap(content, "status", "inventory")
+	if err != nil {
+		return nil, fmt.Errorf("error getting status.inventory from object: %w", err)
+	}
+	if !found {
+		return nil, fmt.Errorf("status.inventory not found in object %s/%s", obj.GetNamespace(), obj.GetName())
+	}
+
+	resourceInventory := &kustomizev1.ResourceInventory{}
+	err = runtime.DefaultUnstructuredConverter.FromUnstructured(unstructuredInventory, resourceInventory)
+	if err != nil {
+		return nil, fmt.Errorf("error converting inventory to resource inventory: %w", err)
+	}
+
+	objects := []*unstructured.Unstructured{}
+	for _, entry := range resourceInventory.Entries {
+		u, err := resourceRefToUnstructured(entry)
+		if err != nil {
+			return nil, fmt.Errorf("error converting resource ref to unstructured: %w", err)
+		}
+		objects = append(objects, &u)
+	}
+
+	return objects, nil
 }

@@ -1,3 +1,4 @@
+import { AlertListErrors } from "./components/AlertListErrors";
 import { ReconciledObjectsAutomation } from "./components/AutomationDetail";
 import AutomationsTable from "./components/AutomationsTable";
 import BucketDetail from "./components/BucketDetail";
@@ -91,6 +92,7 @@ import {
 } from "./contexts/LinkResolverContext";
 import { useListAutomations, useSyncFluxObject } from "./hooks/automations";
 import { useDebounce, useRequestState } from "./hooks/common";
+import { useListEvents } from "./hooks/events";
 import { useFeatureFlags } from "./hooks/featureflags";
 import {
   useListFluxCrds,
@@ -98,6 +100,7 @@ import {
   useToggleSuspend,
 } from "./hooks/flux";
 import { useCheckCRDInstalled } from "./hooks/imageautomation";
+import { useGetInventory } from "./hooks/inventory";
 import useNavigation from "./hooks/navigation";
 import { useListAlerts, useListProviders } from "./hooks/notifications";
 import { useGetObject, useListObjects } from "./hooks/objects";
@@ -140,6 +143,7 @@ import SignIn from "./pages/SignIn";
 export {
   Alert,
   AppContext,
+  AlertListErrors,
   AppContextProvider,
   Auth,
   AuthCheck,
@@ -268,9 +272,11 @@ export {
   useDebounce,
   useFeatureFlags,
   useGetObject,
+  useGetInventory,
   useLinkResolver,
   useListAlerts,
   useListAutomations,
+  useListEvents,
   useListFluxCrds,
   useListFluxRuntimeObjects,
   useListObjects,

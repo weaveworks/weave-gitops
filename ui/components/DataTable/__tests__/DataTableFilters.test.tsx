@@ -237,7 +237,8 @@ describe("DataTableFilters", () => {
 
     const tableRows2 = document.querySelectorAll("tbody tr");
     expect(tableRows2).toHaveLength(3);
-    expect(tableRows2[1].innerHTML).toContain("rad");
+
+    expect(tableRows2[2].innerHTML).toContain("rad");
 
     const chip2 = screen.getByText(`type${filterSeparator}baz`);
     expect(chip2).toBeTruthy();

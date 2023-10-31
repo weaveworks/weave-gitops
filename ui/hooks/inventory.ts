@@ -40,6 +40,7 @@ export function useGetInventory(
     opts
   );
 }
+
 function convertEntries(entries: InventoryEntry[]) {
   return entries.map((obj) => {
     const parsedObj = new FluxObject(obj);
