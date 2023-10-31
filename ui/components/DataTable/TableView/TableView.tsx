@@ -15,13 +15,13 @@ const TableView = ({
   onBatchCheck,
 }: TableViewProps) => {
   const onCheckChange = (checked: boolean, id: string) => {
-    const chk = [...checkedFields];
+    const selectedFields = [...checkedFields];
     if (checked) {
-      chk.push(id);
+      selectedFields.push(id);
     } else {
-      chk.splice(chk.indexOf(id), 1);
+      selectedFields.splice(selectedFields.indexOf(id), 1);
     }
-    onBatchCheck(chk);
+    onBatchCheck(selectedFields);
   };
   const onHeaderCheckChange = (checked: boolean) => {
     if (checked) {
@@ -33,7 +33,7 @@ const TableView = ({
   };
   return (
     <TableContainer id={id}>
-      <Table aria-label="simple table">
+      <Table>
         <TableHeader
           fields={fields}
           defaultSortedField={defaultSortedField}

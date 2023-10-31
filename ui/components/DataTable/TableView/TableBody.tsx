@@ -48,7 +48,7 @@ const TableBodyView = ({
         return (
           <TableRow key={r.uid || i}>
             {hasCheckboxes && (
-              <TableCell style={{ padding: "0px" }}>
+              <TableCell style={{ padding: "0" }}>
                 <Checkbox
                   checked={checkedFields.findIndex((c) => c === r.uid) > -1}
                   onChange={(e) => {
