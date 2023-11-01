@@ -58,7 +58,7 @@ import SourcesIcon from "./NavIcons/SourcesIcon";
 import TemplatesIcon from "./NavIcons/TemplatesIcon";
 import TerraformIcon from "./NavIcons/TerraformIcon";
 import WorkspacesIcon from "./NavIcons/WorkspacesIcon";
-import ClusaterDiscoveryIcon from "./NavIcons/ClusterDiscoveryIcon";
+import ClusterDiscoveryIcon from "./NavIcons/ClusterDiscoveryIcon";
 import ResumeIcon from "./Sync/ResumeIcon";
 import Text from "./Text";
 
@@ -327,7 +327,7 @@ function getIcon(i: IconType) {
       return WorkspacesIcon;
 
     case IconType.ClusterDiscoveryIcon:
-      return ClusaterDiscoveryIcon;
+      return ClusterDiscoveryIcon;
 
     default:
       break;
