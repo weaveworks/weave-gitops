@@ -6,6 +6,8 @@ toc_max_heading_level: 4
 
 import TierLabel from "../../_components/TierLabel";
 import AlphaWarning from "../../_components/_alpha_warning.mdx";
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
 
 
 # Install Weave GitOps Enterprise via CLI
@@ -33,48 +35,92 @@ Before you start make sure the following requirements are met:
 
 #### Install `gitops-ee` CLI (> v0.35)
 
-Weave GitOps Enterprise Bootstrap functionality is available on Weave GitOps Enterprise CLI starting from version x.x.x. If you haven't already, please install the latest `gitops-ee` CLI using this command.
+Weave GitOps Enterprise Bootstrap functionality is available on Weave GitOps Enterprise CLI starting from version v0.35. If you haven't already, please install the latest `gitops-ee` CLI using this command.
+
 ```bash
 brew install weaveworks/tap/gitops-ee
 ```
 
 #### Bootstrap Weave GitOps Enterprise
+
 Please use the following command to start the installation wizard of Weave GitOps Enterprise.
 
-```bash
-gitops-ee bootstrap
-```
+[//]: # (<Tabs groupId="getStarted" default>)
 
-The bootstrap wizard will take you step-by-step into configuring Weave GitOps Enterprise. To understand more about the CLI configurations experience, check the below sections [here](#cli-configurations). 
+[//]: # (   <TabItem value="interactive" label="Interactive">)
 
-## Understanding `gitops-ee bootstrap`
+[//]: # ()
+[//]: # (   ```bash)
 
-### Overview
+[//]: # (   gitops-ee bootstrap)
 
-`gitops-ee bootstrap` command is a wizard-like command line that helps you to install Weave GitOps Enterprise on their management cluster by guiding them step by step to configure it. 
+[//]: # (   ```)
 
-The following are the steps the wizard will take you through it.
+[//]: # ()
+[//]: # (   The bootstrap wizard will take you step-by-step into configuring Weave GitOps Enterprise. To understand more about the CLI configurations experience, check the below sections [here]&#40;#cli-configurations&#41;.)
 
-1. [Verifying Entitlement](#verifying-entitlement): Verify entitlement secret content (username, password, entitlement)
-2. [Verifying flux](#verifying-flux): Verify flux installation on management cluster
-4. [Selecting WGE version](#selecting-wge-version): from the latest 3 available releases
-5. [Create admin credentials](#create-admin-credentials): create admin secret with username and password to be able to access the dashboard
-6. [Select the domain](#select-the-domain): choose between 2 methods to access the dashboard either locally or via external domain
-7. [Access the dashboard](#access-the-dashboard): via the link from the installation success message
+[//]: # (   </TabItem>)
+
+[//]: # (   <TabItem value="nonInteractive" label="Non-Interactive">)
+
+[//]: # (   You could run the bootstrap command in non-interactive mode by providing the required configurations as flags. The following gives you an example to get started that you could adapt to your own context)
+
+[//]: # ()
+[//]: # (       )
+[//]: # (   ```bash)
+
+[//]: # (    gitops-ee bootstrap \)
+
+[//]: # (       --kubeconfig="~/.kube/config" \ # &#40;optional&#41; Management cluster configuration. If not set default kubeconfig resolution is used.)
+
+[//]: # (       --private-key="~/.ssh/id_rsa" --private-key-password="" \ # Git repository SSH configuration)
+
+[//]: # (       --version="0.33.0" \ # version to install)
+
+[//]: # (       --domain-type="localhost" \ # how to expose the dashboard)
+
+[//]: # (       --username=wego-admin --password=admin123 \ # emergency user configuration)
+
+[//]: # (       --discovery-url="<oidc discovery url>" --client-id="weave-gitops-enterprise" --client-secret="changeme" \ # &#40;optional&#41; OIDC configuration)
+
+[//]: # (   ```)
+
+[//]: # ()
+[//]: # (   For more information about the CLI configurations, check the below sections [here]&#40;#cli-configurations&#41;)
+
+[//]: # ()
+[//]: # (   </TabItem>)
+
+[//]: # (</Tabs>)
+
+## Appendix
+
+### Understanding `gitops-ee bootstrap`
+
+`gitops-ee bootstrap` is a workflow that will take you through the following stages:
+
+1. [Verify Flux](#verifying-flux): verify Flux installation on the Management cluster.
+2. [Verify Entitlement](#verifying-entitlement): verify the Entitlements secret content (username, password, entitlement).
+3. [Configure Git Access](#configure-git-access): configure the access to your configuration repo.
+4. [Select WGE version](#selecting-wge-version): from the latest 3 available releases.
+5. [Create Cluster User](#create-cluster-user): create a Secret with the username and password for the emergency cluster user.
+6. [Select the domain](#select-the-domain): choose between 2 methods to access the dashboard either local or external.
+7. [Access the dashboard](#access-the-dashboard): via the link from the installation success message.
 8. (Optional) [Configure OIDC](#configure-oidc): to enable login to dashboard via OIDC providers.
 
-### Verifying Entitlement
+### Verify Entitlement
 
-Weave GitOps Enterprise Entitlement is your obtained license to use our product. The entitlement file is a Kubernetes secret that contains your licence. The bootstrap CLI will check if the entitlement manifest exists on the management cluster, and it will check if it has valid content and the entitlement is not expired. 
+Weave GitOps Enterprise Entitlement is your obtained license to use our product. The Entitlements file is a Kubernetes secret that contains your licence.
+`Bootstrapping` checks that the secret exists on the management cluster, and that it is valid will check if it has valid content and the entitlement is not expired.
 To get the entitlement secret please contact *sales@weave.works*, then apply it on your management cluster with the name `weave-gitops-enterprise-credentials` under `flux-system` namespace. 
 
-### Verifying flux
+### Verify Flux
 
 Weave GitOps Enterprise runs on top of flux, the bootstrap CLI will check if flux is installed on the management cluster, and it will verify that it has the right version with valid git repository setup, and it is able to reconcile flux components properly. 
 If flux is installed, but doesn't have a valid installation, the bootstrap CLI will terminate pending the fix or uninstall of current flux installation.
 If flux is not installed at all, the bootstrap CLI offers the option to bootstrap flux. 
 
-### Providing GitRepository Authentication
+### Configure Git Access
 In order for `gitops-ee bootstrap` to push WGE resources to the management cluster's git repository, you will be prompted to provide the private key used to access your repo via ssh. If the private key is encrypted, you will also be asked to provide the private key password. 
 :::info
 Disclaimer: The bootstrap CLI will ONLY use the private key to push WGE resources to your repo, and won't use it in any other way that can comprimise your repo or clusters security. 
@@ -83,20 +129,14 @@ Disclaimer: The bootstrap CLI will ONLY use the private key to push WGE resource
 ### Selecting WGE version
 The bootstrap CLI will prompt you to choose from the latest 3 versions of Weave GitOps Enterprise.
 
-### Create admin credentials
+### Create Cluster User
 You will be prompt to provide admin username and password, which will be used to access the dashboard. This will create admin secret with the credentials. If you already have previous admin credentials on your cluster, the installation will prompt you if you want to continue with the old credentials or exit and revoke them and re-run the installation.
 
 ### Select the domain
-To access Weave GitOps Enterprise dashboard, you have one of 2 options: 
-##### via localhost
-This requires no pre-requisites and more suitable for testing on your local or development environment, or air-gapped environments.
+To access Weave GitOps Enterprise dashboard, you have one of 2 options:
 
-
-##### via External Domain
-This is more suitable for production environments where multiple users are going to access the dashboard. However, this will require extrnal dns to be set up and configured for the domain to be accessible. 
-:::tip
-While there are multiple ways to setup and configure external dns. You can find a full example on how to setup it for multiple cloud providers [here](#external-dns)
-:::
+1. **Localhost**: requires no pre-requisites and more suitable for testing on your local or development environment, or air-gapped environments.
+2. **External Domain**: suitable for production environments where multiple users are going to access the dashboard. However, this will require extrnal dns to be set up and configured for the domain to be accessible.
 
 ### Access the dashboard
 After installation is successful. The CLI will print out the URL where you can access the dashboard.
@@ -112,7 +152,6 @@ To configure OIDC access, you will be asked to provide the following values:
 Please don't forget to add a new static-client on your OIDC provider settings with the redirectURI `your-domain/oauth2/callback` for example `http://localhost:3000/oauth2/callback`
 :::
 
-## Appendix
 
 ### CLI configurations
 
@@ -125,231 +164,3 @@ Please don't forget to add a new static-client on your OIDC provider settings wi
 - `-c`, `--private-key-password`:   Private key password. If the private key is encrypted using password
 - `-u`, `--username`:               Dashboard admin username
 - `-v`, `--version`:                Weave GitOps Enterprise version to install
-
-
-#### External DNS
-
-[External DNS](https://github.com/Kubernetes-sigs/external-dns) for Kubernetes is a tool that automates the management of external DNS records.
-It allows Kubernetes services to be exposed to the internet with a DNS entry that corresponds to the service's name.
-
-There are several implementations of External DNS available with specific DNS providers (e.g., AWS Route 53, Google Cloud DNS, Azure DNS, etc.).
-
-Some popular implementations include:
-- kube-dns: Integrates with CoreDNS and is a common choice for Kubernetes clusters.
-- AWS Route 53 External DNS: Specifically for AWS Route 53.
-- GCP External DNS: For Google Cloud DNS.
-- Azure External DNS: For Azure DNS.
-
-Learn how to deploy External DNS into your cluster [here](https://github.com/Kubernetes-sigs/external-dns?tab=readme-ov-file#deploying-to-a-cluster)
-
-[Full tutorial to use External DNS with AWS Route 53](https://Kubernetes-sigs.github.io/aws-load-balancer-controller/v2.5/guide/integrations/external_dns/)
-
-After configuring your provider to use ExternalDNS, The following example is a follow-up on the previous tutorial is the manifests that need to be deployed to the cluster with the following structure:
-
-<details><summary>Expand to see the files structure</summary>
-
-```bash
-.
-├── cluster-role-binding.yaml
-├── cluster-role.yaml
-├── deployment.yaml
-├── kustomization.yaml
-├── ingress-nginx.yaml
-└── namespace.yaml
-```
-
-</details>
-
-1- Kustomization file
-
-<details><summary>Expand to see example Kustomization file content</summary>
-
-```yaml
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-resources:
-- namespace.yaml
-- deployment.yaml
-- cluster-role.yaml
-- cluster-role-binding.yaml
-- ingress-nginx.yaml
-```
-</details>
-
-2- Namespace: `external-dns`
-
-<details><summary>Expand to see example `namespace.yaml` file content</summary>
-
-```yaml
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: external-dns
-```
-</details>
-
-3- ClusterRole
-
-<details><summary>Expand to see example `cluster-role.yaml` file content</summary>
-
-```yaml
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: external-dns
-  labels:
-    app.Kubernetes.io/name: external-dns
-rules:
-  - apiGroups: [""]
-    resources: ["services","endpoints","pods","nodes"]
-    verbs: ["get","watch","list"]
-  - apiGroups: ["extensions","networking.k8s.io"]
-    resources: ["ingresses"]
-    verbs: ["get","watch","list"]
-```
-
-</details>
-
-4- ClusterRoleBinding
-
-<details><summary>Expand to see example `cluster-role-binding.yaml` file content</summary>
-
-```yaml
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: external-dns-viewer
-  labels:
-    app.Kubernetes.io/name: external-dns
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: external-dns
-subjects:
-  - kind: ServiceAccount
-    name: external-dns
-    namespace: external-dns
-```
-
-</details>
-
-5- External DNS Deployment
-
-<details><summary>Expand to see example `deployment.yaml` file content</summary>
-
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: external-dns
-  namespace: external-dns
-  labels:
-    app.Kubernetes.io/name: external-dns
-spec:
-  strategy:
-    type: Recreate
-  selector:
-    matchLabels:
-      app.Kubernetes.io/name: external-dns
-  template:
-    metadata:
-      labels:
-        app.Kubernetes.io/name: external-dns
-    spec:
-      serviceAccountName: external-dns
-      containers:
-        - name: external-dns
-          image: k8s.gcr.io/external-dns/external-dns:v0.11.0
-          args:
-            - --source=service
-            - --source=ingress
-            - --domain-filter=<domain-name> # will make ExternalDNS see only the hosted zones matching provided domain, omit to process all available hosted zones. example (mydomain.com)
-            - --provider=aws
-            - --policy=sync # would allow ExternalDNS to delete records, use upsert-only to prevent ExternalDNS from deleting any records
-            - --aws-zone-type=public # only look at public hosted zones (valid values are public, private or no value for both)
-            - --registry=txt
-            - --txt-owner-id=cluster-${CLUSTER_NAME}
-          env:
-            - name: AWS_DEFAULT_REGION
-              value: <aws-region> # select the default aws-region (example: eu-north-1)
-```
-
-</details>
-
-6- Ingress-nginx
-
-<details><summary>Expand to see example `ingress-nginx.yaml` file content</summary>
-
-```yaml
-apiVersion: source.toolkit.fluxcd.io/v1beta2
-kind: HelmRepository
-metadata:
-  name: ingress-nginx
-  namespace: flux-system
-spec:
-  interval: 1m0s
-  timeout: 1m0s
-  url: "https://Kubernetes.github.io/ingress-nginx"
----
-apiVersion: helm.toolkit.fluxcd.io/v2beta1
-kind: HelmRelease
-metadata:
-  labels:
-    weave.works/applied-layer: layer-1
-  name: ingress-nginx
-  namespace: flux-system
-spec:
-  chart:
-    spec:
-      chart: ingress-nginx
-      sourceRef:
-        apiVersion: source.toolkit.fluxcd.io/v1beta2
-        kind: HelmRepository
-        name: ingress-nginx
-        namespace: flux-system
-      version: 4.2.5
-  install:
-    crds: CreateReplace
-    createNamespace: true
-  interval: 1m0s
-  targetNamespace: flux-system
-  upgrade:
-    crds: CreateReplace
-  values:
-    controller:
-      ingressClassResource:
-        enabled: true
-        name: public-nginx
-        default: false
-        controllerValue: "k8s.io/public-ingress-nginx"
-      ingressClass: public-nginx
-      service:
-        annotations:
-          service.beta.Kubernetes.io/aws-load-balancer-ssl-cert: ${SSL_CERTIFICATE_ARN}
-          service.beta.Kubernetes.io/aws-load-balancer-type: nlb
-          service.beta.Kubernetes.io/aws-load-balancer-internal: "false"
-        targetPorts:
-          http: http
-          https: http
-```
-
-</details>
-
-The corresponding Ingress configurations in WGE helmrelease that will be generated is like the following:
-
-<details><summary>Expand to see ingress configurations</summary>
-
-```yaml
-ingress:
-    annotations:
-    external-dns.alpha.Kubernetes.io/hostname: mydomain.com
-    className: public-nginx
-    enabled: true
-    hosts:
-    - host: mydomain.com
-    paths:
-    - path: /
-        pathType: ImplementationSpecific
-```
-
-</details>
