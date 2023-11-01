@@ -59,6 +59,7 @@ import SourcesIcon from "./NavIcons/SourcesIcon";
 import TemplatesIcon from "./NavIcons/TemplatesIcon";
 import TerraformIcon from "./NavIcons/TerraformIcon";
 import WorkspacesIcon from "./NavIcons/WorkspacesIcon";
+import ClusaterDiscoveryIcon from "./NavIcons/ClusterDiscoveryIcon";
 import ResumeIcon from "./Sync/ResumeIcon";
 import Text from "./Text";
 
@@ -126,6 +127,7 @@ export enum IconType {
   VerifiedUser,
   WarningIcon,
   WorkspacesIcon,
+  ClusterDiscoveryIcon,
 }
 
 type Props = {
@@ -324,6 +326,9 @@ function getIcon(i: IconType) {
 
     case IconType.WorkspacesIcon:
       return WorkspacesIcon;
+
+    case IconType.ClusterDiscoveryIcon:
+      return ClusaterDiscoveryIcon;
 
     default:
       break;
