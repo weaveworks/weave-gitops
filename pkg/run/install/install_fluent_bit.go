@@ -4,10 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"html/template"
 	"strings"
 	"time"
+
+	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
@@ -270,8 +271,7 @@ func InstallFluentBit(ctx context.Context, log logger.Logger, kubeClient client.
 
 	log.Actionf("waiting for HelmRelease %s/%s to be ready", helmRelease.Namespace, helmRelease.Name)
 
-	//nolint:staticcheck // deprecated, tracking issue: https://github.com/weaveworks/weave-gitops/issues/3812
-	if err := wait.Poll(2*time.Second, 5*time.Minute, func() (bool, error) {
+	if err := wait.PollUntilContextTimeout(context.Background(), time.Second*2, time.Minute*5, true, func(_ context.Context) (bool, error) {
 		instance := appsv1.DaemonSet{}
 		if err := kubeClient.Get(
 			ctx,

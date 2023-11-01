@@ -21,7 +21,7 @@ import ReconciledObjectsTable from "./ReconciledObjectsTable";
 import ReconciliationGraph from "./ReconciliationGraph";
 import RequestStateHandler from "./RequestStateHandler";
 import SubRouterTabs, { RouterTab } from "./SubRouterTabs";
-import SyncActions from "./SyncActions";
+import SyncActions from "./Sync/SyncActions";
 import Text from "./Text";
 import Timestamp from "./Timestamp";
 import YamlView from "./YamlView";

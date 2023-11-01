@@ -98,17 +98,6 @@
     },
     {
       type: 'category',
-      label: 'GitOps Run',
-      link: {
-        type: 'doc',
-        id: 'gitops-run/gitops-run-overview',
-      },
-      items: [
-        'gitops-run/gitops-run-get-started',
-      ],
-    },
-    {
-      type: 'category',
       label: 'GitOpsSets',
       items: [
         'gitopssets/gitopssets-intro',

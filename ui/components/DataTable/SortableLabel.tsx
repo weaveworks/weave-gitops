@@ -3,7 +3,6 @@ import * as React from "react";
 import styled from "styled-components";
 import Flex from "../Flex";
 import Icon, { IconType } from "../Icon";
-import Spacer from "../Spacer";
 import { Field } from "./types";
 
 type labelProps = {
@@ -15,7 +14,7 @@ type labelProps = {
   setReverseSort: (b: boolean) => void;
 };
 
-const TableButton = styled(Button)`
+export const TableButton = styled(Button)`
   &.MuiButton-root {
     margin: 0;
     text-transform: none;
@@ -44,7 +43,7 @@ export default function SortableLabel({
   const sort = fields[sortFieldIndex];
 
   return (
-    <Flex align start>
+    <Flex align start gap="4">
       <TableButton
         color="inherit"
         variant="text"
@@ -57,7 +56,6 @@ export default function SortableLabel({
           {field.label}
         </h2>
       </TableButton>
-      <Spacer padding="xxs" />
       {sort.label === field.label ? (
         <Icon
           type={IconType.ArrowUpwardIcon}

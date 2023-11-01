@@ -14,7 +14,7 @@ import LoadingPage from "./LoadingPage";
 import Metadata from "./Metadata";
 import PageStatus from "./PageStatus";
 import SubRouterTabs, { RouterTab } from "./SubRouterTabs";
-import SyncActions from "./SyncActions";
+import SyncActions from "./Sync/SyncActions";
 import YamlView from "./YamlView";
 
 //must specify OCIRepository type, artifactMetadata causes errors on the Source type
@@ -86,7 +86,7 @@ function SourceDetail({ className, source, info, type, customActions }: Props) {
           clusterName={clusterName}
           kind={type}
           suspended={suspended}
-          hideDropdown
+          hideSyncOptions
           customActions={customActions}
         />
       </Flex>
