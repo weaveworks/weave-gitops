@@ -50,7 +50,7 @@ require (
 	github.com/weaveworks/tf-controller/tfctl v0.0.0-20231025134255-eac574d4bac7
 	github.com/yannh/kubeconform v0.5.0
 	go.uber.org/zap v1.25.0
-	golang.org/x/crypto v0.13.0
+	golang.org/x/crypto v0.14.0
 	golang.org/x/oauth2 v0.7.0
 	google.golang.org/genproto v0.0.0-20230410155749-daa745c078e1
 	google.golang.org/grpc v1.56.3
@@ -113,7 +113,7 @@ require (
 	github.com/sirupsen/logrus v1.9.0 // indirect
 	github.com/skeema/knownhosts v1.1.0 // indirect
 	github.com/theckman/yacspin v0.13.12 // indirect
-	github.com/weaveworks/tf-controller/api v0.0.0-20230416092146-4a7dfa5b6cc4 // indirect
+	github.com/weaveworks/tf-controller/api v0.0.0-20231101110059-994a65055198 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
@@ -204,9 +204,9 @@ require (
 	go.uber.org/atomic v1.10.0
 	go.uber.org/multierr v1.10.0 // indirect
 	golang.org/x/mod v0.10.0 // indirect
-	golang.org/x/net v0.15.0
-	golang.org/x/sys v0.12.0 // indirect
-	golang.org/x/term v0.12.0
+	golang.org/x/net v0.17.0
+	golang.org/x/sys v0.13.0 // indirect
+	golang.org/x/term v0.13.0
 	golang.org/x/text v0.13.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	golang.org/x/tools v0.9.3 // indirect
