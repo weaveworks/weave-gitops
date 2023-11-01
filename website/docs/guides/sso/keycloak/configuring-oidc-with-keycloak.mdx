@@ -1,0 +1,270 @@
+---
+title: Configuring OIDC with Keycloak
+---
+
+In this guide we will show you how to enable users to login to the Weave GitOps dashboard by authenticating them against a Keycloak instance.
+
+This example uses [Keycloak](https://www.keycloak.org/) and assumes Weave GitOps has already been installed on the Kubernetes Cluster.
+
+## Pre-requisites
+
+- A Kubernetes cluster runnnig a [Flux-supported version of Kubernetes](https://fluxcd.io/docs/installation/#prerequisites)
+- Weave GitOps is [installed](https://docs.gitops.weave.works/docs/installation/) and [TLS has been enabled](https://docs.gitops.weave.works/docs/configuration/tls/)
+- Access to a running Keycloak installation
+
+## Configuring a new Keycloak Realm
+
+The first step is to create a new realm in Keycloak for our applications.
+
+![Creating a new Realm in Keycloak step 1](img/step_01.png)
+
+To do that, navigate to your keycloak admin console and:
+
+1. In the top left menu, select the realm dropdown
+2. Click on the `Create Realm` button
+
+
+![Creating a new Realm in Keycloak step 2](img/step_02.png)
+
+In the new window, fill in a name for your realm and then click on `Create`. In this guide, the realm will be named `demo`.
+
+### Creating a new Keycloak Client
+
+You should now have a new realm created. Now onto creating the client.
+
+![Keycloak realm homepage](img/step_03.png)
+
+From the Keycloak admin console, make sure the new realm is selected in the top-left dropdown, and click on the `Clients` tab in the left menu.
+
+![Keycloak realm clients list](img/step_04.png)
+
+Click on the `Create client` button at the top of the clients list.
+
+![Keycloak create client step 1](img/step_05.png)
+
+In the `General Settings` pane:
+
+1. Set the `clientID` for your client to `weave-gitops`
+2. Give your client a suggestive name
+3. Click on the `Next` button.
+
+![Keycloak create client step 2](img/step_06.png)
+
+In the `Capability config` pane:
+
+1. Make sure `Client authentication` is turned on
+2. Make sure `Standard flow` is turned on
+3. Make sure `Direct access grants` is turned on
+4. Click on the `Next` button.
+
+![Keycloak create client step 3](img/step_07.png)
+
+Finally, in the `Login settings` pane:
+
+1. Set the `Home URL` for your client to the URL of your Weave GitOps instance. For this demo, that's `https://gitops.mydomain.com`
+2. Set the `Valid redirect URIs` to the URL of your Weave GitOps instance followed by `/oauth2/callback`. For this demo, that's `https://gitops.mydomain.com/oauth2/callback`
+3. Click on `Save`
+
+### Creating the Groups Mapper for the Keycloak Client
+
+You should now have an OIDC client created in your realm.
+
+![Keycloak new client page](img/step_08.png)
+
+From the `Clients` page, click on your newly created client.
+
+![Keycloak client scopes](img/step_09.png)
+
+1. In the top menu, select the `Client scopes` tab
+2. From the list of client scopes, select the `<client-name>-dedicated` scope. For this demo, that's `weave-gitops-dedicated`
+
+![Keycloak create new mapper step 1](img/step_10.png)
+
+In the new window, you should see that there are no mappers configured. Click on the `Configure a new mapper` button.
+
+![Keycloak create new mapper step 2](img/step_11.png)
+
+In the dialog that pops up, scroll down until you se `User Client Role` and select it.
+
+![Keycloak create new mapper step 3](img/step_12.png)
+
+In the new window that opens up:
+
+1. Set the `Name` of your mapper to `groups`
+2. Select your client in the `Client ID` drop-down
+3. Set the `Token Claim Name` to groups
+4. Make sure the other settings match the ones in the screenshot above and click on `Save`
+
+![Keycloak new mapper in list](img/step_13.png)
+
+You should now be able to see your new mapper in the list.
+
+### Creating the Client Roles
+
+Once your client and your mapper are created, it's time to create some roles.
+
+![Keycloak create client role step 1](img/step_14.png)
+
+Navigate back to your client page and select the `Roles` tab in the top menu. It should say that there are currently no roles configured for this client. Click on `Create role`
+
+![Keycloak create client role step 2](img/step_15.png)
+
+In the new window that is opened:
+
+1. Fill in your role name to `wego-admin`
+2. Click on `Save`
+
+![Keycloak create client role step 3](img/step_16.png)
+
+You should now be able to see your new role configured.
+
+### Obtaining the client secret
+
+Now that everything is configured, we need to grab the client secret from Keycloak in order to configure OIDC for Weave GitOps.
+
+![Keycloak new mapper in list](img/step_17.png)
+
+Navigate back to your client page and select the `Credentials` tab in the top menu. Copy the `Client secret` value and save it for later.
+
+### Creating a demo user
+
+Since this demo does not cover setting up the LDAP or AD integration for Keycloak, we need to create a demo user to validate our config.
+
+![Keycloak create user step 1](img/step_18.png)
+
+Navigate back to the realm homepage in your Keycloak Admin console, and:
+
+1. Select the `Users` tab in the left menu
+2. Click on the `Add user` button
+
+![Keycloak create user step 2](img/step_19.png)
+
+In the new page that opens up, fill in the details of a demo user and click on `Create`.
+
+![Keycloak create user step 3](img/step_20.png)
+
+Once the user is created, we need to set a password. To do that:
+
+1. Navigate to the `Credentials` tab in the top menu
+2. Click on the `Set password` button
+
+![Keycloak create user step 4](img/step_21.png)
+
+In the dialog that opens up, set a password for your user, confirm it, optionally mark it as not-temporary and click on `Save`.
+
+![Keycloak create user step 5](img/step_22.png)
+
+You should now see a password configured for your user.
+
+![Keycloak create user step 6](img/step_23.png)
+
+Now we need to assign the `wego-admin` role we created earlier to our user. To do that:
+
+1. Navigate to the `Role mapping` tab in the top menu
+2. Click on the `Assign role` button
+
+![Keycloak create user step 7](img/step_24.png)
+
+In the dialog that opens up:
+
+1. Select the `Filter by clients` option in the dropdown
+2. Type in your client name in the search bar
+3. Tick the checkbox next to the role
+4. Click on `Assign`
+
+![Keycloak create user step 8](img/step_25.png)
+
+The role should now appear in the `Role mapping` section and our user should be fully configured.
+
+## Configuring Weave GitOps to use our new Keycloak Client
+
+Now that our Keycloak configuration is done, it's time to link our Weave GitOps deployment to it.
+
+### Creating the `oidc-auth` secret
+
+To configure Weave GitOps for OIDC authentication via Keycloak, we need to configure the `oidc-auth` secret. We need to set:
+
+- the `issuerURL` to the URL of our keycloak instance, followed by `/realms/<realm_name>`
+- the `redirectURL` to the URL of our Weave GitOps instance, followed by `/oauth2/callback`
+- the `clientID` to the id of the client we created in the previous steps
+- the `clientSecret` to the secret we copied a few steps ago
+- the `customScopes` to `email`
+- the `claimGroups` to `groups` to work with our mapper, mapping from roles->groups
+- the `claimUsername` to `sub`
+
+<details><summary>Expand to see secret definition </summary>
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+    name: oidc-auth
+stringData:
+    issuerURL: https://auth.mydomain.com/keycloak/realms/demo
+    redirectURL: https://gitops.mydomain.com/oauth2/callback
+    clientID: weave-gitops
+    clientSecret: N8jDkMdghg38jiw52VHeTH1V7WUmM1tv
+    customScopes: email
+    claimGroups: groups
+    claimUsername: sub
+```
+
+</details>
+
+After this secret is created, you may need to delete the Weave GitOps pods in order to restart the app and load the new config.
+
+### Setting up the RBAC
+
+Once Weave GitOps is configured for OIDC, we need a way to map permissions to the groups. To do that, we need to create RBAC for our `wego-admin` group:
+
+
+<details><summary>Expand to see group role bindings</summary>
+
+```yaml
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: keycload-admin-group-read-resources
+  namespace: flux-system
+subjects:
+  - kind: Group
+    name: wego-admin
+    namespace: flux-system
+roleRef:
+  kind: Role
+  name: wego-admin-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: keycload-admin-group-read-resources-cr
+subjects:
+  - kind: Group
+    name: wego-admin
+    apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: wego-admin-cluster-role
+  apiGroup: rbac.authorization.k8s.io
+```
+
+</details>
+
+## Testing the configuration
+
+Now that everything is set up, let's test our configuration.
+
+![Test config step 1](img/step_26.png)
+
+Navigate to your Weave GitOps dashboard URL and click on the `Login With Keycloak` button. You should be redirected to a Keycloak Login page.
+
+![Test config step 2](img/step_27.png)
+
+In the page that opens up, input your demo user credentials and click on `Sign In`.
+
+![Test config step 3](img/step_28.png)
+
+You should now be redirected back to Weave GitOps and, thanks to the RBAC configuration, you should now see all of the configured applications.
