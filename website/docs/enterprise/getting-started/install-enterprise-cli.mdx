@@ -5,27 +5,29 @@ toc_max_heading_level: 4
 ---
 
 import TierLabel from "../../_components/TierLabel";
+import AlphaWarning from "../../_components/_alpha_warning.mdx";
+
 
 # Install Weave GitOps Enterprise via CLI
 
-Weave GitOps Enterprise provides a streamlined method for its installation, employing the `gitops-ee bootstrap` command. This command acts as a wizard-like interface, simplifying the installation process by guiding users through each step of the configuration. For those seeking advanced customization, the flexibility to fine-tune the Weave GitOps Enterprise Helm release directly is also available.
+<AlphaWarning/>
+
+You could install Weave GitOps Enterprise `gitops-ee bootstrap` which streamlines the installation process. It has two main modes:
+
+1. `Interactive` or Wizard mode for guiding you step-by-step through the process until Weave GitOps Enterprise is up and running. Ideal for your first installation.
+2. `Non-interactive` or automated mode where the process will be executed via configuration. Ideal for your automated workflows.
+
+For those seeking advanced customization, the flexibility to fine-tune [Weave GitOps Enterprise manual install](../install-enterprise) is also available.
 
 ## Prerequisites
 
-Before you start with the installation process, please make sure the following pre-requisites are there and available. 
+Before you start make sure the following requirements are met:
 
-* Management Cluster, a kubernetes cluster with a kubeconfig that has admin permissions to be able to create resources.
-* Git Repository to be used as the repository of the WeaveGitOps Enterprise repo. At this point, we require that you have ssh access to your git repository.
-* Flux binary to be installed locally to be used in reconciling sources, Kustomizations, HelmReleases
-* Flux installed on the Management cluster using `flux bootstrap`. 
-:::info
-Please follow flux guide here: [https://fluxcd.io/flux/installation/bootstrap/](https://fluxcd.io/flux/installation/bootstrap/)
-:::
-
-* Entitlment installed in the management cluster. 
-:::info
-To get the entitlement secret please contact *sales@weave.works*, then apply it on your management cluster with the name `weave-gitops-enterprise-credentials` under `flux-system` namespace. 
-:::
+- [ ] **Management Cluster**: a Kubernetes cluster with a Kubeconfig that has Admin permissions to be able to create resources.
+- [ ] **Git Repository with SSH access**: this is the configuration repo that WeaveGitOps will use to sync configuration manifests from.
+- [ ] **Flux CLI**: is [installed](https://fluxcd.io/flux/installation/#install-the-flux-cli) locally. It will be used for reconciling Flux resources.
+- [ ] **Flux Bootstrapped** in your Management cluster via ssh. See [Flux Bootstrap](https://fluxcd.io/flux/installation/bootstrap/generic-git-server/) for more info.
+- [ ] **Weave GitOps Enterprise Entitlements** are installed in the management cluster. Contact [Sales](../help-and-support/) for help on getting them.
 
 ## Getting Started
 
@@ -63,7 +65,7 @@ The following are the steps the wizard will take you through it.
 
 ### Verifying Entitlement
 
-Weave GitOps Enterprise Entitlement is your obtained license to use our product. The entitlement file is a kubernetes secret that contains your licence. The bootstrap CLI will check if the entitlement manifest exists on the management cluster, and it will check if it has valid content and the entitlement is not expired. 
+Weave GitOps Enterprise Entitlement is your obtained license to use our product. The entitlement file is a Kubernetes secret that contains your licence. The bootstrap CLI will check if the entitlement manifest exists on the management cluster, and it will check if it has valid content and the entitlement is not expired. 
 To get the entitlement secret please contact *sales@weave.works*, then apply it on your management cluster with the name `weave-gitops-enterprise-credentials` under `flux-system` namespace. 
 
 ### Verifying flux
@@ -114,7 +116,7 @@ Please don't forget to add a new static-client on your OIDC provider settings wi
 
 ### CLI configurations
 
-- `--kube-config`:                  allows to choose the kubeconfig for your cluster, default would be ~/.kube/config
+- `--kube-config`:                  allows to choose the Kubeconfig for your cluster, default would be ~/.kube/config
 - `-d`, `--domain externaldns`:     indicate the domain to use in case of using externaldns
 - `-t`, `--domain-type`:            dashboard domain type: could be 'localhost' or 'externaldns'
 - `-h`, `--help`:                   help for bootstrap
@@ -127,7 +129,7 @@ Please don't forget to add a new static-client on your OIDC provider settings wi
 
 #### External DNS
 
-[External DNS](https://github.com/kubernetes-sigs/external-dns) for Kubernetes is a tool that automates the management of external DNS records.
+[External DNS](https://github.com/Kubernetes-sigs/external-dns) for Kubernetes is a tool that automates the management of external DNS records.
 It allows Kubernetes services to be exposed to the internet with a DNS entry that corresponds to the service's name.
 
 There are several implementations of External DNS available with specific DNS providers (e.g., AWS Route 53, Google Cloud DNS, Azure DNS, etc.).
@@ -138,9 +140,9 @@ Some popular implementations include:
 - GCP External DNS: For Google Cloud DNS.
 - Azure External DNS: For Azure DNS.
 
-Learn how to deploy External DNS into your cluster [here](https://github.com/kubernetes-sigs/external-dns?tab=readme-ov-file#deploying-to-a-cluster)
+Learn how to deploy External DNS into your cluster [here](https://github.com/Kubernetes-sigs/external-dns?tab=readme-ov-file#deploying-to-a-cluster)
 
-[Full tutorial to use External DNS with AWS Route 53](https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.5/guide/integrations/external_dns/)
+[Full tutorial to use External DNS with AWS Route 53](https://Kubernetes-sigs.github.io/aws-load-balancer-controller/v2.5/guide/integrations/external_dns/)
 
 After configuring your provider to use ExternalDNS, The following example is a follow-up on the previous tutorial is the manifests that need to be deployed to the cluster with the following structure:
 
@@ -196,7 +198,7 @@ kind: ClusterRole
 metadata:
   name: external-dns
   labels:
-    app.kubernetes.io/name: external-dns
+    app.Kubernetes.io/name: external-dns
 rules:
   - apiGroups: [""]
     resources: ["services","endpoints","pods","nodes"]
@@ -218,7 +220,7 @@ kind: ClusterRoleBinding
 metadata:
   name: external-dns-viewer
   labels:
-    app.kubernetes.io/name: external-dns
+    app.Kubernetes.io/name: external-dns
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -242,17 +244,17 @@ metadata:
   name: external-dns
   namespace: external-dns
   labels:
-    app.kubernetes.io/name: external-dns
+    app.Kubernetes.io/name: external-dns
 spec:
   strategy:
     type: Recreate
   selector:
     matchLabels:
-      app.kubernetes.io/name: external-dns
+      app.Kubernetes.io/name: external-dns
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: external-dns
+        app.Kubernetes.io/name: external-dns
     spec:
       serviceAccountName: external-dns
       containers:
@@ -287,7 +289,7 @@ metadata:
 spec:
   interval: 1m0s
   timeout: 1m0s
-  url: "https://kubernetes.github.io/ingress-nginx"
+  url: "https://Kubernetes.github.io/ingress-nginx"
 ---
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
@@ -323,9 +325,9 @@ spec:
       ingressClass: public-nginx
       service:
         annotations:
-          service.beta.kubernetes.io/aws-load-balancer-ssl-cert: ${SSL_CERTIFICATE_ARN}
-          service.beta.kubernetes.io/aws-load-balancer-type: nlb
-          service.beta.kubernetes.io/aws-load-balancer-internal: "false"
+          service.beta.Kubernetes.io/aws-load-balancer-ssl-cert: ${SSL_CERTIFICATE_ARN}
+          service.beta.Kubernetes.io/aws-load-balancer-type: nlb
+          service.beta.Kubernetes.io/aws-load-balancer-internal: "false"
         targetPorts:
           http: http
           https: http
@@ -340,7 +342,7 @@ The corresponding Ingress configurations in WGE helmrelease that will be generat
 ```yaml
 ingress:
     annotations:
-    external-dns.alpha.kubernetes.io/hostname: mydomain.com
+    external-dns.alpha.Kubernetes.io/hostname: mydomain.com
     className: public-nginx
     enabled: true
     hosts:
