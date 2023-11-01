@@ -42,6 +42,7 @@ import images from "../lib/images";
 import { colors, fontSizes, spacing } from "../typedefs/styled";
 import Flex from "./Flex";
 import ApplicationsIcon from "./NavIcons/ApplicationsIcon";
+import ClusterDiscoveryIcon from "./NavIcons/ClusterDiscoveryIcon";
 import ClustersIcon from "./NavIcons/ClustersIcon";
 import DeliveryIcon from "./NavIcons/DeliveryIcon";
 import DocsIcon from "./NavIcons/DocsIcon";
@@ -59,7 +60,7 @@ import SourcesIcon from "./NavIcons/SourcesIcon";
 import TemplatesIcon from "./NavIcons/TemplatesIcon";
 import TerraformIcon from "./NavIcons/TerraformIcon";
 import WorkspacesIcon from "./NavIcons/WorkspacesIcon";
-import ClusterDiscoveryIcon from "./NavIcons/ClusterDiscoveryIcon";
+
 import ResumeIcon from "./Sync/ResumeIcon";
 import Text from "./Text";
 
@@ -76,6 +77,7 @@ export enum IconType {
   CheckCircleIcon,
   CheckMark,
   ClearIcon,
+  ClusterDiscoveryIcon,
   ClustersIcon,
   DeleteIcon,
   DeliveryIcon,
@@ -127,7 +129,6 @@ export enum IconType {
   VerifiedUser,
   WarningIcon,
   WorkspacesIcon,
-  ClusterDiscoveryIcon,
 }
 
 type Props = {
@@ -176,6 +177,9 @@ function getIcon(i: IconType) {
 
     case IconType.ClearIcon:
       return ClearIcon;
+
+    case IconType.ClusterDiscoveryIcon:
+      return ClusterDiscoveryIcon;
 
     case IconType.ClustersIcon:
       return ClustersIcon;
@@ -326,9 +330,6 @@ function getIcon(i: IconType) {
 
     case IconType.WorkspacesIcon:
       return WorkspacesIcon;
-
-    case IconType.ClusterDiscoveryIcon:
-      return ClusterDiscoveryIcon;
 
     default:
       break;
