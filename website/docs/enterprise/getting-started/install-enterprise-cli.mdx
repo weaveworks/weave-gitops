@@ -104,7 +104,7 @@ Please use the following command to start the installation wizard of Weave GitOp
 3. [Configure Git Access](#configure-git-access): configure the access to your configuration repo.
 4. [Select WGE version](#selecting-wge-version): from the latest 3 available releases.
 5. [Create Cluster User](#create-cluster-user): create a Secret with the username and password for the emergency cluster user.
-6. [Select the domain](#select-the-domain): choose between 2 methods to access the dashboard either local or external.
+6. [Configure Dashboard Access](#select-the-domain): choose between 2 methods to access the dashboard either local or external.
 7. [Access the dashboard](#access-the-dashboard): via the link from the installation success message.
 8. (Optional) [Configure OIDC](#configure-oidc): to enable login to dashboard via OIDC providers.
 
@@ -132,11 +132,14 @@ The bootstrap CLI will prompt you to choose from the latest 3 versions of Weave 
 ### Create Cluster User
 You will be prompt to provide admin username and password, which will be used to access the dashboard. This will create admin secret with the credentials. If you already have previous admin credentials on your cluster, the installation will prompt you if you want to continue with the old credentials or exit and revoke them and re-run the installation.
 
-### Select the domain
-To access Weave GitOps Enterprise dashboard, you have one of 2 options:
+### Configure Dashboard Access
+To access Weave GitOps Enterprise dashboard, you have the two following options available:
 
-1. **Localhost**: requires no pre-requisites and more suitable for testing on your local or development environment, or air-gapped environments.
-2. **External Domain**: suitable for production environments where multiple users are going to access the dashboard. However, this will require extrnal dns to be set up and configured for the domain to be accessible.
+1. **Service**: this option is called `localhost` in the cli and the dashboard will be available through [ClusterIP Kubernetes Service](https://kubernetes.io/docs/concepts/services-networking/service/#type-clusterip).
+2. **Ingress**: this option is called `externaldns` the dashboard will be available through [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/) with the following considerations:
+    - An Ingress controller needs to exist.
+    - A host-based ingress will be created of the ingress class `public-nginx`.
+    - An externaldns annotation will be added with the value of the provided domain.
 
 ### Access the dashboard
 After installation is successful. The CLI will print out the URL where you can access the dashboard.
