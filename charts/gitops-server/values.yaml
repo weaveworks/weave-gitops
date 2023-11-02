@@ -35,6 +35,12 @@ oidcSecret:
   # clientSecret:
   # issuerURL:
   # redirectURL:
+  # -- If non empty, additional keys can be added to the OIDC secret
+  additionalKeys: {}
+  # additionalKeys:
+  #   claimUsername: "email"
+  #   claimGroups: "groups"
+  #   customScopes: "openid,offline_access,email,groups"
 serviceAccount:
   # -- Specifies whether a service account should be created
   create: true
