@@ -130,7 +130,7 @@ To access Weave GitOps Enterprise dashboard, you have the two following options 
 2. **Ingress**: this option is called `externaldns` the dashboard will be available through an [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/) with the following considerations:
     - An Ingress controller needs to exist.
     - A host-based ingress will be created of the ingress class `public-nginx`.
-    - An externaldns annotation will be added with the value of the provided domain.
+    - An [ExternalDNS](https://github.com/kubernetes-sigs/external-dns) annotation will be added with the value of the provided domain.
 
 #### Access the dashboard
 
