@@ -12,7 +12,6 @@ import (
 	"github.com/fluxcd/pkg/runtime/transform"
 	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 	coretypes "github.com/weaveworks/weave-gitops/core/server/types"
-	"github.com/weaveworks/weave-gitops/pkg/config"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"github.com/weaveworks/weave-gitops/pkg/run"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
@@ -447,13 +446,8 @@ func makeValues(username, passwordHash, dashboardImage string, valuesFromFiles m
 			}
 	}
 
-	gitopsConfig, err := config.GetConfig(false)
-	if err == nil && gitopsConfig.Analytics {
-		valuesMap["WEAVE_GITOPS_FEATURE_TELEMETRY"] = "true"
-	}
-
 	if dashboardImage != "" {
-		// check : and spit on it
+		// check : and split on it
 		// detect the right most colon
 
 		repository, image, tag, err := parseImageRepository(dashboardImage)

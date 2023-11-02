@@ -231,7 +231,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to create cluster client; %w", err)
 	}
 
-	if featureflags.Get("WEAVE_GITOPS_FEATURE_TELEMETRY") == "true" {
+	if featureflags.Get("WEAVE_GITOPS_FEATURE_TELEMETRY") == "force" {
 		err := telemetry.InitTelemetry(ctx, cl)
 		if err != nil {
 			// If there's an error turning on telemetry, that's not a

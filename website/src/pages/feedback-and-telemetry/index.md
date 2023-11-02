@@ -15,6 +15,9 @@ We ❤️ your comments and suggestions as we look to make successfully adopting
 
 ## Anonymous Aggregate User Behavior Analytics
 
+**We are no longer collecting metrics from Weave Gitops - this page will be removed in the future when the last of the code for this is removed.**
+
+
 Weaveworks is utilizing [Pendo](https://www.pendo.io/), a product-analytics app,  to gather anonymous user behavior analytics for both Weave GitOps and Weave GitOps Enterprise. We use this data so we can understand what you love about Weave GitOps, and areas we can improve.
 
 Weave GitOps OSS users will be notified when you create the dashboard for the first time via **gitops create dashboard** or when you use **gitops run** for the first time and decide to install the dashboard via that functionality. Analytics will not be enabled until <u>after</u> this notification so that you can opt out before sending analytics data.
