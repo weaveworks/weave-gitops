@@ -9,7 +9,6 @@ GIT_COMMIT?=$(shell which git > /dev/null && git log -n1 --pretty='%h')
 VERSION?=$(shell which git > /dev/null && git describe --always --match "v*")
 FLUX_VERSION=2.0.1
 CHART_VERSION=$(shell which yq > /dev/null && yq e '.version' charts/gitops-server/Chart.yaml)
-DEV_BUCKET_CONTAINER_IMAGE?=ghcr.io/weaveworks/gitops-bucket-server@sha256:9fa2a68032b9d67197a3d41a46b5029ffdf9a7bc415e4e7e9794faec8bc3b8e4
 TIER=oss
 
 # Go build args
@@ -20,7 +19,6 @@ LDFLAGS?=-X github.com/weaveworks/weave-gitops/cmd/gitops/version.Branch=$(BRANC
 				 -X github.com/weaveworks/weave-gitops/cmd/gitops/version.GitCommit=$(GIT_COMMIT) \
 				 -X github.com/weaveworks/weave-gitops/cmd/gitops/version.Version=$(VERSION) \
 				 -X github.com/weaveworks/weave-gitops/pkg/version.FluxVersion=$(FLUX_VERSION) \
-				 -X github.com/weaveworks/weave-gitops/pkg/run/watch.DevBucketContainerImage=$(DEV_BUCKET_CONTAINER_IMAGE) \
 				 -X github.com/weaveworks/weave-gitops/pkg/analytics.Tier=$(TIER) \
 				 -X github.com/weaveworks/weave-gitops/core/server.Branch=$(BRANCH) \
 				 -X github.com/weaveworks/weave-gitops/core/server.Buildtime=$(BUILD_TIME) \
@@ -224,9 +222,6 @@ echo-ldflags:
 
 echo-flux-version:
 	@echo $(FLUX_VERSION)
-
-echo-dev-bucket-container:
-	@echo $(DEV_BUCKET_CONTAINER_IMAGE)
 
 download-test-crds:
 	group_resources="source/helmrepositories source/buckets source/gitrepositories source/helmcharts source/ocirepositories"; \
