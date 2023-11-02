@@ -46,7 +46,7 @@ export default function Pendo({
 
     const shouldInitPendo =
       !!flags &&
-      telemetryFlag === "true" &&
+      telemetryFlag === "force" &&
       (!shouldWaitForVersion || !!version);
 
     if (!shouldInitPendo) {
