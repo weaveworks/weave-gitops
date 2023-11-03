@@ -24,7 +24,7 @@ Each scenario is supported by an operation modes:
 1. **Interactive:** guides you step-by-step through the process until Weave GitOps Enterprise is up and running.
 2. **Non-interactive:** for your automated workflows where you are already familiar with install process and have the configuration.
 
-For those seeking other scenarios or fine-grain customisation [Weave GitOps Enterprise manual install](../install-enterprise) would be the recommended .
+For those seeking other scenarios or fine-grain customisation [Weave GitOps Enterprise manual install](../install-enterprise) would be the recommended.
 
 ## Getting Started
 
@@ -51,21 +51,15 @@ brew install weaveworks/tap/gitops-ee
 Please use the following command to start the installation wizard of Weave GitOps Enterprise.
 
 <Tabs groupId="getStarted" default>
-
    <TabItem value="interactive" label="Interactive">
 
-
    ```bash
-
    gitops bootstrap
-
    ```
-
 
    The bootstrap wizard will take you step-by-step into configuring Weave GitOps Enterprise. To understand more about the CLI configurations experience, check the below sections [here](#cli-configurations).
 
    </TabItem>
-
    <TabItem value="nonInteractive" label="Non-Interactive">
 
    You could run the bootstrap command in non-interactive mode by providing the required configurations as flags. The following gives you an example to get started that you could adapt to your own context
@@ -82,12 +76,11 @@ Please use the following command to start the installation wizard of Weave GitOp
 
 
    </TabItem>
-
 </Tabs>
 
 ## Appendix
 
-### Appendix I: Understanding `gitops-ee bootstrap`
+### Understanding `gitops-ee bootstrap`
 
 `gitops-ee bootstrap` is a workflow that will take you through the following stages:
 
@@ -152,7 +145,7 @@ To configure OIDC access, you will be asked to provide the following values:
 Please don't forget to add a new static-client on your OIDC provider settings with the redirectURI `your-domain/oauth2/callback` for example `http://localhost:3000/oauth2/callback`
 :::
 
-### Appendix II: CLI configurations
+### CLI configurations
 
 - `--kube-config`:                  allows to choose the Kubeconfig for your cluster, default would be ~/.kube/config
 - `-d`, `--domain externaldns`:     indicate the domain to use in case of using externaldns
