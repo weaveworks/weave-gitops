@@ -14,14 +14,21 @@ import TabItem from "@theme/TabItem";
 
 <AlphaWarning/>
 
-You could install Weave GitOps Enterprise `gitops-ee bootstrap` which streamlines the installation process. It has two main modes:
+You could install Weave GitOps Enterprise via `gitops-ee bootstrap` CLI command which is suitable for two main scenarios:
 
-1. `Interactive` or Wizard mode for guiding you step-by-step through the process until Weave GitOps Enterprise is up and running. Ideal for your first installation.
-2. `Non-interactive` or automated mode where the process will be executed via configuration. Ideal for your automated workflows.
+1. **Day 0**: you want to get started quickly for discovery with the less knowledge possible.
+2. **Day 1**: you have done discovery and want to set it up in your organisation.
 
-For those seeking advanced customization, the flexibility to fine-tune [Weave GitOps Enterprise manual install](../install-enterprise) is also available.
+Each scenario is supported by an operation modes:
 
-## Prerequisites
+1. **Interactive:** guides you step-by-step through the process until Weave GitOps Enterprise is up and running. Ideal for Day 0 scenarios.
+2. **Non-interactive:** for your automated workflows where you are already familiar with install process and have the configuration. Ideal for Day 1 scenarios.
+
+For those seeking other scenarios or fine-grain customisation [Weave GitOps Enterprise manual install](../install-enterprise) would be the recommended .
+
+## Getting Started
+
+### Prerequisites
 
 Before you start make sure the following requirements are met:
 
@@ -30,8 +37,6 @@ Before you start make sure the following requirements are met:
 - [ ] **Flux CLI**: is [installed](https://fluxcd.io/flux/installation/#install-the-flux-cli) locally. It will be used for reconciling Flux resources.
 - [ ] **Flux Bootstrapped** in your Management cluster via ssh. See [Flux Bootstrap](https://fluxcd.io/flux/installation/bootstrap/generic-git-server/) for more info.
 - [ ] **Weave GitOps Enterprise Entitlements** are installed in the management cluster. Contact [Sales](../help-and-support/) for help on getting them.
-
-## Getting Started
 
 #### Install `gitops-ee` CLI (> v0.35)
 
