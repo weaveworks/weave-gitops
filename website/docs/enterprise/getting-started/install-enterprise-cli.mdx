@@ -57,7 +57,7 @@ Please use the following command to start the installation wizard of Weave GitOp
 
    ```bash
 
-   gitops-ee bootstrap
+   gitops bootstrap
 
    ```
 
@@ -71,13 +71,12 @@ Please use the following command to start the installation wizard of Weave GitOp
    You could run the bootstrap command in non-interactive mode by providing the required configurations as flags. The following gives you an example to get started that you could adapt to your own context
 
    ```bash
-    gitops-ee bootstrap \
-       --kubeconfig="~/.kube/config" \ # (optional) Management cluster configuration. If not set default kubeconfig resolution is used.
-       --private-key="~/.ssh/id_rsa" --private-key-password="" \ # Git repository SSH configuration
-       --version="0.33.0" \ # version to install
-       --domain-type="localhost" \ # how to expose the dashboard
-       --username=wego-admin --password=admin123 \ # emergency user configuration
-       --discovery-url="<oidc discovery url>" --client-id="weave-gitops-enterprise" --client-secret="changeme" \ # (optional) OIDC configuration
+    gitops bootstrap \
+       --kubeconfig=$HOME/.kube/config \
+       --private-key=$HOME/.ssh/id_rsa --private-key-password="" \
+       --version="0.35.0" \
+       --domain-type="localhost" \
+       --password="admin123"
    ```
    For more information about the CLI configurations, check the below sections [here](#cli-configurations)
 
