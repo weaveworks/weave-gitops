@@ -764,6 +764,7 @@
                 "values": {
                   "type": "array",
                   "items": {
+                    "type": "object",
                     "$ref": "#/definitions/v1ProfileValues"
                   },
                   "description": "The values for each profile that will be installed."
@@ -778,6 +779,7 @@
                 "kustomizations": {
                   "type": "array",
                   "items": {
+                    "type": "object",
                     "$ref": "#/definitions/v1Kustomization"
                   }
                 },
@@ -790,18 +792,21 @@
                 "externalSecrets": {
                   "type": "array",
                   "items": {
+                    "type": "object",
                     "$ref": "#/definitions/v1ExternalSecret"
                   }
                 },
                 "policyConfigs": {
                   "type": "array",
                   "items": {
+                    "type": "object",
                     "$ref": "#/definitions/v1PolicyConfigObject"
                   }
                 },
                 "sopsSecrets": {
                   "type": "array",
                   "items": {
+                    "type": "object",
                     "$ref": "#/definitions/v1SopsSecret"
                   }
                 }
@@ -870,18 +875,21 @@
                 "profiles": {
                   "type": "array",
                   "items": {
+                    "type": "object",
                     "$ref": "#/definitions/v1ProfileValues"
                   }
                 },
                 "kustomizations": {
                   "type": "array",
                   "items": {
+                    "type": "object",
                     "$ref": "#/definitions/v1Kustomization"
                   }
                 },
                 "externalSecrets": {
                   "type": "array",
                   "items": {
+                    "type": "object",
                     "$ref": "#/definitions/v1ExternalSecret"
                   }
                 }
@@ -1368,12 +1376,13 @@
         "extensions": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/protobufAny"
           },
           "description": "Application specific response metadata. Must be set in the first response\nfor streaming APIs."
         }
       },
-      "description": "Message that represents an arbitrary HTTP body. It should only be used for\npayload formats that can't be represented as JSON, such as raw binary or\nan HTML page.\n\n\nThis message can be used both in streaming and non-streaming API methods in\nthe request as well as the response.\n\nIt can be used as a top-level request field, which is convenient if one\nwants to extract parameters from either the URL or HTTP template into the\nrequest fields and also want access to the raw HTTP body.\n\nExample:\n\n    message GetResourceRequest {\n      // A unique request id.\n      string request_id = 1;\n\n      // The raw HTTP body is bound to this field.\n      google.api.HttpBody http_body = 2;\n    }\n\n    service ResourceService {\n      rpc GetResource(GetResourceRequest) returns (google.api.HttpBody);\n      rpc UpdateResource(google.api.HttpBody) returns\n      (google.protobuf.Empty);\n    }\n\nExample with streaming methods:\n\n    service CaldavService {\n      rpc GetCalendar(stream google.api.HttpBody)\n        returns (stream google.api.HttpBody);\n      rpc UpdateCalendar(stream google.api.HttpBody)\n        returns (stream google.api.HttpBody);\n    }\n\nUse of this type only changes how the request and response bodies are\nhandled, all other features will continue to work unchanged."
+      "description": "Message that represents an arbitrary HTTP body. It should only be used for\npayload formats that can't be represented as JSON, such as raw binary or\nan HTML page.\n\n\nThis message can be used both in streaming and non-streaming API methods in\nthe request as well as the response.\n\nIt can be used as a top-level request field, which is convenient if one\nwants to extract parameters from either the URL or HTTP template into the\nrequest fields and also want access to the raw HTTP body.\n\nExample:\n\n    message GetResourceRequest {\n      // A unique request id.\n      string request_id = 1;\n\n      // The raw HTTP body is bound to this field.\n      google.api.HttpBody http_body = 2;\n\n    }\n\n    service ResourceService {\n      rpc GetResource(GetResourceRequest)\n        returns (google.api.HttpBody);\n      rpc UpdateResource(google.api.HttpBody)\n        returns (google.protobuf.Empty);\n\n    }\n\nExample with streaming methods:\n\n    service CaldavService {\n      rpc GetCalendar(stream google.api.HttpBody)\n        returns (stream google.api.HttpBody);\n      rpc UpdateCalendar(stream google.api.HttpBody)\n        returns (stream google.api.HttpBody);\n\n    }\n\nUse of this type only changes how the request and response bodies are\nhandled, all other features will continue to work unchanged."
     },
     "protobufAny": {
       "type": "object",
@@ -1384,7 +1393,7 @@
         }
       },
       "additionalProperties": {},
-      "description": "`Any` contains an arbitrary serialized protocol buffer message along with a\nURL that describes the type of the serialized message.\n\nProtobuf library provides support to pack/unpack Any values in the form\nof utility functions or additional generated methods of the Any type.\n\nExample 1: Pack and unpack a message in C++.\n\n    Foo foo = ...;\n    Any any;\n    any.PackFrom(foo);\n    ...\n    if (any.UnpackTo(\u0026foo)) {\n      ...\n    }\n\nExample 2: Pack and unpack a message in Java.\n\n    Foo foo = ...;\n    Any any = Any.pack(foo);\n    ...\n    if (any.is(Foo.class)) {\n      foo = any.unpack(Foo.class);\n    }\n\n Example 3: Pack and unpack a message in Python.\n\n    foo = Foo(...)\n    any = Any()\n    any.Pack(foo)\n    ...\n    if any.Is(Foo.DESCRIPTOR):\n      any.Unpack(foo)\n      ...\n\n Example 4: Pack and unpack a message in Go\n\n     foo := \u0026pb.Foo{...}\n     any, err := anypb.New(foo)\n     if err != nil {\n       ...\n     }\n     ...\n     foo := \u0026pb.Foo{}\n     if err := any.UnmarshalTo(foo); err != nil {\n       ...\n     }\n\nThe pack methods provided by protobuf library will by default use\n'type.googleapis.com/full.type.name' as the type URL and the unpack\nmethods only use the fully qualified type name after the last '/'\nin the type URL, for example \"foo.bar.com/x/y.z\" will yield type\nname \"y.z\".\n\n\nJSON\n====\nThe JSON representation of an `Any` value uses the regular\nrepresentation of the deserialized, embedded message, with an\nadditional field `@type` which contains the type URL. Example:\n\n    package google.profile;\n    message Person {\n      string first_name = 1;\n      string last_name = 2;\n    }\n\n    {\n      \"@type\": \"type.googleapis.com/google.profile.Person\",\n      \"firstName\": \u003cstring\u003e,\n      \"lastName\": \u003cstring\u003e\n    }\n\nIf the embedded message type is well-known and has a custom JSON\nrepresentation, that representation will be embedded adding a field\n`value` which holds the custom JSON in addition to the `@type`\nfield. Example (for message [google.protobuf.Duration][]):\n\n    {\n      \"@type\": \"type.googleapis.com/google.protobuf.Duration\",\n      \"value\": \"1.212s\"\n    }"
+      "description": "`Any` contains an arbitrary serialized protocol buffer message along with a\nURL that describes the type of the serialized message.\n\nProtobuf library provides support to pack/unpack Any values in the form\nof utility functions or additional generated methods of the Any type.\n\nExample 1: Pack and unpack a message in C++.\n\n    Foo foo = ...;\n    Any any;\n    any.PackFrom(foo);\n    ...\n    if (any.UnpackTo(\u0026foo)) {\n      ...\n    }\n\nExample 2: Pack and unpack a message in Java.\n\n    Foo foo = ...;\n    Any any = Any.pack(foo);\n    ...\n    if (any.is(Foo.class)) {\n      foo = any.unpack(Foo.class);\n    }\n    // or ...\n    if (any.isSameTypeAs(Foo.getDefaultInstance())) {\n      foo = any.unpack(Foo.getDefaultInstance());\n    }\n\nExample 3: Pack and unpack a message in Python.\n\n    foo = Foo(...)\n    any = Any()\n    any.Pack(foo)\n    ...\n    if any.Is(Foo.DESCRIPTOR):\n      any.Unpack(foo)\n      ...\n\nExample 4: Pack and unpack a message in Go\n\n     foo := \u0026pb.Foo{...}\n     any, err := anypb.New(foo)\n     if err != nil {\n       ...\n     }\n     ...\n     foo := \u0026pb.Foo{}\n     if err := any.UnmarshalTo(foo); err != nil {\n       ...\n     }\n\nThe pack methods provided by protobuf library will by default use\n'type.googleapis.com/full.type.name' as the type URL and the unpack\nmethods only use the fully qualified type name after the last '/'\nin the type URL, for example \"foo.bar.com/x/y.z\" will yield type\nname \"y.z\".\n\nJSON\n\nThe JSON representation of an `Any` value uses the regular\nrepresentation of the deserialized, embedded message, with an\nadditional field `@type` which contains the type URL. Example:\n\n    package google.profile;\n    message Person {\n      string first_name = 1;\n      string last_name = 2;\n    }\n\n    {\n      \"@type\": \"type.googleapis.com/google.profile.Person\",\n      \"firstName\": \u003cstring\u003e,\n      \"lastName\": \u003cstring\u003e\n    }\n\nIf the embedded message type is well-known and has a custom JSON\nrepresentation, that representation will be embedded adding a field\n`value` which holds the custom JSON in addition to the `@type`\nfield. Example (for message [google.protobuf.Duration][]):\n\n    {\n      \"@type\": \"type.googleapis.com/google.protobuf.Duration\",\n      \"value\": \"1.212s\"\n    }"
     },
     "protobufNullValue": {
       "type": "string",
@@ -1407,6 +1416,7 @@
         "details": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/protobufAny"
           }
         }
@@ -1473,6 +1483,7 @@
         "conditions": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1Condition"
           }
         },
@@ -1625,6 +1636,7 @@
         "clusterAutomations": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1ClusterAutomation"
           },
           "title": "A list of cluster and kustomization"
@@ -1685,6 +1697,7 @@
         "clusterNamespacedNames": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1ClusterNamespacedName"
           }
         }
@@ -1842,9 +1855,7 @@
     "v1EncryptSopsSecretResponse": {
       "type": "object",
       "properties": {
-        "encryptedSecret": {
-          "type": "object"
-        },
+        "encryptedSecret": {},
         "path": {
           "type": "string"
         }
@@ -1967,6 +1978,7 @@
         "data": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1ExternalSecretData"
           }
         },
@@ -2120,6 +2132,7 @@
         "policies": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1PolicyConfigPolicy"
           }
         },
@@ -2171,6 +2184,7 @@
         "objects": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1WorkspacePolicy"
           }
         }
@@ -2205,6 +2219,7 @@
         "objects": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1WorkspaceRoleBinding"
           }
         }
@@ -2222,6 +2237,7 @@
         "objects": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1WorkspaceRole"
           }
         }
@@ -2239,6 +2255,7 @@
         "objects": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1WorkspaceServiceAccount"
           }
         }
@@ -2268,6 +2285,7 @@
         "conditions": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1Condition"
           }
         },
@@ -2355,6 +2373,7 @@
         "charts": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1RepositoryChart"
           }
         }
@@ -2366,6 +2385,7 @@
         "credentials": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1Credential"
           }
         },
@@ -2395,6 +2415,7 @@
         "events": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1Event"
           }
         }
@@ -2406,6 +2427,7 @@
         "stores": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1ExternalSecretStore"
           }
         },
@@ -2421,6 +2443,7 @@
         "secrets": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1ExternalSecretItem"
           }
         },
@@ -2431,6 +2454,7 @@
         "errors": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1ListError"
           }
         }
@@ -2442,6 +2466,7 @@
         "gitopsClusters": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1GitopsCluster"
           }
         },
@@ -2455,6 +2480,7 @@
         "errors": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1ListError"
           }
         }
@@ -2466,12 +2492,14 @@
         "policyConfigs": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1PolicyConfigListItem"
           }
         },
         "errors": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1ListError"
           }
         },
@@ -2487,6 +2515,7 @@
         "kustomizations": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1SopsKustomizations"
           }
         },
@@ -2502,12 +2531,14 @@
         "parameters": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1Parameter"
           }
         },
         "objects": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1TemplateObject"
           }
         }
@@ -2519,12 +2550,14 @@
         "profiles": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1TemplateProfile"
           }
         },
         "objects": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1TemplateObject"
           }
         }
@@ -2536,6 +2569,7 @@
         "templates": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1Template"
           }
         },
@@ -2546,6 +2580,7 @@
         "errors": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1ListError"
           }
         }
@@ -2557,6 +2592,7 @@
         "workspaces": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1Workspace"
           }
         },
@@ -2570,6 +2606,7 @@
         "errors": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1ListError"
           }
         }
@@ -2663,9 +2700,7 @@
       "properties": {
         "parameters": {
           "type": "object",
-          "additionalProperties": {
-            "type": "object"
-          }
+          "additionalProperties": {}
         }
       }
     },
@@ -2711,12 +2746,14 @@
         "apps": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1PolicyConfigApplicationMatch"
           }
         },
         "resources": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1PolicyConfigResourceMatch"
           }
         }
@@ -2761,9 +2798,7 @@
         },
         "parameters": {
           "type": "object",
-          "additionalProperties": {
-            "type": "object"
-          }
+          "additionalProperties": {}
         },
         "status": {
           "type": "string"
@@ -2799,30 +2834,35 @@
         "values": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1ProfileValues"
           }
         },
         "kustomizations": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1Kustomization"
           }
         },
         "externalSecrets": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1ExternalSecret"
           }
         },
         "policyConfigs": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1PolicyConfigObject"
           }
         },
         "sopsSecrets": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1SopsSecret"
           }
         }
@@ -2855,6 +2895,7 @@
         "clusterAutomations": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1ClusterAutomation"
           }
         }
@@ -2866,30 +2907,35 @@
         "kustomizationFiles": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1CommitFile"
           }
         },
         "helmReleaseFiles": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1CommitFile"
           }
         },
         "externalSecretsFiles": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1CommitFile"
           }
         },
         "policyConfigFiles": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1CommitFile"
           }
         },
         "sopsSecertFiles": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1CommitFile"
           }
         }
@@ -2901,18 +2947,21 @@
         "renderedTemplates": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1CommitFile"
           }
         },
         "profileFiles": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1CommitFile"
           }
         },
         "kustomizationFiles": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1CommitFile"
           }
         },
@@ -2922,18 +2971,21 @@
         "externalSecretsFiles": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1CommitFile"
           }
         },
         "policyConfigFiles": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1CommitFile"
           }
         },
         "sopsSecretFiles": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1CommitFile"
           }
         }
@@ -2997,7 +3049,8 @@
       "type": "object",
       "properties": {
         "apiVersion": {
-          "type": "string"
+          "type": "string",
+          "title": "protolint:disable:next FIELD_NAMES_LOWER_SNAKE_CASE"
         },
         "kind": {
           "type": "string"
@@ -3015,7 +3068,8 @@
           "type": "object",
           "additionalProperties": {
             "type": "string"
-          }
+          },
+          "title": "protolint:disable:next FIELD_NAMES_LOWER_SNAKE_CASE"
         },
         "type": {
           "type": "string"
@@ -3023,9 +3077,7 @@
         "immutable": {
           "type": "boolean"
         },
-        "sops": {
-          "type": "object"
-        }
+        "sops": {}
       }
     },
     "v1SopsSecretMetadata": {
@@ -3088,12 +3140,14 @@
         "parameters": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1Parameter"
           }
         },
         "objects": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1TemplateObject"
           }
         },
@@ -3124,6 +3178,7 @@
         "profiles": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1TemplateProfile"
           }
         }
@@ -3230,6 +3285,7 @@
         "rules": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1WorkspaceRoleRule"
           }
         },
@@ -3265,6 +3321,7 @@
         "subjects": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1WorkspaceRoleBindingSubject"
           }
         },

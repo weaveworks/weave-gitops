@@ -549,7 +549,7 @@
           "type": "string",
           "title": "A code that uniquely identifies a device"
         },
-        "validationURI": {
+        "validationUri": {
           "type": "string",
           "title": "The URI that the user will visit to complete the flow"
         },

@@ -42,6 +42,7 @@
     },
     "/v1/enabled-components": {
       "get": {
+        "summary": "FIXME",
         "operationId": "Query_ListEnabledComponents",
         "responses": {
           "200": {
@@ -93,7 +94,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1QueryResponse"
+              "$ref": "#/definitions/v1DoQueryResponse"
             }
           },
           "default": {
@@ -109,7 +110,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v1QueryRequest"
+              "$ref": "#/definitions/v1DoQueryRequest"
             }
           }
         ],
@@ -189,6 +190,46 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/v1AccessRule"
+          }
+        }
+      }
+    },
+    "v1DoQueryRequest": {
+      "type": "object",
+      "properties": {
+        "terms": {
+          "type": "string"
+        },
+        "filters": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "offset": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "limit": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "orderBy": {
+          "type": "string"
+        },
+        "ascending": {
+          "type": "boolean"
+        }
+      }
+    },
+    "v1DoQueryResponse": {
+      "type": "object",
+      "properties": {
+        "objects": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1Object"
           }
         }
       }
@@ -280,45 +321,11 @@
         },
         "tenant": {
           "type": "string"
-        }
-      }
-    },
-    "v1QueryRequest": {
-      "type": "object",
-      "properties": {
-        "terms": {
-          "type": "string"
         },
-        "filters": {
-          "type": "array",
-          "items": {
+        "labels": {
+          "type": "object",
+          "additionalProperties": {
             "type": "string"
-          }
-        },
-        "offset": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "limit": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "orderBy": {
-          "type": "string"
-        },
-        "ascending": {
-          "type": "boolean"
-        }
-      }
-    },
-    "v1QueryResponse": {
-      "type": "object",
-      "properties": {
-        "objects": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v1Object"
           }
         }
       }

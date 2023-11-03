@@ -19,6 +19,7 @@
   "paths": {
     "/v1/pipelines": {
       "get": {
+        "summary": "FIXME",
         "operationId": "Pipelines_ListPipelines",
         "responses": {
           "200": {
@@ -49,6 +50,7 @@
     },
     "/v1/pipelines/approve/{name}": {
       "post": {
+        "summary": "FIXME",
         "operationId": "Pipelines_ApprovePromotion",
         "responses": {
           "200": {
@@ -98,6 +100,7 @@
     },
     "/v1/pipelines/list_prs/{pipelineName}": {
       "post": {
+        "summary": "FIXME",
         "operationId": "Pipelines_ListPullRequests",
         "responses": {
           "200": {
@@ -141,6 +144,7 @@
     },
     "/v1/pipelines/{name}": {
       "get": {
+        "summary": "FIXME",
         "operationId": "Pipelines_GetPipeline",
         "responses": {
           "200": {
@@ -237,7 +241,7 @@
     "v1ApprovePromotionResponse": {
       "type": "object",
       "properties": {
-        "pullRequestURL": {
+        "pullRequestUrl": {
           "type": "string"
         }
       }

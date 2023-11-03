@@ -129,9 +129,6 @@
             "schema": {
               "type": "object",
               "properties": {
-                "automationKind": {
-                  "type": "string"
-                },
                 "kinds": {
                   "type": "array",
                   "items": {
