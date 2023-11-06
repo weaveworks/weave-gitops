@@ -215,7 +215,7 @@ func unstructuredToInventoryEntry(clusterName string, objWithChildren ObjectWith
 	unstructuredObj := *objWithChildren.Object
 	if unstructuredObj.GetKind() == "Secret" {
 		var err error
-		unstructuredObj, err = SanitizeUnstructuredSecret(unstructuredObj)
+		unstructuredObj, err = sanitizeUnstructuredSecret(unstructuredObj)
 		if err != nil {
 			return nil, fmt.Errorf("error sanitizing secrets: %w", err)
 		}
@@ -380,8 +380,8 @@ func ResourceRefToUnstructured(id, version string) (unstructured.Unstructured, e
 	return u, nil
 }
 
-// SanitizeUnstructuredSecret redacts the data field of a Secret object
-func SanitizeUnstructuredSecret(obj unstructured.Unstructured) (unstructured.Unstructured, error) {
+// sanitizeUnstructuredSecret redacts the data field of a Secret object
+func sanitizeUnstructuredSecret(obj unstructured.Unstructured) (unstructured.Unstructured, error) {
 	redactedUnstructured := unstructured.Unstructured{}
 	s := &v1.Secret{}
 
