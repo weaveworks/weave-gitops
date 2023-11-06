@@ -139,13 +139,6 @@ func (cs *coreServer) getHelmReleaseInventory(ctx context.Context, k8sClient cli
 		return nil, fmt.Errorf("failed to get helm release objects: %w", err)
 	}
 
-	// FIXME: do we need this?
-	for _, obj := range objects {
-		if obj.GetNamespace() == "" {
-			obj.SetNamespace(namespace)
-		}
-	}
-
 	return objects, nil
 }
 
