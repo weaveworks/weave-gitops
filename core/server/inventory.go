@@ -28,7 +28,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-// an object that can store unstructued and its children
+// ObjectWithChildren is a recursive data structure containing a tree of Unstructured
+// values.
 type ObjectWithChildren struct {
 	Object   *unstructured.Unstructured
 	Children []*ObjectWithChildren
