@@ -5,19 +5,14 @@ import { useLinkResolver } from "../contexts/LinkResolverContext";
 import { Kind } from "../lib/api/core/types.pb";
 import { formatURL, objectTypeToRoute } from "../lib/nav";
 import { FluxObject } from "../lib/objects";
-import { makeImageString, statusSortHelper } from "../lib/utils";
+import { makeImageString } from "../lib/utils";
 import DataTable from "./DataTable";
 import { DetailViewProps } from "./DetailModal";
 import HealthCheckStatusIndicator, {
   HealthStatusType,
 } from "./HealthCheckStatusIndicator";
 import ImageLink from "./ImageLink";
-import KubeStatusIndicator, {
-  ReadyStatusValue,
-  SpecialObject,
-  computeMessage,
-  createSyntheticCondition,
-} from "./KubeStatusIndicator";
+import { computeMessage } from "./KubeStatusIndicator";
 import Link from "./Link";
 import Text from "./Text";
 
@@ -93,47 +88,13 @@ function FluxObjectsTable({
           sortValue: ({ namespace }) => namespace,
         },
         {
-          label: "Health Check",
+          label: "Status",
           value: ({ health }) => {
             return health.status !== HealthStatusType.Unknown ? (
               <HealthCheckStatusIndicator health={health} />
             ) : null;
           },
           sortValue: ({ health }: FluxObject) => health.status,
-        },
-        {
-          label: "Status",
-          value: (u: FluxObject) => {
-            const status = u.obj.status;
-
-            if (!status || !status.conditions) {
-              const cond = createSyntheticCondition(
-                u.type as SpecialObject,
-                status
-              );
-
-              if (cond.status === ReadyStatusValue.Unknown) {
-                return null;
-              }
-
-              return (
-                <KubeStatusIndicator
-                  conditions={[cond]}
-                  suspended={u.suspended}
-                  short
-                />
-              );
-            }
-
-            return u.conditions.length > 0 ? (
-              <KubeStatusIndicator
-                conditions={u.conditions}
-                suspended={u.suspended}
-                short
-              />
-            ) : null;
-          },
-          sortValue: statusSortHelper,
         },
         {
           label: "Message",

@@ -51,18 +51,32 @@ module.exports = {
           },
           {
             to: '/docs/enterprise/getting-started/releases-enterprise/',
-            from: ['/docs/enterprise/releases/']
+            from: [
+              '/docs/enterprise/releases/',
+              '/docs/enterprise/intro',
+            ]
           },
           {
             to: '/docs/intro-weave-gitops/',
             from: '/docs/intro'
-          }
+          },
+          {
+            to: '/docs/enterprise/getting-started/install-enterprise/',
+            from: '/docs/installation/weave-gitops-enterprise/'
+          },
+          {
+            to: '/docs/open-source/getting-started/install-OSS/',
+            from: '/docs/installation/weave-gitops/'
+          },
+          {
+            to: '/docs/open-source/getting-started/aws-marketplace/',
+            from: '/docs/installation/aws-marketplace/'
+          },
         ],
       },
     ],
   ],
   themeConfig: {
-    metadata: [{ name: "robots", content: "noindex, nofollow" }],
     navbar: {
       title: "Weave GitOps",
       logo: {
@@ -162,7 +176,7 @@ module.exports = {
     },
     algolia: {
       appId: "Z1KEXCDHZE",
-      apiKey: "c90c5ade2802df8213d6ac50cf3632f4",
+      apiKey: process.env.ALGOLIA_API_KEY,
       indexName: "weave",
       // Needed to handle the different versions of docs
       contextualSearch: true,
@@ -207,10 +221,7 @@ module.exports = {
           customCss: require.resolve("./src/css/custom.css"),
         },
         gtag: {
-          // You can also use your "G-" Measurement ID here.
-          // Bogus commit to trigger a build
           trackingID: process.env.GA_KEY,
-          // Optional fields.
           anonymizeIP: true, // Should IPs be anonymized?
         },
         sitemap: {
