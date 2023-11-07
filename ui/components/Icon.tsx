@@ -24,7 +24,6 @@ import NavigateNextIcon from "@material-ui/icons/NavigateNext";
 import PauseIcon from "@material-ui/icons/Pause";
 import PersonIcon from "@material-ui/icons/Person";
 import PlayIcon from "@material-ui/icons/PlayArrow";
-import Policy from "@material-ui/icons/Policy";
 import Remove from "@material-ui/icons/Remove";
 import RemoveCircleIcon from "@material-ui/icons/RemoveCircle";
 import SaveAltIcon from "@material-ui/icons/SaveAlt";
@@ -266,10 +265,10 @@ function getIcon(i: IconType) {
       return PlayIcon;
 
     case IconType.PoliciesIcon:
-      return PoliciesIcon;
+      return () => <PoliciesIcon filled={false} />;
 
     case IconType.Policy:
-      return Policy;
+      return () => <PoliciesIcon filled />;
 
     case IconType.PolicyConfigsIcon:
       return PolicyConfigsIcon;
