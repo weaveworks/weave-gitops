@@ -278,7 +278,7 @@ func GetObjectsWithChildren(ctx context.Context, objects []*unstructured.Unstruc
 			children := []*ObjectWithChildren{}
 			if withChildren {
 				var err error
-				children, err = GetChildren(ctx, k8sClient, obj)
+				children, err = getChildren(ctx, k8sClient, obj)
 				if err != nil {
 					logger.Error(err, "failed getting children", "entry", obj)
 					return
@@ -301,7 +301,7 @@ func GetObjectsWithChildren(ctx context.Context, objects []*unstructured.Unstruc
 	return result, nil
 }
 
-func GetChildren(ctx context.Context, k8sClient client.Client, parentObj unstructured.Unstructured) ([]*ObjectWithChildren, error) {
+func getChildren(ctx context.Context, k8sClient client.Client, parentObj unstructured.Unstructured) ([]*ObjectWithChildren, error) {
 	listResult := unstructured.UnstructuredList{}
 
 	switch parentObj.GetObjectKind().GroupVersionKind().Kind {
@@ -345,7 +345,7 @@ func GetChildren(ctx context.Context, k8sClient client.Client, parentObj unstruc
 
 	for _, c := range unstructuredChildren {
 		var err error
-		children, err = GetChildren(ctx, k8sClient, c)
+		children, err = getChildren(ctx, k8sClient, c)
 		if err != nil {
 			return nil, err
 		}
