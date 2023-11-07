@@ -40,10 +40,19 @@ func TestGetInventoryKustomization(t *testing.T) {
 		},
 	}
 
+	anotherNs := corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "another-namespace",
+			Labels: map[string]string{
+				"toolkit.fluxcd.io/tenant": "tenant",
+			},
+		},
+	}
+
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "my-deployment",
-			Namespace: ns.Name,
+			Namespace: "another-namespace",
 			UID:       "this-is-not-an-uid",
 		},
 		Spec: appsv1.DeploymentSpec{
@@ -69,7 +78,7 @@ func TestGetInventoryKustomization(t *testing.T) {
 	rs := &appsv1.ReplicaSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("%s-123abcd", automationName),
-			Namespace: ns.Name,
+			Namespace: "another-namespace",
 		},
 		Spec: appsv1.ReplicaSetSpec{
 			Template: deployment.Spec.Template,
@@ -101,7 +110,7 @@ func TestGetInventoryKustomization(t *testing.T) {
 			Inventory: &kustomizev1.ResourceInventory{
 				Entries: []kustomizev1.ResourceRef{
 					{
-						ID:      fmt.Sprintf("%s_%s_apps_Deployment", ns.Name, deployment.Name),
+						ID:      fmt.Sprintf("%s_%s_apps_Deployment", "another-namespace", deployment.Name),
 						Version: "v1",
 					},
 				},
@@ -112,7 +121,7 @@ func TestGetInventoryKustomization(t *testing.T) {
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
 
-	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(&ns, kust, deployment, rs).Build()
+	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(&ns, &anotherNs, kust, deployment, rs).Build()
 	cfg := makeServerConfig(client, t, "")
 	c := makeServer(cfg, t)
 
