@@ -45,10 +45,12 @@
     },
     {
       "type": "category",
-      "label": "Operations",
-      "items": [
-        "operations/monitoring"
-      ]
+      "label": "Backstage",
+      "link": {
+        "type": "doc",
+        "id": "backstage/intro"
+      },
+      "items": []
     },
     {
       "type": "category",
@@ -87,17 +89,6 @@
     },
     {
       "type": "category",
-      "label": "GitOps Run",
-      "link": {
-        "type": "doc",
-        "id": "gitops-run/gitops-run-overview"
-      },
-      "items": [
-        "gitops-run/gitops-run-get-started"
-      ]
-    },
-    {
-      "type": "category",
       "label": "GitOpsSets",
       "items": [
         "gitopssets/gitopssets-intro",
@@ -113,6 +104,13 @@
       "items": [
         "guides/displaying-custom-metadata",
         "guides/fluxga-upgrade"
+      ]
+    },
+    {
+      "type": "category",
+      "label": "Operations",
+      "items": [
+        "operations/monitoring"
       ]
     },
     {
@@ -253,15 +251,6 @@
         "workspaces/view-workspaces"
       ]
     },
-    {
-      "type": "category",
-      "label": "Backstage",
-      "link": {
-        "type": "doc",
-        "id": "backstage/intro"
-      },
-      "items": []
-    }
   ],
   "ref": [
     {

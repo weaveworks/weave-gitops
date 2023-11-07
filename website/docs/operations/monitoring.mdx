@@ -9,13 +9,11 @@ import TierLabel from "./../_components/TierLabel";
 
 # Monitoring <TierLabel tiers="Enterprise" />
 
-Weave GitOps Enterprise provides the following telemetry and tooling for monitoring:
-- [Metrics](#metrics)
-- [Profiling](#profiling)
+Weave GitOps Enterprise provides monitoring telemetry and tooling for [metrics](#metrics) and [profiling](#profiling). WGE generates [Prometheus](https://prometheus.io/) metrics for monitoring both performance and business operations.
 
 ## Setup
 
-The following configuration options are available for you to configure `montoring`:
+The following configuration options are available for you to configure `monitoring`:
 
 ```yaml
 ---
@@ -38,21 +36,14 @@ spec:
 ```
 
 :::caution
-The monitoring server holds private services, so you likely do not require to expose beyond your cluster. In
-case you need, ensure that it is properly secured.
+The monitoring server holds private services, so you probably won't need to expose anything beyond your cluster. If you must, ensure that it is properly secured.
 :::
 
-## Metrics
+### Get Started with Monitoring
 
-It generates [Prometheus](https://prometheus.io/) metrics for monitoring both performance and business operations.
+This setup follows the same [monitoring approach as Flux](https://fluxcd.io/flux/monitoring/metrics/) and is based on [Prometheus Operator](https://prometheus-operator.dev/). Adapt it to your context as needed.
 
-### Get Started
-
-:::info
-This setup follows [Flux Monitoring](https://fluxcd.io/flux/monitoring/metrics/) approach based on [Prometheus Operator](https://prometheus-operator.dev/). Adapt it to your context as needed.
-:::
-
-1. You have [enabled](#setup) the monitoring server with the metrics endpoint.
+1. [Enable](#setup) the monitoring server with the metrics endpoint.
 2. Install [Kube Prometheus Stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack).
 
 <details><summary>Expand to see manifest contents</summary>
@@ -116,43 +107,39 @@ spec:
 
 </details>
 
-4. See the dashboards in Grafana
-
-You could filter by tags `flux` or `weave-gitops`
+4. See the dashboards in Grafana. You can filter by tags `flux` or `weave-gitops`.
 
 ![weave gitops dashboard list](imgs/monitoring-dashboard-list.png)
 
 ### Dashboards
 
-**Weave Gitops Overview**
+**Weave GitOps Overview**
 
-Monitor Weave Gitops golden signals for API server and Controllers:
+Monitor Weave GitOps golden signals for API server and controllers:
 
 ![weave gitops dashboard list](imgs/monitoring-dashboard-overview.png)
 
-**Weave Gitops Runtime**
+**Weave GitOps Runtime**
 
-Monitor Weave Gitops GO runtime metrics like Memory Usage, Memory Heap, Goroutines, etc ...
+Monitor Weave GitOps Go runtime metrics like memory usage, memory heap, and Goroutines, among others.
 
 ![weave gitops dashboard list](imgs/monitoring-dashboard-runtime.png)
 
 **Explorer**
 
-Monitor Explorer golden signals. More info [here](../../explorer/operations#monitoring)
+You can also monitor [Explorer golden signals](../../explorer/operations#monitoring).
 
 ## Profiling
 
-Profiling can be useful during operations to help you to gain a deeper understanding, of how weave gitops runtime behaves.
-Given Weave GitOps is written in Go, profiling happens through [pprof](https://pkg.go.dev/runtime/pprof), and it is
-exposed as web endpoint by [pprof http](https://pkg.go.dev/net/http/pprof).
+During operations, profiling is useful for gaining a deeper understanding of how Weave GitOps runtime behaves.
+Given that Weave GitOps is written in Go, profiling happens through [pprof](https://pkg.go.dev/runtime/pprof). It is
+exposed as a web endpoint by [pprof http](https://pkg.go.dev/net/http/pprof).
 
+### Get Started with Profiling
 
-#### Get Started
-
-1. You have [enabled](#setup) the monitoring server with the profiling endpoint.
+1. [Enable](#setup) the monitoring server with the profiling endpoint.
 2. Navigate to your monitoring server URL to the `/debug/pprof` path where the pprof web interface is exposed.
 
 ![profiling web ui](imgs/profiling-pprof-web-ui.png)
 
-For further info on using `pprof` see [here](https://github.com/google/pprof/blob/main/doc/README.md)
-
+[Go here](https://github.com/google/pprof/blob/main/doc/README.md) for more info on using `pprof`.

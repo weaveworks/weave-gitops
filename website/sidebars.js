@@ -56,12 +56,14 @@
     },
     {
       type: 'category',
-      label: 'Operations',
-      items: [
-        'operations/monitoring',
-      ],
+      label: 'Backstage',
+      link: {
+        type: 'doc',
+        id: 'backstage/intro'
+      },
+      items: [],
     },
-    {
+        {
       type: 'category',
       label: 'Cluster Management',
       link: {
@@ -113,6 +115,13 @@
       items: [
         'guides/displaying-custom-metadata',
         'guides/fluxga-upgrade',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Operations',
+      items: [
+        'operations/monitoring',
       ],
     },
     {
@@ -253,15 +262,6 @@
         'workspaces/multi-tenancy',
         'workspaces/view-workspaces',
       ],
-    },
-    {
-      type: 'category',
-      label: 'Backstage',
-      link: {
-        type: 'doc',
-        id: 'backstage/intro'
-      },
-      items: [],
     },
 
   ],
