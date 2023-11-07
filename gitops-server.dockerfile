@@ -5,7 +5,7 @@ RUN mkdir -p /home/app && chown -R node:node /home/app
 WORKDIR /home/app
 USER node
 COPY --chown=node:node package*.json /home/app/
-COPY --chown=node:node yarn.lock /home/app
+COPY --chown=node:node yarn.lock /home/app/
 COPY --chown=node:node Makefile /home/app/
 COPY --chown=node:node tsconfig.json /home/app/
 COPY --chown=node:node .parcelrc /home/app/
