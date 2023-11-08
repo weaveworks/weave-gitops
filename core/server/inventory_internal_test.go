@@ -218,3 +218,42 @@ func TestParseInventoryFromUnstructured(t *testing.T) {
 		})
 	}
 }
+
+func TestSanitizeUnstructuredSecret(t *testing.T) {
+	unstructuredSecret := unstructured.Unstructured{
+		Object: map[string]interface{}{
+			"apiVersion": "v1",
+			"kind":       "Secret",
+			"metadata": map[string]interface{}{
+				"name":      "my-secret",
+				"namespace": "my-namespace",
+			},
+			"type": "Opaque",
+			"data": map[string]interface{}{
+				"key": "dGVzdA==",
+			},
+		},
+	}
+
+	expected := &unstructured.Unstructured{
+		Object: map[string]interface{}{
+			"apiVersion": "v1",
+			"kind":       "Secret",
+			"metadata": map[string]interface{}{
+				"name":              "my-secret",
+				"namespace":         "my-namespace",
+				"creationTimestamp": nil,
+			},
+			"type": "Opaque",
+			"data": map[string]interface{}{
+				"redacted": nil,
+			},
+		},
+	}
+
+	secret, err := sanitizeUnstructuredSecret(unstructuredSecret)
+
+	g := NewGomegaWithT(t)
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(&secret).To(Equal(expected))
+}
