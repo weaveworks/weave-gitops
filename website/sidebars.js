@@ -41,6 +41,7 @@
           },
           items: [
             'enterprise/getting-started/install-enterprise',
+            'enterprise/getting-started/install-enterprise-cli',
             'enterprise/getting-started/install-enterprise-airgap',
             'enterprise/getting-started/releases-enterprise',
             'enterprise/getting-started/install-enterprise-azure',
