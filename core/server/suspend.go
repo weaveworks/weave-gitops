@@ -60,6 +60,8 @@ func (cs *coreServer) ToggleSuspendResource(ctx context.Context, msg *pb.ToggleS
 			return nil, err
 		}
 
+		changeSuspendAnnotations(ctx, obj, msg.Suspend, msg.Comment, principal)
+
 		if msg.Suspend {
 			log.Info("Suspending resource")
 		} else {
@@ -72,4 +74,19 @@ func (cs *coreServer) ToggleSuspendResource(ctx context.Context, msg *pb.ToggleS
 	}
 
 	return &pb.ToggleSuspendResourceResponse{}, respErrors.ErrorOrNil()
+}
+
+func changeSuspendAnnotations(ctx context.Context, obj fluxsync.Reconcilable, suspend bool, comment string, principal *auth.UserPrincipal) error {
+	annotations := obj.GetAnnotations()
+	if suspend {
+		annotations["weave.works/suspended-by"] = principal.ID
+		annotations["weave.works/suspended-comment"] = comment
+		obj.SetAnnotations(annotations)
+	} else {
+		delete(annotations, "weave.works/suspended-by")
+		delete(annotations, "weave.works/suspended-comment")
+		obj.SetAnnotations(annotations)
+	}
+
+	return nil
 }

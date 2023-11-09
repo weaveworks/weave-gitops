@@ -215,6 +215,7 @@ export type GetFeatureFlagsResponse = {
 export type ToggleSuspendResourceRequest = {
   objects?: Gitops_coreV1Types.ObjectRef[]
   suspend?: boolean
+  comment?: string
 }
 
 export type ToggleSuspendResourceResponse = {
