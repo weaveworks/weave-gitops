@@ -476,9 +476,10 @@
         ]
       }
     },
-    "/v1/namespaces/{clusterNamespace}/clusters/{clusterName}/kubeconfig": {
+    "/v1/namespaces/{namespace}/clusters/{name}/kubeconfig": {
       "get": {
         "summary": "Get the kubeconfig for a GitOpsCluster",
+        "description": "Provide the name and namespace of a `GitOpsCluster` to retrieve its kubeconfig",
         "operationId": "ClustersService_GetKubeconfig",
         "responses": {
           "200": {
@@ -496,14 +497,15 @@
         },
         "parameters": [
           {
-            "name": "clusterNamespace",
+            "name": "namespace",
+            "description": "The namespace of the `GitopsCluster`",
             "in": "path",
             "required": true,
             "type": "string"
           },
           {
-            "name": "clusterName",
-            "description": "The name of the workload cluster.",
+            "name": "name",
+            "description": "The name of the `GitopsCluster`",
             "in": "path",
             "required": true,
             "type": "string"
@@ -557,7 +559,7 @@
         ]
       }
     },
-    "/v1/namespaces/{templateNamespace}/templates/{templateName}": {
+    "/v1/namespaces/{namespace}/templates/{name}": {
       "get": {
         "summary": "Get template details",
         "operationId": "ClustersService_GetTemplate",
@@ -577,13 +579,13 @@
         },
         "parameters": [
           {
-            "name": "templateNamespace",
+            "name": "namespace",
             "in": "path",
             "required": true,
             "type": "string"
           },
           {
-            "name": "templateName",
+            "name": "name",
             "in": "path",
             "required": true,
             "type": "string"
@@ -600,7 +602,7 @@
         ]
       }
     },
-    "/v1/namespaces/{templateNamespace}/templates/{templateName}/params": {
+    "/v1/namespaces/{namespace}/templates/{name}/params": {
       "get": {
         "summary": "List the params of a template",
         "operationId": "ClustersService_ListTemplateParams",
@@ -620,13 +622,13 @@
         },
         "parameters": [
           {
-            "name": "templateNamespace",
+            "name": "namespace",
             "in": "path",
             "required": true,
             "type": "string"
           },
           {
-            "name": "templateName",
+            "name": "name",
             "in": "path",
             "required": true,
             "type": "string"
@@ -643,7 +645,7 @@
         ]
       }
     },
-    "/v1/namespaces/{templateNamespace}/templates/{templateName}/profiles": {
+    "/v1/namespaces/{namespace}/templates/{name}/profiles": {
       "get": {
         "summary": "List the profiles of a template",
         "description": "Includes default and required profiles specified by the template",
@@ -664,13 +666,13 @@
         },
         "parameters": [
           {
-            "name": "templateNamespace",
+            "name": "namespace",
             "in": "path",
             "required": true,
             "type": "string"
           },
           {
-            "name": "templateName",
+            "name": "name",
             "in": "path",
             "required": true,
             "type": "string"
@@ -687,7 +689,7 @@
         ]
       }
     },
-    "/v1/namespaces/{templateNamespace}/templates/{templateName}/pull-request": {
+    "/v1/namespaces/{namespace}/templates/{name}/pull-request": {
       "post": {
         "summary": "Create a pull request from a rendered template",
         "operationId": "ClustersService_CreatePullRequest",
@@ -707,13 +709,13 @@
         },
         "parameters": [
           {
-            "name": "templateNamespace",
+            "name": "namespace",
             "in": "path",
             "required": true,
             "type": "string"
           },
           {
-            "name": "templateName",
+            "name": "name",
             "description": "The name of the template to create a pull request for.",
             "in": "path",
             "required": true,
@@ -819,7 +821,7 @@
         ]
       }
     },
-    "/v1/namespaces/{templateNamespace}/templates/{templateName}/render": {
+    "/v1/namespaces/{namespace}/templates/{name}/render": {
       "post": {
         "summary": "Renders a template using given values.",
         "operationId": "ClustersService_RenderTemplate",
@@ -839,13 +841,13 @@
         },
         "parameters": [
           {
-            "name": "templateNamespace",
+            "name": "namespace",
             "in": "path",
             "required": true,
             "type": "string"
           },
           {
-            "name": "templateName",
+            "name": "name",
             "in": "path",
             "required": true,
             "type": "string"
@@ -1161,7 +1163,7 @@
         ]
       }
     },
-    "/v1/workspaces/{workspaceName}": {
+    "/v1/workspaces/{name}": {
       "get": {
         "summary": "Get workspace details",
         "operationId": "ClustersService_GetWorkspace",
@@ -1181,7 +1183,7 @@
         },
         "parameters": [
           {
-            "name": "workspaceName",
+            "name": "name",
             "in": "path",
             "required": true,
             "type": "string"
@@ -1198,7 +1200,7 @@
         ]
       }
     },
-    "/v1/workspaces/{workspaceName}/policies": {
+    "/v1/workspaces/{name}/policies": {
       "get": {
         "summary": "List workspace service accounts",
         "operationId": "ClustersService_GetWorkspacePolicies",
@@ -1218,7 +1220,7 @@
         },
         "parameters": [
           {
-            "name": "workspaceName",
+            "name": "name",
             "in": "path",
             "required": true,
             "type": "string"
@@ -1235,7 +1237,7 @@
         ]
       }
     },
-    "/v1/workspaces/{workspaceName}/rolebindings": {
+    "/v1/workspaces/{name}/rolebindings": {
       "get": {
         "summary": "List workspace role bindings",
         "operationId": "ClustersService_GetWorkspaceRoleBindings",
@@ -1255,7 +1257,7 @@
         },
         "parameters": [
           {
-            "name": "workspaceName",
+            "name": "name",
             "in": "path",
             "required": true,
             "type": "string"
@@ -1272,7 +1274,7 @@
         ]
       }
     },
-    "/v1/workspaces/{workspaceName}/roles": {
+    "/v1/workspaces/{name}/roles": {
       "get": {
         "summary": "List workspace roles",
         "operationId": "ClustersService_GetWorkspaceRoles",
@@ -1292,7 +1294,7 @@
         },
         "parameters": [
           {
-            "name": "workspaceName",
+            "name": "name",
             "in": "path",
             "required": true,
             "type": "string"
@@ -1309,7 +1311,7 @@
         ]
       }
     },
-    "/v1/workspaces/{workspaceName}/serviceaccounts": {
+    "/v1/workspaces/{name}/serviceaccounts": {
       "get": {
         "summary": "List workspace service accounts",
         "operationId": "ClustersService_GetWorkspaceServiceAccounts",
@@ -1329,7 +1331,7 @@
         },
         "parameters": [
           {
-            "name": "workspaceName",
+            "name": "name",
             "in": "path",
             "required": true,
             "type": "string"
@@ -1744,7 +1746,7 @@
           "type": "string",
           "title": "The description of the pull request"
         },
-        "templateName": {
+        "name": {
           "type": "string",
           "description": "The name of the template to create a pull request for."
         },
@@ -1763,7 +1765,7 @@
           "type": "string",
           "description": "The repo api url."
         },
-        "templateNamespace": {
+        "namespace": {
           "type": "string"
         }
       }

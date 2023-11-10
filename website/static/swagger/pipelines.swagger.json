@@ -98,7 +98,7 @@
         ]
       }
     },
-    "/v1/pipelines/list_prs/{pipelineName}": {
+    "/v1/pipelines/list_prs/{name}": {
       "post": {
         "summary": "FIXME",
         "operationId": "Pipelines_ListPullRequests",
@@ -118,7 +118,7 @@
         },
         "parameters": [
           {
-            "name": "pipelineName",
+            "name": "name",
             "in": "path",
             "required": true,
             "type": "string"
@@ -130,7 +130,7 @@
             "schema": {
               "type": "object",
               "properties": {
-                "pipelineNamespace": {
+                "namespace": {
                   "type": "string"
                 }
               }

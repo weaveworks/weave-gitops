@@ -217,7 +217,7 @@
         "orderBy": {
           "type": "string"
         },
-        "ascending": {
+        "descending": {
           "type": "boolean"
         }
       }
