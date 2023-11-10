@@ -1,4 +1,4 @@
-name: Publish docs to Netlify #[Todo - POC CODE NEED TO REFINE+TEST]
+name: Publish docs to Netlify 
 
 on:
   release:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read # for actions/checkout to fetch code
+  contents: write 
 
 jobs:
   publish-docs:
@@ -28,16 +28,10 @@ jobs:
           GA_KEY: ${{ secrets.GA_KEY }}
           ALGOLIA_API_KEY: ${{ secrets.ALGOLIA_API_KEY }}
           NODE_OPTIONS: "--max-old-space-size=4096"
-        run: | # these steps need splitting [TODO]
+        run: | 
           git config --global user.email "corporate-it+weaveworks-docs-bot@weave.works"
           git config --global user.name "weaveworks-docs-bot"
-          if [ -e yarn.lock ]; then
-          yarn install --frozen-lockfile
-          elif [ -e package-lock.json ]; then
-          npm ci
-          else
-          npm i
-          fi
-          yarn clear
-          npm run build
+          git switch netlify-poc
+          git merge --no-edit "origin/main"
+          git push --force origin netlify-poc
 # Publish success to slack????
