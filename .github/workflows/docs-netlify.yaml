@@ -31,7 +31,7 @@ jobs:
         run: | 
           git config --global user.email "corporate-it+weaveworks-docs-bot@weave.works"
           git config --global user.name "weaveworks-docs-bot"
-          git switch netlify-poc
+          git switch docs-production
           git merge --no-edit "origin/main"
-          git push --force origin netlify-poc
+          git push --force origin docs-production
 # Publish success to slack????
