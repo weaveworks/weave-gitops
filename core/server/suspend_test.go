@@ -2,7 +2,6 @@ package server_test
 
 import (
 	"context"
-	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"testing"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
@@ -10,6 +9,7 @@ import (
 	reflectorv1 "github.com/fluxcd/image-reflector-controller/api/v1beta2"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
+	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 	. "github.com/onsi/gomega"
 	api "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
@@ -94,7 +94,7 @@ func TestSuspend_Suspend(t *testing.T) {
 			_, err = c.ToggleSuspendResource(outgoingCtx, req)
 			g.Expect(err).NotTo(HaveOccurred())
 			name := types.NamespacedName{Name: tt.obj.GetName(), Namespace: ns.Name}
-			g.Expect(checkSpec(t, k, name, tt.obj)).To(BeTrue())
+			g.Expect(checkSpec(t, k, name, tt.obj, true)).To(BeTrue())
 			requestObjects = append(requestObjects, object)
 		})
 	}
@@ -112,7 +112,7 @@ func TestSuspend_Suspend(t *testing.T) {
 
 		for _, tt := range tests {
 			name := types.NamespacedName{Name: tt.obj.GetName(), Namespace: ns.Name}
-			g.Expect(checkSpec(t, k, name, tt.obj)).To(BeFalse())
+			g.Expect(checkSpec(t, k, name, tt.obj, false)).To(BeFalse())
 		}
 	})
 
@@ -137,58 +137,69 @@ func TestSuspend_Suspend(t *testing.T) {
 	})
 }
 
-func checkSpec(t *testing.T, k client.Client, name types.NamespacedName, obj client.Object) bool {
+func checkSpec(t *testing.T, k client.Client, name types.NamespacedName, obj client.Object, suspend bool) bool {
 	switch v := obj.(type) {
 	case *sourcev1.GitRepository:
 		if err := k.Get(context.Background(), name, v); err != nil {
 			t.Error(err)
 		}
-
+		checkSuspendAnnotations(t, v.ObjectMeta.Annotations, name, suspend)
 		return v.Spec.Suspend
 	case *kustomizev1.Kustomization:
 		if err := k.Get(context.Background(), name, v); err != nil {
 			t.Error(err)
 		}
-
+		checkSuspendAnnotations(t, v.ObjectMeta.Annotations, name, suspend)
 		return v.Spec.Suspend
 
 	case *helmv2.HelmRelease:
 		if err := k.Get(context.Background(), name, v); err != nil {
 			t.Error(err)
 		}
-
+		checkSuspendAnnotations(t, v.ObjectMeta.Annotations, name, suspend)
 		return v.Spec.Suspend
 
 	case *sourcev1b2.Bucket:
 		if err := k.Get(context.Background(), name, v); err != nil {
 			t.Error(err)
 		}
-
+		checkSuspendAnnotations(t, v.ObjectMeta.Annotations, name, suspend)
 		return v.Spec.Suspend
 
 	case *sourcev1b2.HelmRepository:
 		if err := k.Get(context.Background(), name, v); err != nil {
 			t.Error(err)
 		}
-
+		checkSuspendAnnotations(t, v.ObjectMeta.Annotations, name, suspend)
 		return v.Spec.Suspend
 
 	case *reflectorv1.ImageRepository:
 		if err := k.Get(context.Background(), name, v); err != nil {
 			t.Error(err)
 		}
-
+		checkSuspendAnnotations(t, v.ObjectMeta.Annotations, name, suspend)
 		return v.Spec.Suspend
 
 	case *imgautomationv1.ImageUpdateAutomation:
 		if err := k.Get(context.Background(), name, v); err != nil {
 			t.Error(err)
 		}
-
+		checkSuspendAnnotations(t, v.ObjectMeta.Annotations, name, suspend)
 		return v.Spec.Suspend
 	}
 
 	t.Errorf("unsupported object %T", obj)
 
 	return false
+}
+
+// checkSuspendAnnotations checks for the existance of suspend annotations
+// passes if suspended and annotations exist, or not suspended and annotations don't exist
+func checkSuspendAnnotations(t *testing.T, annotations map[string]string, name types.NamespacedName, suspend bool) {
+	if _, ok := annotations["weave.works/suspended-by"]; suspend != ok {
+		t.Errorf("expected annotation weave.works/suspended-by not found for %s", name.String())
+	}
+	if _, ok := annotations["weave.works/suspended-comment"]; suspend != ok {
+		t.Errorf("expected annotation weave.works/suspended-comment not found for %s", name.String())
+	}
 }
