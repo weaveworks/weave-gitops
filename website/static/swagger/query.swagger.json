@@ -241,7 +241,8 @@
         "applications",
         "sources",
         "gitopssets",
-        "templates"
+        "templates",
+        "clusterdiscovery"
       ],
       "default": "unknown",
       "title": "EnabledComponent represents a component of the UI that can be enabled or disabled"

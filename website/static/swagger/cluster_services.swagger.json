@@ -766,7 +766,6 @@
                 "values": {
                   "type": "array",
                   "items": {
-                    "type": "object",
                     "$ref": "#/definitions/v1ProfileValues"
                   },
                   "description": "The values for each profile that will be installed."
@@ -781,7 +780,6 @@
                 "kustomizations": {
                   "type": "array",
                   "items": {
-                    "type": "object",
                     "$ref": "#/definitions/v1Kustomization"
                   }
                 },
@@ -794,21 +792,18 @@
                 "externalSecrets": {
                   "type": "array",
                   "items": {
-                    "type": "object",
                     "$ref": "#/definitions/v1ExternalSecret"
                   }
                 },
                 "policyConfigs": {
                   "type": "array",
                   "items": {
-                    "type": "object",
                     "$ref": "#/definitions/v1PolicyConfigObject"
                   }
                 },
                 "sopsSecrets": {
                   "type": "array",
                   "items": {
-                    "type": "object",
                     "$ref": "#/definitions/v1SopsSecret"
                   }
                 }
@@ -877,21 +872,18 @@
                 "profiles": {
                   "type": "array",
                   "items": {
-                    "type": "object",
                     "$ref": "#/definitions/v1ProfileValues"
                   }
                 },
                 "kustomizations": {
                   "type": "array",
                   "items": {
-                    "type": "object",
                     "$ref": "#/definitions/v1Kustomization"
                   }
                 },
                 "externalSecrets": {
                   "type": "array",
                   "items": {
-                    "type": "object",
                     "$ref": "#/definitions/v1ExternalSecret"
                   }
                 }
@@ -1378,7 +1370,6 @@
         "extensions": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/protobufAny"
           },
           "description": "Application specific response metadata. Must be set in the first response\nfor streaming APIs."
@@ -1418,7 +1409,6 @@
         "details": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/protobufAny"
           }
         }
@@ -1485,7 +1475,6 @@
         "conditions": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1Condition"
           }
         },
@@ -1638,7 +1627,6 @@
         "clusterAutomations": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1ClusterAutomation"
           },
           "title": "A list of cluster and kustomization"
@@ -1699,7 +1687,6 @@
         "clusterNamespacedNames": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1ClusterNamespacedName"
           }
         }
@@ -1857,7 +1844,9 @@
     "v1EncryptSopsSecretResponse": {
       "type": "object",
       "properties": {
-        "encryptedSecret": {},
+        "encryptedSecret": {
+          "type": "object"
+        },
         "path": {
           "type": "string"
         }
@@ -1980,7 +1969,6 @@
         "data": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1ExternalSecretData"
           }
         },
@@ -2134,7 +2122,6 @@
         "policies": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1PolicyConfigPolicy"
           }
         },
@@ -2186,7 +2173,6 @@
         "objects": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1WorkspacePolicy"
           }
         }
@@ -2221,7 +2207,6 @@
         "objects": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1WorkspaceRoleBinding"
           }
         }
@@ -2239,7 +2224,6 @@
         "objects": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1WorkspaceRole"
           }
         }
@@ -2257,7 +2241,6 @@
         "objects": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1WorkspaceServiceAccount"
           }
         }
@@ -2287,7 +2270,6 @@
         "conditions": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1Condition"
           }
         },
@@ -2375,7 +2357,6 @@
         "charts": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1RepositoryChart"
           }
         }
@@ -2387,7 +2368,6 @@
         "credentials": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1Credential"
           }
         },
@@ -2417,7 +2397,6 @@
         "events": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1Event"
           }
         }
@@ -2429,7 +2408,6 @@
         "stores": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1ExternalSecretStore"
           }
         },
@@ -2445,7 +2423,6 @@
         "secrets": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1ExternalSecretItem"
           }
         },
@@ -2456,7 +2433,6 @@
         "errors": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1ListError"
           }
         }
@@ -2468,7 +2444,6 @@
         "gitopsClusters": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1GitopsCluster"
           }
         },
@@ -2482,7 +2457,6 @@
         "errors": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1ListError"
           }
         }
@@ -2494,14 +2468,12 @@
         "policyConfigs": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1PolicyConfigListItem"
           }
         },
         "errors": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1ListError"
           }
         },
@@ -2517,7 +2489,6 @@
         "kustomizations": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1SopsKustomizations"
           }
         },
@@ -2533,14 +2504,12 @@
         "parameters": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1Parameter"
           }
         },
         "objects": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1TemplateObject"
           }
         }
@@ -2552,14 +2521,12 @@
         "profiles": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1TemplateProfile"
           }
         },
         "objects": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1TemplateObject"
           }
         }
@@ -2571,7 +2538,6 @@
         "templates": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1Template"
           }
         },
@@ -2582,7 +2548,6 @@
         "errors": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1ListError"
           }
         }
@@ -2594,7 +2559,6 @@
         "workspaces": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1Workspace"
           }
         },
@@ -2608,7 +2572,6 @@
         "errors": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1ListError"
           }
         }
@@ -2702,7 +2665,9 @@
       "properties": {
         "parameters": {
           "type": "object",
-          "additionalProperties": {}
+          "additionalProperties": {
+            "type": "object"
+          }
         }
       }
     },
@@ -2748,14 +2713,12 @@
         "apps": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1PolicyConfigApplicationMatch"
           }
         },
         "resources": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1PolicyConfigResourceMatch"
           }
         }
@@ -2800,7 +2763,9 @@
         },
         "parameters": {
           "type": "object",
-          "additionalProperties": {}
+          "additionalProperties": {
+            "type": "object"
+          }
         },
         "status": {
           "type": "string"
@@ -2836,35 +2801,30 @@
         "values": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1ProfileValues"
           }
         },
         "kustomizations": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1Kustomization"
           }
         },
         "externalSecrets": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1ExternalSecret"
           }
         },
         "policyConfigs": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1PolicyConfigObject"
           }
         },
         "sopsSecrets": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1SopsSecret"
           }
         }
@@ -2897,7 +2857,6 @@
         "clusterAutomations": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1ClusterAutomation"
           }
         }
@@ -2909,35 +2868,30 @@
         "kustomizationFiles": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1CommitFile"
           }
         },
         "helmReleaseFiles": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1CommitFile"
           }
         },
         "externalSecretsFiles": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1CommitFile"
           }
         },
         "policyConfigFiles": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1CommitFile"
           }
         },
         "sopsSecertFiles": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1CommitFile"
           }
         }
@@ -2949,21 +2903,18 @@
         "renderedTemplates": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1CommitFile"
           }
         },
         "profileFiles": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1CommitFile"
           }
         },
         "kustomizationFiles": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1CommitFile"
           }
         },
@@ -2973,21 +2924,18 @@
         "externalSecretsFiles": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1CommitFile"
           }
         },
         "policyConfigFiles": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1CommitFile"
           }
         },
         "sopsSecretFiles": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1CommitFile"
           }
         }
@@ -3079,7 +3027,9 @@
         "immutable": {
           "type": "boolean"
         },
-        "sops": {}
+        "sops": {
+          "type": "object"
+        }
       }
     },
     "v1SopsSecretMetadata": {
@@ -3142,14 +3092,12 @@
         "parameters": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1Parameter"
           }
         },
         "objects": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1TemplateObject"
           }
         },
@@ -3180,7 +3128,6 @@
         "profiles": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1TemplateProfile"
           }
         }
@@ -3287,7 +3234,6 @@
         "rules": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1WorkspaceRoleRule"
           }
         },
@@ -3323,7 +3269,6 @@
         "subjects": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1WorkspaceRoleBindingSubject"
           }
         },
