@@ -14,6 +14,7 @@ import (
 	api "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"google.golang.org/grpc/metadata"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -40,36 +41,44 @@ func TestSuspend_Suspend(t *testing.T) {
 	hr := makeHelmRepo("repo-1", *ns)
 
 	tests := []struct {
-		kind string
-		obj  client.Object
+		kind       string
+		apiVersion string
+		obj        client.Object
 	}{
 		{
-			kind: sourcev1.GitRepositoryKind,
-			obj:  gr,
+			kind:       sourcev1.GitRepositoryKind,
+			apiVersion: sourcev1.GroupVersion.String(),
+			obj:        gr,
 		},
 		{
-			kind: sourcev1b2.HelmRepositoryKind,
-			obj:  hr,
+			kind:       sourcev1b2.HelmRepositoryKind,
+			apiVersion: sourcev1b2.GroupVersion.String(),
+			obj:        hr,
 		},
 		{
-			kind: sourcev1b2.BucketKind,
-			obj:  makeBucket("bucket-1", *ns),
+			kind:       sourcev1b2.BucketKind,
+			apiVersion: sourcev1b2.GroupVersion.String(),
+			obj:        makeBucket("bucket-1", *ns),
 		},
 		{
-			kind: kustomizev1.KustomizationKind,
-			obj:  makeKustomization("kust-1", *ns, gr),
+			kind:       kustomizev1.KustomizationKind,
+			apiVersion: kustomizev1.GroupVersion.String(),
+			obj:        makeKustomization("kust-1", *ns, gr),
 		},
 		{
-			kind: helmv2.HelmReleaseKind,
-			obj:  makeHelmRelease("hr-1", *ns, hr, makeHelmChart("somechart", *ns)),
+			kind:       helmv2.HelmReleaseKind,
+			apiVersion: helmv2.GroupVersion.String(),
+			obj:        makeHelmRelease("hr-1", *ns, hr, makeHelmChart("somechart", *ns)),
 		},
 		{
-			kind: reflectorv1.ImageRepositoryKind,
-			obj:  makeImageRepository("ir-1", *ns),
+			kind:       reflectorv1.ImageRepositoryKind,
+			apiVersion: reflectorv1.GroupVersion.String(),
+			obj:        makeImageRepository("ir-1", *ns),
 		},
 		{
-			kind: imgautomationv1.ImageUpdateAutomationKind,
-			obj:  makeImageUpdateAutomation("iua-1", *ns),
+			kind:       imgautomationv1.ImageUpdateAutomationKind,
+			apiVersion: imgautomationv1.GroupVersion.String(),
+			obj:        makeImageUpdateAutomation("iua-1", *ns),
 		},
 	}
 
@@ -95,7 +104,14 @@ func TestSuspend_Suspend(t *testing.T) {
 			_, err = c.ToggleSuspendResource(outgoingCtx, req)
 			g.Expect(err).NotTo(HaveOccurred())
 			name := types.NamespacedName{Name: tt.obj.GetName(), Namespace: ns.Name}
-			g.Expect(checkSpec(t, k, principalID, name, tt.obj, true)).To(BeTrue())
+
+			unstructuredObj := getUnstructuredObj(t, k, name, tt.obj, tt.kind, tt.apiVersion)
+			suspendVal, _, err := unstructured.NestedBool(unstructuredObj.Object, "spec", "suspend")
+			g.Expect(err).NotTo(HaveOccurred())
+			g.Expect(suspendVal).To(BeTrue())
+
+			checkSuspendAnnotations(t, principalID, unstructuredObj.GetAnnotations(), name, suspendVal)
+
 			requestObjects = append(requestObjects, object)
 		})
 	}
@@ -114,7 +130,13 @@ func TestSuspend_Suspend(t *testing.T) {
 
 		for _, tt := range tests {
 			name := types.NamespacedName{Name: tt.obj.GetName(), Namespace: ns.Name}
-			g.Expect(checkSpec(t, k, principalID, name, tt.obj, false)).To(BeFalse())
+			unstructuredObj := getUnstructuredObj(t, k, name, tt.obj, tt.kind, tt.apiVersion)
+			suspendVal, _, err := unstructured.NestedBool(unstructuredObj.Object, "spec", "suspend")
+			g.Expect(err).NotTo(HaveOccurred())
+			g.Expect(suspendVal).To(BeFalse())
+
+			checkSuspendAnnotations(t, principalID, unstructuredObj.GetAnnotations(), name, suspendVal)
+
 		}
 	})
 
@@ -139,60 +161,15 @@ func TestSuspend_Suspend(t *testing.T) {
 	})
 }
 
-func checkSpec(t *testing.T, k client.Client, principalID string, name types.NamespacedName, obj client.Object, suspend bool) bool {
-	switch v := obj.(type) {
-	case *sourcev1.GitRepository:
-		if err := k.Get(context.Background(), name, v); err != nil {
-			t.Error(err)
-		}
-		checkSuspendAnnotations(t, principalID, v.ObjectMeta.Annotations, name, suspend)
-		return v.Spec.Suspend
-	case *kustomizev1.Kustomization:
-		if err := k.Get(context.Background(), name, v); err != nil {
-			t.Error(err)
-		}
-		checkSuspendAnnotations(t, principalID, v.ObjectMeta.Annotations, name, suspend)
-		return v.Spec.Suspend
-
-	case *helmv2.HelmRelease:
-		if err := k.Get(context.Background(), name, v); err != nil {
-			t.Error(err)
-		}
-		checkSuspendAnnotations(t, principalID, v.ObjectMeta.Annotations, name, suspend)
-		return v.Spec.Suspend
-
-	case *sourcev1b2.Bucket:
-		if err := k.Get(context.Background(), name, v); err != nil {
-			t.Error(err)
-		}
-		checkSuspendAnnotations(t, principalID, v.ObjectMeta.Annotations, name, suspend)
-		return v.Spec.Suspend
-
-	case *sourcev1b2.HelmRepository:
-		if err := k.Get(context.Background(), name, v); err != nil {
-			t.Error(err)
-		}
-		checkSuspendAnnotations(t, principalID, v.ObjectMeta.Annotations, name, suspend)
-		return v.Spec.Suspend
-
-	case *reflectorv1.ImageRepository:
-		if err := k.Get(context.Background(), name, v); err != nil {
-			t.Error(err)
-		}
-		checkSuspendAnnotations(t, principalID, v.ObjectMeta.Annotations, name, suspend)
-		return v.Spec.Suspend
-
-	case *imgautomationv1.ImageUpdateAutomation:
-		if err := k.Get(context.Background(), name, v); err != nil {
-			t.Error(err)
-		}
-		checkSuspendAnnotations(t, principalID, v.ObjectMeta.Annotations, name, suspend)
-		return v.Spec.Suspend
+func getUnstructuredObj(t *testing.T, k client.Client, name types.NamespacedName, obj client.Object, kind, apiVersion string) *unstructured.Unstructured {
+	unstructuredObj := &unstructured.Unstructured{}
+	unstructuredObj.SetKind(kind)
+	unstructuredObj.SetAPIVersion(apiVersion)
+	if err := k.Get(context.Background(), name, unstructuredObj); err != nil {
+		t.Error(err)
 	}
 
-	t.Errorf("unsupported object %T", obj)
-
-	return false
+	return unstructuredObj
 }
 
 // checkSuspendAnnotations checks for the existance of suspend annotations
