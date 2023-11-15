@@ -207,18 +207,18 @@ func checkSuspendAnnotations(t *testing.T, principalID string, annotations map[s
 				t.Errorf("expected annotation weave.works/suspended-by to be set to the principal %s", principalID)
 			}
 		} else {
-			t.Errorf("expected annotation weave.works/suspended-by not found for %s", name.String())
+			t.Errorf("expected annotation weave.works/suspended-by not found for %s", name)
 		}
 		if _, ok := annotations["weave.works/suspended-comment"]; !ok {
-			t.Errorf("expected annotation weave.works/suspended-comment not found for %s", name.String())
+			t.Errorf("expected annotation weave.works/suspended-comment not found for %s", name)
 		}
 	} else {
 		// not suspended and annotations don't exist check
 		if _, ok := annotations["weave.works/suspended-by"]; ok {
-			t.Errorf("expected annotation weave.works/suspended-by not found for %s", name.String())
+			t.Errorf("expected annotation weave.works/suspended-by not found for %s", name)
 		}
 		if _, ok := annotations["weave.works/suspended-comment"]; ok {
-			t.Errorf("expected annotation weave.works/suspended-comment not found for %s", name.String())
+			t.Errorf("expected annotation weave.works/suspended-comment not found for %s", name)
 		}
 	}
 }
