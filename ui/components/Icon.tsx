@@ -24,7 +24,6 @@ import NavigateNextIcon from "@material-ui/icons/NavigateNext";
 import PauseIcon from "@material-ui/icons/Pause";
 import PersonIcon from "@material-ui/icons/Person";
 import PlayIcon from "@material-ui/icons/PlayArrow";
-import Policy from "@material-ui/icons/Policy";
 import Remove from "@material-ui/icons/Remove";
 import RemoveCircleIcon from "@material-ui/icons/RemoveCircle";
 import SaveAltIcon from "@material-ui/icons/SaveAlt";
@@ -42,6 +41,7 @@ import images from "../lib/images";
 import { colors, fontSizes, spacing } from "../typedefs/styled";
 import Flex from "./Flex";
 import ApplicationsIcon from "./NavIcons/ApplicationsIcon";
+import ClusterDiscoveryIcon from "./NavIcons/ClusterDiscoveryIcon";
 import ClustersIcon from "./NavIcons/ClustersIcon";
 import DeliveryIcon from "./NavIcons/DeliveryIcon";
 import DocsIcon from "./NavIcons/DocsIcon";
@@ -59,6 +59,7 @@ import SourcesIcon from "./NavIcons/SourcesIcon";
 import TemplatesIcon from "./NavIcons/TemplatesIcon";
 import TerraformIcon from "./NavIcons/TerraformIcon";
 import WorkspacesIcon from "./NavIcons/WorkspacesIcon";
+
 import ResumeIcon from "./Sync/ResumeIcon";
 import Text from "./Text";
 
@@ -75,6 +76,7 @@ export enum IconType {
   CheckCircleIcon,
   CheckMark,
   ClearIcon,
+  ClusterDiscoveryIcon,
   ClustersIcon,
   DeleteIcon,
   DeliveryIcon,
@@ -175,6 +177,9 @@ function getIcon(i: IconType) {
     case IconType.ClearIcon:
       return ClearIcon;
 
+    case IconType.ClusterDiscoveryIcon:
+      return ClusterDiscoveryIcon;
+
     case IconType.ClustersIcon:
       return ClustersIcon;
 
@@ -260,10 +265,10 @@ function getIcon(i: IconType) {
       return PlayIcon;
 
     case IconType.PoliciesIcon:
-      return PoliciesIcon;
+      return () => <PoliciesIcon filled={false} />;
 
     case IconType.Policy:
-      return Policy;
+      return () => <PoliciesIcon filled />;
 
     case IconType.PolicyConfigsIcon:
       return PolicyConfigsIcon;

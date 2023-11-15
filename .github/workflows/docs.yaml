@@ -30,26 +30,19 @@ jobs:
       - uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # v3.8.1
         with:
           node-version: "16.x"
-      - name: Test Build
+      - name: Build docs
         env:
           GA_KEY: "dummy"
           ALGOLIA_API_KEY: ${{ secrets.ALGOLIA_API_KEY }}
           NODE_OPTIONS: "--max-old-space-size=4096"
           GITHUB_HEAD_REF: ${{ github.head_ref }}
         run: |
-          if [ -e yarn.lock ]; then
           yarn install --frozen-lockfile
-          elif [ -e package-lock.json ]; then
-          npm ci
-          else
-          npm i
-          fi
           yarn clear
-
           export DOC_BASE_URL="/$GITHUB_HEAD_REF/"
           export DOC_URL=https://staging.docs.gitops.weave.works
           export STAGING_BUILD=true
-          npm run build
+          yarn build
       - id: auth
         uses: google-github-actions/auth@35b0e87d162680511bf346c299f71c9c5c379033 # v1.1.1
         with:
@@ -94,28 +87,15 @@ jobs:
       - uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # v3.8.1
         with:
           node-version: "16.x"
-      - uses: weaveworks/webfactory-ssh-agent@6b2f2c5354ff41f1edbbf7a17ea9b6178c89be9f
-        with:
-          ssh-private-key: ${{ secrets.WEAVE_GITOPS_DOCS_WEAVEWORKS_DOCS_BOT_DEPLOY_KEY }}
-      - name: Release to GitHub Pages
+      - name: Build docs
         env:
-          USE_SSH: true
-          GIT_USER: git
           GA_KEY: ${{ secrets.GA_KEY }}
           ALGOLIA_API_KEY: ${{ secrets.ALGOLIA_API_KEY }}
           NODE_OPTIONS: "--max-old-space-size=4096"
         run: |
-          git config --global user.email "corporate-it+weaveworks-docs-bot@weave.works"
-          git config --global user.name "weaveworks-docs-bot"
-          if [ -e yarn.lock ]; then
           yarn install --frozen-lockfile
-          elif [ -e package-lock.json ]; then
-          npm ci
-          else
-          npm i
-          fi
           yarn clear
-          npm run build
+          yarn build
       - id: auth
         uses: google-github-actions/auth@35b0e87d162680511bf346c299f71c9c5c379033 # v1.1.1
         with:
