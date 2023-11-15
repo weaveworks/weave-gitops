@@ -563,7 +563,7 @@ func local_request_Core_ListPolicies_0(ctx context.Context, marshaler runtime.Ma
 	return msg, metadata, err
 }
 
-var filter_Core_GetPolicy_0 = &utilities.DoubleArray{Encoding: map[string]int{"policyName": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
+var filter_Core_GetPolicy_0 = &utilities.DoubleArray{Encoding: map[string]int{"policy_name": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
 
 func request_Core_GetPolicy_0(ctx context.Context, marshaler runtime.Marshaler, client CoreClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
@@ -571,13 +571,13 @@ func request_Core_GetPolicy_0(ctx context.Context, marshaler runtime.Marshaler, 
 		metadata runtime.ServerMetadata
 		err      error
 	)
-	val, ok := pathParams["policyName"]
+	val, ok := pathParams["policy_name"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "policyName")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "policy_name")
 	}
 	protoReq.PolicyName, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "policyName", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "policy_name", err)
 	}
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
@@ -595,13 +595,13 @@ func local_request_Core_GetPolicy_0(ctx context.Context, marshaler runtime.Marsh
 		metadata runtime.ServerMetadata
 		err      error
 	)
-	val, ok := pathParams["policyName"]
+	val, ok := pathParams["policy_name"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "policyName")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "policy_name")
 	}
 	protoReq.PolicyName, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "policyName", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "policy_name", err)
 	}
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
@@ -637,7 +637,7 @@ func local_request_Core_ListPolicyValidations_0(ctx context.Context, marshaler r
 	return msg, metadata, err
 }
 
-var filter_Core_GetPolicyValidation_0 = &utilities.DoubleArray{Encoding: map[string]int{"validationId": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
+var filter_Core_GetPolicyValidation_0 = &utilities.DoubleArray{Encoding: map[string]int{"validation_id": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
 
 func request_Core_GetPolicyValidation_0(ctx context.Context, marshaler runtime.Marshaler, client CoreClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
@@ -645,13 +645,13 @@ func request_Core_GetPolicyValidation_0(ctx context.Context, marshaler runtime.M
 		metadata runtime.ServerMetadata
 		err      error
 	)
-	val, ok := pathParams["validationId"]
+	val, ok := pathParams["validation_id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "validationId")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "validation_id")
 	}
 	protoReq.ValidationId, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "validationId", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "validation_id", err)
 	}
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
@@ -669,13 +669,13 @@ func local_request_Core_GetPolicyValidation_0(ctx context.Context, marshaler run
 		metadata runtime.ServerMetadata
 		err      error
 	)
-	val, ok := pathParams["validationId"]
+	val, ok := pathParams["validation_id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "validationId")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "validation_id")
 	}
 	protoReq.ValidationId, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "validationId", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "validation_id", err)
 	}
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
@@ -1079,7 +1079,7 @@ func RegisterCoreHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/GetPolicy", runtime.WithHTTPPathPattern("/v1/policies/{policyName}"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/GetPolicy", runtime.WithHTTPPathPattern("/v1/policies/{policy_name}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1119,7 +1119,7 @@ func RegisterCoreHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/GetPolicyValidation", runtime.WithHTTPPathPattern("/v1/policyvalidations/{validationId}"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/GetPolicyValidation", runtime.WithHTTPPathPattern("/v1/policyvalidations/{validation_id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1500,7 +1500,7 @@ func RegisterCoreHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/GetPolicy", runtime.WithHTTPPathPattern("/v1/policies/{policyName}"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/GetPolicy", runtime.WithHTTPPathPattern("/v1/policies/{policy_name}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1534,7 +1534,7 @@ func RegisterCoreHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/GetPolicyValidation", runtime.WithHTTPPathPattern("/v1/policyvalidations/{validationId}"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/GetPolicyValidation", runtime.WithHTTPPathPattern("/v1/policyvalidations/{validation_id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1570,9 +1570,9 @@ var (
 	pattern_Core_IsCRDAvailable_0         = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "crd", "is_available"}, ""))
 	pattern_Core_GetInventory_0           = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "inventory"}, ""))
 	pattern_Core_ListPolicies_0           = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "policies"}, ""))
-	pattern_Core_GetPolicy_0              = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "policies", "policyName"}, ""))
+	pattern_Core_GetPolicy_0              = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "policies", "policy_name"}, ""))
 	pattern_Core_ListPolicyValidations_0  = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "policyvalidations"}, ""))
-	pattern_Core_GetPolicyValidation_0    = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "policyvalidations", "validationId"}, ""))
+	pattern_Core_GetPolicyValidation_0    = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "policyvalidations", "validation_id"}, ""))
 )
 
 var (
