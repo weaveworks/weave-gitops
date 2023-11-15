@@ -16,13 +16,14 @@ func (cs *coreServer) ToggleSuspendResource(ctx context.Context, msg *pb.ToggleS
 	respErrors := multierror.Error{}
 
 	for _, obj := range msg.Objects {
-		clustersClient, err := cs.clustersManager.GetImpersonatedClient(ctx, auth.Principal(ctx))
+		clusterName := obj.ClusterName
+		clustersClient, err := cs.clustersManager.GetImpersonatedClient(ctx, principal)
 		if err != nil {
 			respErrors = *multierror.Append(fmt.Errorf("error getting impersonating client: %w", err), respErrors.Errors...)
 			continue
 		}
 
-		c, err := clustersClient.Scoped(obj.ClusterName)
+		c, err := clustersClient.Scoped(clusterName)
 		if err != nil {
 			respErrors = *multierror.Append(fmt.Errorf("getting cluster client: %w", err), respErrors.Errors...)
 			continue
@@ -46,6 +47,8 @@ func (cs *coreServer) ToggleSuspendResource(ctx context.Context, msg *pb.ToggleS
 			"kind", obj.GroupVersionKind().Kind,
 			"name", key.Name,
 			"namespace", key.Namespace,
+			"principal", principal.ID,
+			"cluster", clusterName,
 		)
 
 		if err := c.Get(ctx, key, obj.AsClientObject()); err != nil {
