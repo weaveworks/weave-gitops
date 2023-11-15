@@ -105,7 +105,7 @@ func TestSuspend_Suspend(t *testing.T) {
 			g.Expect(err).NotTo(HaveOccurred())
 			name := types.NamespacedName{Name: tt.obj.GetName(), Namespace: ns.Name}
 
-			unstructuredObj := getUnstructuredObj(t, k, name, tt.obj, tt.kind, tt.apiVersion)
+			unstructuredObj := getUnstructuredObj(t, k, name, tt.kind, tt.apiVersion)
 			suspendVal, _, err := unstructured.NestedBool(unstructuredObj.Object, "spec", "suspend")
 			g.Expect(err).NotTo(HaveOccurred())
 			g.Expect(suspendVal).To(BeTrue())
@@ -130,13 +130,12 @@ func TestSuspend_Suspend(t *testing.T) {
 
 		for _, tt := range tests {
 			name := types.NamespacedName{Name: tt.obj.GetName(), Namespace: ns.Name}
-			unstructuredObj := getUnstructuredObj(t, k, name, tt.obj, tt.kind, tt.apiVersion)
+			unstructuredObj := getUnstructuredObj(t, k, name, tt.kind, tt.apiVersion)
 			suspendVal, _, err := unstructured.NestedBool(unstructuredObj.Object, "spec", "suspend")
 			g.Expect(err).NotTo(HaveOccurred())
 			g.Expect(suspendVal).To(BeFalse())
 
 			checkSuspendAnnotations(t, principalID, unstructuredObj.GetAnnotations(), name, suspendVal)
-
 		}
 	})
 
@@ -161,7 +160,7 @@ func TestSuspend_Suspend(t *testing.T) {
 	})
 }
 
-func getUnstructuredObj(t *testing.T, k client.Client, name types.NamespacedName, obj client.Object, kind, apiVersion string) *unstructured.Unstructured {
+func getUnstructuredObj(t *testing.T, k client.Client, name types.NamespacedName, kind, apiVersion string) *unstructured.Unstructured {
 	unstructuredObj := &unstructured.Unstructured{}
 	unstructuredObj.SetKind(kind)
 	unstructuredObj.SetAPIVersion(apiVersion)
