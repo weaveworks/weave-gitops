@@ -221,7 +221,7 @@ service Core {
     // GetPolicy gets a policy by name
     rpc GetPolicy(GetPolicyRequest) returns (GetPolicyResponse) {
         option (google.api.http) = {
-        get : "/v1/policies/{policyName}"
+        get : "/v1/policies/{policy_name}"
         };
     }
     /*
@@ -241,7 +241,7 @@ service Core {
     rpc GetPolicyValidation(GetPolicyValidationRequest)
         returns (GetPolicyValidationResponse) {
         option (google.api.http) = {
-        get : "/v1/policyvalidations/{validationId}"
+        get : "/v1/policyvalidations/{validation_id}"
         };
     }
 }
