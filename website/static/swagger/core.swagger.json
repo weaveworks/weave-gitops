@@ -68,7 +68,7 @@
     "/v1/crds/{name}/is-available": {
       "get": {
         "summary": "Check which clusters have a given CRD installed",
-        "description": "Returns a hashmap where the keys are the names of\nthe clusters, and the value is a boolean indicating whether given CRD is\ninstalled or not on that cluster.",
+        "description": "Returns a map where the keys are cluster names, and the value is a boolean indicating\nwhether the given `CustomResourceDefinition` resource is available on that cluster.",
         "operationId": "Core_IsCRDAvailable",
         "responses": {
           "200": {
@@ -87,7 +87,7 @@
         "parameters": [
           {
             "name": "name",
-            "description": "The name of the CRD to check availability for.\ne.g. `imageupdateautomations.image.toolkit.fluxcd.io` or `gitopssets.templates.weave.works`",
+            "description": "The name of the `CustomResourceDefinition` to check availability for across clusters.\ne.g. `imageupdateautomations.image.toolkit.fluxcd.io` or `gitopssets.templates.weave.works`",
             "in": "path",
             "required": true,
             "type": "string"
@@ -98,7 +98,7 @@
     "/v1/feature-flags": {
       "get": {
         "summary": "Get feature flags",
-        "description": "New features are sometimes hidden behind feature flags. This endpoint\nreturns a list of feature flags and their values.",
+        "description": "Return infomation about what features and configuration options are enabled on the server.\n\nNew features are sometimes hidden behind feature flags. Other features (e.g. OIDC) can be enabled/disabled.",
         "operationId": "Core_GetFeatureFlags",
         "responses": {
           "200": {
@@ -391,6 +391,7 @@
     "/v1/policies": {
       "get": {
         "summary": "List policies available across all clusters",
+        "description": "This will return all the `Policy` custom resources that are available across all clusters.",
         "operationId": "Core_ListPolicies",
         "responses": {
           "200": {
@@ -417,7 +418,7 @@
           },
           {
             "name": "pagination.pageToken",
-            "description": "a composite token used to retrieve the next page of results across all clusters",
+            "description": "a composite token used to retrieve the next page of results across all clusters\nthis is availble in the response as `nextPageToken`",
             "in": "query",
             "required": false,
             "type": "string"
@@ -431,6 +432,7 @@
     "/v1/policies/{name}": {
       "get": {
         "summary": "Gets a policy",
+        "description": "Get a `Policy` custom resource by name and cluster.",
         "operationId": "Core_GetPolicy",
         "responses": {
           "200": {
@@ -504,7 +506,7 @@
           },
           {
             "name": "pagination.pageToken",
-            "description": "a composite token used to retrieve the next page of results across all clusters",
+            "description": "a composite token used to retrieve the next page of results across all clusters\nthis is availble in the response as `nextPageToken`",
             "in": "query",
             "required": false,
             "type": "string"
@@ -1384,7 +1386,7 @@
         },
         "pageToken": {
           "type": "string",
-          "title": "a composite token used to retrieve the next page of results across all clusters"
+          "title": "a composite token used to retrieve the next page of results across all clusters\nthis is availble in the response as `nextPageToken`"
         }
       }
     },

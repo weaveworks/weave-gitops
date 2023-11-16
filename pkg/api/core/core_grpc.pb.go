@@ -68,8 +68,9 @@ type CoreClient interface {
 	GetVersion(ctx context.Context, in *GetVersionRequest, opts ...grpc.CallOption) (*GetVersionResponse, error)
 	// Get feature flags
 	//
-	// New features are sometimes hidden behind feature flags. This endpoint
-	// returns a list of feature flags and their values.
+	// Return infomation about what features and configuration options are enabled on the server.
+	//
+	// New features are sometimes hidden behind feature flags. Other features (e.g. OIDC) can be enabled/disabled.
 	GetFeatureFlags(ctx context.Context, in *GetFeatureFlagsRequest, opts ...grpc.CallOption) (*GetFeatureFlagsResponse, error)
 	// Suspend or resume reconciling multiple Flux objects
 	//
@@ -84,9 +85,8 @@ type CoreClient interface {
 	GetSessionLogs(ctx context.Context, in *GetSessionLogsRequest, opts ...grpc.CallOption) (*GetSessionLogsResponse, error)
 	// Check which clusters have a given CRD installed
 	//
-	// Returns a hashmap where the keys are the names of
-	// the clusters, and the value is a boolean indicating whether given CRD is
-	// installed or not on that cluster.
+	// Returns a map where the keys are cluster names, and the value is a boolean indicating
+	// whether the given `CustomResourceDefinition` resource is available on that cluster.
 	IsCRDAvailable(ctx context.Context, in *IsCRDAvailableRequest, opts ...grpc.CallOption) (*IsCRDAvailableResponse, error)
 	// Get the inventory of an object
 	//
@@ -96,8 +96,12 @@ type CoreClient interface {
 	// The response includes the full kubernetes resource for each inventory item.
 	GetInventory(ctx context.Context, in *GetInventoryRequest, opts ...grpc.CallOption) (*GetInventoryResponse, error)
 	// List policies available across all clusters
+	//
+	// This will return all the `Policy` custom resources that are available across all clusters.
 	ListPolicies(ctx context.Context, in *ListPoliciesRequest, opts ...grpc.CallOption) (*ListPoliciesResponse, error)
 	// Gets a policy
+	//
+	// Get a `Policy` custom resource by name and cluster.
 	GetPolicy(ctx context.Context, in *GetPolicyRequest, opts ...grpc.CallOption) (*GetPolicyResponse, error)
 	// Lists policy validations across all clusters
 	//
@@ -333,8 +337,9 @@ type CoreServer interface {
 	GetVersion(context.Context, *GetVersionRequest) (*GetVersionResponse, error)
 	// Get feature flags
 	//
-	// New features are sometimes hidden behind feature flags. This endpoint
-	// returns a list of feature flags and their values.
+	// Return infomation about what features and configuration options are enabled on the server.
+	//
+	// New features are sometimes hidden behind feature flags. Other features (e.g. OIDC) can be enabled/disabled.
 	GetFeatureFlags(context.Context, *GetFeatureFlagsRequest) (*GetFeatureFlagsResponse, error)
 	// Suspend or resume reconciling multiple Flux objects
 	//
@@ -349,9 +354,8 @@ type CoreServer interface {
 	GetSessionLogs(context.Context, *GetSessionLogsRequest) (*GetSessionLogsResponse, error)
 	// Check which clusters have a given CRD installed
 	//
-	// Returns a hashmap where the keys are the names of
-	// the clusters, and the value is a boolean indicating whether given CRD is
-	// installed or not on that cluster.
+	// Returns a map where the keys are cluster names, and the value is a boolean indicating
+	// whether the given `CustomResourceDefinition` resource is available on that cluster.
 	IsCRDAvailable(context.Context, *IsCRDAvailableRequest) (*IsCRDAvailableResponse, error)
 	// Get the inventory of an object
 	//
@@ -361,8 +365,12 @@ type CoreServer interface {
 	// The response includes the full kubernetes resource for each inventory item.
 	GetInventory(context.Context, *GetInventoryRequest) (*GetInventoryResponse, error)
 	// List policies available across all clusters
+	//
+	// This will return all the `Policy` custom resources that are available across all clusters.
 	ListPolicies(context.Context, *ListPoliciesRequest) (*ListPoliciesResponse, error)
 	// Gets a policy
+	//
+	// Get a `Policy` custom resource by name and cluster.
 	GetPolicy(context.Context, *GetPolicyRequest) (*GetPolicyResponse, error)
 	// Lists policy validations across all clusters
 	//

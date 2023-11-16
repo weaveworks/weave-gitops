@@ -799,6 +799,7 @@ type Pagination struct {
 	// controls the number of results per page from each cluster
 	PageSize int32 `protobuf:"varint,1,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 	// a composite token used to retrieve the next page of results across all clusters
+	// this is availble in the response as `nextPageToken`
 	PageToken string `protobuf:"bytes,2,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
 }
 
@@ -2584,7 +2585,7 @@ type IsCRDAvailableRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// The name of the CRD to check availability for.
+	// The name of the `CustomResourceDefinition` to check availability for across clusters.
 	// e.g. `imageupdateautomations.image.toolkit.fluxcd.io` or `gitopssets.templates.weave.works`
 	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 }

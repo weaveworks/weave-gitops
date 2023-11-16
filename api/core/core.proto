@@ -178,8 +178,9 @@ service Core {
     /*
      * Get feature flags
      *
-     * New features are sometimes hidden behind feature flags. This endpoint
-     * returns a list of feature flags and their values.
+     * Return infomation about what features and configuration options are enabled on the server.
+     *
+     * New features are sometimes hidden behind feature flags. Other features (e.g. OIDC) can be enabled/disabled.
      */
     rpc GetFeatureFlags(GetFeatureFlagsRequest) returns (GetFeatureFlagsResponse) {
         option (google.api.http) = {
@@ -222,9 +223,8 @@ service Core {
     /*
      * Check which clusters have a given CRD installed
      *
-     * Returns a hashmap where the keys are the names of
-     * the clusters, and the value is a boolean indicating whether given CRD is
-     * installed or not on that cluster.
+     * Returns a map where the keys are cluster names, and the value is a boolean indicating
+     * whether the given `CustomResourceDefinition` resource is available on that cluster.
      */
     rpc IsCRDAvailable(IsCRDAvailableRequest) returns (IsCRDAvailableResponse) {
         option (google.api.http) = {
@@ -249,6 +249,8 @@ service Core {
 
     /*
      * List policies available across all clusters
+     *
+     * This will return all the `Policy` custom resources that are available across all clusters.
      */
     rpc ListPolicies(ListPoliciesRequest) returns (ListPoliciesResponse) {
         option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["policy"]; };
@@ -259,6 +261,8 @@ service Core {
 
     /*
      * Gets a policy
+     *
+     * Get a `Policy` custom resource by name and cluster.
      */
     rpc GetPolicy(GetPolicyRequest) returns (GetPolicyResponse) {
         option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["policy"]; };
@@ -384,6 +388,7 @@ message Pagination {
     // controls the number of results per page from each cluster
     int32  page_size  = 1;
     // a composite token used to retrieve the next page of results across all clusters
+    // this is availble in the response as `nextPageToken`
     string page_token = 2;
 }
 
@@ -546,7 +551,7 @@ message GetSessionLogsResponse {
 }
 
 message IsCRDAvailableRequest {
-    // The name of the CRD to check availability for.
+    // The name of the `CustomResourceDefinition` to check availability for across clusters.
     // e.g. `imageupdateautomations.image.toolkit.fluxcd.io` or `gitopssets.templates.weave.works`
     string name = 1;
 }
