@@ -5,11 +5,6 @@
     "description": "The API handles operations for Weave GitOps Pipelines",
     "version": "0.1"
   },
-  "tags": [
-    {
-      "name": "Pipelines"
-    }
-  ],
   "consumes": [
     "application/json"
   ],
@@ -42,9 +37,6 @@
             "required": false,
             "type": "string"
           }
-        ],
-        "tags": [
-          "Pipelines"
         ]
       }
     },
@@ -92,9 +84,6 @@
               }
             }
           }
-        ],
-        "tags": [
-          "Pipelines"
         ]
       }
     },
@@ -136,9 +125,6 @@
               }
             }
           }
-        ],
-        "tags": [
-          "Pipelines"
         ]
       }
     },
@@ -173,9 +159,6 @@
             "required": false,
             "type": "string"
           }
-        ],
-        "tags": [
-          "Pipelines"
         ]
       }
     }

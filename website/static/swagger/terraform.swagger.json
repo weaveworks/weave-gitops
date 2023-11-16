@@ -5,11 +5,6 @@
     "description": "The API handles resources for the Terraform controller",
     "version": "0.1"
   },
-  "tags": [
-    {
-      "name": "Terraform"
-    }
-  ],
   "consumes": [
     "application/json"
   ],
@@ -60,9 +55,6 @@
             "required": false,
             "type": "string"
           }
-        ],
-        "tags": [
-          "Terraform"
         ]
       }
     },
@@ -103,9 +95,6 @@
             "required": false,
             "type": "string"
           }
-        ],
-        "tags": [
-          "Terraform"
         ]
       }
     },
@@ -153,9 +142,6 @@
               }
             }
           }
-        ],
-        "tags": [
-          "Terraform"
         ]
       }
     },
@@ -203,9 +189,6 @@
             "required": false,
             "type": "string"
           }
-        ],
-        "tags": [
-          "Terraform"
         ]
       }
     },
@@ -236,9 +219,6 @@
               "$ref": "#/definitions/v1ToggleSuspendTerraformObjectsRequest"
             }
           }
-        ],
-        "tags": [
-          "Terraform"
         ]
       }
     },
@@ -269,9 +249,6 @@
               "$ref": "#/definitions/v1SyncTerraformObjectsRequest"
             }
           }
-        ],
-        "tags": [
-          "Terraform"
         ]
       }
     }

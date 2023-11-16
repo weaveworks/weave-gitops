@@ -5,11 +5,6 @@
     "description": "Weave Gitops Enterprise GitAuth API handles authentication via Github and Gitlab",
     "version": "0.1"
   },
-  "tags": [
-    {
-      "name": "GitAuth"
-    }
-  ],
   "consumes": [
     "gitauth/json"
   ],
@@ -57,9 +52,6 @@
               }
             }
           }
-        ],
-        "tags": [
-          "GitAuth"
         ]
       }
     },
@@ -89,9 +81,6 @@
             "required": false,
             "type": "string"
           }
-        ],
-        "tags": [
-          "GitAuth"
         ]
       }
     },
@@ -123,9 +112,6 @@
               "$ref": "#/definitions/v1AuthorizeAzureDevOpsRequest"
             }
           }
-        ],
-        "tags": [
-          "GitAuth"
         ]
       }
     },
@@ -155,9 +141,6 @@
             "required": false,
             "type": "string"
           }
-        ],
-        "tags": [
-          "GitAuth"
         ]
       }
     },
@@ -189,9 +172,6 @@
               "$ref": "#/definitions/v1AuthorizeBitbucketServerRequest"
             }
           }
-        ],
-        "tags": [
-          "GitAuth"
         ]
       }
     },
@@ -213,10 +193,7 @@
               "$ref": "#/definitions/rpcStatus"
             }
           }
-        },
-        "tags": [
-          "GitAuth"
-        ]
+        }
       }
     },
     "/v1/gitauth/auth-providers/github/status": {
@@ -247,9 +224,6 @@
               "$ref": "#/definitions/v1GetGithubAuthStatusRequest"
             }
           }
-        ],
-        "tags": [
-          "GitAuth"
         ]
       }
     },
@@ -280,9 +254,6 @@
             "required": false,
             "type": "string"
           }
-        ],
-        "tags": [
-          "GitAuth"
         ]
       }
     },
@@ -314,9 +285,6 @@
               "$ref": "#/definitions/v1AuthorizeGitlabRequest"
             }
           }
-        ],
-        "tags": [
-          "GitAuth"
         ]
       }
     },
@@ -346,9 +314,6 @@
             "required": false,
             "type": "string"
           }
-        ],
-        "tags": [
-          "GitAuth"
         ]
       }
     },
@@ -379,9 +344,6 @@
               "$ref": "#/definitions/v1ValidateProviderTokenRequest"
             }
           }
-        ],
-        "tags": [
-          "GitAuth"
         ]
       }
     }

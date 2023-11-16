@@ -7,7 +7,8 @@
   },
   "tags": [
     {
-      "name": "Core"
+      "name": "default",
+      "description": "system endpoints"
     },
     {
       "name": "objects",
@@ -109,16 +110,13 @@
               "$ref": "#/definitions/rpcStatus"
             }
           }
-        },
-        "tags": [
-          "Core"
-        ]
+        }
       }
     },
     "/v1/flux/crds": {
       "get": {
         "summary": "Lists the Flux CRDs across all clusters",
-        "description": "Determine which flux CRDs are installed and their versions",
+        "description": "Determine which flux CRDs are installed on which clusters and at what version.",
         "operationId": "Core_ListFluxCrds",
         "responses": {
           "200": {
@@ -141,9 +139,6 @@
             "required": false,
             "type": "string"
           }
-        ],
-        "tags": [
-          "Core"
         ]
       }
     },
@@ -179,15 +174,13 @@
             "required": false,
             "type": "string"
           }
-        ],
-        "tags": [
-          "Core"
         ]
       }
     },
     "/v1/namespaces/{namespace}/objects/{kind}/{name}": {
       "get": {
         "summary": "Get details of an object",
+        "description": "Kind is used as the primary identifier rather than GroupVersionKind\n\nSupported kinds are:\n\n - some of the base Kubernetes groups including core (e.g. `ConfigMap`) and apps (e.g. `Deployment`)\n - All the of the Flux Custom Resource kinds e.g. (`GitRepository`, `HelmRelease`, `Kustomization`, `ImageAutomation`)\n - If using enterprise, `GitOpsSet` and `AutomatedClusterDiscovery` are also available",
         "operationId": "Core_GetObject",
         "responses": {
           "200": {
@@ -237,6 +230,7 @@
     "/v1/namespaces/{namespace}/objects/{kind}/{name}/events": {
       "get": {
         "summary": "List events for an object",
+        "description": "Kind is used as the primary identifier rather than GroupVersionKind\n\nSupported kinds are:\n\n - some of the base Kubernetes groups including core (e.g. `ConfigMap`) and apps (e.g. `Deployment`)\n - All the of the Flux Custom Resource kinds e.g. (`GitRepository`, `HelmRelease`, `Kustomization`, `ImageAutomation`)\n - If using enterprise, `GitOpsSet` and `AutomatedClusterDiscovery` are also available",
         "operationId": "Core_ListEvents",
         "responses": {
           "200": {
@@ -286,7 +280,7 @@
     "/v1/namespaces/{namespace}/objects/{kind}/{name}/inventory": {
       "get": {
         "summary": "Get the inventory of an object",
-        "description": "Only works for resources that have an inventory e.g. Kustomization,\nHelmRelease, GitOpsSet.",
+        "description": "Kind is used as the primary identifier rather than GroupVersionKind\n\nSupported kinds are:\n\n - some of the base Kubernetes groups including core (e.g. `ConfigMap`) and apps (e.g. `Deployment`)\n - All the of the Flux Custom Resource kinds e.g. (`GitRepository`, `HelmRelease`, `Kustomization`, `ImageAutomation`)\n - If using enterprise, `GitOpsSet` and `AutomatedClusterDiscovery` are also available",
         "operationId": "Core_GetInventory",
         "responses": {
           "200": {
@@ -342,6 +336,7 @@
     "/v1/objects/{kind}": {
       "get": {
         "summary": "List objects of kind across all clusters",
+        "description": "Kind is used as the primary identifier rather than GroupVersionKind\n\nSupported kinds are:\n\n - some of the base Kubernetes groups including core (e.g. `ConfigMap`) and apps (e.g. `Deployment`)\n - All the of the Flux Custom Resource kinds e.g. (`GitRepository`, `HelmRelease`, `Kustomization`, `ImageAutomation`)\n - If using enterprise, `GitOpsSet` and `AutomatedClusterDiscovery` are also available",
         "operationId": "Core_ListObjects",
         "responses": {
           "200": {
@@ -360,7 +355,6 @@
         "parameters": [
           {
             "name": "kind",
-            "description": "A flux object kind e.g. `Kustomization` or `GitRepository` etc",
             "in": "path",
             "required": true,
             "type": "string"
@@ -391,7 +385,7 @@
     },
     "/v1/policies": {
       "get": {
-        "summary": "List policies available on a cluster",
+        "summary": "List policies available across all clusters",
         "operationId": "Core_ListPolicies",
         "responses": {
           "200": {
@@ -410,6 +404,7 @@
         "parameters": [
           {
             "name": "pagination.pageSize",
+            "description": "controls the number of results per page from each cluster",
             "in": "query",
             "required": false,
             "type": "integer",
@@ -417,13 +412,11 @@
           },
           {
             "name": "pagination.pageToken",
+            "description": "a composite token used to retrieve the next page of results across all clusters",
             "in": "query",
             "required": false,
             "type": "string"
           }
-        ],
-        "tags": [
-          "Core"
         ]
       }
     },
@@ -448,25 +441,25 @@
         "parameters": [
           {
             "name": "name",
+            "description": "The name of the `Policy` resource to retrieve.",
             "in": "path",
             "required": true,
             "type": "string"
           },
           {
             "name": "clusterName",
+            "description": "The name of the cluster to retrieve the policy from. Default is the cluster running the API server.",
             "in": "query",
             "required": false,
             "type": "string"
           }
-        ],
-        "tags": [
-          "Core"
         ]
       }
     },
     "/v1/policy-validations": {
       "get": {
-        "summary": "Lists policy validations",
+        "summary": "Lists policy validations across all clusters",
+        "description": "Can be filtered by a few different properties of the `involvedObject`",
         "operationId": "Core_ListPolicyValidations",
         "responses": {
           "200": {
@@ -485,12 +478,14 @@
         "parameters": [
           {
             "name": "clusterName",
+            "description": "filter for validations on a particular cluster",
             "in": "query",
             "required": false,
             "type": "string"
           },
           {
             "name": "pagination.pageSize",
+            "description": "controls the number of results per page from each cluster",
             "in": "query",
             "required": false,
             "type": "integer",
@@ -498,49 +493,53 @@
           },
           {
             "name": "pagination.pageToken",
+            "description": "a composite token used to retrieve the next page of results across all clusters",
             "in": "query",
             "required": false,
             "type": "string"
           },
           {
             "name": "application",
+            "description": "filter by `involvedObject.name`",
             "in": "query",
             "required": false,
             "type": "string"
           },
           {
             "name": "namespace",
+            "description": "filter by `involvedObject.namespace`",
             "in": "query",
             "required": false,
             "type": "string"
           },
           {
             "name": "kind",
+            "description": "filter by `involvedObject.kind`",
             "in": "query",
             "required": false,
             "type": "string"
           },
           {
             "name": "policyId",
+            "description": "filter by id of the policy that triggered the validation",
             "in": "query",
             "required": false,
             "type": "string"
           },
           {
             "name": "validationType",
+            "description": "filter for validation types of `Admission` or `Audit`",
             "in": "query",
             "required": false,
             "type": "string"
           }
-        ],
-        "tags": [
-          "Core"
         ]
       }
     },
     "/v1/policy-validations/{validationId}": {
       "get": {
         "summary": "Gets a policy validation",
+        "description": "Given a specific validation id, returns the validation details.",
         "operationId": "Core_GetPolicyValidation",
         "responses": {
           "200": {
@@ -559,6 +558,7 @@
         "parameters": [
           {
             "name": "validationId",
+            "description": "The id of the validation.\nThis is often obtained from:\n- from the list policy validations endpoint.\n- from `Event` objects raised by the policy-agent",
             "in": "path",
             "required": true,
             "type": "string"
@@ -575,9 +575,6 @@
             "required": false,
             "type": "string"
           }
-        ],
-        "tags": [
-          "Core"
         ]
       }
     },
@@ -706,6 +703,7 @@
     "/v1/sync": {
       "patch": {
         "summary": "Trigger reconciliation of multiple Flux objects",
+        "description": "if `withSource` is true the dependent Source resource will be synced too.\nSyncing a Kustomization `withSource` will sync an attached GitRepository.",
         "operationId": "Core_SyncFluxObject",
         "responses": {
           "200": {
@@ -739,6 +737,7 @@
     "/v1/version": {
       "get": {
         "summary": "Get version information about the server",
+        "description": "Version information about weave-gitops including when the runninng server was built, the git commit and the git tag.\nAlso return the kubernetes version of the cluster running weave-gitops.",
         "operationId": "Core_GetVersion",
         "responses": {
           "200": {
@@ -753,10 +752,7 @@
               "$ref": "#/definitions/rpcStatus"
             }
           }
-        },
-        "tags": [
-          "Core"
-        ]
+        }
       }
     }
   },
@@ -781,7 +777,7 @@
         }
       },
       "additionalProperties": {},
-      "description": "`Any` contains an arbitrary serialized protocol buffer message along with a\nURL that describes the type of the serialized message.\n\nProtobuf library provides support to pack/unpack Any values in the form\nof utility functions or additional generated methods of the Any type.\n\nExample 1: Pack and unpack a message in C++.\n\n    Foo foo = ...;\n    Any any;\n    any.PackFrom(foo);\n    ...\n    if (any.UnpackTo(\u0026foo)) {\n      ...\n    }\n\nExample 2: Pack and unpack a message in Java.\n\n    Foo foo = ...;\n    Any any = Any.pack(foo);\n    ...\n    if (any.is(Foo.class)) {\n      foo = any.unpack(Foo.class);\n    }\n\n Example 3: Pack and unpack a message in Python.\n\n    foo = Foo(...)\n    any = Any()\n    any.Pack(foo)\n    ...\n    if any.Is(Foo.DESCRIPTOR):\n      any.Unpack(foo)\n      ...\n\n Example 4: Pack and unpack a message in Go\n\n     foo := \u0026pb.Foo{...}\n     any, err := anypb.New(foo)\n     if err != nil {\n       ...\n     }\n     ...\n     foo := \u0026pb.Foo{}\n     if err := any.UnmarshalTo(foo); err != nil {\n       ...\n     }\n\nThe pack methods provided by protobuf library will by default use\n'type.googleapis.com/full.type.name' as the type URL and the unpack\nmethods only use the fully qualified type name after the last '/'\nin the type URL, for example \"foo.bar.com/x/y.z\" will yield type\nname \"y.z\".\n\n\nJSON\n====\nThe JSON representation of an `Any` value uses the regular\nrepresentation of the deserialized, embedded message, with an\nadditional field `@type` which contains the type URL. Example:\n\n    package google.profile;\n    message Person {\n      string first_name = 1;\n      string last_name = 2;\n    }\n\n    {\n      \"@type\": \"type.googleapis.com/google.profile.Person\",\n      \"firstName\": \u003cstring\u003e,\n      \"lastName\": \u003cstring\u003e\n    }\n\nIf the embedded message type is well-known and has a custom JSON\nrepresentation, that representation will be embedded adding a field\n`value` which holds the custom JSON in addition to the `@type`\nfield. Example (for message [google.protobuf.Duration][]):\n\n    {\n      \"@type\": \"type.googleapis.com/google.protobuf.Duration\",\n      \"value\": \"1.212s\"\n    }"
+      "description": "`Any` contains an arbitrary serialized protocol buffer message along with a\nURL that describes the type of the serialized message.\n\nProtobuf library provides support to pack/unpack Any values in the form\nof utility functions or additional generated methods of the Any type.\n\nExample 1: Pack and unpack a message in C++.\n\n    Foo foo = ...;\n    Any any;\n    any.PackFrom(foo);\n    ...\n    if (any.UnpackTo(\u0026foo)) {\n      ...\n    }\n\nExample 2: Pack and unpack a message in Java.\n\n    Foo foo = ...;\n    Any any = Any.pack(foo);\n    ...\n    if (any.is(Foo.class)) {\n      foo = any.unpack(Foo.class);\n    }\n    // or ...\n    if (any.isSameTypeAs(Foo.getDefaultInstance())) {\n      foo = any.unpack(Foo.getDefaultInstance());\n    }\n\nExample 3: Pack and unpack a message in Python.\n\n    foo = Foo(...)\n    any = Any()\n    any.Pack(foo)\n    ...\n    if any.Is(Foo.DESCRIPTOR):\n      any.Unpack(foo)\n      ...\n\nExample 4: Pack and unpack a message in Go\n\n     foo := \u0026pb.Foo{...}\n     any, err := anypb.New(foo)\n     if err != nil {\n       ...\n     }\n     ...\n     foo := \u0026pb.Foo{}\n     if err := any.UnmarshalTo(foo); err != nil {\n       ...\n     }\n\nThe pack methods provided by protobuf library will by default use\n'type.googleapis.com/full.type.name' as the type URL and the unpack\nmethods only use the fully qualified type name after the last '/'\nin the type URL, for example \"foo.bar.com/x/y.z\" will yield type\nname \"y.z\".\n\nJSON\n\nThe JSON representation of an `Any` value uses the regular\nrepresentation of the deserialized, embedded message, with an\nadditional field `@type` which contains the type URL. Example:\n\n    package google.profile;\n    message Person {\n      string first_name = 1;\n      string last_name = 2;\n    }\n\n    {\n      \"@type\": \"type.googleapis.com/google.profile.Person\",\n      \"firstName\": \u003cstring\u003e,\n      \"lastName\": \u003cstring\u003e\n    }\n\nIf the embedded message type is well-known and has a custom JSON\nrepresentation, that representation will be embedded adding a field\n`value` which holds the custom JSON in addition to the `@type`\nfield. Example (for message [google.protobuf.Duration][]):\n\n    {\n      \"@type\": \"type.googleapis.com/google.protobuf.Duration\",\n      \"value\": \"1.212s\"\n    }"
     },
     "rpcStatus": {
       "type": "object",
@@ -955,6 +951,11 @@
     },
     "v1GetFeatureFlagsResponse": {
       "type": "object",
+      "example": {
+        "flags": {
+          "WEAVE_GITOPS_FEATURE_TENANCY": "true"
+        }
+      },
       "properties": {
         "flags": {
           "type": "object",
@@ -1358,10 +1359,12 @@
       "properties": {
         "pageSize": {
           "type": "integer",
-          "format": "int32"
+          "format": "int32",
+          "title": "controls the number of results per page from each cluster"
         },
         "pageToken": {
-          "type": "string"
+          "type": "string",
+          "title": "a composite token used to retrieve the next page of results across all clusters"
         }
       }
     },
@@ -1602,8 +1605,7 @@
           }
         },
         "withSource": {
-          "type": "boolean",
-          "description": "with_source is true the dependent Source resource will be synced too\nsyncing a Kustomization with_source will sync an attached GitRepository."
+          "type": "boolean"
         }
       }
     },

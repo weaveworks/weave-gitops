@@ -19,8 +19,12 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type CoreClient interface {
 	// Get details of an object
+	//
+	// {{ import "api/core/doc/object-kind.md" }}
 	GetObject(ctx context.Context, in *GetObjectRequest, opts ...grpc.CallOption) (*GetObjectResponse, error)
 	// List objects of kind across all clusters
+	//
+	// {{ import "api/core/doc/object-kind.md" }}
 	ListObjects(ctx context.Context, in *ListObjectsRequest, opts ...grpc.CallOption) (*ListObjectsResponse, error)
 	// Lists the Flux runtime deployments across all clusters
 	//
@@ -28,7 +32,7 @@ type CoreClient interface {
 	ListFluxRuntimeObjects(ctx context.Context, in *ListFluxRuntimeObjectsRequest, opts ...grpc.CallOption) (*ListFluxRuntimeObjectsResponse, error)
 	// Lists the Flux CRDs across all clusters
 	//
-	// Determine which flux CRDs are installed and their versions
+	// Determine which flux CRDs are installed on which clusters and at what version.
 	ListFluxCrds(ctx context.Context, in *ListFluxCrdsRequest, opts ...grpc.CallOption) (*ListFluxCrdsResponse, error)
 	// Get the list of objects that were created as a result of reconciling a Flux automation.
 	//
@@ -42,10 +46,18 @@ type CoreClient interface {
 	// has a child ReplicaSet, but a Service has no child objects.
 	GetChildObjects(ctx context.Context, in *GetChildObjectsRequest, opts ...grpc.CallOption) (*GetChildObjectsResponse, error)
 	// List events for an object
+	//
+	// {{ import "api/core/doc/object-kind.md" }}
 	ListEvents(ctx context.Context, in *ListEventsRequest, opts ...grpc.CallOption) (*ListEventsResponse, error)
 	// Trigger reconciliation of multiple Flux objects
+	//
+	// if `withSource` is true the dependent Source resource will be synced too.
+	// Syncing a Kustomization `withSource` will sync an attached GitRepository.
 	SyncFluxObject(ctx context.Context, in *SyncFluxObjectRequest, opts ...grpc.CallOption) (*SyncFluxObjectResponse, error)
 	// Get version information about the server
+	//
+	// Version information about weave-gitops including when the runninng server was built, the git commit and the git tag.
+	// Also return the kubernetes version of the cluster running weave-gitops.
 	GetVersion(ctx context.Context, in *GetVersionRequest, opts ...grpc.CallOption) (*GetVersionResponse, error)
 	// Get feature flags
 	//
@@ -64,16 +76,19 @@ type CoreClient interface {
 	IsCRDAvailable(ctx context.Context, in *IsCRDAvailableRequest, opts ...grpc.CallOption) (*IsCRDAvailableResponse, error)
 	// Get the inventory of an object
 	//
-	// Only works for resources that have an inventory e.g. Kustomization,
-	// HelmRelease, GitOpsSet.
+	// {{ import "api/core/doc/object-kind.md" }}
 	GetInventory(ctx context.Context, in *GetInventoryRequest, opts ...grpc.CallOption) (*GetInventoryResponse, error)
-	// List policies available on a cluster
+	// List policies available across all clusters
 	ListPolicies(ctx context.Context, in *ListPoliciesRequest, opts ...grpc.CallOption) (*ListPoliciesResponse, error)
 	// Gets a policy
 	GetPolicy(ctx context.Context, in *GetPolicyRequest, opts ...grpc.CallOption) (*GetPolicyResponse, error)
-	// Lists policy validations
+	// Lists policy validations across all clusters
+	//
+	// Can be filtered by a few different properties of the `involvedObject`
 	ListPolicyValidations(ctx context.Context, in *ListPolicyValidationsRequest, opts ...grpc.CallOption) (*ListPolicyValidationsResponse, error)
 	// Gets a policy validation
+	//
+	// Given a specific validation id, returns the validation details.
 	GetPolicyValidation(ctx context.Context, in *GetPolicyValidationRequest, opts ...grpc.CallOption) (*GetPolicyValidationResponse, error)
 }
 
@@ -252,8 +267,12 @@ func (c *coreClient) GetPolicyValidation(ctx context.Context, in *GetPolicyValid
 // for forward compatibility
 type CoreServer interface {
 	// Get details of an object
+	//
+	// {{ import "api/core/doc/object-kind.md" }}
 	GetObject(context.Context, *GetObjectRequest) (*GetObjectResponse, error)
 	// List objects of kind across all clusters
+	//
+	// {{ import "api/core/doc/object-kind.md" }}
 	ListObjects(context.Context, *ListObjectsRequest) (*ListObjectsResponse, error)
 	// Lists the Flux runtime deployments across all clusters
 	//
@@ -261,7 +280,7 @@ type CoreServer interface {
 	ListFluxRuntimeObjects(context.Context, *ListFluxRuntimeObjectsRequest) (*ListFluxRuntimeObjectsResponse, error)
 	// Lists the Flux CRDs across all clusters
 	//
-	// Determine which flux CRDs are installed and their versions
+	// Determine which flux CRDs are installed on which clusters and at what version.
 	ListFluxCrds(context.Context, *ListFluxCrdsRequest) (*ListFluxCrdsResponse, error)
 	// Get the list of objects that were created as a result of reconciling a Flux automation.
 	//
@@ -275,10 +294,18 @@ type CoreServer interface {
 	// has a child ReplicaSet, but a Service has no child objects.
 	GetChildObjects(context.Context, *GetChildObjectsRequest) (*GetChildObjectsResponse, error)
 	// List events for an object
+	//
+	// {{ import "api/core/doc/object-kind.md" }}
 	ListEvents(context.Context, *ListEventsRequest) (*ListEventsResponse, error)
 	// Trigger reconciliation of multiple Flux objects
+	//
+	// if `withSource` is true the dependent Source resource will be synced too.
+	// Syncing a Kustomization `withSource` will sync an attached GitRepository.
 	SyncFluxObject(context.Context, *SyncFluxObjectRequest) (*SyncFluxObjectResponse, error)
 	// Get version information about the server
+	//
+	// Version information about weave-gitops including when the runninng server was built, the git commit and the git tag.
+	// Also return the kubernetes version of the cluster running weave-gitops.
 	GetVersion(context.Context, *GetVersionRequest) (*GetVersionResponse, error)
 	// Get feature flags
 	//
@@ -297,16 +324,19 @@ type CoreServer interface {
 	IsCRDAvailable(context.Context, *IsCRDAvailableRequest) (*IsCRDAvailableResponse, error)
 	// Get the inventory of an object
 	//
-	// Only works for resources that have an inventory e.g. Kustomization,
-	// HelmRelease, GitOpsSet.
+	// {{ import "api/core/doc/object-kind.md" }}
 	GetInventory(context.Context, *GetInventoryRequest) (*GetInventoryResponse, error)
-	// List policies available on a cluster
+	// List policies available across all clusters
 	ListPolicies(context.Context, *ListPoliciesRequest) (*ListPoliciesResponse, error)
 	// Gets a policy
 	GetPolicy(context.Context, *GetPolicyRequest) (*GetPolicyResponse, error)
-	// Lists policy validations
+	// Lists policy validations across all clusters
+	//
+	// Can be filtered by a few different properties of the `involvedObject`
 	ListPolicyValidations(context.Context, *ListPolicyValidationsRequest) (*ListPolicyValidationsResponse, error)
 	// Gets a policy validation
+	//
+	// Given a specific validation id, returns the validation details.
 	GetPolicyValidation(context.Context, *GetPolicyValidationRequest) (*GetPolicyValidationResponse, error)
 	mustEmbedUnimplementedCoreServer()
 }

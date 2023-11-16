@@ -25,6 +25,10 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
     consumes: "application/json",
     produces: "application/json",
     tags: {
+        name: "default",
+        description: "system endpoints"
+    }
+    tags: {
         name: "objects",
         description: "Query and trigger kubernetes resources"
     };
@@ -40,6 +44,8 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
 service Core {
     /*
      * Get details of an object
+     *
+     * {{ import "api/core/doc/object-kind.md" }}
      */
     rpc GetObject(GetObjectRequest) returns (GetObjectResponse) {
         option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["objects"]; };
@@ -50,6 +56,8 @@ service Core {
 
     /*
      * List objects of kind across all clusters
+     *
+     * {{ import "api/core/doc/object-kind.md" }}
      */
     rpc ListObjects(ListObjectsRequest) returns (ListObjectsResponse) {
         option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["objects"]; };
@@ -73,7 +81,7 @@ service Core {
     /*
      * Lists the Flux CRDs across all clusters
      *
-     * Determine which flux CRDs are installed and their versions
+     * Determine which flux CRDs are installed on which clusters and at what version.
      */
     rpc ListFluxCrds(ListFluxCrdsRequest) returns (ListFluxCrdsResponse) {
         option (google.api.http) = {
@@ -114,6 +122,8 @@ service Core {
 
     /*
      * List events for an object
+     *
+     * {{ import "api/core/doc/object-kind.md" }}
      */
     rpc ListEvents(ListEventsRequest) returns (ListEventsResponse) {
         option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["objects"]; };
@@ -124,6 +134,9 @@ service Core {
 
     /*
      * Trigger reconciliation of multiple Flux objects
+     *
+     * if `withSource` is true the dependent Source resource will be synced too.
+     * Syncing a Kustomization `withSource` will sync an attached GitRepository.
      */
     rpc SyncFluxObject(SyncFluxObjectRequest) returns (SyncFluxObjectResponse) {
         option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["objects"]; };
@@ -135,6 +148,9 @@ service Core {
 
     /*
      * Get version information about the server
+     *
+     * Version information about weave-gitops including when the runninng server was built, the git commit and the git tag.
+     * Also return the kubernetes version of the cluster running weave-gitops.
      */
     rpc GetVersion(GetVersionRequest) returns (GetVersionResponse){
         option (google.api.http) = {
@@ -148,8 +164,7 @@ service Core {
      * New features are sometimes hidden behind feature flags. This endpoint
      * returns a list of feature flags and their values.
      */
-    rpc GetFeatureFlags(GetFeatureFlagsRequest)
-        returns (GetFeatureFlagsResponse) {
+    rpc GetFeatureFlags(GetFeatureFlagsRequest) returns (GetFeatureFlagsResponse) {
         option (google.api.http) = {
             get: "/v1/feature-flags"
         };
@@ -194,8 +209,7 @@ service Core {
     /*
      * Get the inventory of an object
      *
-     * Only works for resources that have an inventory e.g. Kustomization,
-     * HelmRelease, GitOpsSet.
+     * {{ import "api/core/doc/object-kind.md" }}
      */
     rpc GetInventory(GetInventoryRequest) returns (GetInventoryResponse) {
         option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["objects"]; };
@@ -205,7 +219,7 @@ service Core {
     }
 
     /*
-     * List policies available on a cluster
+     * List policies available across all clusters
      */
     rpc ListPolicies(ListPoliciesRequest) returns (ListPoliciesResponse) {
         option (google.api.http) = {
@@ -223,10 +237,11 @@ service Core {
     }
 
     /*
-    * Lists policy validations
+    * Lists policy validations across all clusters
+    *
+    * Can be filtered by a few different properties of the `involvedObject`
     */
-    rpc ListPolicyValidations(ListPolicyValidationsRequest)
-        returns (ListPolicyValidationsResponse) {
+    rpc ListPolicyValidations(ListPolicyValidationsRequest) returns (ListPolicyValidationsResponse) {
         option (google.api.http) = {
         get : "/v1/policy-validations"
         };
@@ -234,9 +249,10 @@ service Core {
 
     /*
     * Gets a policy validation
+    *
+    * Given a specific validation id, returns the validation details.
     */
-    rpc GetPolicyValidation(GetPolicyValidationRequest)
-        returns (GetPolicyValidationResponse) {
+    rpc GetPolicyValidation(GetPolicyValidationRequest) returns (GetPolicyValidationResponse) {
         option (google.api.http) = {
         get : "/v1/policy-validations/{validation_id}"
         };
@@ -276,12 +292,18 @@ message PolicyValidation {
 }
 
 message ListPolicyValidationsRequest {
+    // filter for validations on a particular cluster
     string cluster_name = 1;
     Pagination pagination = 2;
+    // filter by `involvedObject.name`
     string application = 3;
+    // filter by `involvedObject.namespace`
     string namespace = 4;
+    // filter by `involvedObject.kind`
     string kind = 5;
+    // filter by id of the policy that triggered the validation
     string policy_id = 6;
+    // filter for validation types of `Admission` or `Audit`
     string validation_type = 7;
 }
 
@@ -293,6 +315,10 @@ message ListPolicyValidationsResponse {
 }
 
 message GetPolicyValidationRequest {
+    // The id of the validation.
+    // This is often obtained from:
+    // - from the list policy validations endpoint.
+    // - from `Event` objects raised by the policy-agent
     string validation_id = 1;
     string cluster_name = 2;
     string validation_type = 3;
@@ -319,7 +345,9 @@ message PolicyParamRepeatedString {
 }
 
 message Pagination {
+    // controls the number of results per page from each cluster
     int32  page_size  = 1;
+    // a composite token used to retrieve the next page of results across all clusters
     string page_token = 2;
 }
 
@@ -361,9 +389,6 @@ message GetObjectResponse {
 
 message ListObjectsRequest {
     string     namespace      = 1;
-    /*
-     * A flux object kind e.g. `Kustomization` or `GitRepository` etc
-     */
     string     kind           = 2;
     string     cluster_name   = 3;
     string     label_selector = 4;
@@ -428,9 +453,6 @@ message ListEventsResponse {
 
 message SyncFluxObjectRequest {
     repeated ObjectRef objects  = 1;
-
-    // with_source is true the dependent Source resource will be synced too
-    // syncing a Kustomization with_source will sync an attached GitRepository.
     bool     with_source        = 2;
 }
 
@@ -450,6 +472,9 @@ message GetVersionResponse {
 message GetFeatureFlagsRequest {}
 
 message GetFeatureFlagsResponse {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+        example: "{\"flags\": { \"WEAVE_GITOPS_FEATURE_TENANCY\": \"true\" } }"
+    };
     map<string, string> flags = 1;
 }
 
@@ -504,7 +529,9 @@ message ListPoliciesResponse {
 }
 
 message GetPolicyRequest {
+    // The name of the `Policy` resource to retrieve.
     string name = 1;
+    // The name of the cluster to retrieve the policy from. Default is the cluster running the API server.
     string cluster_name = 2;
 }
 

@@ -1,4 +1,4 @@
-//
+//*
 // This file holds the protobuf definitions for messages and enums
 // used in the Weave GitOps gRPC API.
 
@@ -24,6 +24,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// *
 // Kind enum defines the Kubernetes resource types used in the Core API.
 type Kind int32
 
@@ -110,6 +111,7 @@ func (Kind) EnumDescriptor() ([]byte, []int) {
 	return file_api_core_types_proto_rawDescGZIP(), []int{0}
 }
 
+// *
 // HelmRepositoryType enum defines the type of HelmRepository used.
 type HelmRepositoryType int32
 

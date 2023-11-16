@@ -85,3 +85,8 @@ The versions mentioned there are not correct.
 .swagger-ui h2.title small {
   display: none !important;
 }
+
+.swagger-ui .opblock .opblock-summary-path {
+  font-size: 14px !important;
+  max-width: calc(100% - 50px - 15rem) !important;
+}

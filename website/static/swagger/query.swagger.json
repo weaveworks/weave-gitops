@@ -5,11 +5,6 @@
     "description": "The API handles handles cross-cluster queries for Weave GitOps Enterprise",
     "version": "0.1"
   },
-  "tags": [
-    {
-      "name": "Query"
-    }
-  ],
   "consumes": [
     "application/json"
   ],
@@ -34,10 +29,7 @@
               "$ref": "#/definitions/rpcStatus"
             }
           }
-        },
-        "tags": [
-          "Query"
-        ]
+        }
       }
     },
     "/v1/enabled-components": {
@@ -57,10 +49,7 @@
               "$ref": "#/definitions/rpcStatus"
             }
           }
-        },
-        "tags": [
-          "Query"
-        ]
+        }
       }
     },
     "/v1/facets": {
@@ -80,10 +69,7 @@
               "$ref": "#/definitions/rpcStatus"
             }
           }
-        },
-        "tags": [
-          "Query"
-        ]
+        }
       }
     },
     "/v1/query": {
@@ -113,9 +99,6 @@
               "$ref": "#/definitions/v1DoQueryRequest"
             }
           }
-        ],
-        "tags": [
-          "Query"
         ]
       }
     }
