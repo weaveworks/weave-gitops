@@ -51,6 +51,13 @@ type CoreClient interface {
 	ListEvents(ctx context.Context, in *ListEventsRequest, opts ...grpc.CallOption) (*ListEventsResponse, error)
 	// Trigger reconciliation of multiple Flux objects
 	//
+	// Provide a list of objects to be reconciled. Objects are identified by their kind, name, namespace and cluster.
+	//
+	// Supported kinds are:
+	//
+	// - all Flux custom resources (e.g. `GitRepository` or `HelmRelease`)
+	// - Enterprise objects that also support this pattern: `GitOpsSet` and `AutomatedClusterDiscovery`
+	//
 	// if `withSource` is true the dependent Source resource will be synced too.
 	// Syncing a Kustomization `withSource` will sync an attached GitRepository.
 	SyncFluxObject(ctx context.Context, in *SyncFluxObjectRequest, opts ...grpc.CallOption) (*SyncFluxObjectResponse, error)
@@ -64,7 +71,14 @@ type CoreClient interface {
 	// New features are sometimes hidden behind feature flags. This endpoint
 	// returns a list of feature flags and their values.
 	GetFeatureFlags(ctx context.Context, in *GetFeatureFlagsRequest, opts ...grpc.CallOption) (*GetFeatureFlagsResponse, error)
-	// Suspend or resume reconciling mulitple Flux objects
+	// Suspend or resume reconciling multiple Flux objects
+	//
+	// Provide a list of objects to be suspended or resumed. Objects are identified by their kind, name, namespace and cluster.
+	//
+	// Supported kinds are:
+	//
+	// - any Flux custom resource (e.g. `GitRepository` or `HelmRelease`)
+	// - Enterprise objects that also support this pattern: `GitOpsSet` and `AutomatedClusterDiscovery`
 	ToggleSuspendResource(ctx context.Context, in *ToggleSuspendResourceRequest, opts ...grpc.CallOption) (*ToggleSuspendResourceResponse, error)
 	// Get the logs for a GitOpsRun session
 	GetSessionLogs(ctx context.Context, in *GetSessionLogsRequest, opts ...grpc.CallOption) (*GetSessionLogsResponse, error)
@@ -76,7 +90,10 @@ type CoreClient interface {
 	IsCRDAvailable(ctx context.Context, in *IsCRDAvailableRequest, opts ...grpc.CallOption) (*IsCRDAvailableResponse, error)
 	// Get the inventory of an object
 	//
-	// {{ import "api/core/doc/object-kind.md" }}
+	// Look up the inventory of a given object. The inventory is a list of
+	// objects that were created as a result of reconciling the given object.
+	//
+	// The response includes the full kubernetes resource for each inventory item.
 	GetInventory(ctx context.Context, in *GetInventoryRequest, opts ...grpc.CallOption) (*GetInventoryResponse, error)
 	// List policies available across all clusters
 	ListPolicies(ctx context.Context, in *ListPoliciesRequest, opts ...grpc.CallOption) (*ListPoliciesResponse, error)
@@ -299,6 +316,13 @@ type CoreServer interface {
 	ListEvents(context.Context, *ListEventsRequest) (*ListEventsResponse, error)
 	// Trigger reconciliation of multiple Flux objects
 	//
+	// Provide a list of objects to be reconciled. Objects are identified by their kind, name, namespace and cluster.
+	//
+	// Supported kinds are:
+	//
+	// - all Flux custom resources (e.g. `GitRepository` or `HelmRelease`)
+	// - Enterprise objects that also support this pattern: `GitOpsSet` and `AutomatedClusterDiscovery`
+	//
 	// if `withSource` is true the dependent Source resource will be synced too.
 	// Syncing a Kustomization `withSource` will sync an attached GitRepository.
 	SyncFluxObject(context.Context, *SyncFluxObjectRequest) (*SyncFluxObjectResponse, error)
@@ -312,7 +336,14 @@ type CoreServer interface {
 	// New features are sometimes hidden behind feature flags. This endpoint
 	// returns a list of feature flags and their values.
 	GetFeatureFlags(context.Context, *GetFeatureFlagsRequest) (*GetFeatureFlagsResponse, error)
-	// Suspend or resume reconciling mulitple Flux objects
+	// Suspend or resume reconciling multiple Flux objects
+	//
+	// Provide a list of objects to be suspended or resumed. Objects are identified by their kind, name, namespace and cluster.
+	//
+	// Supported kinds are:
+	//
+	// - any Flux custom resource (e.g. `GitRepository` or `HelmRelease`)
+	// - Enterprise objects that also support this pattern: `GitOpsSet` and `AutomatedClusterDiscovery`
 	ToggleSuspendResource(context.Context, *ToggleSuspendResourceRequest) (*ToggleSuspendResourceResponse, error)
 	// Get the logs for a GitOpsRun session
 	GetSessionLogs(context.Context, *GetSessionLogsRequest) (*GetSessionLogsResponse, error)
@@ -324,7 +355,10 @@ type CoreServer interface {
 	IsCRDAvailable(context.Context, *IsCRDAvailableRequest) (*IsCRDAvailableResponse, error)
 	// Get the inventory of an object
 	//
-	// {{ import "api/core/doc/object-kind.md" }}
+	// Look up the inventory of a given object. The inventory is a list of
+	// objects that were created as a result of reconciling the given object.
+	//
+	// The response includes the full kubernetes resource for each inventory item.
 	GetInventory(context.Context, *GetInventoryRequest) (*GetInventoryResponse, error)
 	// List policies available across all clusters
 	ListPolicies(context.Context, *ListPoliciesRequest) (*ListPoliciesResponse, error)

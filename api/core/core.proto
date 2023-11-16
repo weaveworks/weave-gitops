@@ -33,6 +33,10 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
         description: "Query and trigger kubernetes resources"
     };
     tags: {
+        name: "policy",
+        description: "Query policy config and validations"
+    };
+    tags: {
         name: "internal",
         description: "Internal APIs which should not be used"
     };
@@ -97,7 +101,10 @@ service Core {
      */
     rpc GetReconciledObjects(GetReconciledObjectsRequest)
         returns (GetReconciledObjectsResponse) {
-        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["internal"]; };
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+            tags: ["internal"];
+            deprecated: true;
+        };
         option (google.api.http) = {
             post: "/v1/reconciled_objects"
             body: "*"
@@ -113,7 +120,10 @@ service Core {
      */
     rpc GetChildObjects(GetChildObjectsRequest)
         returns (GetChildObjectsResponse) {
-        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["internal"]; };
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+            tags: ["internal"];
+            deprecated: true;
+        };
         option (google.api.http) = {
             post: "/v1/child_objects"
             body: "*"
@@ -134,6 +144,13 @@ service Core {
 
     /*
      * Trigger reconciliation of multiple Flux objects
+     *
+     * Provide a list of objects to be reconciled. Objects are identified by their kind, name, namespace and cluster.
+     *
+     * Supported kinds are:
+     *
+     * - all Flux custom resources (e.g. `GitRepository` or `HelmRelease`)
+     * - Enterprise objects that also support this pattern: `GitOpsSet` and `AutomatedClusterDiscovery`
      *
      * if `withSource` is true the dependent Source resource will be synced too.
      * Syncing a Kustomization `withSource` will sync an attached GitRepository.
@@ -171,7 +188,14 @@ service Core {
     }
 
     /*
-     * Suspend or resume reconciling mulitple Flux objects
+     * Suspend or resume reconciling multiple Flux objects
+     *
+     * Provide a list of objects to be suspended or resumed. Objects are identified by their kind, name, namespace and cluster.
+     *
+     * Supported kinds are:
+     *
+     * - any Flux custom resource (e.g. `GitRepository` or `HelmRelease`)
+     * - Enterprise objects that also support this pattern: `GitOpsSet` and `AutomatedClusterDiscovery`
      */
     rpc ToggleSuspendResource(ToggleSuspendResourceRequest)
         returns (ToggleSuspendResourceResponse) {
@@ -186,7 +210,10 @@ service Core {
      * Get the logs for a GitOpsRun session
      */
     rpc GetSessionLogs(GetSessionLogsRequest) returns (GetSessionLogsResponse) {
-        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["internal"]; };
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+            tags: ["internal"];
+            deprecated: true;
+        };
         option (google.api.http) = {
             get: "/v1/session-logs"
         };
@@ -200,7 +227,6 @@ service Core {
      * installed or not on that cluster.
      */
     rpc IsCRDAvailable(IsCRDAvailableRequest) returns (IsCRDAvailableResponse) {
-        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["internal"]; };
         option (google.api.http) = {
             get : "/v1/crds/{name}/is-available",
         };
@@ -209,7 +235,10 @@ service Core {
     /*
      * Get the inventory of an object
      *
-     * {{ import "api/core/doc/object-kind.md" }}
+     * Look up the inventory of a given object. The inventory is a list of
+     * objects that were created as a result of reconciling the given object.
+     *
+     * The response includes the full kubernetes resource for each inventory item.
      */
     rpc GetInventory(GetInventoryRequest) returns (GetInventoryResponse) {
         option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["objects"]; };
@@ -222,6 +251,7 @@ service Core {
      * List policies available across all clusters
      */
     rpc ListPolicies(ListPoliciesRequest) returns (ListPoliciesResponse) {
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["policy"]; };
         option (google.api.http) = {
         get : "/v1/policies"
         };
@@ -231,6 +261,7 @@ service Core {
      * Gets a policy
      */
     rpc GetPolicy(GetPolicyRequest) returns (GetPolicyResponse) {
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["policy"]; };
         option (google.api.http) = {
         get : "/v1/policies/{name}"
         };
@@ -242,6 +273,7 @@ service Core {
     * Can be filtered by a few different properties of the `involvedObject`
     */
     rpc ListPolicyValidations(ListPolicyValidationsRequest) returns (ListPolicyValidationsResponse) {
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["policy"]; };
         option (google.api.http) = {
         get : "/v1/policy-validations"
         };
@@ -253,6 +285,7 @@ service Core {
     * Given a specific validation id, returns the validation details.
     */
     rpc GetPolicyValidation(GetPolicyValidationRequest) returns (GetPolicyValidationResponse) {
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["policy"]; };
         option (google.api.http) = {
         get : "/v1/policy-validations/{validation_id}"
         };
@@ -260,10 +293,13 @@ service Core {
 }
 
 message GetInventoryRequest {
+    // Supported kinds are `Kustomization` and `HelmRelease`
+    // If using Enterprise, `GitOpsSet` and `AutomatedClusterDiscovery` are also supported
     string kind         = 1;
     string name         = 2;
     string namespace    = 3;
     string cluster_name  = 4;
+    // If true, the children of certain resources like Deployments and Replicasets will be included in the response
     bool   with_children = 5;
 }
 
@@ -510,6 +546,8 @@ message GetSessionLogsResponse {
 }
 
 message IsCRDAvailableRequest {
+    // The name of the CRD to check availability for.
+    // e.g. `imageupdateautomations.image.toolkit.fluxcd.io` or `gitopssets.templates.weave.works`
     string name = 1;
 }
 

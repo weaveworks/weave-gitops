@@ -15,6 +15,10 @@
       "description": "Query and trigger kubernetes resources"
     },
     {
+      "name": "policy",
+      "description": "Query policy config and validations"
+    },
+    {
       "name": "internal",
       "description": "Internal APIs which should not be used"
     }
@@ -57,7 +61,8 @@
         ],
         "tags": [
           "internal"
-        ]
+        ],
+        "deprecated": true
       }
     },
     "/v1/crds/{name}/is-available": {
@@ -82,13 +87,11 @@
         "parameters": [
           {
             "name": "name",
+            "description": "The name of the CRD to check availability for.\ne.g. `imageupdateautomations.image.toolkit.fluxcd.io` or `gitopssets.templates.weave.works`",
             "in": "path",
             "required": true,
             "type": "string"
           }
-        ],
-        "tags": [
-          "internal"
         ]
       }
     },
@@ -280,7 +283,7 @@
     "/v1/namespaces/{namespace}/objects/{kind}/{name}/inventory": {
       "get": {
         "summary": "Get the inventory of an object",
-        "description": "Kind is used as the primary identifier rather than GroupVersionKind\n\nSupported kinds are:\n\n - some of the base Kubernetes groups including core (e.g. `ConfigMap`) and apps (e.g. `Deployment`)\n - All the of the Flux Custom Resource kinds e.g. (`GitRepository`, `HelmRelease`, `Kustomization`, `ImageAutomation`)\n - If using enterprise, `GitOpsSet` and `AutomatedClusterDiscovery` are also available",
+        "description": "Look up the inventory of a given object. The inventory is a list of\nobjects that were created as a result of reconciling the given object.\n\nThe response includes the full kubernetes resource for each inventory item.",
         "operationId": "Core_GetInventory",
         "responses": {
           "200": {
@@ -305,6 +308,7 @@
           },
           {
             "name": "kind",
+            "description": "Supported kinds are `Kustomization` and `HelmRelease`\nIf using Enterprise, `GitOpsSet` and `AutomatedClusterDiscovery` are also supported",
             "in": "path",
             "required": true,
             "type": "string"
@@ -323,6 +327,7 @@
           },
           {
             "name": "withChildren",
+            "description": "If true, the children of certain resources like Deployments and Replicasets will be included in the response",
             "in": "query",
             "required": false,
             "type": "boolean"
@@ -417,6 +422,9 @@
             "required": false,
             "type": "string"
           }
+        ],
+        "tags": [
+          "policy"
         ]
       }
     },
@@ -453,6 +461,9 @@
             "required": false,
             "type": "string"
           }
+        ],
+        "tags": [
+          "policy"
         ]
       }
     },
@@ -533,6 +544,9 @@
             "required": false,
             "type": "string"
           }
+        ],
+        "tags": [
+          "policy"
         ]
       }
     },
@@ -575,6 +589,9 @@
             "required": false,
             "type": "string"
           }
+        ],
+        "tags": [
+          "policy"
         ]
       }
     },
@@ -609,7 +626,8 @@
         ],
         "tags": [
           "internal"
-        ]
+        ],
+        "deprecated": true
       }
     },
     "/v1/session-logs": {
@@ -664,12 +682,14 @@
         ],
         "tags": [
           "internal"
-        ]
+        ],
+        "deprecated": true
       }
     },
     "/v1/suspend": {
       "patch": {
-        "summary": "Suspend or resume reconciling mulitple Flux objects",
+        "summary": "Suspend or resume reconciling multiple Flux objects",
+        "description": "Provide a list of objects to be suspended or resumed. Objects are identified by their kind, name, namespace and cluster.\n\nSupported kinds are:\n\n- any Flux custom resource (e.g. `GitRepository` or `HelmRelease`)\n- Enterprise objects that also support this pattern: `GitOpsSet` and `AutomatedClusterDiscovery`",
         "operationId": "Core_ToggleSuspendResource",
         "responses": {
           "200": {
@@ -703,7 +723,7 @@
     "/v1/sync": {
       "patch": {
         "summary": "Trigger reconciliation of multiple Flux objects",
-        "description": "if `withSource` is true the dependent Source resource will be synced too.\nSyncing a Kustomization `withSource` will sync an attached GitRepository.",
+        "description": "Provide a list of objects to be reconciled. Objects are identified by their kind, name, namespace and cluster.\n\nSupported kinds are:\n\n- all Flux custom resources (e.g. `GitRepository` or `HelmRelease`)\n- Enterprise objects that also support this pattern: `GitOpsSet` and `AutomatedClusterDiscovery`\n\nif `withSource` is true the dependent Source resource will be synced too.\nSyncing a Kustomization `withSource` will sync an attached GitRepository.",
         "operationId": "Core_SyncFluxObject",
         "responses": {
           "200": {
