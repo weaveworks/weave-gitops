@@ -107,9 +107,9 @@ If Flux is installed, but doesn't have a valid installation, the bootstrap CLI w
 
 #### Bootstrap Flux
 
-After verifying Flux installation if Flux was not found you will have the ability to bootstrap Flux with the [generic way](https://fluxcd.io/flux/installation/bootstrap/generic-git-server/), you will be prompted to provide your repository url, repository branch and path for your cluster.
-Then based on your repo url if it's a ssh or https you will be prompted to provide your private key path & private key password or username & password/token.
-After getting the right info regarding your repo, Flux will start to bootstrap and reconcile your repo.
+If Flux is not found in the Management Cluster, you have the ability to bootstrap it with the [Generic Git](https://fluxcd.io/flux/installation/bootstrap/generic-git-server/).
+You will be prompted to provide: `repository url`, `repository branch` and `path` to reconcile. Based on your `repository url` authentication credentials will be requested.
+For SSH, `private key path` & `private key password`. For HTTPS, `username` and  `password`. After getting the right info regarding your repo, Flux will start to bootstrap and reconcile your repo.
 
 #### Verify Entitlement
 
