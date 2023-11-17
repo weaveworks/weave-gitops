@@ -1625,6 +1625,9 @@
         },
         "suspend": {
           "type": "boolean"
+        },
+        "comment": {
+          "type": "string"
         }
       }
     },

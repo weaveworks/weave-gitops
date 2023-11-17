@@ -516,6 +516,7 @@ message GetFeatureFlagsResponse {
 message ToggleSuspendResourceRequest {
     repeated ObjectRef objects = 1;
     bool     suspend           = 2;
+    string   comment           = 3;
 }
 
 message ToggleSuspendResourceResponse {
