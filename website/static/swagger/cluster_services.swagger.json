@@ -680,7 +680,7 @@
                   "$ref": "#/definitions/v1Credential",
                   "title": "Credentials"
                 },
-                "values": {
+                "profiles": {
                   "type": "array",
                   "items": {
                     "type": "object",
@@ -777,7 +777,7 @@
             "schema": {
               "type": "object",
               "properties": {
-                "values": {
+                "parameterValues": {
                   "type": "object",
                   "additionalProperties": {
                     "type": "string"

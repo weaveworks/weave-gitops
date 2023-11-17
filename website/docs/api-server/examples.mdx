@@ -2,24 +2,45 @@
 title: Examples
 ---
 
-### Create Pull Request Example
+import CodeBlock from "@theme/CodeBlock";
 
-This example demostrates rendering a template to a Github repository.
+## Templates
+
+### Render a template
+
+This example demonstrates rendering a template to a local directory via the API
 
 It shows off:
-- Logging into the WGE API
-- Exchanging a local `GITHUB_TOKEN` for a JWT token we can then use to do git operations via the WGE API
-- Rendering a template and writing the result to a Pull Request
 
-import CodeBlock from "@theme/CodeBlock";
-import TemplatesExample from "!!raw-loader!./examples/template/create-pull-request.py";
+- Logging into the WGE API and storing a session cookie
+- Rendering a template and writing the result to the terminal
+
+import TemplatesRender from "!!raw-loader!./examples/templates/render.py";
 
 <CodeBlock
   language="python"
-  title="templates/create-pull-request.py"
+  title="templates/render.py"
   showLineNumbers
 >
-  {TemplatesExample}
+  {TemplatesRender}
+</CodeBlock>
+
+### Create Pull Request
+
+We build of the previous example and instead of writing the result to the terminal, we create a Pull Request.
+
+It shows off:
+- Exchanging a local `GITHUB_TOKEN` for a JWT token we can then use to do git operations via the API
+- Rendering a template and writing the result to a Pull Request
+
+import TemplatesCreatePullRequest from "!!raw-loader!./examples/templates/create_pull_request.py";
+
+<CodeBlock
+  language="python"
+  title="templates/create_pull_request.py"
+  showLineNumbers
+>
+  {TemplatesCreatePullRequest}
 </CodeBlock>
 
 

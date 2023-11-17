@@ -4,7 +4,8 @@ import os
 import random
 import string
 
-BASE_URL = "http://localhost:8000"  # Modify this to change the API server URL
+# Modify this to change the API server URL
+BASE_URL = os.environ.get("BASE_URL", "http://localhost:8000")
 GITHUB_TOKEN = os.environ["GITHUB_TOKEN"]
 WEGO_PASSWORD = os.environ["WEGO_PASSWORD"]
 
@@ -49,32 +50,37 @@ def create_pull_request():
     response = request("/v1/authenticate/github", "POST", data)
     token = response["token"]
 
-    # Define pull request data
-    head_branch = f"branch-{generate_random_string()}"
-    # Modify this for the desired template
-    template = "default/vcluster-template-development"
-    template_namespace, template_name = template.split('/')
     # Modify this for your repository
-    repository_url = "https://github.com/my-org/my-repo"
+    org = os.environ.get("GITHUB_USER", "my-org")
+    repo = os.environ.get("GITHUB_REPO", "my-repo")
+    repository_url = f"https://github.com/{org}/{repo}"
+    head_branch = f"branch-{generate_random_string()}"
     base_branch = "main"
+
+    # Modify this for the desired template
+    namespace = "default"
+    name = "vcluster-template-development"
+
+    # Modify or add more parameters as needed
     parameter_values = {
-        "CLUSTER_NAME": "foo",  # Modify or add more parameters as needed
+        "CLUSTER_NAME": "foo",
     }
 
     data = {
         "headBranch": head_branch,
-        "templateName": template_name,
-        "templateNamespace": template_namespace,
         "parameterValues": parameter_values,
         "templateKind": "GitOpsTemplate",
         "repositoryUrl": repository_url,
         "baseBranch": base_branch
     }
+
     headers = {
         "Git-Provider-Token": f"token {token}"
     }
 
-    response = request("/v1/templates/pull-request", "POST", data, headers)
+    response = request(
+        f"/v1/namespaces/{namespace}/templates/{name}/pull-request", "POST", data, headers)
+
     print(response["webUrl"])
 
 
