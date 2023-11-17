@@ -141,7 +141,7 @@ The following metrics are available to monitor its health.
 
 ##### Cluster Watcher
 
-The metric `collector_cluster_watcher` provides the number of the cluster watchers it the following `status`:
+The metric `collector_cluster_watcher` provides the number of the cluster watchers in the following `status`:
 - Starting: a cluster watcher is starting at the back of detecting that a new cluster has been registered.
 - Started: cluster watcher has been started and collecting events from the remote cluster. This is the stable state.
 - Stopping: a cluster has been deregistered so its cluster watcher is no longer required. In the process of stopping it.
@@ -223,6 +223,50 @@ indexer_latency_seconds_count{action="Remove",status="success"} 3
 ```
 indexer_inflight_requests{action="Add"} 0
 indexer_inflight_requests{action="Remove"} 0
+```
+
+#### Management
+
+Explorer management contains the 'Objects Cleaner` component exporting metrics. The following metrics are available to monitor its health:
+
+- Objects Cleaner Status
+- Objects Cleaner Remove Objects Requests
+
+##### Objects Cleaner Status
+
+The metric `objects_cleaner_status` provides telemetry on the objects cleaner's `status` which can take on the following values:
+- Starting: Objects Cleaner is starting after starting the API server.
+- Started: Objects Cleaner is watching for expired objects (according to their `RetentionPolicy`) to remove them from the stores.
+- Stopped: Objects Cleaner is stopped after stopping collection.
+
+```
+objects_cleaner_status{status="started"} 1
+objects_cleaner_status{status="starting"} 0
+```
+
+##### Objects Cleaner Remove Objects Requests
+
+**Request Latency:** histogram with the latency of the cleaner remove objects requests.
+
+- `action` is the `RemoveObjects` operation
+- `status` is the result of the operation. It could be either `success` or `error`
+
+```
+objects_cleaner_latency_seconds_bucket{action="RemoveObjects",status="success",le="0.01"} 5
+```
+```
+objects_cleaner_latency_seconds_sum{action="RemoveObjects",status="success"} 0.013658576
+```
+```
+objects_cleaner_latency_seconds_count{action="RemoveObjects",status="success"} 5
+```
+
+**Requests In Flight:** gauge with the number of inflight requests being handled at the same time.
+
+- `action` is the `RemoveObjects` operation
+
+```
+objects_cleaner_inflight_requests{action="RemoveObjects"} 0
 ```
 
 ### Dashboard
