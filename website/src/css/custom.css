@@ -101,3 +101,7 @@ The versions mentioned there are not correct.
 .swagger-ui .markdown code {
   padding: 2px 4px !important;
 }
+
+.swagger-ui .opblock[id*='-internal-'], .swagger-ui .opblock-tag[id$='-internal'] {
+  opacity: 0.5;
+}
