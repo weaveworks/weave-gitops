@@ -10,6 +10,457 @@ import TierLabel from "../../_components/TierLabel";
 This page details the changes for Weave GitOps Enterprise and its associated components. For Weave GitOps OSS, please see the release notes on [GitHub](https://github.com/weaveworks/weave-gitops/releases).
 :::
 
+
+## v0.36.0
+
+## Highlights
+
+### UI
+
+- New standardised sync/suspend/resume buttons across the UI
+- Dark mode fixes
+- Explorer gets support for filtering certain labels!
+- Explorer uses exact matching strategy for queries.
+
+
+## 🚀 Enhancements
+
+- PR: #3467 - Remove webkit-scrollbar css
+- PR: #3562 - Remove gitops run
+- PR: #3575 - Allow resource limits and requests to be over-ridden for `clusterBootstrapController`
+- PR: #3573 - add labels support to explorer
+- PR: #3370 - Cleanup `/api` proto
+- PR: #3557 - Add 'lastTransitionTime' from the 'Apply' condition from Terraform objects to UI
+- PR: #3588 - Add busy animation to Explorer
+- PR: #3487 - Standardize the sync/suspend/edit buttons
+- PR: #3578 - Onboarding CLI | Flux bootstrapping and git authentication credentials
+- PR: #3491 - Refactor notification component
+- PR: #3606 - Enable "multi-tenancy" lookup of terraform objects
+
+## 🐛 Bugs
+
+- PR: #3551 - Fix applications table navigation bug
+- PR: #3570 - Set dark mode black to white
+- PR: #3576 - Rework 'Message' column in Explorer for Apps page consistency
+- PR: #3577 - fix datatable tests
+- PR: #3602 - [UI] Dropdown menus broken in dark-mode
+- PR: #3597 - Fix sorting by 'name' issues in Explorer
+- PR: #3580 - Add tenant field to Explorer objects
+
+
+## Dependency versions
+
+- weave-gitops v0.36.0
+- cluster-controller v1.5.2
+- cluster-bootstrap-controller v0.7.1
+- (optional) pipeline-controller v0.21.0
+- (optional) policy-agent v2.5.0
+- (optional) gitopssets-controller v0.16.4
+
+### Flux compatibility
+| Flux version | Minimum required |
+  |--------------------|------------------|
+| `v2.0`            | `>= 2.0.0`   |
+
+For Flux migrations to v2.0 see [flux](https://github.com/fluxcd/flux2/releases/tag/v2.0.0) or [weave gitops](https://docs.gitops.weave.works/docs/guides/fluxga-upgrade/) documentation.
+
+
+<details>
+    <summary>Uncategorized</summary>
+
+    - PR: #3560 - Update EE to the latest OSS main
+    - PR: #3505 - Bump @babel/traverse from 7.17.3 to 7.23.2
+    - PR: #3558 - feat: Create PR for flux source objects
+    - PR: #3581 - Disable pendo by default
+    - PR: #3584 - Revert "Disable Pendo by default. (#3581)"
+    - PR: #3585 - small fix for labels docs in explorer
+    - PR: #3592 - Remove duplicate key in `HelmChart` values.
+    - PR: #3589 - Bring proto files inline with styling guide
+    - PR: #3596 - Upgrade to typescript 5.x
+    - PR: #3521 - Add playwright tests job
+    - PR: #3582 - fix: Remove GitOps Run components from WGE
+    - PR: #3567 - stick to wego-admin admin user in gitops bootstrap command
+    - PR: #3599 - using httptest to avoid network sync that eventually translates in test flakiness
+    - PR: #3574 - Bump weave-gitops to latest v0.36.0
+
+</details>
+
+
+## v0.35.0
+
+# Highlights
+
+## :warning:  Breaking Change :warning:
+
+### Explorer Configuration
+
+We have changed the way the `explorer` feature is enabled. It is now possible to enable or disable `explorer` on different parts of the application. Previously, there was a global toggle set in the Helm Chart values called `enableExplorer`. This flag has been replaced by two keys: `explorer.enabled` and `explorer.enabledFor`:
+
+```yaml
+explorer:
+  enabled: true # global enable/disable flag
+  # ...
+  enabledFor: # list of components that can be enabled or disabled
+    - applications
+    - sources
+    - gitopssets
+    - templates
+  ```
+Adding or removing items from this list will control which parts of the UI utilize the explorer backend.
+
+The current values that are supported for this key:
+```yaml
+    - applications
+    - sources
+    - gitopssets
+    - templates
+ ```
+See this section of the docs for more info: https://docs.gitops.weave.works/docs/explorer/getting-started/
+
+### Monitoring Configuration
+
+We have updated configuration values embedding `metrics` under `monitoring`. In case you
+have disabled metrics in your helm release values previously by setting:
+```
+metrics:
+  enabled: false
+```
+You should update it to have he same behavior
+```
+monitoring:
+  enabled: false
+```
+
+Please review [monitoring](https://docs.gitops.weave.works/docs/operations/monitoring/) for more info.
+
+## Improvements to Pipelines UI
+
+Our Pipelines view is getting an overhaul as part of fundamental changes to make this feature simpler to use and more powerful. In this release, we’ve made the current app version prompt clearer about what it is showing. We’ve added summary boxes to environments in order to show how many targets have successfully updated. We’ve made it easier to find information about the promotion strategy used in an environment, so that users can better understand what's happening in that environment. Lastly, we better display the promotion strategy used in an environment.
+
+## New feature
+
+You can now _disconnect_ `GitopsClusters` which involves removing the resources that were added when _connecting_ them.
+
+The command mirrors the `gitops connect cluster` command in functionality.
+
+Instructions are available in the CLI:
+
+```console
+gitops disconnect cluster --help
+```
+
+## 🚀 Enhancements
+
+- PR: #3446 - Use environment-specific promotion strategies in Pipelines UI
+- PR: #3470 - Disconnect cluster
+- PR: #3500 - add internal monitoring server for metrics and profiling
+- PR: #3531 - add test to install wge step and add common tests
+- PR: #3530 - leverage existing kube over creating our own
+- PR: #3510 - Add new pipelines UI with promotion information
+- PR: #3356 - Make objects request not block the Applications and Source UI loading.
+- PR: #3485 - Add granular control of query service components
+- PR: #3399 - Add OIDC to bootstrap CLI
+
+## 🐛 Bugs
+
+- PR: #3489 - Update yaml view props for new oss version
+
+
+
+<details>
+    <summary>Uncategorized</summary>
+
+    - PR: #3346 - Add eslintrc file from OSS and fix resulting errors
+    - PR: #3486 - Fixes the prod build of the UI loading
+    - PR: #3503 - Remove Jordan as a CODEOWNER
+    - PR: #3498 - feat: Add Preview API
+    - PR: #3512 - Add playwright tests job
+    - PR: #3518 - Revert "Add playwright tests job (#3512)"
+    - PR: #3429 - Refactor gitops section
+    - PR: #3527 - added cli bootstrap journey acceptance test
+    - PR: #3550 - feat: Add feature flag for new Pipelines
+    - PR: #3502 - Bump weave-gitops to latest v0.35.0
+
+</details>
+
+## Dependency versions
+
+- weave-gitops v0.35.0
+- cluster-controller v1.5.2
+- cluster-bootstrap-controller v0.7.1
+- (optional) pipeline-controller v0.21.0
+- (optional) policy-agent v2.5.0
+- (optional) gitopssets-controller v0.16.2
+
+
+## v0.34.1
+
+This is a patch release to [v0.34.0](https://github.com/weaveworks/weave-gitops-enterprise/releases/tag/v0.34.0) with the following fixes:
+
+## 🐛 Bugs
+
+- PR: #3479 - fixes cli bootstrap command description
+
+## Dependency versions
+
+- weave-gitops v0.34.0
+- cluster-controller v1.5.2
+- cluster-bootstrap-controller v0.7.1
+- (optional) pipeline-controller v0.21.0
+- (optional) policy-agent v2.5.0
+- (optional) gitopssets-controller v0.16.2
+
+### Flux compatibility
+| Flux version | Minimum required |
+  |--------------------|------------------|
+| `v2.0`            | `>= 2.0.0`   |
+
+For Flux migrations to v2.0 see [flux](https://github.com/fluxcd/flux2/releases/tag/v2.0.0) or [weave gitops](https://docs.gitops.weave.works/docs/guides/fluxga-upgrade/) documentation.
+
+
+<details>
+    <summary>Uncategorized</summary>
+
+    - PR: #3477 - build(deps): Ensure protoc-gen-grpc-gateway-ts is installed when runn…
+    - PR: #3478 - fix: Remove action that configured AWS credentials
+
+</details>
+
+## v0.34.0
+
+# Highlights
+
+## WGE Bootstrap CLI - Initial Setup
+We are introducing a new command line `gitops-ee bootstrap` which will make installing Weave GitOps Enterprise much easier. The Bootstrap CLI will offer a wizard-like experience that will guide the users until they access WGE dashboards. This release contains the following functionality to provide the initial setup for WGE.
+
+- Verify Entitlement and flux installation
+- Configure admin login
+- Set up external DNS to host our dashboards.
+
+We will be building on this experience and making it more feature-rich in the following releases.
+
+## Explorer | GitOpsSets & Templates implementation
+We are expanding on the usage of the explorer service to be included in other product areas like GitOpsSets and Templates UI to be able to enhance the performance of loading the data and improve the user experience.
+
+## UI Enhancements
+We have several UI improvements going out in this release, including the use of ImageAutomation components from OSS, standardizing the column names in Events tabs, and improving the Pipelines manual promotion button.
+
+## 🚀 Enhancements
+
+- PR: #3371 - Add bootstrap command for gitops cli to bootstrap WGE
+- PR: #3372 - [UI] Use ImageAutomation components from OSS and remove duplicates from EE
+- PR: #3409 - Explorer in gitopssets and templates UI
+- PR: #3421 - Standardize the column names on Events tabs
+- PR: #3428 - Improve Pipelines manual promotion button
+- PR: #3447 - Fix letter spacing in Tabs text
+
+
+## 🐛 Bugs
+
+- PR: #3386 - Update 404 svg
+- PR: #3425 - Ensure indexer hits are unique
+- PR: #3433 - Fix seeing resources after rolebinding has been deleted for user
+- PR: #3369 - Fix naming of KubeConfig cluster for empty context.
+
+## Dependency versions
+
+- weave-gitops v0.34.0
+- cluster-controller v1.5.2
+- cluster-bootstrap-controller v0.7.1
+- (optional) pipeline-controller v0.21.0
+- (optional) policy-agent v2.5.0
+- (optional) gitopssets-controller v0.16.2
+
+### Flux compatibility
+| Flux version | Minimum required |
+  |--------------------|------------------|
+| `v2.0`            | `>= 2.0.0`   |
+
+For Flux migrations to v2.0 see [flux](https://github.com/fluxcd/flux2/releases/tag/v2.0.0) or [weave gitops](https://docs.gitops.weave.works/docs/guides/fluxga-upgrade/) documentation.
+
+
+<details>
+    <summary>Uncategorized</summary>
+
+    - PR: #3404 - a set of internal docs that to complete the picture about weave gitops engineering
+    - PR: #3417 - Remove auto merge option from add and update profiles
+    - PR: #3411 - Bring PR Preview to the GitOps section
+    - PR: #3434 - refactor: remove unused "feature" flag
+    - PR: #3378 - Just leaving a single bug template instead of the existing three one
+    - PR: #3412 - monitoring and performance monitoring documentation addd
+    - PR: #3448 - Bump gitopssets to 0.16.4
+    - PR: #3360 - Convert to parcel for builds
+    - PR: #3466 - fix: Minor typo
+    - PR: #3471 - Bump weave-gitops to latest v0.34.0
+
+</details>
+
+
+## v0.33.0
+
+# Highlights
+
+## UI
+
+- Templates are now included in the Explorer for seeing more of your resources in a single pane of glass view.
+- New icon design and tweaks to the Nav bar
+
+## 🚀 Enhancements
+
+- PR: #3288 - Standardize convention for requesting namespaced resources
+- PR: #3304 - Update endpoint naming in cluster-service API
+- PR: #3357 - Adding paging method to query service store iterator
+- PR: #3401 - Refactor "Delivery" title to "Progressive Delivery "
+- PR: #3358 - Extend explorer - Templates
+
+## 🐛 Bugs
+
+- PR: #3365 - [UI] Style updates in Create Secrets / Form
+- PR: #3381 - Fix uncontrolled component error
+
+## Dependency versions
+
+- weave-gitops v0.33.0
+- cluster-controller v1.5.2
+- cluster-bootstrap-controller v0.7.1
+- (optional) pipeline-controller v0.21.0
+- (optional) policy-agent v2.5.0
+- (optional) gitopssets-controller v0.16.2
+
+### Flux compatibility
+| Flux version | Minimum required |
+  |--------------------|------------------|
+| `v2.0`            | `>= 2.0.0`   |
+
+For Flux migrations to v2.0 see [flux](https://github.com/fluxcd/flux2/releases/tag/v2.0.0) or [weave gitops](https://docs.gitops.weave.works/docs/guides/fluxga-upgrade/) documentation.
+
+<details>
+    <summary>Uncategorized</summary>
+
+    - PR: #3364 - Fix console warnings when running ui tests
+    - PR: #3382 - Just extended explorer docs to include the step of updating the user docs while extending explorer
+    - PR: #3385 - remove coupling between object and fluxobject
+    - PR: #3403 - Remove cluster_namespace from non-cluster queries
+    - PR: #3410 - Bump weave-gitops to latest v0.33.0
+
+</details>
+
+
+## v0.32.1
+
+## Highlights
+
+### Cluster Management
+
+- New connect cluster cmd to gitops to enable using the connector pkg to connect a remote cluster to a cluster.
+- It’s now possible to use the existing cluster role instead of creating a new one for a service account, which reduces resource creation.
+- Cleaning up of the gitops-server API continues apace in preparation for publication of the API documentation and OpenAPI spec.
+
+### UI Improvements
+
+- GitOpsSets added to Explorer filters in the WGE UI, extending the Explorer to be compatible with the filter based on the GitOpsSets kind.
+- Improved formatting of Policy Config | Policy Parameters cards so that users experience more readable data when creating a new policy config and selecting the Policy from the policies list.
+- New section added to the Metadata component for OCI Repositories to provide users with more clarity.
+
+### Bug fixes
+
+- The Metric template details now renders the canary a user clicks on, instead of all the metrics templates in the canary.
+
+
+## 🚀 Enhancements
+
+- PR: #3239 - Connect cluster cmd
+- PR: #3237 - Update fields in cluster-service API to be snake_case
+- PR: #3267 - Explorer extending - gitopssets
+
+- PR: #3279 - fix button spaces
+- PR: #3296 - Remove creation of cluster role in service account reconcile of connect cluster
+- PR: #3336 - format Policy Parameters cards
+- PR: #3337 - Add debug level to connect cluster flags
+- PR: #3344 - fix tabs style at workspaces and make them consistent with the rest of the application
+
+
+## 🔥 UI
+
+- PR: #3292 - Adds Last Updated and Namespace information to Terraform object details UI
+
+## 🐛 Bugs
+
+- PR: #3363 - add target echo-ldflags to fix the release and gitops version command
+- PR: #3287 - Metric template details renders all the metrics templates in the canary instead of the one clicked
+- PR: #3302 - Fix styling naming collision
+- PR: #3331 - Update progressive delivery docs link
+- PR: #3345 - passing version configuration as part of the build to fix cli version command
+
+<details>
+    <summary>Uncategorized</summary>
+
+    - PR: #3298 - Bump to v0.16.1 of gitopssets-controller.
+</details>
+
+## Dependency versions
+
+- weave-gitops v0.32.0
+- cluster-controller v1.5.2
+- cluster-bootstrap-controller v0.7.1
+- (optional) pipeline-controller v0.21.0
+- (optional) policy-agent v2.5.0
+- (optional) gitopssets-controller v0.16.2
+
+### Flux compatibility
+| Flux version | Minimum required |
+  |--------------------|------------------|
+| `v2.0`            | `>= 2.0.0`   |
+
+For Flux migrations to v2.0 see [flux](https://github.com/fluxcd/flux2/releases/tag/v2.0.0) or [weave gitops](https://docs.gitops.weave.works/docs/guides/fluxga-upgrade/) documentation.
+
+<details>
+    <summary>Uncategorized</summary>
+
+
+</details>
+
+## v0.32.0
+
+## 🚀 Enhancements
+
+- PR: #3239 - Connect cluster cmd
+- PR: #3237 - Update fields in cluster-service API to be snake_case
+- PR: #3267 - Explorer extending - gitopssets
+- PR: #3287 - Metric template details renders all the metrics templates in the canary instead of the one clicked
+- PR: #3279 - fix button spaces
+- PR: #3292 - Adds Last Updated and Namespace information to Terraform object details UI
+- PR: #3296 - Remove creation of cluster role in service account reconcile of connect cluster
+- PR: #3336 - format Policy Parameters cards
+- PR: #3337 - Add debug level to connect cluster flags
+- PR: #3344 - fix tabs style at workspaces and make them consistent with the rest of the application
+- PR: #3298 - Bump to v0.16.1 of gitopssets-controller.
+
+## 🐛 Bugs
+
+- PR: #3287 - Metric template details renders all the metrics templates in the canary instead of the one clicked
+- PR: #3302 - Fix styling naming collision
+- PR: #3331 - Update progressive delivery docs link
+- PR: #3345 - passing version configuration as part of the build to fix cli version command
+
+
+
+<details>
+    <summary>Uncategorized</summary>
+
+    - PR: #3248 - Allow for extra columns to be added to `ExplorerTable`
+    - PR: #3271 - [UI] Adjust gitauth layout to remain consistent across screen sizes
+    - PR: #3263 - Rename ui-cra -> ui and move package.json to root
+    - PR: #3284 - Bump @adobe/css-tools from 4.2.0 to 4.3.1
+    - PR: #3285 - Bump async from 2.6.3 to 2.6.4
+    - PR: #3283 - updating extend explorer internal documentation out of the feedback from adding gitopssets
+    - PR: #3303 - Fix some typescript project settings affecting local dev
+    - PR: #3305 - Fixes the width of the apps table
+    - PR: #3353 - Bump to gitopssets 0.16.2.
+    - PR: #3355 - Bump weave-gitops to latest v0.32.0
+
+</details>
+
 ## v0.31.0
 2023-08-31
 
