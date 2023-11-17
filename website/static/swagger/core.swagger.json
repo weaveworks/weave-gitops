@@ -33,7 +33,7 @@
     "/v1/child_objects": {
       "post": {
         "summary": "Returns the children of a given object",
-        "description": "specified by a GroupVersionKind.\nNot all Kubernets objects have children. For example, a Deployment\nhas a child ReplicaSet, but a Service has no child objects.",
+        "description": "Use /inventory instead",
         "operationId": "Core_GetChildObjects",
         "responses": {
           "200": {
@@ -134,15 +134,7 @@
               "$ref": "#/definitions/rpcStatus"
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "clusterName",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          }
-        ]
+        }
       }
     },
     "/v1/flux/deployments": {
@@ -163,21 +155,7 @@
               "$ref": "#/definitions/rpcStatus"
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "namespace",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "clusterName",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          }
-        ]
+        }
       }
     },
     "/v1/namespaces/{namespace}/objects/{kind}/{name}": {
@@ -600,7 +578,7 @@
     "/v1/reconciled_objects": {
       "post": {
         "summary": "Get the list of objects that were created as a result of reconciling a Flux automation.",
-        "description": "This list is derived by looking at the Kustomization or HelmRelease\nspecified in the request body.",
+        "description": "Use /inventory instead",
         "operationId": "Core_GetReconciledObjects",
         "responses": {
           "200": {
@@ -635,6 +613,7 @@
     "/v1/session-logs": {
       "get": {
         "summary": "Get the logs for a GitOpsRun session",
+        "description": "The GitOpsRun feature has been removed",
         "operationId": "Core_GetSessionLogs",
         "responses": {
           "200": {

@@ -94,8 +94,6 @@ export type ListError = {
 }
 
 export type ListFluxRuntimeObjectsRequest = {
-  namespace?: string
-  clusterName?: string
 }
 
 export type ListFluxRuntimeObjectsResponse = {
@@ -104,7 +102,6 @@ export type ListFluxRuntimeObjectsResponse = {
 }
 
 export type ListFluxCrdsRequest = {
-  clusterName?: string
 }
 
 export type ListFluxCrdsResponse = {

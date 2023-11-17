@@ -5,6 +5,12 @@
     "description": "The API handles operations for Weave GitOps Enterprise",
     "version": "0.1"
   },
+  "tags": [
+    {
+      "name": "default",
+      "description": "system endpoints"
+    }
+  ],
   "consumes": [
     "application/json"
   ],
@@ -83,6 +89,7 @@
     "/v1/charts/jobs/{jobId}": {
       "get": {
         "summary": "Retrieve the results of a /v1/charts/values job",
+        "description": "After calling `/v1/charts/values` a job will be created and a `jobId` returned in the response.\nThe jobId is then used with this endpoint to retrieve the results of the job.\n\nIf the job has not finished yet `values` will be empty.\nWhen the job has finished the `values` will contain the contents of `values.yaml` for the chart.\nIf an error has occurred the `error` will contain the error message.",
         "operationId": "ClustersService_GetChartsJob",
         "responses": {
           "200": {
@@ -114,6 +121,7 @@
     "/v1/charts/list": {
       "get": {
         "summary": "Lists charts in a HelmRepository",
+        "description": "Given a HelmRepository list the available charts and their versions.",
         "operationId": "ClustersService_ListChartsForRepository",
         "responses": {
           "200": {
@@ -175,7 +183,7 @@
     "/v1/charts/values": {
       "post": {
         "summary": "Get the values.yaml for a chart",
-        "description": "Creates a job. Job status the final result can be retrieved via /v1/charts/jobs/{job_id}",
+        "description": "Given\n- a helm repository reference of `{ cluster, name, namespace, kind }`\n- a chart reference within the helm repository of `{ name, version }`\n\nThen retrieve the values.yaml for this version of the chart.\n\nCreates a job. Job status the final result can be retrieved via /v1/charts/jobs/{job_id}",
         "operationId": "ClustersService_GetValuesForChart",
         "responses": {
           "200": {
@@ -259,6 +267,7 @@
     "/v1/config": {
       "get": {
         "summary": "Get the Weave Gitops Enterprise configuration",
+        "description": "Returns information about the current configuration of the Weave GitOps Enterprise.\n\nImportantly this includes\n- `managementClusterName`: the given name of the management cluster which is used for some multi-cluster operations.\n- `gitHostTypes`: the configured mapping of domains to git providers (e.g. `{ \"git.myhost.com\": \"gitlab\" }`) used\n  for authentication and creating pull requests.",
         "operationId": "ClustersService_GetConfig",
         "responses": {
           "200": {
@@ -358,6 +367,7 @@
     "/v1/enterprise/version": {
       "get": {
         "summary": "Get the Weave Gitops Enterprise version",
+        "description": "Returns the version of the Weave GitOps Enterprise server.",
         "operationId": "ClustersService_GetEnterpriseVersion",
         "responses": {
           "200": {
@@ -578,93 +588,7 @@
           },
           {
             "name": "templateKind",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "templates"
-        ]
-      }
-    },
-    "/v1/namespaces/{namespace}/templates/{name}/params": {
-      "get": {
-        "summary": "List the params of a template",
-        "operationId": "ClustersService_ListTemplateParams",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1ListTemplateParamsResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "namespace",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "name",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "templateKind",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "templates"
-        ]
-      }
-    },
-    "/v1/namespaces/{namespace}/templates/{name}/profiles": {
-      "get": {
-        "summary": "List the profiles of a template",
-        "description": "Includes default and required profiles specified by the template",
-        "operationId": "ClustersService_ListTemplateProfiles",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1ListTemplateProfilesResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "namespace",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "name",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "templateKind",
+            "description": "Kind of the template\n`GitopsTemplate` (default) or `CAPITemplate`",
             "in": "query",
             "required": false,
             "type": "string"
@@ -1002,12 +926,14 @@
         "parameters": [
           {
             "name": "provider",
+            "description": "Filter by the capi provider resources used in the template\n`aws`, `azure`, `vsphere`, `gcp`, `openstack`, `digitalocean`, `packet`, `docker`",
             "in": "query",
             "required": false,
             "type": "string"
           },
           {
             "name": "templateKind",
+            "description": "Filter by template's kind\n`GitopTemplate` or `CAPITemplate`",
             "in": "query",
             "required": false,
             "type": "string"
@@ -2045,6 +1971,9 @@
     },
     "v1GetEnterpriseVersionResponse": {
       "type": "object",
+      "example": {
+        "version": "0.42.0"
+      },
       "properties": {
         "version": {
           "type": "string",
@@ -2510,44 +2439,6 @@
         "total": {
           "type": "integer",
           "format": "int32"
-        }
-      }
-    },
-    "v1ListTemplateParamsResponse": {
-      "type": "object",
-      "properties": {
-        "parameters": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v1Parameter"
-          }
-        },
-        "objects": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v1TemplateObject"
-          }
-        }
-      }
-    },
-    "v1ListTemplateProfilesResponse": {
-      "type": "object",
-      "properties": {
-        "profiles": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v1TemplateProfile"
-          }
-        },
-        "objects": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v1TemplateObject"
-          }
         }
       }
     },

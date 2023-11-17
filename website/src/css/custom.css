@@ -90,3 +90,14 @@ The versions mentioned there are not correct.
   font-size: 14px !important;
   max-width: calc(100% - 50px - 15rem) !important;
 }
+
+/* .swagger-ui .opblock-tag {
+  padding-top: 60px !important;
+  margin-top: -60px !important;
+} */
+.swagger-ui .opblock-description-wrapper {
+  font-size: 14px !important;
+}
+.swagger-ui .markdown code {
+  padding: 2px 4px !important;
+}

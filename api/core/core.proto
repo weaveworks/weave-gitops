@@ -27,7 +27,7 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
     tags: {
         name: "default",
         description: "system endpoints"
-    }
+    };
     tags: {
         name: "objects",
         description: "Query and trigger kubernetes resources"
@@ -96,8 +96,7 @@ service Core {
     /*
      * Get the list of objects that were created as a result of reconciling a Flux automation.
      *
-     * This list is derived by looking at the Kustomization or HelmRelease
-     * specified in the request body.
+     * Use /inventory instead
      */
     rpc GetReconciledObjects(GetReconciledObjectsRequest)
         returns (GetReconciledObjectsResponse) {
@@ -114,9 +113,7 @@ service Core {
     /*
      * Returns the children of a given object
      *
-     * specified by a GroupVersionKind.
-     * Not all Kubernets objects have children. For example, a Deployment
-     * has a child ReplicaSet, but a Service has no child objects.
+     * Use /inventory instead
      */
     rpc GetChildObjects(GetChildObjectsRequest)
         returns (GetChildObjectsResponse) {
@@ -209,6 +206,8 @@ service Core {
 
     /*
      * Get the logs for a GitOpsRun session
+     *
+     * The GitOpsRun feature has been removed
      */
     rpc GetSessionLogs(GetSessionLogsRequest) returns (GetSessionLogsResponse) {
         option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
@@ -398,19 +397,14 @@ message ListError {
     string message      = 3;
 }
 
-message ListFluxRuntimeObjectsRequest {
-    string namespace    = 1;
-    string cluster_name = 2;
-}
+message ListFluxRuntimeObjectsRequest {}
 
 message ListFluxRuntimeObjectsResponse {
     repeated Deployment deployments = 1;
     repeated ListError errors       = 2;
 }
 
-message ListFluxCrdsRequest {
-    string cluster_name = 1;
-}
+message ListFluxCrdsRequest {}
 
 message ListFluxCrdsResponse {
     repeated Crd crds         = 1;

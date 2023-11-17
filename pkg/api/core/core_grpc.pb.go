@@ -36,14 +36,11 @@ type CoreClient interface {
 	ListFluxCrds(ctx context.Context, in *ListFluxCrdsRequest, opts ...grpc.CallOption) (*ListFluxCrdsResponse, error)
 	// Get the list of objects that were created as a result of reconciling a Flux automation.
 	//
-	// This list is derived by looking at the Kustomization or HelmRelease
-	// specified in the request body.
+	// Use /inventory instead
 	GetReconciledObjects(ctx context.Context, in *GetReconciledObjectsRequest, opts ...grpc.CallOption) (*GetReconciledObjectsResponse, error)
 	// Returns the children of a given object
 	//
-	// specified by a GroupVersionKind.
-	// Not all Kubernets objects have children. For example, a Deployment
-	// has a child ReplicaSet, but a Service has no child objects.
+	// Use /inventory instead
 	GetChildObjects(ctx context.Context, in *GetChildObjectsRequest, opts ...grpc.CallOption) (*GetChildObjectsResponse, error)
 	// List events for an object
 	//
@@ -82,6 +79,8 @@ type CoreClient interface {
 	// - Enterprise objects that also support this pattern: `GitOpsSet` and `AutomatedClusterDiscovery`
 	ToggleSuspendResource(ctx context.Context, in *ToggleSuspendResourceRequest, opts ...grpc.CallOption) (*ToggleSuspendResourceResponse, error)
 	// Get the logs for a GitOpsRun session
+	//
+	// The GitOpsRun feature has been removed
 	GetSessionLogs(ctx context.Context, in *GetSessionLogsRequest, opts ...grpc.CallOption) (*GetSessionLogsResponse, error)
 	// Check which clusters have a given CRD installed
 	//
@@ -305,14 +304,11 @@ type CoreServer interface {
 	ListFluxCrds(context.Context, *ListFluxCrdsRequest) (*ListFluxCrdsResponse, error)
 	// Get the list of objects that were created as a result of reconciling a Flux automation.
 	//
-	// This list is derived by looking at the Kustomization or HelmRelease
-	// specified in the request body.
+	// Use /inventory instead
 	GetReconciledObjects(context.Context, *GetReconciledObjectsRequest) (*GetReconciledObjectsResponse, error)
 	// Returns the children of a given object
 	//
-	// specified by a GroupVersionKind.
-	// Not all Kubernets objects have children. For example, a Deployment
-	// has a child ReplicaSet, but a Service has no child objects.
+	// Use /inventory instead
 	GetChildObjects(context.Context, *GetChildObjectsRequest) (*GetChildObjectsResponse, error)
 	// List events for an object
 	//
@@ -351,6 +347,8 @@ type CoreServer interface {
 	// - Enterprise objects that also support this pattern: `GitOpsSet` and `AutomatedClusterDiscovery`
 	ToggleSuspendResource(context.Context, *ToggleSuspendResourceRequest) (*ToggleSuspendResourceResponse, error)
 	// Get the logs for a GitOpsRun session
+	//
+	// The GitOpsRun feature has been removed
 	GetSessionLogs(context.Context, *GetSessionLogsRequest) (*GetSessionLogsResponse, error)
 	// Check which clusters have a given CRD installed
 	//

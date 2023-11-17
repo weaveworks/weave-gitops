@@ -5,6 +5,27 @@ title: Reference
 import BrowserOnly from "@docusaurus/BrowserOnly";
 import useBaseUrl from "@docusaurus/useBaseUrl";
 import "swagger-ui-react/swagger-ui.css";
+// DIY toc..
+// FIXME..
+export const toc = [
+  { "level": 2, "value": "Authentication", "id": "authentication" },
+  { "level": 2, "value": "OSS Core", "id": "oss-core" },
+    { "level": 3, "value": "Objects", "id": "operations-tag-objects" },
+    { "level": 3, "value": "Policy", "id": "operations-tag-policy" },
+  { "level": 2, "value": "Enterprise Core", "id": "enterprise-core" },
+    { "level": 3, "value": "Automations", "id": "operations-tag-automations" },
+    { "level": 3, "value": "Charts", "id": "operations-tag-charts" },
+    { "level": 3, "value": "Clusters", "id": "operations-tag-clusters" },
+    { "level": 3, "value": "Secrets", "id": "operations-tag-secrets" },
+    { "level": 3, "value": "Templates", "id": "operations-tag-templates" },
+    { "level": 3, "value": "Policies", "id": "operations-tag-policies" },
+    { "level": 3, "value": "Workspaces", "id": "operations-tag-workspaces" },
+  { "level": 2, "value": "Terraform", "id": "terraform" },
+  { "level": 2, "value": "Internal APIs", "id": "internal-apis" },
+    { "level": 3, "value": "Query", "id": "query" },
+    { "level": 3, "value": "GitAuth", "id": "git-auth" },
+    { "level": 3, "value": "Pipelines", "id": "pipelines" },
+];
 
 export const APIUI = ({ url }) => {
   const swaggerUrl = useBaseUrl(url);
@@ -20,6 +41,8 @@ export const APIUI = ({ url }) => {
       <BrowserOnly fallback={<div>Loading...</div>}>
         {() => {
           const SwaggerUI = require("swagger-ui-react").default;
+          const query = new URLSearchParams(window.location.search);
+          const docExpansion = query.get("docExpansion") || undefined;
           return (
             <SwaggerUI
               url={swaggerUrl}
@@ -33,6 +56,7 @@ export const APIUI = ({ url }) => {
               // Expand out the model section in each endpoint detail, otherwise its a bit
               // tedious to click through the tree
               defaultModelExpandDepth={8}
+              docExpansion={docExpansion}
             />
           );
         }}
@@ -41,30 +65,48 @@ export const APIUI = ({ url }) => {
   );
 };
 
-### OSS Core
+This is the complete API reference for the OSS and Enterprise versions of Weave Gitops.
+
+<h2 id="Authentication">Authentication</h2>
+
+Some simple examples of authentication are provided in the [Introduction](./intro.md) section.
+It covers how to save the session cookie and how to use it to authenticate with the API.
+
+For completeness we provide the full list of endpoints for authentication here.
+
+| Method | Path | Description |
+| --- | --- | --- |
+| `GET` | /oauth2 | Redirects to the OAuth2 provider if configured |
+| `GET` | /oauth2/callback | OAuth2 provider redirects back to this page and includes a `code` parameter |
+| `POST` | /oauth2/sign_in | Sign in with a username and password. Request body should be in the form `{ "username": "foo", "password": "<PASSWORD>" }` |
+| `GET` | /oauth2/userinfo | Get the current user info. Returns `{ "id": "user@example.com", "email": "user@example.com", "groups": ["foo", "bar"] }` |
+| `POST` | /oauth2/refresh | Attempt to refresh the current session with the configured OAuth2 provider. |
+| `POST` | /oauth2/logout | Log out of the current session. |
+
+<h2 id="oss-core">OSS Core</h2>
 
 <APIUI url="/swagger/core.swagger.json" />
 
-### Enterprise Core
+<h2 id="enterprise-core">Enterprise Core</h2>
 
 <APIUI url="/swagger/cluster_services.swagger.json" />
 
-### Terraform
+<h2 id="terraform">Terraform</h2>
 
 <APIUI url="/swagger/terraform.swagger.json" />
 
-## Internal APIs
+<h2 id="internal-apis">Internal APIs</h2>
 
 APIs that are not yet considered stable
 
-### Query
+<h3 id="query">Query</h3>
 
 <APIUI url="/swagger/query.swagger.json" />
 
-### GitAuth
+<h3 id="git-auth">GitAuth</h3>
 
 <APIUI url="/swagger/gitauth.swagger.json" />
 
-### Pipelines
+<h3 id="pipelines">Pipelines</h3>
 
 <APIUI url="/swagger/pipelines.swagger.json" />
