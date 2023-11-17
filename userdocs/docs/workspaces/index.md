@@ -1,0 +1,16 @@
+---
+title: Introduction
+
+---
+
+# Introduction ~ENTERPRISE~
+
+## Workspaces
+
+Organizations working with Kubernetes have a tremendous need to manage tenancy for numerous software delivery teams. Weave GitOps Workspaces offers tenancy management for Kubernetes clusters at scale. It’s built on top of Flux's powerful approach to managing tenancy, and adds policies that will help you to define finer-grain rules on your tenants.
+
+With WGE Workspaces, all it takes for platform operators to create workspaces is a single CLI command that generates:
+
+- all the necessary YAML configuration files necessary for tenant setup
+- a list of policies that apply to each workspace
+- the list of repositories to which each workspace has access.

@@ -1,0 +1,70 @@
+---
+title: Anonymous Access
+---
+
+!!! danger "Important"
+    Alone, this is an **insecure** method of securing your dashboard.
+
+    It is designed to be used with other external authentication systems like auth proxies.
+
+## Configuring Anonymous access
+
+Set the following values in the [Helm Chart](../references/helm-reference.md):
+
+```yaml
+#
+additionalArgs:
+- --insecure-no-authentication-user=gitops-test-user
+#
+```
+
+The value of the `--insecure-no-authentication-user` flag is the kubernetes `User` to be impersonated to make requests into the cluster.
+
+When this flag is set all other authentication methods (e.g. those specified via `--auth-methods`) are disabled.
+
+No login screen will be displayed when accessing the dashboard.
+
+## Example ClusterRole
+
+You can bind the user provided to a ClusterRole with a ClusterRoleBinding.
+
+```yaml
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: minimum-weavegitops-role
+rules:
+- apiGroups: [""]
+  resources: ["secrets","pods","events"]
+  verbs: ["get","list"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "replicasets"]
+  verbs: ["get","list"]
+- apiGroups: ["kustomize.toolkit.fluxcd.io"]
+  resources: ["kustomizations"]
+  verbs: ["get","list"]
+- apiGroups: ["helm.toolkit.fluxcd.io"]
+  resources: ["helmreleases"]
+  verbs: ["get","list"]
+- apiGroups: ["source.toolkit.fluxcd.io"]
+  resources: ["*"]
+  verbs: ["get","list"]
+- apiGroups: [""]
+  resources: ["events"]
+  verbs: ["get","list","watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: gitops-test-user-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: minimum-weavegitops-role
+subjects:
+  - kind: User
+    name: gitops-test-user
+```
+
+This would allow access to any resource.
