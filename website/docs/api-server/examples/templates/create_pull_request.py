@@ -6,49 +6,26 @@ import string
 
 # Modify this to change the API server URL
 BASE_URL = os.environ.get("BASE_URL", "http://localhost:8000")
-GITHUB_TOKEN = os.environ["GITHUB_TOKEN"]
-WEGO_PASSWORD = os.environ["WEGO_PASSWORD"]
 
-session_cookie = ""
-headers_default = {
-    "Content-Type": "application/json"
-}
+
+def sign_in(s):
+    return s.post(f"{BASE_URL}/oauth2/sign_in", json={
+        "username": "wego-admin",
+        "password": os.environ["WEGO_PASSWORD"]
+    })
 
 
 def generate_random_string(length=8):
     return ''.join(random.choices(string.ascii_lowercase + string.digits, k=length))
 
 
-def request(path, method="GET", data=None, headers=None):
-    global session_cookie
-    url = BASE_URL + path
-    headers_merged = {**headers_default, **(headers or {})}
-    if session_cookie:
-        headers_merged["Cookie"] = session_cookie
-
-    response = requests.request(
-        method, url, data=json.dumps(data), headers=headers_merged)
-
-    if not response.ok:
-        raise ValueError(
-            f"Request {url} failed with status {response.status_code}: {response.text}")
-
-    if "set-cookie" in response.headers:
-        session_cookie = response.headers["set-cookie"]
-
-    if not response.text:
-        return None
-
-    return response.json()
-
-
-def create_pull_request():
+def create_pull_request(s):
     data = {
         "providerName": "github",
-        "accessToken": GITHUB_TOKEN
+        "accessToken": os.environ["GITHUB_TOKEN"]
     }
-    response = request("/v1/authenticate/github", "POST", data)
-    token = response["token"]
+    response = s.post(f"{BASE_URL}/v1/authenticate/github", json=data)
+    token = response.json()["token"]
 
     # Modify this for your repository
     org = os.environ.get("GITHUB_USER", "my-org")
@@ -78,16 +55,17 @@ def create_pull_request():
         "Git-Provider-Token": f"token {token}"
     }
 
-    response = request(
-        f"/v1/namespaces/{namespace}/templates/{name}/pull-request", "POST", data, headers)
+    response = s.post(f"{BASE_URL}/v1/namespaces/{namespace}/templates/{name}/pull-request",
+                      json=data, headers=headers)
 
-    print(response["webUrl"])
+    return response.json()
 
 
 if __name__ == "__main__":
-    data = {
-        "username": "wego-admin",
-        "password": WEGO_PASSWORD
-    }
-    request("/oauth2/sign_in", "POST", data)
-    create_pull_request()
+    s = requests.Session()
+
+    sign_in(s)
+
+    response = create_pull_request(s)
+
+    print(response["webUrl"])
