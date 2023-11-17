@@ -14,8 +14,6 @@ The website is live [here](https://docs.gitops.weave.works/).
 
 1. Install dependencies: `yarn install`.
 
-1. Set a fake Google Analytics API key to pass validation errors: `export GA_KEY=fakekey`
-
 1. Start the docs server.
 
     > If you are using newer version of Node (17+):
@@ -24,7 +22,7 @@ The website is live [here](https://docs.gitops.weave.works/).
     > ```
 
     ```bash
-    yarn start
+    GA_KEY=fake ALGOLIA_API_KEY=fake yarn start
     ```
 
     This will open a browser window. Your changes will be automatically loaded by
