@@ -114,6 +114,7 @@
       type: 'category',
       label: 'Guides',
       items: [
+        'guides/oidc',
         'guides/displaying-custom-metadata',
         'guides/fluxga-upgrade',
       ],
