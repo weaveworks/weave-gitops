@@ -113,3 +113,7 @@ so it doesn't wrap as often */
 .swagger-ui .model-box-control {
   display: none !important;
 }
+
+.swagger-ui .model .markdown {
+  font-family: sans-serif;
+}

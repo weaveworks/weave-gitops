@@ -701,13 +701,16 @@ type Object struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Payload     string              `protobuf:"bytes,1,opt,name=payload,proto3" json:"payload,omitempty"`
-	ClusterName string              `protobuf:"bytes,2,opt,name=cluster_name,json=clusterName,proto3" json:"cluster_name,omitempty"`
-	Tenant      string              `protobuf:"bytes,3,opt,name=tenant,proto3" json:"tenant,omitempty"`
-	Uid         string              `protobuf:"bytes,4,opt,name=uid,proto3" json:"uid,omitempty"`
-	Inventory   []*GroupVersionKind `protobuf:"bytes,5,rep,name=inventory,proto3" json:"inventory,omitempty"`
-	Info        string              `protobuf:"bytes,6,opt,name=info,proto3" json:"info,omitempty"`
-	Health      *HealthStatus       `protobuf:"bytes,7,opt,name=health,proto3" json:"health,omitempty"`
+	// A JSON string containing the complete Kubernetes object.
+	Payload string `protobuf:"bytes,1,opt,name=payload,proto3" json:"payload,omitempty"`
+	// The cluster the object is deployed to.
+	ClusterName string `protobuf:"bytes,2,opt,name=cluster_name,json=clusterName,proto3" json:"cluster_name,omitempty"`
+	// The tenant the object belongs to if any.
+	Tenant    string              `protobuf:"bytes,3,opt,name=tenant,proto3" json:"tenant,omitempty"`
+	Uid       string              `protobuf:"bytes,4,opt,name=uid,proto3" json:"uid,omitempty"`
+	Inventory []*GroupVersionKind `protobuf:"bytes,5,rep,name=inventory,proto3" json:"inventory,omitempty"`
+	Info      string              `protobuf:"bytes,6,opt,name=info,proto3" json:"info,omitempty"`
+	Health    *HealthStatus       `protobuf:"bytes,7,opt,name=health,proto3" json:"health,omitempty"`
 }
 
 func (x *Object) Reset() {

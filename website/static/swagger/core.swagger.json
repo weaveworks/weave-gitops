@@ -1312,13 +1312,16 @@
       "type": "object",
       "properties": {
         "payload": {
-          "type": "string"
+          "type": "string",
+          "description": "A JSON string containing the complete Kubernetes object."
         },
         "clusterName": {
-          "type": "string"
+          "type": "string",
+          "description": "The cluster the object is deployed to."
         },
         "tenant": {
-          "type": "string"
+          "type": "string",
+          "description": "The tenant the object belongs to if any."
         },
         "uid": {
           "type": "string"

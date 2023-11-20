@@ -91,8 +91,11 @@ message InventoryEntry {
 }
 
 message Object {
+    // A JSON string containing the complete Kubernetes object.
     string   payload                     = 1;
+    // The cluster the object is deployed to.
     string   cluster_name                = 2;
+    // The tenant the object belongs to if any.
     string   tenant                      = 3;
     string   uid                         = 4;
     repeated GroupVersionKind inventory  = 5;
