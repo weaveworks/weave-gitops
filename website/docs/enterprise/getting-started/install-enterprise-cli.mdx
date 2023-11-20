@@ -33,7 +33,6 @@ For those seeking other scenarios or fine-grain customisation [Weave GitOps Ente
 Before you start make sure the following requirements are met:
 
 - [ ] **Management Cluster**: a Kubernetes cluster with a Kubeconfig that has Admin permissions to be able to create resources.
-- [ ] **Git Repository with SSH access**: this is the configuration repo that WeaveGitOps will use to sync configuration manifests from.
 - [ ] **Flux CLI**: is [installed](https://fluxcd.io/flux/installation/#install-the-flux-cli) locally. It will be used for reconciling Flux resources.
 - [ ] **Weave GitOps Enterprise Entitlements** are installed in the management cluster. Contact [Sales](/help-and-support/) for help on getting them.
 
@@ -66,12 +65,13 @@ Please use the following command to start the installation wizard of Weave GitOp
    ```bash
     gitops bootstrap \
        --kubeconfig=$HOME/.kube/config \
-       --private-key=$HOME/.ssh/id_rsa --private-key-password="" \
+       --private-key=$HOME/.ssh/id_rsa \
+       --private-key-password="" \
        --version="0.35.0" \
        --domain-type="localhost" \
-       --password="admin123"
-       --repo-url="ssh://git@github.com/my-org-name/my-repo-name"
-       --branch="main"
+       --password="admin123" \
+       --repo-url="ssh://git@github.com/my-org-name/my-repo-name" \
+       --branch="main" \
        --repo-path="clusters/my-cluster"
    ```
    For more information about the CLI configurations, check the below sections [here](#cli-configurations)
@@ -98,8 +98,8 @@ Please use the following command to start the installation wizard of Weave GitOp
 
 #### Verify Flux
 
-Weave GitOps Enterprise runs on top of flux, the bootstrap CLI will check if flux is installed on the management cluster, and it will verify that it has the right version with valid git repository setup, and it is able to reconcile flux components properly. 
-If flux is installed, but doesn't have a valid installation, the bootstrap CLI will terminate pending the fix or uninstall of current flux installation. 
+Weave GitOps Enterprise runs on top of flux, the bootstrap CLI will check if flux is installed on the management cluster, and it is able to reconcile flux components properly.
+If flux is installed, but doesn't have a valid installation, the bootstrap CLI will terminate pending the fix or uninstall of current flux installation.
 
 #### Bootstrap Flux
 
