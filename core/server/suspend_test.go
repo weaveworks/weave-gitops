@@ -97,6 +97,7 @@ func TestSuspend_Suspend(t *testing.T) {
 			req := &api.ToggleSuspendResourceRequest{
 				Objects: []*api.ObjectRef{object},
 				Suspend: true,
+				Comment: "testing some things out",
 			}
 			principalID := "anne"
 			md := metadata.Pairs(MetadataUserKey, principalID, MetadataGroupsKey, "system:masters")
@@ -177,24 +178,24 @@ func getUnstructuredObj(t *testing.T, k client.Client, name types.NamespacedName
 func checkSuspendAnnotations(t *testing.T, principalID string, annotations map[string]string, name types.NamespacedName, suspend bool) {
 	if suspend {
 		// suspended and annotations exist check
-		if suspendedBy, ok := annotations["weave.works/suspended-by"]; ok {
+		if suspendedBy, ok := annotations["metadata.weave.works/suspended-by"]; ok {
 			// principal check if suspended and annotations exist
 			if suspendedBy != principalID {
-				t.Errorf("expected annotation weave.works/suspended-by to be set to the principal %s", principalID)
+				t.Errorf("expected annotation metadata.weave.works/suspended-by to be set to the principal %s", principalID)
 			}
 		} else {
-			t.Errorf("expected annotation weave.works/suspended-by not found for %s", name)
+			t.Errorf("expected annotation metadata.weave.works/suspended-by not found for %s", name)
 		}
-		if _, ok := annotations["weave.works/suspended-comment"]; !ok {
-			t.Errorf("expected annotation weave.works/suspended-comment not found for %s", name)
+		if _, ok := annotations["metadata.weave.works/suspended-comment"]; !ok {
+			t.Errorf("expected annotation metadata.weave.works/suspended-comment not found for %s", name)
 		}
 	} else {
 		// not suspended and annotations don't exist check
-		if _, ok := annotations["weave.works/suspended-by"]; ok {
-			t.Errorf("expected annotation weave.works/suspended-by not found for %s", name)
+		if _, ok := annotations["metadata.weave.works/suspended-by"]; ok {
+			t.Errorf("expected annotation metadata.weave.works/suspended-by not found for %s", name)
 		}
-		if _, ok := annotations["weave.works/suspended-comment"]; ok {
-			t.Errorf("expected annotation weave.works/suspended-comment not found for %s", name)
+		if _, ok := annotations["metadata.weave.works/suspended-comment"]; ok {
+			t.Errorf("expected annotation metadata.weave.works/suspended-comment not found for %s", name)
 		}
 	}
 }
