@@ -86,15 +86,14 @@ The versions mentioned there are not correct.
   display: none !important;
 }
 
+/* Give the URL in "GET $URL + description" a bit more space
+so it doesn't wrap as often */
 .swagger-ui .opblock .opblock-summary-path {
   font-size: 14px !important;
   max-width: calc(100% - 50px - 15rem) !important;
 }
 
-/* .swagger-ui .opblock-tag {
-  padding-top: 60px !important;
-  margin-top: -60px !important;
-} */
+/* markdown `code` blocks are a bit big */
 .swagger-ui .opblock-description-wrapper {
   font-size: 14px !important;
 }
@@ -102,6 +101,15 @@ The versions mentioned there are not correct.
   padding: 2px 4px !important;
 }
 
+/* style internal methods similarly to "deprecated" ones */
 .swagger-ui .opblock[id*='-internal-'], .swagger-ui .opblock-tag[id$='-internal'] {
   opacity: 0.5;
+}
+
+.swagger-ui .responses-wrapper tr[data-code="default"] {
+  display: none;
+}
+
+.swagger-ui .model-box-control {
+  display: none !important;
 }

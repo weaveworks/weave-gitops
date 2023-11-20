@@ -5,8 +5,8 @@ title: Reference
 import BrowserOnly from "@docusaurus/BrowserOnly";
 import useBaseUrl from "@docusaurus/useBaseUrl";
 import "swagger-ui-react/swagger-ui.css";
-// DIY toc..
-// FIXME..
+// DIY toc.
+// FIXME, generate with a build stuff
 export const toc = [
   { "level": 2, "value": "Authentication", "id": "authentication" },
   { "level": 2, "value": "OSS Core", "id": "oss-core" },
@@ -20,8 +20,8 @@ export const toc = [
     { "level": 3, "value": "Templates", "id": "operations-tag-templates" },
     { "level": 3, "value": "Policies", "id": "operations-tag-policies" },
     { "level": 3, "value": "Workspaces", "id": "operations-tag-workspaces" },
-  { "level": 2, "value": "Terraform", "id": "terraform" },
   { "level": 2, "value": "Internal APIs", "id": "internal-apis" },
+    { "level": 3, "value": "Terraform", "id": "terraform" },
     { "level": 3, "value": "Query", "id": "query" },
     { "level": 3, "value": "GitAuth", "id": "git-auth" },
     { "level": 3, "value": "Pipelines", "id": "pipelines" },
@@ -55,8 +55,9 @@ export const APIUI = ({ url }) => {
               defaultModelsExpandDepth={0}
               // Expand out the model section in each endpoint detail, otherwise its a bit
               // tedious to click through the tree
-              defaultModelExpandDepth={8}
+              defaultModelExpandDepth={20}
               docExpansion={docExpansion}
+              defaultModelRendering="model"
             />
           );
         }}
@@ -91,13 +92,13 @@ For completeness we provide the full list of endpoints for authentication here.
 
 <APIUI url="/swagger/cluster_services.swagger.json" />
 
-<h2 id="terraform">Terraform</h2>
-
-<APIUI url="/swagger/terraform.swagger.json" />
-
 <h2 id="internal-apis">Internal APIs</h2>
 
 APIs that are not yet considered stable
+
+<h2 id="terraform">Terraform</h2>
+
+<APIUI url="/swagger/terraform.swagger.json" />
 
 <h3 id="query">Query</h3>
 
