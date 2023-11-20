@@ -135,6 +135,8 @@ You may decide to give your engineering teams access to the WGE dashboard so the
 
 OIDC extends the OAuth2 authorization protocol by including an additional field (ID Token) that contains information (claims) about a user's identity. After a user successfully authenticates with the OIDC provider, Weave GitOps Enterprise uses this information to impersonate the user in any calls to the Kubernetes API. This allows cluster administrators to use RBAC rules to control access to the cluster and the dashboard.
 
+For more specific examples of how to setup OIDC with Weave GitOps, see [this guide](../../../guides/oidc/).
+
 <Tabs groupId="infrastructure" default>
 <TabItem value="Login via an OIDC provider" label="Login via an OIDC provider">
 
