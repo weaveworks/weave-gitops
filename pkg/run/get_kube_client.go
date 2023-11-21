@@ -40,8 +40,10 @@ func GetKubeClientOptions() *runclient.Options {
 
 func GetKubeClient(log logger.Logger, contextName string, cfg *rest.Config, kubeClientOpts *runclient.Options) (*kube.KubeHTTP, error) {
 	// avoid throttling request when some Flux CRDs are not registered
-	cfg.QPS = kubeClientOpts.QPS
-	cfg.Burst = kubeClientOpts.Burst
+	if kubeClientOpts != nil {
+		cfg.QPS = kubeClientOpts.QPS
+		cfg.Burst = kubeClientOpts.Burst
+	}
 
 	kubeClient, err := kube.NewKubeHTTPClientWithConfig(cfg, contextName)
 	if err != nil {
