@@ -51,25 +51,5 @@ this example the `customScopes` field is set to only request the `openid` and `e
 
 ## Keycloak
 
-Keycloak is highly customizable so the steps to obtain client ID and secret will vary depending on your setup. The
-general steps are very similar and the following steps point to the appropriate pages in the official Keycloak
-documentation:
-
-1. Log in to the Keycloak admin console and [create a realm](https://www.keycloak.org/docs/latest/server_admin/#configuring-realms).
-1. [Create a client application](https://www.keycloak.org/docs/latest/authorization_services/index.html#_resource_server_create_client)
-   and choose "OpenID Connect" as the client type.
-1. Make sure to set the "Client Authenticator" on the "Credentials" tab to "Client Id and Secret" and generate a secret.
-1. Configure Weave GitOps:
-
-   ```yaml
-   apiVersion: v1
-   kind: Secret
-   metadata:
-       name: oidc-auth
-       namespace: WEAVE_GITOPS_NAMESPACE
-   stringData:
-       clientID: CLIENT_ID_FROM_STEP_2
-       clientSecret: CLIENT_SECRET_FROM_STEP_3
-       issuerURL: https://KEYCLOAK_DOMAIN/realms/KEYCLOAK_REALM
-       redirectURL: BASE_WEAVE_GITOPS_URL/oauth2/callback
-   ```
+Keycloak is highly customizable so the steps to obtain client ID and secret will vary depending on your setup. That's why
+there is a [dedicated guide on setting up Keycloak and Weave GitOps to work together](./configuring-oidc-with-keycloak.mdx).
