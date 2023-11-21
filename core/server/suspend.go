@@ -11,6 +11,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+const SuspendedByAnnotation = "metadata.weave.works/suspended-by"
+const SuspendedCommentAnnotation = "metadata.weave.works/suspended-comment"
+
 func (cs *coreServer) ToggleSuspendResource(ctx context.Context, msg *pb.ToggleSuspendResourceRequest) (*pb.ToggleSuspendResourceResponse, error) {
 	principal := auth.Principal(ctx)
 	respErrors := multierror.Error{}
@@ -85,12 +88,14 @@ func changeSuspendAnnotations(obj fluxsync.Reconcilable, suspend bool, comment s
 		annotations = map[string]string{}
 	}
 	if suspend {
-		annotations["weave.works/suspended-by"] = principal.ID
-		annotations["weave.works/suspended-comment"] = comment
+		annotations[SuspendedByAnnotation] = principal.ID
+		if comment != "" {
+			annotations[SuspendedCommentAnnotation] = comment
+		}
 		obj.SetAnnotations(annotations)
 	} else {
-		delete(annotations, "weave.works/suspended-by")
-		delete(annotations, "weave.works/suspended-comment")
+		delete(annotations, SuspendedByAnnotation)
+		delete(annotations, SuspendedCommentAnnotation)
 		obj.SetAnnotations(annotations)
 	}
 }
