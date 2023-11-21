@@ -30,15 +30,18 @@ For those seeking other scenarios or fine-grain customisation [Weave GitOps Ente
 
 ### Prerequisites
 
+:::warning Required Permissions
+A Platform Engineer running the boostrap command requires to have both **cluster admin** permissions on the Management Cluster and **push** permissions to the Git repository.
+:::
+
 Before you start make sure the following requirements are met:
 
-- [ ] **Management Cluster**: a Kubernetes cluster with a Kubeconfig that has Admin permissions to be able to create resources.
-- [ ] **Git Repository with SSH access**: this is the configuration repo that WeaveGitOps will use to sync configuration manifests from.
+- [ ] **Management Cluster**: a Kubernetes cluster with a Kubeconfig with cluster admin permissions to be able to create resources.
+- [ ] **Git Repository with SSH access**: the Git configuration repo to be used by Flux and Weave GitOps.
 - [ ] **Flux CLI**: is [installed](https://fluxcd.io/flux/installation/#install-the-flux-cli) locally. It will be used for reconciling Flux resources.
-- [ ] **Flux Bootstrapped** in your Management cluster via ssh. See [Flux Bootstrap](https://fluxcd.io/flux/installation/bootstrap/generic-git-server/) for more info.
-- [ ] **Weave GitOps Enterprise Entitlements** are installed in the management cluster. Contact [Sales](/help-and-support/) for help on getting them.
+- [ ] **Weave GitOps Enterprise Entitlements** are installed in the Management Cluster. Contact [Sales](/help-and-support/) for help on getting them.
 
-#### Install `gitops-ee` CLI (> v0.35)
+### Install `gitops-ee` CLI
 
 Weave GitOps Enterprise Bootstrap functionality is available on Weave GitOps Enterprise CLI starting from version v0.35. If you haven't already, please install the latest `gitops-ee` CLI using this command.
 
@@ -46,7 +49,7 @@ Weave GitOps Enterprise Bootstrap functionality is available on Weave GitOps Ent
 brew install weaveworks/tap/gitops-ee
 ```
 
-#### Bootstrap Weave GitOps Enterprise
+### Bootstrap Weave GitOps Enterprise
 
 Please use the following command to start the installation wizard of Weave GitOps Enterprise.
 
@@ -67,10 +70,13 @@ Please use the following command to start the installation wizard of Weave GitOp
    ```bash
     gitops bootstrap \
        --kubeconfig=$HOME/.kube/config \
-       --private-key=$HOME/.ssh/id_rsa --private-key-password="" \
+       --private-key=$HOME/.ssh/id_ed25519 --private-key-password="" \
        --version="0.35.0" \
        --domain-type="localhost" \
-       --password="admin123"
+       --password="admin123"  \
+       --repo-url="ssh://git@github.com/my-org-name/my-repo-name"  \
+       --branch="main"  \
+       --repo-path="clusters/my-cluster"
    ```
    For more information about the CLI configurations, check the below sections [here](#cli-configurations)
 
@@ -85,18 +91,25 @@ Please use the following command to start the installation wizard of Weave GitOp
 `gitops-ee bootstrap` is a workflow that will take you through the following stages:
 
 1. [Verify Flux](#verifying-flux): verify Flux installation on the Management cluster.
-2. [Verify Entitlement](#verifying-entitlement): verify the Entitlements secret content (username, password, entitlement).
-3. [Configure Git Access](#configure-git-access): configure the access to your configuration repo.
-4. [Select WGE version](#selecting-wge-version): from the latest 3 available releases.
-5. [Create Cluster User](#create-cluster-user): create a Secret with the username and password for the emergency cluster user.
-6. [Configure Dashboard Access](#configure-dashboard-access): choose between 2 methods to access the dashboard either local or external.
-7. [Access the dashboard](#access-the-dashboard): via the link from the installation success message.
-8. (Optional) [Configure OIDC](#configure-oidc): to enable login to dashboard via OIDC providers.
+2. (Optional) [Bootstrap Flux](#bootstrap-flux): bootstrap Flux in case is not found.
+3. [Verify Entitlement](#verifying-entitlement): verify the Entitlements secret content (username, password, entitlement).
+4. [Configure Git Access](#configure-git-access): configure the access to your configuration repo.
+5. [Select WGE version](#selecting-wge-version): from the latest 3 available releases.
+6. [Create Cluster User](#create-cluster-user): create a Secret with the username and password for the emergency cluster user.
+7. [Configure Dashboard Access](#configure-dashboard-access): choose between 2 methods to access the dashboard either local or external.
+8. [Access the dashboard](#access-the-dashboard): via the link from the installation success message.
+9. (Optional) [Configure OIDC](#configure-oidc): to enable login to dashboard via OIDC providers.
 
 #### Verify Flux
 
-Weave GitOps Enterprise runs on top of flux, the bootstrap CLI will check if flux is installed on the management cluster, and it will verify that it has the right version with valid git repository setup, and it is able to reconcile flux components properly. 
-If flux is installed, but doesn't have a valid installation, the bootstrap CLI will terminate pending the fix or uninstall of current flux installation. 
+Weave GitOps Enterprise runs on top of Flux, the bootstrap CLI will check if Flux is installed on the management cluster, and it will verify that it has the right version with valid git repository setup, and it is able to reconcile Flux components properly.
+If Flux is installed, but doesn't have a valid installation, the bootstrap CLI will terminate pending the fix or uninstall of current Flux installation.
+
+#### Bootstrap Flux
+
+If Flux is not found in the Management Cluster, you have the ability to bootstrap it with the [Generic Git](https://fluxcd.io/flux/installation/bootstrap/generic-git-server/).
+You will be prompted to provide: `repository url`, `repository branch` and `path` to reconcile. Based on your `repository url` authentication credentials will be requested.
+For SSH, `private key path` & `private key password`. For HTTPS, `username` and  `password`. After getting the right info regarding your repo, Flux will start to bootstrap and reconcile your repo.
 
 #### Verify Entitlement
 
@@ -155,3 +168,8 @@ Please don't forget to add a new static-client on your OIDC provider settings wi
 - `-c`, `--private-key-password`:   Private key password. If the private key is encrypted using password
 - `-u`, `--username`:               Dashboard admin username
 - `-v`, `--version`:                Weave GitOps Enterprise version to install
+- `--repo-url`:                     Git repo url for your Flux repository
+- `--git-username`:                 Git username which contains your repository
+- `--gitPassword`:                  Git password/token to give Flux the accessiblity to be able to reconcile the repo
+- `-b`, `--branch`:                 Git branch for your Flux repository
+- `-r`, `--repo-path`:              Git path for your Flux repository (example: clusters/my-cluster)
