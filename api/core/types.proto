@@ -83,10 +83,16 @@ message HealthStatus {
 }
 
 message InventoryEntry {
+    // A JSON string containing the complete Kubernetes object.
     string payload = 1;
+    // The tenant the object belongs to if any.
     string tenant = 2;
+    // The cluster the object is deployed to.
     string cluster_name = 3;
     HealthStatus health = 4;
+    // If the object is a parent e.g. `ReplicaSet` -> `Pod`
+    // Then the children are included here with their payload, clusterName etc
+    // This a recursive structure.
     repeated InventoryEntry children = 5;
 }
 
@@ -97,8 +103,11 @@ message Object {
     string   cluster_name                = 2;
     // The tenant the object belongs to if any.
     string   tenant                      = 3;
+    // The Kubernetes UID of the object.
     string   uid                         = 4;
+    // DEPRECATED, use /inventory endpoint.
     repeated GroupVersionKind inventory  = 5;
+    // DEPRECATED, GitOpsRun field.
     string   info                        = 6;
     HealthStatus health                  = 7;
 }
@@ -138,8 +147,11 @@ message Event {
     string type      = 1;
     string reason    = 2;
     string message   = 3;
+    // The LastTimestamp of the event.
     string timestamp = 4;
+    // The Source Component.
     string component = 5;
+    // The Source Host.
     string host      = 6;
     string name      = 7;
     string uid       = 8;

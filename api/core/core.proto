@@ -391,6 +391,9 @@ message Pagination {
     string page_token = 2;
 }
 
+// Queries are made to each cluster. If its a namespaced query then a query
+// is made per namespace too. If an error occurs for any specific query the error
+// message is included here alongside the results for the queries that succeeded.
 message ListError {
     string cluster_name = 1;
     string namespace    = 2;
@@ -487,6 +490,7 @@ message ListEventsResponse {
 }
 
 message SyncFluxObjectRequest {
+    // The list of objects to sync.
     repeated ObjectRef objects  = 1;
     bool     with_source        = 2;
 }
@@ -508,14 +512,17 @@ message GetFeatureFlagsRequest {}
 
 message GetFeatureFlagsResponse {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
-        example: "{\"flags\": { \"WEAVE_GITOPS_FEATURE_TENANCY\": \"true\" } }"
+        example: "{\"flags\": { \"WEAVE_GITOPS_FEATURE_TENANCY\": \"true\", \"OIDC_AUTH\": \"true\" } }",
     };
     map<string, string> flags = 1;
 }
 
 message ToggleSuspendResourceRequest {
+    // The list of objects to suspend or resume.
     repeated ObjectRef objects = 1;
+    // Suspend or resume the resources.
     bool     suspend           = 2;
+    // Include a comment about why the resources are being suspended.
     string   comment           = 3;
 }
 
@@ -546,12 +553,16 @@ message GetSessionLogsResponse {
 }
 
 message IsCRDAvailableRequest {
-    // The name of the `CustomResourceDefinition` to check availability for across clusters.
-    // e.g. `imageupdateautomations.image.toolkit.fluxcd.io` or `gitopssets.templates.weave.works`
+    // The name of the CustomResourceDefinition to check availability for across clusters. e.g.
+    // - `imageupdateautomations.image.toolkit.fluxcd.io`
+    // - `gitopssets.templates.weave.works`
     string name = 1;
 }
 
 message IsCRDAvailableResponse {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+        example: "{\"clusters\": { \"clusters-1\": true } }"
+    };
     map<string,bool> clusters = 1;
 }
 

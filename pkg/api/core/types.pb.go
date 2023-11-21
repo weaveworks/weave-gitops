@@ -622,11 +622,17 @@ type InventoryEntry struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Payload     string            `protobuf:"bytes,1,opt,name=payload,proto3" json:"payload,omitempty"`
-	Tenant      string            `protobuf:"bytes,2,opt,name=tenant,proto3" json:"tenant,omitempty"`
-	ClusterName string            `protobuf:"bytes,3,opt,name=cluster_name,json=clusterName,proto3" json:"cluster_name,omitempty"`
-	Health      *HealthStatus     `protobuf:"bytes,4,opt,name=health,proto3" json:"health,omitempty"`
-	Children    []*InventoryEntry `protobuf:"bytes,5,rep,name=children,proto3" json:"children,omitempty"`
+	// A JSON string containing the complete Kubernetes object.
+	Payload string `protobuf:"bytes,1,opt,name=payload,proto3" json:"payload,omitempty"`
+	// The tenant the object belongs to if any.
+	Tenant string `protobuf:"bytes,2,opt,name=tenant,proto3" json:"tenant,omitempty"`
+	// The cluster the object is deployed to.
+	ClusterName string        `protobuf:"bytes,3,opt,name=cluster_name,json=clusterName,proto3" json:"cluster_name,omitempty"`
+	Health      *HealthStatus `protobuf:"bytes,4,opt,name=health,proto3" json:"health,omitempty"`
+	// If the object is a parent e.g. `ReplicaSet` -> `Pod`
+	// Then the children are included here with their payload, clusterName etc
+	// This a recursive structure.
+	Children []*InventoryEntry `protobuf:"bytes,5,rep,name=children,proto3" json:"children,omitempty"`
 }
 
 func (x *InventoryEntry) Reset() {
@@ -706,11 +712,14 @@ type Object struct {
 	// The cluster the object is deployed to.
 	ClusterName string `protobuf:"bytes,2,opt,name=cluster_name,json=clusterName,proto3" json:"cluster_name,omitempty"`
 	// The tenant the object belongs to if any.
-	Tenant    string              `protobuf:"bytes,3,opt,name=tenant,proto3" json:"tenant,omitempty"`
-	Uid       string              `protobuf:"bytes,4,opt,name=uid,proto3" json:"uid,omitempty"`
+	Tenant string `protobuf:"bytes,3,opt,name=tenant,proto3" json:"tenant,omitempty"`
+	// The Kubernetes UID of the object.
+	Uid string `protobuf:"bytes,4,opt,name=uid,proto3" json:"uid,omitempty"`
+	// DEPRECATED, use /inventory endpoint.
 	Inventory []*GroupVersionKind `protobuf:"bytes,5,rep,name=inventory,proto3" json:"inventory,omitempty"`
-	Info      string              `protobuf:"bytes,6,opt,name=info,proto3" json:"info,omitempty"`
-	Health    *HealthStatus       `protobuf:"bytes,7,opt,name=health,proto3" json:"health,omitempty"`
+	// DEPRECATED, GitOpsRun field.
+	Info   string        `protobuf:"bytes,6,opt,name=info,proto3" json:"info,omitempty"`
+	Health *HealthStatus `protobuf:"bytes,7,opt,name=health,proto3" json:"health,omitempty"`
 }
 
 func (x *Object) Reset() {
@@ -1060,14 +1069,17 @@ type Event struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Type      string `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
-	Reason    string `protobuf:"bytes,2,opt,name=reason,proto3" json:"reason,omitempty"`
-	Message   string `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Type    string `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
+	Reason  string `protobuf:"bytes,2,opt,name=reason,proto3" json:"reason,omitempty"`
+	Message string `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	// The LastTimestamp of the event.
 	Timestamp string `protobuf:"bytes,4,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	// The Source Component.
 	Component string `protobuf:"bytes,5,opt,name=component,proto3" json:"component,omitempty"`
-	Host      string `protobuf:"bytes,6,opt,name=host,proto3" json:"host,omitempty"`
-	Name      string `protobuf:"bytes,7,opt,name=name,proto3" json:"name,omitempty"`
-	Uid       string `protobuf:"bytes,8,opt,name=uid,proto3" json:"uid,omitempty"`
+	// The Source Host.
+	Host string `protobuf:"bytes,6,opt,name=host,proto3" json:"host,omitempty"`
+	Name string `protobuf:"bytes,7,opt,name=name,proto3" json:"name,omitempty"`
+	Uid  string `protobuf:"bytes,8,opt,name=uid,proto3" json:"uid,omitempty"`
 }
 
 func (x *Event) Reset() {

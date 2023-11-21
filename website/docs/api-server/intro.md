@@ -113,10 +113,3 @@ objects_response = requests.post(
 print(objects_response.json())
 
 ```
-
-## Notes on the API server
-
-### Some methods use POST rather than GET for querying
-
-Some endpoints use POST rather than GET for querying.
-Much of the server request layer is auto-generated, complex query parameters are not supported by the auto-generated code, so POST is used instead.

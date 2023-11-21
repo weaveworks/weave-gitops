@@ -106,14 +106,41 @@ so it doesn't wrap as often */
   opacity: 0.5;
 }
 
+/* hide error responses */
 .swagger-ui .responses-wrapper tr[data-code="default"] {
   display: none;
 }
 
+/* hide the name of the submodel v1clusterobject etc */
 .swagger-ui .model-box-control {
   display: none !important;
 }
+/* Enum's aren't auto expanded so we have to show the expander
+So the user can do it manually */
+.swagger-ui .prop-enum .model-box-control {
+  display: block !important;
+}
 
+/* non-monospace for the field descriptions */
 .swagger-ui .model .markdown {
   font-family: sans-serif;
+  font-weight: normal;
+}
+
+/* narrow up the table a bit */
+.swagger-ui table.model tbody tr td:first-of-type {
+  width: unset !important;
+}
+/* Fix up the close brace, has some funny padding */
+.swagger-ui span>span.model .brace-close {
+  padding: 0 !important;
+}
+/* global style set by docusaurus we want to undo */
+.swagger-ui table {
+  margin-bottom: 0;
+}
+/* reduce padding on the table */
+.swagger-ui table.model tr.property-row td {
+  padding-right: 1em !important;
+  padding-left: 0 !important;
 }

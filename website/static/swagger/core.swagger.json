@@ -87,7 +87,7 @@
         "parameters": [
           {
             "name": "name",
-            "description": "The name of the `CustomResourceDefinition` to check availability for across clusters.\ne.g. `imageupdateautomations.image.toolkit.fluxcd.io` or `gitopssets.templates.weave.works`",
+            "description": "The name of the CustomResourceDefinition to check availability for across clusters. e.g.\n- `imageupdateautomations.image.toolkit.fluxcd.io`\n- `gitopssets.templates.weave.works`",
             "in": "path",
             "required": true,
             "type": "string"
@@ -905,13 +905,16 @@
           "type": "string"
         },
         "timestamp": {
-          "type": "string"
+          "type": "string",
+          "description": "The LastTimestamp of the event."
         },
         "component": {
-          "type": "string"
+          "type": "string",
+          "description": "The Source Component."
         },
         "host": {
-          "type": "string"
+          "type": "string",
+          "description": "The Source Host."
         },
         "name": {
           "type": "string"
@@ -954,7 +957,8 @@
       "type": "object",
       "example": {
         "flags": {
-          "WEAVE_GITOPS_FEATURE_TENANCY": "true"
+          "WEAVE_GITOPS_FEATURE_TENANCY": "true",
+          "OIDC_AUTH": "true"
         }
       },
       "properties": {
@@ -1115,13 +1119,16 @@
       "type": "object",
       "properties": {
         "payload": {
-          "type": "string"
+          "type": "string",
+          "description": "A JSON string containing the complete Kubernetes object."
         },
         "tenant": {
-          "type": "string"
+          "type": "string",
+          "description": "The tenant the object belongs to if any."
         },
         "clusterName": {
-          "type": "string"
+          "type": "string",
+          "description": "The cluster the object is deployed to."
         },
         "health": {
           "$ref": "#/definitions/v1HealthStatus"
@@ -1131,12 +1138,18 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/v1InventoryEntry"
-          }
+          },
+          "description": "If the object is a parent e.g. `ReplicaSet` -\u003e `Pod`\nThen the children are included here with their payload, clusterName etc\nThis a recursive structure."
         }
       }
     },
     "v1IsCRDAvailableResponse": {
       "type": "object",
+      "example": {
+        "clusters": {
+          "clusters-1": true
+        }
+      },
       "properties": {
         "clusters": {
           "type": "object",
@@ -1158,7 +1171,8 @@
         "message": {
           "type": "string"
         }
-      }
+      },
+      "description": "Queries are made to each cluster. If its a namespaced query then a query\nis made per namespace too. If an error occurs for any specific query the error\nmessage is included here alongside the results for the queries that succeeded."
     },
     "v1ListEventsResponse": {
       "type": "object",
@@ -1324,17 +1338,20 @@
           "description": "The tenant the object belongs to if any."
         },
         "uid": {
-          "type": "string"
+          "type": "string",
+          "description": "The Kubernetes UID of the object."
         },
         "inventory": {
           "type": "array",
           "items": {
             "type": "object",
             "$ref": "#/definitions/v1GroupVersionKind"
-          }
+          },
+          "description": "DEPRECATED, use /inventory endpoint."
         },
         "info": {
-          "type": "string"
+          "type": "string",
+          "description": "DEPRECATED, GitOpsRun field."
         },
         "health": {
           "$ref": "#/definitions/v1HealthStatus"
@@ -1606,7 +1623,8 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/v1ObjectRef"
-          }
+          },
+          "description": "The list of objects to sync."
         },
         "withSource": {
           "type": "boolean"
@@ -1624,13 +1642,16 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/v1ObjectRef"
-          }
+          },
+          "description": "The list of objects to suspend or resume."
         },
         "suspend": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "Suspend or resume the resources."
         },
         "comment": {
-          "type": "string"
+          "type": "string",
+          "description": "Include a comment about why the resources are being suspended."
         }
       }
     },

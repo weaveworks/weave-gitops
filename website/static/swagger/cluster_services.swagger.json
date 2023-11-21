@@ -272,7 +272,7 @@
     "/v1/config": {
       "get": {
         "summary": "Get the Weave Gitops Enterprise configuration",
-        "description": "Returns information about the current configuration of the Weave GitOps Enterprise.\n\nImportantly this includes\n- `managementClusterName`: the given name of the management cluster which is used for some multi-cluster operations.\n- `gitHostTypes`: the configured mapping of domains to git providers (e.g. `{ \"git.myhost.com\": \"gitlab\" }`) used\n  for authentication and creating pull requests.",
+        "description": "Returns information about the current configuration of the Weave GitOps Enterprise.",
         "operationId": "ClustersService_GetConfig",
         "responses": {
           "200": {
@@ -502,14 +502,14 @@
         "parameters": [
           {
             "name": "namespace",
-            "description": "The namespace of the `GitopsCluster`",
+            "description": "The namespace of the `GitopsCluster`.",
             "in": "path",
             "required": true,
             "type": "string"
           },
           {
             "name": "name",
-            "description": "The name of the `GitopsCluster`",
+            "description": "The name of the `GitopsCluster`.",
             "in": "path",
             "required": true,
             "type": "string"
@@ -520,7 +520,7 @@
         ]
       }
     },
-    "/v1/namespaces/{namespace}/external-secrets/{externalSecretName}": {
+    "/v1/namespaces/{namespace}/external-secrets/{name}": {
       "get": {
         "summary": "Get secret details",
         "operationId": "ClustersService_GetExternalSecret",
@@ -546,7 +546,7 @@
             "type": "string"
           },
           {
-            "name": "externalSecretName",
+            "name": "name",
             "in": "path",
             "required": true,
             "type": "string"
@@ -630,6 +630,7 @@
         "parameters": [
           {
             "name": "namespace",
+            "description": "The namespace of the template.",
             "in": "path",
             "required": true,
             "type": "string"
@@ -666,22 +667,21 @@
                 },
                 "description": {
                   "type": "string",
-                  "title": "The description of the pull request"
+                  "description": "The description of the pull request."
                 },
                 "parameterValues": {
                   "type": "object",
                   "additionalProperties": {
                     "type": "string"
                   },
-                  "description": "The values that populate the template's parameters."
+                  "description": "The values that populate the templates parameters.\n\nA map of string keys and values.\ne.g. `{\"CLUSTER_NAME\": \"my-cluster\"}`"
                 },
                 "commitMessage": {
                   "type": "string",
-                  "title": "The commit message"
+                  "description": "The commit message."
                 },
                 "credentials": {
-                  "$ref": "#/definitions/v1Credential",
-                  "title": "Credentials"
+                  "$ref": "#/definitions/v1Credential"
                 },
                 "profiles": {
                   "type": "array",
@@ -693,20 +693,23 @@
                 },
                 "repositoryApiUrl": {
                   "type": "string",
-                  "description": "The repo api url."
+                  "description": "DEPRECATED: This is no longer used and will be removed in the future.\nThe repo api url."
                 },
                 "clusterNamespace": {
-                  "type": "string"
+                  "type": "string",
+                  "description": "DEPRECATED: This is no longer used and will be removed in the future.\nThe cluster namespace."
                 },
                 "kustomizations": {
                   "type": "array",
                   "items": {
                     "type": "object",
                     "$ref": "#/definitions/v1Kustomization"
-                  }
+                  },
+                  "description": "Additional kustomizations to be created in the pull request."
                 },
                 "templateKind": {
-                  "type": "string"
+                  "type": "string",
+                  "description": "The kind of the template, either `GitopsTemplate` or `CAPITemplate`."
                 },
                 "previousValues": {
                   "$ref": "#/definitions/v1PreviousValues"
@@ -716,21 +719,24 @@
                   "items": {
                     "type": "object",
                     "$ref": "#/definitions/v1ExternalSecret"
-                  }
+                  },
+                  "description": "Additional external secrets to be created in the pull request."
                 },
                 "policyConfigs": {
                   "type": "array",
                   "items": {
                     "type": "object",
                     "$ref": "#/definitions/v1PolicyConfigObject"
-                  }
+                  },
+                  "description": "Additional policy configs to be created in the pull request."
                 },
                 "sopsSecrets": {
                   "type": "array",
                   "items": {
                     "type": "object",
                     "$ref": "#/definitions/v1SopsSecret"
-                  }
+                  },
+                  "description": "Additional sops secrets to be created in the pull request."
                 }
               }
             }
@@ -959,7 +965,7 @@
     "/v1/templates/capi-identities": {
       "get": {
         "summary": "List available CAPI identities",
-        "description": "Search the cluster for available CAPI identities:\n- `AWSClusterStaticIdentity`\n- `AWSClusterRoleIdentity`\n- `AzureClusterIdentity`\n- `VSphereClusterIdentity`",
+        "description": "Search the cluster for available CAPI identities.",
         "operationId": "ClustersService_ListCredentials",
         "responses": {
           "200": {
@@ -1457,7 +1463,7 @@
         },
         "filePath": {
           "type": "string",
-          "title": "A path to write the resource to in the management git repo"
+          "description": "A path to write the resource to in the management git repo."
         },
         "externalSecret": {
           "$ref": "#/definitions/v1ExternalSecret"
@@ -1548,15 +1554,15 @@
         },
         "description": {
           "type": "string",
-          "title": "The description of the pull request"
+          "description": "The description of the pull request."
         },
         "commitMessage": {
           "type": "string",
-          "title": "The commit message"
+          "description": "The commit message."
         },
         "repositoryApiUrl": {
           "type": "string",
-          "description": "The repo api url."
+          "description": "DEPRECATED: This is no longer used and will be removed in the future.\nThe repo api url."
         },
         "clusterAutomations": {
           "type": "array",
@@ -1564,7 +1570,7 @@
             "type": "object",
             "$ref": "#/definitions/v1ClusterAutomation"
           },
-          "title": "A list of cluster and kustomization"
+          "description": "A list of cluster and kustomization."
         }
       }
     },
@@ -1617,7 +1623,7 @@
         },
         "repositoryApiUrl": {
           "type": "string",
-          "description": "The repo api url."
+          "description": "DEPRECATED: This is no longer used and will be removed in the future.\nThe repo api url."
         },
         "clusterNamespacedNames": {
           "type": "array",
@@ -1720,7 +1726,8 @@
         "namespace": {
           "type": "string"
         }
-      }
+      },
+      "description": "A reference to a CAPI identity.\n\nSupported Identites kinds:\n- `AWSClusterStaticIdentity`\n- `AWSClusterRoleIdentity`\n- `AzureClusterIdentity`\n- `VSphereClusterIdentity`\n\nThe credentials available on the system can be listed via the /capi-identities endpoint."
     },
     "v1Decryption": {
       "type": "object",
@@ -1857,7 +1864,7 @@
         "secretName": {
           "type": "string"
         },
-        "externalSecretName": {
+        "name": {
           "type": "string"
         },
         "namespace": {
@@ -1964,19 +1971,23 @@
       "type": "object",
       "properties": {
         "repositoryUrl": {
-          "type": "string"
+          "type": "string",
+          "description": "DEPRECATED: This is no longer used and will be removed in the future.\nThe default git repository URL for the management cluster."
         },
         "managementClusterName": {
-          "type": "string"
+          "type": "string",
+          "description": "The given name of the management cluster which is used for some multi-cluster operations."
         },
         "uiConfig": {
-          "type": "string"
+          "type": "string",
+          "description": "JSON encoded string of UI configuration."
         },
         "gitHostTypes": {
           "type": "object",
           "additionalProperties": {
             "type": "string"
-          }
+          },
+          "description": "The configured mapping of domains to git providers.\ne.g. `{ \"git.myhost.com\": \"gitlab\" }`) used\nfor authentication and creating pull requests."
         }
       }
     },
@@ -1988,7 +1999,7 @@
       "properties": {
         "version": {
           "type": "string",
-          "title": "The version of WeGO Enterprise"
+          "title": "The version of Weave GitOps Enterprise"
         }
       }
     },
@@ -1998,7 +2009,7 @@
         "secretName": {
           "type": "string"
         },
-        "externalSecretName": {
+        "name": {
           "type": "string"
         },
         "clusterName": {
@@ -2757,7 +2768,7 @@
           }
         }
       },
-      "description": "Previous values for a CreatePullRequestRequest."
+      "description": "INTERNAL: DO NOT USE - This field will change.\n\nPrevious values for a CreatePullRequestRequest.\nIf provided this request will be considered an edit to previous set of resources that\nhave been rendered and merged. Files written by the previous request that are no longer\npresent in the current render will be deleted in the new Pull Request."
     },
     "v1ProfileValues": {
       "type": "object",
@@ -2940,7 +2951,7 @@
       "properties": {
         "apiVersion": {
           "type": "string",
-          "title": "protolint:disable:next FIELD_NAMES_LOWER_SNAKE_CASE"
+          "title": "(-- protolint:disable:next FIELD_NAMES_LOWER_SNAKE_CASE --)"
         },
         "kind": {
           "type": "string"
@@ -2959,7 +2970,7 @@
           "additionalProperties": {
             "type": "string"
           },
-          "title": "protolint:disable:next FIELD_NAMES_LOWER_SNAKE_CASE"
+          "title": "(-- protolint:disable:next FIELD_NAMES_LOWER_SNAKE_CASE --)"
         },
         "type": {
           "type": "string"
@@ -3007,7 +3018,7 @@
         "namespace": {
           "type": "string"
         },
-        "externalSecretName": {
+        "name": {
           "type": "string"
         }
       }
@@ -3019,58 +3030,70 @@
       "type": "object",
       "properties": {
         "name": {
-          "type": "string"
+          "type": "string",
+          "description": "The name of the template."
         },
         "description": {
-          "type": "string"
+          "type": "string",
+          "description": "The description of the template given in the spec."
         },
         "provider": {
-          "type": "string"
+          "type": "string",
+          "description": "The provider that the kinds found in the template belong to.\nE.g. If the template includes an AWSCluster then **aws** is returned here. Values:\naws, azure, vsphere, gcp, openstack, digitalocean, packet, docker."
         },
         "parameters": {
           "type": "array",
           "items": {
             "type": "object",
             "$ref": "#/definitions/v1Parameter"
-          }
+          },
+          "description": "The parameters that the template provides."
         },
         "objects": {
           "type": "array",
           "items": {
             "type": "object",
             "$ref": "#/definitions/v1TemplateObject"
-          }
+          },
+          "description": "Metadata about the resources found in the template body.\nWhat kind they are, which parameters are found in this block etc."
         },
         "error": {
-          "type": "string"
+          "type": "string",
+          "description": "Any errors that occurred while parsing the template."
         },
         "annotations": {
           "type": "object",
           "additionalProperties": {
             "type": "string"
-          }
+          },
+          "description": "The metadata.annotations of the template resource."
         },
         "templateKind": {
-          "type": "string"
+          "type": "string",
+          "description": "The kind of the template. Either **CAPITemplate** or **GitopsTemplate**."
         },
         "templateType": {
-          "type": "string"
+          "type": "string",
+          "description": "The type of the template declared by the weave.works/template-type label."
         },
         "labels": {
           "type": "object",
           "additionalProperties": {
             "type": "string"
-          }
+          },
+          "description": "The metadata.labels of the template resource."
         },
         "namespace": {
-          "type": "string"
+          "type": "string",
+          "description": "The namespace of the template."
         },
         "profiles": {
           "type": "array",
           "items": {
             "type": "object",
             "$ref": "#/definitions/v1TemplateProfile"
-          }
+          },
+          "description": "Required and recommended profiles for the template."
         }
       }
     },
