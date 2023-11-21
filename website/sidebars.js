@@ -115,9 +115,9 @@
       label: 'Guides',
       items: [
         'guides/oidc',
+        'guides/configuring-oidc-with-keycloak',
         'guides/displaying-custom-metadata',
         'guides/fluxga-upgrade',
-        'guides/sso/keycloak/configuring-oidc-with-keycloak',
       ],
     },
     {
