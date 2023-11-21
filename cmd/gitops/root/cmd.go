@@ -153,7 +153,7 @@ func RootCmd() *cobra.Command {
 	rootCmd.AddCommand(get.GetCommand(options))
 	rootCmd.AddCommand(set.SetCommand(options))
 	rootCmd.AddCommand(docs.Cmd)
-	rootCmd.AddCommand(check.Cmd)
+	rootCmd.AddCommand(check.GetCommand(options))
 	rootCmd.AddCommand(create.GetCommand(options))
 	rootCmd.AddCommand(deletepkg.GetCommand(options))
 	rootCmd.AddCommand(logs.GetCommand(options))
