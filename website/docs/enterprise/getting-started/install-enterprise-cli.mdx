@@ -70,7 +70,7 @@ Please use the following command to start the installation wizard of Weave GitOp
    ```bash
     gitops bootstrap \
        --kubeconfig=$HOME/.kube/config \
-       --private-key=$HOME/.ssh/id_rsa --private-key-password="" \
+       --private-key=$HOME/.ssh/id_ed25519 --private-key-password="" \
        --version="0.35.0" \
        --domain-type="localhost" \
        --password="admin123"  \
