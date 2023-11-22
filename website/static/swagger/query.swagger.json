@@ -69,7 +69,15 @@
               "$ref": "#/definitions/rpcStatus"
             }
           }
-        }
+        },
+        "parameters": [
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ]
       }
     },
     "/v1/query": {
@@ -263,6 +271,12 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/v1Facet"
+          }
+        },
+        "humanReadableLabels": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
           }
         }
       }

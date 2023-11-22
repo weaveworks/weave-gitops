@@ -144,12 +144,14 @@
         "parameters": [
           {
             "name": "repository.cluster.namespace",
+            "description": "Namespace of the cluster.\nShould be an empty string when referencing the \"management\" / \"control-plane\" cluster\n(the cluster running Weave Gitops).",
             "in": "query",
             "required": false,
             "type": "string"
           },
           {
             "name": "repository.cluster.name",
+            "description": "Name of the cluster.",
             "in": "query",
             "required": false,
             "type": "string"
@@ -651,15 +653,15 @@
               "properties": {
                 "repositoryUrl": {
                   "type": "string",
-                  "description": "The repository to use."
+                  "description": "The repository to use e.g. https://github.com/my-org/my-repo."
                 },
                 "headBranch": {
                   "type": "string",
-                  "description": "The new branch that will be created."
+                  "description": "The name of the new branch to be created e.g. adds-cluster-dev-01."
                 },
                 "baseBranch": {
                   "type": "string",
-                  "description": "The target branch."
+                  "description": "The target branch to merge the new PR into, e.g. main."
                 },
                 "title": {
                   "type": "string",
@@ -693,11 +695,11 @@
                 },
                 "repositoryApiUrl": {
                   "type": "string",
-                  "description": "DEPRECATED: This is no longer used and will be removed in the future.\nThe repo api url."
+                  "description": "_DEPRECATED: This is no longer used and will be removed in the future._\nThe repo api url."
                 },
                 "clusterNamespace": {
                   "type": "string",
-                  "description": "DEPRECATED: This is no longer used and will be removed in the future.\nThe cluster namespace."
+                  "description": "_DEPRECATED: This is no longer used and will be removed in the future._\nThe cluster namespace."
                 },
                 "kustomizations": {
                   "type": "array",
@@ -989,6 +991,7 @@
     "/v1/templates/deletion-pull-request": {
       "post": {
         "summary": "Create a pull request to delete templated resources",
+        "description": "_INTERNAL: will undergo changes to how we calculate which files to delete in the future._",
         "operationId": "ClustersService_CreateDeletionPullRequest",
         "responses": {
           "200": {
@@ -1057,6 +1060,7 @@
     "/v1/workspaces": {
       "get": {
         "summary": "List workspaces",
+        "description": "See the workspaces documentation for an overview of how they work.\nIn effect a workspace is a set of namespaces, roles, rolebindings, serviceaccounts, and policies.\nAll these resources are labeled with the workspace.\n\nReturns a list of workspaces and the namespaces they each manage.",
         "operationId": "ClustersService_ListWorkspaces",
         "responses": {
           "200": {
@@ -1075,6 +1079,7 @@
         "parameters": [
           {
             "name": "pagination.pageSize",
+            "description": "controls the number of results per page from each cluster",
             "in": "query",
             "required": false,
             "type": "integer",
@@ -1082,6 +1087,7 @@
           },
           {
             "name": "pagination.pageToken",
+            "description": "a composite token used to retrieve the next page of results across all clusters\nthis is availble in the response as `nextPageToken`",
             "in": "query",
             "required": false,
             "type": "string"
@@ -1095,6 +1101,7 @@
     "/v1/workspaces/{name}": {
       "get": {
         "summary": "Get workspace details",
+        "description": "Get a single workspace and its namespaces.",
         "operationId": "ClustersService_GetWorkspace",
         "responses": {
           "200": {
@@ -1453,7 +1460,8 @@
           "$ref": "#/definitions/v1ClusterNamespacedName"
         },
         "isControlPlane": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "If the cluster is the \"management\" aka \"control-plane\" cluster then this is set to true.\nEnsures the file_path is correctly constructed if an explicit path is not set."
         },
         "kustomization": {
           "$ref": "#/definitions/v1Kustomization"
@@ -1480,10 +1488,12 @@
       "type": "object",
       "properties": {
         "namespace": {
-          "type": "string"
+          "type": "string",
+          "description": "Namespace of the cluster.\nShould be an empty string when referencing the \"management\" / \"control-plane\" cluster\n(the cluster running Weave Gitops)."
         },
         "name": {
-          "type": "string"
+          "type": "string",
+          "description": "Name of the cluster."
         }
       }
     },
@@ -1538,15 +1548,15 @@
       "properties": {
         "repositoryUrl": {
           "type": "string",
-          "description": "The repository to use."
+          "description": "The repository to use e.g. https://github.com/my-org/my-repo."
         },
         "headBranch": {
           "type": "string",
-          "description": "The new branch that will be created."
+          "description": "The name of the new branch to be created e.g. adds-cluster-dev-01."
         },
         "baseBranch": {
           "type": "string",
-          "description": "The target branch."
+          "description": "The target branch to merge the new PR into, e.g. main."
         },
         "title": {
           "type": "string",
@@ -1562,7 +1572,7 @@
         },
         "repositoryApiUrl": {
           "type": "string",
-          "description": "DEPRECATED: This is no longer used and will be removed in the future.\nThe repo api url."
+          "description": "_DEPRECATED: This is no longer used and will be removed in the future._\nThe repo api url."
         },
         "clusterAutomations": {
           "type": "array",
@@ -1570,7 +1580,7 @@
             "type": "object",
             "$ref": "#/definitions/v1ClusterAutomation"
           },
-          "description": "A list of cluster and kustomization."
+          "description": "A list of cluster and kustomization.\nThe cluster is used to determine the file path."
         }
       }
     },
@@ -1623,7 +1633,7 @@
         },
         "repositoryApiUrl": {
           "type": "string",
-          "description": "DEPRECATED: This is no longer used and will be removed in the future.\nThe repo api url."
+          "description": "_DEPRECATED: This is no longer used and will be removed in the future._\nThe repo api url."
         },
         "clusterNamespacedNames": {
           "type": "array",
@@ -1727,7 +1737,7 @@
           "type": "string"
         }
       },
-      "description": "A reference to a CAPI identity.\n\nSupported Identites kinds:\n- `AWSClusterStaticIdentity`\n- `AWSClusterRoleIdentity`\n- `AzureClusterIdentity`\n- `VSphereClusterIdentity`\n\nThe credentials available on the system can be listed via the /capi-identities endpoint."
+      "description": "A reference to a CAPI identity.\n\nSupported Identity kinds:\n- `AWSClusterStaticIdentity`\n- `AWSClusterRoleIdentity`\n- `AzureClusterIdentity`\n- `VSphereClusterIdentity`\n\nThe credentials available on the system can be listed via the /capi-identities endpoint."
     },
     "v1Decryption": {
       "type": "object",
@@ -1972,7 +1982,7 @@
       "properties": {
         "repositoryUrl": {
           "type": "string",
-          "description": "DEPRECATED: This is no longer used and will be removed in the future.\nThe default git repository URL for the management cluster."
+          "description": "_DEPRECATED: This is no longer used and will be removed in the future._\nThe default git repository URL for the management cluster."
         },
         "managementClusterName": {
           "type": "string",
@@ -1999,7 +2009,7 @@
       "properties": {
         "version": {
           "type": "string",
-          "title": "The version of Weave GitOps Enterprise"
+          "description": "The version of Weave GitOps Enterprise."
         }
       }
     },
@@ -2115,17 +2125,20 @@
       "type": "object",
       "properties": {
         "name": {
-          "type": "string"
+          "type": "string",
+          "description": "The name of the workspace."
         },
         "clusterName": {
-          "type": "string"
+          "type": "string",
+          "description": "The cluster the workspaces is in."
         },
         "objects": {
           "type": "array",
           "items": {
             "type": "object",
             "$ref": "#/definitions/v1WorkspacePolicy"
-          }
+          },
+          "description": "The list of policies that are part of the workspace."
         }
       }
     },
@@ -2133,16 +2146,19 @@
       "type": "object",
       "properties": {
         "name": {
-          "type": "string"
+          "type": "string",
+          "description": "The name of the workspace."
         },
         "clusterName": {
-          "type": "string"
+          "type": "string",
+          "description": "The cluster the workspace is in."
         },
         "namespaces": {
           "type": "array",
           "items": {
             "type": "string"
-          }
+          },
+          "description": "The list of namespaces that are part of the workspace."
         }
       }
     },
@@ -2150,17 +2166,20 @@
       "type": "object",
       "properties": {
         "name": {
-          "type": "string"
+          "type": "string",
+          "description": "The name of the workspace."
         },
         "clusterName": {
-          "type": "string"
+          "type": "string",
+          "description": "The cluster the workspace is in."
         },
         "objects": {
           "type": "array",
           "items": {
             "type": "object",
             "$ref": "#/definitions/v1WorkspaceRoleBinding"
-          }
+          },
+          "description": "The list of role bindings that are part of the workspace."
         }
       }
     },
@@ -2168,17 +2187,20 @@
       "type": "object",
       "properties": {
         "name": {
-          "type": "string"
+          "type": "string",
+          "description": "The name of the workspace."
         },
         "clusterName": {
-          "type": "string"
+          "type": "string",
+          "description": "The cluster the workspace is in."
         },
         "objects": {
           "type": "array",
           "items": {
             "type": "object",
             "$ref": "#/definitions/v1WorkspaceRole"
-          }
+          },
+          "description": "The list of roles that are part of the workspace."
         }
       }
     },
@@ -2186,17 +2208,20 @@
       "type": "object",
       "properties": {
         "name": {
-          "type": "string"
+          "type": "string",
+          "description": "The name of the workspace."
         },
         "clusterName": {
-          "type": "string"
+          "type": "string",
+          "description": "The cluster the workspace is in."
         },
         "objects": {
           "type": "array",
           "items": {
             "type": "object",
             "$ref": "#/definitions/v1WorkspaceServiceAccount"
-          }
+          },
+          "description": "The list of service accounts that are part of the workspace."
         }
       }
     },
@@ -2549,10 +2574,12 @@
       "properties": {
         "pageSize": {
           "type": "integer",
-          "format": "int32"
+          "format": "int32",
+          "title": "controls the number of results per page from each cluster"
         },
         "pageToken": {
-          "type": "string"
+          "type": "string",
+          "title": "a composite token used to retrieve the next page of results across all clusters\nthis is availble in the response as `nextPageToken`"
         }
       }
     },
@@ -3153,16 +3180,19 @@
       "type": "object",
       "properties": {
         "name": {
-          "type": "string"
+          "type": "string",
+          "description": "The name of the workspace."
         },
         "clusterName": {
-          "type": "string"
+          "type": "string",
+          "description": "The cluster the workspaces is in."
         },
         "namespaces": {
           "type": "array",
           "items": {
             "type": "string"
-          }
+          },
+          "description": "The list of namespaces that are part of the workspace."
         }
       }
     },

@@ -125,6 +125,7 @@ So the user can do it manually */
 .swagger-ui .model .markdown {
   font-family: sans-serif;
   font-weight: normal;
+  font-size: 14px;
 }
 
 /* narrow up the table a bit */

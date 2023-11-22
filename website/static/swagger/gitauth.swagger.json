@@ -14,7 +14,8 @@
   "paths": {
     "/v1/authenticate/{providerName}": {
       "post": {
-        "summary": "Wrap a git provider token in a JWT",
+        "summary": "Wrap an existing git provider token in a JWT",
+        "description": "If you already have an OAuth token, or a Personal Access Token, it can be\nmanually wrapped in a JWT using this endpoint.\n\nThe resulting JWT can be included in requests to other API endpoint\nthat interact with the Git provider (e.g. creating a pull request from a template).",
         "operationId": "GitAuth_Authenticate",
         "responses": {
           "200": {
@@ -33,7 +34,7 @@
         "parameters": [
           {
             "name": "providerName",
-            "description": "The name of the git provider",
+            "description": "The name of the git provider. E.g. \"github\", \"gitlab\", \"bitbucketserver\", \"azuredevops\".",
             "in": "path",
             "required": true,
             "type": "string"
@@ -47,7 +48,7 @@
               "properties": {
                 "accessToken": {
                   "type": "string",
-                  "title": "The token of the git provider"
+                  "description": "The token of the git provider."
                 }
               }
             }
@@ -76,7 +77,7 @@
         "parameters": [
           {
             "name": "redirectUri",
-            "description": "The URI that Azure DevOps will use to send users back to GitOps.",
+            "description": "The URI that Azure DevOps will use to send users back to Weave GitOps.",
             "in": "query",
             "required": false,
             "type": "string"
@@ -136,7 +137,7 @@
         "parameters": [
           {
             "name": "redirectUri",
-            "description": "The URI that Bitbucket Server will use to send users back to GitOps.",
+            "description": "The URI that Bitbucket Server will use to send users back to Weave GitOps.",
             "in": "query",
             "required": false,
             "type": "string"
@@ -147,7 +148,7 @@
     "/v1/gitauth/auth-providers/bitbucketserver/authorize": {
       "post": {
         "summary": "Exchange a Bitbucket Server code obtained via OAuth callback.",
-        "description": "The returned token is useable for authentication with the GitOps server only.",
+        "description": "The returned token is useable for authentication with the Weave GitOps server only.",
         "operationId": "GitAuth_AuthorizeBitbucketServer",
         "responses": {
           "200": {
@@ -230,7 +231,7 @@
     "/v1/gitauth/auth-providers/gitlab": {
       "get": {
         "summary": "Get the URL to initiate a GitLab OAuth flow.",
-        "description": "The user must browse to the returned URL to authorize the OAuth callback\nto the GitOps UI.\nSee the GitLab OAuth docs for more more information:\nhttps://docs.gitlab.com/ee/api/oauth2.html#supported-oauth-20-flows",
+        "description": "The user must browse to the returned URL to authorize the OAuth callback\nto the Weave GitOps UI.\nSee the GitLab OAuth docs for more more information:\nhttps://docs.gitlab.com/ee/api/oauth2.html#supported-oauth-20-flows",
         "operationId": "GitAuth_GetGitlabAuthURL",
         "responses": {
           "200": {
@@ -249,7 +250,7 @@
         "parameters": [
           {
             "name": "redirectUri",
-            "description": "The URI that GitLab will use to send users back to GitOps.",
+            "description": "The URI that GitLab will use to send users back to Weave GitOps.",
             "in": "query",
             "required": false,
             "type": "string"
@@ -260,7 +261,7 @@
     "/v1/gitauth/auth-providers/gitlab/authorize": {
       "post": {
         "summary": "Exchange a GitLab code obtained via OAuth callback.",
-        "description": "The returned token is useable for authentication with the GitOps server only.\nSee the GitLab OAuth docs for more more information:\nhttps://docs.gitlab.com/ee/api/oauth2.html#supported-oauth-20-flows",
+        "description": "The returned token is useable for authentication with the Weave GitOps server only.\nSee the GitLab OAuth docs for more more information:\nhttps://docs.gitlab.com/ee/api/oauth2.html#supported-oauth-20-flows",
         "operationId": "GitAuth_AuthorizeGitlab",
         "responses": {
           "200": {
@@ -309,7 +310,7 @@
         "parameters": [
           {
             "name": "url",
-            "description": "The URL to be parsed",
+            "description": "The URL to be parsed.",
             "in": "query",
             "required": false,
             "type": "string"
@@ -382,7 +383,7 @@
       "properties": {
         "token": {
           "type": "string",
-          "title": "The jwt token that was generated using git provider name\nand git provider token"
+          "description": "The jwt token that was generated using git provider name and git provider token."
         }
       }
     },
@@ -391,15 +392,15 @@
       "properties": {
         "code": {
           "type": "string",
-          "title": "The challenge code obtained from the OAuth callback"
+          "description": "The challenge code obtained from the OAuth callback."
         },
         "state": {
           "type": "string",
-          "title": "The state parameter provided in the authorization URL"
+          "description": "The state parameter provided in the authorization URL."
         },
         "redirectUri": {
           "type": "string",
-          "title": "The redirect URI that originated the OAuth flow"
+          "description": "The redirect URI that originated the OAuth flow."
         }
       }
     },
@@ -408,7 +409,7 @@
       "properties": {
         "token": {
           "type": "string",
-          "description": "A token that can be used to authenticate the GitOps API server."
+          "description": "A token that can be used to authenticate the Weave GitOps API server."
         }
       }
     },
@@ -417,15 +418,15 @@
       "properties": {
         "code": {
           "type": "string",
-          "title": "The challenge code obtained from the OAuth callback"
+          "description": "The challenge code obtained from the OAuth callback."
         },
         "state": {
           "type": "string",
-          "title": "The state parameter provided in the authorization URL"
+          "description": "The state parameter provided in the authorization URL."
         },
         "redirectUri": {
           "type": "string",
-          "title": "The redirect URI that originated the OAuth flow"
+          "description": "The redirect URI that originated the OAuth flow."
         }
       }
     },
@@ -434,7 +435,7 @@
       "properties": {
         "token": {
           "type": "string",
-          "description": "A token that can be used to authenticate the GitOps API server."
+          "description": "A token that can be used to authenticate the Weave GitOps API server."
         }
       }
     },
@@ -443,11 +444,11 @@
       "properties": {
         "code": {
           "type": "string",
-          "title": "The challenge code obtained from the OAuth callback"
+          "description": "The challenge code obtained from the OAuth callback."
         },
         "redirectUri": {
           "type": "string",
-          "title": "The redirect URI that originated the OAuth flow"
+          "description": "The redirect URI that originated the OAuth flow."
         }
       }
     },
@@ -456,7 +457,7 @@
       "properties": {
         "token": {
           "type": "string",
-          "description": "A token that can be used to authenticate the GitOps API server."
+          "description": "A token that can be used to authenticate the Weave GitOps API server."
         }
       }
     },
@@ -474,7 +475,7 @@
       "properties": {
         "url": {
           "type": "string",
-          "description": "The URL that users must visit\nto authorize BitBucket Server authentication."
+          "description": "The URL that users must visit to authorize BitBucket Server authentication."
         }
       }
     },
@@ -483,7 +484,7 @@
       "properties": {
         "deviceCode": {
           "type": "string",
-          "title": "The deviceCode returned from a GetGithubDeviceCodeResponse"
+          "description": "The deviceCode returned from a GetGithubDeviceCodeResponse."
         }
       }
     },
@@ -505,20 +506,20 @@
       "properties": {
         "userCode": {
           "type": "string",
-          "title": "The Github Device Flow code that will be shown to the user"
+          "description": "The Github Device Flow code that will be shown to the user."
         },
         "deviceCode": {
           "type": "string",
-          "title": "A code that uniquely identifies a device"
+          "description": "A code that uniquely identifies a device."
         },
         "validationUri": {
           "type": "string",
-          "title": "The URI that the user will visit to complete the flow"
+          "description": "The URI that the user will visit to complete the flow."
         },
         "interval": {
           "type": "integer",
           "format": "int32",
-          "title": "How often the client should retry the request"
+          "description": "How often the client should retry the request."
         }
       }
     },
@@ -548,15 +549,15 @@
       "properties": {
         "name": {
           "type": "string",
-          "title": "The name of the git repository"
+          "description": "The name of the git repository."
         },
         "provider": {
           "$ref": "#/definitions/v1GitProvider",
-          "title": "The GitProvider for the repository"
+          "description": "The GitProvider for the repository."
         },
         "owner": {
           "type": "string",
-          "title": "The person or organization to which this repo belongs"
+          "description": "The person or organization to which this repo belongs."
         }
       }
     },
