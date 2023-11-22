@@ -217,27 +217,13 @@ After this secret is created, you may need to delete the Weave GitOps pods in or
 ### Setting up RBAC
 
 Once Weave GitOps is configured for OIDC, we need a way to map permissions to the groups. To do that, we need to create role bindings for our `wego-admin` group.
-The following example assumes that the ClusterRole `wego-admin-cluster-role` and the namespaced Role `wego-admin-role` already exist. See the
-[recommendations on setting up RBAC](../../enterprise/getting-started/install-enterprise/#recommended-rbac-configuration) for details.
+The following example assumes that the ClusterRole `wego-admin-cluster-role` and the namespaced Role `wego-admin-role` already exist. It will grant everyone
+in the `wego-admin` group within Keycloak admin access. See the [recommendations on setting up RBAC](../../enterprise/getting-started/install-enterprise/#recommended-rbac-configuration)
+for details.
 
 <details><summary>Expand to see group role bindings</summary>
 
 ```yaml
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: keycloak-wego-admin
-  namespace: flux-system
-subjects:
-  - kind: Group
-    name: wego-admin
-    namespace: flux-system
-roleRef:
-  kind: Role
-  name: wego-admin-role
-  apiGroup: rbac.authorization.k8s.io
-
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
