@@ -11,7 +11,6 @@ import (
 	"os"
 	"os/signal"
 	"path"
-	"path/filepath"
 	"strings"
 	"syscall"
 	"time"
@@ -157,9 +156,6 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		}
 	}))
 
-	assetFS := getAssets()
-	assetHandler := http.FileServer(http.FS(assetFS))
-	redirector := createRedirector(assetFS, log, options.RoutePrefix)
 	clusterName := kube.InClusterConfigClusterName()
 
 	rest, err := config.GetConfig()
@@ -271,18 +267,12 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	mux.Handle("/v1/", gziphandler.GzipHandler(appAndProfilesHandlers))
 
-	mux.Handle("/", gziphandler.GzipHandler(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		// Assume anything with a file extension in the name is a static asset.
-		extension := filepath.Ext(req.URL.Path)
-		// We use the golang http.FileServer for static file requests.
-		// This will return a 404 on normal page requests, ie /some-page.
-		// Redirect all non-file requests to index.html, where the JS routing will take over.
-		if extension == "" {
-			redirector(w, req)
-			return
-		}
-		assetHandler.ServeHTTP(w, req)
-	})))
+	// Static asset handling
+	assetFS := getAssets()
+	assertFSHandler := http.FileServer(http.FS(assetFS))
+	redirectHandler := server.IndexHTMLHandler(assetFS, log, options.RoutePrefix)
+	assetHandler := server.AssetHandler(assertFSHandler, redirectHandler)
+	mux.Handle("/", gziphandler.GzipHandler(assetHandler))
 
 	if options.RoutePrefix != "" {
 		mux = server.WithRoutePrefix(mux, options.RoutePrefix)
@@ -404,52 +394,4 @@ func getAssets() fs.FS {
 	f := os.DirFS(path.Join(path.Dir(exec), "dist"))
 
 	return f
-}
-
-// A redirector ensures that index.html always gets served.
-// The JS router will take care of actual navigation once the index.html page lands.
-func createRedirector(fsys fs.FS, log logr.Logger, routePrefix string) http.HandlerFunc {
-	baseHref := server.GetBaseHref(routePrefix)
-	log.Info("Creating redirector", "routePrefix", routePrefix, "baseHref", baseHref)
-
-	return func(w http.ResponseWriter, r *http.Request) {
-		indexPage, err := fsys.Open("index.html")
-
-		if err != nil {
-			log.Error(err, "could not open index.html page")
-			w.WriteHeader(http.StatusInternalServerError)
-
-			return
-		}
-
-		stat, err := indexPage.Stat()
-		if err != nil {
-			log.Error(err, "could not get index.html stat")
-			w.WriteHeader(http.StatusInternalServerError)
-
-			return
-		}
-
-		bt := make([]byte, stat.Size())
-		_, err = indexPage.Read(bt)
-
-		if err != nil {
-			log.Error(err, "could not read index.html")
-			w.WriteHeader(http.StatusInternalServerError)
-
-			return
-		}
-
-		// inject base tag into index.html
-		bt = server.InjectHTMLBaseTag(bt, baseHref)
-
-		_, err = w.Write(bt)
-
-		if err != nil {
-			log.Error(err, "error writing index.html")
-			w.WriteHeader(http.StatusInternalServerError)
-
-			return
-		}
-	}
 }
