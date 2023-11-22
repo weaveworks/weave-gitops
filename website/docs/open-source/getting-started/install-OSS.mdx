@@ -181,6 +181,10 @@ Our docs on [securing access to the dashboard](../../enterprise/getting-started/
 
 You will use the password you've just created when you've finished Weave GitOps Open Source installation and are ready to login to the dashboard UI.
 
+:::warning
+Currently, we do not have a persistent session storage, this means that if you scale to multiple replicas, logins will not be persisted.
+:::
+
 :::tip
 If you need to customize the Weave GitOps Helm release, you can use the `--values` CLI flag to supply one or more values files.
 

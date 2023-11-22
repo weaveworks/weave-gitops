@@ -169,6 +169,10 @@ kubectl create secret generic oidc-auth \
 
 Once the HTTP server starts, unauthenticated users will have to click 'Login With OIDC Provider' to log in or use the cluster account (if configured). Upon successful authentication, the users' identities will be impersonated in any calls made to the Kubernetes API, as part of any action they take in the dashboard. By default the Helm chart will configure RBAC correctly, but we recommend reading the [service account](#gitops-dashboard-service-account-permissions) and [user permissions](#user-permissions) pages to understand which actions are needed for Weave GitOps to function correctly.
 
+:::warning
+Currently, we do not have a persistent session storage, this means that if you scale to multiple replicas, logins will not be persisted.
+:::
+
 #### Customization
 
 For some OIDC configurations, you may need to customise the requested [scopes](https://openid.net/specs/openid-connect-core-1_0.html#ScopeClaims) or [claims](https://openid.net/specs/openid-connect-core-1_0.html#Claims).
