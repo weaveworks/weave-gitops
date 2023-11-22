@@ -52,6 +52,7 @@ const SyncActions = ({
     {
       objects: objects,
       suspend: true,
+      comment: "Suspended from UI",
     },
     "object"
   );
