@@ -1,7 +1,7 @@
-import React, { Dispatch, SetStateAction } from "react";
-import Modal from "../Modal";
 import { TextField } from "@material-ui/core";
+import React, { Dispatch, SetStateAction } from "react";
 import styled from "styled-components";
+import Modal from "../Modal";
 
 export type Props = {
   onCloseModal: Dispatch<SetStateAction<boolean>>;
@@ -9,22 +9,15 @@ export type Props = {
   setSuspendMessage: Dispatch<SetStateAction<string>>;
   suspend: any;
   suspendMessage: string;
+  className?: string;
 };
 
 const MessageModal = styled(Modal)`
-  &.test {
-    background-color: red;
-  }
-  & .test {
-    background-color: red;
-  }
-  .test {
-    background-color: red;
-  }
   background-color: red;
 `;
 
 function SuspendMessageModal({
+  className,
   onCloseModal,
   open,
   setSuspendMessage,
@@ -56,8 +49,7 @@ function SuspendMessageModal({
       title="Suspend Message"
       description="Add reaasdasdson for suspending"
       children={content}
-      className="test"
-      bodyClassName="test"
+      className={className}
     />
   );
 }
