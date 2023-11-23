@@ -1,28 +1,63 @@
 import React, { Dispatch, SetStateAction } from "react";
 import Modal from "../Modal";
-import Input from "../Input";
+import { TextField } from "@material-ui/core";
+import styled from "styled-components";
 
 export type Props = {
   onCloseModal: Dispatch<SetStateAction<boolean>>;
   open: boolean;
+  setSuspendMessage: Dispatch<SetStateAction<string>>;
+  suspend: any;
+  suspendMessage: string;
 };
-let suspendMessage ='';
 
+const MessageModal = styled(Modal)`
+  &.test {
+    background-color: red;
+  }
+  & .test {
+    background-color: red;
+  }
+  .test {
+    background-color: red;
+  }
+  background-color: red;
+`;
 
-function SuspendMessageModal({ onCloseModal, open,  }: Props) {
-  const onClose = () => onCloseModal(false);
+function SuspendMessageModal({
+  onCloseModal,
+  open,
+  setSuspendMessage,
+  suspend,
+  suspendMessage,
+}: Props) {
+  const closeHandler = () => {
+    setSuspendMessage(suspendMessage);
+    suspend.mutateAsync();
+    setSuspendMessage("");
+    onCloseModal(false);
+  };
+
+  const onClose = () => closeHandler();
 
   const content = (
-    <Input value={suspendMessage}></Input>
+    <form>
+      <TextField
+        value={suspendMessage}
+        onChange={(ev) => setSuspendMessage(ev.target.value)}
+      ></TextField>
+    </form>
   );
 
   return (
-    <Modal
+    <MessageModal
       open={open}
       onClose={onClose}
-      title="Suspend message"
-      description="Add a suspend message"
+      title="Suspend Message"
+      description="Add reaasdasdson for suspending"
       children={content}
+      className="test"
+      bodyClassName="test"
     />
   );
 }

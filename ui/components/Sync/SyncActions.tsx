@@ -4,6 +4,7 @@ import { useSyncFluxObject } from "../../hooks/automations";
 import { useToggleSuspend } from "../../hooks/flux";
 import { Kind } from "../../lib/api/core/types.pb";
 import SyncControls, { SyncType } from "./SyncControls";
+import SuspendMessageModal from "./SuspendMessageModal";
 
 interface Props {
   name?: string;
@@ -38,7 +39,9 @@ const SyncActions = ({
   const syncHandler = (syncType: SyncType) => {
     sync.mutateAsync({ withSource: syncType === SyncType.WithSource });
   };
-
+  const [suspendMessageModalOpen, setSuspendMessageModalOpen] =
+    React.useState(false);
+  const [suspendMessage, setSuspendMessage] = React.useState("");
   const objects = [
     {
       name,
@@ -52,7 +55,7 @@ const SyncActions = ({
     {
       objects: objects,
       suspend: true,
-      comment: "Suspended from UI",
+      comment: suspendMessage,
     },
     "object"
   );
@@ -61,23 +64,35 @@ const SyncActions = ({
     {
       objects: objects,
       suspend: false,
+      comment: "",
     },
     "object"
   );
 
   return (
-    <SyncControls
-      className={className}
-      hideSyncOptions={hideSyncOptions}
-      syncLoading={sync.isLoading}
-      syncDisabled={suspended}
-      suspendDisabled={suspend.isLoading || suspended}
-      resumeDisabled={resume.isLoading || !suspended}
-      customActions={customActions}
-      onSyncClick={syncHandler}
-      onSuspendClick={() => suspend.mutateAsync()}
-      onResumeClick={() => resume.mutateAsync()}
-    />
+    <>
+      <SyncControls
+        className={className}
+        hideSyncOptions={hideSyncOptions}
+        syncLoading={sync.isLoading}
+        syncDisabled={suspended}
+        suspendDisabled={suspend.isLoading || suspended}
+        resumeDisabled={resume.isLoading || !suspended}
+        customActions={customActions}
+        onSyncClick={syncHandler}
+        onSuspendClick={() =>
+          setSuspendMessageModalOpen(!suspendMessageModalOpen)
+        }
+        onResumeClick={() => resume.mutateAsync()}
+      />
+      <SuspendMessageModal
+        open={suspendMessageModalOpen}
+        onCloseModal={setSuspendMessageModalOpen}
+        suspend={suspend}
+        setSuspendMessage={setSuspendMessage}
+        suspendMessage={suspendMessage}
+      />
+    </>
   );
 };
 
