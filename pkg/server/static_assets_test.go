@@ -59,7 +59,6 @@ func TestCreateRedirector(t *testing.T) {
 			t.Errorf("expected status InternalServerError; got %v", resp.StatusCode)
 		}
 	})
-
 }
 
 func TestAssetHandlerFunc(t *testing.T) {

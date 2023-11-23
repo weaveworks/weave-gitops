@@ -11,7 +11,7 @@ import (
 
 // AssetHandler returns a http.Handler that serves static assets from the provided fs.FS.
 // It also redirects all non-file requests to index.html.
-func AssetHandler(assetHandler http.Handler, redirectHandler http.Handler) http.HandlerFunc {
+func AssetHandler(assetHandler, redirectHandler http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		// Assume anything with a file extension in the name is a static asset.
 		extension := filepath.Ext(req.URL.Path)
