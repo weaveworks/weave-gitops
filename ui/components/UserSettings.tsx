@@ -11,7 +11,9 @@ import styled from "styled-components";
 import { Auth } from "../contexts/AuthContext";
 import { V2Routes } from "../lib/types";
 import DarkModeSwitch from "./DarkModeSwitch";
+import Flex from "./Flex";
 import Icon, { IconType } from "./Icon";
+import Link from "./Link";
 
 const SettingsMenu = styled(Menu)`
   .MuiPaper-root {
@@ -24,7 +26,7 @@ const SettingsMenu = styled(Menu)`
     justify-content: flex-end;
     .MuiListItemIcon-root {
       min-width: 0;
-      color: ${(props) => props.theme.colors.black};
+      color: ${(props) => props.theme.colors.neutral40};
     }
     .MuiSvgIcon-root {
       padding-right: ${(props) => props.theme.spacing.xs};
@@ -32,14 +34,13 @@ const SettingsMenu = styled(Menu)`
   }
 `;
 
-const PersonButton = styled(IconButton)<{ open: boolean }>`
-  height: 40px;
-  width: 40px;
+const PersonButton = styled(IconButton)<{ open?: boolean }>`
   &.MuiIconButton-root {
+    padding: ${(props) => props.theme.spacing.xs};
     background-color: ${(props) => props.theme.colors.neutralGray};
     color: ${(props) => props.theme.colors.neutral30};
     :hover {
-      background-color: ${(props) => props.theme.colors.white};
+      background-color: ${(props) => props.theme.colors.neutral00};
       color: ${(props) => props.theme.colors.primary10};
     }
   }
@@ -64,8 +65,18 @@ function UserSettings({ className, darkModeEnabled = true }: Props) {
   };
 
   return (
-    <div className={className}>
+    <Flex className={className} gap="8" align>
       <DarkModeSwitch darkModeEnabled={darkModeEnabled} />
+      <Tooltip title="Docs" enterDelay={500} enterNextDelay={500}>
+        <Link
+          as={PersonButton}
+          href="https://docs.gitops.weave.works/"
+          target="_blank"
+          rel="noreferrer"
+        >
+          <Icon size="medium" type={IconType.FindInPage} />
+        </Link>
+      </Tooltip>
       <Tooltip title="Account settings" enterDelay={500} enterNextDelay={500}>
         <PersonButton
           onClick={handleClick}
@@ -95,7 +106,7 @@ function UserSettings({ className, darkModeEnabled = true }: Props) {
           Logout
         </MenuItem>
       </SettingsMenu>
-    </div>
+    </Flex>
   );
 }
 

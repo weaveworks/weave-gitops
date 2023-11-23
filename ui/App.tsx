@@ -3,9 +3,9 @@ import qs from "query-string";
 import * as React from "react";
 import { QueryClient, QueryClientProvider } from "react-query";
 import {
-  BrowserRouter as Router,
   Redirect,
   Route,
+  BrowserRouter as Router,
   Switch,
 } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
@@ -95,15 +95,6 @@ const navItems: NavItem[] = [
     label: "Notifications",
     link: { value: V2Routes.Notifications },
     icon: IconType.NotificationsIcon,
-  },
-  {
-    label: "Docs",
-    link: {
-      value: "docs",
-      href: "https://docs.gitops.weave.works/",
-      newTab: true,
-    },
-    icon: IconType.DocsIcon,
   },
 ];
 

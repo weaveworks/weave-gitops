@@ -9,15 +9,18 @@ import (
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
+	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
+	"github.com/weaveworks/weave-gitops/core/server"
 	"github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
@@ -37,10 +40,19 @@ func TestGetInventoryKustomization(t *testing.T) {
 		},
 	}
 
+	anotherNs := corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "another-namespace",
+			Labels: map[string]string{
+				"toolkit.fluxcd.io/tenant": "tenant",
+			},
+		},
+	}
+
 	deployment := &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "my-deployment",
-			Namespace: ns.Name,
+			Namespace: "another-namespace",
 			UID:       "this-is-not-an-uid",
 		},
 		Spec: appsv1.DeploymentSpec{
@@ -66,7 +78,7 @@ func TestGetInventoryKustomization(t *testing.T) {
 	rs := &appsv1.ReplicaSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("%s-123abcd", automationName),
-			Namespace: ns.Name,
+			Namespace: "another-namespace",
 		},
 		Spec: appsv1.ReplicaSetSpec{
 			Template: deployment.Spec.Template,
@@ -98,7 +110,7 @@ func TestGetInventoryKustomization(t *testing.T) {
 			Inventory: &kustomizev1.ResourceInventory{
 				Entries: []kustomizev1.ResourceRef{
 					{
-						ID:      fmt.Sprintf("%s_%s_apps_Deployment", ns.Name, deployment.Name),
+						ID:      fmt.Sprintf("%s_%s_apps_Deployment", "another-namespace", deployment.Name),
 						Version: "v1",
 					},
 				},
@@ -109,7 +121,7 @@ func TestGetInventoryKustomization(t *testing.T) {
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
 
-	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(&ns, kust, deployment, rs).Build()
+	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(&ns, &anotherNs, kust, deployment, rs).Build()
 	cfg := makeServerConfig(client, t, "")
 	c := makeServer(cfg, t)
 
@@ -269,4 +281,96 @@ func TestGetInventoryHelmRelease(t *testing.T) {
 
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(res.Entries).To(HaveLen(1))
+}
+
+func TestGetInventoryHelmReleaseWithKubeconfig(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	scheme, err := kube.CreateScheme()
+	g.Expect(err).NotTo(HaveOccurred())
+
+	ctx := context.Background()
+
+	ns := &corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "test-namespace",
+		},
+	}
+	helm1 := &helmv2.HelmRelease{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "first-helm-name",
+			Namespace: ns.Name,
+		},
+		Spec: helmv2.HelmReleaseSpec{
+			KubeConfig: &meta.KubeConfigReference{
+				SecretRef: meta.SecretKeyReference{
+					Name: "kubeconfig",
+				},
+			},
+		},
+		Status: helmv2.HelmReleaseStatus{
+			LastReleaseRevision: 1,
+		},
+	}
+
+	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ns, helm1).Build()
+	cfg := makeServerConfig(client, t, "")
+	c := makeServer(cfg, t)
+
+	res, err := c.GetInventory(ctx, &pb.GetInventoryRequest{
+		Namespace:    ns.Name,
+		ClusterName:  cluster.DefaultCluster,
+		Kind:         "HelmRelease",
+		Name:         helm1.Name,
+		WithChildren: true,
+	})
+
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(res.Entries).To(HaveLen(0))
+}
+
+func TestResourceRefToUnstructured(t *testing.T) {
+	testCases := []struct {
+		name        string
+		id          string
+		version     string
+		expected    *unstructured.Unstructured
+		expectedErr string
+	}{
+		{
+			name:    "valid id",
+			id:      "test-namespace_test-name_apps_Deployment",
+			version: "v1",
+			expected: &unstructured.Unstructured{
+				Object: map[string]interface{}{
+					"apiVersion": "apps/v1",
+					"kind":       "Deployment",
+					"metadata": map[string]interface{}{
+						"name":      "test-name",
+						"namespace": "test-namespace",
+					},
+				},
+			},
+		},
+		{
+			name:        "invalid id",
+			id:          "foo",
+			version:     "v1",
+			expectedErr: "unable to parse stored object metadata:",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			g := NewGomegaWithT(t)
+
+			res, err := server.ResourceRefToUnstructured(tc.id, tc.version)
+			if tc.expectedErr != "" {
+				g.Expect(err).To(MatchError(MatchRegexp(tc.expectedErr)))
+			} else {
+				g.Expect(err).NotTo(HaveOccurred())
+				g.Expect(&res).To(Equal(tc.expected))
+			}
+		})
+	}
 }

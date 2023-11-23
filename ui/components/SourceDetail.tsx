@@ -5,7 +5,7 @@ import styled from "styled-components";
 import { useListAutomations } from "../hooks/automations";
 import { Kind } from "../lib/api/core/types.pb";
 import { HelmRelease, OCIRepository, Source } from "../lib/objects";
-import { getSourceRefForAutomation } from "../lib/utils";
+import { createYamlCommand, getSourceRefForAutomation } from "../lib/utils";
 import AutomationsTable from "./AutomationsTable";
 import EventsTable from "./EventsTable";
 import Flex from "./Flex";
@@ -14,7 +14,7 @@ import LoadingPage from "./LoadingPage";
 import Metadata from "./Metadata";
 import PageStatus from "./PageStatus";
 import SubRouterTabs, { RouterTab } from "./SubRouterTabs";
-import SyncActions from "./SyncActions";
+import SyncActions from "./Sync/SyncActions";
 import YamlView from "./YamlView";
 
 //must specify OCIRepository type, artifactMetadata causes errors on the Source type
@@ -86,7 +86,7 @@ function SourceDetail({ className, source, info, type, customActions }: Props) {
           clusterName={clusterName}
           kind={type}
           suspended={suspended}
-          hideDropdown
+          hideSyncOptions
           customActions={customActions}
         />
       </Flex>
@@ -120,11 +120,7 @@ function SourceDetail({ className, source, info, type, customActions }: Props) {
         <RouterTab name="yaml" path={`${path}/yaml`}>
           <YamlView
             yaml={yaml}
-            object={{
-              kind: type,
-              name: name,
-              namespace: namespace,
-            }}
+            header={createYamlCommand(type, name, namespace)}
           />
         </RouterTab>
       </SubRouterTabs>

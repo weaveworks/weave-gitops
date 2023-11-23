@@ -25,8 +25,9 @@ const (
 
 type DashboardCommandFlags struct {
 	// Create command flags.
-	Export  bool
-	Timeout time.Duration
+	Export      bool
+	Timeout     time.Duration
+	ValuesFiles []string
 	// Overridden global flags.
 	Username string
 	Password string
@@ -63,6 +64,7 @@ gitops create dashboard ww-gitops \
 
 	cmdFlags.StringVar(&flags.Username, "username", "admin", "The username of the dashboard admin user.")
 	cmdFlags.StringVar(&flags.Password, "password", "", "The password of the dashboard admin user.")
+	cmdFlags.StringSliceVar(&flags.ValuesFiles, "values", nil, "Local path to values.yaml files for HelmRelease, also accepts comma-separated values.")
 
 	kubeConfigArgs = run.GetKubeConfigArgs()
 
@@ -118,6 +120,10 @@ func createDashboardCommandRunE(opts *config.Options) func(*cobra.Command, []str
 			return err
 		}
 
+		if flags.ValuesFiles, err = cmd.Flags().GetStringSlice("values"); err != nil {
+			return err
+		}
+
 		var output io.Writer
 
 		if flags.Export {
@@ -147,7 +153,7 @@ func createDashboardCommandRunE(opts *config.Options) func(*cobra.Command, []str
 			adminUsername = defaultAdminUsername
 		}
 
-		dashboardObjects, err := install.CreateDashboardObjects(log, dashboardName, flags.Namespace, adminUsername, passwordHash, "", "")
+		dashboardObjects, err := install.CreateDashboardObjects(log, dashboardName, flags.Namespace, adminUsername, passwordHash, "", "", flags.ValuesFiles)
 		if err != nil {
 			return fmt.Errorf("error creating dashboard objects: %w", err)
 		}

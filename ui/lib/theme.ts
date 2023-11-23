@@ -1,5 +1,6 @@
 // Typescript will handle type-checking/linting for this file
 import { createTheme } from "@material-ui/core";
+import { alpha } from "@material-ui/core/styles/colorManipulator";
 // eslint-disable-next-line
 import { createGlobalStyle, DefaultTheme } from "styled-components";
 import { ThemeTypes } from "../contexts/AppContext";
@@ -56,8 +57,8 @@ export const theme = (mode: ThemeTypes = ThemeTypes.Light): DefaultTheme => {
     return {
       ...baseTheme,
       colors: {
-        black: "#fff",
-        white: "#1a1a1a",
+        black: "#1a1a1a",
+        white: "#ffffff",
         primary: "#009CCC",
         //only used in nav text when collapsed + selected/hover
         primaryLight05: "rgba(0,179,236,0.05)",
@@ -74,6 +75,7 @@ export const theme = (mode: ThemeTypes = ThemeTypes.Light): DefaultTheme => {
         alertOriginal: "#BC3B1D",
         alertDark: "#9F3119",
         neutralGray: "#32324B",
+        pipelineGray: "#4b5778",
         neutral00: "#1a1a1a",
         neutral10: "#737373",
         neutral20: "#d8d8d8",
@@ -83,6 +85,7 @@ export const theme = (mode: ThemeTypes = ThemeTypes.Light): DefaultTheme => {
         grayToPrimary: "#009CCC",
         neutral20ToPrimary: "#32324B",
         backGray: "#32324B",
+        pipelinesBackGray: "#4b5778",
         blueWithOpacity: "rgba(0, 179, 236, 0.1)",
         feedbackLight: "#8A460A",
         feedbackMedium: "#F7BF8E",
@@ -101,7 +104,7 @@ export const theme = (mode: ThemeTypes = ThemeTypes.Light): DefaultTheme => {
       ...baseTheme,
       colors: {
         black: "#1a1a1a",
-        white: "#fff",
+        white: "#ffffff",
         primary: "#00b3ec",
         primaryLight05: "#E5F7FD",
         primaryLight10: "#98E0F7",
@@ -117,6 +120,7 @@ export const theme = (mode: ThemeTypes = ThemeTypes.Light): DefaultTheme => {
         alertOriginal: "#BC3B1D",
         alertDark: "#9F3119",
         neutralGray: "#F6F7F9",
+        pipelineGray: "#dde1e9",
         neutral00: "#ffffff",
         neutral10: "#f5f5f5",
         neutral20: "#d8d8d8",
@@ -126,6 +130,7 @@ export const theme = (mode: ThemeTypes = ThemeTypes.Light): DefaultTheme => {
         grayToPrimary: "#737373",
         neutral20ToPrimary: "#d8d8d8",
         backGray: "#eef0f4",
+        pipelinesBackGray: "#eef0f4",
         blueWithOpacity: "rgba(0, 179, 236, 0.1)",
         feedbackLight: "#FCE6D2",
         feedbackMedium: "#F7BF8E",
@@ -159,7 +164,7 @@ export const GlobalStyle = createGlobalStyle`
   body {
     font-family: ${(props) => props.theme.fontFamilies.regular};
     font-size: ${(props) => props.theme.fontSizes.medium};
-    color: ${(props) => props.theme.colors.black};
+    color: ${(props) => props.theme.colors.neutral40};
     padding: 0;
     margin: 0;
     min-width: fit-content;
@@ -177,54 +182,7 @@ export const GlobalStyle = createGlobalStyle`
   .auth-modal-size {
     min-height: 475px
   }
-  //scrollbar
-  ::-webkit-scrollbar-track {
-    margin-top: 5px;
-    -webkit-box-shadow: transparent;
-    -moz-box-shadow: transparent;
-    background-color: transparent;
-    border-radius: 5px;
-  }
 
-  ::-webkit-scrollbar{
-    width: 5px;
-    height: 5px;
-    background-color: transparent;
-  }
-  ::-webkit-scrollbar-corner{
-    background-color: transparent;
-  }
-  ::-webkit-scrollbar-thumb {
-    background-color: ${(props) => props.theme.colors.neutral20};
-    border-radius: 5px;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background-color: ${(props) => props.theme.colors.neutral30};
-  }
-  //MuiTabs
-  .horizontal-tabs {
-    .MuiTab-root {
-      line-height: 1;
-      letter-spacing: 1px;
-      height: 32px;
-      min-height: 32px;
-      width: fit-content;
-      @media (min-width: 600px) {
-        min-width: 132px;
-      }
-    }
-    .MuiTabs-root {
-      min-height: 32px;
-      margin: ${(props) => props.theme.spacing.xs} 0;
-    }
-    .MuiTabs-fixed {
-      height: 32px;
-    }
-    .MuiTabs-indicator {
-      height: 3px;
-      background-color: ${(props) => props.theme.colors.primary};
-    }
-  }
 //prevents white autofill background in dark mode
 input:-webkit-autofill,
 input:-webkit-autofill:hover, 
@@ -233,7 +191,6 @@ input:-webkit-autofill:focus {
       props.theme.mode === ThemeTypes.Dark &&
       `background-color: ${props.theme.colors.blueWithOpacity};`}
   }
-
 `;
 
 export const muiTheme = (colors, mode) =>
@@ -315,6 +272,33 @@ export const muiTheme = (colors, mode) =>
           "&::before": {
             borderBottom:
               mode === ThemeTypes.Dark && `1px solid ${colors.neutral40}`,
+          },
+        },
+      },
+      // radio buttons
+      MuiRadio: {
+        root: {
+          padding: 0,
+          color: colors.primary30,
+        },
+
+        colorSecondary: {
+          color: colors.primary30,
+
+          "&:hover": {
+            backgroundColor: ThemeTypes.Dark
+              ? alpha(colors.primary10, 0.2)
+              : alpha(colors.primary, 0.1),
+            color: colors.primary10,
+          },
+
+          "&$checked": {
+            color: colors.primary10,
+          },
+
+          "&$disabled": {
+            color:
+              mode === ThemeTypes.Dark ? colors.primary30 : colors.neutral20,
           },
         },
       },

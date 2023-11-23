@@ -1,3 +1,4 @@
+import { AlertListErrors } from "./components/AlertListErrors";
 import { ReconciledObjectsAutomation } from "./components/AutomationDetail";
 import AutomationsTable from "./components/AutomationsTable";
 import BucketDetail from "./components/BucketDetail";
@@ -24,10 +25,20 @@ import HelmChartDetail from "./components/HelmChartDetail";
 import HelmReleaseDetail from "./components/HelmReleaseDetail";
 import HelmRepositoryDetail from "./components/HelmRepositoryDetail";
 import Icon, { IconType } from "./components/Icon";
+import ImageAutomation from "./components/ImageAutomation/ImageAutomation";
+import ImageAutomationDetails from "./components/ImageAutomation/ImageAutomationDetails";
+import ImagePoliciesTable from "./components/ImageAutomation/policies/ImagePoliciesTable";
+import ImagePolicyDetails from "./components/ImageAutomation/policies/ImagePolicyDetails";
+import ImageAutomationRepoDetails from "./components/ImageAutomation/repositories/ImageAutomationRepoDetails";
+import ImageRepositoriesTable from "./components/ImageAutomation/repositories/ImageRepositoriesTable";
+import ImageAutomationUpdatesDetails from "./components/ImageAutomation/updates/ImageAutomationUpdatesDetails";
+import ImageAutomationUpdatesTable from "./components/ImageAutomation/updates/ImageAutomationUpdatesTable";
 import InfoList, { InfoField } from "./components/InfoList";
 import Input, { InputProps } from "./components/Input";
 import Interval from "./components/Interval";
-import KubeStatusIndicator from "./components/KubeStatusIndicator";
+import KubeStatusIndicator, {
+  computeReady,
+} from "./components/KubeStatusIndicator";
 import KustomizationDetail from "./components/KustomizationDetail";
 import LargeInfo from "./components/LargeInfo";
 import Layout from "./components/Layout";
@@ -59,7 +70,7 @@ import SourceLink from "./components/SourceLink";
 import SourcesTable from "./components/SourcesTable";
 import Spacer from "./components/Spacer";
 import SubRouterTabs, { RouterTab } from "./components/SubRouterTabs";
-import SyncButton from "./components/SyncButton";
+import SyncControls from "./components/Sync/SyncControls";
 import Text from "./components/Text";
 import Timestamp from "./components/Timestamp";
 import UserGroupsTable from "./components/UserGroupsTable";
@@ -81,6 +92,7 @@ import {
 } from "./contexts/LinkResolverContext";
 import { useListAutomations, useSyncFluxObject } from "./hooks/automations";
 import { useDebounce, useRequestState } from "./hooks/common";
+import { useListEvents } from "./hooks/events";
 import { useFeatureFlags } from "./hooks/featureflags";
 import {
   useListFluxCrds,
@@ -88,6 +100,7 @@ import {
   useToggleSuspend,
 } from "./hooks/flux";
 import { useCheckCRDInstalled } from "./hooks/imageautomation";
+import { useGetInventory } from "./hooks/inventory";
 import useNavigation from "./hooks/navigation";
 import { useListAlerts, useListProviders } from "./hooks/notifications";
 import { useGetObject, useListObjects } from "./hooks/objects";
@@ -118,10 +131,10 @@ import { V2Routes } from "./lib/types";
 import {
   createYamlCommand,
   formatLogTimestamp,
+  getBasePath,
   isAllowedLink,
   poller,
   statusSortHelper,
-  getBasePath,
   stripBasePath,
   withBasePath,
 } from "./lib/utils";
@@ -130,6 +143,7 @@ import SignIn from "./pages/SignIn";
 export {
   Alert,
   AppContext,
+  AlertListErrors,
   AppContextProvider,
   Auth,
   AuthCheck,
@@ -169,8 +183,16 @@ export {
   HelmRepositoryDetail,
   Icon,
   IconType,
+  ImageAutomation,
+  ImageAutomationDetails,
   ImageAutomationIcon,
+  ImageAutomationRepoDetails,
+  ImageAutomationUpdatesDetails,
+  ImageAutomationUpdatesTable,
+  ImagePoliciesTable,
   ImagePolicy,
+  ImagePolicyDetails,
+  ImageRepositoriesTable,
   ImageRepository,
   ImageUpdateAutomation,
   InfoField,
@@ -218,7 +240,7 @@ export {
   SourcesTable,
   Spacer,
   SubRouterTabs,
-  SyncButton,
+  SyncControls,
   Text,
   ThemeTypes,
   Timestamp,
@@ -229,6 +251,7 @@ export {
   ViolationDetails,
   YamlView,
   baseTheme,
+  computeReady,
   coreClient,
   createYamlCommand,
   filterByStatusCallback,
@@ -249,9 +272,11 @@ export {
   useDebounce,
   useFeatureFlags,
   useGetObject,
+  useGetInventory,
   useLinkResolver,
   useListAlerts,
   useListAutomations,
+  useListEvents,
   useListFluxCrds,
   useListFluxRuntimeObjects,
   useListObjects,

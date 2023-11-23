@@ -41,6 +41,7 @@
           },
           items: [
             'enterprise/getting-started/install-enterprise',
+            'enterprise/getting-started/install-enterprise-cli',
             'enterprise/getting-started/install-enterprise-airgap',
             'enterprise/getting-started/releases-enterprise',
             'enterprise/getting-started/install-enterprise-azure',
@@ -55,6 +56,15 @@
       ],
     },
     {
+      type: 'category',
+      label: 'Backstage',
+      link: {
+        type: 'doc',
+        id: 'backstage/intro'
+      },
+      items: [],
+    },
+        {
       type: 'category',
       label: 'Cluster Management',
       link: {
@@ -91,17 +101,6 @@
     },
     {
       type: 'category',
-      label: 'GitOps Run',
-      link: {
-        type: 'doc',
-        id: 'gitops-run/gitops-run-overview',
-      },
-      items: [
-        'gitops-run/gitops-run-get-started',
-      ],
-    },
-    {
-      type: 'category',
       label: 'GitOpsSets',
       items: [
         'gitopssets/gitopssets-intro',
@@ -115,8 +114,18 @@
       type: 'category',
       label: 'Guides',
       items: [
+        'guides/oidc',
+        'guides/configuring-oidc-with-keycloak',
         'guides/displaying-custom-metadata',
         'guides/fluxga-upgrade',
+        'guides/anonymous-access',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Operations',
+      items: [
+        'operations/monitoring',
       ],
     },
     {
@@ -257,7 +266,8 @@
         'workspaces/multi-tenancy',
         'workspaces/view-workspaces',
       ],
-    }
+    },
+
   ],
   ref: [
     {

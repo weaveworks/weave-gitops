@@ -4,7 +4,7 @@ import styled from "styled-components";
 export const MarkdownEditor = styled<any>(ReactMarkdown)`
   width: calc(100% - 24px);
   padding: ${(props) => props.theme.spacing.small};
-  overflow: scroll;
+  overflow: auto;
   background: ${(props) => props.theme.colors.neutralGray};
   max-height: 300px;
   & a {

@@ -4,12 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
-	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
-
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
+	"github.com/fluxcd/pkg/runtime/transform"
+	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 	coretypes "github.com/weaveworks/weave-gitops/core/server/types"
 	"github.com/weaveworks/weave-gitops/pkg/config"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
@@ -77,11 +78,31 @@ type DashboardObjects struct {
 }
 
 // CreateDashboardObjects creates HelmRepository and HelmRelease objects for the GitOps Dashboard installation.
-func CreateDashboardObjects(log logger.Logger, name, namespace, username, passwordHash, chartVersion, dashboardImage string) (*DashboardObjects, error) {
+func CreateDashboardObjects(log logger.Logger, name, namespace, username, passwordHash, chartVersion, dashboardImage string, valuesFiles []string) (*DashboardObjects, error) {
 	log.Actionf("Creating GitOps Dashboard objects ...")
 
+	valuesFromFiles := make(map[string]interface{})
+	for _, v := range valuesFiles {
+		data, err := os.ReadFile(v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read YAML values from %q: %w", v, err)
+		}
+
+		jsonBytes, err := yaml.YAMLToJSON(data)
+		if err != nil {
+			return nil, fmt.Errorf("failed to convert YAML values from %q to JSON values: %w", v, err)
+		}
+
+		jsonMap := make(map[string]interface{})
+		if err := json.Unmarshal(jsonBytes, &jsonMap); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal JSON values from %q: %w", v, err)
+		}
+
+		valuesFromFiles = transform.MergeMaps(valuesFromFiles, jsonMap)
+	}
+
 	helmRepository := makeHelmRepository(name, namespace)
-	helmRelease, err := makeHelmRelease(log, name, namespace, username, passwordHash, chartVersion, dashboardImage)
+	helmRelease, err := makeHelmRelease(log, name, namespace, username, passwordHash, chartVersion, dashboardImage, valuesFromFiles)
 
 	if err != nil {
 		log.Failuref("Creating HelmRelease failed")
@@ -207,8 +228,7 @@ func ReconcileDashboard(ctx context.Context, kubeClient client.Client, dashboard
 
 	var sourceRequestedAt string
 
-	//nolint:staticcheck // deprecated, tracking issue: https://github.com/weaveworks/weave-gitops/issues/3812
-	if err := wait.Poll(interval, timeout, func() (bool, error) {
+	if err := wait.PollUntilContextTimeout(context.Background(), interval, timeout, true, func(_ context.Context) (bool, error) {
 		var err error
 		sourceRequestedAt, err = run.RequestReconciliation(ctx, kubeClient,
 			namespacedName, gvk)
@@ -219,8 +239,7 @@ func ReconcileDashboard(ctx context.Context, kubeClient client.Client, dashboard
 	}
 
 	// wait for the reconciliation of dashboard to be done
-	//nolint:staticcheck // deprecated, tracking issue: https://github.com/weaveworks/weave-gitops/issues/3812
-	if err := wait.Poll(interval, timeout, func() (bool, error) {
+	if err := wait.PollUntilContextTimeout(context.Background(), interval, timeout, true, func(_ context.Context) (bool, error) {
 		dashboard := &sourcev1b2.HelmChart{}
 		if err := kubeClient.Get(ctx, types.NamespacedName{
 			Namespace: namespace,
@@ -235,8 +254,7 @@ func ReconcileDashboard(ctx context.Context, kubeClient client.Client, dashboard
 	}
 
 	// wait for dashboard to be ready
-	//nolint:staticcheck // deprecated, tracking issue: https://github.com/weaveworks/weave-gitops/issues/3812
-	if err := wait.Poll(interval, timeout, func() (bool, error) {
+	if err := wait.PollUntilContextTimeout(context.Background(), interval, timeout, true, func(_ context.Context) (bool, error) {
 		namespacedName := types.NamespacedName{Namespace: namespace, Name: podName}
 
 		var labels map[string]string = nil
@@ -329,7 +347,7 @@ func makeHelmRepository(name, namespace string) *sourcev1b2.HelmRepository {
 }
 
 // makeHelmRelease creates a HelmRelease object for installing the GitOps Dashboard.
-func makeHelmRelease(log logger.Logger, name, namespace, username, passwordHash, chartVersion, dashboardImage string) (*helmv2.HelmRelease, error) {
+func makeHelmRelease(log logger.Logger, name, namespace, username, passwordHash, chartVersion, dashboardImage string, valuesFromFiles map[string]interface{}) (*helmv2.HelmRelease, error) {
 	helmRelease := &helmv2.HelmRelease{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       helmv2.HelmReleaseKind,
@@ -362,7 +380,7 @@ func makeHelmRelease(log logger.Logger, name, namespace, username, passwordHash,
 		helmRelease.Spec.Chart.Spec.Version = chartVersion
 	}
 
-	values, err := makeValues(username, passwordHash, dashboardImage)
+	values, err := makeValues(username, passwordHash, dashboardImage, valuesFromFiles)
 	if err != nil {
 		log.Failuref("Error generating chart values")
 		return nil, err
@@ -418,7 +436,7 @@ func parseImageRepository(input string) (repository, image, tag string, err erro
 }
 
 // makeValues creates a values object for installing the GitOps Dashboard.
-func makeValues(username, passwordHash, dashboardImage string) ([]byte, error) {
+func makeValues(username, passwordHash, dashboardImage string, valuesFromFiles map[string]interface{}) ([]byte, error) {
 	valuesMap := make(map[string]interface{})
 	if username != "" && passwordHash != "" {
 		valuesMap["adminUser"] =
@@ -449,8 +467,10 @@ func makeValues(username, passwordHash, dashboardImage string) ([]byte, error) {
 		}
 	}
 
-	if len(valuesMap) > 0 {
-		jsonRaw, err := json.Marshal(valuesMap)
+	finalValues := transform.MergeMaps(valuesMap, valuesFromFiles)
+
+	if len(finalValues) > 0 {
+		jsonRaw, err := json.Marshal(finalValues)
 		if err != nil {
 			return nil, fmt.Errorf("encoding values failed: %w", err)
 		}

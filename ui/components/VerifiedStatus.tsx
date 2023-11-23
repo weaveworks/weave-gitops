@@ -1,12 +1,15 @@
 import { Tooltip } from "@material-ui/core";
 import React from "react";
-import { useGetObject } from "../hooks/objects";
-import { Condition, Kind, ObjectRef } from "../lib/api/core/types.pb";
-import { GitRepository, OCIRepository, Source } from "../lib/objects";
+import { useListSources } from "../hooks/sources";
+import { Condition, ObjectRef } from "../lib/api/core/types.pb";
+import { GitRepository, OCIRepository } from "../lib/objects";
 import Flex from "./Flex";
 import Icon, { IconType } from "./Icon";
 
-type VerifiableSource = GitRepository | OCIRepository;
+export interface VerifiableSource {
+  isVerifiable: boolean;
+  conditions: Condition[];
+}
 
 const getVerifiedStatusColor = (status?: string) => {
   let color;
@@ -20,26 +23,7 @@ const getVerifiedStatusColor = (status?: string) => {
   return color;
 };
 
-export const findVerificationCondition = (
-  a: VerifiableSource | undefined
-): Condition | undefined =>
-  a?.conditions?.find((condition) => condition.type === "SourceVerified");
-
-const checkVerifiable = (sourceRef: ObjectRef): boolean => {
-  //guard against an undefined or non-verifiable obj (as of right now anything that's not a git or oci repo)
-  const { name, namespace, kind } = sourceRef;
-  const undefinedRef = !name || !namespace || !kind;
-  return (
-    (kind === Kind.GitRepository || kind === Kind.OCIRepository) &&
-    !undefinedRef
-  );
-};
-
-const VerifiedStatus = ({
-  source,
-}: {
-  source?: VerifiableSource;
-}): JSX.Element => {
+const getStatusIcon = (source) => {
   const condition = findVerificationCondition(source);
   const color = getVerifiedStatusColor(condition?.status);
 
@@ -52,33 +36,30 @@ const VerifiedStatus = ({
   );
 };
 
-export const SourceIsVerifiedStatus: React.FC<{
-  sourceRef?: ObjectRef;
-  source?: Source;
-}> = ({ sourceRef, source }): JSX.Element => {
-  const isVerifiable = source
-    ? checkVerifiable({
-        name: source.name,
-        namespace: source.namespace,
-        clusterName: source.clusterName,
-        kind: source?.type,
-      })
-    : checkVerifiable(sourceRef || {});
-  if (!isVerifiable) return <Flex>-</Flex>;
+export const findVerificationCondition = (
+  a: VerifiableSource
+): Condition | undefined =>
+  a?.conditions?.find((condition) => condition.type === "SourceVerified");
 
-  if (source) return <VerifiedStatus source={source as VerifiableSource} />;
-  const {
-    name = "",
-    namespace = "",
-    kind = "",
-    clusterName = "",
-  } = sourceRef || {};
-  const { data: verifiable } = useGetObject<VerifiableSource>(
-    name,
-    namespace,
-    Kind[kind],
-    clusterName
-  );
+export const VerifiedStatus = ({
+  source,
+}: {
+  source: VerifiableSource;
+}): JSX.Element | null => {
+  if (!source.isVerifiable) return <Flex>-</Flex>;
 
-  return <VerifiedStatus source={verifiable} />;
+  return getStatusIcon(source);
+};
+
+export const SourceIsVerifiedStatus: React.FC<{ sourceRef: ObjectRef }> = ({
+  sourceRef,
+}): JSX.Element | null => {
+  const { data: sources } = useListSources();
+  const currentSource = sources?.result.find(
+    (source) => sourceRef?.name === source.name
+  ) as GitRepository | OCIRepository | undefined;
+
+  if (!currentSource?.isVerifiable) return <Flex>-</Flex>;
+
+  return getStatusIcon(currentSource);
 };
