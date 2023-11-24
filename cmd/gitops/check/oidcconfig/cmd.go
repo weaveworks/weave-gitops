@@ -35,11 +35,9 @@ func OIDCConfigCommand(opts *config.Options) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "oidc-config",
 		Short: "Check an OIDC configuration for proper functionality.",
-		Long: "This command will send the user through an OIDC authorization code flow " +
-			"using the given OIDC configuration. This is helpful for verifying that a given " +
-			"configuration will work properly with Weave GitOps or for debugging issues. " +
-			"Without any provided flags it will read the configuration from a Secret" +
-			"on the cluster.",
+		Long: `This command will send the user through an OIDC authorization code flow using the given OIDC configuration. This is helpful for verifying that a given configuration will work properly with Weave GitOps or for debugging issues. Without any provided flags it will read the configuration from a Secret on the cluster.
+
+NOTE: Make sure to configure your OIDC provider so that it accepts "http://localhost:9876" as redirect URI.`,
 		Example: `
 # Check the OIDC configuration stored in the flux-system/oidc-auth Secret
 gitops check oidc-config
