@@ -180,12 +180,13 @@ func TestGetClaimsWithoutSecret(t *testing.T) {
 	var issuer string
 
 	tests := []struct {
-		name           string
-		opts           check.Options
-		claims         func() jwt.Claims
-		expectedScopes []string
-		expectedGroups []string
-		expectedErr    string
+		name             string
+		opts             check.Options
+		claims           func() jwt.Claims
+		expectedScopes   []string
+		expectedUsername string
+		expectedGroups   []string
+		expectedErr      string
 	}{
 		{
 			name:           "requests default scopes",
@@ -203,6 +204,7 @@ func TestGetClaimsWithoutSecret(t *testing.T) {
 					Username: "user@example.org",
 				}
 			},
+			expectedUsername: "user@example.org",
 		},
 		{
 			name: "requests scopes from options",
@@ -223,6 +225,30 @@ func TestGetClaimsWithoutSecret(t *testing.T) {
 				}
 			},
 			expectedScopes: []string{"foo", "bar"},
+		},
+		{
+			name: "respects username/groups claim name from options",
+			opts: check.Options{
+				ClaimUsername: "foo",
+				ClaimGroups:   "bar",
+			},
+			claims: func() jwt.Claims {
+				return struct {
+					jwt.RegisteredClaims
+					Username string   `json:"foo"`
+					Groups   []string `json:"bar"`
+				}{
+					RegisteredClaims: jwt.RegisteredClaims{
+						Issuer:    issuer,
+						Audience:  []string{"client"},
+						ExpiresAt: jwt.NewNumericDate(time.Now().Add(10 * time.Minute)),
+					},
+					Username: "userfoo@example.org",
+					Groups:   []string{"groups"},
+				}
+			},
+			expectedUsername: "userfoo@example.org",
+			expectedGroups: []string{"groups"},
 		},
 		{
 			name: "returns proper groups",
@@ -312,7 +338,9 @@ func TestGetClaimsWithoutSecret(t *testing.T) {
 			if tt.expectedScopes != nil {
 				g.Expect(tp.RequestedScopes).To(Equal(tt.expectedScopes))
 			}
-			g.Expect(c.ID).To(Equal("user@example.org"))
+			if tt.expectedUsername != "" {
+				g.Expect(c.ID).To(Equal(tt.expectedUsername))
+			}
 			if tt.expectedGroups != nil {
 				g.Expect(c.Groups).To(ConsistOf(tt.expectedGroups))
 			}

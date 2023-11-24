@@ -27,6 +27,7 @@ func OIDCConfigCommand(opts *config.Options) *cobra.Command {
 		clientSecretFlag  string
 		scopesFlag        []string
 		claimUsernameFlag string
+		claimGroupsFlag   string
 		issuerURLFlag     string
 	)
 
@@ -93,6 +94,7 @@ gitops check oidc-config --skip-secret --client-id=CID --client-secret=SEC --iss
 				SecretNamespace: ns,
 				Scopes:          scopesFlag,
 				ClaimUsername:   claimUsernameFlag,
+				ClaimGroups:     claimGroupsFlag,
 			}, log, kubeClient)
 
 			if err != nil {
@@ -120,7 +122,8 @@ gitops check oidc-config --skip-secret --client-id=CID --client-secret=SEC --iss
 	cmd.Flags().StringVar(&fromSecretFlag, "from-secret", "oidc-auth", "Get OIDC configuration from the given Secret resource")
 	cmd.Flags().BoolVar(&skipSecretFlag, "skip-secret", false,
 		"Do not read OIDC configuration from a Kubernetes Secret but rely solely on the values from the given flags.")
-	cmd.Flags().StringVar(&claimUsernameFlag, "claim-username", "", "ID token claim to use as the user name.")
+	cmd.Flags().StringVar(&claimUsernameFlag, "username-claim", "", "ID token claim to use for the user name.")
+	cmd.Flags().StringVar(&claimGroupsFlag, "groups-claim", "", "ID token claim to use for the groups.")
 	cmd.Flags().StringSliceVar(&scopesFlag, "scopes", nil, fmt.Sprintf("OIDC scopes to request (default [%s])", strings.Join(auth.DefaultScopes, ",")))
 
 	return cmd

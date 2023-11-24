@@ -23,6 +23,7 @@ type Options struct {
 	SecretNamespace            string
 	Scopes                     []string
 	ClaimUsername              string
+	ClaimGroups                string
 	OpenURL                    func(string) error
 	InsecureSkipSignatureCheck bool
 }
@@ -44,6 +45,10 @@ func GetPrincipal(ctx context.Context, opts Options, log logger.Logger, c client
 
 	if opts.ClaimUsername == "" {
 		opts.ClaimUsername = auth.ClaimUsername
+	}
+
+	if opts.ClaimGroups == "" {
+		opts.ClaimGroups = auth.ClaimGroups
 	}
 
 	if len(opts.Scopes) == 0 {
@@ -87,7 +92,7 @@ func GetPrincipal(ctx context.Context, opts Options, log logger.Logger, c client
 
 	cc := auth.ClaimsConfig{
 		Username: opts.ClaimUsername,
-		Groups:   "groups",
+		Groups:   opts.ClaimGroups,
 	}
 	principal, err := cc.PrincipalFromClaims(claims)
 	if err != nil {
