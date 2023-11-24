@@ -4,7 +4,9 @@ Check an OIDC configuration for proper functionality.
 
 ### Synopsis
 
-This command will send the user through an OIDC authorization code flow using the given OIDC configuration. This is helpful for verifying that a given configuration will work properly with Weave GitOps or for debugging issues. Without any provided flags it will read the configuration from a Secreton the cluster.
+This command will send the user through an OIDC authorization code flow using the given OIDC configuration. This is helpful for verifying that a given configuration will work properly with Weave GitOps or for debugging issues. Without any provided flags it will read the configuration from a Secret on the cluster.
+
+NOTE: Make sure to configure your OIDC provider so that it accepts "http://localhost:9876" as redirect URI.
 
 ```
 gitops check oidc-config [flags]
@@ -31,16 +33,17 @@ gitops check oidc-config --skip-secret --client-id=CID --client-secret=SEC --iss
 ### Options
 
 ```
-      --claim-username string   ID token claim to use as the user name.
       --client-id string        OIDC client ID
       --client-secret string    OIDC client secret
       --context string          The name of the kubeconfig context to use
       --disable-compression     If true, opt-out of response compression for all requests to the server
       --from-secret string      Get OIDC configuration from the given Secret resource (default "oidc-auth")
+      --groups-claim string     ID token claim to use for the groups.
   -h, --help                    help for oidc-config
       --issuer-url string       OIDC issuer URL
       --scopes strings          OIDC scopes to request (default [openid,offline_access,email,groups])
       --skip-secret             Do not read OIDC configuration from a Kubernetes Secret but rely solely on the values from the given flags.
+      --username-claim string   ID token claim to use for the user name.
 ```
 
 ### Options inherited from parent commands
