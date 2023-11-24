@@ -18,6 +18,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 )
 
+// OIDCConfigCommand returns the cobra command for running `oidc-config`.
 func OIDCConfigCommand(opts *config.Options) *cobra.Command {
 	var (
 		kubeConfigArgs    *genericclioptions.ConfigFlags
