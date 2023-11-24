@@ -248,7 +248,7 @@ func TestGetClaimsWithoutSecret(t *testing.T) {
 				}
 			},
 			expectedUsername: "userfoo@example.org",
-			expectedGroups: []string{"groups"},
+			expectedGroups:   []string{"groups"},
 		},
 		{
 			name: "returns proper groups",
