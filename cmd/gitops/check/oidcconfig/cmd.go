@@ -85,7 +85,7 @@ gitops check oidc-config --skip-secret --client-id=CID --client-secret=SEC --iss
 
 			ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
 			defer cancel()
-			claims, err := check.GetClaims(ctx, check.Options{
+			claims, err := check.GetPrincipal(ctx, check.Options{
 				ClientID:        clientIDFlag,
 				ClientSecret:    clientSecretFlag,
 				IssuerURL:       issuerURLFlag,
@@ -99,7 +99,7 @@ gitops check oidc-config --skip-secret --client-id=CID --client-secret=SEC --iss
 				return fmt.Errorf("failed getting claims: %w", err)
 			}
 
-			log.Println("user: %s", claims.Username)
+			log.Println("user: %s", claims.ID)
 			if len(claims.Groups) != 0 {
 				log.Println("groups: %s", strings.Join(claims.Groups, ", "))
 			} else {

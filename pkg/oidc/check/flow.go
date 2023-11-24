@@ -3,7 +3,6 @@ package check
 import (
 	"context"
 	"fmt"
-	"reflect"
 	"strings"
 
 	"github.com/coreos/go-oidc/v3/oidc"
@@ -33,14 +32,13 @@ type Claims struct {
 	Groups   []string
 }
 
-// GetClaims retrieves OIDC claims by sending the user through an authorization code flow. It spins
+// GetPrincipal retrieves OIDC claims by sending the user through an authorization code flow. It spins
 // up a temporary web server, sets the server's address as redirect URI in the authentication request
 // and subsequently exchanges the authorization code for an ID token.
-func GetClaims(ctx context.Context, opts Options, log logger.Logger, c client.Client) (Claims, error) {
-	res := Claims{}
+func GetPrincipal(ctx context.Context, opts Options, log logger.Logger, c client.Client) (*auth.UserPrincipal, error) {
 	if opts.SecretName != "" {
 		if err := optsFromSecret(ctx, &opts, log, c); err != nil {
-			return res, fmt.Errorf("failed reading options from Secret: %w", err)
+			return nil, fmt.Errorf("failed reading options from Secret: %w", err)
 		}
 	}
 
@@ -54,7 +52,7 @@ func GetClaims(ctx context.Context, opts Options, log logger.Logger, c client.Cl
 
 	provider, err := oidc.NewProvider(ctx, opts.IssuerURL)
 	if err != nil {
-		return res, fmt.Errorf("could not create provider: %w", err)
+		return nil, fmt.Errorf("could not create provider: %w", err)
 	}
 
 	oauth2Config := oauth2.Config{
@@ -82,31 +80,21 @@ func GetClaims(ctx context.Context, opts Options, log logger.Logger, c client.Cl
 		ClientID:                   opts.ClientID,
 		InsecureSkipSignatureCheck: opts.InsecureSkipSignatureCheck,
 	})
-	claims, err := retrieveClaims(log, oauth2Config, verifier)
+	claims, err := retrieveIDToken(log, oauth2Config, verifier)
 	if err != nil {
-		return res, fmt.Errorf("failed retrieving claims: %w", err)
+		return nil, fmt.Errorf("failed retrieving claims: %w", err)
 	}
 
-	uc, ok := claims[opts.ClaimUsername]
-	if ok {
-		res.Username = uc.(string)
+	cc := auth.ClaimsConfig{
+		Username: opts.ClaimUsername,
+		Groups:   "groups",
+	}
+	principal, err := cc.PrincipalFromClaims(claims)
+	if err != nil {
+		return nil, fmt.Errorf("failed deriving principal from claims: %w", err)
 	}
 
-	gc := claims["groups"]
-	if gc != nil {
-		gif, ok := gc.([]interface{})
-		if !ok {
-			return res, fmt.Errorf("'groups' claim has unexpected type %q", reflect.TypeOf(gc))
-		}
-		groups := make([]string, len(gif))
-		for idx, g := range gif {
-			groups[idx] = g.(string)
-		}
-
-		res.Groups = groups
-	}
-
-	return res, nil
+	return principal, nil
 }
 
 // optsFromSecret fetches the Secret referenced in opts and sets OIDC configuration values

@@ -156,7 +156,7 @@ func TestGetClaimsWithSecret(t *testing.T) {
 			var logBuf strings.Builder
 			log := logger.NewCLILogger(&logBuf)
 
-			_, err := check.GetClaims(context.Background(), check.Options{
+			_, err := check.GetPrincipal(context.Background(), check.Options{
 				SecretName:      "test-oidc",
 				SecretNamespace: "flux-system",
 				OpenURL: func(u string) error {
@@ -244,7 +244,7 @@ func TestGetClaimsWithoutSecret(t *testing.T) {
 			expectedGroups: []string{"g1", "g2", "g3"},
 		},
 		{
-			name: "fails gracefully with unexpected groups claim type",
+			name: "gracefully handles string groups claim (as opposed to list)",
 			claims: func() jwt.Claims {
 				return struct {
 					jwt.RegisteredClaims
@@ -257,10 +257,10 @@ func TestGetClaimsWithoutSecret(t *testing.T) {
 						ExpiresAt: jwt.NewNumericDate(time.Now().Add(10 * time.Minute)),
 					},
 					Username: "user@example.org",
-					Groups:   "g1,g2,g3",
+					Groups:   "g1",
 				}
 			},
-			expectedErr: "'groups' claim has unexpected type",
+			expectedGroups: []string{"g1"},
 		},
 	}
 
@@ -300,7 +300,7 @@ func TestGetClaimsWithoutSecret(t *testing.T) {
 			var logBuf strings.Builder
 			log := logger.NewCLILogger(&logBuf)
 
-			c, err := check.GetClaims(context.Background(), tt.opts, log, nil)
+			c, err := check.GetPrincipal(context.Background(), tt.opts, log, nil)
 
 			if tt.expectedErr != "" {
 				g.Expect(err).To(MatchError(ContainSubstring(tt.expectedErr)))
@@ -312,7 +312,7 @@ func TestGetClaimsWithoutSecret(t *testing.T) {
 			if tt.expectedScopes != nil {
 				g.Expect(tp.RequestedScopes).To(Equal(tt.expectedScopes))
 			}
-			g.Expect(c.Username).To(Equal("user@example.org"))
+			g.Expect(c.ID).To(Equal("user@example.org"))
 			if tt.expectedGroups != nil {
 				g.Expect(c.Groups).To(ConsistOf(tt.expectedGroups))
 			}
