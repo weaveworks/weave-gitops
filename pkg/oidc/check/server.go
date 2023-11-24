@@ -22,15 +22,14 @@ var successHTML string
 //go:embed error.html
 var errorHTML string
 
-// retrieveClaims starts an HTTP server that handles the response to an OIDC authentication request,
-// issues a token request and returns all the claims provided in the ID token. The HTTP server
-// is always shut down before this function returns.
-func retrieveClaims(log logger.Logger, oauth2Config oauth2.Config, verifier *oidc.IDTokenVerifier) (map[string]interface{}, error) {
+// retrieveIDToken starts an HTTP server that handles the response to an OIDC authentication request,
+// issues a token request and returns the ID token. The HTTP server is always shut down before this function returns.
+func retrieveIDToken(log logger.Logger, oauth2Config oauth2.Config, verifier *oidc.IDTokenVerifier) (*oidc.IDToken, error) {
 	mux := http.ServeMux{}
 	srv := http.Server{
 		Handler: &mux,
 	}
-	claims := make(map[string]interface{})
+	var idToken *oidc.IDToken
 	var handleErr error
 	quitCh := make(chan struct{})
 
@@ -62,14 +61,9 @@ func retrieveClaims(log logger.Logger, oauth2Config oauth2.Config, verifier *oid
 			handleErr = fmt.Errorf("no id_token field in OAuth 2 token")
 			return
 		}
-		idToken, err := verifier.Verify(ctx, rawIDToken)
+		idToken, err = verifier.Verify(ctx, rawIDToken)
 		if err != nil {
 			handleErr = fmt.Errorf("ID token verification failed: %w", err)
-			return
-		}
-
-		if err := idToken.Claims(&claims); err != nil {
-			handleErr = fmt.Errorf("failed getting claims from token: %w", err)
 			return
 		}
 
@@ -100,7 +94,7 @@ func retrieveClaims(log logger.Logger, oauth2Config oauth2.Config, verifier *oid
 
 	<-shutdownCompleteCh
 
-	return claims, handleErr
+	return idToken, handleErr
 }
 
 // handleServerError parses the query parameters from an authentication error response
