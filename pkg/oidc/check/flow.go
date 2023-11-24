@@ -36,6 +36,7 @@ type Claims struct {
 // GetPrincipal retrieves OIDC claims by sending the user through an authorization code flow. It spins
 // up a temporary web server, sets the server's address as redirect URI in the authentication request
 // and subsequently exchanges the authorization code for an ID token.
+// NOTE: Make sure to configure your OIDC provider so that it accepts "http://localhost:9876" as redirect URI.
 func GetPrincipal(ctx context.Context, opts Options, log logger.Logger, c client.Client) (*auth.UserPrincipal, error) {
 	if opts.SecretName != "" {
 		if err := optsFromSecret(ctx, &opts, log, c); err != nil {
