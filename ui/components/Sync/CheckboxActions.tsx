@@ -7,6 +7,7 @@ import { useToggleSuspend } from "../../hooks/flux";
 import { ObjectRef } from "../../lib/api/core/types.pb";
 import { V2Routes } from "../../lib/types";
 import SyncControls, { SyncType } from "./SyncControls";
+import SuspendMessageModal from "./SuspendMessageModal";
 
 export const makeObjects = (checked: string[], rows: any[]): ObjectRef[] => {
   const objects = [];
@@ -31,18 +32,23 @@ const noSource = {
   [V2Routes.ImageUpdates]: true,
 };
 
-function createSuspendHandler(reqObjects: ObjectRef[], suspend: boolean) {
+function createSuspendHandler(
+  reqObjects: ObjectRef[],
+  suspend: boolean,
+  suspendMessage: string
+) {
   const result = useToggleSuspend(
     {
       objects: reqObjects,
       suspend: suspend,
+      comment: suspendMessage,
     },
     reqObjects[0]?.kind === "HelmRelease" ||
       reqObjects[0]?.kind === "Kustomization"
       ? "automations"
       : "sources"
   );
-  return () => result.mutateAsync();
+  return result;
 }
 
 type Props = {
@@ -53,6 +59,9 @@ type Props = {
 
 function CheckboxActions({ className, checked = [], rows = [] }: Props) {
   const [reqObjects, setReqObjects] = React.useState([]);
+  const [suspendMessageModalOpen, setSuspendMessageModalOpen] =
+    React.useState(false);
+  const [suspendMessage, setSuspendMessage] = React.useState("");
   const location = useLocation();
 
   React.useEffect(() => {
@@ -70,18 +79,31 @@ function CheckboxActions({ className, checked = [], rows = [] }: Props) {
   const disableButtons = !reqObjects[0];
 
   return (
-    <SyncControls
-      className={className}
-      hideSyncOptions={noSource[location.pathname]}
-      syncLoading={sync.isLoading}
-      syncDisabled={disableButtons}
-      suspendDisabled={disableButtons}
-      resumeDisabled={disableButtons}
-      tooltipSuffix=" selected"
-      onSyncClick={syncHandler}
-      onSuspendClick={createSuspendHandler(reqObjects, true)}
-      onResumeClick={createSuspendHandler(reqObjects, false)}
-    />
+    <>
+      <SyncControls
+        className={className}
+        hideSyncOptions={noSource[location.pathname]}
+        syncLoading={sync.isLoading}
+        syncDisabled={disableButtons}
+        suspendDisabled={disableButtons}
+        resumeDisabled={disableButtons}
+        tooltipSuffix=" selected"
+        onSyncClick={syncHandler}
+        onSuspendClick={() =>
+          setSuspendMessageModalOpen(!suspendMessageModalOpen)
+        }
+        onResumeClick={
+          createSuspendHandler(reqObjects, false, suspendMessage).mutateAsync
+        }
+      />
+      <SuspendMessageModal
+        open={suspendMessageModalOpen}
+        onCloseModal={setSuspendMessageModalOpen}
+        suspend={createSuspendHandler(reqObjects, true, suspendMessage)}
+        setSuspendMessage={setSuspendMessage}
+        suspendMessage={suspendMessage}
+      />
+    </>
   );
 }
 
