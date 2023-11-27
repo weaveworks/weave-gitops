@@ -137,6 +137,8 @@ OIDC extends the OAuth2 authorization protocol by including an additional field 
 
 For more specific examples of how to setup OIDC with Weave GitOps, see [this guide](../../../guides/oidc/).
 
+If you run into issues setting up OIDC with Weave GitOps, please refer to the [`gitops check oidc-config` command](../../../references/cli-reference/gitops_check_oidc-config/)
+
 <Tabs groupId="infrastructure" default>
 <TabItem value="Login via an OIDC provider" label="Login via an OIDC provider">
 
@@ -168,6 +170,10 @@ kubectl create secret generic oidc-auth \
 ```
 
 Once the HTTP server starts, unauthenticated users will have to click 'Login With OIDC Provider' to log in or use the cluster account (if configured). Upon successful authentication, the users' identities will be impersonated in any calls made to the Kubernetes API, as part of any action they take in the dashboard. By default the Helm chart will configure RBAC correctly, but we recommend reading the [service account](#gitops-dashboard-service-account-permissions) and [user permissions](#user-permissions) pages to understand which actions are needed for Weave GitOps to function correctly.
+
+:::warning
+Currently, we do not have a persistent session storage, this means that if you scale to multiple replicas, logins will not be persisted.
+:::
 
 #### Customization
 
