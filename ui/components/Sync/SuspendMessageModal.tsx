@@ -1,8 +1,8 @@
 import React, { Dispatch, SetStateAction } from "react";
 import styled from "styled-components";
-import Modal from "../Modal";
-import Flex from "../Flex";
 import Button from "../Button";
+import Flex from "../Flex";
+import Modal from "../Modal";
 
 export type Props = {
   onCloseModal: Dispatch<SetStateAction<boolean>>;
@@ -64,8 +64,8 @@ function SuspendMessageModal({
     <MessageModal
       open={open}
       onClose={onClose}
-      title="Suspend Message"
-      description="Add reaasdasdson for suspending"
+      title="Suspend Reason"
+      description="Add reason for suspending"
       children={content}
       className={className}
     />

@@ -6,8 +6,8 @@ import { useSyncFluxObject } from "../../hooks/automations";
 import { useToggleSuspend } from "../../hooks/flux";
 import { ObjectRef } from "../../lib/api/core/types.pb";
 import { V2Routes } from "../../lib/types";
-import SyncControls, { SyncType } from "./SyncControls";
 import SuspendMessageModal from "./SuspendMessageModal";
+import SyncControls, { SyncType } from "./SyncControls";
 
 export const makeObjects = (checked: string[], rows: any[]): ObjectRef[] => {
   const objects = [];

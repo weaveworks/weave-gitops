@@ -3,8 +3,8 @@ import styled from "styled-components";
 import { useSyncFluxObject } from "../../hooks/automations";
 import { useToggleSuspend } from "../../hooks/flux";
 import { Kind } from "../../lib/api/core/types.pb";
-import SyncControls, { SyncType } from "./SyncControls";
 import SuspendMessageModal from "./SuspendMessageModal";
+import SyncControls, { SyncType } from "./SyncControls";
 
 interface Props {
   name?: string;
