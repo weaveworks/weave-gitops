@@ -846,7 +846,7 @@ func TestRefreshInvalidToken(t *testing.T) {
 
 	user, err := s.Refresh(w, req)
 
-	g.Expect(err).To(MatchError(MatchRegexp("failed to refresh token: oauth2: cannot fetch token")))
+	g.Expect(err).To(MatchError(MatchRegexp("failed to refresh token: oauth2: \"invalid_request\"")))
 	g.Expect(user).To(BeNil())
 }
 
