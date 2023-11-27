@@ -1,8 +1,9 @@
 import MaterialModal from "@material-ui/core/Modal";
 import * as React from "react";
 import styled from "styled-components";
-import Button from "./Button";
+import { IconButton } from "./Button";
 import Flex from "./Flex";
+import Icon, { IconType } from "./Icon";
 
 /** Modal Properties */
 export interface Props {
@@ -55,15 +56,21 @@ function UnstyledModal({
     >
       <Body className={className}>
         <Flex column>
-          <h2 id="simple-modal-title">{title}</h2>
+          <Flex row wide align between>
+            <h2 id="simple-modal-title">{title}</h2>
+            <IconButton
+              onClick={onClose}
+              className={className}
+              variant="text"
+              color="inherit"
+            >
+              <Icon type={IconType.ClearIcon} size="medium" color="neutral30" />
+            </IconButton>
+          </Flex>
+
           <p id="simple-modal-description">{description}</p>
         </Flex>
         {children}
-        <Flex wide end>
-          <Button onClick={onClose} color="inherit" variant="text">
-            Close
-          </Button>
-        </Flex>
       </Body>
     </MaterialModal>
   );

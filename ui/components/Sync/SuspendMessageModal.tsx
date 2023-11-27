@@ -1,7 +1,8 @@
-import { TextField } from "@material-ui/core";
 import React, { Dispatch, SetStateAction } from "react";
 import styled from "styled-components";
 import Modal from "../Modal";
+import Flex from "../Flex";
+import Button from "../Button";
 
 export type Props = {
   onCloseModal: Dispatch<SetStateAction<boolean>>;
@@ -13,7 +14,15 @@ export type Props = {
 };
 
 const MessageModal = styled(Modal)`
-  background-color: red;
+  textarea {
+    width: 100%;
+    box-sizing: border-box;
+    font-family: inherit;
+    font-size: 100%;
+    border-radius: ${(props) => props.theme.spacing.xxs};
+    resize: none;
+    margin-bottom: ${(props) => props.theme.spacing.base};
+  }
 `;
 
 function SuspendMessageModal({
@@ -25,6 +34,9 @@ function SuspendMessageModal({
   suspendMessage,
 }: Props) {
   const closeHandler = () => {
+    onCloseModal(false);
+  };
+  const suspendHandler = () => {
     setSuspendMessage(suspendMessage);
     suspend.mutateAsync();
     setSuspendMessage("");
@@ -34,12 +46,18 @@ function SuspendMessageModal({
   const onClose = () => closeHandler();
 
   const content = (
-    <form>
-      <TextField
+    <>
+      <textarea
+        rows={5}
         value={suspendMessage}
         onChange={(ev) => setSuspendMessage(ev.target.value)}
-      ></TextField>
-    </form>
+      ></textarea>
+      <Flex wide end>
+        <Button onClick={suspendHandler} color="inherit" variant="text">
+          Suspend
+        </Button>
+      </Flex>
+    </>
   );
 
   return (
