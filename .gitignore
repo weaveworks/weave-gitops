@@ -35,3 +35,4 @@ gitops-server.dockerfile
 
 # Ignore social cards cache
 userdocs/.cache/*
+userdocs/site/*
