@@ -10,6 +10,43 @@ import TierLabel from "../../_components/TierLabel";
 This page details the changes for Weave GitOps Enterprise and its associated components. For Weave GitOps OSS, please see the release notes on [GitHub](https://github.com/weaveworks/weave-gitops/releases).
 :::
 
+## v0.37.0
+2023-11-23
+
+### Highlights
+
+##### Explorer enabled by default. GitOpsSets and GitOpsTemplates uses Explorer by default.
+
+Explorer is enabled by default for GitOpsSets and GitOpsTemplates. This improves the pages with:
+ - Showing GitOpsSets on multiple clusters
+ - Faster page load and full-text search for enhanced . 
+
+You could control where Explorer is enabled via [configuration](https://docs.gitops.weave.works/docs/explorer/getting-started/#setup). 
+
+##### Explorer RED metrics
+
+RED metrics and corresponding Grafana dashboard panels have been added to the objects cleaner component of Explorer, enhancing the troubleshooting capabilities in Explorer's management path.
+
+### Enhancements
+- Added new tab for events in the Cluster Discovery view
+- Added a new component for metadata in the Automated Cluster Discovery view
+- Enhance filter headings style for better readability
+
+### Bug Fixes
+- Support dark mode on Explorer pagination controls
+- Fixes AutomatedClusterDiscovery deletion
+- Fix cluster creation URL bug with explorer
+- Bootstrap CLI: Added validation case for repo url without scheme
+- Add Yaml tab to Pipeline details
+
+### Dependency versions
+- Flux >= v2.0.0
+- weave-gitops [v0.37.0](https://github.com/weaveworks/weave-gitops/releases/tag/v0.37.0)
+- cluster-controller v1.5.2
+- cluster-bootstrap-controller v0.7.1
+- (optional) pipeline-controller v0.21.0
+- (optional) policy-agent v2.5.0
+- (optional) gitopssets-controller v0.16.4
 
 ## v0.36.0
 2023-11-10
