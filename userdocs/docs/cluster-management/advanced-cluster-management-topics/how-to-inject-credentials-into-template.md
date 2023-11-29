@@ -2,8 +2,6 @@
 title: How to Inject Credentials Into Your Template
 ---
 
-
-
 # How to Inject Credentials Into Your Template ~ENTERPRISE~
 
 Weave GitOps _templates_ describe the properties of your cluster—how many nodes, what version of Kubernetes, etc. The _identity_ refers to which account will be used to create the cluster. When you render a template, you may want to set the credentials to be used for this cluster—for example, if the cost is allocated to a specific team.

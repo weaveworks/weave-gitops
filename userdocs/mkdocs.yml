@@ -176,6 +176,7 @@ nav:
     - Guides:
       - guides/displaying-custom-metadata.md
       - guides/fluxga-upgrade.md
+      - guides/anonymous-access.md
     - Operations: monitoring.md
     - Pipelines:
       - pipelines/index.md

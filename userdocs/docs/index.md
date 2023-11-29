@@ -1,6 +1,8 @@
 # Welcome to MkDocs
 
-For full documentation visit [mkdocs.org](https://www.mkdocs.org).
+For full documentation visit [mkdocs.org](https://www.mkdocs.org) and [Material theme for mkdocs](https://squidfunk.github.io/mkdocs-material/).
+
+Follow the installation instructions here [Getting Started](https://squidfunk.github.io/mkdocs-material/getting-started/).
 
 ## Commands
 
@@ -10,6 +12,8 @@ For full documentation visit [mkdocs.org](https://www.mkdocs.org).
 * `mkdocs -h` - Print help message and exit.
 
 ## Project layout
+
+Under the folder `userdocs`
 
     mkdocs.yml    # The configuration file.
     docs/

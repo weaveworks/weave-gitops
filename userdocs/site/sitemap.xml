@@ -2,567 +2,547 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://docs.gitops.weave.works/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/backstage/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/feedback-and-telemetry/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/help-and-support/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/intro-weave-gitops/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/monitoring/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/security/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/cluster-management/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/cluster-management/cluster-management-troubleshooting/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/cluster-management/deploying-capa-eks/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/cluster-management/managing-clusters-without-capi/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/cluster-management/profiles/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/cluster-management/advanced-cluster-management-topics/how-to-inject-credentials-into-template/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/enterprise/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/enterprise/install-enterprise-airgap/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/enterprise/install-enterprise-azure/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/enterprise/install-enterprise-cli/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/enterprise/install-enterprise/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/enterprise/join-cluster-azure-flux/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/enterprise/releases-enterprise/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/explorer/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/explorer/configuration/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/explorer/getting-started/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/explorer/operations/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/explorer/querying/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/gitops-templates/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/gitops-templates/annotations/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/gitops-templates/cli/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/gitops-templates/create-cluster-example/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/gitops-templates/creating-templates/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/gitops-templates/params/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/gitops-templates/profiles/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/gitops-templates/quickstart-templates/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/gitops-templates/repo-rendered-paths/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/gitops-templates/resource-templates/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/gitops-templates/supported-langs/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/gitops-templates/versions/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/gitopssets/</loc>
-         <lastmod>2023-11-15</lastmod>
-         <changefreq>daily</changefreq>
-    </url>
-    <url>
-         <loc>https://docs.gitops.weave.works/gitopssets/_api/</loc>
-         <lastmod>2023-11-15</lastmod>
-         <changefreq>daily</changefreq>
-    </url>
-    <url>
-         <loc>https://docs.gitops.weave.works/gitopssets/api-reference/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/gitopssets/gitopssets-api-reference/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/gitopssets/gitopssets-installation/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/gitopssets/gitopssets-releases/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/gitopssets/templating-from-generators/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/guides/anonymous-access/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/guides/displaying-custom-metadata/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/guides/fluxga-upgrade/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/open-source/aws-marketplace/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/open-source/deploy-oss/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/open-source/install-oss/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/open-source/run-ui-subpath/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/open-source/ui-oss/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/pipelines/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/pipelines/authorization/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/pipelines/pipelines-getting-started/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/pipelines/pipelines-templates/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/pipelines/pipelines-with-jenkins/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/pipelines/pipelines-with-tekton/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/pipelines/promoting-applications/</loc>
-         <lastmod>2023-11-15</lastmod>
-         <changefreq>daily</changefreq>
-    </url>
-    <url>
-         <loc>https://docs.gitops.weave.works/pipelines/spec/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/pipelines/spec/v1alpha1/pipeline/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/policy/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/policy/authorization/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/policy/commit-time-checks/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/policy/getting-started/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/policy/policy-configuration/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/policy/policy-set/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/policy/policy/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/policy/releases/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/policy/weave-policy-profile/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/progressive-delivery/flagger-manual-gating/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/progressive-delivery/progressive-delivery-flagger-install/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/references/helm-reference/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/references/cli-reference/gitops/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/references/cli-reference/gitops_check/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/references/cli-reference/gitops_completion/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/references/cli-reference/gitops_completion_bash/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/references/cli-reference/gitops_completion_fish/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/references/cli-reference/gitops_completion_powershell/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/references/cli-reference/gitops_completion_zsh/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/references/cli-reference/gitops_create/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/references/cli-reference/gitops_create_dashboard/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/references/cli-reference/gitops_create_terraform/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/references/cli-reference/gitops_delete/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/references/cli-reference/gitops_delete_terraform/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/references/cli-reference/gitops_get/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/references/cli-reference/gitops_get_bcrypt-hash/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/references/cli-reference/gitops_get_config/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/references/cli-reference/gitops_logs/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/references/cli-reference/gitops_logs_terraform/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/references/cli-reference/gitops_replan/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/references/cli-reference/gitops_replan_terraform/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/references/cli-reference/gitops_resume/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/references/cli-reference/gitops_resume_terraform/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/references/cli-reference/gitops_set/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/references/cli-reference/gitops_set_config/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/references/cli-reference/gitops_suspend/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/references/cli-reference/gitops_suspend_terraform/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/references/cli-reference/gitops_version/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/secrets/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/secrets/bootstrapping-secrets/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/secrets/getting-started/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/secrets/manage-secrets-ui/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/secrets/setup-eso/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/secrets/setup-sops/</loc>
-         <lastmod>2023-11-15</lastmod>
-         <changefreq>daily</changefreq>
-    </url>
-    <url>
-         <loc>https://docs.gitops.weave.works/secrets/spec/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/secrets/spec/v1alpha1/secretSync/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/terraform/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/terraform/get-started-terraform/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/terraform/using-terraform-templates/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/workspaces/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/workspaces/multi-tenancy/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://docs.gitops.weave.works/workspaces/view-workspaces/</loc>
-         <lastmod>2023-11-15</lastmod>
+         <lastmod>2023-11-29</lastmod>
          <changefreq>daily</changefreq>
     </url>
 </urlset>

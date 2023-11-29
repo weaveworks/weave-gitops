@@ -39,23 +39,55 @@ To display Applications and Sources in the UI we need to give the logged in user
 
 Adding common RBAC rules to `./clusters/bases/rbac` is an easy way to configure this!
 
-import WegoAdmin from "!!raw-loader!./assets/rbac/wego-admin.yaml";
-
 ```curl
 curl -o clusters/bases/rbac/wego-admin.yaml https://docs.gitops.weave.works/assets/files/wego-admin-c80945c1acf9908fe6e61139ef65c62e.yaml
 ```
 
-??? example "Expand to see full template yaml"
-    ``` title="clusters/bases/rbac/wego-admin.yaml"
+???+ example "clusters/bases/rbac/wego-admin.yaml"
+
+    ```yaml
+    ---
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+    name: wego-admin-cluster-role-binding
+    subjects:
+    - kind: User
+        name: wego-admin
+        apiGroup: rbac.authorization.k8s.io
+    roleRef:
+    kind: ClusterRole
+    name: wego-admin-cluster-role
+    apiGroup: rbac.authorization.k8s.io
+    ---
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRole
+    metadata:
+    name: wego-admin-cluster-role
+    rules:
+    - apiGroups: [""]
+        resources: ["secrets", "pods"]
+        verbs: ["get", "list"]
+    - apiGroups: ["apps"]
+        resources: ["deployments", "replicasets"]
+        verbs: ["get", "list"]
+    - apiGroups: ["kustomize.toolkit.fluxcd.io"]
+        resources: ["kustomizations"]
+        verbs: ["get", "list", "patch"]
+    - apiGroups: ["helm.toolkit.fluxcd.io"]
+        resources: ["helmreleases"]
+        verbs: ["get", "list", "patch"]
+    - apiGroups: ["source.toolkit.fluxcd.io"]
+        resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories", "ocirepositories" ]
+        verbs: ["get", "list", "patch"]
+    - apiGroups: [""]
+        resources: ["events"]
+        verbs: ["get", "watch", "list"]
+    - apiGroups: ["pac.weave.works"]
+        resources: ["policies"]
+        verbs: ["get", "list"]
 
     ```
-
-    <CodeBlock
-    title="clusters/bases/rbac/wego-admin.yaml"
-    className="language-yaml"
-    >
-    {WegoAdmin}
-    </CodeBlock>
 
 ## 2. Build a Kubernetes Platform with Built-in Components Preconfigured for Your Organization
 
@@ -63,25 +95,109 @@ To do this, go to Weaveworks' [Profiles Catalog](https://github.com/weaveworks/p
 
 See [CAPI Templates](../gitops-templates/index.md) page for more details on this topic. Once we load a template we can use it in the UI to create clusters!
 
-import CapaTemplate from "!!raw-loader!./assets/templates/capa-template.yaml";
-
 Download the template below to your config repository path, then commit and push to your Git origin.
 
 ```curl
 curl -o clusters/management/capi/templates/capa-template.yaml https://docs.gitops.weave.works/assets/files/capa-template-49001fbae51e2a9f365b80caebd6f341.yaml
 ```
 
-``` title="clusters/management/apps/capi/templates/capa-template.yaml"
-    --8<-- "./assets/templates/capa-template.yaml"
-    {% include '/assets/templates/capa-template.yaml' %}
-```
+???+ example "clusters/management/apps/capi/templates/capa-template.yaml"
 
-<CodeBlock
-  title="clusters/management/apps/capi/templates/capa-template.yaml"
-  className="language-yaml"
->
-  {CapaTemplate}
-</CodeBlock>
+    ```yaml
+    apiVersion: templates.weave.works/v1alpha2
+    kind: GitOpsTemplate
+    metadata:
+    name: aws-eks-dev
+    namespace: default
+    annotations:
+        templates.weave.works/inject-prune-annotation: "true"
+        templates.weave.works/add-common-bases: "true"
+    labels:
+        weave.works/template-type: cluster
+    spec:
+    description: AWS EKS Development Cluster
+    params:
+        - name: CLUSTER_NAME
+        description: The name for this cluster.
+        - name: AWS_REGION
+        description: AWS Region to create cluster
+        options: ["us-east-1", "eu-central-1", "eu-west-2", "us-west-2"]
+        - name: KUBERNETES_VERSION
+        description: EKS Kubernetes version to use
+        options: ["v1.19.8", "v1.20.7", "v1.21.2"]
+        - name: WORKER_MACHINE_COUNT
+        description: Number of worker nodes to create.
+    resourcetemplates:
+        - contents:
+            - apiVersion: gitops.weave.works/v1alpha1
+            kind: GitopsCluster
+            metadata:
+                name: "${CLUSTER_NAME}"
+                namespace: default
+                labels:
+                weave.works/capi: bootstrap
+            spec:
+                capiClusterRef:
+                name: "${CLUSTER_NAME}"
+
+            - apiVersion: cluster.x-k8s.io/v1beta1
+            kind: Cluster
+            metadata:
+                name: ${CLUSTER_NAME}
+                namespace: default
+                labels:
+                weave.works/capi: bootstrap
+            spec:
+                clusterNetwork:
+                pods:
+                    cidrBlocks:
+                    - 192.168.0.0/16
+                controlPlaneRef:
+                apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+                kind: AWSManagedControlPlane
+                name: ${CLUSTER_NAME}-control-plane
+                infrastructureRef:
+                apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+                kind: AWSManagedControlPlane
+                name: ${CLUSTER_NAME}-control-plane
+
+            - apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+            kind: AWSManagedControlPlane
+            metadata:
+                name: ${CLUSTER_NAME}-control-plane
+                namespace: default
+            spec:
+                region: ${AWS_REGION}
+                sshKeyName: default
+                version: ${KUBERNETES_VERSION}
+                eksClusterName: ${CLUSTER_NAME}
+
+            - apiVersion: cluster.x-k8s.io/v1beta1
+            kind: MachinePool
+            metadata:
+                name: ${CLUSTER_NAME}-pool-0
+                namespace: default
+            spec:
+                clusterName: ${CLUSTER_NAME}
+                replicas: ${WORKER_MACHINE_COUNT}
+                template:
+                spec:
+                    bootstrap:
+                    dataSecretName: ""
+                    clusterName: ${CLUSTER_NAME}
+                    infrastructureRef:
+                    apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+                    kind: AWSManagedMachinePool
+                    name: ${CLUSTER_NAME}-pool-0
+
+            - apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+            kind: AWSManagedMachinePool
+            metadata:
+                name: ${CLUSTER_NAME}-pool-0
+                namespace: default
+            spec: {}
+
+    ```
 
 ## 3. Add a Cluster Bootstrap Config
 
@@ -101,18 +217,47 @@ curl -o clusters/management/capi/bootstrap/capi-gitops-cluster-bootstrap-config.
 
 Then update the `GITOPS_REPO` variable to point to your cluster
 
-??? example "Expand to see full yaml"
+???+ example "clusters/management/capi/boostrap/capi-gitops-cluster-bootstrap-config.yaml"
 
-    ``` title="clusters/management/capi/boostrap/capi-gitops-cluster-bootstrap-config.yaml"
-        --8<-- "./assets/bootstrap/capi-gitops-cluster-bootstrap-config.yaml"
+    ```yaml
+    apiVersion: capi.weave.works/v1alpha1
+    kind: ClusterBootstrapConfig
+    metadata:
+    name: capi-gitops
+    namespace: default
+    spec:
+    clusterSelector:
+        matchLabels:
+        weave.works/capi: bootstrap
+    jobTemplate:
+        generateName: "run-gitops-{{ .ObjectMeta.Name }}"
+        spec:
+        containers:
+            - image: ghcr.io/fluxcd/flux-cli:v0.41.0
+            name: flux-bootstrap
+            resources: {}
+            volumeMounts:
+                - name: kubeconfig
+                mountPath: "/etc/gitops"
+                readOnly: true
+            args:
+                [
+                "bootstrap",
+                "github",
+                "--kubeconfig=/etc/gitops/value",
+                "--owner=$GITHUB_USER",
+                "--repository=fleet-infra",
+                "--path=./clusters/{{ .ObjectMeta.Namespace }}/{{ .ObjectMeta.Name }}",
+                ]
+            envFrom:
+                - secretRef:
+                    name: my-pat
+        restartPolicy: Never
+        volumes:
+            - name: kubeconfig
+            secret:
+                secretName: "{{ .ObjectMeta.Name }}-kubeconfig"
     ```
-
-    <CodeBlock
-    title="clusters/management/capi/boostrap/capi-gitops-cluster-bootstrap-config.yaml"
-    className="language-yaml"
-    >
-    {CapiGitopsCDC}
-    </CodeBlock>
 
 ## 4. Delete a Cluster with the Weave GitOps Enterprise UI
 

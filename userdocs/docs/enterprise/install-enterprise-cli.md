@@ -53,7 +53,6 @@ Please use the following command to start the installation wizard of Weave GitOp
     ```
     The bootstrap wizard will take you step-by-step into configuring Weave GitOps Enterprise. To understand more about the CLI configurations experience, check the below sections [here](#cli-configurations).
 
-
 === "Non-Interactive"
 
    You could run the bootstrap command in non-interactive mode by providing the required configurations as flags. The following gives you an example to get started that you could adapt to your own context

@@ -126,7 +126,6 @@ sops-public-key/namespace=flux-system \
     validation: server
     ```
 
-
 !!! note
     This is an essential step in order to allow other operators and developers to utilize WeaveGitOps UI to encrypt SOPS secrets using the public key secret in the cluster.
 
