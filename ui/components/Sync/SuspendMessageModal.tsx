@@ -3,27 +3,32 @@ import styled from "styled-components";
 import Button from "../Button";
 import Flex from "../Flex";
 import Modal from "../Modal";
+import { UseMutationResult } from "react-query/types/react";
+import { ToggleSuspendResourceResponse } from "../../lib/api/core/core.pb";
 
 export type Props = {
   onCloseModal: Dispatch<SetStateAction<boolean>>;
   open: boolean;
   setSuspendMessage: Dispatch<SetStateAction<string>>;
-  suspend: any;
+  suspend: UseMutationResult<ToggleSuspendResourceResponse>;
   suspendMessage: string;
   className?: string;
 };
 
-const MessageModal = styled(Modal)`
-  textarea {
-    width: 100%;
-    box-sizing: border-box;
-    font-family: inherit;
-    font-size: 100%;
-    border-radius: ${(props) => props.theme.spacing.xxs};
-    resize: none;
-    margin-bottom: ${(props) => props.theme.spacing.base};
-  }
-`;
+
+const MessageTextarea = styled.textarea`
+width: 100%;
+box-sizing: border-box;
+font-family: inherit;
+font-size: 100%;
+border-radius: ${(props) => props.theme.spacing.xxs};
+resize: none;
+margin-bottom: ${(props) => props.theme.spacing.base};
+padding: ${(props) => props.theme.spacing.xs};
+&:focus {
+outline:  ${(props) =>  props.theme.colors.primary} solid 2px;
+}
+`
 
 function SuspendMessageModal({
   className,
@@ -34,11 +39,12 @@ function SuspendMessageModal({
   suspendMessage,
 }: Props) {
   const closeHandler = () => {
+    setSuspendMessage("");
     onCloseModal(false);
   };
   const suspendHandler = () => {
     setSuspendMessage(suspendMessage);
-    suspend.mutateAsync();
+    suspend.mutateAsync({});
     setSuspendMessage("");
     onCloseModal(false);
   };
@@ -47,11 +53,11 @@ function SuspendMessageModal({
 
   const content = (
     <>
-      <textarea
+      <MessageTextarea
         rows={5}
         value={suspendMessage}
         onChange={(ev) => setSuspendMessage(ev.target.value)}
-      ></textarea>
+      ></MessageTextarea>
       <Flex wide end>
         <Button onClick={suspendHandler} color="inherit" variant="text">
           Suspend
@@ -61,7 +67,7 @@ function SuspendMessageModal({
   );
 
   return (
-    <MessageModal
+    <Modal
       open={open}
       onClose={onClose}
       title="Suspend Reason"
