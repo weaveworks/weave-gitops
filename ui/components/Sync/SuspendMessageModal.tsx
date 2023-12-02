@@ -1,10 +1,10 @@
 import React, { Dispatch, SetStateAction } from "react";
+import { UseMutationResult } from "react-query/react";
 import styled from "styled-components";
+import { ToggleSuspendResourceResponse } from "../../lib/api/core/core.pb";
 import Button from "../Button";
 import Flex from "../Flex";
 import Modal from "../Modal";
-import { UseMutationResult } from "react-query/types/react";
-import { ToggleSuspendResourceResponse } from "../../lib/api/core/core.pb";
 
 export type Props = {
   onCloseModal: Dispatch<SetStateAction<boolean>>;
