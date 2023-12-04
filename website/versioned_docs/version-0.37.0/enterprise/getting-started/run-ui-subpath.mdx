@@ -1,0 +1,47 @@
+---
+title: "Optional: Running the UI on a Subpath"
+---
+
+## Running the UI on a subpath
+
+By default, the UI is served on the root path `/`. It is possible to run the UI on a subpath, for example `/weave-gitops-enteprise`.
+This is useful if you want to run weave-gitops-enteprise alongside other applications on the same domain.
+
+To run the UI on a subpath, you need to set the `--route-prefix` flag on the weave-gitops-enterprise server.
+For example, if you want to run the UI on `/weave-gitops-enteprise`, you can set the flag to `--route-prefix=/weave-gitops-enteprise`.
+
+To set the flag we use the `additionalArgs` field in the `spec.values` section of the weave-gitops-enterprise `HelmRelease`.
+
+```yaml
+spec:
+  values:
+    additionalArgs:
+      - --route-prefix=/weave-gitops-enterprise
+```
+
+## Ingress
+
+`Ingress` is a Kubernetes resource that allows you to expose your application to the internet.
+Please refer to the [Kubernetes documentation](https://kubernetes.io/docs/concepts/services-networking/ingress/)
+for more information about a complete `Ingress` configuration. It often depends on the Kubernetes provider you are
+using and your particular setup.
+
+The Weave GitOps Enterprise Helm chart can generate an `Ingress` resource to integrate with the ingress controller you have configured for your cluster.
+To enable ingress generation set the `ingress.enabled` field to `true`.
+
+- If you are running the UI on a subpath, you need to set the `path` field to the same subpath specified in the `--route-prefix` flag.
+- If you have not set a subpath on the weave-gitops-enterprise server, set the path in the ingress configration to `/`.
+
+```yaml
+spec:
+  values:
+    ingress:
+      enabled: true
+      hosts:
+      - host: ""
+        paths:
+        - path: /weave-gitops-enterprise # set the path to `/` if you have not set the `--route-prefix` flag 
+          pathType: Prefix
+```
+
+See the [Helm chart reference](../../references/helm-reference.md) for a list of all supported ingress options.
