@@ -16,7 +16,7 @@ To set the flag we use the `additionalArgs` field in the `spec.values` section o
 spec:
   values:
     additionalArgs:
-      - --route-prefix=/weave-gitops
+      - --route-prefix=/weave-gitops-enterprise
 ```
 
 ## Ingress
@@ -30,7 +30,7 @@ The Weave GitOps Enterprise Helm chart can generate an `Ingress` resource to int
 To enable ingress generation set the `ingress.enabled` field to `true`.
 
 - If you are running the UI on a subpath, you need to set the `path` field to the same subpath specified in the `--route-prefix` flag.
-- If you have not set a subpath on the weave-gitops server, set the path in the ingress configration to `/`.
+- If you have not set a subpath on the weave-gitops-enterprise server, set the path in the ingress configration to `/`.
 
 ```yaml
 spec:
