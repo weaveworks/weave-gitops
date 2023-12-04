@@ -7,7 +7,7 @@ require (
 	github.com/NYTimes/gziphandler v1.1.1
 	github.com/alexedwards/scs/v2 v2.5.1
 	github.com/cheshir/ttlcache v1.0.1-0.20220504185148-8ceeff21b789
-	github.com/coreos/go-oidc/v3 v3.1.0
+	github.com/coreos/go-oidc/v3 v3.4.0
 	github.com/fluxcd/go-git-providers v0.16.0
 	github.com/fluxcd/helm-controller/api v0.35.0
 	github.com/fluxcd/image-automation-controller/api v0.33.1
@@ -46,10 +46,10 @@ require (
 	github.com/yannh/kubeconform v0.5.0
 	go.uber.org/zap v1.25.0
 	golang.org/x/crypto v0.14.0
-	golang.org/x/oauth2 v0.7.0
+	golang.org/x/oauth2 v0.13.0
 	google.golang.org/genproto v0.0.0-20230410155749-daa745c078e1
 	google.golang.org/grpc v1.56.3
-	google.golang.org/protobuf v1.30.0
+	google.golang.org/protobuf v1.31.0
 	gopkg.in/square/go-jose.v2 v2.6.0
 	gopkg.in/yaml.v3 v3.0.1
 	gotest.tools v2.2.0+incompatible
@@ -196,7 +196,7 @@ require (
 	golang.org/x/time v0.3.0 // indirect
 	golang.org/x/tools v0.9.3 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.3.0 // indirect
-	google.golang.org/appengine v1.6.7 // indirect
+	google.golang.org/appengine v1.6.8 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
