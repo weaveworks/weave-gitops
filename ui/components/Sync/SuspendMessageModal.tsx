@@ -15,20 +15,19 @@ export type Props = {
   className?: string;
 };
 
-
 const MessageTextarea = styled.textarea`
-width: 100%;
-box-sizing: border-box;
-font-family: inherit;
-font-size: 100%;
-border-radius: ${(props) => props.theme.spacing.xxs};
-resize: none;
-margin-bottom: ${(props) => props.theme.spacing.base};
-padding: ${(props) => props.theme.spacing.xs};
-&:focus {
-outline:  ${(props) =>  props.theme.colors.primary} solid 2px;
-}
-`
+  width: 100%;
+  box-sizing: border-box;
+  font-family: inherit;
+  font-size: 100%;
+  border-radius: ${(props) => props.theme.spacing.xxs};
+  resize: none;
+  margin-bottom: ${(props) => props.theme.spacing.base};
+  padding: ${(props) => props.theme.spacing.xs};
+  &:focus {
+    outline: ${(props) => props.theme.colors.primary} solid 2px;
+  }
+`;
 
 function SuspendMessageModal({
   className,
