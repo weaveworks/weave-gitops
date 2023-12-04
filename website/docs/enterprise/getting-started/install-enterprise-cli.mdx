@@ -133,13 +133,24 @@ The bootstrap CLI will prompt you to choose from the latest 3 versions of Weave 
 You will be prompt to provide admin username and password, which will be used to access the dashboard. This will create admin secret with the credentials. If you already have previous admin credentials on your cluster, the installation will prompt you if you want to continue with the old credentials or exit and revoke them and re-run the installation.
 
 #### Configure Dashboard Access
-To access Weave GitOps Enterprise dashboard, you have the two following options available:
+Weave GitOps Enterprise dashboard is available by default via ClusterIP service. You could use the `port-forward` command
+output as part of the bootstrapping session. Other networking configurations could be achieved by
+modifying the `service` or `ingress` in the `HelmRelease` values:
 
-1. **Service**: this option is called `localhost` in the cli and the dashboard will be available through a [ClusterIP Service](https://kubernetes.io/docs/concepts/services-networking/service/#type-clusterip).
-2. **Ingress**: this option is called `externaldns` the dashboard will be available through an [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/) with the following considerations:
-    - An Ingress controller needs to exist.
-    - A host-based ingress will be created of the ingress class `public-nginx`.
-    - An [ExternalDNS](https://github.com/kubernetes-sigs/external-dns) annotation will be added with the value of the provided domain.
+```yaml
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: weave-gitops-enterprise
+  namespace: flux-system
+spec:
+  values:
+    service: # update to meet your needs
+      ...
+    ingress: # update to meet your needs
+      ...
+```
 
 #### Access the dashboard
 
@@ -160,8 +171,6 @@ Please don't forget to add a new static-client on your OIDC provider settings wi
 ### CLI configurations
 
 - `--kube-config`:                  allows to choose the Kubeconfig for your cluster, default would be ~/.kube/config
-- `-d`, `--domain externaldns`:     indicate the domain to use in case of using externaldns
-- `-t`, `--domain-type`:            dashboard domain type: could be 'localhost' or 'externaldns'
 - `-h`, `--help`:                   help for bootstrap
 - `-p`, `--password`:               Dashboard admin password
 - `-k`, `--private-key`:            Private key path. This key will be used to push the Weave GitOps Enterprise's resources to the default cluster repository
