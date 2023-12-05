@@ -18,7 +18,6 @@
             "open-source/getting-started/ui-OSS",
             "open-source/getting-started/deploy-OSS",
             "open-source/getting-started/aws-marketplace",
-            "open-source/getting-started/run-ui-subpath"
           ]
         },
         {
@@ -107,7 +106,8 @@
         "guides/configuring-oidc-with-keycloak",
         "guides/displaying-custom-metadata",
         "guides/fluxga-upgrade",
-        "guides/anonymous-access"
+        "guides/anonymous-access",
+        "guides/run-ui-subpath"
       ]
     },
     {
