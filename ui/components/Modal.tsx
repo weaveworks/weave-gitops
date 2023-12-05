@@ -1,15 +1,14 @@
 import MaterialModal from "@material-ui/core/Modal";
 import * as React from "react";
 import styled from "styled-components";
-import Button from "./Button";
+import { IconButton } from "./Button";
 import Flex from "./Flex";
+import Icon, { IconType } from "./Icon";
 
 /** Modal Properties */
 export interface Props {
   /** CSS MUI Overrides or other styling. (for the `<div />` that wraps Modal) */
   className?: string;
-  /** CSS MUI Overrides or other styling. (for the Modal `<Body />`) */
-  bodyClassName?: string;
   /** state variable to display Modal */
   open: boolean;
   /** Close event handler function */
@@ -39,14 +38,9 @@ export const Body = styled.div`
   max-height: 90vh;
 `;
 
-export const Content = styled.div`
-  overflow-y: scroll;
-`;
-
 /** Form Modal */
 function UnstyledModal({
   className,
-  bodyClassName,
   open,
   onClose,
   title,
@@ -54,27 +48,31 @@ function UnstyledModal({
   children,
 }: Props) {
   return (
-    <div className={className}>
-      <MaterialModal
-        open={open}
-        onClose={onClose}
-        aria-labelledby="simple-modal-title"
-        aria-describedby="simple-modal-description"
-      >
-        <Body className={bodyClassName}>
-          <Flex column>
+    <MaterialModal
+      open={open}
+      onClose={onClose}
+      aria-labelledby="simple-modal-title"
+      aria-describedby="simple-modal-description"
+    >
+      <Body className={className}>
+        <Flex column>
+          <Flex row wide align between>
             <h2 id="simple-modal-title">{title}</h2>
-            <p id="simple-modal-description">{description}</p>
+            <IconButton
+              onClick={onClose}
+              className={className}
+              variant="text"
+              color="inherit"
+            >
+              <Icon type={IconType.ClearIcon} size="medium" color="neutral30" />
+            </IconButton>
           </Flex>
-          <Content>{children}</Content>
-          <Flex wide end>
-            <Button onClick={onClose} color="inherit" variant="text">
-              Close
-            </Button>
-          </Flex>
-        </Body>
-      </MaterialModal>
-    </div>
+
+          <p id="simple-modal-description">{description}</p>
+        </Flex>
+        {children}
+      </Body>
+    </MaterialModal>
   );
 }
 
