@@ -267,7 +267,11 @@
         'workspaces/view-workspaces',
       ],
     },
-
+    {
+      type: "category",
+      label: "API Server",
+      items: ["api-server/intro", "api-server/examples", "api-server/reference"],
+    },
   ],
   ref: [
     {

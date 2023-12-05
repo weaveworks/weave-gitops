@@ -14,7 +14,7 @@ import (
 
 var (
 	PublicRoutes = []string{
-		"/v1/featureflags",
+		"/v1/feature-flags",
 	}
 )
 

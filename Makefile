@@ -9,6 +9,7 @@ GIT_COMMIT?=$(shell which git > /dev/null && git log -n1 --pretty='%h')
 VERSION?=$(shell which git > /dev/null && git describe --always --match "v*")
 FLUX_VERSION=2.0.1
 CHART_VERSION=$(shell which yq > /dev/null && yq e '.version' charts/gitops-server/Chart.yaml)
+CURRENT_DIR := $(shell pwd)
 TIER=oss
 
 # Go build args
@@ -135,6 +136,7 @@ proto: ## Generate protobuf files
 	@go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.1.0
 	@go install github.com/bufbuild/buf/cmd/buf@v1.1.0
 	buf generate
+	cp api/core/core.swagger.json website/static/swagger/core.swagger.json
 #	This job is complaining about a missing plugin and error-ing out
 #	oapi-codegen -config oapi-codegen.config.yaml api/applications/applications.swagger.json
 
@@ -246,3 +248,8 @@ ifeq ($(OS),Windows_NT)
 else
 				@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n make \033[36m<target>\033[0m\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-40s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 endif
+
+.PHONY: swagger-docs
+swagger-docs:
+	@echo "Swagger docs available at http://localhost:6001"
+	docker run -p 6001:8080 -e SWAGGER_JSON=/api/core/core.swagger.json -v $(CURRENT_DIR)/api:/api swaggerapi/swagger-ui

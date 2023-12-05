@@ -94,11 +94,9 @@ func TestListEvents(t *testing.T) {
 
 	// Get kustomization events
 	res, err := c.ListEvents(outgoingCtx, &pb.ListEventsRequest{
-		InvolvedObject: &pb.ObjectRef{
-			Name:      kustomizationObjectName,
-			Namespace: ns.Name,
-			Kind:      kustomizev1.KustomizationKind,
-		},
+		Name:      kustomizationObjectName,
+		Namespace: ns.Name,
+		Kind:      kustomizev1.KustomizationKind,
 	})
 	g.Expect(err).NotTo(HaveOccurred())
 
@@ -108,12 +106,10 @@ func TestListEvents(t *testing.T) {
 
 	// Get kustomization events, explicit cluster
 	res, err = c.ListEvents(outgoingCtx, &pb.ListEventsRequest{
-		InvolvedObject: &pb.ObjectRef{
-			Name:        kustomizationObjectName,
-			Namespace:   ns.Name,
-			Kind:        kustomizev1.KustomizationKind,
-			ClusterName: "Default",
-		},
+		Name:        kustomizationObjectName,
+		Namespace:   ns.Name,
+		Kind:        kustomizev1.KustomizationKind,
+		ClusterName: "Default",
 	})
 	g.Expect(err).NotTo(HaveOccurred())
 
@@ -123,11 +119,9 @@ func TestListEvents(t *testing.T) {
 
 	// Get helmrelease events
 	res, err = c.ListEvents(outgoingCtx, &pb.ListEventsRequest{
-		InvolvedObject: &pb.ObjectRef{
-			Name:      helmObjectName,
-			Namespace: ns.Name,
-			Kind:      helmv2.HelmReleaseKind,
-		},
+		Name:      helmObjectName,
+		Namespace: ns.Name,
+		Kind:      helmv2.HelmReleaseKind,
 	})
 	g.Expect(err).NotTo(HaveOccurred())
 

@@ -7,8 +7,10 @@ syntax = "proto3";
 package gitops_core.v1;
 
 import "google/api/annotations.proto";
+import "google/api/visibility.proto";
 import "google/protobuf/any.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
+
 
 import "api/core/types.proto";
 
@@ -17,11 +19,27 @@ option go_package = "github.com/weaveworks/weave-gitops/core/api";
 option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
     info: {
       title: "Weave GitOps Core API",
-      version: "0.1";
+      version: "0.1",
       description: "The API handles operations for Weave GitOps Core";
     };
-    consumes: "application/json";
-    produces: "application/json";
+    consumes: "application/json",
+    produces: "application/json",
+    tags: {
+        name: "default",
+        description: "system endpoints"
+    };
+    tags: {
+        name: "objects",
+        description: "Query and trigger kubernetes resources"
+    };
+    tags: {
+        name: "policy",
+        description: "Query policy config and validations"
+    };
+    tags: {
+        name: "internal",
+        description: "Internal APIs which should not be used"
+    };
 };
 
 /**
@@ -29,49 +47,63 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
  */
 service Core {
     /*
-     * GetObject gets data about a single primary object from a cluster.
+     * Get details of an object
+     *
+     * {{ import "api/core/doc/object-kind.md" }}
      */
     rpc GetObject(GetObjectRequest) returns (GetObjectResponse) {
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["objects"]; };
         option (google.api.http) = {
-            get: "/v1/object/{name}"
+            get: "/v1/namespaces/{namespace}/objects/{kind}/{name}"
         };
     }
 
     /*
-     * ListObjects gets data about primary objects.
+     * List objects of kind across all clusters
+     *
+     * {{ import "api/core/doc/object-kind.md" }}
      */
     rpc ListObjects(ListObjectsRequest) returns (ListObjectsResponse) {
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["objects"]; };
         option (google.api.http) = {
-            post: "/v1/objects"
-            body: "*"
+            get: "/v1/objects/{kind}"
         };
     }
 
-    // Misc
     /*
-     * ListFluxRuntimeObjects lists the flux runtime deployments from a cluster.
+     * Lists the Flux runtime deployments across all clusters
+     *
+     * Determine which controllers are installed, their image versions, status, etc.
      */
     rpc ListFluxRuntimeObjects(ListFluxRuntimeObjectsRequest)
         returns (ListFluxRuntimeObjectsResponse) {
         option (google.api.http) = {
-            get: "/v1/flux_runtime_objects"
-        };
-    }
-
-    rpc ListFluxCrds(ListFluxCrdsRequest) returns (ListFluxCrdsResponse) {
-        option (google.api.http) = {
-            get: "/v1/flux_crds"
+            get: "/v1/flux/deployments"
         };
     }
 
     /*
-     * GetReconciledObjects returns a list of objects that were created
-     * as a result of reconciling a Flux automation.
-     * This list is derived by looking at the Kustomization or HelmRelease
-     * specified in the request body.
+     * Lists the Flux CRDs across all clusters
+     *
+     * Determine which flux CRDs are installed on which clusters and at what version.
+     */
+    rpc ListFluxCrds(ListFluxCrdsRequest) returns (ListFluxCrdsResponse) {
+        option (google.api.http) = {
+            get: "/v1/flux/crds"
+        };
+    }
+
+    /*
+     * Get the list of objects that were created as a result of reconciling a Flux automation.
+     *
+     * Use /inventory instead
      */
     rpc GetReconciledObjects(GetReconciledObjectsRequest)
         returns (GetReconciledObjectsResponse) {
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+            tags: ["internal"];
+            deprecated: true;
+        };
         option (google.api.http) = {
             post: "/v1/reconciled_objects"
             body: "*"
@@ -79,13 +111,16 @@ service Core {
     };
 
     /*
-     * GetChildObjects returns the children of a given object,
-     * specified by a GroupVersionKind.
-     * Not all Kubernets objects have children. For example, a Deployment
-     * has a child ReplicaSet, but a Service has no child objects.
+     * Returns the children of a given object
+     *
+     * Use /inventory instead
      */
     rpc GetChildObjects(GetChildObjectsRequest)
         returns (GetChildObjectsResponse) {
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+            tags: ["internal"];
+            deprecated: true;
+        };
         option (google.api.http) = {
             post: "/v1/child_objects"
             body: "*"
@@ -93,45 +128,43 @@ service Core {
     };
 
     /*
-     * GetFluxNamespace returns with a namespace with a specific label.
-     */
-    rpc GetFluxNamespace(GetFluxNamespaceRequest)
-        returns (GetFluxNamespaceResponse) {
-        option (google.api.http) = {
-            post: "/v1/namespace/flux"
-            body: "*"
-        };
-    }
-
-    /*
-     * ListNamespaces returns with the list of available namespaces.
-     */
-    rpc ListNamespaces(ListNamespacesRequest) returns (ListNamespacesResponse) {
-        option (google.api.http) = {
-            get: "/v1/namespaces"
-        };
-    }
-    /*
-     * ListEvents returns with a list of events
+     * List events for an object
+     *
+     * {{ import "api/core/doc/object-kind.md" }}
      */
     rpc ListEvents(ListEventsRequest) returns (ListEventsResponse) {
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["objects"]; };
         option (google.api.http) = {
-            get: "/v1/events"
+            get: "/v1/namespaces/{namespace}/objects/{kind}/{name}/events"
         };
     }
 
     /*
-     * SyncResource forces a reconciliation of a Flux resource
+     * Trigger reconciliation of multiple Flux objects
+     *
+     * Provide a list of objects to be reconciled. Objects are identified by their kind, name, namespace and cluster.
+     *
+     * Supported kinds are:
+     *
+     * - all Flux custom resources (e.g. `GitRepository` or `HelmRelease`)
+     * - Enterprise objects that also support this pattern: `GitOpsSet` and `AutomatedClusterDiscovery`
+     *
+     * if `withSource` is true the dependent Source resource will be synced too.
+     * Syncing a Kustomization `withSource` will sync an attached GitRepository.
      */
     rpc SyncFluxObject(SyncFluxObjectRequest) returns (SyncFluxObjectResponse) {
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["objects"]; };
         option (google.api.http) = {
-            post: "/v1/sync"
+            patch: "/v1/sync"
             body: "*"
         };
     }
 
     /*
-     * GetVersion returns version information about the server
+     * Get version information about the server
+     *
+     * Version information about weave-gitops including when the runninng server was built, the git commit and the git tag.
+     * Also return the kubernetes version of the cluster running weave-gitops.
      */
     rpc GetVersion(GetVersionRequest) returns (GetVersionResponse){
         option (google.api.http) = {
@@ -140,94 +173,137 @@ service Core {
     }
 
     /*
-    * GetFeatureFlags returns configuration information about the server
-    */
-    rpc GetFeatureFlags(GetFeatureFlagsRequest)
-        returns (GetFeatureFlagsResponse) {
+     * Get feature flags
+     *
+     * Return infomation about what features and configuration options are enabled on the server.
+     *
+     * New features are sometimes hidden behind feature flags. Other features (e.g. OIDC) can be enabled/disabled.
+     */
+    rpc GetFeatureFlags(GetFeatureFlagsRequest) returns (GetFeatureFlagsResponse) {
         option (google.api.http) = {
-            get: "/v1/featureflags"
+            get: "/v1/feature-flags"
         };
     }
 
     /*
-     * ToggleSuspendResource suspends or resumes a flux object.
+     * Suspend or resume reconciling multiple Flux objects
+     *
+     * Provide a list of objects to be suspended or resumed. Objects are identified by their kind, name, namespace and cluster.
+     *
+     * Supported kinds are:
+     *
+     * - any Flux custom resource (e.g. `GitRepository` or `HelmRelease`)
+     * - Enterprise objects that also support this pattern: `GitOpsSet` and `AutomatedClusterDiscovery`
      */
     rpc ToggleSuspendResource(ToggleSuspendResourceRequest)
         returns (ToggleSuspendResourceResponse) {
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["objects"]; };
         option (google.api.http) = {
-            post: "/v1/suspend"
+            patch: "/v1/suspend"
             body: "*"
         };
     }
 
     /*
-     * GetSessionLogs returns the logs for a given session
+     * Get the logs for a GitOpsRun session
+     *
+     * The GitOpsRun feature has been removed
      */
     rpc GetSessionLogs(GetSessionLogsRequest) returns (GetSessionLogsResponse) {
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+            tags: ["internal"];
+            deprecated: true;
+        };
         option (google.api.http) = {
-            post: "/v1/session_logs"
-            body: "*"
+            get: "/v1/session-logs"
         };
     }
 
     /*
-     * IsCRDAvailable returns with a hashmap where the keys are the names of
-     * the clusters, and the value is a boolean indicating whether given CRD is
-     * installed or not on that cluster.
+     * Check which clusters have a given CRD installed
+     *
+     * Returns a map where the keys are cluster names, and the value is a boolean indicating
+     * whether the given `CustomResourceDefinition` resource is available on that cluster.
      */
     rpc IsCRDAvailable(IsCRDAvailableRequest) returns (IsCRDAvailableResponse) {
         option (google.api.http) = {
-            get : "/v1/crd/is_available",
+            get : "/v1/crds/{name}/is-available",
         };
     }
 
+    /*
+     * Get the inventory of an object
+     *
+     * Look up the inventory of a given object. The inventory is a list of
+     * objects that were created as a result of reconciling the given object.
+     *
+     * The response includes the full kubernetes resource for each inventory item.
+     */
     rpc GetInventory(GetInventoryRequest) returns (GetInventoryResponse) {
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["objects"]; };
         option (google.api.http) = {
-            get : "/v1/inventory",
+            get: "/v1/namespaces/{namespace}/objects/{kind}/{name}/inventory"
         };
     }
 
-    // ListPolicies list policies available on the cluster
+    /*
+     * List policies available across all clusters
+     *
+     * This will return all the `Policy` custom resources that are available across all clusters.
+     */
     rpc ListPolicies(ListPoliciesRequest) returns (ListPoliciesResponse) {
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["policy"]; };
         option (google.api.http) = {
         get : "/v1/policies"
         };
     }
 
-    // GetPolicy gets a policy by name
-    rpc GetPolicy(GetPolicyRequest) returns (GetPolicyResponse) {
-        option (google.api.http) = {
-        get : "/v1/policies/{policyName}"
-        };
-    }
     /*
-    * ListPolicyValidations lists policy validations
-    */
-    rpc ListPolicyValidations(ListPolicyValidationsRequest)
-        returns (ListPolicyValidationsResponse) {
+     * Gets a policy
+     *
+     * Get a `Policy` custom resource by name and cluster.
+     */
+    rpc GetPolicy(GetPolicyRequest) returns (GetPolicyResponse) {
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["policy"]; };
         option (google.api.http) = {
-        post : "/v1/policyvalidations"
-        body : "*"
+        get : "/v1/policies/{name}"
         };
     }
 
     /*
-    * GetPolicyValidation gets a policy validation by id
+    * Lists policy validations across all clusters
+    *
+    * Can be filtered by a few different properties of the `involvedObject`
     */
-    rpc GetPolicyValidation(GetPolicyValidationRequest)
-        returns (GetPolicyValidationResponse) {
+    rpc ListPolicyValidations(ListPolicyValidationsRequest) returns (ListPolicyValidationsResponse) {
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["policy"]; };
         option (google.api.http) = {
-        get : "/v1/policyvalidations/{validationId}"
+        get : "/v1/policy-validations"
+        };
+    }
+
+    /*
+    * Gets a policy validation
+    *
+    * Given a specific validation id, returns the validation details.
+    */
+    rpc GetPolicyValidation(GetPolicyValidationRequest) returns (GetPolicyValidationResponse) {
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["policy"]; };
+        option (google.api.http) = {
+        get : "/v1/policy-validations/{validation_id}"
         };
     }
 }
 
 message GetInventoryRequest {
+    // Supported kinds are `Kustomization` and `HelmRelease`
+    // If using Enterprise, `GitOpsSet` and `AutomatedClusterDiscovery` are also supported
     string kind         = 1;
     string name         = 2;
     string namespace    = 3;
-    string clusterName  = 4;
-    bool   withChildren = 5;
+    string cluster_name  = 4;
+    // If true, the children of certain resources like Deployments and Replicasets will be included in the response
+    bool   with_children = 5;
 }
 
 message GetInventoryResponse {
@@ -237,44 +313,54 @@ message GetInventoryResponse {
 message PolicyValidation {
     string   id                                     = 1;
     string   message                                = 2;
-    string   clusterId                              = 3;
+    string   cluster_id                             = 3;
     string   category                               = 4;
     string   severity                               = 5;
-    string   createdAt                              = 6;
+    string   created_at                             = 6;
     string   entity                                 = 7;
-    string   entityKind                             = 8;
+    string   entity_kind                            = 8;
     string   namespace                              = 9;
-    string   violatingEntity                        = 10;
+    string   violating_entity                       = 10;
     string   description                            = 11;
-    string   howToSolve                             = 12;
+    string   how_to_solve                           = 12;
     string   name                                   = 13;
-    string   clusterName                            = 14;
+    string   cluster_name                           = 14;
     repeated PolicyValidationOccurrence occurrences = 15;
-    string   policyId                               = 16;
+    string   policy_id                              = 16;
     repeated PolicyValidationParam parameters       = 17;
 }
 
 message ListPolicyValidationsRequest {
-    string clusterName = 1;
+    // filter for validations on a particular cluster
+    string cluster_name = 1;
     Pagination pagination = 2;
+    // filter by `involvedObject.name`
     string application = 3;
+    // filter by `involvedObject.namespace`
     string namespace = 4;
+    // filter by `involvedObject.kind`
     string kind = 5;
-    string policyId = 6;
-    string validationType = 7;
+    // filter by id of the policy that triggered the validation
+    string policy_id = 6;
+    // filter for validation types of `Admission` or `Audit`
+    string validation_type = 7;
 }
 
 message ListPolicyValidationsResponse {
     repeated PolicyValidation violations = 1;
     int32    total                       = 2;
-    string   nextPageToken               = 3;
+    string   next_page_token             = 3;
     repeated ListError errors            = 4;
 }
 
 message GetPolicyValidationRequest {
-    string validationId = 1;
-    string clusterName = 2;
-    string validationType = 3;
+    // The id of the validation.
+    // This is often obtained from:
+    // - from the list policy validations endpoint.
+    // - from `Event` objects raised by the policy-agent
+    string validation_id = 1;
+    string cluster_name = 2;
+    string validation_type = 3;
 }
 
 message GetPolicyValidationResponse {
@@ -286,11 +372,11 @@ message PolicyValidationOccurrence {
 }
 
 message PolicyValidationParam {
-    string              name      = 1;
-    string              type      = 2;
-    google.protobuf.Any value     = 3;
-    bool                required  = 4;
-    string              configRef = 5;
+    string              name       = 1;
+    string              type       = 2;
+    google.protobuf.Any value      = 3;
+    bool                required   = 4;
+    string              config_ref = 5;
 }
 
 message PolicyParamRepeatedString {
@@ -298,29 +384,30 @@ message PolicyParamRepeatedString {
 }
 
 message Pagination {
-    int32  pageSize  = 1;
-    string pageToken = 2;
+    // controls the number of results per page from each cluster
+    int32  page_size  = 1;
+    // a composite token used to retrieve the next page of results across all clusters
+    // this is availble in the response as `nextPageToken`
+    string page_token = 2;
 }
 
+// Queries are made to each cluster. If its a namespaced query then a query
+// is made per namespace too. If an error occurs for any specific query the error
+// message is included here alongside the results for the queries that succeeded.
 message ListError {
-    string clusterName = 1;
-    string namespace   = 2;
-    string message     = 3;
+    string cluster_name = 1;
+    string namespace    = 2;
+    string message      = 3;
 }
 
-message ListFluxRuntimeObjectsRequest {
-    string namespace   = 1;
-    string clusterName = 2;
-}
+message ListFluxRuntimeObjectsRequest {}
 
 message ListFluxRuntimeObjectsResponse {
     repeated Deployment deployments = 1;
     repeated ListError errors       = 2;
 }
 
-message ListFluxCrdsRequest {
-    string clusterName = 1;
-}
+message ListFluxCrdsRequest {}
 
 message ListFluxCrdsResponse {
     repeated Crd crds         = 1;
@@ -328,10 +415,10 @@ message ListFluxCrdsResponse {
 }
 
 message GetObjectRequest {
-    string name        = 1;
-    string namespace   = 2;
-    string kind        = 3;
-    string clusterName = 4;
+    string name              = 1;
+    string namespace         = 2;
+    string kind              = 3;
+    string cluster_name      = 4;
 }
 
 message GetObjectResponse {
@@ -339,21 +426,21 @@ message GetObjectResponse {
 }
 
 message ListObjectsRequest {
-    string     namespace       = 1;
-    string     kind            = 2;
-    string     clusterName     = 3;
-    map<string, string> labels = 4;
+    string     namespace      = 1;
+    string     kind           = 2;
+    string     cluster_name   = 3;
+    string     label_selector = 4;
 }
 
 message ClusterNamespaceList { 
-    string clusterName = 1;
+    string cluster_name = 1;
     repeated string namespaces = 2; 
 }
 
 message ListObjectsResponse {
     repeated Object objects   = 1;
     repeated ListError errors = 2;
-    repeated ClusterNamespaceList searchedNamespaces = 3;
+    repeated ClusterNamespaceList searched_namespaces = 3;
 }
 
 message GetReconciledObjectsRequest {
@@ -369,10 +456,10 @@ message GetReconciledObjectsResponse {
 }
 
 message GetChildObjectsRequest {
-    GroupVersionKind groupVersionKind = 1;
-    string           namespace        = 2;
-    string           parentUid        = 3;
-    string           clusterName      = 4;
+    GroupVersionKind group_version_kind = 1;
+    string           namespace         = 2;
+    string           parent_uid        = 3;
+    string           cluster_name      = 4;
 }
 
 message GetChildObjectsResponse {
@@ -392,7 +479,10 @@ message ListNamespacesResponse {
 }
 
 message ListEventsRequest {
-    ObjectRef involvedObject = 1;
+    string         kind      = 1;
+    string         name      = 2;
+    string         namespace = 3;
+    string         cluster_name = 4;
 }
 
 message ListEventsResponse {
@@ -400,8 +490,9 @@ message ListEventsResponse {
 }
 
 message SyncFluxObjectRequest {
-    repeated ObjectRef objects = 1;
-    bool     withSource        = 2;
+    // The list of objects to sync.
+    repeated ObjectRef objects  = 1;
+    bool     with_source        = 2;
 }
 
 message SyncFluxObjectResponse {
@@ -410,22 +501,28 @@ message SyncFluxObjectResponse {
 message GetVersionRequest {}
 
 message GetVersionResponse {
-    string semver      = 1;
-    string commit      = 2;
-    string branch      = 3;
-    string buildTime   = 4;
-    string kubeVersion = 5;
+    string semver       = 1;
+    string commit       = 2;
+    string branch       = 3;
+    string build_time   = 4;
+    string kube_version = 5;
 }
 
 message GetFeatureFlagsRequest {}
 
 message GetFeatureFlagsResponse {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+        example: "{\"flags\": { \"WEAVE_GITOPS_FEATURE_TENANCY\": \"true\", \"OIDC_AUTH\": \"true\" } }",
+    };
     map<string, string> flags = 1;
 }
 
 message ToggleSuspendResourceRequest {
+    // The list of objects to suspend or resume.
     repeated ObjectRef objects = 1;
+    // Suspend or resume the resources.
     bool     suspend           = 2;
+    // Include a comment about why the resources are being suspended.
     string   comment           = 3;
 }
 
@@ -433,56 +530,63 @@ message ToggleSuspendResourceResponse {
 }
 
 message GetSessionLogsRequest {
-    string sessionNamespace = 1;
-    string sessionId        = 2;
-    string token            = 3;
-    string logSourceFilter  = 4;
-    string logLevelFilter   = 5;
+    string session_namespace  = 1;
+    string session_id         = 2;
+    string token              = 3;
+    string log_source_filter  = 4;
+    string log_level_filter   = 5;
 }
 
 message LogEntry {
-    string timestamp  = 1;
-    string source     = 2;
-    string level      = 3;
-    string message    = 4;
-    string sortingKey = 5;
+    string timestamp   = 1;
+    string source      = 2;
+    string level       = 3;
+    string message     = 4;
+    string sorting_key = 5;
 }
 
 message GetSessionLogsResponse {
-    repeated LogEntry logs       = 1;
-    string   nextToken           = 2;
-    string   error               = 3;
-    repeated string   logSources = 4;
+    repeated LogEntry logs        = 1;
+    string   next_token           = 2;
+    string   error                = 3;
+    repeated string   log_sources = 4;
 }
 
 message IsCRDAvailableRequest {
+    // The name of the CustomResourceDefinition to check availability for across clusters. e.g.
+    // - `imageupdateautomations.image.toolkit.fluxcd.io`
+    // - `gitopssets.templates.weave.works`
     string name = 1;
 }
 
 message IsCRDAvailableResponse {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+        example: "{\"clusters\": { \"clusters-1\": true } }"
+    };
     map<string,bool> clusters = 1;
 }
 
 message ListPoliciesRequest {
-    string clusterName = 1;
-    Pagination pagination = 2;
+    Pagination pagination = 1;
 }
 
 message ListPoliciesResponse {
     repeated PolicyObj policies = 1;
     int32 total = 2;
-    string nextPageToken = 3;
+    string next_page_token = 3;
     repeated ListError errors = 4;
 }
 
 message GetPolicyRequest {
-    string policyName = 1;
-    string clusterName = 2;
+    // The name of the `Policy` resource to retrieve.
+    string name = 1;
+    // The name of the cluster to retrieve the policy from. Default is the cluster running the API server.
+    string cluster_name = 2;
 }
 
 message GetPolicyResponse {
     PolicyObj policy = 1;
-    string clusterName = 2;
+    string cluster_name = 2;
 }
 
 message PolicyObj {
@@ -490,16 +594,16 @@ message PolicyObj {
     string id = 2;
     string code = 3;
     string description = 4;
-    string howToSolve = 5;
+    string how_to_solve = 5;
     string category = 6;
     repeated string tags = 7;
     string severity = 8;
     repeated PolicyStandard standards = 9;
-    string gitCommit = 10;
+    string git_commit = 10;
     repeated PolicyParam parameters = 11;
     PolicyTargets targets = 12;
-    string createdAt = 13;
-    string clusterName = 14;
+    string created_at = 13;
+    string cluster_name = 14;
     string tenant = 15;
     repeated string modes = 16;
 }

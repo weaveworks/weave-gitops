@@ -94,8 +94,6 @@ export type ListError = {
 }
 
 export type ListFluxRuntimeObjectsRequest = {
-  namespace?: string
-  clusterName?: string
 }
 
 export type ListFluxRuntimeObjectsResponse = {
@@ -104,7 +102,6 @@ export type ListFluxRuntimeObjectsResponse = {
 }
 
 export type ListFluxCrdsRequest = {
-  clusterName?: string
 }
 
 export type ListFluxCrdsResponse = {
@@ -127,7 +124,7 @@ export type ListObjectsRequest = {
   namespace?: string
   kind?: string
   clusterName?: string
-  labels?: {[key: string]: string}
+  labelSelector?: string
 }
 
 export type ClusterNamespaceList = {
@@ -179,7 +176,10 @@ export type ListNamespacesResponse = {
 }
 
 export type ListEventsRequest = {
-  involvedObject?: Gitops_coreV1Types.ObjectRef
+  kind?: string
+  name?: string
+  namespace?: string
+  clusterName?: string
 }
 
 export type ListEventsResponse = {
@@ -253,7 +253,6 @@ export type IsCRDAvailableResponse = {
 }
 
 export type ListPoliciesRequest = {
-  clusterName?: string
   pagination?: Pagination
 }
 
@@ -265,7 +264,7 @@ export type ListPoliciesResponse = {
 }
 
 export type GetPolicyRequest = {
-  policyName?: string
+  name?: string
   clusterName?: string
 }
 
@@ -317,16 +316,16 @@ export type PolicyTargetLabel = {
 
 export class Core {
   static GetObject(req: GetObjectRequest, initReq?: fm.InitReq): Promise<GetObjectResponse> {
-    return fm.fetchReq<GetObjectRequest, GetObjectResponse>(`/v1/object/${req["name"]}?${fm.renderURLSearchParams(req, ["name"])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<GetObjectRequest, GetObjectResponse>(`/v1/namespaces/${req["namespace"]}/objects/${req["kind"]}/${req["name"]}?${fm.renderURLSearchParams(req, ["namespace", "kind", "name"])}`, {...initReq, method: "GET"})
   }
   static ListObjects(req: ListObjectsRequest, initReq?: fm.InitReq): Promise<ListObjectsResponse> {
-    return fm.fetchReq<ListObjectsRequest, ListObjectsResponse>(`/v1/objects`, {...initReq, method: "POST", body: JSON.stringify(req)})
+    return fm.fetchReq<ListObjectsRequest, ListObjectsResponse>(`/v1/objects/${req["kind"]}?${fm.renderURLSearchParams(req, ["kind"])}`, {...initReq, method: "GET"})
   }
   static ListFluxRuntimeObjects(req: ListFluxRuntimeObjectsRequest, initReq?: fm.InitReq): Promise<ListFluxRuntimeObjectsResponse> {
-    return fm.fetchReq<ListFluxRuntimeObjectsRequest, ListFluxRuntimeObjectsResponse>(`/v1/flux_runtime_objects?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<ListFluxRuntimeObjectsRequest, ListFluxRuntimeObjectsResponse>(`/v1/flux/deployments?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static ListFluxCrds(req: ListFluxCrdsRequest, initReq?: fm.InitReq): Promise<ListFluxCrdsResponse> {
-    return fm.fetchReq<ListFluxCrdsRequest, ListFluxCrdsResponse>(`/v1/flux_crds?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<ListFluxCrdsRequest, ListFluxCrdsResponse>(`/v1/flux/crds?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static GetReconciledObjects(req: GetReconciledObjectsRequest, initReq?: fm.InitReq): Promise<GetReconciledObjectsResponse> {
     return fm.fetchReq<GetReconciledObjectsRequest, GetReconciledObjectsResponse>(`/v1/reconciled_objects`, {...initReq, method: "POST", body: JSON.stringify(req)})
@@ -334,46 +333,40 @@ export class Core {
   static GetChildObjects(req: GetChildObjectsRequest, initReq?: fm.InitReq): Promise<GetChildObjectsResponse> {
     return fm.fetchReq<GetChildObjectsRequest, GetChildObjectsResponse>(`/v1/child_objects`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
-  static GetFluxNamespace(req: GetFluxNamespaceRequest, initReq?: fm.InitReq): Promise<GetFluxNamespaceResponse> {
-    return fm.fetchReq<GetFluxNamespaceRequest, GetFluxNamespaceResponse>(`/v1/namespace/flux`, {...initReq, method: "POST", body: JSON.stringify(req)})
-  }
-  static ListNamespaces(req: ListNamespacesRequest, initReq?: fm.InitReq): Promise<ListNamespacesResponse> {
-    return fm.fetchReq<ListNamespacesRequest, ListNamespacesResponse>(`/v1/namespaces?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
-  }
   static ListEvents(req: ListEventsRequest, initReq?: fm.InitReq): Promise<ListEventsResponse> {
-    return fm.fetchReq<ListEventsRequest, ListEventsResponse>(`/v1/events?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<ListEventsRequest, ListEventsResponse>(`/v1/namespaces/${req["namespace"]}/objects/${req["kind"]}/${req["name"]}/events?${fm.renderURLSearchParams(req, ["namespace", "kind", "name"])}`, {...initReq, method: "GET"})
   }
   static SyncFluxObject(req: SyncFluxObjectRequest, initReq?: fm.InitReq): Promise<SyncFluxObjectResponse> {
-    return fm.fetchReq<SyncFluxObjectRequest, SyncFluxObjectResponse>(`/v1/sync`, {...initReq, method: "POST", body: JSON.stringify(req)})
+    return fm.fetchReq<SyncFluxObjectRequest, SyncFluxObjectResponse>(`/v1/sync`, {...initReq, method: "PATCH", body: JSON.stringify(req)})
   }
   static GetVersion(req: GetVersionRequest, initReq?: fm.InitReq): Promise<GetVersionResponse> {
     return fm.fetchReq<GetVersionRequest, GetVersionResponse>(`/v1/version?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static GetFeatureFlags(req: GetFeatureFlagsRequest, initReq?: fm.InitReq): Promise<GetFeatureFlagsResponse> {
-    return fm.fetchReq<GetFeatureFlagsRequest, GetFeatureFlagsResponse>(`/v1/featureflags?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<GetFeatureFlagsRequest, GetFeatureFlagsResponse>(`/v1/feature-flags?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static ToggleSuspendResource(req: ToggleSuspendResourceRequest, initReq?: fm.InitReq): Promise<ToggleSuspendResourceResponse> {
-    return fm.fetchReq<ToggleSuspendResourceRequest, ToggleSuspendResourceResponse>(`/v1/suspend`, {...initReq, method: "POST", body: JSON.stringify(req)})
+    return fm.fetchReq<ToggleSuspendResourceRequest, ToggleSuspendResourceResponse>(`/v1/suspend`, {...initReq, method: "PATCH", body: JSON.stringify(req)})
   }
   static GetSessionLogs(req: GetSessionLogsRequest, initReq?: fm.InitReq): Promise<GetSessionLogsResponse> {
-    return fm.fetchReq<GetSessionLogsRequest, GetSessionLogsResponse>(`/v1/session_logs`, {...initReq, method: "POST", body: JSON.stringify(req)})
+    return fm.fetchReq<GetSessionLogsRequest, GetSessionLogsResponse>(`/v1/session-logs?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static IsCRDAvailable(req: IsCRDAvailableRequest, initReq?: fm.InitReq): Promise<IsCRDAvailableResponse> {
-    return fm.fetchReq<IsCRDAvailableRequest, IsCRDAvailableResponse>(`/v1/crd/is_available?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<IsCRDAvailableRequest, IsCRDAvailableResponse>(`/v1/crds/${req["name"]}/is-available?${fm.renderURLSearchParams(req, ["name"])}`, {...initReq, method: "GET"})
   }
   static GetInventory(req: GetInventoryRequest, initReq?: fm.InitReq): Promise<GetInventoryResponse> {
-    return fm.fetchReq<GetInventoryRequest, GetInventoryResponse>(`/v1/inventory?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<GetInventoryRequest, GetInventoryResponse>(`/v1/namespaces/${req["namespace"]}/objects/${req["kind"]}/${req["name"]}/inventory?${fm.renderURLSearchParams(req, ["namespace", "kind", "name"])}`, {...initReq, method: "GET"})
   }
   static ListPolicies(req: ListPoliciesRequest, initReq?: fm.InitReq): Promise<ListPoliciesResponse> {
     return fm.fetchReq<ListPoliciesRequest, ListPoliciesResponse>(`/v1/policies?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static GetPolicy(req: GetPolicyRequest, initReq?: fm.InitReq): Promise<GetPolicyResponse> {
-    return fm.fetchReq<GetPolicyRequest, GetPolicyResponse>(`/v1/policies/${req["policyName"]}?${fm.renderURLSearchParams(req, ["policyName"])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<GetPolicyRequest, GetPolicyResponse>(`/v1/policies/${req["name"]}?${fm.renderURLSearchParams(req, ["name"])}`, {...initReq, method: "GET"})
   }
   static ListPolicyValidations(req: ListPolicyValidationsRequest, initReq?: fm.InitReq): Promise<ListPolicyValidationsResponse> {
-    return fm.fetchReq<ListPolicyValidationsRequest, ListPolicyValidationsResponse>(`/v1/policyvalidations`, {...initReq, method: "POST", body: JSON.stringify(req)})
+    return fm.fetchReq<ListPolicyValidationsRequest, ListPolicyValidationsResponse>(`/v1/policy-validations?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static GetPolicyValidation(req: GetPolicyValidationRequest, initReq?: fm.InitReq): Promise<GetPolicyValidationResponse> {
-    return fm.fetchReq<GetPolicyValidationRequest, GetPolicyValidationResponse>(`/v1/policyvalidations/${req["validationId"]}?${fm.renderURLSearchParams(req, ["validationId"])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<GetPolicyValidationRequest, GetPolicyValidationResponse>(`/v1/policy-validations/${req["validationId"]}?${fm.renderURLSearchParams(req, ["validationId"])}`, {...initReq, method: "GET"})
   }
 }

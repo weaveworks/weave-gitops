@@ -18,51 +18,97 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type CoreClient interface {
-	// GetObject gets data about a single primary object from a cluster.
+	// Get details of an object
+	//
+	// {{ import "api/core/doc/object-kind.md" }}
 	GetObject(ctx context.Context, in *GetObjectRequest, opts ...grpc.CallOption) (*GetObjectResponse, error)
-	// ListObjects gets data about primary objects.
+	// List objects of kind across all clusters
+	//
+	// {{ import "api/core/doc/object-kind.md" }}
 	ListObjects(ctx context.Context, in *ListObjectsRequest, opts ...grpc.CallOption) (*ListObjectsResponse, error)
-	// ListFluxRuntimeObjects lists the flux runtime deployments from a cluster.
+	// Lists the Flux runtime deployments across all clusters
+	//
+	// Determine which controllers are installed, their image versions, status, etc.
 	ListFluxRuntimeObjects(ctx context.Context, in *ListFluxRuntimeObjectsRequest, opts ...grpc.CallOption) (*ListFluxRuntimeObjectsResponse, error)
+	// Lists the Flux CRDs across all clusters
+	//
+	// Determine which flux CRDs are installed on which clusters and at what version.
 	ListFluxCrds(ctx context.Context, in *ListFluxCrdsRequest, opts ...grpc.CallOption) (*ListFluxCrdsResponse, error)
-	// GetReconciledObjects returns a list of objects that were created
-	// as a result of reconciling a Flux automation.
-	// This list is derived by looking at the Kustomization or HelmRelease
-	// specified in the request body.
+	// Get the list of objects that were created as a result of reconciling a Flux automation.
+	//
+	// Use /inventory instead
 	GetReconciledObjects(ctx context.Context, in *GetReconciledObjectsRequest, opts ...grpc.CallOption) (*GetReconciledObjectsResponse, error)
-	// GetChildObjects returns the children of a given object,
-	// specified by a GroupVersionKind.
-	// Not all Kubernets objects have children. For example, a Deployment
-	// has a child ReplicaSet, but a Service has no child objects.
+	// Returns the children of a given object
+	//
+	// Use /inventory instead
 	GetChildObjects(ctx context.Context, in *GetChildObjectsRequest, opts ...grpc.CallOption) (*GetChildObjectsResponse, error)
-	// GetFluxNamespace returns with a namespace with a specific label.
-	GetFluxNamespace(ctx context.Context, in *GetFluxNamespaceRequest, opts ...grpc.CallOption) (*GetFluxNamespaceResponse, error)
-	// ListNamespaces returns with the list of available namespaces.
-	ListNamespaces(ctx context.Context, in *ListNamespacesRequest, opts ...grpc.CallOption) (*ListNamespacesResponse, error)
-	// ListEvents returns with a list of events
+	// List events for an object
+	//
+	// {{ import "api/core/doc/object-kind.md" }}
 	ListEvents(ctx context.Context, in *ListEventsRequest, opts ...grpc.CallOption) (*ListEventsResponse, error)
-	// SyncResource forces a reconciliation of a Flux resource
+	// Trigger reconciliation of multiple Flux objects
+	//
+	// Provide a list of objects to be reconciled. Objects are identified by their kind, name, namespace and cluster.
+	//
+	// Supported kinds are:
+	//
+	// - all Flux custom resources (e.g. `GitRepository` or `HelmRelease`)
+	// - Enterprise objects that also support this pattern: `GitOpsSet` and `AutomatedClusterDiscovery`
+	//
+	// if `withSource` is true the dependent Source resource will be synced too.
+	// Syncing a Kustomization `withSource` will sync an attached GitRepository.
 	SyncFluxObject(ctx context.Context, in *SyncFluxObjectRequest, opts ...grpc.CallOption) (*SyncFluxObjectResponse, error)
-	// GetVersion returns version information about the server
+	// Get version information about the server
+	//
+	// Version information about weave-gitops including when the runninng server was built, the git commit and the git tag.
+	// Also return the kubernetes version of the cluster running weave-gitops.
 	GetVersion(ctx context.Context, in *GetVersionRequest, opts ...grpc.CallOption) (*GetVersionResponse, error)
-	// GetFeatureFlags returns configuration information about the server
+	// Get feature flags
+	//
+	// Return infomation about what features and configuration options are enabled on the server.
+	//
+	// New features are sometimes hidden behind feature flags. Other features (e.g. OIDC) can be enabled/disabled.
 	GetFeatureFlags(ctx context.Context, in *GetFeatureFlagsRequest, opts ...grpc.CallOption) (*GetFeatureFlagsResponse, error)
-	// ToggleSuspendResource suspends or resumes a flux object.
+	// Suspend or resume reconciling multiple Flux objects
+	//
+	// Provide a list of objects to be suspended or resumed. Objects are identified by their kind, name, namespace and cluster.
+	//
+	// Supported kinds are:
+	//
+	// - any Flux custom resource (e.g. `GitRepository` or `HelmRelease`)
+	// - Enterprise objects that also support this pattern: `GitOpsSet` and `AutomatedClusterDiscovery`
 	ToggleSuspendResource(ctx context.Context, in *ToggleSuspendResourceRequest, opts ...grpc.CallOption) (*ToggleSuspendResourceResponse, error)
-	// GetSessionLogs returns the logs for a given session
+	// Get the logs for a GitOpsRun session
+	//
+	// The GitOpsRun feature has been removed
 	GetSessionLogs(ctx context.Context, in *GetSessionLogsRequest, opts ...grpc.CallOption) (*GetSessionLogsResponse, error)
-	// IsCRDAvailable returns with a hashmap where the keys are the names of
-	// the clusters, and the value is a boolean indicating whether given CRD is
-	// installed or not on that cluster.
+	// Check which clusters have a given CRD installed
+	//
+	// Returns a map where the keys are cluster names, and the value is a boolean indicating
+	// whether the given `CustomResourceDefinition` resource is available on that cluster.
 	IsCRDAvailable(ctx context.Context, in *IsCRDAvailableRequest, opts ...grpc.CallOption) (*IsCRDAvailableResponse, error)
+	// Get the inventory of an object
+	//
+	// Look up the inventory of a given object. The inventory is a list of
+	// objects that were created as a result of reconciling the given object.
+	//
+	// The response includes the full kubernetes resource for each inventory item.
 	GetInventory(ctx context.Context, in *GetInventoryRequest, opts ...grpc.CallOption) (*GetInventoryResponse, error)
-	// ListPolicies list policies available on the cluster
+	// List policies available across all clusters
+	//
+	// This will return all the `Policy` custom resources that are available across all clusters.
 	ListPolicies(ctx context.Context, in *ListPoliciesRequest, opts ...grpc.CallOption) (*ListPoliciesResponse, error)
-	// GetPolicy gets a policy by name
+	// Gets a policy
+	//
+	// Get a `Policy` custom resource by name and cluster.
 	GetPolicy(ctx context.Context, in *GetPolicyRequest, opts ...grpc.CallOption) (*GetPolicyResponse, error)
-	// ListPolicyValidations lists policy validations
+	// Lists policy validations across all clusters
+	//
+	// Can be filtered by a few different properties of the `involvedObject`
 	ListPolicyValidations(ctx context.Context, in *ListPolicyValidationsRequest, opts ...grpc.CallOption) (*ListPolicyValidationsResponse, error)
-	// GetPolicyValidation gets a policy validation by id
+	// Gets a policy validation
+	//
+	// Given a specific validation id, returns the validation details.
 	GetPolicyValidation(ctx context.Context, in *GetPolicyValidationRequest, opts ...grpc.CallOption) (*GetPolicyValidationResponse, error)
 }
 
@@ -122,24 +168,6 @@ func (c *coreClient) GetReconciledObjects(ctx context.Context, in *GetReconciled
 func (c *coreClient) GetChildObjects(ctx context.Context, in *GetChildObjectsRequest, opts ...grpc.CallOption) (*GetChildObjectsResponse, error) {
 	out := new(GetChildObjectsResponse)
 	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/GetChildObjects", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *coreClient) GetFluxNamespace(ctx context.Context, in *GetFluxNamespaceRequest, opts ...grpc.CallOption) (*GetFluxNamespaceResponse, error) {
-	out := new(GetFluxNamespaceResponse)
-	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/GetFluxNamespace", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *coreClient) ListNamespaces(ctx context.Context, in *ListNamespacesRequest, opts ...grpc.CallOption) (*ListNamespacesResponse, error) {
-	out := new(ListNamespacesResponse)
-	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/ListNamespaces", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -258,51 +286,97 @@ func (c *coreClient) GetPolicyValidation(ctx context.Context, in *GetPolicyValid
 // All implementations must embed UnimplementedCoreServer
 // for forward compatibility
 type CoreServer interface {
-	// GetObject gets data about a single primary object from a cluster.
+	// Get details of an object
+	//
+	// {{ import "api/core/doc/object-kind.md" }}
 	GetObject(context.Context, *GetObjectRequest) (*GetObjectResponse, error)
-	// ListObjects gets data about primary objects.
+	// List objects of kind across all clusters
+	//
+	// {{ import "api/core/doc/object-kind.md" }}
 	ListObjects(context.Context, *ListObjectsRequest) (*ListObjectsResponse, error)
-	// ListFluxRuntimeObjects lists the flux runtime deployments from a cluster.
+	// Lists the Flux runtime deployments across all clusters
+	//
+	// Determine which controllers are installed, their image versions, status, etc.
 	ListFluxRuntimeObjects(context.Context, *ListFluxRuntimeObjectsRequest) (*ListFluxRuntimeObjectsResponse, error)
+	// Lists the Flux CRDs across all clusters
+	//
+	// Determine which flux CRDs are installed on which clusters and at what version.
 	ListFluxCrds(context.Context, *ListFluxCrdsRequest) (*ListFluxCrdsResponse, error)
-	// GetReconciledObjects returns a list of objects that were created
-	// as a result of reconciling a Flux automation.
-	// This list is derived by looking at the Kustomization or HelmRelease
-	// specified in the request body.
+	// Get the list of objects that were created as a result of reconciling a Flux automation.
+	//
+	// Use /inventory instead
 	GetReconciledObjects(context.Context, *GetReconciledObjectsRequest) (*GetReconciledObjectsResponse, error)
-	// GetChildObjects returns the children of a given object,
-	// specified by a GroupVersionKind.
-	// Not all Kubernets objects have children. For example, a Deployment
-	// has a child ReplicaSet, but a Service has no child objects.
+	// Returns the children of a given object
+	//
+	// Use /inventory instead
 	GetChildObjects(context.Context, *GetChildObjectsRequest) (*GetChildObjectsResponse, error)
-	// GetFluxNamespace returns with a namespace with a specific label.
-	GetFluxNamespace(context.Context, *GetFluxNamespaceRequest) (*GetFluxNamespaceResponse, error)
-	// ListNamespaces returns with the list of available namespaces.
-	ListNamespaces(context.Context, *ListNamespacesRequest) (*ListNamespacesResponse, error)
-	// ListEvents returns with a list of events
+	// List events for an object
+	//
+	// {{ import "api/core/doc/object-kind.md" }}
 	ListEvents(context.Context, *ListEventsRequest) (*ListEventsResponse, error)
-	// SyncResource forces a reconciliation of a Flux resource
+	// Trigger reconciliation of multiple Flux objects
+	//
+	// Provide a list of objects to be reconciled. Objects are identified by their kind, name, namespace and cluster.
+	//
+	// Supported kinds are:
+	//
+	// - all Flux custom resources (e.g. `GitRepository` or `HelmRelease`)
+	// - Enterprise objects that also support this pattern: `GitOpsSet` and `AutomatedClusterDiscovery`
+	//
+	// if `withSource` is true the dependent Source resource will be synced too.
+	// Syncing a Kustomization `withSource` will sync an attached GitRepository.
 	SyncFluxObject(context.Context, *SyncFluxObjectRequest) (*SyncFluxObjectResponse, error)
-	// GetVersion returns version information about the server
+	// Get version information about the server
+	//
+	// Version information about weave-gitops including when the runninng server was built, the git commit and the git tag.
+	// Also return the kubernetes version of the cluster running weave-gitops.
 	GetVersion(context.Context, *GetVersionRequest) (*GetVersionResponse, error)
-	// GetFeatureFlags returns configuration information about the server
+	// Get feature flags
+	//
+	// Return infomation about what features and configuration options are enabled on the server.
+	//
+	// New features are sometimes hidden behind feature flags. Other features (e.g. OIDC) can be enabled/disabled.
 	GetFeatureFlags(context.Context, *GetFeatureFlagsRequest) (*GetFeatureFlagsResponse, error)
-	// ToggleSuspendResource suspends or resumes a flux object.
+	// Suspend or resume reconciling multiple Flux objects
+	//
+	// Provide a list of objects to be suspended or resumed. Objects are identified by their kind, name, namespace and cluster.
+	//
+	// Supported kinds are:
+	//
+	// - any Flux custom resource (e.g. `GitRepository` or `HelmRelease`)
+	// - Enterprise objects that also support this pattern: `GitOpsSet` and `AutomatedClusterDiscovery`
 	ToggleSuspendResource(context.Context, *ToggleSuspendResourceRequest) (*ToggleSuspendResourceResponse, error)
-	// GetSessionLogs returns the logs for a given session
+	// Get the logs for a GitOpsRun session
+	//
+	// The GitOpsRun feature has been removed
 	GetSessionLogs(context.Context, *GetSessionLogsRequest) (*GetSessionLogsResponse, error)
-	// IsCRDAvailable returns with a hashmap where the keys are the names of
-	// the clusters, and the value is a boolean indicating whether given CRD is
-	// installed or not on that cluster.
+	// Check which clusters have a given CRD installed
+	//
+	// Returns a map where the keys are cluster names, and the value is a boolean indicating
+	// whether the given `CustomResourceDefinition` resource is available on that cluster.
 	IsCRDAvailable(context.Context, *IsCRDAvailableRequest) (*IsCRDAvailableResponse, error)
+	// Get the inventory of an object
+	//
+	// Look up the inventory of a given object. The inventory is a list of
+	// objects that were created as a result of reconciling the given object.
+	//
+	// The response includes the full kubernetes resource for each inventory item.
 	GetInventory(context.Context, *GetInventoryRequest) (*GetInventoryResponse, error)
-	// ListPolicies list policies available on the cluster
+	// List policies available across all clusters
+	//
+	// This will return all the `Policy` custom resources that are available across all clusters.
 	ListPolicies(context.Context, *ListPoliciesRequest) (*ListPoliciesResponse, error)
-	// GetPolicy gets a policy by name
+	// Gets a policy
+	//
+	// Get a `Policy` custom resource by name and cluster.
 	GetPolicy(context.Context, *GetPolicyRequest) (*GetPolicyResponse, error)
-	// ListPolicyValidations lists policy validations
+	// Lists policy validations across all clusters
+	//
+	// Can be filtered by a few different properties of the `involvedObject`
 	ListPolicyValidations(context.Context, *ListPolicyValidationsRequest) (*ListPolicyValidationsResponse, error)
-	// GetPolicyValidation gets a policy validation by id
+	// Gets a policy validation
+	//
+	// Given a specific validation id, returns the validation details.
 	GetPolicyValidation(context.Context, *GetPolicyValidationRequest) (*GetPolicyValidationResponse, error)
 	mustEmbedUnimplementedCoreServer()
 }
@@ -328,12 +402,6 @@ func (UnimplementedCoreServer) GetReconciledObjects(context.Context, *GetReconci
 }
 func (UnimplementedCoreServer) GetChildObjects(context.Context, *GetChildObjectsRequest) (*GetChildObjectsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetChildObjects not implemented")
-}
-func (UnimplementedCoreServer) GetFluxNamespace(context.Context, *GetFluxNamespaceRequest) (*GetFluxNamespaceResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetFluxNamespace not implemented")
-}
-func (UnimplementedCoreServer) ListNamespaces(context.Context, *ListNamespacesRequest) (*ListNamespacesResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListNamespaces not implemented")
 }
 func (UnimplementedCoreServer) ListEvents(context.Context, *ListEventsRequest) (*ListEventsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListEvents not implemented")
@@ -488,42 +556,6 @@ func _Core_GetChildObjects_Handler(srv interface{}, ctx context.Context, dec fun
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CoreServer).GetChildObjects(ctx, req.(*GetChildObjectsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Core_GetFluxNamespace_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetFluxNamespaceRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CoreServer).GetFluxNamespace(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/gitops_core.v1.Core/GetFluxNamespace",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CoreServer).GetFluxNamespace(ctx, req.(*GetFluxNamespaceRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Core_ListNamespaces_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListNamespacesRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CoreServer).ListNamespaces(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/gitops_core.v1.Core/ListNamespaces",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CoreServer).ListNamespaces(ctx, req.(*ListNamespacesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -774,14 +806,6 @@ var Core_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetChildObjects",
 			Handler:    _Core_GetChildObjects_Handler,
-		},
-		{
-			MethodName: "GetFluxNamespace",
-			Handler:    _Core_GetFluxNamespace_Handler,
-		},
-		{
-			MethodName: "ListNamespaces",
-			Handler:    _Core_ListNamespaces_Handler,
 		},
 		{
 			MethodName: "ListEvents",

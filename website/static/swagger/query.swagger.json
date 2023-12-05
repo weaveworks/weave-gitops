@@ -1,0 +1,343 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Weave GitOps Query Service API",
+    "description": "The API handles handles cross-cluster queries for Weave GitOps Enterprise",
+    "version": "0.1"
+  },
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/v1/debug/access-rules": {
+      "get": {
+        "summary": "Get debug access rules",
+        "operationId": "Query_DebugGetAccessRules",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1DebugGetAccessRulesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        }
+      }
+    },
+    "/v1/enabled-components": {
+      "get": {
+        "summary": "FIXME",
+        "operationId": "Query_ListEnabledComponents",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListEnabledComponentsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        }
+      }
+    },
+    "/v1/facets": {
+      "get": {
+        "summary": "List facets available for querying",
+        "operationId": "Query_ListFacets",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListFacetsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ]
+      }
+    },
+    "/v1/query": {
+      "post": {
+        "summary": "Query for resources across clusters",
+        "operationId": "Query_DoQuery",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1DoQueryResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1DoQueryRequest"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v1AccessRule": {
+      "type": "object",
+      "properties": {
+        "cluster": {
+          "type": "string"
+        },
+        "principal": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "accessibleKinds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "subjects": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1Subject"
+          }
+        },
+        "providedByRole": {
+          "type": "string"
+        },
+        "providedByBinding": {
+          "type": "string"
+        }
+      }
+    },
+    "v1DebugGetAccessRulesResponse": {
+      "type": "object",
+      "properties": {
+        "rules": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1AccessRule"
+          }
+        }
+      }
+    },
+    "v1DoQueryRequest": {
+      "type": "object",
+      "properties": {
+        "terms": {
+          "type": "string"
+        },
+        "filters": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "offset": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "limit": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "orderBy": {
+          "type": "string"
+        },
+        "descending": {
+          "type": "boolean"
+        }
+      }
+    },
+    "v1DoQueryResponse": {
+      "type": "object",
+      "properties": {
+        "objects": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1Object"
+          }
+        }
+      }
+    },
+    "v1EnabledComponent": {
+      "type": "string",
+      "enum": [
+        "unknown",
+        "applications",
+        "sources",
+        "gitopssets",
+        "templates",
+        "clusterdiscovery"
+      ],
+      "default": "unknown",
+      "title": "EnabledComponent represents a component of the UI that can be enabled or disabled"
+    },
+    "v1Facet": {
+      "type": "object",
+      "properties": {
+        "field": {
+          "type": "string"
+        },
+        "values": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v1ListEnabledComponentsResponse": {
+      "type": "object",
+      "properties": {
+        "components": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1EnabledComponent"
+          }
+        }
+      }
+    },
+    "v1ListFacetsResponse": {
+      "type": "object",
+      "properties": {
+        "facets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1Facet"
+          }
+        },
+        "humanReadableLabels": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v1Object": {
+      "type": "object",
+      "properties": {
+        "cluster": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "apiGroup": {
+          "type": "string"
+        },
+        "apiVersion": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "category": {
+          "type": "string"
+        },
+        "unstructured": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "tenant": {
+          "type": "string"
+        },
+        "labels": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v1Subject": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
