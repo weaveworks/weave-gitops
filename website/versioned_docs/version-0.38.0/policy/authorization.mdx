@@ -1,0 +1,48 @@
+---
+title: Authorization
+hide_title: true
+---
+
+import TierLabel from "../_components/TierLabel";
+
+# Authorization <TierLabel tiers="Enterprise" />
+
+This section provides a recommended way to configure RBAC in the context of policies. It is oriented to the journey
+that you expect your users to have.
+
+## View Resources
+
+The policy journey in the UI involves several resources. We have the [Policies](./policy.mdx) that are used by the agent, the resulting [Violations](./getting-started.mdx) when the agent enforces those policies, and the [PolicyConfigs](./policy-configuration.mdx) that the user can configure to override policy parameters.
+The violations are essentially kubernetes events that contain the [Validation](./policy.mdx#policy-validation) object.
+
+In order to view those resources, users would need to have read access to the `policies`, `policysconfigs`, and `events` resource.
+
+An example of a configuration to achieve this purpose could be seen below with `policies-reader` role and `developer-policies-reader`
+cluster role binding, to allow a group `developer` to access all the policy-related resources.
+
+```yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: policies-reader
+rules:
+  - apiGroups: ["pac.weave.works"]
+    resources: ["policies", "policyconfigs"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["get", "watch", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: developer-policies-reader
+subjects:
+  - kind: Group
+    name: developer
+    apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: policies-reader
+  apiGroup: rbac.authorization.k8s.io
+```
