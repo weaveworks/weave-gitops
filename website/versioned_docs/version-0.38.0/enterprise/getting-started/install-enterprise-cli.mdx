@@ -40,6 +40,7 @@ Before you start make sure the following requirements are met:
 - [ ] **Git Repository with SSH access**: the Git configuration repo to be used by Flux and Weave GitOps.
 - [ ] **Flux CLI**: is [installed](https://fluxcd.io/flux/installation/#install-the-flux-cli) locally. It will be used for reconciling Flux resources.
 - [ ] **Weave GitOps Enterprise Entitlements** are installed in the Management Cluster. Contact [Sales](/help-and-support/) for help on getting them.
+- [ ] **Cert Manager**: dependency for Policy Agent
 
 ### Install `gitops-ee` CLI
 
@@ -97,8 +98,9 @@ Please use the following command to start the installation wizard of Weave GitOp
 5. [Select WGE version](#selecting-wge-version): from the latest 3 available releases.
 6. [Create Cluster User](#create-cluster-user): create a Secret with the username and password for the emergency cluster user.
 7. [Configure Dashboard Access](#configure-dashboard-access): choose between 2 methods to access the dashboard either local or external.
-8. [Access the dashboard](#access-the-dashboard): via the link from the installation success message.
-9. (Optional) [Configure OIDC](#configure-oidc): to enable login to dashboard via OIDC providers.
+8. (Optional) [Configure OIDC](#configure-oidc): to enable login to dashboard via OIDC providers.
+9. (Optional) [Extra Components](#extra-components): to install extra components from (Policy Agent, Terraform Controller).
+10. [Access the dashboard](#access-the-dashboard): via the link from the installation success message.
 
 #### Verify Flux
 
@@ -152,9 +154,13 @@ spec:
       ...
 ```
 
-#### Access the dashboard
+#### (Optional) Extra Components
 
-After installation is successful. The CLI will print out the URL where you can access the dashboard.
+The CLI will prompt you to install extra components to the installation from (Policy Agent, Terraform Controller)
+
+:::note
+The controllers will be installed with the default values. To customize controller values, Please edit the corresponding values file and reconcile
+:::
 
 #### (Optional) Configure OIDC
 
@@ -168,17 +174,26 @@ To configure OIDC access, you will be asked to provide the following values:
 Please don't forget to add a new static-client on your OIDC provider settings with the redirectURI `your-domain/oauth2/callback` for example `http://localhost:3000/oauth2/callback`
 :::
 
+#### Access the dashboard
+
+After installation is successful. The CLI will print out the URL where you can access the dashboard.
+
 ### CLI configurations
 
-- `--kube-config`:                  allows to choose the Kubeconfig for your cluster, default would be ~/.kube/config
-- `-h`, `--help`:                   help for bootstrap
-- `-p`, `--password`:               Dashboard admin password
-- `-k`, `--private-key`:            Private key path. This key will be used to push the Weave GitOps Enterprise's resources to the default cluster repository
-- `-c`, `--private-key-password`:   Private key password. If the private key is encrypted using password
-- `-u`, `--username`:               Dashboard admin username
-- `-v`, `--version`:                Weave GitOps Enterprise version to install
-- `--repo-url`:                     Git repo URL for your Flux repository. For supported URL examples see [here](https://fluxcd.io/flux/cmd/flux_bootstrap_git/)
-- `--git-username`:                 Git username which contains your repository
-- `--gitPassword`:                  Git password/token to give Flux the accessiblity to be able to reconcile the repo
-- `-b`, `--branch`:                 Git branch for your Flux repository
-- `-r`, `--repo-path`:              Git path for your Flux repository (example: clusters/my-cluster)
+-  `--kubeconfig`                   Paths to a kubeconfig. Only required if out-of-cluster.
+-  `--bootstrap-flux`               chose whether you want to install flux in the generic way in case no flux installation detected
+-  `-b`, `--branch`                 git branch for your flux repository (example: main)
+-  `-i`, `--client-id`              OIDC client ID
+-  `  `  `--client-secret`          OIDC client secret
+-  `  `  `--components-extra`       extra components to be installed from (policy-agent, tf-controller)
+-  `  `  `--discovery-url`          OIDC discovery URL
+-  `  `  `--git-password`           git password/token used in https authentication type
+-  `  `  `--git-username`           git username used in https authentication type
+-  `-h`, `--help`                   help for bootstrap
+-  `-k`, `--private-key`            private key path. This key will be used to push the Weave GitOps Enterprise's resources to the default cluster repository
+-  `-c`, `--private-key-password`   private key password. If the private key is encrypted using password
+-  `-r`, `--repo-path`              git path for your flux repository (example: clusters/my-cluster)
+-  `  `  `--repo-url`               Git repo URL for your Flux repository. For supported URL examples see [here](https://fluxcd.io/flux/cmd/flux_bootstrap_git/)
+-  `-s`, `--silent`                 chose the defaults with current provided information without asking any questions
+-  `-v`, `--version`                version of Weave GitOps Enterprise (should be from the latest 3 versions)
+-  `-p`, `--password`               The Weave GitOps Enterprise password for dashboard access
