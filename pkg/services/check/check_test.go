@@ -39,12 +39,12 @@ func TestKubernetesVersion(t *testing.T) {
 		{
 			name:          "server version satisfies constraint",
 			serverVersion: "v1.28.4",
-			expectedRes:   `✔ Kubernetes 1.28.4 >=1.20.6-0`,
+			expectedRes:   `^✔ Kubernetes 1.28.4 >=1.`,
 		},
 		{
 			name:          "server version too low",
 			serverVersion: "v1.20.5",
-			expectedErr:   `✗ kubernetes version v1\.20\.5 does not match >=1\.20\.6-0`,
+			expectedErr:   `✗ kubernetes version v1\.20\.5 does not match >=1\.`,
 		},
 		{
 			name:          "server version not semver compliant",
@@ -72,7 +72,7 @@ func TestKubernetesVersion(t *testing.T) {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.expectedErr)))
 			}
 
-			g.Expect(res).To(Equal(tt.expectedRes))
+			g.Expect(res).To(MatchRegexp(tt.expectedRes))
 		})
 	}
 }

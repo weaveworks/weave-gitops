@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	kubernetesConstraints = ">=1.20.6-0"
+	kubernetesConstraints = ">=1.26"
 )
 
 // KubernetesVersion checks if the Kubernetes version of the client is recent enough and
@@ -30,5 +30,5 @@ func KubernetesVersion(c discovery.DiscoveryInterface) (string, error) {
 		return "", fmt.Errorf("✗ kubernetes version %s does not match %s", sv.Original(), kubernetesConstraints)
 	}
 
-	return fmt.Sprintf("✔ Kubernetes %s %s", sv.String(), kubernetesConstraints), nil
+	return fmt.Sprintf("✔ Kubernetes %s %s", sv, kubernetesConstraints), nil
 }
