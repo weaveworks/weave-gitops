@@ -29,6 +29,7 @@ import (
 
 const (
 	FluxNamespacePartOf = "flux"
+	PartOfWeaveGitops   = "weave-gitops"
 )
 
 var (
@@ -44,6 +45,10 @@ var (
 
 	DefaultFluxNamespace = lookupEnv("WEAVE_GITOPS_FALLBACK_NAMESPACE", "flux-system")
 )
+
+var RuntimeLabels = []string{
+	FluxNamespacePartOf, PartOfWeaveGitops,
+}
 
 func lookupEnv(envVar, fallback string) string {
 	if val, ok := os.LookupEnv(envVar); ok {
@@ -69,51 +74,54 @@ func (cs *coreServer) ListFluxRuntimeObjects(ctx context.Context, msg *pb.ListFl
 
 	var results []*pb.Deployment
 
-	for clusterName, nss := range cs.clustersManager.GetClustersNamespaces() {
-		fluxNamepsaces := filterFluxNamespace(nss)
-		if len(fluxNamepsaces) == 0 {
-			respErrors = append(respErrors, &pb.ListError{ClusterName: clusterName, Namespace: "", Message: ErrFluxNamespaceNotFound.Error()})
-			continue
-		}
-
-		opts := client.MatchingLabels{
-			coretypes.PartOfLabel: FluxNamespacePartOf,
-		}
-
-		list := &appsv1.DeploymentList{}
-
-		for _, fluxNs := range fluxNamepsaces {
-			if err := clustersClient.List(ctx, clusterName, list, opts, client.InNamespace(fluxNs.Name)); err != nil {
-				respErrors = append(respErrors, &pb.ListError{ClusterName: clusterName, Namespace: fluxNs.Name, Message: fmt.Sprintf("%s, %s", ErrListingDeployments.Error(), err)})
+	for _, runtimeLabel := range RuntimeLabels {
+		for clusterName, nss := range cs.clustersManager.GetClustersNamespaces() {
+			fluxNamespaces := filterFluxNamespace(nss)
+			if len(fluxNamespaces) == 0 {
+				respErrors = append(respErrors, &pb.ListError{ClusterName: clusterName, Namespace: "", Message: ErrFluxNamespaceNotFound.Error()})
 				continue
 			}
 
-			for _, d := range list.Items {
-				r := &pb.Deployment{
-					Name:        d.Name,
-					Namespace:   d.Namespace,
-					Conditions:  []*pb.Condition{},
-					ClusterName: clusterName,
-					Uid:         string(d.GetUID()),
-					Labels:      d.Labels,
+			opts := client.MatchingLabels{
+				coretypes.PartOfLabel: runtimeLabel,
+			}
+
+			deploymentList := &appsv1.DeploymentList{}
+
+			for _, fluxNs := range fluxNamespaces {
+				if err := clustersClient.List(ctx, clusterName, deploymentList, opts, client.InNamespace(fluxNs.Name)); err != nil {
+					respErrors = append(respErrors, &pb.ListError{ClusterName: clusterName, Namespace: fluxNs.Name, Message: fmt.Sprintf("%s, %s", ErrListingDeployments.Error(), err)})
+					continue
 				}
 
-				for _, cond := range d.Status.Conditions {
-					r.Conditions = append(r.Conditions, &pb.Condition{
-						Message: cond.Message,
-						Reason:  cond.Reason,
-						Status:  string(cond.Status),
-						Type:    string(cond.Type),
-					})
-				}
+				for _, d := range deploymentList.Items {
+					r := &pb.Deployment{
+						Name:        d.Name,
+						Namespace:   d.Namespace,
+						Conditions:  []*pb.Condition{},
+						ClusterName: clusterName,
+						Uid:         string(d.GetUID()),
+						Labels:      d.Labels,
+					}
 
-				for _, img := range d.Spec.Template.Spec.Containers {
-					r.Images = append(r.Images, img.Image)
-				}
+					for _, cond := range d.Status.Conditions {
+						r.Conditions = append(r.Conditions, &pb.Condition{
+							Message: cond.Message,
+							Reason:  cond.Reason,
+							Status:  string(cond.Status),
+							Type:    string(cond.Type),
+						})
+					}
 
-				results = append(results, r)
+					for _, img := range d.Spec.Template.Spec.Containers {
+						r.Images = append(r.Images, img.Image)
+					}
+
+					results = append(results, r)
+				}
 			}
 		}
+
 	}
 
 	return &pb.ListFluxRuntimeObjectsResponse{Deployments: results, Errors: respErrors}, nil
