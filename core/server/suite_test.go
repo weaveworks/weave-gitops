@@ -36,6 +36,11 @@ var nsChecker nsaccessfakes.FakeChecker
 
 func TestMain(m *testing.M) {
 	var err error
+
+	// setup testEnvironment
+	envTestPath := fmt.Sprintf("%s/tools/bin/envtest", "/Users/enekofb/projects/github.com/weaveworks/weave-gitops-enterprise")
+	os.Setenv("KUBEBUILDER_ASSETS", envTestPath)
+
 	k8sEnv, err = testutils.StartK8sTestEnvironment([]string{
 		"../../manifests/crds",
 		"../../tools/testcrds",
