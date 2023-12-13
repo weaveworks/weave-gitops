@@ -14,214 +14,80 @@ import oauthAzureDevOpsSuccess from '/img/oauth-azure-devops-success.png';
 
 # Install Weave GitOps Enterprise<TierLabel tiers="Enterprise" />
 
+:::info
+To purchase an entitlement to Weave GitOps Enterprise, please contact [sales@weave.works](mailto:sales@weave.works).
+:::
+
+Follow the instructions on this page to:
+
+import TOCInline from "@theme/TOCInline";
+
+<TOCInline toc={(() => {
+           const trimStart = toc.slice(toc.findIndex((node) => node.id == 'install-weave-gitops-enterprise')+1);
+           return trimStart.slice(0, trimStart.findIndex((node) => node.level == '4'));
+           })()} />
+
 :::tip
 There is no need to install the open source version of Weave GitOps before installing Weave GitOps Enterprise.
 :::
 
 ## Prerequisites
 
-Before you start make sure the following requirements are met:
+To get up and running with Weave GitOps Enterprise:
+- create a Kubernetes cluster
+- add your cluster to kubeconfig—which you'll get from Kubernetes—so that the kubeconfig correctly points to the management cluster
+- create a Git repository; in the instructions below, we refer to a `fleet-infra` repository
+- configure your Git client properly (if using GitHub, for example,
+then review their docs on [setting your username](https://docs.github.com/en/get-started/getting-started-with-git/setting-your-username-in-git#setting-your-git-username-for-every-repository-on-your-computer) and
+[your email address](https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-personal-account-on-github/managing-email-preferences/setting-your-commit-email-address#setting-your-email-address-for-every-repository-on-your-computer))
+- obtain a valid entitlement secret from Weaveworks and apply it to your cluster
+- install a compatible version of Flux onto your cluster; see below for how-to guidance
 
-- **Git Repository**: the Git configuration repo to be used by Flux and Weave GitOps.
-- **Management Cluster**: a Kubernetes cluster with a Kubeconfig with cluster admin permissions to be able to create resources.
-- **CLI Tools**: install Flux and Weave GitOps CLI.
-- **Weave GitOps Enterprise Entitlements** are installed in the Management Cluster. Contact [Sales](/help-and-support/) for help on getting them.
-
-### Git Repository
-
-### CLI Tools
-
-### Install Flux CLI
-
-Follow https://fluxcd.io/flux/installation/#install-the-flux-cli
-
-### Install Weave GitOps CLI
+### Install the Weave GitOps Enterprise CLI Tool
 
 To do this, you can use either brew or curl.
 
-    <Tabs groupId="weave-gitops-cli" default="homebrew">
-        <TabItem value="homebrew" label="Homebrew">
-
-            ```bash
-            brew install weaveworks/tap/gitops-ee
-            ```
-
-        </TabItem>
-
-        <TabItem value="curl" label="curl">
-
-            ```bash
-            export VERSION=<VERSION>
-            curl --silent --location "https://artifacts.wge.dev.weave.works/releases/bin/${VERSION}/gitops-$(uname)-$(uname -m).tar.gz" | tar xz -C /tmp
-            sudo mv /tmp/gitops /usr/local/bin
-            gitops version
-            ```
-
-        </TabItem>
-    </Tabs>
-
-## Getting Started (or Day 0)
-
-:::warning Write Modes & Permissions
-Bootstrapping requires you to have both **cluster admin** permissions on the Management Cluster and **push** permissions to the Git repository to write the generated resources.
-
-In case you want just to generate the manifests but don't apply them, use the `--export` flag.
-:::
-
-At glance getting started with Weave GitOps Enterprise requires the following steps:
-
-1. [Git Repository](#configure-git-access)
-2. [Bootstrap Flux](#bootstrap-flux)
-3. [Entitlements](#verifying-entitlement)
-4. [Authentication & Authorization](#create-cluster-user)
-5. [Install WGE](#configure-dashboard-access)
-6. [Access the dashboard](#access-the-dashboard)
-
-You could transit the process via the following routes:
-
-- `CLI Interactive`: you want to be guided step-by-step into configuring Weave GitOps Enterprise. Suitable for when you have limited knowledge about Weave GitOps Enterprise.
-- `CLI Non-Interactive`: you want to leverage cli for automation with interactive. Suitable for when you have already some knowledge about Weave GitOps Enterprise.
-- `Manual`: you want to have full control on the bootstrapping process. Suitable when the CLI cannot be used or wanted to oversee any step.
-
-        <Tabs groupId="get started" default>
-
-            <TabItem value="cliInteractive" label="Interactive">
-
-                ```bash
-                gitops bootstrap
-                ```
-
-            </TabItem>
-
-            <TabItem value="cliNonInteractive" label="Non Interactive">
-
-                You could run the bootstrap command in non-interactive mode by providing the required configurations as flags. The following gives you an example to get started that you could adapt to your own context
-
-                ```bash
-                gitops bootstrap \
-                --kubeconfig=$HOME/.kube/config \
-                --private-key=$HOME/.ssh/id_ed25519 --private-key-password="" \
-                --version="0.35.0" \
-                --domain-type="localhost" \
-                --password="admin123"  \
-                --repo-url="ssh://git@github.com/my-org-name/my-repo-name"  \
-                --branch="main"  \
-                --repo-path="clusters/my-cluster"
-                ```
-                For more information about the CLI configurations, check the below sections [here](#cli-configurations)
-
-            </TabItem>
-
-            <TabItem value="Manual" label="Manual">
-
-                this is the manual way
-
-            </TabItem>
-        </Tabs>
-
-For manual installation or deep dive on any of the stages, you could follow the below sections:
-
-### Git Repository
-
-
-
-### Bootstrap Flux
-
-The `flux bootstrap` command enables you to deploy Flux on a cluster the GitOps way. Go [here](https://fluxcd.io/docs/cmd/) for more information about the command.
-
-    <Tabs groupId="infrastructure" default>
-        <TabItem value="github" label="GitHub">
-
-            ```bash
-            flux bootstrap github \
-            --owner=<github username> \
-            --repository=fleet-infra \
-            --branch=main \
-            --path=./clusters/management \
-            --personal \
-            --components-extra image-reflector-controller,image-automation-controller
-            ```
-
-        </TabItem>
-
-        <TabItem value="gitlab" label="GitLab">
-
-            ```bash
-            flux bootstrap gitlab \
-            --owner=<gitlab username> \
-            --repository=fleet-infra \
-            --branch=main \
-            --path=./clusters/management \
-            --personal \
-            --components-extra image-reflector-controller,image-automation-controller
-            ```
-
-        </TabItem>
-    </Tabs>
-
-Your private Git repo should have a clusters/management folder that includes the manifests Flux needs to operate, and that also generates a key value pair for Flux to access the repo.
-
-* **owner**: The username (or organization) of the Git repository
-* **repository**: Git repository name
-* **branch**: Git branch (default "main")
-* **path**: Path relative to the repository root; when specified, the cluster sync will be scoped to this path
-* **personal**: If set, the owner is assumed to be a repo user
-* **components-extra**: Additional controllers to install
-
-At this point your Flux management cluster should be running. Take a look at the repository you created earlier.
-
-### Entitlements
-
-Weave GitOps Enterprise Entitlement is your obtained license to use our product. The Entitlements file is a Kubernetes secret that contains your licence.
-To get the entitlement secret please contact *sales@weave.works*, then apply it on your management cluster with the name `weave-gitops-enterprise-credentials` under `flux-system` namespace.
-
-    <Tabs groupId="entitlments" default>
-        <TabItem value="manual" label="manual">
-
-            ```bash
-            kubectl apply -n flux-system -f entitlements.yaml
-            ```
-
-        </TabItem>
-
-        <TabItem value="cli" label="cli">
-
-            `Bootstrapping` checks that the secret exists on the management cluster, and that it is valid will check if it has valid content and the entitlement is not expired.
-
-
-        </TabItem>
-    </Tabs>
-
-
-### Authentication & Authorization
-
-There are two supported authentication methods for Weave GitOps Enterprise:
-
-- `OIDC`: allows you to control permissions for existing users and groups that have already been configured to use OIDC. OIDC decouples the need to manage user lists from the application, allowing it to be managed via
-a central system designed for that purpose (i.e. the OIDC provider). OIDC also enables the creation of groups—either via your provider's own systems or by using a connector like [Dex](#configuring-oidc-with-dex-and-github).
-- `Cluster User`: which is insecure, and which we only recommend for local and development environments or if you need to activate emergency access to a damaged cluster. However, it is an option if an OIDC provider is not available.
-
-The both work with standard Kubernetes RBAC for authorization.
-
-<Tabs groupId="authN/authZ" default>
-<TabItem value="CLI" label="CLI">
-
-In interactive mode you will be guided to setup authentication for both Cluster User and OIDC.
-
-In non-interactive mode you have the following flags to configure authentication
+<Tabs groupId="weave-gitops-cli" default="homebrew">
+<TabItem value="homebrew" label="Homebrew">
 
 ```bash
-# setup Cluster User 'wego-admin' with password 'admin123'
-gitops bootstrap --password="admin123"
-
-# setup OIDC authentication
-gitops bootstrap --discovery-url="https://example.com/.well-known/openid-configuration" \
---client-id="weave-gitops-enterprise", --client-secret="clientSecretWeaveGitopsEnterprise"
+brew install weaveworks/tap/gitops-ee
 ```
 
-For more information about the CLI configurations, check the below sections [here](#cli-configurations)
 </TabItem>
-<TabItem value="Manual OIDC" label="Manual OIDC">
+
+<TabItem value="curl" label="curl">
+
+```bash
+export VERSION=<VERSION>
+curl --silent --location "https://artifacts.wge.dev.weave.works/releases/bin/${VERSION}/gitops-$(uname)-$(uname -m).tar.gz" | tar xz -C /tmp
+sudo mv /tmp/gitops /usr/local/bin
+gitops version
+```
+
+</TabItem>
+</Tabs>
+
+### Install Flux Onto Your Cluster with the `flux bootstrap` Command
+
+
+### Apply Your Entitlements Secret to Your Cluster
+
+As noted above, you receive your entitlements secret by contacting sales@weave.works. Use this command to apply it to the cluster:
+
+```bash
+kubectl apply -f entitlements.yaml
+```
+
+## Set up Authentication and RBAC
+
+### Securing Access to the Dashboard
+
+There are two supported methods for logging in to the dashboard, that work with standard Kubernetes RBAC:
+- Login via an OIDC provider: recommended, as this will allow you to control permissions for existing users and groups that have
+already been configured to use OIDC. OIDC decouples the need to manage user lists from the application, allowing it to be managed via
+a central system designed for that purpose (i.e. the OIDC provider). OIDC also enables the creation of groups—either via your provider's own systems or by using a connector like [Dex](#configuring-oidc-with-dex-and-github).
+- Login via a cluster user account: which is insecure, and which we only recommend for local and development environments or if you need to activate emergency access to a damaged cluster. However, it is an option if an OIDC provider is not available.
 
 You may decide to give your engineering teams access to the WGE dashboard so they can view and manage their workloads. In this case, you will want to secure dashboard access and restrict who can interact with it. Weave GitOps Enterprise integrates with your OIDC provider and uses standard Kubernetes RBAC to give you fine-grained control of the dashboard users' permissions.
 
@@ -231,6 +97,8 @@ For more specific examples of how to setup OIDC with Weave GitOps, see [this gui
 
 If you run into issues setting up OIDC with Weave GitOps, please refer to the [`gitops check oidc-config` command](../../../references/cli-reference/gitops_check_oidc-config/)
 
+<Tabs groupId="infrastructure" default>
+<TabItem value="Login via an OIDC provider" label="Login via an OIDC provider">
 
 To login via your OIDC provider, create a Kubernetes secret to store the OIDC configuration. This configuration consists of the following parameters:
 
@@ -312,7 +180,265 @@ kubectl create secret generic oidc-auth \
 There are two separate configuration keys. You can override them separately. They should match your `kube-apiserver` configuration.
 
 </TabItem>
-<TabItem value="Manual Cluster User" label="Manual Cluster User">
+
+<TabItem value="Configuring OIDC with Dex and GitHub" label="Configuring OIDC with Dex and GitHub">
+
+#### Configuring OIDC with Dex and GitHub
+This example uses [Dex](https://dexidp.io/) and its [GitHub connector](https://dexidp.io/docs/connectors/github/) to show you how to log in to the Weave GitOps dashboard by authenticating with your GitHub account. It assumes you have already installed Weave GitOps on a Kubernetes cluster, per the instructions above, and have also [enabled TLS](#tls-configuration).
+
+Dex is an identity service that uses [OpenID Connect](https://openid.net/connect/) to
+drive authentication for other apps. There are other solutions for identity and access management, such as [Keycloak](https://www.keycloak.org/).
+
+Create a namespace where you will install Dex:
+
+```yaml
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dex
+```
+
+Get a GitHub ClientID and Client secret by creating a [new OAuth application](https://docs.github.com/en/developers/apps/building-oauth-apps/creating-an-oauth-app).
+
+![GitHub OAuth configuration](/img/guides/setting-up-dex/github-oauth-application.png)
+
+```bash
+kubectl create secret generic github-client \
+  --namespace=dex \
+  --from-literal=client-id=${GITHUB_CLIENT_ID} \
+  --from-literal=client-secret=${GITHUB_CLIENT_SECRET}
+```
+
+#### Deploy Dex
+
+Use `HelmRepository` and `HelmRelease` objects to let Flux deploy everything.
+
+<details><summary>Expand to see resource manifests</summary>
+
+```yaml
+---
+apiVersion: source.toolkit.fluxcd.io/v1beta1
+kind: HelmRepository
+metadata:
+  name: dex
+  namespace: dex
+spec:
+  interval: 1m
+  url: https://charts.dexidp.io
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: dex
+  namespace: dex
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: dex
+      version: 0.15.3
+      sourceRef:
+        kind: HelmRepository
+        name: dex
+        namespace: dex
+      interval: 1m
+  values:
+    envVars:
+    - name: GITHUB_CLIENT_ID
+      valueFrom:
+        secretKeyRef:
+          name: github-client
+          key: client-id
+    - name: GITHUB_CLIENT_SECRET
+      valueFrom:
+        secretKeyRef:
+          name: github-client
+          key: client-secret
+    config:
+      # Set it to a valid URL
+      issuer: https://dex.dev.example.tld
+
+      # See https://dexidp.io/docs/storage/ for more options
+      storage:
+        type: memory
+
+      staticClients:
+      - name: 'Weave GitOps'
+        id: weave-gitops
+        secret: AiAImuXKhoI5ApvKWF988txjZ+6rG3S7o6X5En
+        redirectURIs:
+        - 'https://localhost:9001/oauth2/callback'
+        - 'https://0.0.0.0:9001/oauth2/callback'
+        - 'http://0.0.0.0:9001/oauth2/callback'
+        - 'http://localhost:4567/oauth2/callback'
+        - 'https://localhost:4567/oauth2/callback'
+        - 'http://localhost:3000/oauth2/callback'
+
+      connectors:
+      - type: github
+        id: github
+        name: GitHub
+        config:
+          clientID: $GITHUB_CLIENT_ID
+          clientSecret: $GITHUB_CLIENT_SECRET
+          redirectURI: https://dex.dev.example.tld/callback
+          orgs:
+          - name: weaveworks
+            teams:
+            - team-a
+            - team-b
+            - QA
+          - name: ww-test-org
+    ingress:
+      enabled: true
+      className: nginx
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt-prod
+      hosts:
+        - host: dex.dev.example.tld
+          paths:
+          - path: /
+            pathType: ImplementationSpecific
+      tls:
+        - hosts:
+          - dex.dev.example.tld
+          secretName: dex-dev-example-tld
+```
+
+</details>
+
+An important part of the configuration is the `orgs` field on the GitHub
+connector, which allows you to define groups within a GitHub organisation: 
+
+```yaml
+orgs:
+- name: weaveworks
+  teams:
+  - team-a
+  - team-b
+  - QA
+```
+
+In this example, the GitHub organisation is `weaveworks` and all members of the `team-a`,
+`team-b`, and `QA` teams can authenticate. Group membership is added to
+the user.
+
+Based on these groups, we can bind roles to groups:
+
+<details><summary>Expand to see group role bindings</summary>
+
+```yaml
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: wego-test-user-read-resources
+  namespace: flux-system
+subjects:
+  - kind: Group
+    name: weaveworks:QA
+    namespace: flux-system
+roleRef:
+  kind: Role
+  name: wego-admin-role
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: wego-admin-role
+  namespace: flux-system
+rules:
+  - apiGroups: [""]
+    resources: ["secrets", "pods" ]
+    verbs: [ "get", "list" ]
+  - apiGroups: ["apps"]
+    resources: [ "deployments", "replicasets"]
+    verbs: [ "get", "list" ]
+  - apiGroups: ["kustomize.toolkit.fluxcd.io"]
+    resources: [ "kustomizations" ]
+    verbs: [ "get", "list", "patch" ]
+  - apiGroups: ["helm.toolkit.fluxcd.io"]
+    resources: [ "helmreleases" ]
+    verbs: [ "get", "list", "patch" ]
+  - apiGroups: ["source.toolkit.fluxcd.io"]
+    resources: ["buckets", "helmcharts", "gitrepositories", "helmrepositories", "ocirepositories"]
+    verbs: ["get", "list", "patch"]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["get", "watch", "list"]
+```
+
+</details>
+
+In the same way, we can bind cluster roles to a group:
+
+<details><summary>Expand to see group cluster role bindings</summary>
+
+```yaml
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: weaveworks:team-a
+subjects:
+- kind: Group
+  name: weaveworks:team-a
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: cluster-admin
+  apiGroup: rbac.authorization.k8s.io
+```
+
+</details>
+
+#### Set up a Static User
+
+For a static user, add `staticPasswords` to the `config`:
+
+```yaml
+spec:
+  values:
+    config:
+      staticPasswords:
+      - email: "admin@example.tld"
+        hash: "$2a$10$2b2cU8CPhOTaGrs1HRQuAueS7JTT5ZHsHSzYiFPm1leZck7Mc8T4W"
+        username: "admin"
+        userID: "08a8684b-db88-4b73-90a9-3cd1661f5466"
+```
+
+Generate a static user password via the `gitops` CLI:
+
+```bash
+PASSWORD="<your password>"
+echo -n $PASSWORD | gitops get bcrypt-hash
+$2a$10$OS5NJmPNEb13UgTOSKnMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q
+```
+
+#### OIDC Login
+
+Using the "Login with OIDC Provider" button:
+
+![Login page](/img/guides/setting-up-dex/oidc-login.png)
+
+We have to authorize the GitHub OAuth application:
+
+![GitHub OAuth page](/img/guides/setting-up-dex/github-auth.png)
+
+After that, grant access to Dex:
+
+![Dex grant access](/img/guides/setting-up-dex/dex-auth.png)
+
+Now we are logged in with our GitHub user and can see all of the resources we have
+access to:
+
+![UI logged in](/img/guides/setting-up-dex/ui-logged-in.png)
+
+</TabItem>
+
+<TabItem value="Login via a cluster user account" label="Login via a cluster user account">
 
 :::danger Important
 This is an **insecure** method of securing your dashboard which we only recommend for local
@@ -424,7 +550,7 @@ for the Weave GitOps application, which the WGE UI requires to work. The default
 ```yaml
 rules:
 - apiGroups: [""]
-  resources:  ["users", "groups"]
+  resources:  ["users", "groups"] 
   verbs: [ "impersonate" ]
 - apiGroups: [""]
   resources: [ "secrets" ]
@@ -444,7 +570,7 @@ These allow the pod to do three things:
 #### Impersonation
 
 The primary way Weave GitOps queries the Kube API is via `impersonation`. The permissions granted to users and groups that Weave GitOps
-can impersonate will determine the scope of actions that WGE can take within your cluster.
+can impersonate will determine the scope of actions that WGE can take within your cluster. 
 
 The application, not the cluster, authenticates the user, either via the [emergency
 cluster user](#configuring-the-emergency-user) credentials or OIDC. Then it makes Kube API calls on the user's
@@ -455,7 +581,7 @@ $ kubectl get deployments --as aisha@example.com
 ```
 
 Assuming the user `aisha@example.com` has permissions to get
-deployments within the cluster, this will return those deployments. The same occurs
+deployments within the cluster, this will return those deployments. The same occurs 
 within the application, so properly configuring application
 permissions is very important. Without proper restrictions the application can impersonate
 very powerful `users` or `groups`. For example, the `system:masters` is a group
@@ -816,7 +942,7 @@ If BitBucket Server is running on the default port (7990), make sure you include
 
 <TabItem value="azure-devops" label="Azure DevOps">
 
-Navigate to [VisualStudio](https://app.vsaex.visualstudio.com/app/register) and register a new application, as explained in the [docs](https://learn.microsoft.com/en-us/azure/devops/integrate/get-started/authentication/oauth?view=azure-devops#1-register-your-app). Set the authorization callback URL and select which scopes to grant. Set the callback URL to `<WGE dashboard URL>/oauth/azuredevops`.
+Navigate to [VisualStudio](https://app.vsaex.visualstudio.com/app/register) and register a new application, as explained in the [docs](https://learn.microsoft.com/en-us/azure/devops/integrate/get-started/authentication/oauth?view=azure-devops#1-register-your-app). Set the authorization callback URL and select which scopes to grant. Set the callback URL to `<WGE dashboard URL>/oauth/azuredevops`. 
 
 Select the `Code (read and write)` scope from the list. This is necessary so that WGE can create pull requests on behalf of users. An example of configuring these settings is shown below.
 
@@ -955,38 +1081,3 @@ Here are a couple of options for you to take your next steps with WGE. Explore o
 - [Cluster Management](https://docs.gitops.weave.works/docs/next/cluster-management/intro/): We'll show you how to join WGE to a cluster and install an application on that cluster *without* using Cluster API. But if you prefer using Cluster API, our docs cover that too.
 - Install the [Terraform Controller](https://weaveworks.github.io/tf-controller/) to reconcile your Terraform resources in a GitOps way. With Flux and the TF Controller, WGE makes it easy to add Terraform templates to your clusters and continuously reconcile any changes made to the Terraform source manifest.
 - Install [Policy agent](../../policy/intro.mdx), which comes packaged with the WGE chart.
-
-
-### Install WGE
-
-### Access the dashboard
-
-
-## Advanced Configurations or Day 1
-
-The following stages applies
-
-1. [Extra Components](#extra-components): to install extra components from (Policy Agent, Terraform Controller).
-2. Cluster Management
-3. Update Values
-
-### CLI configurations
-
--  `--kubeconfig`                   Paths to a kubeconfig. Only required if out-of-cluster.
--  `--bootstrap-flux`               chose whether you want to install flux in the generic way in case no flux installation detected
--  `-b`, `--branch`                 git branch for your flux repository (example: main)
--  `-i`, `--client-id`              OIDC client ID
--  `--client-secret`                OIDC client secret
--  `--components-extra`             extra components to be installed from (policy-agent, tf-controller)
--  `--discovery-url`                OIDC discovery URL
--  `--export`                       write to stdout the bootstrapping manifests without writing in the cluster or Git. It requires Flux to be bootstrapped.
--  `--git-password`                 git password/token used in https authentication type
--  `--git-username`                 git username used in https authentication type
--  `-h`, `--help`                   help for bootstrap
--  `-k`, `--private-key`            private key path. This key will be used to push the Weave GitOps Enterprise's resources to the default cluster repository
--  `-c`, `--private-key-password`   private key password. If the private key is encrypted using password
--  `-r`, `--repo-path`              git path for your flux repository (example: clusters/my-cluster)
--  `--repo-url`                     Git repo URL for your Flux repository. For supported URL examples see [here](https://fluxcd.io/flux/cmd/flux_bootstrap_git/)
--  `-s`, `--silent`                 chose the defaults with current provided information without asking any questions
--  `-v`, `--version`                version of Weave GitOps Enterprise (should be from the latest 3 versions)
--  `-p`, `--password`               The Weave GitOps Enterprise password for dashboard access
