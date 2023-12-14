@@ -7,6 +7,7 @@ pagination_next: enterprise/getting-started/releases-enterprise
 import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 import TierLabel from "@site/docs/_components/TierLabel";
+import AlphaWarning from "../../_components/_alpha_warning.mdx";
 import CurlCodeBlock from "../../_components/CurlCodeBlock";
 import oauthBitbucket from '/img/oauth-bitbucket.png';
 import oauthAzureDevOps from '/img/oauth-azure-devops.png';
@@ -37,28 +38,28 @@ Follow https://fluxcd.io/flux/installation/#install-the-flux-cli
 
 ### Install Weave GitOps CLI
 
-To do this, you can use either brew or curl.
+To do this, you can use either brew or curl:
 
-    <Tabs groupId="weave-gitops-cli" default="homebrew">
-        <TabItem value="homebrew" label="Homebrew">
+    <Tabs groupId="weave-gitops-cli">
+    <TabItem value="homebrew" label="Homebrew">
 
-            ```bash
-            brew install weaveworks/tap/gitops-ee
-            ```
+    ```
+     brew install weaveworks/tap/gitops-ee
+    ```
 
-        </TabItem>
+    </TabItem>
+    <TabItem value="curl" label="curl">
 
-        <TabItem value="curl" label="curl">
+    ```
+     export VERSION=<VERSION>
+     curl --silent --location "https://artifacts.wge.dev.weave.works/releases/bin/${VERSION}/gitops-$(uname)-$(uname -m).tar.gz" | tar xz -C /tmp
+     sudo mv /tmp/gitops /usr/local/bin
+     gitops version
+    ```
 
-            ```bash
-            export VERSION=<VERSION>
-            curl --silent --location "https://artifacts.wge.dev.weave.works/releases/bin/${VERSION}/gitops-$(uname)-$(uname -m).tar.gz" | tar xz -C /tmp
-            sudo mv /tmp/gitops /usr/local/bin
-            gitops version
-            ```
-
-        </TabItem>
+    </TabItem>
     </Tabs>
+
 
 ## Getting Started (or Day 0)
 
@@ -83,92 +84,66 @@ You could transit the process via the following routes:
 - `CLI Non-Interactive`: you want to leverage cli for automation with interactive. Suitable for when you have already some knowledge about Weave GitOps Enterprise.
 - `Manual`: you want to have full control on the bootstrapping process. Suitable when the CLI cannot be used or wanted to oversee any step.
 
-        <Tabs groupId="get started" default>
+    <Tabs groupId="flux bootstrap" default>
+    <TabItem value="cli interactive" label="cli interactive">
 
-            <TabItem value="cliInteractive" label="Interactive">
+    <AlphaWarning/>
 
-                ```bash
-                gitops bootstrap
-                ```
+     ```
+      gitops bootstrap
+     ```
+        
+    </TabItem>
+    <TabItem value="cli non interactive" label="cli non interactive">
+        
+    <AlphaWarning/>
+    You could run the bootstrap command in non-interactive mode by providing the required configurations as flags. The following gives you an example to get started that you could adapt to your own context
 
-            </TabItem>
+    ```bash
+    gitops bootstrap \
+    --kubeconfig=$HOME/.kube/config \
+    --private-key=$HOME/.ssh/id_ed25519 --private-key-password="" \
+    --version="0.35.0" \
+    --domain-type="localhost" \
+    --password="admin123"  \
+    --repo-url="ssh://git@github.com/my-org-name/my-repo-name"  \
+    --branch="main"  \
+    --repo-path="clusters/my-cluster"
+    ```
+    For more information about the CLI configurations, check the below sections [here](#cli-configurations)
+        
+    </TabItem>
+    <TabItem value="manual" label="manual">
+        For manual installation or deep dive on any of the stages, you could follow the below sections:
+    </TabItem>
+    </Tabs>
 
-            <TabItem value="cliNonInteractive" label="Non Interactive">
 
-                You could run the bootstrap command in non-interactive mode by providing the required configurations as flags. The following gives you an example to get started that you could adapt to your own context
-
-                ```bash
-                gitops bootstrap \
-                --kubeconfig=$HOME/.kube/config \
-                --private-key=$HOME/.ssh/id_ed25519 --private-key-password="" \
-                --version="0.35.0" \
-                --domain-type="localhost" \
-                --password="admin123"  \
-                --repo-url="ssh://git@github.com/my-org-name/my-repo-name"  \
-                --branch="main"  \
-                --repo-path="clusters/my-cluster"
-                ```
-                For more information about the CLI configurations, check the below sections [here](#cli-configurations)
-
-            </TabItem>
-
-            <TabItem value="Manual" label="Manual">
-
-                this is the manual way
-
-            </TabItem>
-        </Tabs>
-
-For manual installation or deep dive on any of the stages, you could follow the below sections:
 
 ### Git Repository
-
-
+TBA
 
 ### Bootstrap Flux
 
-The `flux bootstrap` command enables you to deploy Flux on a cluster the GitOps way. Go [here](https://fluxcd.io/docs/cmd/) for more information about the command.
+<Tabs groupId="flux bootstrap" default>
+<TabItem value="cli" label="cli">
 
-    <Tabs groupId="infrastructure" default>
-        <TabItem value="github" label="GitHub">
+```
+ # bootstrap WGE and Flux using HTTPS
+ gitops bootstrap --repo-url="https://example.com/repository.git" --branch="main" --repo-path="clusters/management" --git-username="username" --git-password="password"
 
-            ```bash
-            flux bootstrap github \
-            --owner=<github username> \
-            --repository=fleet-infra \
-            --branch=main \
-            --path=./clusters/management \
-            --personal \
-            --components-extra image-reflector-controller,image-automation-controller
-            ```
+ # bootstrap WGE and Flux using SSH
+ gitops bootstrap --repo-url="ssh://git@example.com/repository.git" --branch="main" --repo-path="clusters/management" --private-key="path/to/private.key"  --private-key-password="password"
+```
 
-        </TabItem>
+</TabItem>
+<TabItem value="manual" label="manual">
 
-        <TabItem value="gitlab" label="GitLab">
+The `flux bootstrap` command enables you to deploy Flux on a cluster the GitOps way:
+See other options [Flux bootstrap](https://fluxcd.io/docs/cmd/flux_bootstrap/) documentation.
 
-            ```bash
-            flux bootstrap gitlab \
-            --owner=<gitlab username> \
-            --repository=fleet-infra \
-            --branch=main \
-            --path=./clusters/management \
-            --personal \
-            --components-extra image-reflector-controller,image-automation-controller
-            ```
-
-        </TabItem>
-    </Tabs>
-
-Your private Git repo should have a clusters/management folder that includes the manifests Flux needs to operate, and that also generates a key value pair for Flux to access the repo.
-
-* **owner**: The username (or organization) of the Git repository
-* **repository**: Git repository name
-* **branch**: Git branch (default "main")
-* **path**: Path relative to the repository root; when specified, the cluster sync will be scoped to this path
-* **personal**: If set, the owner is assumed to be a repo user
-* **components-extra**: Additional controllers to install
-
-At this point your Flux management cluster should be running. Take a look at the repository you created earlier.
+</TabItem>
+</Tabs>
 
 ### Entitlements
 
