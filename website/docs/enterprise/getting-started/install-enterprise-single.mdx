@@ -47,7 +47,7 @@ To do this, you can use either brew or curl:
    <Tabs groupId="weave-gitops-cli">
    <TabItem value="homebrew" label="Homebrew">
 
-   ```
+   ```bash
     brew install weaveworks/tap/gitops-ee
    ```
 
@@ -55,7 +55,7 @@ To do this, you can use either brew or curl:
    <TabItem value="curl" label="curl">
    // TODO needs review
 
-   ```
+   ```bash
     export VERSION=$VERSION
     curl --silent --location "https://artifacts.wge.dev.weave.works/releases/bin/${VERSION}/gitops-$(uname)-$(uname -m).tar.gz" | tar xz -C /tmp
     sudo mv /tmp/gitops /usr/local/bin
@@ -87,7 +87,7 @@ You could do it in any of the following ways:
 
     <AlphaWarning/>
 
-     ```
+     ```bash
       gitops bootstrap
      ```
         
@@ -119,22 +119,39 @@ You could do it in any of the following ways:
 
 ### Bootstrap Flux
 
+This stage is about bootstrapping Fux which involves deploying Flux into the management cluster and configure it to reconcile your Git repository.
+
 <Tabs groupId="flux bootstrap" default>
 <TabItem value="cli" label="cli">
 
-```
+In interactive mode, you will be guided through the stage.
+
+In non-interactive mode, use the following examples and flags:
+
+```bash
  # bootstrap WGE and Flux using HTTPS
  gitops bootstrap --repo-url="https://example.com/repository.git" --branch="main" --repo-path="clusters/management" --git-username="username" --git-password="password"
 
  # bootstrap WGE and Flux using SSH
  gitops bootstrap --repo-url="ssh://git@example.com/repository.git" --branch="main" --repo-path="clusters/management" --private-key="path/to/private.key"  --private-key-password="password"
 ```
-
+For more information about the CLI configurations, check the below sections [here](#cli-configurations)
 </TabItem>
 <TabItem value="manual" label="manual">
 
-The `flux bootstrap` command enables you to deploy Flux on a cluster the GitOps way:
-See other options [Flux bootstrap](https://fluxcd.io/docs/cmd/flux_bootstrap/) documentation.
+The `flux bootstrap` command enables you to deploy Flux on a cluster the GitOps way. See the different
+option [Flux bootstrap](https://fluxcd.io/docs/cmd/flux_bootstrap/) documentation.
+
+Two examples using [`flux bootstrap git`](https://fluxcd.io/flux/cmd/flux_bootstrap_git/) are:
+
+```bash
+# Run bootstrap for a Git repository and authenticate using a password
+flux bootstrap git --url="https://example.com/repository.git" --"password=password" --path="clusters/my-cluster"
+
+# Run bootstrap for a Git repository with a private key and password
+flux bootstrap git --url="ssh://git@example.com/repository.git" --private-key-file="path/to/private.key" --password="password" --path="clusters/my-cluster"
+```
+
 
 </TabItem>
 </Tabs>
@@ -147,7 +164,7 @@ To get the entitlement secret please contact *sales@weave.works*, then apply it 
    <Tabs groupId="entitlments" default>
    <TabItem value="manual" label="manual">
 
-   ```
+   ```bash
     kubectl apply -n flux-system -f entitlements.yaml
    ```
 
