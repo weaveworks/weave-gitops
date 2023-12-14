@@ -10,6 +10,63 @@ import TierLabel from "../../_components/TierLabel";
 This page details the changes for Weave GitOps Enterprise and its associated components. For Weave GitOps OSS, please see the release notes on [GitHub](https://github.com/weaveworks/weave-gitops/releases).
 :::
 
+## v0.38.1
+2023-12-11
+
+### Highlights
+
+This is a bug fix release that fixes a few notable issues:
+
+#### UI issues
+- Credentials selection is fixed on the Templates page
+- Loading the Terraform list view no longer crashes with certain Terraform CRs.
+
+#### CLI Bootstrapping 
+- Fixes Git Configuration for Flux bootstrapping in interactive mode 
+
+### Enhancements
+- Added bootstrapping export mode
+
+### Dependency versions
+- Flux >= v2.0.0
+- weave-gitops [v0.38.0](https://github.com/weaveworks/weave-gitops/releases/tag/v0.38.0)
+- (optional) cluster-controller v1.5.2
+- (optional) cluster-bootstrap-controller v0.7.3
+- (optional) cluster-reflector-controller v0.0.9
+- (optional) gitopssets-controller v0.16.4
+- (optional) pipeline-controller v0.21.0
+- (optional) policy-agent v2.5.0
+- (optional) templates-controller v0.3.0
+
+## v0.38.0
+2023-12-07
+
+### Highlights
+
+You can now run Weave GitOps Enterprise under a subpath e.g. https://example.com/wego/
+This is useful if you want to make the application available alongside other applications on the same domain, please see the documentation [here](https://docs.gitops.weave.works/docs/guides/run-ui-subpath/).
+
+In the context of the Bootstrapping CLI command, this version allows installing Policy Agent or Tf-Controller as extra components.
+
+### Enhancements
+- Changes bootstrapping networking to use ClusterIP and other modes via release values
+- Explorer default sort by score
+
+### Bug Fixes
+- Delay Explorer query input focus until drawer animation is complete
+- Fix YAML syntax highlighting for GitopsSets, Terraform, Secrets, Progressive Delivery and Workspaces.
+
+### Dependency versions
+- Flux >= v2.0.0
+- weave-gitops [v0.38.0](https://github.com/weaveworks/weave-gitops/releases/tag/v0.38.0)
+- (optional) cluster-controller v1.5.2
+- (optional) cluster-bootstrap-controller v0.7.3
+- (optional) cluster-reflector-controller v0.0.9
+- (optional) gitopssets-controller v0.16.4
+- (optional) pipeline-controller v0.21.0
+- (optional) policy-agent v2.5.0
+- (optional) templates-controller v0.3.0
+
 ## v0.37.0
 2023-11-23
 
