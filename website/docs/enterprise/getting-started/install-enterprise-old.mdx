@@ -23,9 +23,9 @@ Follow the instructions on this page to:
 import TOCInline from "@theme/TOCInline";
 
 <TOCInline toc={(() => {
-           const trimStart = toc.slice(toc.findIndex((node) => node.id == 'install-weave-gitops-enterprise')+1);
-           return trimStart.slice(0, trimStart.findIndex((node) => node.level == '4'));
-           })()} />
+               const trimStart = toc.slice(toc.findIndex((node) => node.id == 'install-weave-gitops-enterprise')+1);
+               return trimStart.slice(0, trimStart.findIndex((node) => node.level == '4'));
+})()} />
 
 :::tip
 There is no need to install the open source version of Weave GitOps before installing Weave GitOps Enterprise.
@@ -48,28 +48,70 @@ then review their docs on [setting your username](https://docs.github.com/en/get
 To do this, you can use either brew or curl.
 
 <Tabs groupId="weave-gitops-cli" default="homebrew">
-<TabItem value="homebrew" label="Homebrew">
+    <TabItem value="homebrew" label="Homebrew">
 
-```bash
-brew install weaveworks/tap/gitops-ee
-```
+        ```bash
+        brew install weaveworks/tap/gitops-ee
+        ```
 
-</TabItem>
+    </TabItem>
 
-<TabItem value="curl" label="curl">
+    <TabItem value="curl" label="curl">
 
-```bash
-export VERSION=<VERSION>
-curl --silent --location "https://artifacts.wge.dev.weave.works/releases/bin/${VERSION}/gitops-$(uname)-$(uname -m).tar.gz" | tar xz -C /tmp
-sudo mv /tmp/gitops /usr/local/bin
-gitops version
-```
+        ```bash
+        export VERSION=<VERSION>
+        curl --silent --location "https://artifacts.wge.dev.weave.works/releases/bin/${VERSION}/gitops-$(uname)-$(uname -m).tar.gz" | tar xz -C /tmp
+        sudo mv /tmp/gitops /usr/local/bin
+        gitops version
+        ```
 
-</TabItem>
+    </TabItem>
 </Tabs>
 
 ### Install Flux Onto Your Cluster with the `flux bootstrap` Command
 
+The `flux bootstrap` command enables you to deploy Flux on a cluster the GitOps way. Go [here](https://fluxcd.io/docs/cmd/) for more information about the command.
+
+<Tabs groupId="infrastructure" default>
+    <TabItem value="github" label="GitHub">
+
+        ```bash
+        flux bootstrap github \
+        --owner=<github username> \
+        --repository=fleet-infra \
+        --branch=main \
+        --path=./clusters/management \
+        --personal \
+        --components-extra image-reflector-controller,image-automation-controller
+        ```
+
+    </TabItem>
+
+    <TabItem value="gitlab" label="GitLab">
+
+        ```bash
+        flux bootstrap gitlab \
+        --owner=<gitlab username> \
+        --repository=fleet-infra \
+        --branch=main \
+        --path=./clusters/management \
+        --personal \
+        --components-extra image-reflector-controller,image-automation-controller
+        ```
+
+    </TabItem>
+</Tabs>
+
+Your private Git repo should have a clusters/management folder that includes the manifests Flux needs to operate, and that also generates a key value pair for Flux to access the repo.
+
+* **owner**: The username (or organization) of the Git repository
+* **repository**: Git repository name
+* **branch**: Git branch (default "main")
+* **path**: Path relative to the repository root; when specified, the cluster sync will be scoped to this path
+* **personal**: If set, the owner is assumed to be a repo user
+* **components-extra**: Additional controllers to install
+
+At this point your Flux management cluster should be running. Take a look at the repository you created earlier.
 
 ### Apply Your Entitlements Secret to Your Cluster
 
@@ -98,448 +140,448 @@ For more specific examples of how to setup OIDC with Weave GitOps, see [this gui
 If you run into issues setting up OIDC with Weave GitOps, please refer to the [`gitops check oidc-config` command](../../../references/cli-reference/gitops_check_oidc-config/)
 
 <Tabs groupId="infrastructure" default>
-<TabItem value="Login via an OIDC provider" label="Login via an OIDC provider">
+    <TabItem value="Login via an OIDC provider" label="Login via an OIDC provider">
 
-To login via your OIDC provider, create a Kubernetes secret to store the OIDC configuration. This configuration consists of the following parameters:
+        To login via your OIDC provider, create a Kubernetes secret to store the OIDC configuration. This configuration consists of the following parameters:
 
-| Parameter         |  Description                                                                                                                      | Default   |
-| ------------------|  -------------------------------------------------------------------------------------------------------------------------------- | --------- |
-| `issuerURL`       |  The URL of the issuer; typically, the discovery URL without a path                                                                |           |
-| `clientID`        |  The client ID set up for Weave GitOps in the issuer                                                                 |           |
-| `clientSecret`    |  The client secret set up for Weave GitOps in the issuer                                                             |           |
-| `redirectURL`     |  The redirect URL set up for Weave GitOps in the issuer—typically the dashboard URL, followed by `/oauth2/callback ` |           |
-| `tokenDuration`   |  The time duration that the ID Token will remain valid after successful authentication                                           | "1h0m0s"  |
-| `tokenDuration`   |  The time duration that the ID Token will remain valid after successful authentication                                           | "1h0m0s"  |
-| `oidcUsernamePrefix` | The prefix added to users when impersonating API calls to the Kubernetes API, equivalent to --oidc-username-prefix | |
-| `oidcGroupsPrefix` | The prefix added to groups when impersonating API calls to the Kubernetes API, equivalent to --oidc-groups-prefix | |
+        | Parameter         |  Description                                                                                                                      | Default   |
+        | ------------------|  -------------------------------------------------------------------------------------------------------------------------------- | --------- |
+        | `issuerURL`       |  The URL of the issuer; typically, the discovery URL without a path                                                                |           |
+        | `clientID`        |  The client ID set up for Weave GitOps in the issuer                                                                 |           |
+        | `clientSecret`    |  The client secret set up for Weave GitOps in the issuer                                                             |           |
+        | `redirectURL`     |  The redirect URL set up for Weave GitOps in the issuer—typically the dashboard URL, followed by `/oauth2/callback ` |           |
+        | `tokenDuration`   |  The time duration that the ID Token will remain valid after successful authentication                                           | "1h0m0s"  |
+        | `tokenDuration`   |  The time duration that the ID Token will remain valid after successful authentication                                           | "1h0m0s"  |
+        | `oidcUsernamePrefix` | The prefix added to users when impersonating API calls to the Kubernetes API, equivalent to --oidc-username-prefix | |
+        | `oidcGroupsPrefix` | The prefix added to groups when impersonating API calls to the Kubernetes API, equivalent to --oidc-groups-prefix | |
 
-Ensure that your OIDC provider has been set up with a client ID/secret and the dashboard's redirect URL.
+        Ensure that your OIDC provider has been set up with a client ID/secret and the dashboard's redirect URL.
 
-Create a secret named `oidc-auth` in the `flux-system` namespace with these parameters set:
+        Create a secret named `oidc-auth` in the `flux-system` namespace with these parameters set:
 
-```sh
-kubectl create secret generic oidc-auth \
-  --namespace flux-system \
-  --from-literal=issuerURL=<oidc-issuer-url> \
-  --from-literal=clientID=<client-id> \
-  --from-literal=clientSecret=<client-secret> \
-  --from-literal=redirectURL=<redirect-url> \
-  --from-literal=tokenDuration=<token-duration>
-```
+        ```sh
+        kubectl create secret generic oidc-auth \
+        --namespace flux-system \
+        --from-literal=issuerURL=<oidc-issuer-url> \
+        --from-literal=clientID=<client-id> \
+            --from-literal=clientSecret=<client-secret> \
+                --from-literal=redirectURL=<redirect-url> \
+                    --from-literal=tokenDuration=<token-duration>
+                        ```
 
-Once the HTTP server starts, unauthenticated users will have to click 'Login With OIDC Provider' to log in or use the cluster account (if configured). Upon successful authentication, the users' identities will be impersonated in any calls made to the Kubernetes API, as part of any action they take in the dashboard. By default the Helm chart will configure RBAC correctly, but we recommend reading the [service account](#gitops-dashboard-service-account-permissions) and [user permissions](#user-permissions) pages to understand which actions are needed for Weave GitOps to function correctly.
+                        Once the HTTP server starts, unauthenticated users will have to click 'Login With OIDC Provider' to log in or use the cluster account (if configured). Upon successful authentication, the users' identities will be impersonated in any calls made to the Kubernetes API, as part of any action they take in the dashboard. By default the Helm chart will configure RBAC correctly, but we recommend reading the [service account](#gitops-dashboard-service-account-permissions) and [user permissions](#user-permissions) pages to understand which actions are needed for Weave GitOps to function correctly.
 
-:::warning
-Currently, we do not have a persistent session storage, this means that if you scale to multiple replicas, logins will not be persisted.
-:::
+                        :::warning
+                        Currently, we do not have a persistent session storage, this means that if you scale to multiple replicas, logins will not be persisted.
+                        :::
 
-#### Customization
+                        #### Customization
 
-For some OIDC configurations, you may need to customise the requested [scopes](https://openid.net/specs/openid-connect-core-1_0.html#ScopeClaims) or [claims](https://openid.net/specs/openid-connect-core-1_0.html#Claims).
+                        For some OIDC configurations, you may need to customise the requested [scopes](https://openid.net/specs/openid-connect-core-1_0.html#ScopeClaims) or [claims](https://openid.net/specs/openid-connect-core-1_0.html#Claims).
 
-The `oidcUsernamePrefix` and `oidcGroupsPrefix` work in the same way as the Kubernetes [kube-apiserver](https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/) command-line options, if you need them for Kubernetes, you will likely need them here.
+                        The `oidcUsernamePrefix` and `oidcGroupsPrefix` work in the same way as the Kubernetes [kube-apiserver](https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/) command-line options, if you need them for Kubernetes, you will likely need them here.
 
-#### Scopes
+                        #### Scopes
 
-By default, the following scopes are requested: "openid","offline_access","email","groups".
+                        By default, the following scopes are requested: "openid","offline_access","email","groups".
 
-The "openid" scope is **mandatory** for OpenID auth and will be added if not provided. The "email" and "groups" scopes are commonly used as unique identifiers in organisations.
+                        The "openid" scope is **mandatory** for OpenID auth and will be added if not provided. The "email" and "groups" scopes are commonly used as unique identifiers in organisations.
 
-"offline_access" allows us to refresh OIDC tokens to keep login sessions alive for as long as a refresh token is valid. You can, however, change the defaults.
-```sh
-kubectl create secret generic oidc-auth \
-  --namespace flux-system \
-  --from-literal=issuerURL=<oidc-issuer-url> \
-  --from-literal=clientID=<client-id> \
-  --from-literal=clientSecret=<client-secret> \
-  --from-literal=redirectURL=<redirect-url> \
-  --from-literal=tokenDuration=<token-duration> \
-  --from-literal=customScopes=custom,scopes
-```
-The format for the `customScopes` key is a comma-separated list of scopes to request. In this case, "custom", "scopes", and "openid" would be requested.
+                        "offline_access" allows us to refresh OIDC tokens to keep login sessions alive for as long as a refresh token is valid. You can, however, change the defaults.
+                        ```sh
+                        kubectl create secret generic oidc-auth \
+                        --namespace flux-system \
+                        --from-literal=issuerURL=<oidc-issuer-url> \
+                        --from-literal=clientID=<client-id> \
+                            --from-literal=clientSecret=<client-secret> \
+                                --from-literal=redirectURL=<redirect-url> \
+                                    --from-literal=tokenDuration=<token-duration> \
+                                        --from-literal=customScopes=custom,scopes
+                                        ```
+                                        The format for the `customScopes` key is a comma-separated list of scopes to request. In this case, "custom", "scopes", and "openid" would be requested.
 
-#### Claims
+                                        #### Claims
 
-By default, the following claims are parsed from the OpenID [ID Token](https://openid.net/specs/openid-connect-core-1_0.html#CodeIDToken) "email" and "groups". These are presented as the `user` and `groups` when WGE communicates with your Kubernetes API server.
+                                        By default, the following claims are parsed from the OpenID [ID Token](https://openid.net/specs/openid-connect-core-1_0.html#CodeIDToken) "email" and "groups". These are presented as the `user` and `groups` when WGE communicates with your Kubernetes API server.
 
-This is equivalent to [configuring](https://kubernetes.io/docs/reference/access-authn-authz/authentication/#configuring-the-api-server) your `kube-apiserver` with `--oidc-username-claim=email --oidc-groups-claim=groups`.
+                                        This is equivalent to [configuring](https://kubernetes.io/docs/reference/access-authn-authz/authentication/#configuring-the-api-server) your `kube-apiserver` with `--oidc-username-claim=email --oidc-groups-claim=groups`.
 
-Again, you can configure these from the `oidc-auth` `Secret`.
+                                        Again, you can configure these from the `oidc-auth` `Secret`.
 
-```sh
-kubectl create secret generic oidc-auth \
-  --namespace flux-system \
-  --from-literal=issuerURL=<oidc-issuer-url> \
-  --from-literal=clientID=<client-id> \
-  --from-literal=clientSecret=<client-secret> \
-  --from-literal=redirectURL=<redirect-url> \
-  --from-literal=tokenDuration=<token-duration> \
-  --from-literal=claimUsername=sub \
-  --from-literal=claimGroups=groups
-```
-There are two separate configuration keys. You can override them separately. They should match your `kube-apiserver` configuration.
+                                        ```sh
+                                        kubectl create secret generic oidc-auth \
+                                        --namespace flux-system \
+                                        --from-literal=issuerURL=<oidc-issuer-url> \
+                                            --from-literal=clientID=<client-id> \
+                                                --from-literal=clientSecret=<client-secret> \
+                                                    --from-literal=redirectURL=<redirect-url> \
+                                                        --from-literal=tokenDuration=<token-duration> \
+                                                            --from-literal=claimUsername=sub \
+                                                            --from-literal=claimGroups=groups
+                                                            ```
+                                                            There are two separate configuration keys. You can override them separately. They should match your `kube-apiserver` configuration.
 
-</TabItem>
+    </TabItem>
 
-<TabItem value="Configuring OIDC with Dex and GitHub" label="Configuring OIDC with Dex and GitHub">
+    <TabItem value="Configuring OIDC with Dex and GitHub" label="Configuring OIDC with Dex and GitHub">
 
-#### Configuring OIDC with Dex and GitHub
-This example uses [Dex](https://dexidp.io/) and its [GitHub connector](https://dexidp.io/docs/connectors/github/) to show you how to log in to the Weave GitOps dashboard by authenticating with your GitHub account. It assumes you have already installed Weave GitOps on a Kubernetes cluster, per the instructions above, and have also [enabled TLS](#tls-configuration).
+        #### Configuring OIDC with Dex and GitHub
+        This example uses [Dex](https://dexidp.io/) and its [GitHub connector](https://dexidp.io/docs/connectors/github/) to show you how to log in to the Weave GitOps dashboard by authenticating with your GitHub account. It assumes you have already installed Weave GitOps on a Kubernetes cluster, per the instructions above, and have also [enabled TLS](#tls-configuration).
 
-Dex is an identity service that uses [OpenID Connect](https://openid.net/connect/) to
-drive authentication for other apps. There are other solutions for identity and access management, such as [Keycloak](https://www.keycloak.org/).
+        Dex is an identity service that uses [OpenID Connect](https://openid.net/connect/) to
+        drive authentication for other apps. There are other solutions for identity and access management, such as [Keycloak](https://www.keycloak.org/).
 
-Create a namespace where you will install Dex:
+        Create a namespace where you will install Dex:
 
-```yaml
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: dex
-```
-
-Get a GitHub ClientID and Client secret by creating a [new OAuth application](https://docs.github.com/en/developers/apps/building-oauth-apps/creating-an-oauth-app).
-
-![GitHub OAuth configuration](/img/guides/setting-up-dex/github-oauth-application.png)
-
-```bash
-kubectl create secret generic github-client \
-  --namespace=dex \
-  --from-literal=client-id=${GITHUB_CLIENT_ID} \
-  --from-literal=client-secret=${GITHUB_CLIENT_SECRET}
-```
-
-#### Deploy Dex
-
-Use `HelmRepository` and `HelmRelease` objects to let Flux deploy everything.
-
-<details><summary>Expand to see resource manifests</summary>
-
-```yaml
----
-apiVersion: source.toolkit.fluxcd.io/v1beta1
-kind: HelmRepository
-metadata:
-  name: dex
-  namespace: dex
-spec:
-  interval: 1m
-  url: https://charts.dexidp.io
----
-apiVersion: helm.toolkit.fluxcd.io/v2beta1
-kind: HelmRelease
-metadata:
-  name: dex
-  namespace: dex
-spec:
-  interval: 5m
-  chart:
-    spec:
-      chart: dex
-      version: 0.15.3
-      sourceRef:
-        kind: HelmRepository
+        ```yaml
+        ---
+        apiVersion: v1
+        kind: Namespace
+        metadata:
         name: dex
-        namespace: dex
-      interval: 1m
-  values:
-    envVars:
-    - name: GITHUB_CLIENT_ID
-      valueFrom:
-        secretKeyRef:
-          name: github-client
-          key: client-id
-    - name: GITHUB_CLIENT_SECRET
-      valueFrom:
-        secretKeyRef:
-          name: github-client
-          key: client-secret
-    config:
-      # Set it to a valid URL
-      issuer: https://dex.dev.example.tld
+        ```
 
-      # See https://dexidp.io/docs/storage/ for more options
-      storage:
-        type: memory
+        Get a GitHub ClientID and Client secret by creating a [new OAuth application](https://docs.github.com/en/developers/apps/building-oauth-apps/creating-an-oauth-app).
 
-      staticClients:
-      - name: 'Weave GitOps'
-        id: weave-gitops
-        secret: AiAImuXKhoI5ApvKWF988txjZ+6rG3S7o6X5En
-        redirectURIs:
-        - 'https://localhost:9001/oauth2/callback'
-        - 'https://0.0.0.0:9001/oauth2/callback'
-        - 'http://0.0.0.0:9001/oauth2/callback'
-        - 'http://localhost:4567/oauth2/callback'
-        - 'https://localhost:4567/oauth2/callback'
-        - 'http://localhost:3000/oauth2/callback'
+        ![GitHub OAuth configuration](/img/guides/setting-up-dex/github-oauth-application.png)
 
-      connectors:
-      - type: github
-        id: github
-        name: GitHub
-        config:
-          clientID: $GITHUB_CLIENT_ID
-          clientSecret: $GITHUB_CLIENT_SECRET
-          redirectURI: https://dex.dev.example.tld/callback
-          orgs:
-          - name: weaveworks
+        ```bash
+        kubectl create secret generic github-client \
+        --namespace=dex \
+        --from-literal=client-id=${GITHUB_CLIENT_ID} \
+        --from-literal=client-secret=${GITHUB_CLIENT_SECRET}
+        ```
+
+        #### Deploy Dex
+
+        Use `HelmRepository` and `HelmRelease` objects to let Flux deploy everything.
+
+        <details><summary>Expand to see resource manifests</summary>
+
+            ```yaml
+            ---
+            apiVersion: source.toolkit.fluxcd.io/v1beta1
+            kind: HelmRepository
+            metadata:
+            name: dex
+            namespace: dex
+            spec:
+            interval: 1m
+            url: https://charts.dexidp.io
+            ---
+            apiVersion: helm.toolkit.fluxcd.io/v2beta1
+            kind: HelmRelease
+            metadata:
+            name: dex
+            namespace: dex
+            spec:
+            interval: 5m
+            chart:
+            spec:
+            chart: dex
+            version: 0.15.3
+            sourceRef:
+            kind: HelmRepository
+            name: dex
+            namespace: dex
+            interval: 1m
+            values:
+            envVars:
+            - name: GITHUB_CLIENT_ID
+            valueFrom:
+            secretKeyRef:
+            name: github-client
+            key: client-id
+            - name: GITHUB_CLIENT_SECRET
+            valueFrom:
+            secretKeyRef:
+            name: github-client
+            key: client-secret
+            config:
+            # Set it to a valid URL
+            issuer: https://dex.dev.example.tld
+
+            # See https://dexidp.io/docs/storage/ for more options
+            storage:
+            type: memory
+
+            staticClients:
+            - name: 'Weave GitOps'
+            id: weave-gitops
+            secret: AiAImuXKhoI5ApvKWF988txjZ+6rG3S7o6X5En
+            redirectURIs:
+            - 'https://localhost:9001/oauth2/callback'
+            - 'https://0.0.0.0:9001/oauth2/callback'
+            - 'http://0.0.0.0:9001/oauth2/callback'
+            - 'http://localhost:4567/oauth2/callback'
+            - 'https://localhost:4567/oauth2/callback'
+            - 'http://localhost:3000/oauth2/callback'
+
+            connectors:
+            - type: github
+            id: github
+            name: GitHub
+            config:
+            clientID: $GITHUB_CLIENT_ID
+            clientSecret: $GITHUB_CLIENT_SECRET
+            redirectURI: https://dex.dev.example.tld/callback
+            orgs:
+            - name: weaveworks
             teams:
             - team-a
             - team-b
             - QA
-          - name: ww-test-org
-    ingress:
-      enabled: true
-      className: nginx
-      annotations:
-        cert-manager.io/cluster-issuer: letsencrypt-prod
-      hosts:
-        - host: dex.dev.example.tld
-          paths:
-          - path: /
+            - name: ww-test-org
+            ingress:
+            enabled: true
+            className: nginx
+            annotations:
+            cert-manager.io/cluster-issuer: letsencrypt-prod
+            hosts:
+            - host: dex.dev.example.tld
+            paths:
+            - path: /
             pathType: ImplementationSpecific
-      tls:
-        - hosts:
-          - dex.dev.example.tld
-          secretName: dex-dev-example-tld
-```
+            tls:
+            - hosts:
+            - dex.dev.example.tld
+            secretName: dex-dev-example-tld
+            ```
 
-</details>
+        </details>
 
-An important part of the configuration is the `orgs` field on the GitHub
-connector, which allows you to define groups within a GitHub organisation: 
+        An important part of the configuration is the `orgs` field on the GitHub
+        connector, which allows you to define groups within a GitHub organisation:
 
-```yaml
-orgs:
-- name: weaveworks
-  teams:
-  - team-a
-  - team-b
-  - QA
-```
+        ```yaml
+        orgs:
+        - name: weaveworks
+        teams:
+        - team-a
+        - team-b
+        - QA
+        ```
 
-In this example, the GitHub organisation is `weaveworks` and all members of the `team-a`,
-`team-b`, and `QA` teams can authenticate. Group membership is added to
-the user.
+        In this example, the GitHub organisation is `weaveworks` and all members of the `team-a`,
+        `team-b`, and `QA` teams can authenticate. Group membership is added to
+        the user.
 
-Based on these groups, we can bind roles to groups:
+        Based on these groups, we can bind roles to groups:
 
-<details><summary>Expand to see group role bindings</summary>
+        <details><summary>Expand to see group role bindings</summary>
 
-```yaml
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: wego-test-user-read-resources
-  namespace: flux-system
-subjects:
-  - kind: Group
-    name: weaveworks:QA
-    namespace: flux-system
-roleRef:
-  kind: Role
-  name: wego-admin-role
-  apiGroup: rbac.authorization.k8s.io
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: wego-admin-role
-  namespace: flux-system
-rules:
-  - apiGroups: [""]
-    resources: ["secrets", "pods" ]
-    verbs: [ "get", "list" ]
-  - apiGroups: ["apps"]
-    resources: [ "deployments", "replicasets"]
-    verbs: [ "get", "list" ]
-  - apiGroups: ["kustomize.toolkit.fluxcd.io"]
-    resources: [ "kustomizations" ]
-    verbs: [ "get", "list", "patch" ]
-  - apiGroups: ["helm.toolkit.fluxcd.io"]
-    resources: [ "helmreleases" ]
-    verbs: [ "get", "list", "patch" ]
-  - apiGroups: ["source.toolkit.fluxcd.io"]
-    resources: ["buckets", "helmcharts", "gitrepositories", "helmrepositories", "ocirepositories"]
-    verbs: ["get", "list", "patch"]
-  - apiGroups: [""]
-    resources: ["events"]
-    verbs: ["get", "watch", "list"]
-```
+            ```yaml
+            ---
+            apiVersion: rbac.authorization.k8s.io/v1
+            kind: RoleBinding
+            metadata:
+            name: wego-test-user-read-resources
+            namespace: flux-system
+            subjects:
+            - kind: Group
+            name: weaveworks:QA
+            namespace: flux-system
+            roleRef:
+            kind: Role
+            name: wego-admin-role
+            apiGroup: rbac.authorization.k8s.io
+            ---
+            apiVersion: rbac.authorization.k8s.io/v1
+            kind: Role
+            metadata:
+            name: wego-admin-role
+            namespace: flux-system
+            rules:
+            - apiGroups: [""]
+            resources: ["secrets", "pods" ]
+            verbs: [ "get", "list" ]
+            - apiGroups: ["apps"]
+            resources: [ "deployments", "replicasets"]
+            verbs: [ "get", "list" ]
+            - apiGroups: ["kustomize.toolkit.fluxcd.io"]
+            resources: [ "kustomizations" ]
+            verbs: [ "get", "list", "patch" ]
+            - apiGroups: ["helm.toolkit.fluxcd.io"]
+            resources: [ "helmreleases" ]
+            verbs: [ "get", "list", "patch" ]
+            - apiGroups: ["source.toolkit.fluxcd.io"]
+            resources: ["buckets", "helmcharts", "gitrepositories", "helmrepositories", "ocirepositories"]
+            verbs: ["get", "list", "patch"]
+            - apiGroups: [""]
+            resources: ["events"]
+            verbs: ["get", "watch", "list"]
+            ```
 
-</details>
+        </details>
 
-In the same way, we can bind cluster roles to a group:
+        In the same way, we can bind cluster roles to a group:
 
-<details><summary>Expand to see group cluster role bindings</summary>
+        <details><summary>Expand to see group cluster role bindings</summary>
 
-```yaml
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: weaveworks:team-a
-subjects:
-- kind: Group
-  name: weaveworks:team-a
-  apiGroup: rbac.authorization.k8s.io
-roleRef:
-  kind: ClusterRole
-  name: cluster-admin
-  apiGroup: rbac.authorization.k8s.io
-```
+            ```yaml
+            ---
+            apiVersion: rbac.authorization.k8s.io/v1
+            kind: ClusterRoleBinding
+            metadata:
+            name: weaveworks:team-a
+            subjects:
+            - kind: Group
+            name: weaveworks:team-a
+            apiGroup: rbac.authorization.k8s.io
+            roleRef:
+            kind: ClusterRole
+            name: cluster-admin
+            apiGroup: rbac.authorization.k8s.io
+            ```
 
-</details>
+        </details>
 
-#### Set up a Static User
+        #### Set up a Static User
 
-For a static user, add `staticPasswords` to the `config`:
+        For a static user, add `staticPasswords` to the `config`:
 
-```yaml
-spec:
-  values:
-    config:
-      staticPasswords:
-      - email: "admin@example.tld"
+        ```yaml
+        spec:
+        values:
+        config:
+        staticPasswords:
+        - email: "admin@example.tld"
         hash: "$2a$10$2b2cU8CPhOTaGrs1HRQuAueS7JTT5ZHsHSzYiFPm1leZck7Mc8T4W"
         username: "admin"
         userID: "08a8684b-db88-4b73-90a9-3cd1661f5466"
-```
+        ```
 
-Generate a static user password via the `gitops` CLI:
+        Generate a static user password via the `gitops` CLI:
 
-```bash
-PASSWORD="<your password>"
-echo -n $PASSWORD | gitops get bcrypt-hash
-$2a$10$OS5NJmPNEb13UgTOSKnMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q
-```
+        ```bash
+        PASSWORD="<your password>"
+        echo -n $PASSWORD | gitops get bcrypt-hash
+        $2a$10$OS5NJmPNEb13UgTOSKnMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q
+        ```
 
-#### OIDC Login
+        #### OIDC Login
 
-Using the "Login with OIDC Provider" button:
+        Using the "Login with OIDC Provider" button:
 
-![Login page](/img/guides/setting-up-dex/oidc-login.png)
+        ![Login page](/img/guides/setting-up-dex/oidc-login.png)
 
-We have to authorize the GitHub OAuth application:
+        We have to authorize the GitHub OAuth application:
 
-![GitHub OAuth page](/img/guides/setting-up-dex/github-auth.png)
+        ![GitHub OAuth page](/img/guides/setting-up-dex/github-auth.png)
 
-After that, grant access to Dex:
+        After that, grant access to Dex:
 
-![Dex grant access](/img/guides/setting-up-dex/dex-auth.png)
+        ![Dex grant access](/img/guides/setting-up-dex/dex-auth.png)
 
-Now we are logged in with our GitHub user and can see all of the resources we have
-access to:
+        Now we are logged in with our GitHub user and can see all of the resources we have
+        access to:
 
-![UI logged in](/img/guides/setting-up-dex/ui-logged-in.png)
+        ![UI logged in](/img/guides/setting-up-dex/ui-logged-in.png)
 
-</TabItem>
+    </TabItem>
 
-<TabItem value="Login via a cluster user account" label="Login via a cluster user account">
+    <TabItem value="Login via a cluster user account" label="Login via a cluster user account">
 
-:::danger Important
-This is an **insecure** method of securing your dashboard which we only recommend for local
-and development environments, or if you need to activate emergency access to a damaged cluster.
+        :::danger Important
+        This is an **insecure** method of securing your dashboard which we only recommend for local
+        and development environments, or if you need to activate emergency access to a damaged cluster.
 
-Note also that this mechanism only exists for a single user. You will not be able to create multiple users. Weave GitOps does not provide its own authentication mechanism. For secure and fully-featured authentication we **strongly recommend** using an OIDC provider, as described in the other tab.
-:::
+        Note also that this mechanism only exists for a single user. You will not be able to create multiple users. Weave GitOps does not provide its own authentication mechanism. For secure and fully-featured authentication we **strongly recommend** using an OIDC provider, as described in the other tab.
+        :::
 
-#### Configuring the Emergency User
+        #### Configuring the Emergency User
 
-Before you log in via the emergency user account, you need to generate a bcrypt hash for your chosen password and store it as a secret in Kubernetes. There are several different ways to generate a bcrypt hash. This guide uses `gitops get bcrypt-hash` from our CLI.
+        Before you log in via the emergency user account, you need to generate a bcrypt hash for your chosen password and store it as a secret in Kubernetes. There are several different ways to generate a bcrypt hash. This guide uses `gitops get bcrypt-hash` from our CLI.
 
-Generate the password by running:
+        Generate the password by running:
 
-```sh
-PASSWORD="<your password>"
-echo -n $PASSWORD | gitops get bcrypt-hash
-$2a$10$OS5NJmPNEb13UgTOSKnMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q
-```
+        ```sh
+        PASSWORD="<your password>"
+        echo -n $PASSWORD | gitops get bcrypt-hash
+        $2a$10$OS5NJmPNEb13UgTOSKnMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q
+        ```
 
-Now create a Kubernetes secret to store your chosen username and the password hash:
+        Now create a Kubernetes secret to store your chosen username and the password hash:
 
-```sh
-kubectl create secret generic cluster-user-auth \
-  --namespace flux-system \
-  --from-literal=username=wego-admin \
-  --from-literal=password='$2a$10$OS5NJmPNEb13UTOSKngMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q'
-```
+        ```sh
+        kubectl create secret generic cluster-user-auth \
+        --namespace flux-system \
+        --from-literal=username=wego-admin \
+        --from-literal=password='$2a$10$OS5NJmPNEb13UTOSKngMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q'
+        ```
 
-You should now be able to login via the cluster user account using your chosen username and password.
+        You should now be able to login via the cluster user account using your chosen username and password.
 
-#### Updating the Emergency User
+        #### Updating the Emergency User
 
-To change either the username or the password, recreate the `cluster-user-auth`
-with the new details.
+        To change either the username or the password, recreate the `cluster-user-auth`
+        with the new details.
 
-Only one emergency user can be created this way. To add more users, enable an OIDC provider.
+        Only one emergency user can be created this way. To add more users, enable an OIDC provider.
 
-#### User Permissions
+        #### User Permissions
 
-By default, both a ClusterRole and Role are generated for the emergency user.
-Both have the same permissions, with the former being optional and the latter being
-bound to the `flux-system` namespace (where Flux stores its resources by default).
-The default set of rules are configured like this:
+        By default, both a ClusterRole and Role are generated for the emergency user.
+        Both have the same permissions, with the former being optional and the latter being
+        bound to the `flux-system` namespace (where Flux stores its resources by default).
+        The default set of rules are configured like this:
 
-```yaml
-rules:
-  # Flux Resources
-  - apiGroups: ["source.toolkit.fluxcd.io"]
-    resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories", "ocirepositories" ]
-    verbs: [ "get", "list", "watch", "patch" ]
+        ```yaml
+        rules:
+        # Flux Resources
+        - apiGroups: ["source.toolkit.fluxcd.io"]
+        resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories", "ocirepositories" ]
+        verbs: [ "get", "list", "watch", "patch" ]
 
-  - apiGroups: ["kustomize.toolkit.fluxcd.io"]
-    resources: [ "kustomizations" ]
-    verbs: [ "get", "list", "watch", "patch" ]
+        - apiGroups: ["kustomize.toolkit.fluxcd.io"]
+        resources: [ "kustomizations" ]
+        verbs: [ "get", "list", "watch", "patch" ]
 
-  - apiGroups: ["helm.toolkit.fluxcd.io"]
-    resources: [ "helmreleases" ]
-    verbs: [ "get", "list", "watch", "patch" ]
+        - apiGroups: ["helm.toolkit.fluxcd.io"]
+        resources: [ "helmreleases" ]
+        verbs: [ "get", "list", "watch", "patch" ]
 
-  - apiGroups: [ "notification.toolkit.fluxcd.io" ]
-    resources: [ "providers", "alerts" ]
-    verbs: [ "get", "list", "watch", "patch" ]
+        - apiGroups: [ "notification.toolkit.fluxcd.io" ]
+        resources: [ "providers", "alerts" ]
+        verbs: [ "get", "list", "watch", "patch" ]
 
-  - apiGroups: ["infra.contrib.fluxcd.io"]
-    resources: ["terraforms"]
-    verbs: [ "get", "list", "watch", "patch" ]
+        - apiGroups: ["infra.contrib.fluxcd.io"]
+        resources: ["terraforms"]
+        verbs: [ "get", "list", "watch", "patch" ]
 
-  # Read access for all other Kubernetes objects
-  - apiGroups: ["*"]
-    resources: ["*"]
-    verbs: [ "get", "list", "watch" ]
-```
+        # Read access for all other Kubernetes objects
+        - apiGroups: ["*"]
+        resources: ["*"]
+        verbs: [ "get", "list", "watch" ]
+        ```
 
-These permissions give the emergency user Administrator-level powers. **We do not
-advise leaving it active on production systems**.
+        These permissions give the emergency user Administrator-level powers. **We do not
+        advise leaving it active on production systems**.
 
-If required, the permissions can be expanded with the `rbac.additionalRules` field in the
-[Helm Chart](../../references/helm-reference.md).
-Follow the instructions in the next section in order to configure RBAC correctly.
+        If required, the permissions can be expanded with the `rbac.additionalRules` field in the
+        [Helm Chart](../../references/helm-reference.md).
+        Follow the instructions in the next section in order to configure RBAC correctly.
 
-:::tip
-To remove the emergency user as a login method, set the following values in the
-[Helm Chart](../../references/helm-reference.md):
+        :::tip
+        To remove the emergency user as a login method, set the following values in the
+        [Helm Chart](../../references/helm-reference.md):
 
-```yaml
-#
-adminUser:
-  create: false
-#
-additionalArgs:
-- --auth-methods=oidc
-#
-```
+        ```yaml
+        #
+        adminUser:
+        create: false
+        #
+        additionalArgs:
+        - --auth-methods=oidc
+        #
+        ```
 
-If you are disabling an already existing emergency user, you will need to
-manually delete the Kubernetes Secret and any User Roles that were created on
-the cluster.
-:::
+        If you are disabling an already existing emergency user, you will need to
+        manually delete the Kubernetes Secret and any User Roles that were created on
+        the cluster.
+        :::
 
-</TabItem>
+    </TabItem>
 </Tabs>
 
 ### GitOps Dashboard Service Account Permissions
@@ -550,27 +592,27 @@ for the Weave GitOps application, which the WGE UI requires to work. The default
 ```yaml
 rules:
 - apiGroups: [""]
-  resources:  ["users", "groups"] 
-  verbs: [ "impersonate" ]
+resources:  ["users", "groups"]
+verbs: [ "impersonate" ]
 - apiGroups: [""]
-  resources: [ "secrets" ]
-  verbs: [ "get", "list" ]
+resources: [ "secrets" ]
+verbs: [ "get", "list" ]
 - apiGroups: [ "" ]
-  resources: [ "namespaces" ]
-  verbs: [ "get", "list" ]
+resources: [ "namespaces" ]
+verbs: [ "get", "list" ]
 ```
 
 These allow the pod to do three things:
 * [Impersonate](https://kubernetes.io/docs/reference/access-authn-authz/authentication/#user-impersonation) the user and operate in the cluster as them
 * Read the available namespaces; this is required to understand users' permissions
 * Read the `cluster-user-auth` and `oidc-auth` secrets, the default secrets
-  to store the emergency cluster user account and OIDC configuration (see
-  [securing access to the dashboard](#securing-access-to-the-dashboard))
+to store the emergency cluster user account and OIDC configuration (see
+[securing access to the dashboard](#securing-access-to-the-dashboard))
 
 #### Impersonation
 
 The primary way Weave GitOps queries the Kube API is via `impersonation`. The permissions granted to users and groups that Weave GitOps
-can impersonate will determine the scope of actions that WGE can take within your cluster. 
+can impersonate will determine the scope of actions that WGE can take within your cluster.
 
 The application, not the cluster, authenticates the user, either via the [emergency
 cluster user](#configuring-the-emergency-user) credentials or OIDC. Then it makes Kube API calls on the user's
@@ -581,7 +623,7 @@ $ kubectl get deployments --as aisha@example.com
 ```
 
 Assuming the user `aisha@example.com` has permissions to get
-deployments within the cluster, this will return those deployments. The same occurs 
+deployments within the cluster, this will return those deployments. The same occurs
 within the application, so properly configuring application
 permissions is very important. Without proper restrictions the application can impersonate
 very powerful `users` or `groups`. For example, the `system:masters` is a group
@@ -610,31 +652,31 @@ Flux stores its resources by default—with the following permissions:
 
 ```yaml
 rules:
-  # Flux Resources
-  - apiGroups: ["source.toolkit.fluxcd.io"]
-    resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories", "ocirepositories" ]
-    verbs: [ "get", "list", "watch", "patch" ]
+# Flux Resources
+- apiGroups: ["source.toolkit.fluxcd.io"]
+resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories", "ocirepositories" ]
+verbs: [ "get", "list", "watch", "patch" ]
 
-  - apiGroups: ["kustomize.toolkit.fluxcd.io"]
-    resources: [ "kustomizations" ]
-    verbs: [ "get", "list", "watch", "patch" ]
+- apiGroups: ["kustomize.toolkit.fluxcd.io"]
+resources: [ "kustomizations" ]
+verbs: [ "get", "list", "watch", "patch" ]
 
-  - apiGroups: ["helm.toolkit.fluxcd.io"]
-    resources: [ "helmreleases" ]
-    verbs: [ "get", "list", "watch", "patch" ]
+- apiGroups: ["helm.toolkit.fluxcd.io"]
+resources: [ "helmreleases" ]
+verbs: [ "get", "list", "watch", "patch" ]
 
-  - apiGroups: [ "notification.toolkit.fluxcd.io" ]
-    resources: [ "providers", "alerts" ]
-    verbs: [ "get", "list", "watch", "patch" ]
+- apiGroups: [ "notification.toolkit.fluxcd.io" ]
+resources: [ "providers", "alerts" ]
+verbs: [ "get", "list", "watch", "patch" ]
 
-  - apiGroups: ["infra.contrib.fluxcd.io"]
-    resources: ["terraforms"]
-    verbs: [ "get", "list", "watch", "patch" ]
+- apiGroups: ["infra.contrib.fluxcd.io"]
+resources: ["terraforms"]
+verbs: [ "get", "list", "watch", "patch" ]
 
-  # Read access for all other Kubernetes objects
-  - apiGroups: ["*"]
-    resources: ["*"]
-    verbs: [ "get", "list", "watch" ]
+# Read access for all other Kubernetes objects
+- apiGroups: ["*"]
+resources: ["*"]
+verbs: [ "get", "list", "watch" ]
 ```
 
 For a wider scope, the User can be bound to a ClusterRole with the same set.
@@ -653,7 +695,7 @@ The following table lists resources that Flux works with directly.
 | notification.toolkit.fluxcd.io | providers, alerts                                                       | get, list        |
 | infra.contrib.fluxcd.io        | [Terraform](https://github.com/weaveworks/tf-controller)                                                             | get, list, patch |
 
- Weave GitOps needs to be able to query the [CRDs](https://fluxcd.io/docs/components/) that Flux uses before it can accurately display Flux state. The
+Weave GitOps needs to be able to query the [CRDs](https://fluxcd.io/docs/components/) that Flux uses before it can accurately display Flux state. The
 `get` and `list` permissions facilitate this.
 
 The `patch` permissions are used for two features: to suspend and resume
@@ -695,8 +737,8 @@ Adjust the configuration in the Helm `values.yaml` file or the `spec.values` sec
 
 ```yaml
 extraEnvVars:
-  - name: WEAVE_GITOPS_FEATURE_OIDC_BUTTON_LABEL
-    value: "Login with ACME"
+- name: WEAVE_GITOPS_FEATURE_OIDC_BUTTON_LABEL
+value: "Login with ACME"
 ```
 
 ## Recommended RBAC Configuration
@@ -708,31 +750,31 @@ Our general recommendation is to use OIDC and a small number of groups that Weav
 
 Configuring Weave GitOps to impersonate Kubernetes groups rather than users has the following benefits:
 * A user's permissions for impersonation by Weave GitOps can be separate from
-  any other permissions that they may or may not have within the cluster.
+any other permissions that they may or may not have within the cluster.
 * Users do not have to be individually managed within the cluster and can have
-  their permissions managed together.
+their permissions managed together.
 
 ### Example Setup
 
 Assume that your company has the following people in OIDC:
 * Aisha, a cluster admin, who should have full admin access to Weave GitOps
 * Brian, lead of Team-A, who should have admin permissions to their team's
-  namespace in Weave GitOps and read-only otherwise
+namespace in Weave GitOps and read-only otherwise
 * June and Jo, developers in Team-A who should have read-only access to Weave GitOps
 
 You can then create three groups:
 
 * `wego-admin`
-  - Bound to the `ClusterRole`, created by Helm, `wego-admin-cluster-role`
-  - Aisha is the only member
+- Bound to the `ClusterRole`, created by Helm, `wego-admin-cluster-role`
+- Aisha is the only member
 * `wego-team-a-admin`
-  - Bound to a `Role`, using the same permissions as `wego-admin-role`, created
-    in Team-A's namespace
-  - Brian and Aisha are members
+- Bound to a `Role`, using the same permissions as `wego-admin-role`, created
+in Team-A's namespace
+- Brian and Aisha are members
 * `wego-readonly`
-  - Bound to a `ClusterRole` that matches `wego-admin-cluster-role` but with
-    no `patch` permissions.
-  - Aisha, Brian, June and Jo are all members
+- Bound to a `ClusterRole` that matches `wego-admin-cluster-role` but with
+no `patch` permissions.
+- Aisha, Brian, June and Jo are all members
 
 :::caution Using OIDC for cluster and Weave GitOps Authentication
 If the same OIDC provider is used to authenticate a user with the cluster
@@ -752,103 +794,103 @@ The yaml to configure these permissions would look roughly like:
 
 <details><summary>Expand to see example RBAC</summary>
 
-```yaml
-# Admin cluster role
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: wego-admin-cluster-role
-rules:
-  - apiGroups: [""]
+    ```yaml
+    # Admin cluster role
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRole
+    metadata:
+    name: wego-admin-cluster-role
+    rules:
+    - apiGroups: [""]
     resources: ["secrets", "pods" ]
     verbs: [ "get", "list" ]
-  - apiGroups: ["apps"]
+    - apiGroups: ["apps"]
     resources: [ "deployments", "replicasets"]
     verbs: [ "get", "list" ]
-  - apiGroups: ["kustomize.toolkit.fluxcd.io"]
+    - apiGroups: ["kustomize.toolkit.fluxcd.io"]
     resources: [ "kustomizations" ]
     verbs: [ "get", "list", "patch" ]
-  - apiGroups: ["helm.toolkit.fluxcd.io"]
+    - apiGroups: ["helm.toolkit.fluxcd.io"]
     resources: [ "helmreleases" ]
     verbs: [ "get", "list", "patch" ]
-  - apiGroups: ["source.toolkit.fluxcd.io"]
+    - apiGroups: ["source.toolkit.fluxcd.io"]
     resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories", "ocirepositories" ]
     verbs: [ "get", "list", "patch" ]
-  - apiGroups: [""]
+    - apiGroups: [""]
     resources: ["events"]
     verbs: ["get", "watch", "list"]
----
-# Read-only cluster role
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: wego-readonly-role
-rules:
-  # All the 'patch' permissions have been removed
-  - apiGroups: [""]
+    ---
+    # Read-only cluster role
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRole
+    metadata:
+    name: wego-readonly-role
+    rules:
+    # All the 'patch' permissions have been removed
+    - apiGroups: [""]
     resources: ["secrets", "pods" ]
     verbs: [ "get", "list" ]
-  - apiGroups: ["apps"]
+    - apiGroups: ["apps"]
     resources: [ "deployments", "replicasets"]
     verbs: [ "get", "list" ]
-  - apiGroups: ["kustomize.toolkit.fluxcd.io"]
+    - apiGroups: ["kustomize.toolkit.fluxcd.io"]
     resources: [ "kustomizations" ]
     verbs: [ "get", "list" ]
-  - apiGroups: ["helm.toolkit.fluxcd.io"]
+    - apiGroups: ["helm.toolkit.fluxcd.io"]
     resources: [ "helmreleases" ]
     verbs: [ "get", "list" ]
-  - apiGroups: ["source.toolkit.fluxcd.io"]
+    - apiGroups: ["source.toolkit.fluxcd.io"]
     resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories", "ocirepositories" ]
     verbs: [ "get", "list" ]
-  - apiGroups: [""]
+    - apiGroups: [""]
     resources: ["events"]
     verbs: ["get", "watch", "list"]
----
-# Bind the cluster admin role to the wego-admin group
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: wego-cluster-admin
-subjects:
-- kind: Group
-  name: wego-admin # only Aisha is a member
-  apiGroup: rbac.authorization.k8s.io
-roleRef:
-  kind: ClusterRole
-  name: wego-admin-cluster-role
-  apiGroup: rbac.authorization.k8s.io
----
-# Bind the admin role in the team-a namespace for the wego-team-a-admin group
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: wego-team-a-admin-role
-  namespace: team-a
-subjects:
-- kind: Group
-  name: wego-team-a-admin # Aisha & Brian are members
-  apiGroup: rbac.authorization.k8s.io
-roleRef:
-  # Use the cluster role to set rules, just bind them in the team-a namespace
-  kind: ClusterRole
-  name: wego-admin-role
-  apiGroup: rbac.authorization.k8s.io
----
-# Bind the read-only role to the read-only group
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: wego-readonly-role
-subjects:
-- kind: Group
-  name: wego-readonly # Everyone is a member
-  apiGroup: rbac.authorization.k8s.io
-roleRef:
-  kind: ClusterRole
-  name: wego-readonly-role
-  apiGroup: rbac.authorization.k8s.io
----
-```
+    ---
+    # Bind the cluster admin role to the wego-admin group
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+    name: wego-cluster-admin
+    subjects:
+    - kind: Group
+    name: wego-admin # only Aisha is a member
+    apiGroup: rbac.authorization.k8s.io
+    roleRef:
+    kind: ClusterRole
+    name: wego-admin-cluster-role
+    apiGroup: rbac.authorization.k8s.io
+    ---
+    # Bind the admin role in the team-a namespace for the wego-team-a-admin group
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+    name: wego-team-a-admin-role
+    namespace: team-a
+    subjects:
+    - kind: Group
+    name: wego-team-a-admin # Aisha & Brian are members
+    apiGroup: rbac.authorization.k8s.io
+    roleRef:
+    # Use the cluster role to set rules, just bind them in the team-a namespace
+    kind: ClusterRole
+    name: wego-admin-role
+    apiGroup: rbac.authorization.k8s.io
+    ---
+    # Bind the read-only role to the read-only group
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+    name: wego-readonly-role
+    subjects:
+    - kind: Group
+    name: wego-readonly # Everyone is a member
+    apiGroup: rbac.authorization.k8s.io
+    roleRef:
+    kind: ClusterRole
+    name: wego-readonly-role
+    apiGroup: rbac.authorization.k8s.io
+    ---
+    ```
 
 </details>
 
@@ -857,120 +899,120 @@ roleRef:
 Here we provide guidance for GitHub, GitLab, BitBucket Server, and Azure DevOps.
 
 <Tabs groupId="git-provider" default>
-<TabItem value="github" label="GitHub">
-GitHub requires no additional configuration for OAuth git access
-</TabItem>
-<TabItem value="gitlab" label="GitLab">
+    <TabItem value="github" label="GitHub">
+        GitHub requires no additional configuration for OAuth git access
+    </TabItem>
+    <TabItem value="gitlab" label="GitLab">
 
-Create a GitLab OAuth application that will request `api` permissions to create pull requests on your behalf.
+        Create a GitLab OAuth application that will request `api` permissions to create pull requests on your behalf.
 
-Follow the [GitLab docs](https://docs.gitlab.com/ee/integration/oauth_provider.html).
+        Follow the [GitLab docs](https://docs.gitlab.com/ee/integration/oauth_provider.html).
 
-The application should have at least these scopes:
+        The application should have at least these scopes:
 
-- `api`
-- `openid`
-- `email`
-- `profile`
+        - `api`
+        - `openid`
+        - `email`
+        - `profile`
 
-Add callback URLs to the application for each address the UI will be exposed on, e.g.:
+        Add callback URLs to the application for each address the UI will be exposed on, e.g.:
 
-- `https://localhost:8000/oauth/gitlab` for port-forwarding and testing
-- `https://git.example.com/oauth/gitlab` for production use
+        - `https://localhost:8000/oauth/gitlab` for port-forwarding and testing
+        - `https://git.example.com/oauth/gitlab` for production use
 
-Save your application, taking note of the **Client ID** and **Client Secret**. Save
-them into the `git-provider-credentials` secret, along with:
+        Save your application, taking note of the **Client ID** and **Client Secret**. Save
+        them into the `git-provider-credentials` secret, along with:
 
-- `GIT_HOST_TYPES` to tell WGE that the host is gitlab
-- `GITLAB_HOSTNAME` where the OAuth app is hosted
+        - `GIT_HOST_TYPES` to tell WGE that the host is gitlab
+        - `GITLAB_HOSTNAME` where the OAuth app is hosted
 
-**Replace values** in this snippet and run:
+        **Replace values** in this snippet and run:
 
-```bash
-kubectl create secret generic git-provider-credentials --namespace=flux-system \
-  --from-literal="GITLAB_CLIENT_ID=13457" \
-  --from-literal="GITLAB_CLIENT_SECRET=24680" \
-  --from-literal="GITLAB_HOSTNAME=git.example.com" \
-  --from-literal="GIT_HOST_TYPES=git.example.com=gitlab"
-```
+        ```bash
+        kubectl create secret generic git-provider-credentials --namespace=flux-system \
+        --from-literal="GITLAB_CLIENT_ID=13457" \
+        --from-literal="GITLAB_CLIENT_SECRET=24680" \
+        --from-literal="GITLAB_HOSTNAME=git.example.com" \
+        --from-literal="GIT_HOST_TYPES=git.example.com=gitlab"
+        ```
 
-</TabItem>
-<TabItem value="bitbucket-server" label="BitBucket Server">
+    </TabItem>
+    <TabItem value="bitbucket-server" label="BitBucket Server">
 
-Create a new [incoming application link](https://confluence.atlassian.com/bitbucketserver/configure-an-incoming-link-1108483657.html) from
-the BitBucket administration dashboard. You will be asked to enter a unique name and the redirect URL for the external application. The redirect URL
-should be set to `<WGE dashboard URL>/oauth/bitbucketserver`. You will also need to select permissions for the application. The minimum set of
-permissions needed for WGE to create pull requests on behalf of users is `Repositories - Write`. An example of configuring these settings is shown below.
+        Create a new [incoming application link](https://confluence.atlassian.com/bitbucketserver/configure-an-incoming-link-1108483657.html) from
+        the BitBucket administration dashboard. You will be asked to enter a unique name and the redirect URL for the external application. The redirect URL
+        should be set to `<WGE dashboard URL>/oauth/bitbucketserver`. You will also need to select permissions for the application. The minimum set of
+        permissions needed for WGE to create pull requests on behalf of users is `Repositories - Write`. An example of configuring these settings is shown below.
 
-<figure>
+        <figure>
 
-<img src={oauthBitbucket} width="500"/>
+            <img src={oauthBitbucket} width="500"/>
 
-<figcaption>Configuring a new incoming application link</figcaption>
-</figure>
+            <figcaption>Configuring a new incoming application link</figcaption>
+        </figure>
 
 
-Save your application and take note of the **Client ID** and **Client Secret**. Save
-them into the `git-provider-credentials` secret, along with:
+        Save your application and take note of the **Client ID** and **Client Secret**. Save
+        them into the `git-provider-credentials` secret, along with:
 
-- `GIT_HOST_TYPES` to tell WGE that the host is bitbucket-server
-- `BITBUCKET_SERVER_HOSTNAME` where the OAuth app is hosted
+        - `GIT_HOST_TYPES` to tell WGE that the host is bitbucket-server
+        - `BITBUCKET_SERVER_HOSTNAME` where the OAuth app is hosted
 
-**Replace values** in this snippet and run:
+        **Replace values** in this snippet and run:
 
-```bash
-kubectl create secret generic git-provider-credentials --namespace=flux-system \
-  --from-literal="BITBUCKET_SERVER_CLIENT_ID=13457" \
-  --from-literal="BITBUCKET_SERVER_CLIENT_SECRET=24680" \
-  --from-literal="BITBUCKET_SERVER_HOSTNAME=git.example.com" \
-  --from-literal="GIT_HOST_TYPES=git.example.com=bitbucket-server"
-```
+        ```bash
+        kubectl create secret generic git-provider-credentials --namespace=flux-system \
+        --from-literal="BITBUCKET_SERVER_CLIENT_ID=13457" \
+        --from-literal="BITBUCKET_SERVER_CLIENT_SECRET=24680" \
+        --from-literal="BITBUCKET_SERVER_HOSTNAME=git.example.com" \
+        --from-literal="GIT_HOST_TYPES=git.example.com=bitbucket-server"
+        ```
 
-If the secret is already present, use the following command to update it using your default editor:
+        If the secret is already present, use the following command to update it using your default editor:
 
-```bash
-kubectl edit secret generic git-provider-credentials --namespace=flux-system
-```
+        ```bash
+        kubectl edit secret generic git-provider-credentials --namespace=flux-system
+        ```
 
-:::info
+        :::info
 
-If BitBucket Server is running on the default port (7990), make sure you include the port number in the values of the secret. For example: `GIT_HOST_TYPES=git.example.com:7990=bitbucket-server`
+        If BitBucket Server is running on the default port (7990), make sure you include the port number in the values of the secret. For example: `GIT_HOST_TYPES=git.example.com:7990=bitbucket-server`
 
-:::
+        :::
 
-</TabItem>
+    </TabItem>
 
-<TabItem value="azure-devops" label="Azure DevOps">
+    <TabItem value="azure-devops" label="Azure DevOps">
 
-Navigate to [VisualStudio](https://app.vsaex.visualstudio.com/app/register) and register a new application, as explained in the [docs](https://learn.microsoft.com/en-us/azure/devops/integrate/get-started/authentication/oauth?view=azure-devops#1-register-your-app). Set the authorization callback URL and select which scopes to grant. Set the callback URL to `<WGE dashboard URL>/oauth/azuredevops`. 
+        Navigate to [VisualStudio](https://app.vsaex.visualstudio.com/app/register) and register a new application, as explained in the [docs](https://learn.microsoft.com/en-us/azure/devops/integrate/get-started/authentication/oauth?view=azure-devops#1-register-your-app). Set the authorization callback URL and select which scopes to grant. Set the callback URL to `<WGE dashboard URL>/oauth/azuredevops`.
 
-Select the `Code (read and write)` scope from the list. This is necessary so that WGE can create pull requests on behalf of users. An example of configuring these settings is shown below.
+        Select the `Code (read and write)` scope from the list. This is necessary so that WGE can create pull requests on behalf of users. An example of configuring these settings is shown below.
 
-<figure>
-<img src={oauthAzureDevOps}/>
-<figcaption>Creating a new application</figcaption>
-</figure>
+        <figure>
+            <img src={oauthAzureDevOps}/>
+            <figcaption>Creating a new application</figcaption>
+        </figure>
 
-After creating your application, you will be presented with the application settings. Take note of the `App ID` and `Client Secret` values—you will use them to configure WGE.
+        After creating your application, you will be presented with the application settings. Take note of the `App ID` and `Client Secret` values—you will use them to configure WGE.
 
-<figure>
-<img src={oauthAzureDevOpsSuccess}/>
-<figcaption>Application settings</figcaption>
-</figure>
+        <figure>
+            <img src={oauthAzureDevOpsSuccess}/>
+            <figcaption>Application settings</figcaption>
+        </figure>
 
-In your cluster, create a secret named `git-provider-credentials` that contains the `App ID` and `Client Secret` values from the newly created application.
+        In your cluster, create a secret named `git-provider-credentials` that contains the `App ID` and `Client Secret` values from the newly created application.
 
-**Replace values** in this snippet and run:
+        **Replace values** in this snippet and run:
 
-```bash
-kubectl create secret generic git-provider-credentials --namespace=flux-system \
-  --from-literal="AZURE_DEVOPS_CLIENT_ID=<App ID value>" \
-  --from-literal="AZURE_DEVOPS_CLIENT_SECRET=<Client Secret value>"
-```
+        ```bash
+        kubectl create secret generic git-provider-credentials --namespace=flux-system \
+        --from-literal="AZURE_DEVOPS_CLIENT_ID=<App ID value>" \
+            --from-literal="AZURE_DEVOPS_CLIENT_SECRET=<Client Secret value>"
+                ```
 
-WGE is now configured to ask users for authorization the next time a pull request must be created as part of using a template. Note that each user can view and manage which applications they have authorized by navigating to https://app.vsaex.visualstudio.com/me.
+                WGE is now configured to ask users for authorization the next time a pull request must be created as part of using a template. Note that each user can view and manage which applications they have authorized by navigating to https://app.vsaex.visualstudio.com/me.
 
-</TabItem>
+    </TabItem>
 </Tabs>
 
 ## TLS Configuration
@@ -985,18 +1027,18 @@ It can then be accessed via port-forwarding:
 If you're using an ingress controller to terminate TLS you can disable it in the Helm release:
 
 ```yaml
-  values:
-    tls:
-      enabled: false
+values:
+tls:
+enabled: false
 ```
 
 Other ingress conguration changes can be made via the ingress configuration
 
 ```yaml
-  values:
-    ingress:
-      enabled: true
-      ... other parameters specific to the ingress type ...
+values:
+ingress:
+enabled: true
+... other parameters specific to the ingress type ...
 ```
 
 ## Configure Helm Chart and Commit
@@ -1007,77 +1049,77 @@ Clone the newly created repo locally. We're gonna add some things!
 
 ```bash
 git clone git@<provider>:<username>/fleet-infra
-cd fleet-infra
-```
+    cd fleet-infra
+    ```
 
-Download the helm-release to `clusters/management/weave-gitops-enterprise.yaml`.
+    Download the helm-release to `clusters/management/weave-gitops-enterprise.yaml`.
 
-import ExampleWGE from "../../assets/example-enterprise-helm.yaml";
-import ExampleWGEContent from "!!raw-loader!../../assets/example-enterprise-helm.yaml";
+    import ExampleWGE from "../../assets/example-enterprise-helm.yaml";
+    import ExampleWGEContent from "!!raw-loader!../../assets/example-enterprise-helm.yaml";
 
-<details><summary>Expand to see file contents</summary>
+    <details><summary>Expand to see file contents</summary>
 
-<CurlCodeBlock
-  localPath="clusters/management/weave-gitops-enterprise.yaml"
-  hostedPath={ExampleWGE}
-  content={ExampleWGEContent}
-/>
+        <CurlCodeBlock
+            localPath="clusters/management/weave-gitops-enterprise.yaml"
+            hostedPath={ExampleWGE}
+            content={ExampleWGEContent}
+        />
 
-</details>
+    </details>
 
-Once you have copied the above file, open and adjust the following configuration
-options:
+    Once you have copied the above file, open and adjust the following configuration
+    options:
 
-#### `values.config.capi.repositoryURL`
-Ensure this has been set to your repository URL.
+    #### `values.config.capi.repositoryURL`
+    Ensure this has been set to your repository URL.
 
-#### `values.config.capi.repositoryPath`
-By default, WGE will create new clusters in the `clusters/management/clusters` path.
-You can configure it with `values.config.capi.repositoryPath`.
-You might what to change it to `clusters/my-cluster/cluster` if you configured Flux to reconcile `./clusters/my-cluster` instead.
+    #### `values.config.capi.repositoryPath`
+    By default, WGE will create new clusters in the `clusters/management/clusters` path.
+    You can configure it with `values.config.capi.repositoryPath`.
+    You might what to change it to `clusters/my-cluster/cluster` if you configured Flux to reconcile `./clusters/my-cluster` instead.
 
-#### `values.config.capi.repositoryClustersPath`
-The other important path to configure is where you'll store applications and workloads run on the new cluster.
-By default this is `./clusters`. When a new cluster is specified, any selected profiles will be written to `./clusters/{.namespace}/{.clusterName}/profiles.yaml`.
-When the new cluster is bootstrapped, Flux will sync the `./clusters/{.namespace}/{.clusterName}` path.
+    #### `values.config.capi.repositoryClustersPath`
+    The other important path to configure is where you'll store applications and workloads run on the new cluster.
+    By default this is `./clusters`. When a new cluster is specified, any selected profiles will be written to `./clusters/{.namespace}/{.clusterName}/profiles.yaml`.
+    When the new cluster is bootstrapped, Flux will sync the `./clusters/{.namespace}/{.clusterName}` path.
 
-## Configure Your Password
+    ## Configure Your Password
 
-To login to the WGE UI, generate a bcrypt hash for your chosen password and store it as a secret in the Kubernetes cluster. There are several different ways to generate a bcrypt hash. Here, we'll use `gitops get bcrypt-hash` from our CLI.
+    To login to the WGE UI, generate a bcrypt hash for your chosen password and store it as a secret in the Kubernetes cluster. There are several different ways to generate a bcrypt hash. Here, we'll use `gitops get bcrypt-hash` from our CLI.
 
-```bash
-PASSWORD="<Make up and insert a brand-new password here>"
-echo -n $PASSWORD | gitops get bcrypt-hash | kubectl create secret generic cluster-user-auth -n flux-system --from-literal=username=wego-admin --from-file=password=/dev/stdin
-```
+    ```bash
+    PASSWORD="<Make up and insert a brand-new password here>"
+    echo -n $PASSWORD | gitops get bcrypt-hash | kubectl create secret generic cluster-user-auth -n flux-system --from-literal=username=wego-admin --from-file=password=/dev/stdin
+    ```
 
-A validation to know it’s working:
+    A validation to know it’s working:
 
-```bash
-kubectl get secret -n flux-system cluster-user-auth
-```
+    ```bash
+    kubectl get secret -n flux-system cluster-user-auth
+    ```
 
-### (Optional) Install Policy Agent
+    ### (Optional) Install Policy Agent
 
-[Policy agent](../../policy/intro.mdx) comes packaged with the WGE chart. To install it, set the following values:
+    [Policy agent](../../policy/intro.mdx) comes packaged with the WGE chart. To install it, set the following values:
 
-- `values.policy-agent.enabled`: set to true to install the agent with WGE
-- `values.policy-agent.config.accountId`: organization name, used as identifier
-- `values.policy-agent.config.clusterId`: unique identifier for the cluster
+    - `values.policy-agent.enabled`: set to true to install the agent with WGE
+    - `values.policy-agent.config.accountId`: organization name, used as identifier
+    - `values.policy-agent.config.clusterId`: unique identifier for the cluster
 
-Commit and push all the files
+    Commit and push all the files
 
-```bash
-git add clusters/management/weave-gitops-enterprise.yaml
-git commit -m "Deploy Weave GitOps Enterprise"
-git push
-```
+    ```bash
+    git add clusters/management/weave-gitops-enterprise.yaml
+    git commit -m "Deploy Weave GitOps Enterprise"
+    git push
+    ```
 
-Flux will reconcile the helm-release and WGE will be deployed into the cluster. You can check the `flux-system` namespace to verify all pods are running.
+    Flux will reconcile the helm-release and WGE will be deployed into the cluster. You can check the `flux-system` namespace to verify all pods are running.
 
-## Next Steps
+    ## Next Steps
 
-Here are a couple of options for you to take your next steps with WGE. Explore one option or all of them, in no particular order.
+    Here are a couple of options for you to take your next steps with WGE. Explore one option or all of them, in no particular order.
 
-- [Cluster Management](https://docs.gitops.weave.works/docs/next/cluster-management/intro/): We'll show you how to join WGE to a cluster and install an application on that cluster *without* using Cluster API. But if you prefer using Cluster API, our docs cover that too.
-- Install the [Terraform Controller](https://weaveworks.github.io/tf-controller/) to reconcile your Terraform resources in a GitOps way. With Flux and the TF Controller, WGE makes it easy to add Terraform templates to your clusters and continuously reconcile any changes made to the Terraform source manifest.
-- Install [Policy agent](../../policy/intro.mdx), which comes packaged with the WGE chart.
+    - [Cluster Management](https://docs.gitops.weave.works/docs/next/cluster-management/intro/): We'll show you how to join WGE to a cluster and install an application on that cluster *without* using Cluster API. But if you prefer using Cluster API, our docs cover that too.
+    - Install the [Terraform Controller](https://weaveworks.github.io/tf-controller/) to reconcile your Terraform resources in a GitOps way. With Flux and the TF Controller, WGE makes it easy to add Terraform templates to your clusters and continuously reconcile any changes made to the Terraform source manifest.
+    - Install [Policy agent](../../policy/intro.mdx), which comes packaged with the WGE chart.
