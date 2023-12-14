@@ -23,66 +23,64 @@ There is no need to install the open source version of Weave GitOps before insta
 
 Before you start make sure the following requirements are met:
 
-- **Git Repository**: the Git configuration repo to be used by Flux and Weave GitOps.
-- **Management Cluster**: a Kubernetes cluster with a Kubeconfig with cluster admin permissions to be able to create resources.
-- **CLI Tools**: install Flux and Weave GitOps CLI.
-- **Weave GitOps Enterprise Entitlements** are installed in the Management Cluster. Contact [Sales](/help-and-support/) for help on getting them.
-
-### Git Repository
-
-### CLI Tools
-
-### Install Flux CLI
-
-Follow https://fluxcd.io/flux/installation/#install-the-flux-cli
-
-### Install Weave GitOps CLI
-
-To do this, you can use either brew or curl:
-
-    <Tabs groupId="weave-gitops-cli">
-    <TabItem value="homebrew" label="Homebrew">
-
-    ```
-     brew install weaveworks/tap/gitops-ee
-    ```
-
-    </TabItem>
-    <TabItem value="curl" label="curl">
-
-    ```
-     export VERSION=<VERSION>
-     curl --silent --location "https://artifacts.wge.dev.weave.works/releases/bin/${VERSION}/gitops-$(uname)-$(uname -m).tar.gz" | tar xz -C /tmp
-     sudo mv /tmp/gitops /usr/local/bin
-     gitops version
-    ```
-
-    </TabItem>
-    </Tabs>
-
-
-## Getting Started (or Day 0)
+- [ ] **Git Repository**: you have a Git repository that you want to bootstrap.
+- [ ] **Management Cluster**: you have a Kubeconfig pointing to the Kubernetes cluster that you want to use as Management Cluster.
+- [ ] **CLI Tools**: you have installed Flux and Weave GitOps Enterprise CLI.
+- [ ] **Weave GitOps Enterprise Entitlements**: you have contacted [Sales](/help-and-support/) and have the Weave GitOps Enterprise Entitlements Kubernetes Secret.
 
 :::warning Write Modes & Permissions
 Bootstrapping requires you to have both **cluster admin** permissions on the Management Cluster and **push** permissions to the Git repository to write the generated resources.
 
-In case you want just to generate the manifests but don't apply them, use the `--export` flag.
+In the case that you want just to generate the manifests but don't apply them, you could use the cli route and the `--export` flag.
 :::
 
-At glance getting started with Weave GitOps Enterprise requires the following steps:
+### CLI Tools
 
-1. [Git Repository](#configure-git-access)
-2. [Bootstrap Flux](#bootstrap-flux)
-3. [Entitlements](#verifying-entitlement)
-4. [Authentication & Authorization](#create-cluster-user)
-5. [Install WGE](#configure-dashboard-access)
-6. [Access the dashboard](#access-the-dashboard)
+#### Flux CLI
 
-You could transit the process via the following routes:
+Follow https://fluxcd.io/flux/installation/#install-the-flux-cli
 
-- `CLI Interactive`: you want to be guided step-by-step into configuring Weave GitOps Enterprise. Suitable for when you have limited knowledge about Weave GitOps Enterprise.
-- `CLI Non-Interactive`: you want to leverage cli for automation with interactive. Suitable for when you have already some knowledge about Weave GitOps Enterprise.
-- `Manual`: you want to have full control on the bootstrapping process. Suitable when the CLI cannot be used or wanted to oversee any step.
+#### Weave GitOps Enterprise CLI
+
+To do this, you can use either brew or curl:
+
+   <Tabs groupId="weave-gitops-cli">
+   <TabItem value="homebrew" label="Homebrew">
+
+   ```
+    brew install weaveworks/tap/gitops-ee
+   ```
+
+   </TabItem>
+   <TabItem value="curl" label="curl">
+   // TODO needs review
+
+   ```
+    export VERSION=$VERSION
+    curl --silent --location "https://artifacts.wge.dev.weave.works/releases/bin/${VERSION}/gitops-$(uname)-$(uname -m).tar.gz" | tar xz -C /tmp
+    sudo mv /tmp/gitops /usr/local/bin
+    gitops version
+   ```
+
+   </TabItem>
+   </Tabs>
+
+
+## Getting Started
+
+Your Day 0 is about getting Weave GitOps Enterprise up and running quickly by going through the following steps:
+
+1. [Bootstrap Flux](#bootstrap-flux)
+2. [Entitlements](#verifying-entitlement)
+3. [Authentication & Authorization](#create-cluster-user)
+4. [Install WGE](#configure-dashboard-access)
+5. [Access the dashboard](#access-the-dashboard)
+
+You could do it in any of the following ways:
+
+- `CLI Interactive`: ideal if you have limited knowledge about Weave GitOps Enterprise and you want guidance step-by-step.
+- `CLI Non-Interactive`: ideal if you are already familiar with Weave GitOps Enterprise and want to leverage the CLI for convenience.
+- `Manual`: ideal if you want to have full control on the process or your context cannot be handled via the CLI.
 
     <Tabs groupId="flux bootstrap" default>
     <TabItem value="cli interactive" label="cli interactive">
@@ -117,10 +115,6 @@ You could transit the process via the following routes:
         For manual installation or deep dive on any of the stages, you could follow the below sections:
     </TabItem>
     </Tabs>
-
-
-
-### Git Repository
 
 
 ### Bootstrap Flux
