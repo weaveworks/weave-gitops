@@ -39,7 +39,7 @@ module.exports = {
             id: "enterprise/getting-started/intro-enterprise",
           },
           items: [
-            "enterprise/getting-started/install-enterprise",
+            "enterprise/getting-started/install-enterprise-single",
             "enterprise/getting-started/install-enterprise-cli",
             "enterprise/getting-started/install-enterprise-airgap",
             "enterprise/getting-started/releases-enterprise",
