@@ -64,7 +64,7 @@ type bucketConnectionInfo struct {
 func (cs *coreServer) getFluxNamespace(ctx context.Context, k8sClient client.Client) (string, error) {
 	namespaceList := corev1.NamespaceList{}
 	opts := client.MatchingLabels{
-		coretypes.PartOfLabel: PartOfFlux,
+		coretypes.PartOfLabel: Flux,
 	}
 
 	var ns *corev1.Namespace
