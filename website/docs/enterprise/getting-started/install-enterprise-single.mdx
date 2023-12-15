@@ -244,6 +244,7 @@ kubectl create secret generic oidc-auth \
 Currently, we do not have a persistent session storage, this means that if you scale to multiple replicas, logins will not be persisted.
 :::
 
+Once the HTTP server starts, unauthenticated users will have to click 'Login With OIDC Provider' to log in.
 
 </TabItem>
 <TabItem value="Manual Cluster User" label="Manual Cluster User">
@@ -257,7 +258,7 @@ Weave GitOps does not provide its own authentication mechanism. For secure and f
 as described in the other tab.
 :::
 
-#### Configuring the Cluster User
+**Configuring the Cluster User**
 
 Before you log in via the Cluster User account, you need to generate a bcrypt hash for your chosen password and store it as a secret in Kubernetes. There are several different ways to generate a bcrypt hash. This guide uses `gitops get bcrypt-hash` from our CLI.
 
@@ -281,7 +282,6 @@ kubectl create secret generic cluster-user-auth \
 
 You should now be able to login via the cluster user account using your chosen username and password.
 
-
 </TabItem>
 </Tabs>
 
@@ -289,235 +289,6 @@ You should now be able to login via the cluster user account using your chosen u
 ### Authorization
 
 Weave GitOps Enterprise works with standard Kubernetes RBAC for authorization.
-
-<Tabs groupId="authorization" default>
-<TabItem value="CLI" label="CLI">
-
-asdf
-</TabItem>
-<TabItem value="OIDC" label="Manual OIDC">
-
-
-Once the HTTP server starts, unauthenticated users will have to click 'Login With OIDC Provider' to log in or use the cluster account (if configured). Upon successful authentication, the users' identities will be impersonated in any calls made to the Kubernetes API, as part of any action they take in the dashboard. By default the Helm chart will configure RBAC correctly, but we recommend reading the [service account](#gitops-dashboard-service-account-permissions) and [user permissions](#user-permissions) pages to understand which actions are needed for Weave GitOps to function correctly.
-
-
-</TabItem>
-<TabItem value="Cluster User" label="Manual Cluster User">
-
-
-#### User Permissions
-
-By default, both a ClusterRole and Role are generated for the Cluster User.
-Both have the same permissions, with the former being optional and the latter being
-bound to the `flux-system` namespace (where Flux stores its resources by default).
-The default set of rules are configured like this:
-
-```yaml
-rules:
-  # Flux Resources
-  - apiGroups: ["source.toolkit.fluxcd.io"]
-    resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories", "ocirepositories" ]
-    verbs: [ "get", "list", "watch", "patch" ]
-
-  - apiGroups: ["kustomize.toolkit.fluxcd.io"]
-    resources: [ "kustomizations" ]
-    verbs: [ "get", "list", "watch", "patch" ]
-
-  - apiGroups: ["helm.toolkit.fluxcd.io"]
-    resources: [ "helmreleases" ]
-    verbs: [ "get", "list", "watch", "patch" ]
-
-  - apiGroups: [ "notification.toolkit.fluxcd.io" ]
-    resources: [ "providers", "alerts" ]
-    verbs: [ "get", "list", "watch", "patch" ]
-
-  - apiGroups: ["infra.contrib.fluxcd.io"]
-    resources: ["terraforms"]
-    verbs: [ "get", "list", "watch", "patch" ]
-
-  # Read access for all other Kubernetes objects
-  - apiGroups: ["*"]
-    resources: ["*"]
-    verbs: [ "get", "list", "watch" ]
-```
-
-These permissions give the Cluster User Administrator-level powers. **We do not
-advise leaving it active on production systems**.
-
-If required, the permissions can be expanded with the `rbac.additionalRules` field in the
-[Helm Chart](../../references/helm-reference.md).
-Follow the instructions in the next section in order to configure RBAC correctly.
-
-</TabItem>
-</Tabs>
-
-### Install WGE
-
-We install Weave GitOps Enterprise via Flux Helm Release that you could deploy via the CLI or manually:
-
-<Tabs groupId="install wge" default>
-<TabItem value="cli" label="cli">
-
-You could configure this stage by using the following flags and examples:
-
- ```bash
- # Configure bootstrapping to install WGE version '0.37.0'
- gitops bootstrap --version="0.37.0"
- ```
-
-For more information about the CLI configurations, check the below sections [here](#cli-configurations)
-
-</TabItem>
-<TabItem value="manual" label="manual">
-
-Download the following `HelmRelease` to `clusters/management/weave-gitops-enterprise.yaml`.
-
-import ExampleWGE from "../../assets/example-enterprise-helm.yaml";
-import ExampleWGEContent from "!!raw-loader!../../assets/example-enterprise-helm.yaml";
-
-<details><summary>Expand to see file contents</summary>
-
-<CurlCodeBlock
-  localPath="clusters/management/weave-gitops-enterprise.yaml"
-  hostedPath={ExampleWGE}
-  content={ExampleWGEContent}
-/>
-
-</details>
-
-// TODO review
-Edit and adjust the following configuration options:
-
-#### `values.config.capi.repositoryURL`
-Ensure this has been set to your repository URL.
-
-#### `values.config.capi.repositoryPath`
-By default, WGE will create new clusters in the `clusters/management/clusters` path.
-You can configure it with `values.config.capi.repositoryPath`.
-You might what to change it to `clusters/my-cluster/cluster` if you configured Flux to reconcile `./clusters/my-cluster` instead.
-
-#### `values.config.capi.repositoryClustersPath`
-The other important path to configure is where you'll store applications and workloads run on the new cluster.
-By default this is `./clusters`. When a new cluster is specified, any selected profiles will be written to `./clusters/{.namespace}/{.clusterName}/profiles.yaml`.
-When the new cluster is bootstrapped, Flux will sync the `./clusters/{.namespace}/{.clusterName}` path.
-
-Commit and push all the files
-
-```bash
-git add clusters/management/weave-gitops-enterprise.yaml
-git commit -m "Deploy Weave GitOps Enterprise"
-git push
-```
-
-Flux will reconcile the helm-release and WGE will be deployed into the cluster. You can check the `flux-system` namespace to verify all pods are running.
-
-</TabItem>
-</Tabs>
-
-### Access the dashboard
-
-Weave GitOps Enterprise dashboard is available by default via ClusterIP service. You could use the `port-forward` command
-output as part of the bootstrapping session:
-
-```bash
- kubectl -n flux-system port-forward svc/clusters-service 8000:8000
-```
-
-![Weave GitOps Enterprise Login](./imgs/wge-login-ui.png)
-
-Login with the user credentials that you have configured as part of the bootstrapping session.
-
-![Weave GitOps Enterprise Cluster](./imgs/wge-clusters-ui.png)
-
-
-## Advanced Setup or Day 1
-
-Now that you have Weave GitOps Enterprise up and running, you might want to iterate your setup before opening to the rest of
-the users. This section shows you the different options that you could configure to adapt Weave GitOps Enterprise to your needs.
-
-### Cluster User
-
-#### Updating the Cluster User
-
-To change either the username or the password, recreate the `cluster-user-auth`
-with the new details.
-
-Only one Cluster User can be created this way. To add more users, enable an OIDC provider.
-
-#### Remove Cluster User Authentication
-
-To remove the Cluster User as a login method, set the following values in the
-[Helm Chart](../../references/helm-reference.md):
-
-```yaml
-#
-adminUser:
-  create: false
-#
-additionalArgs:
-- --auth-methods=oidc
-#
-```
-:::caution If you are disabling an already existing Cluster User
-
-If you are disabling an already existing Cluster User, you will need to
-manually delete the Kubernetes Secret and any User Roles that were created on
-the cluster.
-
-:::
-
-
-### OIDC
-
-#### Customization
-
-For some OIDC configurations, you may need to customise the requested [scopes](https://openid.net/specs/openid-connect-core-1_0.html#ScopeClaims) or [claims](https://openid.net/specs/openid-connect-core-1_0.html#Claims).
-
-The `oidcUsernamePrefix` and `oidcGroupsPrefix` work in the same way as the Kubernetes [kube-apiserver](https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/) command-line options, if you need them for Kubernetes, you will likely need them here.
-
-#### Scopes
-
-By default, the following scopes are requested: "openid","offline_access","email","groups".
-
-The "openid" scope is **mandatory** for OpenID auth and will be added if not provided. The "email" and "groups" scopes are commonly used as unique identifiers in organisations.
-
-"offline_access" allows us to refresh OIDC tokens to keep login sessions alive for as long as a refresh token is valid. You can, however, change the defaults.
-```sh
-kubectl create secret generic oidc-auth \
-  --namespace flux-system \
-  --from-literal=issuerURL=$oidc-issuer-url \
-  --from-literal=clientID=$client-id \
-  --from-literal=clientSecret=$client-secret \
-  --from-literal=redirectURL=redirect-url \
-  --from-literal=tokenDuration=token-duration \
-  --from-literal=customScopes=custom,scopes
-```
-The format for the `customScopes` key is a comma-separated list of scopes to request. In this case, "custom", "scopes", and "openid" would be requested.
-
-#### Claims
-
-By default, the following claims are parsed from the OpenID [ID Token](https://openid.net/specs/openid-connect-core-1_0.html#CodeIDToken) "email" and "groups". These are presented as the `user` and `groups` when WGE communicates with your Kubernetes API server.
-
-This is equivalent to [configuring](https://kubernetes.io/docs/reference/access-authn-authz/authentication/#configuring-the-api-server) your `kube-apiserver` with `--oidc-username-claim=email --oidc-groups-claim=groups`.
-
-Again, you can configure these from the `oidc-auth` `Secret`.
-
-```sh
-kubectl create secret generic oidc-auth \
-  --namespace flux-system \
-  --from-literal=issuerURL=oidc-issuer-url \
-  --from-literal=clientID=client-id \
-  --from-literal=clientSecret=client-secret \
-  --from-literal=redirectURL=redirect-url \
-  --from-literal=tokenDuration=token-duration \
-  --from-literal=claimUsername=sub \
-  --from-literal=claimGroups=groups
-```
-There are two separate configuration keys. You can override them separately. They should match your `kube-apiserver` configuration.
-
-
-
-
 
 
 ### GitOps Dashboard Service Account Permissions
@@ -663,19 +434,6 @@ resource (which are dealt with by the earlier section).
 Flux communicates the status of itself primarily via events.
 These events will show when reconciliations start and stop, whether they're successful,
 and information as to why they're not.
-
-### Login UI
-
-The label of the OIDC button on the login screen is configurable via a feature flag environment variable.
-This can give your users a more familiar experience when logging in.
-
-Adjust the configuration in the Helm `values.yaml` file or the `spec.values` section of the Weave GitOps `HelmRelease` resource:
-
-```yaml
-extraEnvVars:
-  - name: WEAVE_GITOPS_FEATURE_OIDC_BUTTON_LABEL
-    value: "Login with ACME"
-```
 
 ## Recommended RBAC Configuration
 
@@ -830,8 +588,336 @@ roleRef:
 
 </details>
 
-## Configure Access for Writing to Git from the Weave GitOps Enterprise UI
 
+
+<Tabs groupId="authorization" default>
+<TabItem value="CLI" label="CLI">### Login UI
+
+    The label of the OIDC button on the login screen is configurable via a feature flag environment variable.
+    This can give your users a more familiar experience when logging in.
+
+    Adjust the configuration in the Helm `values.yaml` file or the `spec.values` section of the Weave GitOps `HelmRelease` resource:
+
+    ```yaml
+    extraEnvVars:
+    - name: WEAVE_GITOPS_FEATURE_OIDC_BUTTON_LABEL
+    value: "Login with ACME"
+    ```
+
+
+    // TODO add as not currently supported
+
+</TabItem>
+<TabItem value="OIDC" label="Manual OIDC">
+
+Upon successful authentication, the users' identities will be impersonated in any calls made to the Kubernetes API, as part of any action they take in the dashboard. By default the Helm chart will configure RBAC correctly, but we recommend reading the [service account](#gitops-dashboard-service-account-permissions) and [user permissions](#user-permissions) pages to understand which actions are needed for Weave GitOps to function correctly.
+
+
+</TabItem>
+<TabItem value="Cluster User" label="Manual Cluster User">
+
+
+**User Permissions**
+
+By default, both a ClusterRole and Role are generated for the Cluster User.
+Both have the same permissions, with the former being optional and the latter being
+bound to the `flux-system` namespace (where Flux stores its resources by default).
+The default set of rules are configured like this:
+
+```yaml
+rules:
+  # Flux Resources
+  - apiGroups: ["source.toolkit.fluxcd.io"]
+    resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories", "ocirepositories" ]
+    verbs: [ "get", "list", "watch", "patch" ]
+
+  - apiGroups: ["kustomize.toolkit.fluxcd.io"]
+    resources: [ "kustomizations" ]
+    verbs: [ "get", "list", "watch", "patch" ]
+
+  - apiGroups: ["helm.toolkit.fluxcd.io"]
+    resources: [ "helmreleases" ]
+    verbs: [ "get", "list", "watch", "patch" ]
+
+  - apiGroups: [ "notification.toolkit.fluxcd.io" ]
+    resources: [ "providers", "alerts" ]
+    verbs: [ "get", "list", "watch", "patch" ]
+
+  - apiGroups: ["infra.contrib.fluxcd.io"]
+    resources: ["terraforms"]
+    verbs: [ "get", "list", "watch", "patch" ]
+
+  # Read access for all other Kubernetes objects
+  - apiGroups: ["*"]
+    resources: ["*"]
+    verbs: [ "get", "list", "watch" ]
+```
+
+These permissions give the Cluster User Administrator-level powers. **We do not
+advise leaving it active on production systems**.
+
+If required, the permissions can be expanded with the `rbac.additionalRules` field in the
+[Helm Chart](../../references/helm-reference.md).
+
+Follow the instructions in the next section in order to configure RBAC correctly.
+
+</TabItem>
+</Tabs>
+
+### Install WGE
+
+We install Weave GitOps Enterprise via Flux Helm Release that you could deploy via the CLI or manually:
+
+<Tabs groupId="install wge" default>
+<TabItem value="CLI" label="CLI">
+
+You could configure this stage by using the following flags and examples:
+
+ ```bash
+ # Configure bootstrapping to install WGE version '0.37.0'
+ gitops bootstrap --version="0.37.0"
+ ```
+
+For more information about the CLI configurations, check the below sections [here](#cli-configurations)
+
+</TabItem>
+<TabItem value="Manual" label="Manual">
+
+Download the following `HelmRelease` to `clusters/management/weave-gitops-enterprise.yaml`.
+
+import ExampleWGE from "../../assets/example-enterprise-helm.yaml";
+import ExampleWGEContent from "!!raw-loader!../../assets/example-enterprise-helm.yaml";
+
+<details><summary>Expand to see file contents</summary>
+
+<CurlCodeBlock
+  localPath="clusters/management/weave-gitops-enterprise.yaml"
+  hostedPath={ExampleWGE}
+  content={ExampleWGEContent}
+/>
+
+</details>
+
+
+Edit and adjust the following configuration options:
+
+`values.config.capi.repositoryURL`: ensure this has been set to your repository URL.
+
+`values.config.capi.repositoryPath`: by default, WGE will create new clusters in the `clusters/management/clusters` path.
+You can configure it with `values.config.capi.repositoryPath`.
+You might what to change it to `clusters/my-cluster/cluster` if you configured Flux to reconcile `./clusters/my-cluster` instead.
+
+`values.config.capi.repositoryClustersPath`: the other important path to configure is where you'll store applications and workloads run on the new cluster.
+By default this is `./clusters`. When a new cluster is specified, any selected profiles will be written to `./clusters/{.namespace}/{.clusterName}/profiles.yaml`.
+When the new cluster is bootstrapped, Flux will sync the `./clusters/{.namespace}/{.clusterName}` path.
+
+Commit and push all the files
+
+```bash
+git add clusters/management/weave-gitops-enterprise.yaml
+git commit -m "Deploy Weave GitOps Enterprise"
+git push
+```
+
+Flux will reconcile the helm-release and WGE will be deployed into the cluster. You can check the `flux-system` namespace to verify all pods are running.
+
+</TabItem>
+</Tabs>
+
+### Access the dashboard
+
+Weave GitOps Enterprise dashboard is available by default via ClusterIP service. You could use the `port-forward` command
+output as part of the bootstrapping session or the one below:
+
+```bash
+ kubectl -n flux-system port-forward svc/clusters-service 8000:8000
+```
+Access your browser on http://localhost:8000
+
+![Weave GitOps Enterprise Login](./imgs/wge-login-ui.png)
+
+Login with the user credentials that you have configured as part of the bootstrapping session.
+
+![Weave GitOps Enterprise Cluster](./imgs/wge-clusters-ui.png)
+
+
+## Day 1: Customise and Complete
+
+Now that you have Weave GitOps Enterprise up and running, you might want to iterate your setup before opening to the rest of
+the users. This section shows you the different options that you could configure to adapt Weave GitOps Enterprise to your needs.
+
+### TLS Configuration
+
+By default, the WGE UI pod will listen on port `8000` with TLS enabled.
+WGE will generate and use a self-signed certificate for this purpose.
+
+It can then be accessed via port-forwarding:
+
+`kubectl port-forward --namespace flux-system svc/clusters-service 8000:8000`
+
+If you're using an ingress controller to terminate TLS you can disable it in the Helm release:
+
+```yaml
+  values:
+    tls:
+      enabled: false
+```
+
+Other ingress configuration changes can be made via the ingress configuration
+
+```yaml
+  values:
+    ingress:
+      enabled: true
+      ... other parameters specific to the ingress type ...
+```
+
+### Cluster User
+
+#### Updating the Cluster User
+
+To change either the username or the password, recreate the `cluster-user-auth`
+with the new details.
+
+Only one Cluster User can be created this way. To add more users, enable an OIDC provider.
+
+#### Remove Cluster User Authentication
+
+To remove the Cluster User as a login method, set the following values in the
+[Helm Chart](../../references/helm-reference.md):
+
+```yaml
+#
+adminUser:
+  create: false
+#
+additionalArgs:
+- --auth-methods=oidc
+#
+```
+:::caution If you are disabling an already existing Cluster User
+
+If you are disabling an already existing Cluster User, you will need to
+manually delete the Kubernetes Secret and any User Roles that were created on
+the cluster.
+
+:::
+
+
+### OIDC
+
+#### Customization
+
+For some OIDC configurations, you may need to customise the requested [scopes](https://openid.net/specs/openid-connect-core-1_0.html#ScopeClaims) or [claims](https://openid.net/specs/openid-connect-core-1_0.html#Claims).
+
+The `oidcUsernamePrefix` and `oidcGroupsPrefix` work in the same way as the Kubernetes [kube-apiserver](https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/) command-line options, if you need them for Kubernetes, you will likely need them here.
+
+#### Scopes
+
+By default, the following scopes are requested: "openid","offline_access","email","groups".
+
+The "openid" scope is **mandatory** for OpenID auth and will be added if not provided. The "email" and "groups" scopes are commonly used as unique identifiers in organisations.
+
+"offline_access" allows us to refresh OIDC tokens to keep login sessions alive for as long as a refresh token is valid. You can, however, change the defaults.
+```sh
+kubectl create secret generic oidc-auth \
+  --namespace flux-system \
+  --from-literal=issuerURL=$oidc-issuer-url \
+  --from-literal=clientID=$client-id \
+  --from-literal=clientSecret=$client-secret \
+  --from-literal=redirectURL=redirect-url \
+  --from-literal=tokenDuration=token-duration \
+  --from-literal=customScopes=custom,scopes
+```
+The format for the `customScopes` key is a comma-separated list of scopes to request. In this case, "custom", "scopes", and "openid" would be requested.
+
+#### Claims
+
+By default, the following claims are parsed from the OpenID [ID Token](https://openid.net/specs/openid-connect-core-1_0.html#CodeIDToken) "email" and "groups". These are presented as the `user` and `groups` when WGE communicates with your Kubernetes API server.
+
+This is equivalent to [configuring](https://kubernetes.io/docs/reference/access-authn-authz/authentication/#configuring-the-api-server) your `kube-apiserver` with `--oidc-username-claim=email --oidc-groups-claim=groups`.
+
+Again, you can configure these from the `oidc-auth` `Secret`.
+
+```sh
+kubectl create secret generic oidc-auth \
+  --namespace flux-system \
+  --from-literal=issuerURL=oidc-issuer-url \
+  --from-literal=clientID=client-id \
+  --from-literal=clientSecret=client-secret \
+  --from-literal=redirectURL=redirect-url \
+  --from-literal=tokenDuration=token-duration \
+  --from-literal=claimUsername=sub \
+  --from-literal=claimGroups=groups
+```
+There are two separate configuration keys. You can override them separately. They should match your `kube-apiserver` configuration.
+
+### Customise the UI
+
+#### Login
+
+The label of the OIDC button on the login screen is configurable via a feature flag environment variable.
+This can give your users a more familiar experience when logging in.
+
+Adjust the configuration in the Helm `values.yaml` file or the `spec.values` section of the Weave GitOps `HelmRelease` resource:
+
+```yaml
+extraEnvVars:
+  - name: WEAVE_GITOPS_FEATURE_OIDC_BUTTON_LABEL
+    value: "Login with ACME"
+```
+
+### Install Other Components
+
+#### Cluster Management via CAPI
+
+TBA
+
+#### Policy via Weave Policy Agent
+
+To install [Policy Agent](../../policy/intro.mdx) follow any of the following approaches:
+
+<Tabs groupId="policy agent" default>
+<TabItem value="cli" label="cli">
+
+You could configure this stage by using the following flags and examples:
+
+```bash
+ # install Policy Agent alongside Weave GitOps Enterprise
+ gitops bootstrap --components-extra="policy-agent"
+```
+
+For more information about the CLI configurations, check the below sections [here](#cli-configurations)
+</TabItem>
+<TabItem value="manual" label="manual">
+
+[Policy agent](../../policy/intro.mdx) comes packaged with the WGE chart. To install it, set the following values:
+
+- `values.policy-agent.enabled`: set to true to install the agent with WGE
+- `values.policy-agent.config.accountId`: organization name, used as identifier
+- `values.policy-agent.config.clusterId`: unique identifier for the cluster
+
+Commit and push all the files
+
+```bash
+git add clusters/management/weave-gitops-enterprise.yaml
+git commit -m "Deploy Weave GitOps Enterprise"
+git push
+```
+
+Flux will reconcile the helm-release and WGE will be deployed into the cluster. You can check the `flux-system` namespace to verify all pods are running.
+
+</TabItem>
+</Tabs>
+
+#### Infrastructure via Tf-Controller
+
+// TBA
+
+
+### Configure Write Access to Git
+
+Weave GitOps Enterprise creates pull requests for adding resources. To do this, it needs to be able to write to the Git repository.
 Here we provide guidance for GitHub, GitLab, BitBucket Server, and Azure DevOps.
 
 <Tabs groupId="git-provider" default>
@@ -877,7 +963,7 @@ kubectl create secret generic git-provider-credentials --namespace=flux-system \
 
 Create a new [incoming application link](https://confluence.atlassian.com/bitbucketserver/configure-an-incoming-link-1108483657.html) from
 the BitBucket administration dashboard. You will be asked to enter a unique name and the redirect URL for the external application. The redirect URL
-should be set to `<WGE dashboard URL>/oauth/bitbucketserver`. You will also need to select permissions for the application. The minimum set of
+should be set to `$WGE_DASHBOARD_URL/oauth/bitbucketserver`. You will also need to select permissions for the application. The minimum set of
 permissions needed for WGE to create pull requests on behalf of users is `Repositories - Write`. An example of configuring these settings is shown below.
 
 <figure>
@@ -920,7 +1006,7 @@ If BitBucket Server is running on the default port (7990), make sure you include
 
 <TabItem value="azure-devops" label="Azure DevOps">
 
-Navigate to [VisualStudio](https://app.vsaex.visualstudio.com/app/register) and register a new application, as explained in the [docs](https://learn.microsoft.com/en-us/azure/devops/integrate/get-started/authentication/oauth?view=azure-devops#1-register-your-app). Set the authorization callback URL and select which scopes to grant. Set the callback URL to `<WGE dashboard URL>/oauth/azuredevops`.
+Navigate to [VisualStudio](https://app.vsaex.visualstudio.com/app/register) and register a new application, as explained in the [docs](https://learn.microsoft.com/en-us/azure/devops/integrate/get-started/authentication/oauth?view=azure-devops#1-register-your-app). Set the authorization callback URL and select which scopes to grant. Set the callback URL to `$WGE_DASHBOARD_URL/oauth/azuredevops`.
 
 Select the `Code (read and write)` scope from the list. This is necessary so that WGE can create pull requests on behalf of users. An example of configuring these settings is shown below.
 
@@ -942,60 +1028,16 @@ In your cluster, create a secret named `git-provider-credentials` that contains 
 
 ```bash
 kubectl create secret generic git-provider-credentials --namespace=flux-system \
-  --from-literal="AZURE_DEVOPS_CLIENT_ID=<App ID value>" \
-  --from-literal="AZURE_DEVOPS_CLIENT_SECRET=<Client Secret value>"
+  --from-literal="AZURE_DEVOPS_CLIENT_ID='App ID value'" \
+  --from-literal="AZURE_DEVOPS_CLIENT_SECRET='Client Secret value'"
 ```
 
-WGE is now configured to ask users for authorization the next time a pull request must be created as part of using a template. Note that each user can view and manage which applications they have authorized by navigating to https://app.vsaex.visualstudio.com/me.
+WGE is now configured to ask users for authorization the next time a pull request must be created as part of using a template.
+Note that each user can view and manage which applications they have authorized by navigating to https://app.vsaex.visualstudio.com/me.
 
 </TabItem>
 </Tabs>
 
-## TLS Configuration
-
-By default, the WGE UI pod will listen on port `8000` with TLS enabled.
-WGE will generate and use a self-signed certificate for this purpose.
-
-It can then be accessed via port-forwarding:
-
-`kubectl port-forward --namespace flux-system svc/clusters-service 8000:8000`
-
-If you're using an ingress controller to terminate TLS you can disable it in the Helm release:
-
-```yaml
-  values:
-    tls:
-      enabled: false
-```
-
-Other ingress conguration changes can be made via the ingress configuration
-
-```yaml
-  values:
-    ingress:
-      enabled: true
-      ... other parameters specific to the ingress type ...
-```
-
-
-
-### (Optional) Install Policy Agent
-
-[Policy agent](../../policy/intro.mdx) comes packaged with the WGE chart. To install it, set the following values:
-
-- `values.policy-agent.enabled`: set to true to install the agent with WGE
-- `values.policy-agent.config.accountId`: organization name, used as identifier
-- `values.policy-agent.config.clusterId`: unique identifier for the cluster
-
-Commit and push all the files
-
-```bash
-git add clusters/management/weave-gitops-enterprise.yaml
-git commit -m "Deploy Weave GitOps Enterprise"
-git push
-```
-
-Flux will reconcile the helm-release and WGE will be deployed into the cluster. You can check the `flux-system` namespace to verify all pods are running.
 
 ## Next Steps
 
@@ -1005,34 +1047,9 @@ Here are a couple of options for you to take your next steps with WGE. Explore o
 - Install the [Terraform Controller](https://weaveworks.github.io/tf-controller/) to reconcile your Terraform resources in a GitOps way. With Flux and the TF Controller, WGE makes it easy to add Terraform templates to your clusters and continuously reconcile any changes made to the Terraform source manifest.
 - Install [Policy agent](../../policy/intro.mdx), which comes packaged with the WGE chart.
 
+## Further Reference
 
-## Advanced Configurations or Day 1
-
-
-Other networking configurations could be achieved by modifying the `service` or `ingress` in the `HelmRelease` values:
-
-```yaml
----
-apiVersion: helm.toolkit.fluxcd.io/v2beta1
-kind: HelmRelease
-metadata:
-  name: weave-gitops-enterprise
-  namespace: flux-system
-spec:
-  values:
-    service: # update to meet your needs
-      ...
-    ingress: # update to meet your needs
-      ...
-```
-
-The following stages applies
-
-1. [Extra Components](#extra-components): to install extra components from (Policy Agent, Terraform Controller).
-2. Cluster Management
-3. Update Values
-
-### CLI configurations
+### CLI
 
 -  `--kubeconfig`                   Paths to a kubeconfig. Only required if out-of-cluster.
 -  `--bootstrap-flux`               chose whether you want to install flux in the generic way in case no flux installation detected
@@ -1052,5 +1069,3 @@ The following stages applies
 -  `-s`, `--silent`                 chose the defaults with current provided information without asking any questions
 -  `-v`, `--version`                version of Weave GitOps Enterprise (should be from the latest 3 versions)
 -  `-p`, `--password`               The Weave GitOps Enterprise password for dashboard access
-
-### Install Weave GitoOps Enterprise
