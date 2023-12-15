@@ -27,7 +27,10 @@ type Props = {
   crds?: Crd[];
 };
 const fluxVersionLabel = "app.kubernetes.io/version";
+const partOfLabel = "app.kubernetes.io/part-of";
+const fluxLabel = "flux";
 
+// FIXME: make it generic enough so it fits for both FluxRuntime or WeaveGitopsRuntime
 function FluxRuntime({ className, deployments, crds }: Props) {
   const { path } = useRouteMatch();
   const tabs: Array<routeTab> = [
@@ -49,7 +52,7 @@ function FluxRuntime({ className, deployments, crds }: Props) {
     },
   ];
   const fluxVersions: { [key: string]: FluxVersion } = {};
-  deployments.forEach((d) => {
+  deployments.filter( (d) =>  d.labels[partOfLabel] == fluxLabel ).forEach((d) => {
     const fv = d.labels[fluxVersionLabel];
     const k = `${fv}${d.clusterName}${d.namespace}`;
     if (!fluxVersions[k]) {
