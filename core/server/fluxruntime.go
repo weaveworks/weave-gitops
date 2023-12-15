@@ -127,7 +127,6 @@ func (cs *coreServer) ListFluxRuntimeObjects(ctx context.Context, msg *pb.ListFl
 				}
 			}
 		}
-
 	}
 
 	return &pb.ListFluxRuntimeObjectsResponse{Deployments: results, Errors: respErrors}, nil
