@@ -29,7 +29,8 @@ envVars:
     value: "Login with SSO"
   - name: WEAVE_GITOPS_FEATURE_DEV_MODE
     value: "true"
-
+  - name: WEAVE_GITOPS_FEATURE_GITOPS_RUNTIME
+    value: "true"
 
 # Run the UI and API under /wego
 # additionalArgs:
