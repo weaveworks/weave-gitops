@@ -130,10 +130,9 @@ func (cs *coreServer) ListFluxRuntimeObjects(ctx context.Context, msg *pb.ListFl
 }
 
 // getRuntimeLabels returns the labels that are used to identify the runtime objects based on
-// the user expectations set as part of the feature flag
-
-func getRuntimeLabels() {
-
+// whether the user has enabled `WEAVE_GITOPS_FEATURE_GITOPS_RUNTIME` or not
+func getRuntimeLabels() []string {
+	return []string{}
 }
 
 func (cs *coreServer) ListFluxCrds(ctx context.Context, msg *pb.ListFluxCrdsRequest) (*pb.ListFluxCrdsResponse, error) {
