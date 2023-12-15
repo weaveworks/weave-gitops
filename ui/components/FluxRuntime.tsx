@@ -64,8 +64,7 @@ function FluxRuntime({ className, deployments, crds }: Props) {
     }
   });
 
-  const supportMultipleFlux =
-    Object.keys(fluxVersions).length > 1 ? true : false;
+  const supportMultipleFlux = true;
 
   if (supportMultipleFlux) {
     tabs.unshift({

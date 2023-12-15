@@ -87,7 +87,7 @@ const navItems: NavItem[] = [
     icon: IconType.PoliciesIcon,
   },
   {
-    label: "Flux Runtime",
+    label: "Runtime",
     link: { value: V2Routes.FluxRuntime },
     icon: IconType.FluxIcon,
   },

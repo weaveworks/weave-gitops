@@ -113,7 +113,7 @@ export const getParentNavRouteValue = (
 const pageTitles = {
   [V2Routes.Automations]: "Applications",
   [V2Routes.Sources]: "Sources",
-  [V2Routes.FluxRuntime]: "Flux Runtime",
+  [V2Routes.FluxRuntime]: "Runtime",
   [V2Routes.Notifications]: "Notifications",
   [V2Routes.ImageAutomation]: "Image Automations",
   [V2Routes.ImagePolicies]: "Image Policies",
