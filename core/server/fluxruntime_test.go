@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"testing"
 
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
@@ -12,6 +13,7 @@ import (
 	"github.com/weaveworks/weave-gitops/core/server"
 	coretypes "github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
+	"github.com/weaveworks/weave-gitops/pkg/featureflags"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"google.golang.org/grpc/metadata"
 	appsv1 "k8s.io/api/apps/v1"
@@ -333,33 +335,21 @@ func TestListFluxRuntimeObjects(t *testing.T) {
 	ctx := context.Background()
 
 	tests := []struct {
-		description string
-		objects     []runtime.Object
-		assertions  func(*pb.ListFluxRuntimeObjectsResponse)
+		description              string
+		objects                  []runtime.Object
+		gitopsRuntimeFeatureFlag string
+		assertions               func(*pb.ListFluxRuntimeObjectsResponse)
 	}{
 		{
 			"no flux runtime",
 			[]runtime.Object{
 				&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "ns1"}},
 			},
+			"",
 			func(res *pb.ListFluxRuntimeObjectsResponse) {
 				g.Expect(res.Errors[0].Message).To(Equal(server.ErrFluxNamespaceNotFound.Error()))
 				g.Expect(res.Errors[0].Namespace).To(BeEmpty())
 				g.Expect(res.Errors[0].ClusterName).To(Equal(cluster.DefaultCluster))
-			},
-		},
-		{
-			"flux namespace label, with controllers",
-			[]runtime.Object{
-				&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "flux-ns", Labels: map[string]string{
-					coretypes.PartOfLabel: server.FluxNamespacePartOf,
-				}}},
-				newDeployment("random-flux-controller", "flux-ns", map[string]string{coretypes.PartOfLabel: server.FluxNamespacePartOf}),
-				newDeployment("other-controller-in-flux-ns", "flux-ns", map[string]string{}),
-			},
-			func(res *pb.ListFluxRuntimeObjectsResponse) {
-				g.Expect(res.Deployments).To(HaveLen(1), "expected deployments in the flux namespace to be returned")
-				g.Expect(res.Deployments[0].Name).To(Equal("random-flux-controller"))
 			},
 		},
 		{
@@ -369,15 +359,54 @@ func TestListFluxRuntimeObjects(t *testing.T) {
 				newDeployment("random-flux-controller", "flux-system", map[string]string{coretypes.PartOfLabel: server.FluxNamespacePartOf}),
 				newDeployment("other-controller-in-flux-ns", "flux-system", map[string]string{}),
 			},
+			"",
 			func(res *pb.ListFluxRuntimeObjectsResponse) {
 				g.Expect(res.Deployments).To(HaveLen(1), "expected deployments in the default flux namespace to be returned")
 				g.Expect(res.Deployments[0].Name).To(Equal("random-flux-controller"))
 			},
 		},
+		{
+			"return flux runtime without WEAVE_GITOPS_FEATURE_GITOPS_RUNTIME",
+			[]runtime.Object{
+				&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "flux-ns", Labels: map[string]string{
+					coretypes.PartOfLabel: server.FluxNamespacePartOf,
+				}}},
+				newDeployment("random-flux-controller", "flux-ns", map[string]string{coretypes.PartOfLabel: server.FluxNamespacePartOf}),
+				newDeployment("other-controller-in-flux-ns", "flux-ns", map[string]string{}),
+			},
+			"false",
+			func(res *pb.ListFluxRuntimeObjectsResponse) {
+				g.Expect(res.Deployments).To(HaveLen(1), "expected deployments in the flux namespace to be returned")
+				g.Expect(res.Deployments[0].Name).To(Equal("random-flux-controller"))
+			},
+		},
+		{
+			"return weave gitops runtime with WEAVE_GITOPS_FEATURE_GITOPS_RUNTIME enabled",
+			[]runtime.Object{
+				&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "flux-ns", Labels: map[string]string{
+					coretypes.PartOfLabel: server.FluxNamespacePartOf,
+				}}},
+				newDeployment("kustomize-controller", "flux-ns", map[string]string{coretypes.PartOfLabel: server.FluxNamespacePartOf}),
+				newDeployment("weave-gitops-enterprise-mccp-cluster-service", "flux-ns", map[string]string{coretypes.PartOfLabel: server.PartOfWeaveGitops}),
+				newDeployment("other-controller-in-flux-ns", "flux-ns", map[string]string{}),
+			},
+			"true",
+			func(res *pb.ListFluxRuntimeObjectsResponse) {
+				g.Expect(res.Deployments).To(HaveLen(2), "expected deployments in the flux namespace to be returned")
+				g.Expect(res.Deployments[0].Name).To(Equal("kustomize-controller"))
+				g.Expect(res.Deployments[1].Name).To(Equal("weave-gitops-enterprise-mccp-cluster-service"))
+			},
+		},
 	}
-
 	for _, tt := range tests {
 		t.Run(tt.description, func(t *testing.T) {
+			if tt.gitopsRuntimeFeatureFlag != "" {
+				_ = os.Setenv(server.GitopsRuntimeFeatureFlag, tt.gitopsRuntimeFeatureFlag)
+			}
+			defer func() {
+				_ = os.Unsetenv(server.GitopsRuntimeFeatureFlag)
+			}()
+			featureflags.SetFromEnv(os.Environ())
 			scheme, err := kube.CreateScheme()
 			g.Expect(err).To(BeNil())
 			client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(tt.objects...).Build()
