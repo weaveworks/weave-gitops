@@ -40,7 +40,7 @@ var _ = Describe("GetFluxVersion", func() {
 		fluxNs := &v1.Namespace{}
 		fluxNs.Name = "flux-system"
 		fluxNs.Labels = map[string]string{
-			coretypes.PartOfLabel: server.FluxNamespacePartOf,
+			coretypes.PartOfLabel: server.PartOfFlux,
 		}
 
 		Expect(kubeClient.Create(ctx, fluxNs)).To(Succeed())
@@ -101,7 +101,7 @@ var _ = Describe("GetFluxVersion", func() {
 		fluxNs := &v1.Namespace{}
 		fluxNs.Name = "flux-ns-test"
 		fluxNs.Labels = map[string]string{
-			coretypes.PartOfLabel:  server.FluxNamespacePartOf,
+			coretypes.PartOfLabel:  server.PartOfFlux,
 			coretypes.VersionLabel: testVersion,
 		}
 

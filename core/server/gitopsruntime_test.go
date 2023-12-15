@@ -41,9 +41,9 @@ func TestListGitopsRuntimeObjects(t *testing.T) {
 			"flux namespace label, with controllers",
 			[]runtime.Object{
 				&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "flux-ns", Labels: map[string]string{
-					coretypes.PartOfLabel: server.FluxNamespacePartOf,
+					coretypes.PartOfLabel: server.PartOfFlux,
 				}}},
-				newDeployment("kustomize-controller", "flux-ns", map[string]string{coretypes.PartOfLabel: server.FluxNamespacePartOf}),
+				newDeployment("kustomize-controller", "flux-ns", map[string]string{coretypes.PartOfLabel: server.PartOfFlux}),
 				newDeployment("weave-gitops-enterprise-mccp-cluster-service", "flux-ns", map[string]string{coretypes.PartOfLabel: server.PartOfWeaveGitops}),
 				newDeployment("other-controller-in-flux-ns", "flux-ns", map[string]string{}),
 			},

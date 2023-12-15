@@ -356,7 +356,7 @@ func TestListFluxRuntimeObjects(t *testing.T) {
 			"use flux-system namespace when no namespace label available",
 			[]runtime.Object{
 				&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "flux-system"}},
-				newDeployment("random-flux-controller", "flux-system", map[string]string{coretypes.PartOfLabel: server.FluxNamespacePartOf}),
+				newDeployment("random-flux-controller", "flux-system", map[string]string{coretypes.PartOfLabel: server.PartOfFlux}),
 				newDeployment("other-controller-in-flux-ns", "flux-system", map[string]string{}),
 			},
 			"",
@@ -369,9 +369,9 @@ func TestListFluxRuntimeObjects(t *testing.T) {
 			"return flux runtime without WEAVE_GITOPS_FEATURE_GITOPS_RUNTIME",
 			[]runtime.Object{
 				&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "flux-ns", Labels: map[string]string{
-					coretypes.PartOfLabel: server.FluxNamespacePartOf,
+					coretypes.PartOfLabel: server.PartOfFlux,
 				}}},
-				newDeployment("random-flux-controller", "flux-ns", map[string]string{coretypes.PartOfLabel: server.FluxNamespacePartOf}),
+				newDeployment("random-flux-controller", "flux-ns", map[string]string{coretypes.PartOfLabel: server.PartOfFlux}),
 				newDeployment("other-controller-in-flux-ns", "flux-ns", map[string]string{}),
 			},
 			"false",
@@ -384,9 +384,9 @@ func TestListFluxRuntimeObjects(t *testing.T) {
 			"return weave gitops runtime with WEAVE_GITOPS_FEATURE_GITOPS_RUNTIME enabled",
 			[]runtime.Object{
 				&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "flux-ns", Labels: map[string]string{
-					coretypes.PartOfLabel: server.FluxNamespacePartOf,
+					coretypes.PartOfLabel: server.PartOfFlux,
 				}}},
-				newDeployment("kustomize-controller", "flux-ns", map[string]string{coretypes.PartOfLabel: server.FluxNamespacePartOf}),
+				newDeployment("kustomize-controller", "flux-ns", map[string]string{coretypes.PartOfLabel: server.PartOfFlux}),
 				newDeployment("weave-gitops-enterprise-mccp-cluster-service", "flux-ns", map[string]string{coretypes.PartOfLabel: server.PartOfWeaveGitops}),
 				newDeployment("other-controller-in-flux-ns", "flux-ns", map[string]string{}),
 			},
@@ -450,45 +450,108 @@ func newDeployment(name, ns string, labels map[string]string) *appsv1.Deployment
 
 func TestListFluxCrds(t *testing.T) {
 	g := NewGomegaWithT(t)
-
 	ctx := context.Background()
 
-	crd1 := &apiextensions.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{
-		Name:   "crd1",
-		Labels: map[string]string{coretypes.PartOfLabel: "flux"},
-	}, Spec: apiextensions.CustomResourceDefinitionSpec{
-		Group:    "group",
-		Names:    apiextensions.CustomResourceDefinitionNames{Plural: "plural", Kind: "kind"},
-		Versions: []apiextensions.CustomResourceDefinitionVersion{},
-	}}
-	crd2 := &apiextensions.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{
-		Name:   "crd2",
-		Labels: map[string]string{coretypes.PartOfLabel: "flux"},
-	}, Spec: apiextensions.CustomResourceDefinitionSpec{
-		Group: "group",
-		Versions: []apiextensions.CustomResourceDefinitionVersion{
-			{Name: "0"},
-			// "Active" version in etcd, use this one.
-			{Name: "1", Storage: true},
+	tests := []struct {
+		description              string
+		objects                  []runtime.Object
+		gitopsRuntimeFeatureFlag string
+		assertions               func(*pb.ListFluxCrdsResponse)
+	}{
+		{
+			"return weave gitops runtime without WEAVE_GITOPS_FEATURE_GITOPS_RUNTIME enabled",
+			[]runtime.Object{
+				&apiextensions.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{
+					Name:   "crd1",
+					Labels: map[string]string{coretypes.PartOfLabel: "flux"},
+				}, Spec: apiextensions.CustomResourceDefinitionSpec{
+					Group:    "group",
+					Names:    apiextensions.CustomResourceDefinitionNames{Plural: "plural", Kind: "kind"},
+					Versions: []apiextensions.CustomResourceDefinitionVersion{},
+				}},
+				&apiextensions.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{
+					Name:   "crd2",
+					Labels: map[string]string{coretypes.PartOfLabel: "flux"},
+				}, Spec: apiextensions.CustomResourceDefinitionSpec{
+					Group: "group",
+					Versions: []apiextensions.CustomResourceDefinitionVersion{
+						{Name: "0"},
+						// "Active" version in etcd, use this one.
+						{Name: "1", Storage: true},
+					},
+				}},
+			},
+			"false",
+			func(res *pb.ListFluxCrdsResponse) {
+				g.Expect(res.Crds).To(HaveLen(2))
+				first := res.Crds[0]
+				g.Expect(first.Version).To(Equal(""))
+				g.Expect(first.Name.Plural).To(Equal("plural"))
+				g.Expect(first.Name.Group).To(Equal("group"))
+				g.Expect(first.Kind).To(Equal("kind"))
+				g.Expect(first.ClusterName).To(Equal(cluster.DefaultCluster))
+				g.Expect(res.Crds[1].Version).To(Equal("1"))
+			},
 		},
-	}}
-	scheme, err := kube.CreateScheme()
-	g.Expect(err).To(BeNil())
+		{
+			"return weave gitops runtime with WEAVE_GITOPS_FEATURE_GITOPS_RUNTIME enabled",
+			[]runtime.Object{
+				&apiextensions.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{
+					Name:   "crd1",
+					Labels: map[string]string{coretypes.PartOfLabel: server.PartOfFlux},
+				}, Spec: apiextensions.CustomResourceDefinitionSpec{
+					Group:    "group",
+					Names:    apiextensions.CustomResourceDefinitionNames{Plural: "plural", Kind: "kind"},
+					Versions: []apiextensions.CustomResourceDefinitionVersion{},
+				}},
+				&apiextensions.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{
+					Name:   "crd2",
+					Labels: map[string]string{coretypes.PartOfLabel: server.PartOfFlux},
+				}, Spec: apiextensions.CustomResourceDefinitionSpec{
+					Group: "group",
+					Versions: []apiextensions.CustomResourceDefinitionVersion{
+						{Name: "0"},
+						// "Active" version in etcd, use this one.
+						{Name: "1", Storage: true},
+					},
+				}},
+				&apiextensions.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{
+					Name:   "crd3",
+					Labels: map[string]string{coretypes.PartOfLabel: server.PartOfWeaveGitops},
+				}, Spec: apiextensions.CustomResourceDefinitionSpec{
+					Group: "group",
+					Versions: []apiextensions.CustomResourceDefinitionVersion{
+						{Name: "0"},
+						// "Active" version in etcd, use this one.
+						{Name: "1", Storage: true},
+					},
+				}},
+			},
+			"true",
+			func(res *pb.ListFluxCrdsResponse) {
+				g.Expect(res.Crds).To(HaveLen(3))
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.description, func(t *testing.T) {
+			if tt.gitopsRuntimeFeatureFlag != "" {
+				_ = os.Setenv(server.GitopsRuntimeFeatureFlag, tt.gitopsRuntimeFeatureFlag)
+			}
+			defer func() {
+				_ = os.Unsetenv(server.GitopsRuntimeFeatureFlag)
+			}()
+			featureflags.SetFromEnv(os.Environ())
+			scheme, err := kube.CreateScheme()
+			g.Expect(err).To(BeNil())
+			client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(tt.objects...).Build()
+			cfg := makeServerConfig(client, t, "")
+			c := makeServer(cfg, t)
 
-	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(crd1, crd2).Build()
-	cfg := makeServerConfig(client, t, "")
-	c := makeServer(cfg, t)
+			res, err := c.ListFluxCrds(ctx, &pb.ListFluxCrdsRequest{})
+			g.Expect(err).NotTo(HaveOccurred())
 
-	res, err := c.ListFluxCrds(ctx, &pb.ListFluxCrdsRequest{})
-
-	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(res.Crds).To(HaveLen(2))
-
-	first := res.Crds[0]
-	g.Expect(first.Version).To(Equal(""))
-	g.Expect(first.Name.Plural).To(Equal("plural"))
-	g.Expect(first.Name.Group).To(Equal("group"))
-	g.Expect(first.Kind).To(Equal("kind"))
-	g.Expect(first.ClusterName).To(Equal(cluster.DefaultCluster))
-	g.Expect(res.Crds[1].Version).To(Equal("1"))
+			tt.assertions(res)
+		})
+	}
 }

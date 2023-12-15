@@ -29,7 +29,7 @@ import (
 )
 
 const (
-	FluxNamespacePartOf      = "flux"
+	PartOfFlux               = "flux"
 	PartOfWeaveGitops        = "weave-gitops"
 	GitopsRuntimeFeatureFlag = "WEAVE_GITOPS_FEATURE_GITOPS_RUNTIME"
 )
@@ -49,11 +49,11 @@ var (
 )
 
 var FluxRuntimeLabels = []string{
-	FluxNamespacePartOf,
+	PartOfFlux,
 }
 
 var WeaveGitopsRuntimeLabels = []string{
-	FluxNamespacePartOf, PartOfWeaveGitops,
+	PartOfFlux, PartOfWeaveGitops,
 }
 
 func lookupEnv(envVar, fallback string) string {
@@ -154,22 +154,23 @@ func (cs *coreServer) ListFluxCrds(ctx context.Context, msg *pb.ListFluxCrdsRequ
 
 	respErrors := []*pb.ListError{}
 
-	opts := client.MatchingLabels{
-		coretypes.PartOfLabel: FluxNamespacePartOf,
-	}
-
-	if err := clustersClient.ClusteredList(ctx, clist, false, opts); err != nil {
-		var errs clustersmngr.ClusteredListError
-
-		if !errors.As(err, &errs) {
-			return nil, fmt.Errorf("CRDs clustered list: %w", errs)
+	for _, runtimeLabel := range getRuntimeLabels() {
+		opts := client.MatchingLabels{
+			coretypes.PartOfLabel: runtimeLabel,
 		}
+		if err := clustersClient.ClusteredList(ctx, clist, false, opts); err != nil {
+			var errs clustersmngr.ClusteredListError
 
-		for _, e := range errs.Errors {
-			respErrors = append(respErrors, &pb.ListError{
-				ClusterName: e.Cluster,
-				Message:     e.Err.Error(),
-			})
+			if !errors.As(err, &errs) {
+				return nil, fmt.Errorf("CRDs clustered list: %w", errs)
+			}
+
+			for _, e := range errs.Errors {
+				respErrors = append(respErrors, &pb.ListError{
+					ClusterName: e.Cluster,
+					Message:     e.Err.Error(),
+				})
+			}
 		}
 	}
 
@@ -216,7 +217,7 @@ func filterFluxNamespace(nss []v1.Namespace) []v1.Namespace {
 	fluxSystem := []v1.Namespace{}
 
 	for _, ns := range nss {
-		if val, ok := ns.Labels[coretypes.PartOfLabel]; ok && val == FluxNamespacePartOf {
+		if val, ok := ns.Labels[coretypes.PartOfLabel]; ok && val == PartOfFlux {
 			fluxSystem = append(fluxSystem, ns)
 			continue
 		}
