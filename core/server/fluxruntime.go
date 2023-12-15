@@ -13,6 +13,7 @@ import (
 	"github.com/weaveworks/weave-gitops/core/logger"
 	coretypes "github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
+	"github.com/weaveworks/weave-gitops/pkg/featureflags"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -28,8 +29,9 @@ import (
 )
 
 const (
-	FluxNamespacePartOf = "flux"
-	PartOfWeaveGitops   = "weave-gitops"
+	FluxNamespacePartOf      = "flux"
+	PartOfWeaveGitops        = "weave-gitops"
+	GitopsRuntimeFeatureFlag = "WEAVE_GITOPS_FEATURE_GITOPS_RUNTIME"
 )
 
 var (
@@ -46,7 +48,11 @@ var (
 	DefaultFluxNamespace = lookupEnv("WEAVE_GITOPS_FALLBACK_NAMESPACE", "flux-system")
 )
 
-var RuntimeLabels = []string{
+var FluxRuntimeLabels = []string{
+	FluxNamespacePartOf,
+}
+
+var WeaveGitopsRuntimeLabels = []string{
 	FluxNamespacePartOf, PartOfWeaveGitops,
 }
 
@@ -74,9 +80,7 @@ func (cs *coreServer) ListFluxRuntimeObjects(ctx context.Context, msg *pb.ListFl
 
 	var results []*pb.Deployment
 
-	getRuntimeLabels()
-
-	for _, runtimeLabel := range RuntimeLabels {
+	for _, runtimeLabel := range getRuntimeLabels() {
 		for clusterName, nss := range cs.clustersManager.GetClustersNamespaces() {
 			fluxNamespaces := filterFluxNamespace(nss)
 			if len(fluxNamespaces) == 0 {
@@ -132,7 +136,10 @@ func (cs *coreServer) ListFluxRuntimeObjects(ctx context.Context, msg *pb.ListFl
 // getRuntimeLabels returns the labels that are used to identify the runtime objects based on
 // whether the user has enabled `WEAVE_GITOPS_FEATURE_GITOPS_RUNTIME` or not
 func getRuntimeLabels() []string {
-	return []string{}
+	if featureflags.Get(GitopsRuntimeFeatureFlag) == "true" {
+		return WeaveGitopsRuntimeLabels
+	}
+	return FluxRuntimeLabels
 }
 
 func (cs *coreServer) ListFluxCrds(ctx context.Context, msg *pb.ListFluxCrdsRequest) (*pb.ListFluxCrdsResponse, error) {
