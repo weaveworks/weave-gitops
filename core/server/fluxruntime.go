@@ -74,6 +74,8 @@ func (cs *coreServer) ListFluxRuntimeObjects(ctx context.Context, msg *pb.ListFl
 
 	var results []*pb.Deployment
 
+	getRuntimeLabels()
+
 	for _, runtimeLabel := range RuntimeLabels {
 		for clusterName, nss := range cs.clustersManager.GetClustersNamespaces() {
 			fluxNamespaces := filterFluxNamespace(nss)
@@ -125,6 +127,13 @@ func (cs *coreServer) ListFluxRuntimeObjects(ctx context.Context, msg *pb.ListFl
 	}
 
 	return &pb.ListFluxRuntimeObjectsResponse{Deployments: results, Errors: respErrors}, nil
+}
+
+// getRuntimeLabels returns the labels that are used to identify the runtime objects based on
+// the user expectations set as part of the feature flag
+
+func getRuntimeLabels() {
+
 }
 
 func (cs *coreServer) ListFluxCrds(ctx context.Context, msg *pb.ListFluxCrdsRequest) (*pb.ListFluxCrdsResponse, error) {
