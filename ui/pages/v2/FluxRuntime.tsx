@@ -18,9 +18,6 @@ function FluxRuntime({ className }: Props) {
     isLoading: crdsLoading,
     error: crdsError,
   } = useListFluxCrds();
-  const { featureFlags: flags } = useContext(CoreClientContext);
-  const { isFlagEnabled } = useFeatureFlags();
-
   return (
 
   <Page
