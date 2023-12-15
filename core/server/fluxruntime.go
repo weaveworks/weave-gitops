@@ -29,8 +29,8 @@ import (
 )
 
 const (
-	PartOfFlux               = "flux"
-	PartOfWeaveGitops        = "weave-gitops"
+	Flux                     = "flux"
+	WeaveGitops              = "weave-gitops"
 	GitopsRuntimeFeatureFlag = "WEAVE_GITOPS_FEATURE_GITOPS_RUNTIME"
 )
 
@@ -49,11 +49,11 @@ var (
 )
 
 var FluxRuntimeLabels = []string{
-	PartOfFlux,
+	Flux,
 }
 
 var WeaveGitopsRuntimeLabels = []string{
-	PartOfFlux, PartOfWeaveGitops,
+	Flux, WeaveGitops,
 }
 
 func lookupEnv(envVar, fallback string) string {
@@ -217,7 +217,7 @@ func filterFluxNamespace(nss []v1.Namespace) []v1.Namespace {
 	fluxSystem := []v1.Namespace{}
 
 	for _, ns := range nss {
-		if val, ok := ns.Labels[coretypes.PartOfLabel]; ok && val == PartOfFlux {
+		if val, ok := ns.Labels[coretypes.PartOfLabel]; ok && val == Flux {
 			fluxSystem = append(fluxSystem, ns)
 			continue
 		}

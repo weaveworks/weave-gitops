@@ -356,7 +356,7 @@ func TestListFluxRuntimeObjects(t *testing.T) {
 			"use flux-system namespace when no namespace label available",
 			[]runtime.Object{
 				&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "flux-system"}},
-				newDeployment("random-flux-controller", "flux-system", map[string]string{coretypes.PartOfLabel: server.PartOfFlux}),
+				newDeployment("random-flux-controller", "flux-system", map[string]string{coretypes.PartOfLabel: server.Flux}),
 				newDeployment("other-controller-in-flux-ns", "flux-system", map[string]string{}),
 			},
 			"",
@@ -369,9 +369,9 @@ func TestListFluxRuntimeObjects(t *testing.T) {
 			"return flux runtime without WEAVE_GITOPS_FEATURE_GITOPS_RUNTIME",
 			[]runtime.Object{
 				&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "flux-ns", Labels: map[string]string{
-					coretypes.PartOfLabel: server.PartOfFlux,
+					coretypes.PartOfLabel: server.Flux,
 				}}},
-				newDeployment("random-flux-controller", "flux-ns", map[string]string{coretypes.PartOfLabel: server.PartOfFlux}),
+				newDeployment("random-flux-controller", "flux-ns", map[string]string{coretypes.PartOfLabel: server.Flux}),
 				newDeployment("other-controller-in-flux-ns", "flux-ns", map[string]string{}),
 			},
 			"false",
@@ -384,10 +384,10 @@ func TestListFluxRuntimeObjects(t *testing.T) {
 			"return weave gitops runtime with WEAVE_GITOPS_FEATURE_GITOPS_RUNTIME enabled",
 			[]runtime.Object{
 				&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "flux-ns", Labels: map[string]string{
-					coretypes.PartOfLabel: server.PartOfFlux,
+					coretypes.PartOfLabel: server.Flux,
 				}}},
-				newDeployment("kustomize-controller", "flux-ns", map[string]string{coretypes.PartOfLabel: server.PartOfFlux}),
-				newDeployment("weave-gitops-enterprise-mccp-cluster-service", "flux-ns", map[string]string{coretypes.PartOfLabel: server.PartOfWeaveGitops}),
+				newDeployment("kustomize-controller", "flux-ns", map[string]string{coretypes.PartOfLabel: server.Flux}),
+				newDeployment("weave-gitops-enterprise-mccp-cluster-service", "flux-ns", map[string]string{coretypes.PartOfLabel: server.WeaveGitops}),
 				newDeployment("other-controller-in-flux-ns", "flux-ns", map[string]string{}),
 			},
 			"true",
@@ -498,7 +498,7 @@ func TestListFluxCrds(t *testing.T) {
 			[]runtime.Object{
 				&apiextensions.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{
 					Name:   "crd1",
-					Labels: map[string]string{coretypes.PartOfLabel: server.PartOfFlux},
+					Labels: map[string]string{coretypes.PartOfLabel: server.Flux},
 				}, Spec: apiextensions.CustomResourceDefinitionSpec{
 					Group:    "group",
 					Names:    apiextensions.CustomResourceDefinitionNames{Plural: "plural", Kind: "kind"},
@@ -506,7 +506,7 @@ func TestListFluxCrds(t *testing.T) {
 				}},
 				&apiextensions.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{
 					Name:   "crd2",
-					Labels: map[string]string{coretypes.PartOfLabel: server.PartOfFlux},
+					Labels: map[string]string{coretypes.PartOfLabel: server.Flux},
 				}, Spec: apiextensions.CustomResourceDefinitionSpec{
 					Group: "group",
 					Versions: []apiextensions.CustomResourceDefinitionVersion{
@@ -517,7 +517,7 @@ func TestListFluxCrds(t *testing.T) {
 				}},
 				&apiextensions.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{
 					Name:   "crd3",
-					Labels: map[string]string{coretypes.PartOfLabel: server.PartOfWeaveGitops},
+					Labels: map[string]string{coretypes.PartOfLabel: server.WeaveGitops},
 				}, Spec: apiextensions.CustomResourceDefinitionSpec{
 					Group: "group",
 					Versions: []apiextensions.CustomResourceDefinitionVersion{
