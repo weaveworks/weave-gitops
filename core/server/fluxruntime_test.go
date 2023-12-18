@@ -496,105 +496,93 @@ func newDeployment(name, ns string, labels map[string]string) *appsv1.Deployment
 
 func TestListFluxCrds(t *testing.T) {
 	g := NewGomegaWithT(t)
+
+	ctx := context.Background()
+
+	crd1 := &apiextensions.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{
+		Name:   "crd1",
+		Labels: map[string]string{coretypes.PartOfLabel: "flux"},
+	}, Spec: apiextensions.CustomResourceDefinitionSpec{
+		Group:    "group",
+		Names:    apiextensions.CustomResourceDefinitionNames{Plural: "plural", Kind: "kind"},
+		Versions: []apiextensions.CustomResourceDefinitionVersion{},
+	}}
+	crd2 := &apiextensions.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{
+		Name:   "crd2",
+		Labels: map[string]string{coretypes.PartOfLabel: "flux"},
+	}, Spec: apiextensions.CustomResourceDefinitionSpec{
+		Group: "group",
+		Versions: []apiextensions.CustomResourceDefinitionVersion{
+			{Name: "0"},
+			// "Active" version in etcd, use this one.
+			{Name: "1", Storage: true},
+		},
+	}}
+	scheme, err := kube.CreateScheme()
+	g.Expect(err).To(BeNil())
+
+	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(crd1, crd2).Build()
+	cfg := makeServerConfig(client, t, "")
+	c := makeServer(cfg, t)
+
+	res, err := c.ListFluxCrds(ctx, &pb.ListFluxCrdsRequest{})
+
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(res.Crds).To(HaveLen(2))
+
+	first := res.Crds[0]
+	g.Expect(first.Version).To(Equal(""))
+	g.Expect(first.Name.Plural).To(Equal("plural"))
+	g.Expect(first.Name.Group).To(Equal("group"))
+	g.Expect(first.Kind).To(Equal("kind"))
+	g.Expect(first.ClusterName).To(Equal(cluster.DefaultCluster))
+	g.Expect(res.Crds[1].Version).To(Equal("1"))
+}
+
+func TestListRuntimeCrds(t *testing.T) {
+	g := NewGomegaWithT(t)
 	ctx := context.Background()
 
 	tests := []struct {
-		description              string
-		objects                  []runtime.Object
-		gitopsRuntimeFeatureFlag string
-		assertions               func(*pb.ListFluxCrdsResponse)
+		description string
+		objects     []runtime.Object
+		assertions  func(*pb.ListRuntimeCrdsResponse)
 	}{
 		{
-			"return weave gitops runtime without WEAVE_GITOPS_FEATURE_GITOPS_RUNTIME enabled",
+			"return weave gitops runtime crds",
 			[]runtime.Object{
 				&apiextensions.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{
-					Name:   "crd1",
-					Labels: map[string]string{coretypes.PartOfLabel: "flux"},
-				}, Spec: apiextensions.CustomResourceDefinitionSpec{
-					Group:    "group",
-					Names:    apiextensions.CustomResourceDefinitionNames{Plural: "plural", Kind: "kind"},
-					Versions: []apiextensions.CustomResourceDefinitionVersion{},
-				}},
-				&apiextensions.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{
-					Name:   "crd2",
-					Labels: map[string]string{coretypes.PartOfLabel: "flux"},
-				}, Spec: apiextensions.CustomResourceDefinitionSpec{
-					Group: "group",
-					Versions: []apiextensions.CustomResourceDefinitionVersion{
-						{Name: "0"},
-						// "Active" version in etcd, use this one.
-						{Name: "1", Storage: true},
-					},
-				}},
-			},
-			"false",
-			func(res *pb.ListFluxCrdsResponse) {
-				g.Expect(res.Crds).To(HaveLen(2))
-				first := res.Crds[0]
-				g.Expect(first.Version).To(Equal(""))
-				g.Expect(first.Name.Plural).To(Equal("plural"))
-				g.Expect(first.Name.Group).To(Equal("group"))
-				g.Expect(first.Kind).To(Equal("kind"))
-				g.Expect(first.ClusterName).To(Equal(cluster.DefaultCluster))
-				g.Expect(res.Crds[1].Version).To(Equal("1"))
-			},
-		},
-		{
-			"return weave gitops runtime with WEAVE_GITOPS_FEATURE_GITOPS_RUNTIME enabled",
-			[]runtime.Object{
-				&apiextensions.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{
-					Name:   "crd1",
+					Name:   "helmrelease",
 					Labels: map[string]string{coretypes.PartOfLabel: server.Flux},
 				}, Spec: apiextensions.CustomResourceDefinitionSpec{
 					Group:    "group",
-					Names:    apiextensions.CustomResourceDefinitionNames{Plural: "plural", Kind: "kind"},
+					Names:    apiextensions.CustomResourceDefinitionNames{Plural: "helmreleases", Kind: "kind"},
 					Versions: []apiextensions.CustomResourceDefinitionVersion{},
 				}},
 				&apiextensions.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{
-					Name:   "crd2",
-					Labels: map[string]string{coretypes.PartOfLabel: server.Flux},
-				}, Spec: apiextensions.CustomResourceDefinitionSpec{
-					Group: "group",
-					Versions: []apiextensions.CustomResourceDefinitionVersion{
-						{Name: "0"},
-						// "Active" version in etcd, use this one.
-						{Name: "1", Storage: true},
-					},
-				}},
-				&apiextensions.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{
-					Name:   "crd3",
+					Name:   "policy",
 					Labels: map[string]string{coretypes.PartOfLabel: server.WeaveGitops},
 				}, Spec: apiextensions.CustomResourceDefinitionSpec{
-					Group: "group",
-					Versions: []apiextensions.CustomResourceDefinitionVersion{
-						{Name: "0"},
-						// "Active" version in etcd, use this one.
-						{Name: "1", Storage: true},
-					},
-				}},
+					Group:    "group",
+					Names:    apiextensions.CustomResourceDefinitionNames{Plural: "policies", Kind: "kind"},
+					Versions: []apiextensions.CustomResourceDefinitionVersion{}}},
 			},
-			"true",
-			func(res *pb.ListFluxCrdsResponse) {
-				g.Expect(res.Crds).To(HaveLen(3))
+			func(res *pb.ListRuntimeCrdsResponse) {
+				g.Expect(res.Crds).To(HaveLen(2))
+				g.Expect(res.Crds[0].GetName().Plural).To(Equal("helmreleases"))
+				g.Expect(res.Crds[1].GetName().Plural).To(Equal("policies"))
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.description, func(t *testing.T) {
-			if tt.gitopsRuntimeFeatureFlag != "" {
-				_ = os.Setenv(server.GitopsRuntimeFeatureFlag, tt.gitopsRuntimeFeatureFlag)
-			}
-			defer func() {
-				_ = os.Unsetenv(server.GitopsRuntimeFeatureFlag)
-			}()
-			featureflags.SetFromEnv(os.Environ())
 			scheme, err := kube.CreateScheme()
 			g.Expect(err).To(BeNil())
 			client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(tt.objects...).Build()
 			cfg := makeServerConfig(client, t, "")
 			c := makeServer(cfg, t)
 
-			res, err := c.ListFluxCrds(ctx, &pb.ListFluxCrdsRequest{})
+			res, err := c.ListRuntimeCrds(ctx, &pb.ListRuntimeCrdsRequest{})
 			g.Expect(err).NotTo(HaveOccurred())
 
 			tt.assertions(res)
