@@ -65,7 +65,7 @@ service Core {
     }
 
     /*
-    * ListRuntimeObjects lists Weave GitOps runtime components from a clusters. Weave GitOps runtime is composed of Flux runtime
+    * ListRuntimeObjects lists Weave GitOps runtime components from a cluster. Weave GitOps runtime is composed of Flux runtime
     * but also the other components in the ecosystem like TF-controller or Policy Agent.
     */
     rpc ListRuntimeObjects(ListRuntimeObjectsRequest)
@@ -75,6 +75,10 @@ service Core {
         };
     }
 
+    /*
+    * ListRuntimeCrds lists Weave GitOps runtime components CRDs from a cluster. Weave GitOps runtime is composed of Flux runtime
+    * but also the other components in the ecosystem like TF-controller or Policy Agent.
+    */
     rpc ListRuntimeCrds(ListRuntimeCrdsRequest)
         returns (ListRuntimeCrdsResponse) {
         option (google.api.http) = {
