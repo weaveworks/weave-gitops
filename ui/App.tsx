@@ -40,7 +40,6 @@ import Error from "./pages/Error";
 import SignIn from "./pages/SignIn";
 import Automations from "./pages/v2/Automations";
 import BucketDetail from "./pages/v2/BucketDetail";
-import FluxRuntime from "./pages/v2/FluxRuntime";
 import GitRepositoryDetail from "./pages/v2/GitRepositoryDetail";
 import HelmChartDetail from "./pages/v2/HelmChartDetail";
 import HelmReleasePage from "./pages/v2/HelmReleasePage";
@@ -52,6 +51,7 @@ import OCIRepositoryPage from "./pages/v2/OCIRepositoryPage";
 import PoliciesList from "./pages/v2/PoliciesList";
 import PolicyDetailsPage from "./pages/v2/PolicyDetailsPage";
 import ProviderPage from "./pages/v2/ProviderPage";
+import Runtime from "./pages/v2/Runtime";
 import Sources from "./pages/v2/Sources";
 import UserInfo from "./pages/v2/UserInfo";
 
@@ -64,6 +64,26 @@ function withSearchParams(Cmp) {
     return <Cmp {...rest} {...params} />;
   };
 }
+
+// gets the right runtime navigation item based on the feature WEAVE_GITOPS_FEATURE_GITOPS_RUNTIME
+// function getRuntimeConfiguration() {
+//   const { isFlagEnabled } = useFeatureFlags();
+//
+//   if (isFlagEnabled("WEAVE_GITOPS_FEATURE_GITOPS_RUNTIME")) {
+//     return {
+//       label: "Runtime",
+//       route: V2Routes.Runtime,
+//       component: {Runtime},
+//     };
+//   }
+//   return {
+//     label: "Flux Runtime",
+//     route: V2Routes.FluxRuntime,
+//     component: {FluxRuntime},
+//   };
+// }
+
+// const runtimeConfiguration = getRuntimeConfiguration();
 
 const navItems: NavItem[] = [
   {
@@ -88,7 +108,7 @@ const navItems: NavItem[] = [
   },
   {
     label: "Runtime",
-    link: { value: V2Routes.FluxRuntime },
+    link: { value: V2Routes.Runtime },
     icon: IconType.FluxIcon,
   },
   {
@@ -143,7 +163,8 @@ const App = () => {
             path={V2Routes.ImagePolicyDetails}
             component={withSearchParams(ImagePolicyDetails)}
           />
-          <Route path={V2Routes.FluxRuntime} component={FluxRuntime} />
+          // TODO should be configurable based on feature flag
+          <Route path={V2Routes.Runtime} component={Runtime} />
           <Route
             path={V2Routes.GitRepo}
             component={withSearchParams(GitRepositoryDetail)}
