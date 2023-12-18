@@ -25,9 +25,11 @@ type CoreClient interface {
 	// ListFluxRuntimeObjects lists the flux runtime deployments from a cluster.
 	ListFluxRuntimeObjects(ctx context.Context, in *ListFluxRuntimeObjectsRequest, opts ...grpc.CallOption) (*ListFluxRuntimeObjectsResponse, error)
 	ListFluxCrds(ctx context.Context, in *ListFluxCrdsRequest, opts ...grpc.CallOption) (*ListFluxCrdsResponse, error)
-	// ListRuntimeObjects lists Weave GitOps runtime components from a clusters. Weave GitOps runtime is composed of Flux runtime
+	// ListRuntimeObjects lists Weave GitOps runtime components from a cluster. Weave GitOps runtime is composed of Flux runtime
 	// but also the other components in the ecosystem like TF-controller or Policy Agent.
 	ListRuntimeObjects(ctx context.Context, in *ListRuntimeObjectsRequest, opts ...grpc.CallOption) (*ListRuntimeObjectsResponse, error)
+	// ListRuntimeCrds lists Weave GitOps runtime components CRDs from a cluster. Weave GitOps runtime is composed of Flux runtime
+	// but also the other components in the ecosystem like TF-controller or Policy Agent.
 	ListRuntimeCrds(ctx context.Context, in *ListRuntimeCrdsRequest, opts ...grpc.CallOption) (*ListRuntimeCrdsResponse, error)
 	// GetReconciledObjects returns a list of objects that were created
 	// as a result of reconciling a Flux automation.
@@ -287,9 +289,11 @@ type CoreServer interface {
 	// ListFluxRuntimeObjects lists the flux runtime deployments from a cluster.
 	ListFluxRuntimeObjects(context.Context, *ListFluxRuntimeObjectsRequest) (*ListFluxRuntimeObjectsResponse, error)
 	ListFluxCrds(context.Context, *ListFluxCrdsRequest) (*ListFluxCrdsResponse, error)
-	// ListRuntimeObjects lists Weave GitOps runtime components from a clusters. Weave GitOps runtime is composed of Flux runtime
+	// ListRuntimeObjects lists Weave GitOps runtime components from a cluster. Weave GitOps runtime is composed of Flux runtime
 	// but also the other components in the ecosystem like TF-controller or Policy Agent.
 	ListRuntimeObjects(context.Context, *ListRuntimeObjectsRequest) (*ListRuntimeObjectsResponse, error)
+	// ListRuntimeCrds lists Weave GitOps runtime components CRDs from a cluster. Weave GitOps runtime is composed of Flux runtime
+	// but also the other components in the ecosystem like TF-controller or Policy Agent.
 	ListRuntimeCrds(context.Context, *ListRuntimeCrdsRequest) (*ListRuntimeCrdsResponse, error)
 	// GetReconciledObjects returns a list of objects that were created
 	// as a result of reconciling a Flux automation.

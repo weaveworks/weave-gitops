@@ -52,17 +52,19 @@ function FluxRuntime({ className, deployments, crds }: Props) {
     },
   ];
   const fluxVersions: { [key: string]: FluxVersion } = {};
-  deployments.filter( (d) =>  d.labels[partOfLabel] == fluxLabel ).forEach((d) => {
-    const fv = d.labels[fluxVersionLabel];
-    const k = `${fv}${d.clusterName}${d.namespace}`;
-    if (!fluxVersions[k]) {
-      fluxVersions[k] = {
-        version: fv,
-        clusterName: d.clusterName,
-        namespace: d.namespace,
-      };
-    }
-  });
+  deployments
+      .filter((d) => d.labels[partOfLabel] == fluxLabel)
+      .forEach((d) => {
+        const fv = d.labels[fluxVersionLabel];
+        const k = `${fv}${d.clusterName}${d.namespace}`;
+        if (!fluxVersions[k]) {
+          fluxVersions[k] = {
+            version: fv,
+            clusterName: d.clusterName,
+            namespace: d.namespace,
+          };
+        }
+      });
 
   const supportMultipleFlux = true;
 
