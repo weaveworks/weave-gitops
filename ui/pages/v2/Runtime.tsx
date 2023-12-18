@@ -2,7 +2,7 @@ import * as React from "react";
 import styled from "styled-components";
 import FluxRuntimeComponent from "../../components/FluxRuntime";
 import Page from "../../components/Page";
-import {useListRuntimeCrds, useListRuntimeObjects} from "../../hooks/flux";
+import { useListRuntimeCrds, useListRuntimeObjects } from "../../hooks/flux";
 
 type Props = {
   className?: string;
@@ -16,7 +16,7 @@ function Runtime({ className }: Props) {
     error: crdsError,
   } = useListRuntimeCrds();
   return (
-      <Page
+    <Page
       loading={isLoading || crdsLoading}
       error={error || crdsError}
       className={className}
