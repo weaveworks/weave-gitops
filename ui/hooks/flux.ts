@@ -3,7 +3,8 @@ import { useMutation, useQuery, useQueryClient } from "react-query";
 import { CoreClientContext } from "../contexts/CoreClientContext";
 import {
     ListFluxCrdsResponse,
-    ListFluxRuntimeObjectsResponse, ListRuntimeObjectsResponse,
+    ListFluxRuntimeObjectsResponse,
+    ListRuntimeObjectsResponse,
     ToggleSuspendResourceRequest,
     ToggleSuspendResourceResponse,
 } from "../lib/api/core/core.pb";
@@ -52,22 +53,22 @@ export function useListRuntimeObjects(
         refetchInterval: 5000,
     }
 ) {
-    const { api } = useContext(CoreClientContext);
+    const {api} = useContext(CoreClientContext);
 
     return useQuery<ListRuntimeObjectsResponse, RequestError>(
         "runtime_objects",
-        () => api.ListRuntimeObjects({ namespace, clusterName }),
+        () => api.ListRuntimeObjects({namespace, clusterName}),
         opts
     );
 }
 
 export function useListRuntimeCrds(clusterName = DefaultCluster) {
-    const { api } = useContext(CoreClientContext);
+    const {api} = useContext(CoreClientContext);
 
     return useQuery<ListFluxCrdsResponse, RequestError>(
         "runtime_crds",
-        () => api.ListRuntimeCrds({ clusterName }),
-        { retry: false, refetchInterval: 5000 }
+        () => api.ListRuntimeCrds({clusterName}),
+        {retry: false, refetchInterval: 5000}
     );
 }
 

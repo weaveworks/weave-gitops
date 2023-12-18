@@ -202,15 +202,12 @@ const App = () => {
             component={withSearchParams(PolicyViolationPage)}
           />
           <Route path={V2Routes.UserInfo} component={UserInfo} />
-
           <Route path={V2Routes.Policies} component={PoliciesList} />
           <Route
             path={V2Routes.PolicyDetailsPage}
             component={withSearchParams(PolicyDetailsPage)}
           />
-
           <Redirect exact from="/" to={V2Routes.Automations} />
-
           <Route exact path="*" component={Error} />
         </Switch>
       </ErrorBoundary>

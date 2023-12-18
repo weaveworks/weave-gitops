@@ -16,8 +16,7 @@ function Runtime({ className }: Props) {
     error: crdsError,
   } = useListRuntimeCrds();
   return (
-
-  <Page
+      <Page
       loading={isLoading || crdsLoading}
       error={error || crdsError}
       className={className}

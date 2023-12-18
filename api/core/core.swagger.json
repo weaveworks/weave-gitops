@@ -604,6 +604,7 @@
     },
     "/v1/runtime_crds": {
       "get": {
+        "summary": "ListRuntimeCrds lists Weave GitOps runtime components CRDs from a cluster. Weave GitOps runtime is composed of Flux runtime\nbut also the other components in the ecosystem like TF-controller or Policy Agent.",
         "operationId": "Core_ListRuntimeCrds",
         "responses": {
           "200": {
@@ -634,7 +635,7 @@
     },
     "/v1/runtime_objects": {
       "get": {
-        "summary": "ListRuntimeObjects lists Weave GitOps runtime components from a clusters. Weave GitOps runtime is composed of Flux runtime\nbut also the other components in the ecosystem like TF-controller or Policy Agent.",
+        "summary": "ListRuntimeObjects lists Weave GitOps runtime components from a cluster. Weave GitOps runtime is composed of Flux runtime\nbut also the other components in the ecosystem like TF-controller or Policy Agent.",
         "operationId": "Core_ListRuntimeObjects",
         "responses": {
           "200": {
