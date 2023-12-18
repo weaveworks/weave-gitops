@@ -65,6 +65,24 @@ service Core {
     }
 
     /*
+    * ListRuntimeObjects lists Weave GitOps runtime components from a clusters. Weave GitOps runtime is composed of Flux runtime
+    * but also the other components in the ecosystem like TF-controller or Policy Agent.
+    */
+    rpc ListRuntimeObjects(ListRuntimeObjectsRequest)
+        returns (ListRuntimeObjectsResponse) {
+        option (google.api.http) = {
+            get: "/v1/runtime_objects"
+        };
+    }
+
+    rpc ListRuntimeCrds(ListRuntimeCrdsRequest)
+        returns (ListRuntimeCrdsResponse) {
+        option (google.api.http) = {
+            get: "/v1/runtime_crds"
+        };
+    }
+
+    /*
      * GetReconciledObjects returns a list of objects that were created
      * as a result of reconciling a Flux automation.
      * This list is derived by looking at the Kustomization or HelmRelease
@@ -318,11 +336,30 @@ message ListFluxRuntimeObjectsResponse {
     repeated ListError errors       = 2;
 }
 
+message ListRuntimeObjectsRequest {
+    string namespace   = 1;
+    string clusterName = 2;
+}
+
+message ListRuntimeObjectsResponse {
+    repeated Deployment deployments = 1;
+    repeated ListError errors       = 2;
+}
+
 message ListFluxCrdsRequest {
     string clusterName = 1;
 }
 
 message ListFluxCrdsResponse {
+    repeated Crd crds         = 1;
+    repeated ListError errors = 2;
+}
+
+message ListRuntimeCrdsRequest {
+    string clusterName = 1;
+}
+
+message ListRuntimeCrdsResponse {
     repeated Crd crds         = 1;
     repeated ListError errors = 2;
 }
