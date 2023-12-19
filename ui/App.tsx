@@ -28,6 +28,7 @@ import AppContextProvider, {
 } from "./contexts/AppContext";
 import AuthContextProvider, { AuthCheck } from "./contexts/AuthContext";
 import CoreClientContextProvider from "./contexts/CoreClientContext";
+import { useFeatureFlags } from "./hooks/featureflags";
 import useNavigation from "./hooks/navigation";
 import { useInDarkMode } from "./hooks/theme";
 import { Core } from "./lib/api/core/core.pb";
@@ -40,6 +41,7 @@ import Error from "./pages/Error";
 import SignIn from "./pages/SignIn";
 import Automations from "./pages/v2/Automations";
 import BucketDetail from "./pages/v2/BucketDetail";
+import FluxRuntime from "./pages/v2/FluxRuntime";
 import GitRepositoryDetail from "./pages/v2/GitRepositoryDetail";
 import HelmChartDetail from "./pages/v2/HelmChartDetail";
 import HelmReleasePage from "./pages/v2/HelmReleasePage";
@@ -66,60 +68,63 @@ function withSearchParams(Cmp) {
 }
 
 // gets the right runtime navigation item based on the feature WEAVE_GITOPS_FEATURE_GITOPS_RUNTIME
-// function getRuntimeConfiguration() {
-//   const { isFlagEnabled } = useFeatureFlags();
-//
-//   if (isFlagEnabled("WEAVE_GITOPS_FEATURE_GITOPS_RUNTIME")) {
-//     return {
-//       label: "Runtime",
-//       route: V2Routes.Runtime,
-//       component: {Runtime},
-//     };
-//   }
-//   return {
-//     label: "Flux Runtime",
-//     route: V2Routes.FluxRuntime,
-//     component: {FluxRuntime},
-//   };
-// }
+function getRuntimeConfiguration(isNewRuntimeEnabled: boolean): NavItem {
+  if (isNewRuntimeEnabled) {
+    return {
+      label: "Runtime",
+      link: { value: V2Routes.Runtime },
+      icon: IconType.FluxIcon,
+    }
+  }
 
-// const runtimeConfiguration = getRuntimeConfiguration();
-
-const navItems: NavItem[] = [
-  {
-    label: "Applications",
-    link: { value: V2Routes.Automations },
-    icon: IconType.ApplicationsIcon,
-  },
-  {
-    label: "Sources",
-    link: { value: V2Routes.Sources },
-    icon: IconType.SourcesIcon,
-  },
-  {
-    label: "Image Automation",
-    link: { value: V2Routes.ImageAutomation },
-    icon: IconType.ImageAutomationIcon,
-  },
-  {
-    label: "Policies",
-    link: { value: V2Routes.Policies },
-    icon: IconType.PoliciesIcon,
-  },
-  {
-    label: "Runtime",
-    link: { value: V2Routes.Runtime },
+  return {
+    label: "Flux Runtime",
+    link: { value: V2Routes.FluxRuntime },
     icon: IconType.FluxIcon,
-  },
-  {
-    label: "Notifications",
-    link: { value: V2Routes.Notifications },
-    icon: IconType.NotificationsIcon,
-  },
-];
+  }
+}
 
 const App = () => {
   const dark = useInDarkMode();
+
+  const { isFlagEnabled } = useFeatureFlags();
+
+  const isNewRuntimeEnabled = isFlagEnabled("WEAVE_GITOPS_FEATURE_GITOPS_RUNTIME");
+
+  // TODO: remove debug message
+  console.log("WEAVE_GITOPS_FEATURE_GITOPS_RUNTIME:")
+  console.log(isNewRuntimeEnabled)
+
+  const runtimeNavItem: NavItem = getRuntimeConfiguration(isNewRuntimeEnabled);
+
+  const navItems: NavItem[] = [
+    {
+      label: "Applications",
+      link: { value: V2Routes.Automations },
+      icon: IconType.ApplicationsIcon,
+    },
+    {
+      label: "Sources",
+      link: { value: V2Routes.Sources },
+      icon: IconType.SourcesIcon,
+    },
+    {
+      label: "Image Automation",
+      link: { value: V2Routes.ImageAutomation },
+      icon: IconType.ImageAutomationIcon,
+    },
+    {
+      label: "Policies",
+      link: { value: V2Routes.Policies },
+      icon: IconType.PoliciesIcon,
+    },
+    runtimeNavItem,
+    {
+      label: "Notifications",
+      link: { value: V2Routes.Notifications },
+      icon: IconType.NotificationsIcon,
+    }];
+
   const [collapsed, setCollapsed] = React.useState<boolean>(false);
   const { currentPage } = useNavigation();
   const value = getParentNavRouteValue(currentPage);
@@ -163,8 +168,8 @@ const App = () => {
             path={V2Routes.ImagePolicyDetails}
             component={withSearchParams(ImagePolicyDetails)}
           />
-          // TODO should be configurable based on feature flag
-          <Route path={V2Routes.Runtime} component={Runtime} />
+          {/* TODO should be configurable based on feature flag */}
+          {isNewRuntimeEnabled ? <Route path={V2Routes.Runtime} component={Runtime} /> : <Route path={V2Routes.FluxRuntime} component={FluxRuntime} />}
           <Route
             path={V2Routes.GitRepo}
             component={withSearchParams(GitRepositoryDetail)}
