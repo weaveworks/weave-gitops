@@ -67,21 +67,20 @@ function withSearchParams(Cmp) {
   };
 }
 
-// gets the right runtime navigation item based on the feature WEAVE_GITOPS_FEATURE_GITOPS_RUNTIME
-function getRuntimeConfiguration(isNewRuntimeEnabled: boolean): NavItem {
+function getRuntimeNavItem(isNewRuntimeEnabled: boolean): NavItem {
   if (isNewRuntimeEnabled) {
     return {
       label: "Runtime",
       link: { value: V2Routes.Runtime },
       icon: IconType.FluxIcon,
-    }
+    };
   }
 
   return {
     label: "Flux Runtime",
     link: { value: V2Routes.FluxRuntime },
     icon: IconType.FluxIcon,
-  }
+  };
 }
 
 const App = () => {
@@ -94,8 +93,6 @@ const App = () => {
   // TODO: remove debug message
   console.log("WEAVE_GITOPS_FEATURE_GITOPS_RUNTIME:")
   console.log(isNewRuntimeEnabled)
-
-  const runtimeNavItem: NavItem = getRuntimeConfiguration(isNewRuntimeEnabled);
 
   const navItems: NavItem[] = [
     {
@@ -118,12 +115,13 @@ const App = () => {
       link: { value: V2Routes.Policies },
       icon: IconType.PoliciesIcon,
     },
-    runtimeNavItem,
+    getRuntimeNavItem(isNewRuntimeEnabled),
     {
       label: "Notifications",
       link: { value: V2Routes.Notifications },
       icon: IconType.NotificationsIcon,
-    }];
+    },
+  ];
 
   const [collapsed, setCollapsed] = React.useState<boolean>(false);
   const { currentPage } = useNavigation();
