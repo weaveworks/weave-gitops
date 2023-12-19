@@ -90,10 +90,6 @@ const App = () => {
 
   const isNewRuntimeEnabled = isFlagEnabled("WEAVE_GITOPS_FEATURE_GITOPS_RUNTIME");
 
-  // TODO: remove debug message
-  console.log("WEAVE_GITOPS_FEATURE_GITOPS_RUNTIME:")
-  console.log(isNewRuntimeEnabled)
-
   const navItems: NavItem[] = [
     {
       label: "Applications",
@@ -166,7 +162,6 @@ const App = () => {
             path={V2Routes.ImagePolicyDetails}
             component={withSearchParams(ImagePolicyDetails)}
           />
-          {/* TODO should be configurable based on feature flag */}
           {isNewRuntimeEnabled ? <Route path={V2Routes.Runtime} component={Runtime} /> : <Route path={V2Routes.FluxRuntime} component={FluxRuntime} />}
           <Route
             path={V2Routes.GitRepo}
