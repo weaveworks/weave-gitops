@@ -285,16 +285,189 @@ You should now be able to login via the cluster user account using your chosen u
 </TabItem>
 </Tabs>
 
+### Authorization
+
+Weave GitOps Enterprise works with standard [Kubernetes RBAC](https://kubernetes.io/docs/reference/access-authn-authz/rbac/)
+to define what actions can a subject do-over the existing resources. The following Weave GitOps subjects needs authorization:
+
+- **Weave GitOps Users:** previously authenticated via either OIDC or Cluster User.
+- **Weave GitOps Service Account:** which talks to Kubernetes for user operations via [Impersonation](https://kubernetes.io/docs/reference/access-authn-authz/authentication/#user-impersonation).
+- **Flux Service Accounts:** which talks to Kubernetes for deployments operations.
+
+This section introduces the default authorization context created, for each subject, out of installing Weave GitOps Enterprise Helm Release with the default values.
+It also expands on how you could customise it.
+
+#### Weave GitOps Users
+
+**Cluster User**
+
+It creates the RBAC `ClusterRole` resources and `ClusterRoleBinding` resources that allows the user `wego-admin` to have `cluster-admin`
+access to any resource in the management cluster.
+
+For more restrictive scenarios see [Cluster User](#cluster-user) in Day 1.
+
+**OIDC**
+
+:::caution OIDC Authorization
+
+Given OIDC is highly context dependent, during bootstrapping no RBAC resources are created. Instead, we encourage that you
+follow the `/bases` pattern in your configuration repo path in your configuration repo to define them and leverage
+Flux the heavy lifting.
+
+See more about OIDC authorization via bases [here](#oidc-authorization).
+:::
+
+#### Weave GitOps Service Account
+
+The default install will create the RBA resources that allow the service account to do the following:
+
+1. [Impersonate Users and Service Accounts](https://kubernetes.io/docs/reference/access-authn-authz/authentication/#user-impersonation) the user and operate in the cluster as them
+2. Read the available namespaces; this is required to understand users' permissions.
+3. Read the `cluster-user-auth` and `oidc-auth` resources with the secrets for authentication.
+
+#### Flux Service Accounts
+
+They are generated during Flux Bootstrapping. More information about Flux Authorization could be found [here](https://fluxcd.io/flux/installation/configuration/multitenancy/#flux-authorisation-model).
+
+### Install WGE
+
+We install Weave GitOps Enterprise via Flux Helm Release that you could deploy via the CLI or manually:
+
+<Tabs groupId="install wge" default>
+<TabItem value="CLI" label="CLI">
+
+You could configure this stage by using the following flags and examples:
+
+ ```bash
+ # Configure bootstrapping to install WGE version '0.37.0'
+ gitops bootstrap --version="0.37.0"
+ ```
+
+For more information about the CLI configurations, check the below sections [here](#cli-configurations)
+
+</TabItem>
+<TabItem value="Manual" label="Manual">
+
+Download the following `HelmRelease` to `clusters/management/weave-gitops-enterprise.yaml`.
+
+import ExampleWGE from "../../assets/example-enterprise-helm.yaml";
+import ExampleWGEContent from "!!raw-loader!../../assets/example-enterprise-helm.yaml";
+
+<details><summary>Expand to see file contents</summary>
+
+<CurlCodeBlock
+  localPath="clusters/management/weave-gitops-enterprise.yaml"
+  hostedPath={ExampleWGE}
+  content={ExampleWGEContent}
+/>
+
+</details>
+
+
+Edit and adjust the following configuration options:
+
+`values.config.capi.repositoryURL`: ensure this has been set to your repository URL.
+
+`values.config.capi.repositoryPath`: by default, WGE will create new clusters in the `clusters/management/clusters` path.
+You can configure it with `values.config.capi.repositoryPath`.
+You might what to change it to `clusters/my-cluster/cluster` if you configured Flux to reconcile `./clusters/my-cluster` instead.
+
+`values.config.capi.repositoryClustersPath`: the other important path to configure is where you'll store applications and workloads run on the new cluster.
+By default this is `./clusters`. When a new cluster is specified, any selected profiles will be written to `./clusters/{.namespace}/{.clusterName}/profiles.yaml`.
+When the new cluster is bootstrapped, Flux will sync the `./clusters/{.namespace}/{.clusterName}` path.
+
+Commit and push all the files
+
+```bash
+git add clusters/management/weave-gitops-enterprise.yaml
+git commit -m "Deploy Weave GitOps Enterprise"
+git push
+```
+
+Flux will reconcile the helm-release and WGE will be deployed into the cluster. You can check the `flux-system` namespace to verify all pods are running.
+
+</TabItem>
+</Tabs>
+
+### Access the dashboard
+
+Weave GitOps Enterprise dashboard is available by default via ClusterIP service. You could use the `port-forward` command
+output as part of the bootstrapping session or the one below:
+
+```bash
+ kubectl -n flux-system port-forward svc/clusters-service 8000:8000
+```
+Access your browser on http://localhost:8000
+
+![Weave GitOps Enterprise Login](./imgs/wge-login-ui.png)
+
+Login with the user credentials that you have configured as part of the bootstrapping session.
+
+![Weave GitOps Enterprise Cluster](./imgs/wge-clusters-ui.png)
+
+
+## Day 1: Customise and Complete
+
+Now that you have Weave GitOps Enterprise up and running, you might want to iterate your setup before opening to the rest of
+the users. This section shows you the different options that you could configure to adapt Weave GitOps Enterprise to your needs.
 
 ### Authorization
 
-Weave GitOps Enterprise works with standard Kubernetes RBAC for authorization.
+#### Cluster User
 
+**User Permissions**
 
-### GitOps Dashboard Service Account Permissions
+By default, both a ClusterRole and Role are generated for the Cluster User.
+Both have the same permissions, with the former being optional and the latter being
+bound to the `flux-system` namespace (where Flux stores its resources by default).
+The default set of rules are configured like this:
 
-This section covers the service account [permissions](https://kubernetes.io/docs/reference/access-authn-authz/rbac/)
-for the Weave GitOps application, which the WGE UI requires to work. The default permissions will generate a cluster role that includes the permissions:
+```yaml
+rules:
+  # Flux Resources
+  - apiGroups: ["source.toolkit.fluxcd.io"]
+    resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories", "ocirepositories" ]
+    verbs: [ "get", "list", "watch", "patch" ]
+
+  - apiGroups: ["kustomize.toolkit.fluxcd.io"]
+    resources: [ "kustomizations" ]
+    verbs: [ "get", "list", "watch", "patch" ]
+
+  - apiGroups: ["helm.toolkit.fluxcd.io"]
+    resources: [ "helmreleases" ]
+    verbs: [ "get", "list", "watch", "patch" ]
+
+  - apiGroups: [ "notification.toolkit.fluxcd.io" ]
+    resources: [ "providers", "alerts" ]
+    verbs: [ "get", "list", "watch", "patch" ]
+
+  - apiGroups: ["infra.contrib.fluxcd.io"]
+    resources: ["terraforms"]
+    verbs: [ "get", "list", "watch", "patch" ]
+
+  # Read access for all other Kubernetes objects
+  - apiGroups: ["*"]
+    resources: ["*"]
+    verbs: [ "get", "list", "watch" ]
+```
+
+These permissions give the Cluster User Administrator-level powers. **We do not
+advise leaving it active on production systems**.
+
+If required, the permissions can be expanded with the `rbac.additionalRules` field in the
+[Helm Chart](../../references/helm-reference.md).
+
+Follow the instructions in the next section in order to configure RBAC correctly.
+
+#### OIDC
+
+// TODO Uses bases pattern to configure OIDC
+
+#### Weave GitOps Service Account
+
+This section covers the service account [permissions]
+for the Weave GitOps application, which the WGE UI requires to work.
+The default permissions will generate a cluster role that includes the permissions:
 
 ```yaml
 rules:
@@ -313,8 +486,8 @@ These allow the pod to do three things:
 * [Impersonate](https://kubernetes.io/docs/reference/access-authn-authz/authentication/#user-impersonation) the user and operate in the cluster as them
 * Read the available namespaces; this is required to understand users' permissions
 * Read the `cluster-user-auth` and `oidc-auth` secrets, the default secrets
-  to store the emergency cluster user account and OIDC configuration (see
-  [securing access to the dashboard](#securing-access-to-the-dashboard))
+to store the emergency cluster user account and OIDC configuration (see
+[securing access to the dashboard](#securing-access-to-the-dashboard))
 
 #### Impersonation
 
@@ -402,7 +575,7 @@ The following table lists resources that Flux works with directly.
 | notification.toolkit.fluxcd.io | providers, alerts                                                       | get, list        |
 | infra.contrib.fluxcd.io        | [Terraform](https://github.com/weaveworks/tf-controller)                                                             | get, list, patch |
 
- Weave GitOps needs to be able to query the [CRDs](https://fluxcd.io/docs/components/) that Flux uses before it can accurately display Flux state. The
+Weave GitOps needs to be able to query the [CRDs](https://fluxcd.io/docs/components/) that Flux uses before it can accurately display Flux state. The
 `get` and `list` permissions facilitate this.
 
 The `patch` permissions are used for two features: to suspend and resume
@@ -444,31 +617,31 @@ Our general recommendation is to use OIDC and a small number of groups that Weav
 
 Configuring Weave GitOps to impersonate Kubernetes groups rather than users has the following benefits:
 * A user's permissions for impersonation by Weave GitOps can be separate from
-  any other permissions that they may or may not have within the cluster.
+any other permissions that they may or may not have within the cluster.
 * Users do not have to be individually managed within the cluster and can have
-  their permissions managed together.
+their permissions managed together.
 
 ### Example Setup
 
 Assume that your company has the following people in OIDC:
 * Aisha, a cluster admin, who should have full admin access to Weave GitOps
 * Brian, lead of Team-A, who should have admin permissions to their team's
-  namespace in Weave GitOps and read-only otherwise
+namespace in Weave GitOps and read-only otherwise
 * June and Jo, developers in Team-A who should have read-only access to Weave GitOps
 
 You can then create three groups:
 
 * `wego-admin`
-  - Bound to the `ClusterRole`, created by Helm, `wego-admin-cluster-role`
-  - Aisha is the only member
+- Bound to the `ClusterRole`, created by Helm, `wego-admin-cluster-role`
+- Aisha is the only member
 * `wego-team-a-admin`
-  - Bound to a `Role`, using the same permissions as `wego-admin-role`, created
-    in Team-A's namespace
-  - Brian and Aisha are members
+- Bound to a `Role`, using the same permissions as `wego-admin-role`, created
+in Team-A's namespace
+- Brian and Aisha are members
 * `wego-readonly`
-  - Bound to a `ClusterRole` that matches `wego-admin-cluster-role` but with
-    no `patch` permissions.
-  - Aisha, Brian, June and Jo are all members
+- Bound to a `ClusterRole` that matches `wego-admin-cluster-role` but with
+no `patch` permissions.
+- Aisha, Brian, June and Jo are all members
 
 :::caution Using OIDC for cluster and Weave GitOps Authentication
 If the same OIDC provider is used to authenticate a user with the cluster
@@ -486,265 +659,110 @@ cluster client (and vice versa).
 
 The yaml to configure these permissions would look roughly like:
 
-<details><summary>Expand to see example RBAC</summary>
-
-```yaml
-# Admin cluster role
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: wego-admin-cluster-role
-rules:
-  - apiGroups: [""]
-    resources: ["secrets", "pods" ]
-    verbs: [ "get", "list" ]
-  - apiGroups: ["apps"]
-    resources: [ "deployments", "replicasets"]
-    verbs: [ "get", "list" ]
-  - apiGroups: ["kustomize.toolkit.fluxcd.io"]
-    resources: [ "kustomizations" ]
-    verbs: [ "get", "list", "patch" ]
-  - apiGroups: ["helm.toolkit.fluxcd.io"]
-    resources: [ "helmreleases" ]
-    verbs: [ "get", "list", "patch" ]
-  - apiGroups: ["source.toolkit.fluxcd.io"]
-    resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories", "ocirepositories" ]
-    verbs: [ "get", "list", "patch" ]
-  - apiGroups: [""]
-    resources: ["events"]
-    verbs: ["get", "watch", "list"]
----
-# Read-only cluster role
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: wego-readonly-role
-rules:
-  # All the 'patch' permissions have been removed
-  - apiGroups: [""]
-    resources: ["secrets", "pods" ]
-    verbs: [ "get", "list" ]
-  - apiGroups: ["apps"]
-    resources: [ "deployments", "replicasets"]
-    verbs: [ "get", "list" ]
-  - apiGroups: ["kustomize.toolkit.fluxcd.io"]
-    resources: [ "kustomizations" ]
-    verbs: [ "get", "list" ]
-  - apiGroups: ["helm.toolkit.fluxcd.io"]
-    resources: [ "helmreleases" ]
-    verbs: [ "get", "list" ]
-  - apiGroups: ["source.toolkit.fluxcd.io"]
-    resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories", "ocirepositories" ]
-    verbs: [ "get", "list" ]
-  - apiGroups: [""]
-    resources: ["events"]
-    verbs: ["get", "watch", "list"]
----
-# Bind the cluster admin role to the wego-admin group
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: wego-cluster-admin
-subjects:
-- kind: Group
-  name: wego-admin # only Aisha is a member
-  apiGroup: rbac.authorization.k8s.io
-roleRef:
-  kind: ClusterRole
-  name: wego-admin-cluster-role
-  apiGroup: rbac.authorization.k8s.io
----
-# Bind the admin role in the team-a namespace for the wego-team-a-admin group
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: wego-team-a-admin-role
-  namespace: team-a
-subjects:
-- kind: Group
-  name: wego-team-a-admin # Aisha & Brian are members
-  apiGroup: rbac.authorization.k8s.io
-roleRef:
-  # Use the cluster role to set rules, just bind them in the team-a namespace
-  kind: ClusterRole
-  name: wego-admin-role
-  apiGroup: rbac.authorization.k8s.io
----
-# Bind the read-only role to the read-only group
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: wego-readonly-role
-subjects:
-- kind: Group
-  name: wego-readonly # Everyone is a member
-  apiGroup: rbac.authorization.k8s.io
-roleRef:
-  kind: ClusterRole
-  name: wego-readonly-role
-  apiGroup: rbac.authorization.k8s.io
----
-```
-
-</details>
-
-
-
-<Tabs groupId="authorization" default>
-<TabItem value="CLI" label="CLI">### Login UI
-
-    The label of the OIDC button on the login screen is configurable via a feature flag environment variable.
-    This can give your users a more familiar experience when logging in.
-
-    Adjust the configuration in the Helm `values.yaml` file or the `spec.values` section of the Weave GitOps `HelmRelease` resource:
+<details>
+    <summary>Expand to see example RBAC</summary>
 
     ```yaml
-    extraEnvVars:
-    - name: WEAVE_GITOPS_FEATURE_OIDC_BUTTON_LABEL
-    value: "Login with ACME"
-    ```
-
-
-    // TODO add as not currently supported
-
-</TabItem>
-<TabItem value="OIDC" label="Manual OIDC">
-
-Upon successful authentication, the users' identities will be impersonated in any calls made to the Kubernetes API, as part of any action they take in the dashboard. By default the Helm chart will configure RBAC correctly, but we recommend reading the [service account](#gitops-dashboard-service-account-permissions) and [user permissions](#user-permissions) pages to understand which actions are needed for Weave GitOps to function correctly.
-
-
-</TabItem>
-<TabItem value="Cluster User" label="Manual Cluster User">
-
-
-**User Permissions**
-
-By default, both a ClusterRole and Role are generated for the Cluster User.
-Both have the same permissions, with the former being optional and the latter being
-bound to the `flux-system` namespace (where Flux stores its resources by default).
-The default set of rules are configured like this:
-
-```yaml
-rules:
-  # Flux Resources
-  - apiGroups: ["source.toolkit.fluxcd.io"]
-    resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories", "ocirepositories" ]
-    verbs: [ "get", "list", "watch", "patch" ]
-
-  - apiGroups: ["kustomize.toolkit.fluxcd.io"]
+    # Admin cluster role
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRole
+    metadata:
+    name: wego-admin-cluster-role
+    rules:
+    - apiGroups: [""]
+    resources: ["secrets", "pods" ]
+    verbs: [ "get", "list" ]
+    - apiGroups: ["apps"]
+    resources: [ "deployments", "replicasets"]
+    verbs: [ "get", "list" ]
+    - apiGroups: ["kustomize.toolkit.fluxcd.io"]
     resources: [ "kustomizations" ]
-    verbs: [ "get", "list", "watch", "patch" ]
-
-  - apiGroups: ["helm.toolkit.fluxcd.io"]
+    verbs: [ "get", "list", "patch" ]
+    - apiGroups: ["helm.toolkit.fluxcd.io"]
     resources: [ "helmreleases" ]
-    verbs: [ "get", "list", "watch", "patch" ]
-
-  - apiGroups: [ "notification.toolkit.fluxcd.io" ]
-    resources: [ "providers", "alerts" ]
-    verbs: [ "get", "list", "watch", "patch" ]
-
-  - apiGroups: ["infra.contrib.fluxcd.io"]
-    resources: ["terraforms"]
-    verbs: [ "get", "list", "watch", "patch" ]
-
-  # Read access for all other Kubernetes objects
-  - apiGroups: ["*"]
-    resources: ["*"]
-    verbs: [ "get", "list", "watch" ]
-```
-
-These permissions give the Cluster User Administrator-level powers. **We do not
-advise leaving it active on production systems**.
-
-If required, the permissions can be expanded with the `rbac.additionalRules` field in the
-[Helm Chart](../../references/helm-reference.md).
-
-Follow the instructions in the next section in order to configure RBAC correctly.
-
-</TabItem>
-</Tabs>
-
-### Install WGE
-
-We install Weave GitOps Enterprise via Flux Helm Release that you could deploy via the CLI or manually:
-
-<Tabs groupId="install wge" default>
-<TabItem value="CLI" label="CLI">
-
-You could configure this stage by using the following flags and examples:
-
- ```bash
- # Configure bootstrapping to install WGE version '0.37.0'
- gitops bootstrap --version="0.37.0"
- ```
-
-For more information about the CLI configurations, check the below sections [here](#cli-configurations)
-
-</TabItem>
-<TabItem value="Manual" label="Manual">
-
-Download the following `HelmRelease` to `clusters/management/weave-gitops-enterprise.yaml`.
-
-import ExampleWGE from "../../assets/example-enterprise-helm.yaml";
-import ExampleWGEContent from "!!raw-loader!../../assets/example-enterprise-helm.yaml";
-
-<details><summary>Expand to see file contents</summary>
-
-<CurlCodeBlock
-  localPath="clusters/management/weave-gitops-enterprise.yaml"
-  hostedPath={ExampleWGE}
-  content={ExampleWGEContent}
-/>
+    verbs: [ "get", "list", "patch" ]
+    - apiGroups: ["source.toolkit.fluxcd.io"]
+    resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories", "ocirepositories" ]
+    verbs: [ "get", "list", "patch" ]
+    - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["get", "watch", "list"]
+    ---
+    # Read-only cluster role
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRole
+    metadata:
+    name: wego-readonly-role
+    rules:
+    # All the 'patch' permissions have been removed
+    - apiGroups: [""]
+    resources: ["secrets", "pods" ]
+    verbs: [ "get", "list" ]
+    - apiGroups: ["apps"]
+    resources: [ "deployments", "replicasets"]
+    verbs: [ "get", "list" ]
+    - apiGroups: ["kustomize.toolkit.fluxcd.io"]
+    resources: [ "kustomizations" ]
+    verbs: [ "get", "list" ]
+    - apiGroups: ["helm.toolkit.fluxcd.io"]
+    resources: [ "helmreleases" ]
+    verbs: [ "get", "list" ]
+    - apiGroups: ["source.toolkit.fluxcd.io"]
+    resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories", "ocirepositories" ]
+    verbs: [ "get", "list" ]
+    - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["get", "watch", "list"]
+    ---
+    # Bind the cluster admin role to the wego-admin group
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+    name: wego-cluster-admin
+    subjects:
+    - kind: Group
+    name: wego-admin # only Aisha is a member
+    apiGroup: rbac.authorization.k8s.io
+    roleRef:
+    kind: ClusterRole
+    name: wego-admin-cluster-role
+    apiGroup: rbac.authorization.k8s.io
+    ---
+    # Bind the admin role in the team-a namespace for the wego-team-a-admin group
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+    name: wego-team-a-admin-role
+    namespace: team-a
+    subjects:
+    - kind: Group
+    name: wego-team-a-admin # Aisha & Brian are members
+    apiGroup: rbac.authorization.k8s.io
+    roleRef:
+    # Use the cluster role to set rules, just bind them in the team-a namespace
+    kind: ClusterRole
+    name: wego-admin-role
+    apiGroup: rbac.authorization.k8s.io
+    ---
+    # Bind the read-only role to the read-only group
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: ClusterRoleBinding
+    metadata:
+    name: wego-readonly-role
+    subjects:
+    - kind: Group
+    name: wego-readonly # Everyone is a member
+    apiGroup: rbac.authorization.k8s.io
+    roleRef:
+    kind: ClusterRole
+    name: wego-readonly-role
+    apiGroup: rbac.authorization.k8s.io
+    ---
+    ```
 
 </details>
 
 
-Edit and adjust the following configuration options:
-
-`values.config.capi.repositoryURL`: ensure this has been set to your repository URL.
-
-`values.config.capi.repositoryPath`: by default, WGE will create new clusters in the `clusters/management/clusters` path.
-You can configure it with `values.config.capi.repositoryPath`.
-You might what to change it to `clusters/my-cluster/cluster` if you configured Flux to reconcile `./clusters/my-cluster` instead.
-
-`values.config.capi.repositoryClustersPath`: the other important path to configure is where you'll store applications and workloads run on the new cluster.
-By default this is `./clusters`. When a new cluster is specified, any selected profiles will be written to `./clusters/{.namespace}/{.clusterName}/profiles.yaml`.
-When the new cluster is bootstrapped, Flux will sync the `./clusters/{.namespace}/{.clusterName}` path.
-
-Commit and push all the files
-
-```bash
-git add clusters/management/weave-gitops-enterprise.yaml
-git commit -m "Deploy Weave GitOps Enterprise"
-git push
-```
-
-Flux will reconcile the helm-release and WGE will be deployed into the cluster. You can check the `flux-system` namespace to verify all pods are running.
-
-</TabItem>
-</Tabs>
-
-### Access the dashboard
-
-Weave GitOps Enterprise dashboard is available by default via ClusterIP service. You could use the `port-forward` command
-output as part of the bootstrapping session or the one below:
-
-```bash
- kubectl -n flux-system port-forward svc/clusters-service 8000:8000
-```
-Access your browser on http://localhost:8000
-
-![Weave GitOps Enterprise Login](./imgs/wge-login-ui.png)
-
-Login with the user credentials that you have configured as part of the bootstrapping session.
-
-![Weave GitOps Enterprise Cluster](./imgs/wge-clusters-ui.png)
-
-
-## Day 1: Customise and Complete
-
-Now that you have Weave GitOps Enterprise up and running, you might want to iterate your setup before opening to the rest of
-the users. This section shows you the different options that you could configure to adapt Weave GitOps Enterprise to your needs.
 
 ### TLS Configuration
 
