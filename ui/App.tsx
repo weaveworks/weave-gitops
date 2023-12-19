@@ -88,7 +88,9 @@ const App = () => {
 
   const { isFlagEnabled } = useFeatureFlags();
 
-  const isNewRuntimeEnabled = isFlagEnabled("WEAVE_GITOPS_FEATURE_GITOPS_RUNTIME");
+  const isNewRuntimeEnabled = isFlagEnabled(
+    "WEAVE_GITOPS_FEATURE_GITOPS_RUNTIME"
+  );
 
   const navItems: NavItem[] = [
     {
@@ -162,7 +164,11 @@ const App = () => {
             path={V2Routes.ImagePolicyDetails}
             component={withSearchParams(ImagePolicyDetails)}
           />
-          {isNewRuntimeEnabled ? <Route path={V2Routes.Runtime} component={Runtime} /> : <Route path={V2Routes.FluxRuntime} component={FluxRuntime} />}
+          {isNewRuntimeEnabled ? (
+            <Route path={V2Routes.Runtime} component={Runtime} />
+          ) : (
+            <Route path={V2Routes.FluxRuntime} component={FluxRuntime} />
+          )}
           <Route
             path={V2Routes.GitRepo}
             component={withSearchParams(GitRepositoryDetail)}
