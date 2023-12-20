@@ -24,8 +24,8 @@ envVars:
     value: "true"
   - name: WEAVE_GITOPS_FEATURE_CLUSTER
     value: "false"
-  # configures the behaviour for weave gitops runtime ui. if enabled, flux runtime UI
-  # will show other weave-gitops components like policy-agent
+  # -- Enable feature this feature flag if you want to expand Flux Runtime UI with other Weave GitOps components like Policy Agent or TF-Controller.
+  # Ensure that Weave GitOps Deployment and CRDs are labelled with Label 'app.kubernetes.io/part-of=weave-gitops'.
   - name: WEAVE_GITOPS_FEATURE_GITOPS_RUNTIME
     value: "false"
 
