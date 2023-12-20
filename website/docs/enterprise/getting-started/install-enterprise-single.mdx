@@ -20,32 +20,26 @@ import oauthAzureDevOpsSuccess from '/img/oauth-azure-devops-success.png';
 There is no need to install the open source version of Weave GitOps before installing Weave GitOps Enterprise.
 :::
 
-## Prerequisites
+You are a Platform Engineer who is in charge of installing Weave GitOps Enterprise in your organisation. We propose you
+to follow this itinerary to complete a successful installation:
 
-Before you start make sure the following requirements are met:
+1. **Getting Started**: it's your day-0, and you want to get started quickly with limited knowledge for having a basic understanding on Weave GitOps Enterprise.
+2. **Hardening and Onboard Platform Engineers**: it's your day-1, you want to harden your setup to onboard other Platform Engineers likely for setting any WGE capabilities for your devs.
+3. **Onboard Developers**: it's your day-2, start onboarding developers at your pace and iterating the capabilities along the way.
 
-- [ ] **Git Repository**: you have a Git repository that you want to bootstrap.
-- [ ] **Management Cluster**: you have a Kubeconfig pointing to the Kubernetes cluster that you want to use as Management Cluster.
-- [ ] **CLI Tools**: you have installed Flux and Weave GitOps Enterprise CLI.
-- [ ] **Weave GitOps Enterprise Entitlements**: you have contacted [Sales](/help-and-support/) and have the Weave GitOps Enterprise Entitlements Kubernetes Secret.
+## Getting Started
 
-:::warning Write Modes & Permissions
-Bootstrapping requires you to have both **cluster admin** permissions on the Management Cluster and **push** permissions to the Git repository to write the generated resources.
-
-In the case that you want just to generate the manifests but don't apply them, you could use the cli route and the `--export` flag.
+:::info Requirements before you start:
+- [ ] You are familiar Weave GitOps Enterprise [Concepts](/docs/references/concepts/).
+- [ ] You have a **Git Repository** that you want to bootstrap with **write** permissions to push resources.
+- [ ] You have a Kubeconfig pointing to your **Management Cluster** with **cluster-admin** to create resources.
+- [ ] You have installed [Flux CLI](https://fluxcd.io/flux/installation/#install-the-flux-cli) and [Weave GitOps Enterprise CLI](#weave-gitops-enterprise-cli)
+- [ ] You have **Weave GitOps Enterprise Entitlements** provided by [Sales](/help-and-support/).
 :::
 
-### CLI Tools
-
-#### Flux CLI
-
-Follow https://fluxcd.io/flux/installation/#install-the-flux-cli
-
-#### Weave GitOps Enterprise CLI
-
+:::tip Install Weave GitOps Enterprise CLI
 To do this, you can use either brew or curl:
-
-   <Tabs groupId="weave-gitops-cli">
+   <Tabs groupId="weave-gitops-cli" default="homebrew">
    <TabItem value="homebrew" label="Homebrew">
 
    ```bash
@@ -54,7 +48,6 @@ To do this, you can use either brew or curl:
 
    </TabItem>
    <TabItem value="curl" label="curl">
-   // TODO needs review
 
    ```bash
     export VERSION=$VERSION
@@ -65,11 +58,9 @@ To do this, you can use either brew or curl:
 
    </TabItem>
    </Tabs>
+:::
 
-
-## Day 0: Getting Started
-
-Your Day 0 is about getting Weave GitOps Enterprise up and running quickly by going through the following steps:
+Your Day 0 as is about getting Weave GitOps Enterprise up and running quickly. At glance, the workflow have the following stages:
 
 1. [Bootstrap Flux](#bootstrap-flux)
 2. [Entitlements](#verifying-entitlement)
@@ -78,45 +69,51 @@ Your Day 0 is about getting Weave GitOps Enterprise up and running quickly by go
 5. [Install WGE](#configure-dashboard-access)
 6. [Access the dashboard](#access-the-dashboard)
 
-You could do it in any of the following ways:
+That you could execute in any of the following ways:
 
-- `CLI Interactive`: ideal if you have limited knowledge about Weave GitOps Enterprise and you want guidance step-by-step.
+- `CLI Interactive`: ideal if you have limited knowledge about the product and want guidance step-by-step.
 - `CLI Non-Interactive`: ideal if you are already familiar with Weave GitOps Enterprise and want to leverage the CLI for convenience.
 - `Manual`: ideal if you want to have full control on the process or your context cannot be handled via the CLI.
 
-    <Tabs groupId="flux bootstrap" default>
-    <TabItem value="cli interactive" label="cli interactive">
+:::warning Write Modes & Permissions
+Bootstrapping requires you to have both **cluster admin** permissions on the Management Cluster and **push** permissions
+to the Git repository to write the generated resources. In the case that you want just to generate the manifests but don't apply them,
+you could use Manual route or use the CLI with the `--export` flag.
+:::
 
-    <AlphaWarning/>
+   <Tabs groupId="flux bootstrap" default>
+   <TabItem value="cli interactive" label="cli interactive">
 
-     ```bash
-      gitops bootstrap
-     ```
-        
-    </TabItem>
-    <TabItem value="cli non interactive" label="cli non interactive">
-        
-    <AlphaWarning/>
-    You could run the bootstrap command in non-interactive mode by providing the required configurations as flags. The following gives you an example to get started that you could adapt to your own context
+   <AlphaWarning/>
 
     ```bash
-    gitops bootstrap \
-    --kubeconfig=$HOME/.kube/config \
-    --private-key=$HOME/.ssh/id_ed25519 --private-key-password="" \
-    --version="0.35.0" \
-    --domain-type="localhost" \
-    --password="admin123"  \
-    --repo-url="ssh://git@github.com/my-org-name/my-repo-name"  \
-    --branch="main"  \
-    --repo-path="clusters/my-cluster"
+     gitops bootstrap
     ```
-    For more information about the CLI configurations, check the below sections [here](#cli-configurations)
-        
-    </TabItem>
-    <TabItem value="manual" label="manual">
-        Continue reading the following sections to complete the bootstrapping manually.
-    </TabItem>
-    </Tabs>
+       
+   </TabItem>
+   <TabItem value="cli non interactive" label="cli non interactive">
+       
+   <AlphaWarning/>
+   You could run the bootstrap command in non-interactive mode by providing the required configurations as flags. The following gives you an example to get started that you could adapt to your own context
+
+   ```bash
+   gitops bootstrap \
+   --kubeconfig=$HOME/.kube/config \
+   --private-key=$HOME/.ssh/id_ed25519 --private-key-password="" \
+   --version="0.35.0" \
+   --domain-type="localhost" \
+   --password="admin123"  \
+   --repo-url="ssh://git@github.com/my-org-name/my-repo-name"  \
+   --branch="main"  \
+   --repo-path="clusters/my-cluster"
+   ```
+   For more information about the CLI configurations, check the below sections [here](#cli-configurations)
+       
+   </TabItem>
+   <TabItem value="manual" label="manual">
+       Continue reading the following sections to complete the bootstrapping manually.
+   </TabItem>
+   </Tabs>
 
 The following sections will deep dive on each of the stages giving finer guidance for bootstrapping. For manual approach,
 it will give the commands required. For the cli approach, it expands the available flags per stage.
@@ -288,23 +285,28 @@ You should now be able to login via the cluster user account using your chosen u
 ### Authorization
 
 Weave GitOps Enterprise works with standard [Kubernetes RBAC](https://kubernetes.io/docs/reference/access-authn-authz/rbac/)
-to define what actions can a subject do-over the existing resources. The following Weave GitOps subjects needs authorization:
+to define what actions can a subject do-over the existing resources.
+
+Weave GitOps manages authorization for the following subjects:
 
 - **Weave GitOps Users:** previously authenticated via either OIDC or Cluster User.
 - **Weave GitOps Service Account:** which talks to Kubernetes for user operations via [Impersonation](https://kubernetes.io/docs/reference/access-authn-authz/authentication/#user-impersonation).
 - **Flux Service Accounts:** which talks to Kubernetes for deployments operations.
 
-This section introduces the default authorization context created, for each subject, out of installing Weave GitOps Enterprise Helm Release with the default values.
-It also expands on how you could customise it.
+When installing Weave GitOps Enterprise HelmRelease with the default values, a default authorization context for each of the
+previous subjects are created. This section introduces it, as well its motivation and how you could customise it.
 
 #### Weave GitOps Users
 
 **Cluster User**
 
+Cluster User is likely that you
+
 It creates the RBAC `ClusterRole` resources and `ClusterRoleBinding` resources that allows the user `wego-admin` to have `cluster-admin`
 access to any resource in the management cluster.
 
 For more restrictive scenarios see [Cluster User](#cluster-user) in Day 1.
+
 
 **OIDC**
 
@@ -316,6 +318,7 @@ Flux the heavy lifting.
 
 See more about OIDC authorization via bases [here](#oidc-authorization).
 :::
+
 
 #### Weave GitOps Service Account
 

@@ -260,6 +260,11 @@ module.exports = {
   ref: [
     {
       type: "doc",
+      label: "Concepts",
+      id: "references/concepts",
+    },
+    {
+      type: "doc",
       label: "OSS Helm Reference",
       id: "references/helm-reference",
     },
