@@ -29,7 +29,7 @@ to follow this itinerary to complete a successful installation:
 
 ## Getting Started
 
-:::info Requirements before you start:
+:::info Before Getting Started
 - [ ] You are familiar Weave GitOps Enterprise [Concepts](/docs/references/concepts/).
 - [ ] You have a **Git Repository** that you want to bootstrap with **write** permissions to push resources.
 - [ ] You have a Kubeconfig pointing to your **Management Cluster** with **cluster-admin** to create resources.
@@ -63,10 +63,10 @@ To do this, you can use either brew or curl:
 Your Day 0 as is about getting Weave GitOps Enterprise up and running quickly. At glance, the workflow have the following stages:
 
 1. [Bootstrap Flux](#bootstrap-flux)
-2. [Entitlements](#verifying-entitlement)
-3. [Authentication](#create-cluster-user)
-4. [Authorization](#create-cluster-user)
-5. [Install WGE](#configure-dashboard-access)
+2. [Entitlements](#entitlements)
+3. [Authentication](#authentication)
+4. [Authorization](#authorization)
+5. [Install WGE](#install-wge)
 6. [Access the dashboard](#access-the-dashboard)
 
 That you could execute in any of the following ways:
@@ -81,39 +81,44 @@ to the Git repository to write the generated resources. In the case that you wan
 you could use Manual route or use the CLI with the `--export` flag.
 :::
 
-   <Tabs groupId="flux bootstrap" default>
-   <TabItem value="cli interactive" label="cli interactive">
+<Tabs groupId="flux bootstrap" default>
+<TabItem value="cli interactive" label="cli interactive">
 
-   <AlphaWarning/>
+ <AlphaWarning/>
 
-    ```bash
-     gitops bootstrap
-    ```
-       
-   </TabItem>
-   <TabItem value="cli non interactive" label="cli non interactive">
-       
-   <AlphaWarning/>
-   You could run the bootstrap command in non-interactive mode by providing the required configurations as flags. The following gives you an example to get started that you could adapt to your own context
+ // TODO add a recording
 
-   ```bash
-   gitops bootstrap \
-   --kubeconfig=$HOME/.kube/config \
-   --private-key=$HOME/.ssh/id_ed25519 --private-key-password="" \
-   --version="0.35.0" \
-   --domain-type="localhost" \
-   --password="admin123"  \
-   --repo-url="ssh://git@github.com/my-org-name/my-repo-name"  \
-   --branch="main"  \
-   --repo-path="clusters/my-cluster"
-   ```
-   For more information about the CLI configurations, check the below sections [here](#cli-configurations)
-       
-   </TabItem>
-   <TabItem value="manual" label="manual">
-       Continue reading the following sections to complete the bootstrapping manually.
-   </TabItem>
-   </Tabs>
+ ```bash
+ gitops bootstrap
+ ```
+
+</TabItem>
+<TabItem value="cli non interactive" label="cli non interactive">
+
+<AlphaWarning/>
+You could run the bootstrap command in non-interactive mode by providing the required configurations as flags. The following gives you an example to get started that you could adapt to your own context.
+
+
+// TODO add a recording
+
+```bash
+gitops bootstrap \
+--kubeconfig=$HOME/.kube/config \
+--private-key=$HOME/.ssh/id_ed25519 --private-key-password="" \
+--version="0.35.0" \
+--domain-type="localhost" \
+--password="admin123"  \
+--repo-url="ssh://git@github.com/my-org-name/my-repo-name"  \
+--branch="main"  \
+--repo-path="clusters/my-cluster"
+```
+For more information about the CLI configurations, check the below sections [here](#cli-configurations)
+
+</TabItem>
+<TabItem value="manual" label="manual">
+    Continue reading the following sections to complete the bootstrapping manually.
+</TabItem>
+</Tabs>
 
 The following sections will deep dive on each of the stages giving finer guidance for bootstrapping. For manual approach,
 it will give the commands required. For the cli approach, it expands the available flags per stage.
@@ -247,12 +252,13 @@ Once the HTTP server starts, unauthenticated users will have to click 'Login Wit
 <TabItem value="Manual Cluster User" label="Manual Cluster User">
 
 :::danger Important
-This is an **insecure** method of accessing your dashboard which we only recommend for local
-and development environments, or if you need to activate emergency access to a damaged cluster.
+This is an **insecure** method of accessing your dashboard. We only see useful in any of the following scenarios:
+- You cannot directly get started directly with OIDC so you create the cluster user for convenience.
+- Its a local and development environments.
+- You need to activate the user for emergency access to a damaged environment.
 
-Note also that this mechanism only exists for a single user. You will not be able to create multiple users.
-Weave GitOps does not provide its own authentication mechanism. For secure and fully-featured authentication we **strongly recommend** using an OIDC provider,
-as described in the other tab.
+For secure and fully-featured authentication we **strongly recommend** using an OIDC provider and remove the Cluster User
+before onboarding other users.
 :::
 
 **Configuring the Cluster User**
@@ -279,6 +285,8 @@ kubectl create secret generic cluster-user-auth \
 
 You should now be able to login via the cluster user account using your chosen username and password.
 
+See how to harden this section in [Day 1 Cluster User](#cluster-user).
+
 </TabItem>
 </Tabs>
 
@@ -287,7 +295,7 @@ You should now be able to login via the cluster user account using your chosen u
 Weave GitOps Enterprise works with standard [Kubernetes RBAC](https://kubernetes.io/docs/reference/access-authn-authz/rbac/)
 to define what actions can a subject do-over the existing resources.
 
-Weave GitOps manages authorization for the following subjects:
+Weave GitOps requires authorization for the following subjects:
 
 - **Weave GitOps Users:** previously authenticated via either OIDC or Cluster User.
 - **Weave GitOps Service Account:** which talks to Kubernetes for user operations via [Impersonation](https://kubernetes.io/docs/reference/access-authn-authz/authentication/#user-impersonation).
@@ -296,31 +304,94 @@ Weave GitOps manages authorization for the following subjects:
 When installing Weave GitOps Enterprise HelmRelease with the default values, a default authorization context for each of the
 previous subjects are created. This section introduces it, as well its motivation and how you could customise it.
 
-#### Weave GitOps Users
+:::caution
 
-**Cluster User**
-
-Cluster User is likely that you
-
-It creates the RBAC `ClusterRole` resources and `ClusterRoleBinding` resources that allows the user `wego-admin` to have `cluster-admin`
-access to any resource in the management cluster.
-
-For more restrictive scenarios see [Cluster User](#cluster-user) in Day 1.
+CLI does not support Authorization yet. It should be hadled as part of https://github.com/weaveworks/weave-gitops-enterprise/issues/3618
 
 
-**OIDC**
-
-:::caution OIDC Authorization
-
-Given OIDC is highly context dependent, during bootstrapping no RBAC resources are created. Instead, we encourage that you
-follow the `/bases` pattern in your configuration repo path in your configuration repo to define them and leverage
-Flux the heavy lifting.
-
-See more about OIDC authorization via bases [here](#oidc-authorization).
+// TODO cli should automate creating any manual step for example the bases patterns and to validate that the setup is stable.
 :::
 
+<Tabs groupId="authorization" default>
+<TabItem value="Cluster User" label="Cluster User">
+Weave GitOps Enterprise HelmRelease installed with the defaults values that allows `wego-admin` user to have high privileges,
+so you could temporarily manage the aspect of bootstrapping with smaller friction:
 
-#### Weave GitOps Service Account
+It creates a set of `ClusterRoleBinding` that allow `cluster-admin` access to the resources in the cluster.
+
+```bash
+kubectl get clusterrolebindings.rbac.authorization.k8s.io |grep wego-admin
+
+wego-admin-gitops-capi-cluster-reader                  ClusterRole/gitops-capicluster-reader                                              20d
+wego-admin-read-apps                                   ClusterRole/gitops-apps-reader                                                     20d
+wego-admin-read-automatedclusterdiscoveries            ClusterRole/gitops-automatedclusterdiscoveries-reader                              20d
+wego-admin-read-canaries                               ClusterRole/gitops-canaries-reader                                                 20d
+wego-admin-read-cluster-secrets                        ClusterRole/gitops-secrets-reader                                                  20d
+wego-admin-read-external-secrets                       ClusterRole/gitops-external-secrets-reader                                         20d
+wego-admin-read-gitopsclusters                         ClusterRole/gitops-gitopsclusters-reader                                           20d
+wego-admin-read-identities                             ClusterRole/gitops-identities-reader                                               20d
+wego-admin-read-pipelines                              ClusterRole/gitops-pipelines-reader                                                20d
+wego-admin-read-policies                               ClusterRole/gitops-policies-reader                                                 20d
+wego-admin-read-templates                              ClusterRole/gitops-templates-reader                                                20d
+wego-admin-read-workspaces                             ClusterRole/gitops-workspaces-reader                                               20d
+```
+// TODO add me explorer access rules debug view
+
+It creates a `RoleBinding` that allow `admin` access secrets in `flux-system` namespace:
+
+```bash
+kubectl get -A rolebindings.rbac.authorization.k8s.io |grep wego-admin
+
+flux-system                            wego-admin-read-release-namespace-secrets                   ClusterRole/gitops-secrets-reader                         20d
+```
+
+:::caution Flux and Weave GitOps trust
+We currently assume fully trusted security context at the level of flux-system namespace. This represents a challenge
+in terms of least-privilege access to be tackled as part of https://github.com/weaveworks/weave-gitops/issues/4036
+:::
+
+// TODO add me explorer access rules debug view
+
+See how to harden this section in [Day 1 Cluster User](#cluster-user).
+</TabItem>
+<TabItem value="OIDC Users" label="OIDC Users">
+
+OIDC is highly context dependent, during bootstrapping no RBAC resources are created but expected to exist
+in your configuration repo. In case that they dont exist, you will be able to login but will have limited access to the resources.
+
+// TODO refactor as general pattern not only in the context of OIDC
+
+A common pattern called `Bases` helps you getting started with OIDC RBAC:
+
+1. Create a folder in your Git repo in path like `clusters/bases`.
+2. Add your RBAC resources into the folder `clusters/bases/rbac`.
+3. Create a folder `clusters/management` adding the following `Kustomization`:
+
+```yaml title="clusters/management/clusters-bases-kustomization.yaml"
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  creationTimestamp: null
+  name: clusters-bases-kustomization
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  path: clusters/bases
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+```
+
+Save these two files in your Git repository, then commit and push. Flux will deploy the kustomization and the RBAC
+resources will be created.
+
+See how to harden this section in [Day 1](#oidc-authorization).
+
+</TabItem>
+<TabItem value="Service Accounts" label="Service Accounts">
+
+**Weave GitOps Service Account**
 
 The default install will create the RBA resources that allow the service account to do the following:
 
@@ -328,9 +399,11 @@ The default install will create the RBA resources that allow the service account
 2. Read the available namespaces; this is required to understand users' permissions.
 3. Read the `cluster-user-auth` and `oidc-auth` resources with the secrets for authentication.
 
-#### Flux Service Accounts
+**Flux Service Accounts**
 
 They are generated during Flux Bootstrapping. More information about Flux Authorization could be found [here](https://fluxcd.io/flux/installation/configuration/multitenancy/#flux-authorisation-model).
+</TabItem>
+</Tabs>
 
 ### Install WGE
 
