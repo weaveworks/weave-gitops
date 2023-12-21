@@ -39,7 +39,17 @@ module.exports = {
             id: "enterprise/getting-started/intro-enterprise",
           },
           items: [
-            "enterprise/getting-started/install-enterprise-getting-started",
+            {
+              type: "category",
+              label: "Step 1 - Getting Started",
+              link: {
+                type: "doc",
+                id: "enterprise/getting-started/install-enterprise-getting-started",
+              },
+              items: [
+                "enterprise/getting-started/install-enterprise-getting-started-manual",
+              ],
+            },
             "enterprise/getting-started/install-enterprise-onboard-platform-engineers",
             "enterprise/getting-started/releases-enterprise",
             {

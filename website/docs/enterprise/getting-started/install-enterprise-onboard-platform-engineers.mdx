@@ -27,37 +27,17 @@ The bootstrapping workflow has the following stages:
 
 ## Bootstrap Flux
 
-This stage is about bootstrapping Fux which involves deploying Flux into the management cluster and configure it to reconcile your Git repository.
+No additional topics required for this stage.
 
-The `flux bootstrap` command enables you to deploy Flux on a cluster the GitOps way. See the different
-option [Flux bootstrap](https://fluxcd.io/docs/cmd/flux_bootstrap/) documentation.
-
-Two examples using [`flux bootstrap git`](https://fluxcd.io/flux/cmd/flux_bootstrap_git/) are:
-
-```bash
-# Run bootstrap for a Git repository and authenticate using a password
-flux bootstrap git --url="https://example.com/repository.git" --"password=password" --path="clusters/my-cluster"
-
-# Run bootstrap for a Git repository with a private key and password
-flux bootstrap git --url="ssh://git@example.com/repository.git" --private-key-file="path/to/private.key" --password="password" --path="clusters/my-cluster"
-```
 ### Entitlements
 
-Weave GitOps Enterprise Entitlement is your obtained license to use our product. The Entitlements file is a Kubernetes secret that contains your licence.
-To get the entitlement secret please contact *sales@weave.works*, then apply it on your management cluster with the name `weave-gitops-enterprise-credentials` under `flux-system` namespace.
+No additional topics required for this stage.
 
-```bash
- kubectl apply -n flux-system -f entitlements.yaml
-```
+### Authentication
 
-:::info Verify Entitlements
+#### Authentication via OIDC
 
-The following verification is done when bootstrapping using the CLI:
-- The secret exists on the management cluster
-- It has a valid content
-- Entitlement is not expired
-
-:::
+Before onboarding other users to latfo
 
 ### Authentication
 
@@ -195,47 +175,6 @@ CLI does not support Authorization yet. It should be hadled as part of https://g
 :::
 
 <Tabs groupId="authorization" default>
-<TabItem value="Cluster User" label="Cluster User">
-Weave GitOps Enterprise HelmRelease installed with the defaults values that allows `wego-admin` user to have high privileges,
-so you could temporarily manage the aspect of bootstrapping with smaller friction:
-
-It creates a set of `ClusterRoleBinding` that allow `cluster-admin` access to the resources in the cluster.
-
-```bash
-kubectl get clusterrolebindings.rbac.authorization.k8s.io |grep wego-admin
-
-wego-admin-gitops-capi-cluster-reader                  ClusterRole/gitops-capicluster-reader                                              20d
-wego-admin-read-apps                                   ClusterRole/gitops-apps-reader                                                     20d
-wego-admin-read-automatedclusterdiscoveries            ClusterRole/gitops-automatedclusterdiscoveries-reader                              20d
-wego-admin-read-canaries                               ClusterRole/gitops-canaries-reader                                                 20d
-wego-admin-read-cluster-secrets                        ClusterRole/gitops-secrets-reader                                                  20d
-wego-admin-read-external-secrets                       ClusterRole/gitops-external-secrets-reader                                         20d
-wego-admin-read-gitopsclusters                         ClusterRole/gitops-gitopsclusters-reader                                           20d
-wego-admin-read-identities                             ClusterRole/gitops-identities-reader                                               20d
-wego-admin-read-pipelines                              ClusterRole/gitops-pipelines-reader                                                20d
-wego-admin-read-policies                               ClusterRole/gitops-policies-reader                                                 20d
-wego-admin-read-templates                              ClusterRole/gitops-templates-reader                                                20d
-wego-admin-read-workspaces                             ClusterRole/gitops-workspaces-reader                                               20d
-```
-// TODO add me explorer access rules debug view
-
-It creates a `RoleBinding` that allow `admin` access secrets in `flux-system` namespace:
-
-```bash
-kubectl get -A rolebindings.rbac.authorization.k8s.io |grep wego-admin
-
-flux-system                            wego-admin-read-release-namespace-secrets                   ClusterRole/gitops-secrets-reader                         20d
-```
-
-:::caution Flux and Weave GitOps trust
-We currently assume fully trusted security context at the level of flux-system namespace. This represents a challenge
-in terms of least-privilege access to be tackled as part of https://github.com/weaveworks/weave-gitops/issues/4036
-:::
-
-// TODO add me explorer access rules debug view
-
-See how to harden this section in [Day 1 Cluster User](#cluster-user).
-</TabItem>
 <TabItem value="OIDC Users" label="OIDC Users">
 
 OIDC is highly context dependent, during bootstrapping no RBAC resources are created but expected to exist
@@ -267,8 +206,6 @@ spec:
 
 Save these two files in your Git repository, then commit and push. Flux will deploy the kustomization and the RBAC
 resources will be created.
-
-See how to harden this section in [Day 1](#oidc-authorization).
 
 </TabItem>
 <TabItem value="Service Accounts" label="Service Accounts">
