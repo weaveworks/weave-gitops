@@ -1,5 +1,5 @@
 ---
-title: Install Weave GitOps Enterprise
+title: Step 1 - Getting Started
 hide_title: true
 pagination_next: enterprise/getting-started/releases-enterprise
 toc_max_heading_level: 4
@@ -14,31 +14,16 @@ import oauthBitbucket from '/img/oauth-bitbucket.png';
 import oauthAzureDevOps from '/img/oauth-azure-devops.png';
 import oauthAzureDevOpsSuccess from '/img/oauth-azure-devops-success.png';
 
-# Install Weave GitOps Enterprise<TierLabel tiers="Enterprise" />
+# Step 1 - Getting Started <TierLabel tiers="Enterprise" />
 
-:::tip
-There is no need to install the open source version of Weave GitOps before installing Weave GitOps Enterprise.
-:::
-
-You are a Platform Engineer who is in charge of installing Weave GitOps Enterprise in your organisation. We propose you
-to follow this itinerary to complete a successful installation:
-
-1. **Getting Started**: it's your day-0, and you want to get started quickly with limited knowledge for having a basic understanding on Weave GitOps Enterprise.
-2. **Hardening and Onboard Platform Engineers**: it's your day-1, you want to harden your setup to onboard other Platform Engineers likely for setting any WGE capabilities for your devs.
-3. **Onboard Developers**: it's your day-2, start onboarding developers at your pace and iterating the capabilities along the way.
-
-## Getting Started
+You are a Platform Engineer looking to do hands-on discovery on the product or to set up the foundations for your WGE based platform.
+Getting started gets  Weave GitOps Enterprise up and running quickly with default values for limited knowledge.
 
 :::info Before Getting Started
 - [ ] You are familiar Weave GitOps Enterprise [Concepts](/docs/references/concepts/).
 - [ ] You have a **Git Repository** that you want to bootstrap with **write** permissions to push resources.
 - [ ] You have a Kubeconfig pointing to your **Management Cluster** with **cluster-admin** to create resources.
 - [ ] You have installed [Flux CLI](https://fluxcd.io/flux/installation/#install-the-flux-cli) and [Weave GitOps Enterprise CLI](#weave-gitops-enterprise-cli)
-- [ ] You have **Weave GitOps Enterprise Entitlements** provided by [Sales](/help-and-support/).
-:::
-
-:::tip Install Weave GitOps Enterprise CLI
-To do this, you can use either brew or curl:
    <Tabs groupId="weave-gitops-cli" default="homebrew">
    <TabItem value="homebrew" label="Homebrew">
 
@@ -58,9 +43,10 @@ To do this, you can use either brew or curl:
 
    </TabItem>
    </Tabs>
+- [ ] You have **Weave GitOps Enterprise Entitlements** provided by [Sales](/help-and-support/).
 :::
 
-Your Day 0 as is about getting Weave GitOps Enterprise up and running quickly. At glance, the workflow have the following stages:
+The installation workflow has the following stages:
 
 1. [Bootstrap Flux](#bootstrap-flux)
 2. [Entitlements](#entitlements)
@@ -69,12 +55,6 @@ Your Day 0 as is about getting Weave GitOps Enterprise up and running quickly. A
 5. [Install WGE](#install-wge)
 6. [Access the dashboard](#access-the-dashboard)
 
-That you could execute in any of the following ways:
-
-- `CLI Interactive`: ideal if you have limited knowledge about the product and want guidance step-by-step.
-- `CLI Non-Interactive`: ideal if you are already familiar with Weave GitOps Enterprise and want to leverage the CLI for convenience.
-- `Manual`: ideal if you want to have full control on the process or your context cannot be handled via the CLI.
-
 :::warning Write Modes & Permissions
 Bootstrapping requires you to have both **cluster admin** permissions on the Management Cluster and **push** permissions
 to the Git repository to write the generated resources. In the case that you want just to generate the manifests but don't apply them,
@@ -82,41 +62,49 @@ you could use Manual route or use the CLI with the `--export` flag.
 :::
 
 <Tabs groupId="flux bootstrap" default>
-<TabItem value="cli interactive" label="cli interactive">
+<TabItem value="CLI Interactive" label="CLI Interactive">
 
- <AlphaWarning/>
-
- // TODO add a recording
+:::tip You have limited knowledge about the product and / or want guidance step-by-step
+:::
 
  ```bash
+ # Run the command to follow the interactive session.
  gitops bootstrap
  ```
 
-</TabItem>
-<TabItem value="cli non interactive" label="cli non interactive">
-
 <AlphaWarning/>
-You could run the bootstrap command in non-interactive mode by providing the required configurations as flags. The following gives you an example to get started that you could adapt to your own context.
+</TabItem>
+<TabItem value="CLI Non Interactive" label="CLI Non Interactive">
 
+:::tip You are already familiar with installing Weave GitOps Enterprise and want to leverage the CLI for convenience
+:::
 
-// TODO add a recording
+You could run the bootstrap command in non-interactive mode by providing the required configurations as flags. Use `gitops bootstrap --help` for examples to guide you:
 
 ```bash
-gitops bootstrap \
---kubeconfig=$HOME/.kube/config \
---private-key=$HOME/.ssh/id_ed25519 --private-key-password="" \
---version="0.35.0" \
---domain-type="localhost" \
---password="admin123"  \
---repo-url="ssh://git@github.com/my-org-name/my-repo-name"  \
---branch="main"  \
---repo-path="clusters/my-cluster"
+# Bootstrap Weave GitOps Enterprise and Flux over SSH
+gitops bootstrap --silent --bootstrap-flux \
+    --version="0.38.0" --password=<admin-password> \
+    --repo-url=ssh://<repo-url> --branch=<git-branch> --repo-path=<path-management-cluster>  \
+    --private-key-path=<private-key-path> --private-key-password=<private-key-password>
+
+# Add Weave GitOps Enterprise to an existing SSH Flux installation
+gitops bootstrap --silent \
+    --version="0.38.0" --password=<admin-password> \
+    --repo-url=ssh://<repo-url> --branch=<git-branch> --repo-path=<path-management-cluster>  \
+    --private-key-path=<private-key-path> --private-key-password=<private-key-password>
+
 ```
+
 For more information about the CLI configurations, check the below sections [here](#cli-configurations)
+
+<AlphaWarning/>
 
 </TabItem>
 <TabItem value="manual" label="manual">
-    Continue reading the following sections to complete the bootstrapping manually.
+Ideal if you want to have full control on the process or your context cannot be handled via the CLI.
+
+Continue reading the following sections to complete the bootstrapping manually.
 </TabItem>
 </Tabs>
 
