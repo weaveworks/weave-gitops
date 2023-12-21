@@ -40,6 +40,7 @@ module.exports = {
           },
           items: [
             "enterprise/getting-started/install-enterprise-getting-started",
+            "enterprise/getting-started/install-enterprise-onboard-platform-engineers",
             "enterprise/getting-started/releases-enterprise",
             {
               type: "category",
@@ -283,5 +284,11 @@ module.exports = {
         },
       ],
     },
+    {
+      type: "doc",
+      label: "CLI Bootstrapping",
+      id: "references/cli-bootstrapping",
+    },
+
   ],
 };

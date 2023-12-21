@@ -1,7 +1,7 @@
 ---
 title: Step 1 - Getting Started
 hide_title: true
-pagination_next: enterprise/getting-started/releases-enterprise
+pagination_next: enterprise/getting-started/install-enterprise-onboard-platform-engineers
 toc_max_heading_level: 4
 ---
 
@@ -80,7 +80,7 @@ Bootstrapping is a workflow with the following stages:
 5. **Install WGE**: deploy via Flux Weave GitOps Enterprise.
 6. **Access the dashboard**: test that you could interact with the application as you expect.
 
-Select from the method below that better match your expectations:
+Exectue the workflow using the method below that better match your expectations.
 
 <Tabs groupId="flux bootstrap" default>
 <TabItem value="CLI Interactive" label="CLI Interactive">
@@ -126,7 +126,14 @@ For more information about the CLI configurations, check the below sections [her
 :::tip You want to have full control on the process or your context cannot be handled via the CLI.
 :::
 
-Follow to steps in [Manual Bootstrapping](../install-enterprise-manual)
+Follow the [Manual Bootstrapping](../install-enterprise-getting-started-manual) guide or the steps below:
+
+1. [Bootstrap Flux](../install-enterprise-getting-started-manual#bootstrap-flux)
+2. [Entitlements](../install-enterprise-getting-started-manual#entitlements)
+3. [Authentication](../install-enterprise-getting-started-manual#authentication)
+4. [Authorization](../install-enterprise-getting-started-manual#authorization)
+5. [Install WGE](../install-enterprise-getting-started-manual#install-wge)
+
 
 </TabItem>
 </Tabs>
@@ -149,28 +156,6 @@ Login with the user credentials that you have configured as part of the bootstra
 
 ## Next Steps
 
-Continue with  **Onboard Platform Engineers** to harden your setup to onboard other Platform Engineers.
+Continue with [**Onboard Platform Engineers**](../install-enterprise-onboard-platform-engineers) to harden your setup to onboard other Platform Engineers.
 Other Platform Engineers setup any WGE capabilities for your devs.
 
-## Further Reference
-
-### CLI
-
--  `--kubeconfig`                   Paths to a kubeconfig. Only required if out-of-cluster.
--  `--bootstrap-flux`               chose whether you want to install flux in the generic way in case no flux installation detected
--  `-b`, `--branch`                 git branch for your flux repository (example: main)
--  `-i`, `--client-id`              OIDC client ID
--  `--client-secret`                OIDC client secret
--  `--components-extra`             extra components to be installed from (policy-agent, tf-controller)
--  `--discovery-url`                OIDC discovery URL
--  `--export`                       write to stdout the bootstrapping manifests without writing in the cluster or Git. It requires Flux to be bootstrapped.
--  `--git-password`                 git password/token used in https authentication type
--  `--git-username`                 git username used in https authentication type
--  `-h`, `--help`                   help for bootstrap
--  `-k`, `--private-key`            private key path. This key will be used to push the Weave GitOps Enterprise's resources to the default cluster repository
--  `-c`, `--private-key-password`   private key password. If the private key is encrypted using password
--  `-r`, `--repo-path`              git path for your flux repository (example: clusters/my-cluster)
--  `--repo-url`                     Git repo URL for your Flux repository. For supported URL examples see [here](https://fluxcd.io/flux/cmd/flux_bootstrap_git/)
--  `-s`, `--silent`                 chose the defaults with current provided information without asking any questions
--  `-v`, `--version`                version of Weave GitOps Enterprise (should be from the latest 3 versions)
--  `-p`, `--password`               The Weave GitOps Enterprise password for dashboard access
