@@ -40,11 +40,16 @@ module.exports = {
           },
           items: [
             "enterprise/getting-started/install-enterprise-getting-started",
-            "enterprise/getting-started/install-enterprise-cli",
-            "enterprise/getting-started/install-enterprise-airgap",
             "enterprise/getting-started/releases-enterprise",
-            "enterprise/getting-started/install-enterprise-azure",
-            "enterprise/getting-started/join-cluster-azure-flux",
+            {
+              type: "category",
+              label: "Advanced Installation",
+              items: [
+                "enterprise/getting-started/install-enterprise-airgap",
+                "enterprise/getting-started/install-enterprise-azure",
+                "enterprise/getting-started/join-cluster-azure-flux",
+              ],
+            },
           ],
         },
         {
