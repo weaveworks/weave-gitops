@@ -1,5 +1,5 @@
 ---
-title: Step 1 - Getting Started
+title: Manual Bootstrapping
 hide_title: true
 pagination_next: enterprise/getting-started/releases-enterprise
 toc_max_heading_level: 4
@@ -14,39 +14,9 @@ import oauthBitbucket from '/img/oauth-bitbucket.png';
 import oauthAzureDevOps from '/img/oauth-azure-devops.png';
 import oauthAzureDevOpsSuccess from '/img/oauth-azure-devops-success.png';
 
-# Step 1 - Getting Started <TierLabel tiers="Enterprise" />
+# Manual Bootstrap
 
-You are a Platform Engineer looking to do hands-on discovery on the product or to set up the foundations for your WGE based platform.
-Getting started gets  Weave GitOps Enterprise up and running quickly with default values for limited knowledge.
-
-:::info Before Getting Started
-- [ ] You are familiar Weave GitOps Enterprise [Concepts](/docs/references/concepts/).
-- [ ] You have a **Git Repository** that you want to bootstrap with **write** permissions to push resources.
-- [ ] You have a Kubeconfig pointing to your **Management Cluster** with **cluster-admin** to create resources.
-- [ ] You have installed [Flux CLI](https://fluxcd.io/flux/installation/#install-the-flux-cli) and [Weave GitOps Enterprise CLI](#weave-gitops-enterprise-cli)
-   <Tabs groupId="weave-gitops-cli" default="homebrew">
-   <TabItem value="homebrew" label="Homebrew">
-
-   ```bash
-    brew install weaveworks/tap/gitops-ee
-   ```
-
-   </TabItem>
-   <TabItem value="curl" label="curl">
-
-   ```bash
-    export VERSION=$VERSION
-    curl --silent --location "https://artifacts.wge.dev.weave.works/releases/bin/${VERSION}/gitops-$(uname)-$(uname -m).tar.gz" | tar xz -C /tmp
-    sudo mv /tmp/gitops /usr/local/bin
-    gitops version
-   ```
-
-   </TabItem>
-   </Tabs>
-- [ ] You have **Weave GitOps Enterprise Entitlements** provided by [Sales](/help-and-support/).
-:::
-
-The installation workflow has the following stages:
+The bootstrapping workflow has the following stages:
 
 1. [Bootstrap Flux](#bootstrap-flux)
 2. [Entitlements](#entitlements)
@@ -55,81 +25,10 @@ The installation workflow has the following stages:
 5. [Install WGE](#install-wge)
 6. [Access the dashboard](#access-the-dashboard)
 
-:::warning Write Modes & Permissions
-Bootstrapping requires you to have both **cluster admin** permissions on the Management Cluster and **push** permissions
-to the Git repository to write the generated resources. In the case that you want just to generate the manifests but don't apply them,
-you could use Manual route or use the CLI with the `--export` flag.
-:::
 
-<Tabs groupId="flux bootstrap" default>
-<TabItem value="CLI Interactive" label="CLI Interactive">
-
-:::tip You have limited knowledge about the product and / or want guidance step-by-step
-:::
-
- ```bash
- # Run the command to follow the interactive session.
- gitops bootstrap
- ```
-
-<AlphaWarning/>
-</TabItem>
-<TabItem value="CLI Non Interactive" label="CLI Non Interactive">
-
-:::tip You are already familiar with installing Weave GitOps Enterprise and want to leverage the CLI for convenience
-:::
-
-You could run the bootstrap command in non-interactive mode by providing the required configurations as flags. Use `gitops bootstrap --help` for examples to guide you:
-
-```bash
-# Bootstrap Weave GitOps Enterprise and Flux over SSH
-gitops bootstrap --silent --bootstrap-flux \
-    --version="0.38.0" --password=<admin-password> \
-    --repo-url=ssh://<repo-url> --branch=<git-branch> --repo-path=<path-management-cluster>  \
-    --private-key-path=<private-key-path> --private-key-password=<private-key-password>
-
-# Add Weave GitOps Enterprise to an existing SSH Flux installation
-gitops bootstrap --silent \
-    --version="0.38.0" --password=<admin-password> \
-    --repo-url=ssh://<repo-url> --branch=<git-branch> --repo-path=<path-management-cluster>  \
-    --private-key-path=<private-key-path> --private-key-password=<private-key-password>
-
-```
-
-For more information about the CLI configurations, check the below sections [here](#cli-configurations)
-
-<AlphaWarning/>
-
-</TabItem>
-<TabItem value="manual" label="manual">
-Ideal if you want to have full control on the process or your context cannot be handled via the CLI.
-
-Continue reading the following sections to complete the bootstrapping manually.
-</TabItem>
-</Tabs>
-
-The following sections will deep dive on each of the stages giving finer guidance for bootstrapping. For manual approach,
-it will give the commands required. For the cli approach, it expands the available flags per stage.
-
-### Bootstrap Flux
+## Bootstrap Flux
 
 This stage is about bootstrapping Fux which involves deploying Flux into the management cluster and configure it to reconcile your Git repository.
-
-<Tabs groupId="flux bootstrap" default>
-<TabItem value="cli" label="cli">
-
-You could configure this stage by using the following flags and examples:
-
-```bash
- # bootstrap WGE and Flux using HTTPS
- gitops bootstrap --repo-url="https://example.com/repository.git" --branch="main" --repo-path="clusters/management" --git-username="username" --git-password="password"
-
- # bootstrap WGE and Flux using SSH
- gitops bootstrap --repo-url="ssh://git@example.com/repository.git" --branch="main" --repo-path="clusters/management" --private-key="path/to/private.key"  --private-key-password="password"
-```
-For more information about the CLI configurations, check the below sections [here](#cli-configurations)
-</TabItem>
-<TabItem value="manual" label="manual">
 
 The `flux bootstrap` command enables you to deploy Flux on a cluster the GitOps way. See the different
 option [Flux bootstrap](https://fluxcd.io/docs/cmd/flux_bootstrap/) documentation.
@@ -143,10 +42,6 @@ flux bootstrap git --url="https://example.com/repository.git" --"password=passwo
 # Run bootstrap for a Git repository with a private key and password
 flux bootstrap git --url="ssh://git@example.com/repository.git" --private-key-file="path/to/private.key" --password="password" --path="clusters/my-cluster"
 ```
-
-</TabItem>
-</Tabs>
-
 ### Entitlements
 
 Weave GitOps Enterprise Entitlement is your obtained license to use our product. The Entitlements file is a Kubernetes secret that contains your licence.
@@ -453,21 +348,6 @@ Flux will reconcile the helm-release and WGE will be deployed into the cluster. 
 </TabItem>
 </Tabs>
 
-### Access the dashboard
-
-Weave GitOps Enterprise dashboard is available by default via ClusterIP service. You could use the `port-forward` command
-output as part of the bootstrapping session or the one below:
-
-```bash
- kubectl -n flux-system port-forward svc/clusters-service 8000:8000
-```
-Access your browser on http://localhost:8000
-
-![Weave GitOps Enterprise Login](./imgs/wge-login-ui.png)
-
-Login with the user credentials that you have configured as part of the bootstrapping session.
-
-![Weave GitOps Enterprise Cluster](./imgs/wge-clusters-ui.png)
 
 
 ## Day 1: Customise and Complete
