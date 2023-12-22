@@ -602,6 +602,74 @@
         ]
       }
     },
+    "/v1/runtime_crds": {
+      "get": {
+        "summary": "ListRuntimeCrds lists Weave GitOps runtime components CRDs.\nWeave GitOps runtime is composed of Flux runtime but also other components\nin the ecosystem like TF-controller or Policy Agent.",
+        "operationId": "Core_ListRuntimeCrds",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListRuntimeCrdsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Core"
+        ]
+      }
+    },
+    "/v1/runtime_objects": {
+      "get": {
+        "summary": "ListRuntimeObjects lists Weave GitOps runtime components.\nWeave GitOps runtime is composed of Flux runtime but also other components\nin the ecosystem like TF-controller or Policy Agent.",
+        "operationId": "Core_ListRuntimeObjects",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListRuntimeObjectsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "namespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Core"
+        ]
+      }
+    },
     "/v1/session_logs": {
       "post": {
         "summary": "GetSessionLogs returns the logs for a given session",
@@ -1310,6 +1378,40 @@
         },
         "nextPageToken": {
           "type": "string"
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ListError"
+          }
+        }
+      }
+    },
+    "v1ListRuntimeCrdsResponse": {
+      "type": "object",
+      "properties": {
+        "crds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Crd"
+          }
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ListError"
+          }
+        }
+      }
+    },
+    "v1ListRuntimeObjectsResponse": {
+      "type": "object",
+      "properties": {
+        "deployments": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Deployment"
+          }
         },
         "errors": {
           "type": "array",

@@ -24,6 +24,11 @@ envVars:
     value: "true"
   - name: WEAVE_GITOPS_FEATURE_CLUSTER
     value: "false"
+  # -- Enable this feature flag if you want to expand Flux Runtime UI with other Weave GitOps components like Policy Agent or TF-Controller.
+  # Ensure that Weave GitOps Deployment and CRDs have the label 'app.kubernetes.io/part-of=weave-gitops'. See https://docs.gitops.weave.works/docs/open-source/getting-started/install-OSS for more info.
+  - name: WEAVE_GITOPS_FEATURE_GITOPS_RUNTIME
+    value: "false"
+
 # -- Annotations to add to the deployment
 annotations: {}
 # Should the 'oidc-auth' secret be created. For a detailed
