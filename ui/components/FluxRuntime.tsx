@@ -8,18 +8,6 @@ import CrdsTable from "./CrdsTable";
 import FluxVersionsTable, { FluxVersion } from "./FluxVersionsTable";
 import { routeTab } from "./KustomizationDetail";
 import SubRouterTabs, { RouterTab } from "./SubRouterTabs";
-import Text from "./Text";
-
-const FluxVersionText = styled(Text)`
-  font-weight: 700;
-  margin-bottom: ${(props) => props.theme.spacing.medium};
-
-  span {
-    color: ${(props) => props.theme.colors.neutral40};
-    font-weight: 400;
-    margin-left: ${(props) => props.theme.spacing.xs};
-  }
-`;
 
 type Props = {
   className?: string;
@@ -65,27 +53,18 @@ function FluxRuntime({ className, deployments, crds }: Props) {
       }
     });
 
-  const supportMultipleFlux = true;
+  tabs.unshift({
+    name: "Flux Versions",
+    path: `${path}/flux`,
+    component: () => {
+      return <FluxVersionsTable versions={Object.values(fluxVersions)} />;
+    },
+    visible: true,
+  });
 
-  if (supportMultipleFlux) {
-    tabs.unshift({
-      name: "Flux Versions",
-      path: `${path}/flux`,
-      component: () => {
-        return <FluxVersionsTable versions={Object.values(fluxVersions)} />;
-      },
-      visible: true,
-    });
-  }
   return (
     <Flex wide tall column className={className}>
       <>
-        {!supportMultipleFlux && deployments[0]?.labels[fluxVersionLabel] && (
-          <FluxVersionText color="neutral30" titleHeight={true}>
-            This cluster is running Flux version:
-            <span>{deployments[0].labels[fluxVersionLabel]}</span>
-          </FluxVersionText>
-        )}
         <SubRouterTabs rootPath={tabs[0].path} clearQuery>
           {tabs.map(
             (subRoute, index) =>
