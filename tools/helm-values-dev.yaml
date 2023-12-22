@@ -30,7 +30,7 @@ envVars:
   - name: WEAVE_GITOPS_FEATURE_DEV_MODE
     value: "true"
   - name: WEAVE_GITOPS_FEATURE_GITOPS_RUNTIME
-    value: "false"
+    value: "true"
 
 # Run the UI and API under /wego
 # additionalArgs:
