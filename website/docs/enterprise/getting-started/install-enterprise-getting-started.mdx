@@ -1,5 +1,5 @@
 ---
-title: Step 1 - Getting Started
+title: Day 0 - Getting Started
 hide_title: true
 pagination_prev: enterprise/getting-started/intro-enterprise
 pagination_next: enterprise/getting-started/install-enterprise-onboard-platform-engineers
@@ -15,17 +15,13 @@ import oauthBitbucket from '/img/oauth-bitbucket.png';
 import oauthAzureDevOps from '/img/oauth-azure-devops.png';
 import oauthAzureDevOpsSuccess from '/img/oauth-azure-devops-success.png';
 
-# Step 1 - Getting Started <TierLabel tiers="Enterprise" />
 
+# Day 0 - Getting Started <TierLabel tiers="Enterprise" />
+
+:::tip What to expect
 You are a Platform Engineer who is in charge of discovering or setting up Weave GitOps Enterprise for your organisation.
-We propose you the following steps:
-
-1. **Getting Started**: you want to get started quickly with limited knowledge for discovery on the product or to setting up the foundations.
-2. **Onboard Platform Engineers**: you want to harden your setup to onboard other Platform Engineers. Other Platform Engineers setup any WGE capabilities for your devs.
-3. **Onboard Developers**: the platform capabilities have been setup and you ready to start onboard developers.
-
-This pages covers the first step, Getting Started, where we assume limited knowledge on the product and will
-take simple default values to get you up and running quickly.
+This guides gets you up and running quickly taking some default decisions and assuming limited knowledge on the product.
+:::
 
 ## Prerequisites
 
@@ -86,7 +82,9 @@ Exectue the workflow using the method below that better match your expectations.
 <Tabs groupId="flux bootstrap" default>
 <TabItem value="CLI Interactive" label="CLI Interactive">
 
-:::tip You have limited knowledge about the product and / or want guidance step-by-step
+:::tip Recommended path if:
+
+You have limited knowledge about the product and / or want guidance step-by-step.
 :::
 
  ```bash
@@ -100,7 +98,8 @@ Exectue the workflow using the method below that better match your expectations.
 </TabItem>
 <TabItem value="CLI Non Interactive" label="CLI Non Interactive">
 
-:::tip You are already familiar with installing Weave GitOps Enterprise and want to leverage the CLI for convenience
+:::tip Recommended Path if:
+You are already familiar with installing Weave GitOps Enterprise. You wan to leverage the CLI for consistency and automation.
 :::
 
 You could run the bootstrap command in non-interactive mode by providing the required configurations as flags. Use `gitops bootstrap --help` for examples to guide you:
@@ -127,7 +126,8 @@ gitops bootstrap --silent \
 </TabItem>
 <TabItem value="Manual" label="Manual">
 
-:::tip You want to have full control on the process or your context cannot be handled via the CLI.
+:::tip Recommended Path if:
+You want to have full control on the process or your context cannot be handled via the CLI.
 :::
 
 Follow the [Manual Bootstrapping](../install-enterprise-getting-started-manual) guide or the steps below:
