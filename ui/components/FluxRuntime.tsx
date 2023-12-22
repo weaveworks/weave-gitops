@@ -30,7 +30,6 @@ const fluxVersionLabel = "app.kubernetes.io/version";
 const partOfLabel = "app.kubernetes.io/part-of";
 const fluxLabel = "flux";
 
-// FIXME: make it generic enough so it fits for both FluxRuntime or WeaveGitopsRuntime
 function FluxRuntime({ className, deployments, crds }: Props) {
   const { path } = useRouteMatch();
   const tabs: Array<routeTab> = [
