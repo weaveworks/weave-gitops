@@ -1,5 +1,5 @@
 ---
-title: Step 2 - Onboarding Other Platform engineers
+title: Day 1 - Onboard Platform Engineers
 hide_title: true
 toc_max_heading_level: 4
 ---
@@ -13,7 +13,14 @@ import oauthBitbucket from '/img/oauth-bitbucket.png';
 import oauthAzureDevOps from '/img/oauth-azure-devops.png';
 import oauthAzureDevOpsSuccess from '/img/oauth-azure-devops-success.png';
 
-# Step 2 - Onboarding Other Platform engineers
+# Day 1 - Onboard Platform Engineers
+
+:::info What to expect
+You have a baseline WGE environment that you want to iterate towards production-ready, so you could onboard
+other Platform Engineers and finally Developers.
+
+Use this guide to walk the bootstrapping workflow and adopt the recommendations that satisfy your context.
+:::
 
 The bootstrapping workflow has the following stages:
 
@@ -29,55 +36,33 @@ The bootstrapping workflow has the following stages:
 
 No additional topics required for this stage.
 
-### Entitlements
+## Entitlements
 
 No additional topics required for this stage.
 
-### Authentication
+## Authentication
 
-#### Authentication via OIDC
+There are two supported methods for logging in to the dashboard, that work with standard Kubernetes RBAC:
+- `Login via Cluster User`: that you have likely setup already as part of your previous step.
+- `Login via OIDC`: it is the recommended way for production, as this will allow you to control permissions for existing users and groups that have
+already been configured to use OIDC. OIDC decouples the need to manage user lists from the application, allowing it to be managed via
+a central system designed for that purpose (i.e. the OIDC provider).
 
-Before onboarding other users to latfo
+Making WGE authentication fit for production means setting up OIDC.
 
-### Authentication
+### Setup OIDC
 
-There are two supported authentication methods for Weave GitOps Enterprise:
+:::warning
+Currently, we do not have a persistent session storage, this means that if you scale to multiple replicas, logins will not be persisted.
+:::
 
-- `OIDC`: allows you to control permissions for existing users and groups that have already been configured to use OIDC. OIDC decouples the need to manage user lists from the application, allowing it to be managed via
-a central system designed for that purpose (i.e. the OIDC provider). OIDC also enables the creation of groups—either via your provider's own systems or by using a connector like [Dex](#configuring-oidc-with-dex-and-github).
-- `Cluster User`: only recommended for development environments or if you need to activate emergency access to a damaged cluster. However, it is an option if an OIDC provider is not available.
+To login via your OIDC provider two steps are required:
+1. Create a Kubernetes secret `oidc-auth` with the OIDC configuration. This configuration consists of the following parameters:
 
-The both work with standard Kubernetes RBAC for authorization.
+:::tip
+For specific OIDC providers configuration (like Google or Azure) see [this guide](../../../guides/oidc/).
+:::
 
-<Tabs groupId="authentication" default>
-<TabItem value="CLI" label="CLI">
-
-In interactive mode you will be guided to setup authentication for both Cluster User and OIDC.
-In non-interactive mode you have the following flags to configure authentication:
-
-```bash
-# setup Cluster User 'wego-admin' with password 'admin123'
-gitops bootstrap --password="admin123"
-
-# setup OIDC authentication
-gitops bootstrap --discovery-url="https://example.com/.well-known/openid-configuration" \
---client-id="weave-gitops-enterprise", --client-secret="clientSecretWeaveGitopsEnterprise"
-```
-
-For more information about the CLI configurations, check the below sections [here](#cli-configurations)
-
-</TabItem>
-<TabItem value="Manual OIDC" label="Manual OIDC">
-
-You may decide to give your engineering teams access to the WGE dashboard so they can view and manage their workloads. In this case, you will want to secure dashboard access and restrict who can interact with it. Weave GitOps Enterprise integrates with your OIDC provider and uses standard Kubernetes RBAC to give you fine-grained control of the dashboard users' permissions.
-
-OIDC extends the OAuth2 authorization protocol by including an additional field (ID Token) that contains information (claims) about a user's identity. After a user successfully authenticates with the OIDC provider, Weave GitOps Enterprise uses this information to impersonate the user in any calls to the Kubernetes API. This allows cluster administrators to use RBAC rules to control access to the cluster and the dashboard.
-
-For more specific examples of how to setup OIDC with Weave GitOps, see [this guide](../../../guides/oidc/).
-
-If you run into issues setting up OIDC with Weave GitOps, please refer to the [`gitops check oidc-config` command](../../../references/cli-reference/gitops_check_oidc-config/)
-
-To login via your OIDC provider, create a Kubernetes secret to store the OIDC configuration. This configuration consists of the following parameters:
 
 | Parameter         |  Description                                                                                                                      | Default   |
 | ------------------|  -------------------------------------------------------------------------------------------------------------------------------- | --------- |
@@ -92,7 +77,25 @@ To login via your OIDC provider, create a Kubernetes secret to store the OIDC co
 
 Ensure that your OIDC provider has been set up with a client ID/secret and the dashboard's redirect URL.
 
-Create a secret named `oidc-auth` in the `flux-system` namespace with these parameters set:
+
+2. Configure WGE to use OIDC
+
+<Tabs groupId="authentication" default>
+<TabItem value="CLI" label="CL">
+
+Execute `gitops bootstrap auth` to complete the task:
+
+```bash
+# Add OIDC configuration to your environment
+gitops bootstrap auth --type=oidc --client-id="client-id" \
+    --client-secret="client-secret" \
+    --discovery-url="discovery-url"
+```
+
+</TabItem>
+<TabItem value="Manual OIDC" label="Manual OIDC">
+
+1. Create a Kubernetes secret `oidc-auth` with the OIDC configuration
 
 ```bash
 kubectl create secret generic oidc-auth \
@@ -104,55 +107,94 @@ kubectl create secret generic oidc-auth \
   --from-literal=tokenDuration="token-duration"
 ```
 
-:::warning
-Currently, we do not have a persistent session storage, this means that if you scale to multiple replicas, logins will not be persisted.
-:::
+2. Configure WGE to use OIDC
 
-Once the HTTP server starts, unauthenticated users will have to click 'Login With OIDC Provider' to log in.
-
-</TabItem>
-<TabItem value="Manual Cluster User" label="Manual Cluster User">
-
-:::danger Important
-This is an **insecure** method of accessing your dashboard. We only see useful in any of the following scenarios:
-- You cannot directly get started directly with OIDC so you create the cluster user for convenience.
-- Its a local and development environments.
-- You need to activate the user for emergency access to a damaged environment.
-
-For secure and fully-featured authentication we **strongly recommend** using an OIDC provider and remove the Cluster User
-before onboarding other users.
-:::
-
-**Configuring the Cluster User**
-
-Before you log in via the Cluster User account, you need to generate a bcrypt hash for your chosen password and store it as a secret in Kubernetes. There are several different ways to generate a bcrypt hash. This guide uses `gitops get bcrypt-hash` from our CLI.
-
-Generate the password by running:
-
-```bash
-PASSWORD="your password"
-echo -n $PASSWORD | gitops get bcrypt-hash
-
-$2a$10$OS5NJmPNEb13UgTOSKnMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q
+```yaml
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: weave-gitops-enterprise
+  namespace: flux-system
+spec:
+  # ... other spec components
+  values:
+    config:
+      oidc:
+        clientCredentialsSecret: oidc-auth
+        enabled: true
+        issuerURL: "oidc-issuer-url"
+        redirectURL: "redirect-url"
 ```
-
-Now create a Kubernetes secret to store your chosen username and the password hash:
-
-```bash
-kubectl create secret generic cluster-user-auth \
-  --namespace flux-system \
-  --from-literal=username=wego-admin \
-  --from-literal=password='$2a$10$OS5NJmPNEb13UTOSKngMxOWlmS7mlxX77hv4yAiISvZ71Dc7IuN3q'
-```
-
-You should now be able to login via the cluster user account using your chosen username and password.
-
-See how to harden this section in [Day 1 Cluster User](#cluster-user).
 
 </TabItem>
 </Tabs>
 
-### Authorization
+
+Once the HTTP server starts, unauthenticated users will have to click 'Login With OIDC Provider' to log in.
+
+![Weave GitOps Enterprise Login](./imgs/wge-login-ui.png)
+
+If you run into issues setting up OIDC with Weave GitOps, please refer to the [`gitops check oidc-config` command](../../../references/cli-reference/gitops_check_oidc-config/)
+
+See [Advanced Topics](#advanced-topics) for other OIDC topics like customise scopes.
+
+
+## Advanced Topics
+
+### OIDC
+
+#### Customization
+
+For some OIDC configurations, you may need to customise the requested [scopes](https://openid.net/specs/openid-connect-core-1_0.html#ScopeClaims) or [claims](https://openid.net/specs/openid-connect-core-1_0.html#Claims).
+
+The `oidcUsernamePrefix` and `oidcGroupsPrefix` work in the same way as the Kubernetes [kube-apiserver](https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/) command-line options, if you need them for Kubernetes, you will likely need them here.
+
+#### Scopes
+
+By default, the following scopes are requested: "openid","offline_access","email","groups".
+
+The "openid" scope is **mandatory** for OpenID auth and will be added if not provided. The "email" and "groups" scopes are commonly used as unique identifiers in organisations.
+
+"offline_access" allows us to refresh OIDC tokens to keep login sessions alive for as long as a refresh token is valid. You can, however, change the defaults.
+```sh
+kubectl create secret generic oidc-auth \
+  --namespace flux-system \
+  --from-literal=issuerURL=$oidc-issuer-url \
+  --from-literal=clientID=$client-id \
+  --from-literal=clientSecret=$client-secret \
+  --from-literal=redirectURL=redirect-url \
+  --from-literal=tokenDuration=token-duration \
+  --from-literal=customScopes=custom,scopes
+```
+The format for the `customScopes` key is a comma-separated list of scopes to request. In this case, "custom", "scopes", and "openid" would be requested.
+
+#### Claims
+
+By default, the following claims are parsed from the OpenID [ID Token](https://openid.net/specs/openid-connect-core-1_0.html#CodeIDToken) "email" and "groups". These are presented as the `user` and `groups` when WGE communicates with your Kubernetes API server.
+
+This is equivalent to [configuring](https://kubernetes.io/docs/reference/access-authn-authz/authentication/#configuring-the-api-server) your `kube-apiserver` with `--oidc-username-claim=email --oidc-groups-claim=groups`.
+
+Again, you can configure these from the `oidc-auth` `Secret`.
+
+```sh
+kubectl create secret generic oidc-auth \
+  --namespace flux-system \
+  --from-literal=issuerURL=oidc-issuer-url \
+  --from-literal=clientID=client-id \
+  --from-literal=clientSecret=client-secret \
+  --from-literal=redirectURL=redirect-url \
+  --from-literal=tokenDuration=token-duration \
+  --from-literal=claimUsername=sub \
+  --from-literal=claimGroups=groups
+```
+There are two separate configuration keys. You can override them separately. They should match your `kube-apiserver` configuration.
+
+
+
+
+
+## Authorization
 
 Weave GitOps Enterprise works with standard [Kubernetes RBAC](https://kubernetes.io/docs/reference/access-authn-authz/rbac/)
 to define what actions can a subject do-over the existing resources.
@@ -285,8 +327,7 @@ Flux will reconcile the helm-release and WGE will be deployed into the cluster. 
 </Tabs>
 
 
-
-## Day 1: Customise and Complete
+## Advanced Topics
 
 Now that you have Weave GitOps Enterprise up and running, you might want to iterate your setup before opening to the rest of
 the users. This section shows you the different options that you could configure to adapt Weave GitOps Enterprise to your needs.
@@ -702,53 +743,6 @@ the cluster.
 :::
 
 
-### OIDC
-
-#### Customization
-
-For some OIDC configurations, you may need to customise the requested [scopes](https://openid.net/specs/openid-connect-core-1_0.html#ScopeClaims) or [claims](https://openid.net/specs/openid-connect-core-1_0.html#Claims).
-
-The `oidcUsernamePrefix` and `oidcGroupsPrefix` work in the same way as the Kubernetes [kube-apiserver](https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/) command-line options, if you need them for Kubernetes, you will likely need them here.
-
-#### Scopes
-
-By default, the following scopes are requested: "openid","offline_access","email","groups".
-
-The "openid" scope is **mandatory** for OpenID auth and will be added if not provided. The "email" and "groups" scopes are commonly used as unique identifiers in organisations.
-
-"offline_access" allows us to refresh OIDC tokens to keep login sessions alive for as long as a refresh token is valid. You can, however, change the defaults.
-```sh
-kubectl create secret generic oidc-auth \
-  --namespace flux-system \
-  --from-literal=issuerURL=$oidc-issuer-url \
-  --from-literal=clientID=$client-id \
-  --from-literal=clientSecret=$client-secret \
-  --from-literal=redirectURL=redirect-url \
-  --from-literal=tokenDuration=token-duration \
-  --from-literal=customScopes=custom,scopes
-```
-The format for the `customScopes` key is a comma-separated list of scopes to request. In this case, "custom", "scopes", and "openid" would be requested.
-
-#### Claims
-
-By default, the following claims are parsed from the OpenID [ID Token](https://openid.net/specs/openid-connect-core-1_0.html#CodeIDToken) "email" and "groups". These are presented as the `user` and `groups` when WGE communicates with your Kubernetes API server.
-
-This is equivalent to [configuring](https://kubernetes.io/docs/reference/access-authn-authz/authentication/#configuring-the-api-server) your `kube-apiserver` with `--oidc-username-claim=email --oidc-groups-claim=groups`.
-
-Again, you can configure these from the `oidc-auth` `Secret`.
-
-```sh
-kubectl create secret generic oidc-auth \
-  --namespace flux-system \
-  --from-literal=issuerURL=oidc-issuer-url \
-  --from-literal=clientID=client-id \
-  --from-literal=clientSecret=client-secret \
-  --from-literal=redirectURL=redirect-url \
-  --from-literal=tokenDuration=token-duration \
-  --from-literal=claimUsername=sub \
-  --from-literal=claimGroups=groups
-```
-There are two separate configuration keys. You can override them separately. They should match your `kube-apiserver` configuration.
 
 ### Customise the UI
 
