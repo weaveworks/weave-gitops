@@ -16,39 +16,16 @@ import oauthAzureDevOpsSuccess from '/img/oauth-azure-devops-success.png';
 # Day 1 - Onboard Platform Engineers
 
 :::info What to expect
-You have a baseline WGE environment that you want to iterate towards production-ready, so you could onboard
-other Platform Engineers and finally Developers.
+You have [started with WGE](../install-enterprise-getting-started) and already familiar with its [bootstrapping workflow](../install-enterprise-getting-started/#bootstrapping).
+You want to iterate your environment to onboard other Platform Engineers and finally Developers.
 
-Use this guide to walk the bootstrapping workflow and adopt the recommendations that satisfy your context.
+Use this guide to adopt the recommendations that would enable you to do so with confidence.
 :::
-
-The bootstrapping workflow has the following stages:
-
-1. [Bootstrap Flux](#bootstrap-flux)
-2. [Entitlements](#entitlements)
-3. [Authentication](#authentication)
-4. [Authorization](#authorization)
-5. [Install WGE](#install-wge)
-6. [Access the dashboard](#access-the-dashboard)
-
-
-## Bootstrap Flux
-
-No additional topics required for this stage.
-
-## Entitlements
-
-No additional topics required for this stage.
 
 ## Authentication
 
-There are two supported methods for logging in to the dashboard, that work with standard Kubernetes RBAC:
-- `Login via Cluster User`: that you have likely setup already as part of your previous step.
-- `Login via OIDC`: it is the recommended way for production, as this will allow you to control permissions for existing users and groups that have
-already been configured to use OIDC. OIDC decouples the need to manage user lists from the application, allowing it to be managed via
-a central system designed for that purpose (i.e. the OIDC provider).
-
-Making WGE authentication fit for production means setting up OIDC.
+As a reminder, Weave GitOps Enterprise supports as authentication methods, Cluster User, that you have likely setup as part of the previous step, and OIDC.
+OIDC is the recommended way for production, so take the time to set it up before onboarding other users.
 
 ### Setup OIDC
 
@@ -57,7 +34,8 @@ Currently, we do not have a persistent session storage, this means that if you s
 :::
 
 To login via your OIDC provider two steps are required:
-1. Create a Kubernetes secret `oidc-auth` with the OIDC configuration. This configuration consists of the following parameters:
+
+1. **Create a Kubernetes secret `oidc-auth` with the OIDC configuration**. This configuration consists of the following parameters:
 
 :::tip
 For specific OIDC providers configuration (like Google or Azure) see [this guide](../../../guides/oidc/).
@@ -76,7 +54,7 @@ For specific OIDC providers configuration (like Google or Azure) see [this guide
 
 Ensure that your OIDC provider has been set up with a client ID/secret and the dashboard's redirect URL.
 
-2. Configure WGE to use OIDC
+2. **Configure WGE to use OIDC**
 
 <Tabs groupId="authentication" default>
 <TabItem value="CLI" label="CLI">
@@ -130,47 +108,95 @@ spec:
 
 Once the HTTP server starts, unauthenticated users will have to click 'Login With OIDC Provider' to log in.
 
+:::tip Running into issues setting up OIDC?
+Use [`gitops check oidc-config`](../../../references/cli-reference/gitops_check_oidc-config/) command to help you troubleshoot your OIDC configuration.
+:::
+
 ![Weave GitOps Enterprise Login](./imgs/wge-login-ui.png)
 
-If you run into issues setting up OIDC with Weave GitOps, please refer to the [`gitops check oidc-config` command](../../../references/cli-reference/gitops_check_oidc-config/)
 
 See [Advanced Topics](#advanced-topics) for other OIDC topics like customise scopes.
 
 ## Authorization
 
-Weave GitOps Enterprise works with standard [Kubernetes RBAC](https://kubernetes.io/docs/reference/access-authn-authz/rbac/)
-to define what actions can a subject do-over the existing resources. Weave GitOps requires authorization for the following subjects:
+Weave GitOps Enterprise works with standard [Kubernetes RBAC](https://kubernetes.io/docs/reference/access-authn-authz/rbac/) for authorization of:
 
 - **Weave GitOps Users:** previously authenticated via either OIDC or Cluster User.
 - **Weave GitOps Service Account:** which talks to Kubernetes for user operations via [Impersonation](https://kubernetes.io/docs/reference/access-authn-authz/authentication/#user-impersonation).
 - **Flux Service Accounts:** which talks to Kubernetes for deployments operations.
 
-As a result of getting started you have create the default authorization clusters for `Cluser User`, `Weave GitOps Service Account`
-and `Flux Service Accounts`.
-
-Making WGE authorization fit for production involves [defining and Deploy RBAC for OIDC users](./#rbac-for-oidc-users
-
 ### RBAC for OIDC Users
 
-#### Define RBAC Rules
+During [getting started](../install-enterprise-getting-started/) you have created the default authorization clusters for `Cluser User`, `Weave GitOps Service Account`
+and `Flux Service Accounts` but not for OIDC users. You could setup Authorization for OIDC users by defining and deploying the RBAC rules.
 
-RBAC rules are highly context dependent so you would need to take the time with your Security organisation defining them.
+#### Define the Rules
 
-You could use this example an initial inspiration in case you have nothing already defined
+RBAC rules are highly context-dependent and there is no one-size fits all. You would need to take the time with your Security organisation on defining them.
 
-#### Deploy RBAC Rules
+We provide you with the following RBAC Configuration as inspirational to get you conversations started. It is purposefully vague as we intend to give a
+broad idea of how to implement such a system. The specifics will dependent on your circumstances and goals.
 
-A common pattern called `Bases` helps you deploying your OIDC RBAC:
+<details>
+<summary>Expand to see RBAC Configuration</summary>
+
+Our general recommendation is to use OIDC and a small number of groups that Weave GitOps can impersonate.
+
+Configuring Weave GitOps to impersonate Kubernetes groups rather than users has the following benefits:
+* A user's permissions for impersonation by Weave GitOps can be separate from
+any other permissions that they may or may not have within the cluster.
+* Users do not have to be individually managed within the cluster and can have
+their permissions managed together.
+
+**Example Setup**
+
+Assume that your company has the following people in OIDC:
+* Aisha, a cluster admin, who should have full admin access to Weave GitOps
+* Brian, lead of Team-A, who should have admin permissions to their team's
+namespace in Weave GitOps and read-only otherwise
+* June and Jo, developers in Team-A who should have read-only access to Weave GitOps
+
+You can then create three groups:
+
+* `wego-admin`
+- Bound to the `ClusterRole`, created by Helm, `wego-admin-cluster-role`
+- Aisha is the only member
+* `wego-team-a-admin`
+- Bound to a `Role`, using the same permissions as `wego-admin-role`, created
+in Team-A's namespace
+- Brian and Aisha are members
+* `wego-readonly`
+- Bound to a `ClusterRole` that matches `wego-admin-cluster-role` but with
+no `patch` permissions.
+- Aisha, Brian, June and Jo are all members
+
+:::caution Using OIDC for cluster and Weave GitOps Authentication
+If the same OIDC provider is used to authenticate a user with the cluster
+itself (e.g. for use with `kubectl`) and to Weave GitOps then, depending
+on OIDC configuration, they may end up with the super-set of their permissions
+from Weave GitOps and any other permissions granted to them.
+
+This can lead to unintended consequences, like viewing `secrets`. To avoid
+this, OIDC providers will often let you configure which groups are returned
+to which clients. The Weave GitOps groups should not be returned to the
+cluster client (and vice versa).
+:::
+
+</details>
+
+#### Deploy them via `/bases`
+
+Once you have the rules defined, you want to ensure they are available in your environment. The `bases` pattern is useful approach
+to easily achieve this. It works as follows:
 
 1. Create a folder in your Git repo in path like `clusters/bases`.
 2. Add your RBAC resources into the folder `clusters/bases/rbac`.
 3. Create a folder `clusters/management` adding the following `Kustomization`:
 
 ```yaml title="clusters/management/clusters-bases-kustomization.yaml"
-apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  creationTimestamp: null
   name: clusters-bases-kustomization
   namespace: flux-system
 spec:
@@ -691,159 +717,6 @@ Flux communicates the status of itself primarily via events.
 These events will show when reconciliations start and stop, whether they're successful,
 and information as to why they're not.
 
-## Recommended RBAC Configuration
-
-This section is purposefully vague as we intend to give a broad idea of how to implement such a system. The specifics will dependent
-on your circumstances and goals.
-
-Our general recommendation is to use OIDC and a small number of groups that Weave GitOps can impersonate.
-
-Configuring Weave GitOps to impersonate Kubernetes groups rather than users has the following benefits:
-* A user's permissions for impersonation by Weave GitOps can be separate from
-any other permissions that they may or may not have within the cluster.
-* Users do not have to be individually managed within the cluster and can have
-their permissions managed together.
-
-### Example Setup
-
-Assume that your company has the following people in OIDC:
-* Aisha, a cluster admin, who should have full admin access to Weave GitOps
-* Brian, lead of Team-A, who should have admin permissions to their team's
-namespace in Weave GitOps and read-only otherwise
-* June and Jo, developers in Team-A who should have read-only access to Weave GitOps
-
-You can then create three groups:
-
-* `wego-admin`
-- Bound to the `ClusterRole`, created by Helm, `wego-admin-cluster-role`
-- Aisha is the only member
-* `wego-team-a-admin`
-- Bound to a `Role`, using the same permissions as `wego-admin-role`, created
-in Team-A's namespace
-- Brian and Aisha are members
-* `wego-readonly`
-- Bound to a `ClusterRole` that matches `wego-admin-cluster-role` but with
-no `patch` permissions.
-- Aisha, Brian, June and Jo are all members
-
-:::caution Using OIDC for cluster and Weave GitOps Authentication
-If the same OIDC provider is used to authenticate a user with the cluster
-itself (e.g. for use with `kubectl`) and to Weave GitOps then, depending
-on OIDC configuration, they may end up with the super-set of their permissions
-from Weave GitOps and any other permissions granted to them.
-
-This can lead to unintended consequences, like viewing `secrets`. To avoid
-this, OIDC providers will often let you configure which groups are returned
-to which clients. The Weave GitOps groups should not be returned to the
-cluster client (and vice versa).
-:::
-
-### Code
-
-The yaml to configure these permissions would look roughly like:
-
-<details>
-    <summary>Expand to see example RBAC</summary>
-
-    ```yaml
-    # Admin cluster role
-    apiVersion: rbac.authorization.k8s.io/v1
-    kind: ClusterRole
-    metadata:
-    name: wego-admin-cluster-role
-    rules:
-    - apiGroups: [""]
-    resources: ["secrets", "pods" ]
-    verbs: [ "get", "list" ]
-    - apiGroups: ["apps"]
-    resources: [ "deployments", "replicasets"]
-    verbs: [ "get", "list" ]
-    - apiGroups: ["kustomize.toolkit.fluxcd.io"]
-    resources: [ "kustomizations" ]
-    verbs: [ "get", "list", "patch" ]
-    - apiGroups: ["helm.toolkit.fluxcd.io"]
-    resources: [ "helmreleases" ]
-    verbs: [ "get", "list", "patch" ]
-    - apiGroups: ["source.toolkit.fluxcd.io"]
-    resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories", "ocirepositories" ]
-    verbs: [ "get", "list", "patch" ]
-    - apiGroups: [""]
-    resources: ["events"]
-    verbs: ["get", "watch", "list"]
-    ---
-    # Read-only cluster role
-    apiVersion: rbac.authorization.k8s.io/v1
-    kind: ClusterRole
-    metadata:
-    name: wego-readonly-role
-    rules:
-    # All the 'patch' permissions have been removed
-    - apiGroups: [""]
-    resources: ["secrets", "pods" ]
-    verbs: [ "get", "list" ]
-    - apiGroups: ["apps"]
-    resources: [ "deployments", "replicasets"]
-    verbs: [ "get", "list" ]
-    - apiGroups: ["kustomize.toolkit.fluxcd.io"]
-    resources: [ "kustomizations" ]
-    verbs: [ "get", "list" ]
-    - apiGroups: ["helm.toolkit.fluxcd.io"]
-    resources: [ "helmreleases" ]
-    verbs: [ "get", "list" ]
-    - apiGroups: ["source.toolkit.fluxcd.io"]
-    resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories", "ocirepositories" ]
-    verbs: [ "get", "list" ]
-    - apiGroups: [""]
-    resources: ["events"]
-    verbs: ["get", "watch", "list"]
-    ---
-    # Bind the cluster admin role to the wego-admin group
-    apiVersion: rbac.authorization.k8s.io/v1
-    kind: ClusterRoleBinding
-    metadata:
-    name: wego-cluster-admin
-    subjects:
-    - kind: Group
-    name: wego-admin # only Aisha is a member
-    apiGroup: rbac.authorization.k8s.io
-    roleRef:
-    kind: ClusterRole
-    name: wego-admin-cluster-role
-    apiGroup: rbac.authorization.k8s.io
-    ---
-    # Bind the admin role in the team-a namespace for the wego-team-a-admin group
-    apiVersion: rbac.authorization.k8s.io/v1
-    kind: RoleBinding
-    metadata:
-    name: wego-team-a-admin-role
-    namespace: team-a
-    subjects:
-    - kind: Group
-    name: wego-team-a-admin # Aisha & Brian are members
-    apiGroup: rbac.authorization.k8s.io
-    roleRef:
-    # Use the cluster role to set rules, just bind them in the team-a namespace
-    kind: ClusterRole
-    name: wego-admin-role
-    apiGroup: rbac.authorization.k8s.io
-    ---
-    # Bind the read-only role to the read-only group
-    apiVersion: rbac.authorization.k8s.io/v1
-    kind: ClusterRoleBinding
-    metadata:
-    name: wego-readonly-role
-    subjects:
-    - kind: Group
-    name: wego-readonly # Everyone is a member
-    apiGroup: rbac.authorization.k8s.io
-    roleRef:
-    kind: ClusterRole
-    name: wego-readonly-role
-    apiGroup: rbac.authorization.k8s.io
-    ---
-    ```
-
-</details>
 
 
 
