@@ -50,7 +50,8 @@ module.exports = {
                 "enterprise/getting-started/install-enterprise-getting-started-manual",
               ],
             },
-            "enterprise/getting-started/install-enterprise-onboard-platform-engineers",
+            "enterprise/getting-started/install-enterprise-getting-started-onboard",
+            "enterprise/getting-started/install-enterprise-getting-started-expand",
             "enterprise/getting-started/releases-enterprise",
             {
               type: "category",
