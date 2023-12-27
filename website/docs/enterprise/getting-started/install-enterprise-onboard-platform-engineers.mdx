@@ -328,6 +328,9 @@ resources will be created.
 </TabItem>
 </Tabs>
 
+
+
+
 ## Access the dashboard
 
 During [getting started](../install-enterprise-getting-started/) you have accessed the dashboard via its non-TLS ClusterIP service
@@ -374,8 +377,176 @@ Other ingress configuration changes can be made via the ingress configuration
       ... other parameters specific to the ingress type ...
 ```
 
+## Expand WGE Capabilities
+
+During [getting started](../install-enterprise-getting-started/) you have installed Flux and WGE which allows you to deploy and
+view Flux Applications. Expand your environment capabilities by following the section below.
+
+### Enable Write Access to Git
+
+Weave GitOps Enterprise creates pull requests for adding resources. To do this, it needs to be able to write to the Git repository.
+Here we provide guidance for GitHub, GitLab, BitBucket Server, and Azure DevOps.
+
+<Tabs groupId="git-provider" default>
+<TabItem value="github" label="GitHub">
+GitHub requires no additional configuration for OAuth git access
+</TabItem>
+<TabItem value="gitlab" label="GitLab">
+
+Create a GitLab OAuth application that will request `api` permissions to create pull requests on your behalf.
+
+Follow the [GitLab docs](https://docs.gitlab.com/ee/integration/oauth_provider.html).
+
+The application should have at least these scopes:
+
+- `api`
+- `openid`
+- `email`
+- `profile`
+
+Add callback URLs to the application for each address the UI will be exposed on, e.g.:
+
+- `https://localhost:8000/oauth/gitlab` for port-forwarding and testing
+- `https://git.example.com/oauth/gitlab` for production use
+
+Save your application, taking note of the **Client ID** and **Client Secret**. Save
+them into the `git-provider-credentials` secret, along with:
+
+- `GIT_HOST_TYPES` to tell WGE that the host is gitlab
+- `GITLAB_HOSTNAME` where the OAuth app is hosted
+
+**Replace values** in this snippet and run:
+
+```bash
+kubectl create secret generic git-provider-credentials --namespace=flux-system \
+  --from-literal="GITLAB_CLIENT_ID=13457" \
+  --from-literal="GITLAB_CLIENT_SECRET=24680" \
+  --from-literal="GITLAB_HOSTNAME=git.example.com" \
+  --from-literal="GIT_HOST_TYPES=git.example.com=gitlab"
+```
+
+</TabItem>
+<TabItem value="bitbucket-server" label="BitBucket Server">
+
+Create a new [incoming application link](https://confluence.atlassian.com/bitbucketserver/configure-an-incoming-link-1108483657.html) from
+the BitBucket administration dashboard. You will be asked to enter a unique name and the redirect URL for the external application. The redirect URL
+should be set to `$WGE_DASHBOARD_URL/oauth/bitbucketserver`. You will also need to select permissions for the application. The minimum set of
+permissions needed for WGE to create pull requests on behalf of users is `Repositories - Write`. An example of configuring these settings is shown below.
+
+<figure>
+
+<img src={oauthBitbucket} width="500"/>
+
+<figcaption>Configuring a new incoming application link</figcaption>
+</figure>
 
 
+Save your application and take note of the **Client ID** and **Client Secret**. Save
+them into the `git-provider-credentials` secret, along with:
+
+- `GIT_HOST_TYPES` to tell WGE that the host is bitbucket-server
+- `BITBUCKET_SERVER_HOSTNAME` where the OAuth app is hosted
+
+**Replace values** in this snippet and run:
+
+```bash
+kubectl create secret generic git-provider-credentials --namespace=flux-system \
+  --from-literal="BITBUCKET_SERVER_CLIENT_ID=13457" \
+  --from-literal="BITBUCKET_SERVER_CLIENT_SECRET=24680" \
+  --from-literal="BITBUCKET_SERVER_HOSTNAME=git.example.com" \
+  --from-literal="GIT_HOST_TYPES=git.example.com=bitbucket-server"
+```
+
+If the secret is already present, use the following command to update it using your default editor:
+
+```bash
+kubectl edit secret generic git-provider-credentials --namespace=flux-system
+```
+
+:::info
+
+If BitBucket Server is running on the default port (7990), make sure you include the port number in the values of the secret. For example: `GIT_HOST_TYPES=git.example.com:7990=bitbucket-server`
+
+:::
+
+</TabItem>
+
+<TabItem value="azure-devops" label="Azure DevOps">
+
+Navigate to [VisualStudio](https://app.vsaex.visualstudio.com/app/register) and register a new application, as explained in the [docs](https://learn.microsoft.com/en-us/azure/devops/integrate/get-started/authentication/oauth?view=azure-devops#1-register-your-app). Set the authorization callback URL and select which scopes to grant. Set the callback URL to `$WGE_DASHBOARD_URL/oauth/azuredevops`.
+
+Select the `Code (read and write)` scope from the list. This is necessary so that WGE can create pull requests on behalf of users. An example of configuring these settings is shown below.
+
+<figure>
+<img src={oauthAzureDevOps}/>
+<figcaption>Creating a new application</figcaption>
+</figure>
+
+After creating your application, you will be presented with the application settings. Take note of the `App ID` and `Client Secret` values—you will use them to configure WGE.
+
+<figure>
+<img src={oauthAzureDevOpsSuccess}/>
+<figcaption>Application settings</figcaption>
+</figure>
+
+In your cluster, create a secret named `git-provider-credentials` that contains the `App ID` and `Client Secret` values from the newly created application.
+
+**Replace values** in this snippet and run:
+
+```bash
+kubectl create secret generic git-provider-credentials --namespace=flux-system \
+  --from-literal="AZURE_DEVOPS_CLIENT_ID='App ID value'" \
+  --from-literal="AZURE_DEVOPS_CLIENT_SECRET='Client Secret value'"
+```
+
+WGE is now configured to ask users for authorization the next time a pull request must be created as part of using a template.
+Note that each user can view and manage which applications they have authorized by navigating to https://app.vsaex.visualstudio.com/me.
+
+</TabItem>
+</Tabs>
+
+### Enable Cluster Management via Cluster API
+
+TBA
+
+### Enable Policy via Weave Policy
+
+To install [Policy Agent](../../policy/intro.mdx) follow any of the following approaches:
+
+<Tabs groupId="policy agent" default>
+<TabItem value="cli" label="cli">
+
+You could configure this stage by using the following flags and examples:
+
+```bash
+ # install Policy Agent alongside Weave GitOps Enterprise
+ gitops bootstrap --components-extra="policy-agent"
+```
+
+For more information about the CLI configurations, check the below sections [here](#cli-configurations)
+</TabItem>
+<TabItem value="manual" label="manual">
+
+[Policy agent](../../policy/intro.mdx) comes packaged with the WGE chart. To install it, set the following values:
+
+- `values.policy-agent.enabled`: set to true to install the agent with WGE
+- `values.policy-agent.config.accountId`: organization name, used as identifier
+- `values.policy-agent.config.clusterId`: unique identifier for the cluster
+
+Commit and push all the files
+
+```bash
+git add clusters/management/weave-gitops-enterprise.yaml
+git commit -m "Deploy Weave GitOps Enterprise"
+git push
+```
+
+Flux will reconcile the helm-release and WGE will be deployed into the cluster. You can check the `flux-system` namespace to verify all pods are running.
+
+</TabItem>
+</Tabs>
+
+### Enable Infrastructure Management via Tf-Controller
 
 
 
@@ -553,12 +724,6 @@ and information as to why they're not.
 
 
 
-
-
-### Cluster User
-
-
-
 ### Customise the UI
 
 #### Login
@@ -574,176 +739,8 @@ extraEnvVars:
     value: "Login with ACME"
 ```
 
-### Install Other Components
-
-#### Cluster Management via CAPI
-
-TBA
-
-#### Policy via Weave Policy Agent
-
-To install [Policy Agent](../../policy/intro.mdx) follow any of the following approaches:
-
-<Tabs groupId="policy agent" default>
-<TabItem value="cli" label="cli">
-
-You could configure this stage by using the following flags and examples:
-
-```bash
- # install Policy Agent alongside Weave GitOps Enterprise
- gitops bootstrap --components-extra="policy-agent"
-```
-
-For more information about the CLI configurations, check the below sections [here](#cli-configurations)
-</TabItem>
-<TabItem value="manual" label="manual">
-
-[Policy agent](../../policy/intro.mdx) comes packaged with the WGE chart. To install it, set the following values:
-
-- `values.policy-agent.enabled`: set to true to install the agent with WGE
-- `values.policy-agent.config.accountId`: organization name, used as identifier
-- `values.policy-agent.config.clusterId`: unique identifier for the cluster
-
-Commit and push all the files
-
-```bash
-git add clusters/management/weave-gitops-enterprise.yaml
-git commit -m "Deploy Weave GitOps Enterprise"
-git push
-```
-
-Flux will reconcile the helm-release and WGE will be deployed into the cluster. You can check the `flux-system` namespace to verify all pods are running.
-
-</TabItem>
-</Tabs>
-
-#### Infrastructure via Tf-Controller
-
-// TBA
 
 
-### Configure Write Access to Git
-
-Weave GitOps Enterprise creates pull requests for adding resources. To do this, it needs to be able to write to the Git repository.
-Here we provide guidance for GitHub, GitLab, BitBucket Server, and Azure DevOps.
-
-<Tabs groupId="git-provider" default>
-<TabItem value="github" label="GitHub">
-GitHub requires no additional configuration for OAuth git access
-</TabItem>
-<TabItem value="gitlab" label="GitLab">
-
-Create a GitLab OAuth application that will request `api` permissions to create pull requests on your behalf.
-
-Follow the [GitLab docs](https://docs.gitlab.com/ee/integration/oauth_provider.html).
-
-The application should have at least these scopes:
-
-- `api`
-- `openid`
-- `email`
-- `profile`
-
-Add callback URLs to the application for each address the UI will be exposed on, e.g.:
-
-- `https://localhost:8000/oauth/gitlab` for port-forwarding and testing
-- `https://git.example.com/oauth/gitlab` for production use
-
-Save your application, taking note of the **Client ID** and **Client Secret**. Save
-them into the `git-provider-credentials` secret, along with:
-
-- `GIT_HOST_TYPES` to tell WGE that the host is gitlab
-- `GITLAB_HOSTNAME` where the OAuth app is hosted
-
-**Replace values** in this snippet and run:
-
-```bash
-kubectl create secret generic git-provider-credentials --namespace=flux-system \
-  --from-literal="GITLAB_CLIENT_ID=13457" \
-  --from-literal="GITLAB_CLIENT_SECRET=24680" \
-  --from-literal="GITLAB_HOSTNAME=git.example.com" \
-  --from-literal="GIT_HOST_TYPES=git.example.com=gitlab"
-```
-
-</TabItem>
-<TabItem value="bitbucket-server" label="BitBucket Server">
-
-Create a new [incoming application link](https://confluence.atlassian.com/bitbucketserver/configure-an-incoming-link-1108483657.html) from
-the BitBucket administration dashboard. You will be asked to enter a unique name and the redirect URL for the external application. The redirect URL
-should be set to `$WGE_DASHBOARD_URL/oauth/bitbucketserver`. You will also need to select permissions for the application. The minimum set of
-permissions needed for WGE to create pull requests on behalf of users is `Repositories - Write`. An example of configuring these settings is shown below.
-
-<figure>
-
-<img src={oauthBitbucket} width="500"/>
-
-<figcaption>Configuring a new incoming application link</figcaption>
-</figure>
-
-
-Save your application and take note of the **Client ID** and **Client Secret**. Save
-them into the `git-provider-credentials` secret, along with:
-
-- `GIT_HOST_TYPES` to tell WGE that the host is bitbucket-server
-- `BITBUCKET_SERVER_HOSTNAME` where the OAuth app is hosted
-
-**Replace values** in this snippet and run:
-
-```bash
-kubectl create secret generic git-provider-credentials --namespace=flux-system \
-  --from-literal="BITBUCKET_SERVER_CLIENT_ID=13457" \
-  --from-literal="BITBUCKET_SERVER_CLIENT_SECRET=24680" \
-  --from-literal="BITBUCKET_SERVER_HOSTNAME=git.example.com" \
-  --from-literal="GIT_HOST_TYPES=git.example.com=bitbucket-server"
-```
-
-If the secret is already present, use the following command to update it using your default editor:
-
-```bash
-kubectl edit secret generic git-provider-credentials --namespace=flux-system
-```
-
-:::info
-
-If BitBucket Server is running on the default port (7990), make sure you include the port number in the values of the secret. For example: `GIT_HOST_TYPES=git.example.com:7990=bitbucket-server`
-
-:::
-
-</TabItem>
-
-<TabItem value="azure-devops" label="Azure DevOps">
-
-Navigate to [VisualStudio](https://app.vsaex.visualstudio.com/app/register) and register a new application, as explained in the [docs](https://learn.microsoft.com/en-us/azure/devops/integrate/get-started/authentication/oauth?view=azure-devops#1-register-your-app). Set the authorization callback URL and select which scopes to grant. Set the callback URL to `$WGE_DASHBOARD_URL/oauth/azuredevops`.
-
-Select the `Code (read and write)` scope from the list. This is necessary so that WGE can create pull requests on behalf of users. An example of configuring these settings is shown below.
-
-<figure>
-<img src={oauthAzureDevOps}/>
-<figcaption>Creating a new application</figcaption>
-</figure>
-
-After creating your application, you will be presented with the application settings. Take note of the `App ID` and `Client Secret` values—you will use them to configure WGE.
-
-<figure>
-<img src={oauthAzureDevOpsSuccess}/>
-<figcaption>Application settings</figcaption>
-</figure>
-
-In your cluster, create a secret named `git-provider-credentials` that contains the `App ID` and `Client Secret` values from the newly created application.
-
-**Replace values** in this snippet and run:
-
-```bash
-kubectl create secret generic git-provider-credentials --namespace=flux-system \
-  --from-literal="AZURE_DEVOPS_CLIENT_ID='App ID value'" \
-  --from-literal="AZURE_DEVOPS_CLIENT_SECRET='Client Secret value'"
-```
-
-WGE is now configured to ask users for authorization the next time a pull request must be created as part of using a template.
-Note that each user can view and manage which applications they have authorized by navigating to https://app.vsaex.visualstudio.com/me.
-
-</TabItem>
-</Tabs>
 
 
 ## Next Steps
