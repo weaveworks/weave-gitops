@@ -104,13 +104,12 @@ const PolicyDetails = ({ policy }: Props) => {
         <Flex wide tall column gap="32">
           <HeaderRows items={items} />
           <SectionWrapper title="Description:">
-            <MarkdownEditor children={description || ""} />
+            <MarkdownEditor>{description || ""}</MarkdownEditor>
           </SectionWrapper>
           <SectionWrapper title="How to solve:">
-            <MarkdownEditor
-              children={howToSolve || ""}
-              remarkPlugins={[remarkGfm]}
-            />
+            <MarkdownEditor remarkPlugins={[remarkGfm]}>
+              {howToSolve || ""}
+            </MarkdownEditor>
           </SectionWrapper>
           <SectionWrapper title="Policy Code:">
             <YamlView type="rego" yaml={code} />

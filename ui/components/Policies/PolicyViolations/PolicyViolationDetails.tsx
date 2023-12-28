@@ -112,13 +112,12 @@ export const ViolationDetails = ({
         </ul>
       </SectionWrapper>
       <SectionWrapper title="Description:">
-        <MarkdownEditor children={description || ""} />
+        <MarkdownEditor>{description || ""}</MarkdownEditor>
       </SectionWrapper>
       <SectionWrapper title="How to solve:">
-        <MarkdownEditor
-          children={howToSolve || ""}
-          remarkPlugins={[remarkGfm]}
-        />
+        <MarkdownEditor remarkPlugins={[remarkGfm]}>
+          {howToSolve || ""}
+        </MarkdownEditor>
       </SectionWrapper>
       <SectionWrapper title=" Parameters Values:">
         <Parameters parameters={parameters} />

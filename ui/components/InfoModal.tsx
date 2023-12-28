@@ -42,8 +42,9 @@ function InfoModal({ searchedNamespaces, onCloseModal, open }: Props) {
       onClose={onClose}
       title="Searched namespaces"
       description="These are the namespaces that we've searched per cluster to retrieve the objects that you are seeing on this page."
-      children={content}
-    />
+    >
+      {content}
+    </Modal>
   );
 }
 
