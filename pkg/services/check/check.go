@@ -2,71 +2,33 @@ package check
 
 import (
 	"fmt"
-	"os/exec"
-	"strings"
 
 	"github.com/Masterminds/semver/v3"
+	"k8s.io/client-go/discovery"
 )
 
 const (
-	kubernetesConstraints = ">=1.20.6-0"
+	kubernetesConstraints = ">=1.26"
 )
 
-// Pre runs pre-install checks
-func Pre() (string, error) {
-	k8sOutput, err := runKubernetesCheck()
+// KubernetesVersion checks if the Kubernetes version of the client is recent enough and
+// returns a proper string explaining the result of the check. An error is returned
+// if the check could not be performed (e.g. the cluster is not reachable).
+func KubernetesVersion(c discovery.DiscoveryInterface) (string, error) {
+	v, err := c.ServerVersion()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed getting server version: %w", err)
 	}
 
-	return k8sOutput, nil
-}
-
-func runKubernetesCheck() (string, error) {
-	versionOutput, err := exec.Command("kubectl", "version", "--short").CombinedOutput()
+	sv, err := semver.NewVersion(v.GitVersion)
 	if err != nil {
-		return "", fmt.Errorf("unable to get kubernetes version: %w", err)
+		return "", fmt.Errorf("failed parsing server version %q: %w", v.GitVersion, err)
 	}
 
-	v, err := parseVersion(string(versionOutput))
-	if err != nil {
-		return "", fmt.Errorf("kubernetes version can't be determined: %w", err)
+	cons, _ := semver.NewConstraint(kubernetesConstraints)
+	if !cons.Check(sv) {
+		return "", fmt.Errorf("✗ kubernetes version %s does not match %s", sv.Original(), kubernetesConstraints)
 	}
 
-	return checkKubernetesVersion(v)
-}
-
-func checkKubernetesVersion(version *semver.Version) (string, error) {
-	var valid bool
-
-	var vrange string
-
-	c, _ := semver.NewConstraint(kubernetesConstraints)
-	if c.Check(version) {
-		valid = true
-		vrange = kubernetesConstraints
-	}
-
-	if !valid {
-		return "", fmt.Errorf("✗ kubernetes version %s does not match %s", version.Original(), kubernetesConstraints)
-	}
-
-	return fmt.Sprintf("✔ Kubernetes %s %s", version.String(), vrange), nil
-}
-
-func parseVersion(text string) (*semver.Version, error) {
-	version := ""
-	lines := strings.Split(text, "\n")
-
-	for _, line := range lines {
-		if strings.Contains(line, "Server") {
-			version = strings.Replace(line, "Server Version: v", "", 1)
-		}
-	}
-
-	if _, err := semver.StrictNewVersion(version); err != nil {
-		return nil, err
-	}
-
-	return semver.NewVersion(version)
+	return fmt.Sprintf("✔ Kubernetes %s %s", sv, kubernetesConstraints), nil
 }

@@ -1,0 +1,50 @@
+---
+title: Parameters
+hide_title: true
+---
+
+import TierLabel from "../_components/TierLabel";
+
+# Parameters <TierLabel tiers="Enterprise" />
+
+When users have chosen a template, they will be presented with a form to
+complete.
+
+This form will collect the specific resource configuration which they would like
+applied to their instance.
+
+Resource variables, or parameters, are set by the template author in the
+template object manifest under `spec.params`.
+
+## Required params
+
+Some params are **required** for all resources as they will be used to generate
+paths for the eventually rendered resources.
+
+These are:
+- `CLUSTER_NAME`
+- `RESOURCE_NAME`
+
+## Parameters metadata
+
+The following metadata fields can be added for each parameter under
+`spec.params`. These will get rendered nicely in the UI form allowing users to understand
+what each field is for.
+
+- `name`: The variable name within the resource templates.
+- `description`: Description of the parameter. This will be rendered in both the UI
+	and CLI.
+- `options`: The list of possible values this parameter can be set to.
+- `required` -  Whether the parameter must contain a non-empty value.
+- `default` - Default value of the parameter.
+
+Example:
+```yaml
+spec:
+  params:
+    - name: IP_ADDRESS
+      description: 'The IP address of this service'
+      options: [1.2.3.4, 5.6.7.8]
+      default: 1.2.3.4
+```
+
