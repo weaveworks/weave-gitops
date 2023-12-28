@@ -101,7 +101,7 @@ function DependenciesView({ className, automation }: DependenciesViewProps) {
               Dependencies allow you to relate different Kustomizations and Helm
               Releases and to specify an order in which your resources should be
               started. For example, you can wait for a database to report as
-              'Ready' before attempting to deploy other services.
+              &apos;Ready&apos; before attempting to deploy other services.
             </Text>
           </MessageBox>
           <Spacer padding="xl" />
