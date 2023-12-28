@@ -31,7 +31,10 @@ function OCIRepositoryDetail({
     ? [
         [
           "Cluster",
-          <ClusterDashboardLink clusterName={ociRepository.clusterName} />,
+          <ClusterDashboardLink
+            key={ociRepository.uid}
+            clusterName={ociRepository.clusterName}
+          />,
         ],
       ]
     : [];
@@ -44,16 +47,30 @@ function OCIRepositoryDetail({
       customActions={customActions}
       info={[
         ["Kind", Kind.OCIRepository],
-        ["URL", <Link href={ociRepository.url}>{ociRepository.url}</Link>],
+        [
+          "URL",
+          <Link key={ociRepository.uid} href={ociRepository.url}>
+            {ociRepository.url}
+          </Link>,
+        ],
         [
           "Last Updated",
           ociRepository.lastUpdatedAt ? (
-            <Timestamp time={ociRepository.lastUpdatedAt} />
+            <Timestamp
+              key={ociRepository.uid}
+              time={ociRepository.lastUpdatedAt}
+            />
           ) : (
             "-"
           ),
         ],
-        ["Interval", <Interval interval={ociRepository.interval} />],
+        [
+          "Interval",
+          <Interval
+            key={ociRepository.uid}
+            interval={ociRepository.interval}
+          />,
+        ],
         ...clusterInfo,
         ["Namespace", ociRepository.namespace],
         ...tenancyInfo,
