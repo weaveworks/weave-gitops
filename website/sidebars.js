@@ -50,7 +50,17 @@ module.exports = {
                 "enterprise/getting-started/install-enterprise-getting-started-manual",
               ],
             },
-            "enterprise/getting-started/install-enterprise-getting-started-onboard",
+            {
+              type: "category",
+              label: "Step 2 - Complete and Onboard",
+              link: {
+                type: "doc",
+                id: "enterprise/getting-started/install-enterprise-getting-started-onboard",
+              },
+              items: [
+                "enterprise/getting-started/install-enterprise-getting-started-advanced-topics",
+              ],
+            },
             "enterprise/getting-started/install-enterprise-getting-started-expand",
             "enterprise/getting-started/releases-enterprise",
             {
