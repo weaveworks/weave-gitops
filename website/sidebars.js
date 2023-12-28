@@ -41,7 +41,7 @@ module.exports = {
           items: [
             {
               type: "category",
-              label: "Day 0 - Getting Started",
+              label: "Step 1 - Getting Started",
               link: {
                 type: "doc",
                 id: "enterprise/getting-started/install-enterprise-getting-started",

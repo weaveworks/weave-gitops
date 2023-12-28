@@ -1,5 +1,5 @@
 ---
-title: Day 0 - Getting Started
+title: Step 1 - Getting Started
 hide_title: true
 pagination_prev: enterprise/getting-started/intro-enterprise
 pagination_next: enterprise/getting-started/install-enterprise-getting-started-onboard
@@ -16,25 +16,29 @@ import oauthAzureDevOps from '/img/oauth-azure-devops.png';
 import oauthAzureDevOpsSuccess from '/img/oauth-azure-devops-success.png';
 
 
-# Day 0 - Getting Started <TierLabel tiers="Enterprise" />
+# Step 1 - Getting Started <TierLabel tiers="Enterprise" />
 
 :::info What to expect
-You are a Platform Engineer who is in charge of discovering or setting up Weave GitOps Enterprise for your organisation.
-This guides gets you up and running quickly taking some default decisions and assuming limited knowledge on the product.
+You are a Platform Engineer in charge of discovering or setting up Weave GitOps Enterprise for your organisation.
+
+Use this guide to get you up and running quickly. We assume limited knowledge on the product so will take some default decisions for you.
 :::
 
-## Prerequisites
+## Before you start
 
-- [ ] You are familiar Weave GitOps Enterprise [Concepts](/docs/references/concepts/).
-- [ ] You have a **Git Repository** that you want to bootstrap with **write** permissions to push resources.
-- [ ] You have a Kubeconfig pointing to your **Management Cluster** with **cluster-admin** to create resources.
+:::tip
+See Weave GitOps Enterprise [Concepts](/docs/references/concepts/) for any domain-specific term.
+:::
+
+
+- [ ] You have a **Git Repository** to bootstrap with **write** permissions to push resources.
+- [ ] You have a **Management Cluster** to bootstrap (accessible via Kubeconfig) with **cluster-admin** to create resources.
 - [ ] You have installed [Flux CLI](https://fluxcd.io/flux/installation/#install-the-flux-cli) and [Weave GitOps Enterprise CLI](#install-weave-gitops-enterprise-cli)
 - [ ] You have **Weave GitOps Enterprise Entitlements** provided by [Sales](/help-and-support/).
 
 :::warning Write Modes & Permissions
 Bootstrapping requires you to have both **cluster admin** permissions on the Management Cluster and **push** permissions
-to the Git repository to write the generated resources. In the case that you want just to generate the manifests but don't apply them,
-you could use Manual route or use the CLI with the `--export` flag.
+to the Git repository to write the generated resources.
 :::
 
 ### Install GitOps CLI
@@ -68,19 +72,20 @@ To get the entitlement secret please contact *sales@weave.works*, then apply it 
 ```
 ## Bootstrapping
 
-Bootstrapping is a workflow with the following stages:
+Bootstrapping is the workflow that installs Weave GitOps Enterprise in your environment by executing these stages:
 
-1. **Bootstrap Flux**: bootstrap Flux on the management cluster.
-2. **Entitlements**: provision and verify your Entitlements.
-3. **Authentication**: configure how user will authenticate.
-4. **Authorization**: configure the access rules for your users and other identities.
-5. **Install WGE**: deploy via Flux Weave GitOps Enterprise.
-6. **Access the dashboard**: test that you could interact with the application as you expect.
+1. **Bootstrap Flux**: bootstrap Flux on your Management Cluster.
+2. **Entitlements**: verify your Entitlements.
+3. **Authentication**: configure how users authenticate.
+4. **Authorization**: configure what your users and other subjects can do.
+5. **Install WGE**: deploy Weave GitOps Enterprise via Flux Helm Release.
+6. **Access the dashboard**: access the application as you expect.
+7. **Extend WGE**: add other capabilities to support your Platform workflows.
 
-Exectue the workflow using the method below that better match your expectations.
+Run the method that better match your expectations.
 
-<Tabs groupId="flux bootstrap" default>
-<TabItem value="CLI Interactive" label="CLI Interactive">
+<Tabs groupId="flux bootstrap" defaultValue="cli-interactive">
+<TabItem value="cli-interactive" label="CLI Interactive">
 
 :::tip Recommended path if:
 
@@ -96,7 +101,7 @@ You have limited knowledge about the product and / or want guidance step-by-step
     
 <AlphaWarning/>
 </TabItem>
-<TabItem value="CLI Non Interactive" label="CLI Non Interactive">
+<TabItem value="cli-not-interactive" label="CLI Non Interactive">
 
 :::tip Recommended Path if:
 You are already familiar with installing Weave GitOps Enterprise. You wan to leverage the CLI for consistency and automation.
@@ -124,20 +129,13 @@ gitops bootstrap --silent \
 <AlphaWarning/>
 
 </TabItem>
-<TabItem value="Manual" label="Manual">
+<TabItem value="manual" label="Manual">
 
 :::tip Recommended Path if:
 You want to have full control on the process or your context cannot be handled via the CLI.
 :::
 
-Follow the [Manual Bootstrapping](../install-enterprise-getting-started-manual) guide or the steps below:
-
-1. [Bootstrap Flux](../install-enterprise-getting-started-manual#bootstrap-flux)
-2. [Entitlements](../install-enterprise-getting-started-manual#entitlements)
-3. [Authentication](../install-enterprise-getting-started-manual#authentication)
-4. [Authorization](../install-enterprise-getting-started-manual#authorization)
-5. [Install WGE](../install-enterprise-getting-started-manual#install-wge)
-
+Continue to [Manual Bootstrapping](../install-enterprise-getting-started-manual) to guide you.
 
 </TabItem>
 </Tabs>
@@ -150,10 +148,10 @@ output as part of the bootstrapping session or the one below:
 ```bash
  kubectl -n flux-system port-forward svc/clusters-service 8000:8000
 ```
-Access your browser on http://localhost:8000
+Access your browser on [http://localhost:8000](http://localhost:8000) to see the login page.
 
 ![Weave GitOps Enterprise Login](./imgs/wge-login-ui.png)
 
-Login with the user credentials that you have configured as part of the bootstrapping session.
+`Login` with your username and password credentials to land in the main page.
 
 ![Weave GitOps Enterprise Cluster](./imgs/wge-clusters-ui.png)
