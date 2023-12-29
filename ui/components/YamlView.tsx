@@ -12,7 +12,6 @@ export type YamlViewProps = {
   type?: string;
   yaml: string;
   header?: string;
-  theme?: ThemeTypes;
 };
 
 const YamlHeader = styled(Flex)`
@@ -28,10 +27,9 @@ function UnstyledYamlView({
   yaml,
   header,
   className,
-  theme,
   type = "yaml",
 }: YamlViewProps) {
-  const dark = theme ? theme === ThemeTypes.Dark : useInDarkMode();
+  const dark = useInDarkMode();
 
   const styleProps = {
     customStyle: {

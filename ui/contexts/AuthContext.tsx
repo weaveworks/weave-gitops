@@ -18,6 +18,8 @@ interface AuthCheckProps {
 
 export const AuthCheck = ({ children, Loader }: AuthCheckProps) => {
   const { userInfo } = React.useContext(Auth);
+  const location = useLocation();
+
   // Wait until userInfo is loaded before showing signin or app content
   if (!userInfo) {
     return Loader ? Loader : null;
@@ -26,7 +28,7 @@ export const AuthCheck = ({ children, Loader }: AuthCheckProps) => {
   if (userInfo?.id) {
     return children;
   }
-  const location = useLocation();
+
   // User appears not be logged in, off to signin
   return (
     <Redirect
