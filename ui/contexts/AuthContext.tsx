@@ -67,25 +67,6 @@ export default function AuthContextProvider({ children }) {
   const [error, setError] = React.useState(null);
   const history = useHistory();
 
-  const signIn = React.useCallback((data) => {
-    setLoading(true);
-    request(AuthRoutes.SIGN_IN, {
-      method: "POST",
-      body: JSON.stringify(data),
-    })
-      .then((response) => {
-        if (response.status !== 200) {
-          setError(response);
-          return;
-        }
-        getUserInfo().then(() => {
-          setError(null);
-          history.push(qs.parse(location.search).redirect || "/");
-        });
-      })
-      .finally(() => setLoading(false));
-  }, []);
-
   const getUserInfo = React.useCallback(() => {
     setLoading(true);
     return request(AuthRoutes.USER_INFO)
@@ -101,7 +82,29 @@ export default function AuthContextProvider({ children }) {
       )
       .catch((err) => console.log(err))
       .finally(() => setLoading(false));
-  }, []);
+  }, [request]);
+
+  const signIn = React.useCallback(
+    (data) => {
+      setLoading(true);
+      request(AuthRoutes.SIGN_IN, {
+        method: "POST",
+        body: JSON.stringify(data),
+      })
+        .then((response) => {
+          if (response.status !== 200) {
+            setError(response);
+            return;
+          }
+          getUserInfo().then(() => {
+            setError(null);
+            history.push(qs.parse(location.search).redirect || "/");
+          });
+        })
+        .finally(() => setLoading(false));
+    },
+    [getUserInfo, history, request]
+  );
 
   const logOut = React.useCallback(() => {
     setLoading(true);
@@ -116,7 +119,7 @@ export default function AuthContextProvider({ children }) {
         reloadBrowserSignIn();
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [request]);
 
   React.useEffect(() => {
     getUserInfo();
