@@ -15,25 +15,33 @@ const ClusterName = styled(Text)`
   padding: ${(props) => props.theme.spacing.base};
 `;
 
+const OverflowWrapper = styled.div`
+  overflow-y: scroll;
+`;
+
 function InfoModal({ searchedNamespaces, onCloseModal, open }: Props) {
   const onClose = () => onCloseModal(false);
 
   const content = (
-    <List>
-      {Object.entries(searchedNamespaces || []).map(
-        ([kind, clusterNamespacesList]) => (
-          <Fragment key={kind}>
-            <h2>kind: {kind}</h2>
-            {clusterNamespacesList?.map((clusterNamespaces) => (
-              <ListItem key={clusterNamespaces.clusterName}>
-                <ClusterName bold>{clusterNamespaces.clusterName}</ClusterName>
-                {clusterNamespaces.namespaces.join(", ")}
-              </ListItem>
-            ))}
-          </Fragment>
-        )
-      )}
-    </List>
+    <OverflowWrapper>
+      <List>
+        {Object.entries(searchedNamespaces || []).map(
+          ([kind, clusterNamespacesList]) => (
+            <Fragment key={kind}>
+              <h2>kind: {kind}</h2>
+              {clusterNamespacesList?.map((clusterNamespaces) => (
+                <ListItem key={clusterNamespaces.clusterName}>
+                  <ClusterName bold>
+                    {clusterNamespaces.clusterName}
+                  </ClusterName>
+                  {clusterNamespaces.namespaces.join(", ")}
+                </ListItem>
+              ))}
+            </Fragment>
+          )
+        )}
+      </List>
+    </OverflowWrapper>
   );
 
   return (

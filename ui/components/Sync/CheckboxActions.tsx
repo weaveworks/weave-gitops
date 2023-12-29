@@ -6,6 +6,7 @@ import { useSyncFluxObject } from "../../hooks/automations";
 import { useToggleSuspend } from "../../hooks/flux";
 import { ObjectRef } from "../../lib/api/core/types.pb";
 import { V2Routes } from "../../lib/types";
+import SuspendMessageModal from "./SuspendMessageModal";
 import SyncControls, { SyncType } from "./SyncControls";
 
 export const makeObjects = (checked: string[], rows: any[]): ObjectRef[] => {
@@ -39,6 +40,9 @@ type Props = {
 
 function CheckboxActions({ className, checked = [], rows = [] }: Props) {
   const [reqObjects, setReqObjects] = React.useState([]);
+  const [suspendMessageModalOpen, setSuspendMessageModalOpen] =
+    React.useState(false);
+  const [suspendMessage, setSuspendMessage] = React.useState("");
   const location = useLocation();
 
   React.useEffect(() => {
@@ -57,6 +61,7 @@ function CheckboxActions({ className, checked = [], rows = [] }: Props) {
     {
       objects: reqObjects,
       suspend: true,
+      comment: suspendMessage,
     },
     reqObjects[0]?.kind === "HelmRelease" ||
       reqObjects[0]?.kind === "Kustomization"
@@ -78,20 +83,44 @@ function CheckboxActions({ className, checked = [], rows = [] }: Props) {
   const disableButtons = !reqObjects[0];
 
   return (
-    <SyncControls
-      className={className}
-      hideSyncOptions={noSource[location.pathname]}
-      syncLoading={sync.isLoading}
-      syncDisabled={disableButtons}
-      suspendDisabled={disableButtons}
-      resumeDisabled={disableButtons}
-      tooltipSuffix=" selected"
-      onSyncClick={syncHandler}
-      onSuspendClick={() => resultSuspend.mutateAsync()}
-      onResumeClick={() => resultResume.mutateAsync()}
-    />
+    <>
+      <SyncControls
+        className={className}
+        hideSyncOptions={noSource[location.pathname]}
+        syncLoading={sync.isLoading}
+        syncDisabled={disableButtons}
+        suspendDisabled={disableButtons}
+        resumeDisabled={disableButtons}
+        tooltipSuffix=" selected"
+        onSyncClick={syncHandler}
+        onSuspendClick={() =>
+          setSuspendMessageModalOpen(!suspendMessageModalOpen)
+        }
+        onResumeClick={() => resultResume.mutateAsync()}
+      />
+      <SuspendMessageModal
+        open={suspendMessageModalOpen}
+        onCloseModal={setSuspendMessageModalOpen}
+        suspend={() => resultSuspend.mutateAsync()}
+        setSuspendMessage={setSuspendMessage}
+        suspendMessage={suspendMessage}
+      />
+    </>
   );
 }
+
+//  <SyncControls
+// className={className}
+// hideSyncOptions={noSource[location.pathname]}
+// syncLoading={sync.isLoading}
+// syncDisabled={disableButtons}
+// suspendDisabled={disableButtons}
+// resumeDisabled={disableButtons}
+// tooltipSuffix=" selected"
+// onSyncClick={syncHandler}
+// onSuspendClick={() => resultSuspend.mutateAsync()}
+// onResumeClick={() => resultResume.mutateAsync()}
+// />
 
 export default styled(CheckboxActions).attrs({
   className: CheckboxActions.name,

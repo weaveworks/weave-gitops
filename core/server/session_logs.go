@@ -4,13 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"io"
 	"regexp"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
+
+	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 
 	"github.com/weaveworks/weave-gitops/pkg/compositehash"
 
@@ -63,7 +64,7 @@ type bucketConnectionInfo struct {
 func (cs *coreServer) getFluxNamespace(ctx context.Context, k8sClient client.Client) (string, error) {
 	namespaceList := corev1.NamespaceList{}
 	opts := client.MatchingLabels{
-		coretypes.PartOfLabel: FluxNamespacePartOf,
+		coretypes.PartOfLabel: Flux,
 	}
 
 	var ns *corev1.Namespace
