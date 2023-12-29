@@ -57,7 +57,7 @@ function DependenciesView({ className, automation }: DependenciesViewProps) {
     } else {
       setGraphNodes(nodes);
     }
-  }, [isLoadingData, data, error]);
+  }, [isLoadingData, data, error, automation]);
 
   const isLoading = isLoadingData && !graphNodes;
 

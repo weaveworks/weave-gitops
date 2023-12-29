@@ -45,7 +45,8 @@ function Form({
     if (onChange) {
       onChange(state);
     }
-  }, [state]);
+    // This component isn't in use atm. If 'onChange' changes too often, find the parent component that defines it and wrap that definition in useCallback.
+  }, [state, onChange]);
 
   return (
     <ControlledForm

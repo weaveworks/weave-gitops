@@ -15,13 +15,14 @@ export const tier = "oss";
  */
 export default function PendoContainer() {
   const [version, setVersion] = React.useState<string>("");
+
   const [shouldWaitForVersion, setShouldWaitForVersion] =
     React.useState<boolean>(true);
 
   const { data, isLoading } = useVersion();
-  const versionData = data || ({} as GetVersionResponse);
 
   React.useEffect(() => {
+    const versionData = data || ({} as GetVersionResponse);
     if (isLoading) return;
 
     if (!versionData) {
@@ -32,7 +33,7 @@ export default function PendoContainer() {
     const appVersion = getAppVersion(data, p.version, isLoading);
 
     setVersion(appVersion.versionText || noVersion);
-  }, [versionData, isLoading]);
+  }, [data, isLoading]);
 
   return (
     <Pendo
