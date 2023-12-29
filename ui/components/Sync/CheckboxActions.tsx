@@ -101,26 +101,13 @@ function CheckboxActions({ className, checked = [], rows = [] }: Props) {
       <SuspendMessageModal
         open={suspendMessageModalOpen}
         onCloseModal={setSuspendMessageModalOpen}
-        suspend={() => resultSuspend.mutateAsync()}
+        suspend={resultSuspend}
         setSuspendMessage={setSuspendMessage}
         suspendMessage={suspendMessage}
       />
     </>
   );
 }
-
-//  <SyncControls
-// className={className}
-// hideSyncOptions={noSource[location.pathname]}
-// syncLoading={sync.isLoading}
-// syncDisabled={disableButtons}
-// suspendDisabled={disableButtons}
-// resumeDisabled={disableButtons}
-// tooltipSuffix=" selected"
-// onSyncClick={syncHandler}
-// onSuspendClick={() => resultSuspend.mutateAsync()}
-// onResumeClick={() => resultResume.mutateAsync()}
-// />
 
 export default styled(CheckboxActions).attrs({
   className: CheckboxActions.name,

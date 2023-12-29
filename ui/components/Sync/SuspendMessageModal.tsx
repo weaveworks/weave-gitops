@@ -4,12 +4,13 @@ import { ToggleSuspendResourceResponse } from "../../lib/api/core/core.pb";
 import Button from "../Button";
 import Flex from "../Flex";
 import Modal from "../Modal";
+import { UseMutationResult } from "react-query";
 
 export type Props = {
   onCloseModal: Dispatch<SetStateAction<boolean>>;
   open: boolean;
   setSuspendMessage: Dispatch<SetStateAction<string>>;
-  suspend: () => Promise<ToggleSuspendResourceResponse>;
+  suspend: UseMutationResult<ToggleSuspendResourceResponse>;
   suspendMessage: string;
   className?: string;
 };
@@ -42,7 +43,7 @@ function SuspendMessageModal({
   };
   const suspendHandler = () => {
     setSuspendMessage(suspendMessage);
-    suspend();
+    suspend.mutateAsync({});
     setSuspendMessage("");
     onCloseModal(false);
   };
