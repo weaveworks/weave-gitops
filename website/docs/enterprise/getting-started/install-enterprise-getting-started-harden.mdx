@@ -1,8 +1,8 @@
 ---
-title: Step 2 - Complete and Onboard
+title: Step 2 - Harden
 hide_title: true
-toc_max_heading_level: 4
-pagination_prev: enterprise/getting-started/install-enterprise-getting-started-onboard
+toc_max_heading_level: 3
+pagination_prev: enterprise/getting-started/install-enterprise-getting-started-harden
 pagination_next: enterprise/getting-started/install-enterprise-getting-started-expand
 ---
 
@@ -15,7 +15,7 @@ import oauthBitbucket from '/img/oauth-bitbucket.png';
 import oauthAzureDevOps from '/img/oauth-azure-devops.png';
 import oauthAzureDevOpsSuccess from '/img/oauth-azure-devops-success.png';
 
-# Step 2 - Complete and Onboard
+# Step 2 - Harden
 
 :::info What to expect
 You have [started with WGE](../install-enterprise-getting-started) and already familiar with its [bootstrapping workflow](../install-enterprise-getting-started/#bootstrapping).
@@ -24,12 +24,10 @@ You now want to complete your baseline setup before onboarding the rest of the t
 This guide provides you with recommendations to meet this bar. At the end of it, you are ready to onboard the rest of the team.
 :::
 
-## Authentication
+## Setup OIDC Authentication
 
 As a reminder, Weave GitOps Enterprise supports as authentication methods, `Cluster User`, that you have likely setup as part of the previous step, and `OIDC`.
 OIDC is the recommended way for production, so take the time to set it up before onboarding other users.
-
-### OIDC
 
 :::warning
 Currently, we do not have a persistent session storage, this means that if you scale to multiple replicas, logins will not be persisted.
@@ -122,7 +120,7 @@ Use [`gitops check oidc-config`](../../../references/cli-reference/gitops_check_
 See [Advanced Topics](#advanced-topics) for other OIDC topics like customise scopes.
 :::
 
-## Authorization
+## Configure OIDC Authorization
 
 Weave GitOps Enterprise works with standard [Kubernetes RBAC](https://kubernetes.io/docs/reference/access-authn-authz/rbac/) to authorise:
 
@@ -133,11 +131,9 @@ Weave GitOps Enterprise works with standard [Kubernetes RBAC](https://kubernetes
 During [getting started](../install-enterprise-getting-started/) you have created the default RBAC for the `Cluser User`, `Weave GitOps Service Account`
 and `Flux Service Accounts` but not for OIDC users.
 
-### OIDC
-
 Setup Authorization for OIDC users by both defining and deploying the RBAC rules.
 
-#### Defining RBAC Rules
+### Defining RBAC Rules
 
 RBAC rules are highly context-dependent and there is no one-size fits all. You would need to take the time with your Security organisation on defining them.
 We provide you with the following RBAC Configuration as inspirational to get you conversations started: It is purposefully vague as we intend to give a
@@ -290,7 +286,7 @@ cluster client (and vice versa).
 
 </details>
 
-#### Deploy them via `/bases`
+### Deploy them via `/bases`
 
 Once you have the rules defined, you want to ensure they are available in your environment. The `bases` pattern is a useful approach
 to easily achieve this. It works as follows:
@@ -332,9 +328,7 @@ resources will be created.
 </TabItem>
 </Tabs>
 
-## Configure Weave GitOps Enterprise
-
-### Enable Write Access to Git
+## Enable Write Access to Git
 
 Weave GitOps Enterprise creates pull requests for adding resources. To do this, it needs to be able to write to the Git repository.
 Here we provide guidance for GitHub, GitLab, BitBucket Server, and Azure DevOps.
@@ -457,14 +451,10 @@ Note that each user can view and manage which applications they have authorized 
 </TabItem>
 </Tabs>
 
-## Access the dashboard
+## Configure Service and Ingress
 
 During [getting started](../install-enterprise-getting-started/) you have accessed the dashboard via its non-TLS ClusterIP service
-which is not recommended to use for production environments. Use this section to evolve your access before onboarding users.
-
-### Configure Service and Ingress
-
-Weave GitOps Enterprise dashboard is by default available via its ClusterIP service. You could To achieve other networking configurations
+which is not recommended to use for production environments. You could To achieve other networking configurations
 by modifying the `service` or `ingress` in the `HelmRelease` values:
 
 ```yaml
@@ -482,7 +472,7 @@ spec:
       ...
 ```
 
-### Configure TLS
+## Configure TLS
 
 By default, the WGE UI pod will listen on port `8000` with TLS enabled.
 WGE will generate and use a self-signed certificate for this purpose.
@@ -507,7 +497,6 @@ Other ingress conguration changes can be made via the ingress configuration
       enabled: true
       ... other parameters specific to the ingress type ...
 ```
-
 
 ## Next Steps
 

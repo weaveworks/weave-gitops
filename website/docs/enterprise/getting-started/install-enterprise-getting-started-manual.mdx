@@ -2,26 +2,20 @@
 title: Manually
 hide_title: false
 pagination_prev: enterprise/getting-started/install-enterprise-getting-started
-pagination_next: enterprise/getting-started/install-enterprise-getting-started-onboard
+pagination_next: enterprise/getting-started/install-enterprise-getting-started-harden
 toc_max_heading_level: 4
 ---
 
 import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
-import TierLabel from "@site/docs/_components/TierLabel";
-import AlphaWarning from "../../_components/_alpha_warning.mdx";
 import CurlCodeBlock from "../../_components/CurlCodeBlock";
-import oauthBitbucket from '/img/oauth-bitbucket.png';
-import oauthAzureDevOps from '/img/oauth-azure-devops.png';
-import oauthAzureDevOpsSuccess from '/img/oauth-azure-devops-success.png';
 
 # Getting Started Manually
 
+:::info What to expect
+You are a Platform Engineer in charge of discovering or setting up Weave GitOps Enterprise for your organisation.
+
 This guide will walk you through to manual getting started [bootstrapping](../install-enterprise-getting-started/#bootstrapping) route for Weave GitOps Enterprise.
-
-:::caution This guide aims to easy discovery or day-0 experiences.
-
-Ensure you complete the [rest of the journeys](../install-enterprise-getting-started/) if you aim to onboard other Platform Engineers or Developers.
 :::
 
 ## Bootstrap Flux
@@ -37,15 +31,7 @@ flux bootstrap git --url="https://example.com/repository.git" --"password=passwo
 flux bootstrap git --url="ssh://git@example.com/repository.git" --private-key-file="path/to/private.key" --password="password" --path="clusters/my-cluster"
 ```
 
-## Entitlements
-
-Weave GitOps Enterprise Entitlement is your obtained license to use our product. The Entitlements file is a Kubernetes secret that contains your licence.
-To get the entitlement secret please contact *sales@weave.works*, then apply it on your management cluster with the name `weave-gitops-enterprise-credentials` under `flux-system` namespace.
-
-```bash
- kubectl apply -n flux-system -f entitlements.yaml
-```
-## Authentication
+## Configure Authentication
 
 There are two supported authentication methods for Weave GitOps Enterprise:
 
@@ -92,7 +78,7 @@ Use these credentials to login as `ClusterUser` via the UI.
 Ensure your [authentication is fit for production](../install-enterprise-onboard-platform-engineers#authentication) before onboarding other Platform Engineers or Developers.
 :::
 
-## Authorization
+## Configure Authorization
 
 Weave GitOps Enterprise works with standard [Kubernetes RBAC](https://kubernetes.io/docs/reference/access-authn-authz/rbac/)
 to define what actions can a subject do-over the existing resources. Weave GitOps requires authorization for the following subjects:
@@ -175,7 +161,7 @@ They are generated during Flux Bootstrapping. More information about Flux Author
 Ensure your [authorization is fit for production](../install-enterprise-onboard-platform-engineers#authorization) before onboarding other Platform Engineers or Developers.
 :::
 
-## Install WGE
+## Deploy the HelmRelease
 
 We install Weave GitOps Enterprise via Flux Helm Release that you could deploy via the CLI or manually:
 

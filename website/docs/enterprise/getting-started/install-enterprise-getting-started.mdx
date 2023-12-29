@@ -1,8 +1,8 @@
 ---
 title: Step 1 - Getting Started
 hide_title: true
-pagination_prev: enterprise/getting-started/intro-enterprise
-pagination_next: enterprise/getting-started/install-enterprise-getting-started-onboard
+pagination_prev: enterprise/getting-started/intro
+pagination_next: enterprise/getting-started/install-enterprise-getting-started-harden
 toc_max_heading_level: 4
 ---
 
@@ -72,20 +72,10 @@ To get the entitlement secret please contact *sales@weave.works*, then apply it 
 ```
 ## Bootstrapping
 
-Bootstrapping is the workflow that installs Weave GitOps Enterprise in your environment by executing these stages:
+Bootstrap Weave GitOps Enterprise in your environment by any of these methods:
 
-1. **Bootstrap Flux**: bootstrap Flux on your Management Cluster.
-2. **Entitlements**: verify your Entitlements.
-3. **Authentication**: configure how users authenticate.
-4. **Authorization**: configure what your users and other subjects can do.
-5. **Install WGE**: deploy Weave GitOps Enterprise via Flux Helm Release.
-6. **Access the dashboard**: access the application as you expect.
-7. **Extend WGE**: add other capabilities to support your Platform workflows.
-
-Run the method that better match your expectations.
-
-<Tabs groupId="flux bootstrap" defaultValue="cli-interactive">
-<TabItem value="cli-interactive" label="CLI Interactive">
+<Tabs groupId="bootstrap" defaultValue="cliInteractive">
+<TabItem value="cliInteractive" label="CLI Interactive">
 
 :::tip Recommended path if:
 
@@ -101,7 +91,7 @@ You have limited knowledge about the product and / or want guidance step-by-step
     
 <AlphaWarning/>
 </TabItem>
-<TabItem value="cli-not-interactive" label="CLI Non Interactive">
+<TabItem value="cliNotInteractive" label="CLI Non Interactive">
 
 :::tip Recommended Path if:
 You are already familiar with installing Weave GitOps Enterprise. You wan to leverage the CLI for consistency and automation.
@@ -135,7 +125,12 @@ gitops bootstrap --silent \
 You want to have full control on the process or your context cannot be handled via the CLI.
 :::
 
-Continue to [Manual Bootstrapping](../install-enterprise-getting-started-manual) to guide you.
+Execute the following tasks to manually bootstrap:
+
+1. [**Bootstrap Flux**](../install-enterprise-getting-started-manual/#bootstrap-flux)
+2. [**Configure Authentication**](../install-enterprise-getting-started-manual/#configure-authentication)
+3. [**Configure Authorization**](../install-enterprise-getting-started-manual/#configure-authorization)
+4. [**Deploy WGE HelmRelease**](../install-enterprise-getting-started-manual/#deploy-the-helmrelease)
 
 </TabItem>
 </Tabs>
@@ -159,5 +154,5 @@ Access your browser on [http://localhost:8000](http://localhost:8000) to see the
 ## Next Steps
 
 You have bootstrapped Weave GitOps Enterprise and Flux on your Management Cluster. Continue to
-[Step 2 - Onboarding](../install-enterprise-getting-started-onboard) to harden your environment
+[Step 2 - Onboarding](../install-enterprise-getting-started-harden) to harden your environment
 to onboard the rest of the team.

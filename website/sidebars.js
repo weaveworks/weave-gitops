@@ -36,7 +36,7 @@ module.exports = {
           label: "Weave GitOps Enterprise",
           link: {
             type: "doc",
-            id: "enterprise/getting-started/intro-enterprise",
+            id: "enterprise/getting-started/intro",
           },
           items: [
             {
@@ -52,10 +52,10 @@ module.exports = {
             },
             {
               type: "category",
-              label: "Step 2 - Complete and Onboard",
+              label: "Step 2 - Harden",
               link: {
                 type: "doc",
-                id: "enterprise/getting-started/install-enterprise-getting-started-onboard",
+                id: "enterprise/getting-started/install-enterprise-getting-started-harden",
               },
               items: [
                 "enterprise/getting-started/install-enterprise-getting-started-advanced-topics",
