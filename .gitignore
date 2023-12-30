@@ -32,3 +32,7 @@ gha-creds-*.json
 # macOS
 .DS_Store
 gitops-server.dockerfile
+
+# Ignore social cards cache
+userdocs/.cache/*
+userdocs/site/*
