@@ -151,7 +151,6 @@ function DagGraph({ className, nodes }: Props) {
                     height={nodeSize.height}
                     key={index}
                     transform={`translate(${d.x - nodeSize.width / 2}, ${d.y})`}
-                    fill="white"
                     strokeWidth={2}
                     stroke={"#737373"}
                     overflow="visible"

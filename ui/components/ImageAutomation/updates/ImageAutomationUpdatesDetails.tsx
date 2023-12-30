@@ -20,7 +20,8 @@ type Props = {
 };
 function getInfoList(
   data: ImageUpdateAutomation,
-  clusterName: string
+  clusterName: string,
+  isFlagEnabled: (flag: string) => boolean
 ): RowItem[] {
   const {
     kind,
@@ -28,7 +29,6 @@ function getInfoList(
   } = data.obj;
   const { path } = update;
   const { commit, checkout, push } = git;
-  const { isFlagEnabled } = useFeatureFlags();
 
   return [
     {
@@ -92,6 +92,7 @@ function ImageAutomationUpdatesDetails({
       refetchInterval: 5000,
     }
   );
+  const { isFlagEnabled } = useFeatureFlags();
 
   const rootPath = V2Routes.ImageAutomationUpdatesDetails;
   return (
@@ -108,7 +109,7 @@ function ImageAutomationUpdatesDetails({
         <ImageAutomationDetails
           data={data}
           kind={Kind.ImageUpdateAutomation}
-          infoFields={getInfoList(data, data.clusterName)}
+          infoFields={getInfoList(data, data.clusterName, isFlagEnabled)}
           rootPath={rootPath}
         >
           <Metadata metadata={data.metadata} labels={data.labels} />

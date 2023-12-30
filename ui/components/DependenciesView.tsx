@@ -30,9 +30,7 @@ function DependenciesView({ className, automation }: DependenciesViewProps) {
     data,
     isLoading: isLoadingData,
     error,
-  } = automation
-    ? useListObjects("", automationKind, automation?.clusterName, {})
-    : { data: { objects: [], errors: [] }, error: null, isLoading: false };
+  } = useListObjects("", automationKind, automation?.clusterName, {});
 
   React.useEffect(() => {
     if (isLoadingData) {
@@ -59,7 +57,7 @@ function DependenciesView({ className, automation }: DependenciesViewProps) {
     } else {
       setGraphNodes(nodes);
     }
-  }, [isLoadingData, data, error]);
+  }, [isLoadingData, data, error, automation]);
 
   const isLoading = isLoadingData && !graphNodes;
 
@@ -101,7 +99,7 @@ function DependenciesView({ className, automation }: DependenciesViewProps) {
               Dependencies allow you to relate different Kustomizations and Helm
               Releases and to specify an order in which your resources should be
               started. For example, you can wait for a database to report as
-              'Ready' before attempting to deploy other services.
+              &apos;Ready&apos; before attempting to deploy other services.
             </Text>
           </MessageBox>
           <Spacer padding="xl" />

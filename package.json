@@ -52,6 +52,8 @@
     "@material-ui/lab": "^4.0.0-alpha.58",
     "d3": "^7.6.1",
     "d3-dag": "^0.11.5",
+    "eslint-plugin-react": "^7.33.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
     "history": "^5.0.0",
     "http-proxy-middleware": "^2.0.3",
     "jest-canvas-mock": "^2.4.0",

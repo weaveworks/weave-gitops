@@ -32,25 +32,6 @@ const noSource = {
   [V2Routes.ImageUpdates]: true,
 };
 
-function createSuspendHandler(
-  reqObjects: ObjectRef[],
-  suspend: boolean,
-  suspendMessage: string
-) {
-  const result = useToggleSuspend(
-    {
-      objects: reqObjects,
-      suspend: suspend,
-      comment: suspendMessage,
-    },
-    reqObjects[0]?.kind === "HelmRelease" ||
-      reqObjects[0]?.kind === "Kustomization"
-      ? "automations"
-      : "sources"
-  );
-  return result;
-}
-
 type Props = {
   className?: string;
   checked?: string[];
@@ -76,6 +57,29 @@ function CheckboxActions({ className, checked = [], rows = [] }: Props) {
     sync.mutateAsync({ withSource: syncType === SyncType.WithSource });
   };
 
+  const resultSuspend = useToggleSuspend(
+    {
+      objects: reqObjects,
+      suspend: true,
+      comment: suspendMessage,
+    },
+    reqObjects[0]?.kind === "HelmRelease" ||
+      reqObjects[0]?.kind === "Kustomization"
+      ? "automations"
+      : "sources"
+  );
+
+  const resultResume = useToggleSuspend(
+    {
+      objects: reqObjects,
+      suspend: false,
+    },
+    reqObjects[0]?.kind === "HelmRelease" ||
+      reqObjects[0]?.kind === "Kustomization"
+      ? "automations"
+      : "sources"
+  );
+
   const disableButtons = !reqObjects[0];
 
   return (
@@ -92,14 +96,12 @@ function CheckboxActions({ className, checked = [], rows = [] }: Props) {
         onSuspendClick={() =>
           setSuspendMessageModalOpen(!suspendMessageModalOpen)
         }
-        onResumeClick={
-          createSuspendHandler(reqObjects, false, suspendMessage).mutateAsync
-        }
+        onResumeClick={() => resultResume.mutateAsync()}
       />
       <SuspendMessageModal
         open={suspendMessageModalOpen}
         onCloseModal={setSuspendMessageModalOpen}
-        suspend={createSuspendHandler(reqObjects, true, suspendMessage)}
+        suspend={resultSuspend}
         setSuspendMessage={setSuspendMessage}
         suspendMessage={suspendMessage}
       />

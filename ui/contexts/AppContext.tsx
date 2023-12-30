@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useHistory } from "react-router-dom";
+import { useHistory, useLocation } from "react-router-dom";
 import { DetailViewProps } from "../components/DetailModal";
 import { formatURL } from "../lib/nav";
 import { PageRoute, V2Routes } from "../lib/types";
@@ -48,6 +48,8 @@ export interface AppProps {
 
 export default function AppContextProvider({ ...props }: AppProps) {
   const history = useHistory();
+  const location = useLocation();
+
   const [appState, setAppState] = React.useState({
     error: null,
     detailModal: null,
@@ -61,17 +63,15 @@ export default function AppContextProvider({ ...props }: AppProps) {
         : ThemeTypes.Light,
   });
 
-  const clearAsyncError = () => {
-    setAppState({
-      ...appState,
-      error: null,
-    });
-  };
+  const clearAsyncError = React.useCallback(
+    () => setAppState((prevState) => ({ ...prevState, error: null })),
+    []
+  );
 
   React.useEffect(() => {
     // clear the error state on navigation
     clearAsyncError();
-  }, [window.location]);
+  }, [location, clearAsyncError]);
 
   const doAsyncError = (message: string, detail: string) => {
     console.error(message);

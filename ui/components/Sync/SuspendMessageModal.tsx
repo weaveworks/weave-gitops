@@ -1,5 +1,5 @@
 import React, { Dispatch, SetStateAction } from "react";
-import { UseMutationResult } from "react-query/react";
+import { UseMutationResult } from "react-query";
 import styled from "styled-components";
 import { ToggleSuspendResourceResponse } from "../../lib/api/core/core.pb";
 import Button from "../Button";
@@ -71,9 +71,10 @@ function SuspendMessageModal({
       onClose={onClose}
       title="Suspend Reason"
       description="Add reason for suspending"
-      children={content}
       className={className}
-    />
+    >
+      {content}
+    </Modal>
   );
 }
 
