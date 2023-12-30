@@ -46,7 +46,7 @@ require (
 	github.com/weaveworks/tf-controller/tfctl v0.0.0-20231228180612-918cb6250720
 	github.com/yannh/kubeconform v0.5.0
 	go.uber.org/zap v1.26.0
-	golang.org/x/crypto v0.16.0
+	golang.org/x/crypto v0.17.0
 	golang.org/x/oauth2 v0.15.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20231002182017-d307bd883b97
 	google.golang.org/grpc v1.58.2
