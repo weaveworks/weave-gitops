@@ -3,10 +3,12 @@ package cluster
 import (
 	"fmt"
 	"net"
+	"net/http"
 
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	apiruntime "k8s.io/apimachinery/pkg/runtime"
+	machnet "k8s.io/apimachinery/pkg/util/net"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -64,6 +66,11 @@ func getClientFromConfig(config *rest.Config, scheme *apiruntime.Scheme) (client
 	if err != nil {
 		return nil, fmt.Errorf("could not create RESTMapper from config: %w", err)
 	}
+
+	// From https://github.com/weaveworks/weave-gitops-enterprise/issues/3189
+	// Suggested in https://github.com/kubernetes/kubernetes/issues/118703#issuecomment-1595072383
+	// TODO: Revert or adapt when upstream fix is available
+	config.Proxy = machnet.NewProxierWithNoProxyCIDR(http.ProxyFromEnvironment)
 
 	client, err := client.New(config, client.Options{
 		Scheme: scheme,

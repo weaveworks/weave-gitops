@@ -11,7 +11,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 )
 
-const watchCRDsFrequency = 30 * time.Second
+const watchCRDsFrequency = 10 * time.Minute
 
 type Fetcher interface {
 	IsAvailable(clusterName, name string) bool
@@ -67,7 +67,6 @@ func (s *defaultFetcher) UpdateCRDList() {
 
 	for clusterName, client := range client.ClientsPool().Clients() {
 		crdList := &v1.CustomResourceDefinitionList{}
-
 		s.crds[clusterName] = []v1.CustomResourceDefinition{}
 
 		err := client.List(ctx, crdList)

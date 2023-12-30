@@ -3,10 +3,12 @@ package cluster
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 	"time"
 
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
+	machnet "k8s.io/apimachinery/pkg/util/net"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/cli-utils/pkg/flowcontrol"
@@ -28,8 +30,9 @@ const (
 )
 
 var (
-	kubeClientTimeout        = getEnvDuration("WEAVE_GITOPS_KUBE_CLIENT_TIMEOUT", 30*time.Second)
-	DefaultKubeConfigOptions = []KubeConfigOption{WithFlowControl}
+	kubeClientTimeout = getEnvDuration("WEAVE_GITOPS_KUBE_CLIENT_TIMEOUT", 30*time.Second)
+	// DefaultKubeConfigOptions = []KubeConfigOption{WithFlowControl}
+	DefaultKubeConfigOptions = []KubeConfigOption{}
 )
 
 type KubeConfigOption func(*rest.Config) (*rest.Config, error)
@@ -76,6 +79,11 @@ func WithFlowControl(config *rest.Config) (*rest.Config, error) {
 
 	config.QPS = ClientQPS
 	config.Burst = ClientBurst
+
+	// From https://github.com/weaveworks/weave-gitops-enterprise/issues/3189
+	// Suggested in https://github.com/kubernetes/kubernetes/issues/118703#issuecomment-1595072383
+	// TODO: Revert or adapt when upstream fix is available
+	config.Proxy = machnet.NewProxierWithNoProxyCIDR(http.ProxyFromEnvironment)
 
 	return config, nil
 }
