@@ -21,6 +21,7 @@ func TestVersionRank(t *testing.T) {
 		{schema.GroupVersionKind{Version: "v1"}, schema.GroupVersionKind{Version: "v1alpha1"}, 1},
 		{schema.GroupVersionKind{Version: "v1"}, schema.GroupVersionKind{Version: "v1beta1"}, 1},
 		{schema.GroupVersionKind{Version: "v1"}, schema.GroupVersionKind{Version: "v1beta2"}, 1},
+		{schema.GroupVersionKind{Version: "v1"}, schema.GroupVersionKind{Version: "v1beta2"}, 1},
 		{schema.GroupVersionKind{Version: "v1"}, schema.GroupVersionKind{Version: "v1beta10"}, 1},
 		{schema.GroupVersionKind{Version: "v2"}, schema.GroupVersionKind{Version: "v1"}, 1},
 		{schema.GroupVersionKind{Version: "v2beta1"}, schema.GroupVersionKind{Version: "v1beta1"}, 1},
