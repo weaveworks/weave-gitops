@@ -43,10 +43,10 @@ require (
 	github.com/spf13/viper v1.16.0
 	github.com/tomwright/dasel v1.22.1
 	github.com/weaveworks/policy-agent/api v1.0.5
-	github.com/weaveworks/tf-controller/tfctl v0.0.0-20231228180612-918cb6250720
+	github.com/weaveworks/tf-controller/tfctl v0.0.0-20231231000358-9ce782ced971
 	github.com/yannh/kubeconform v0.5.0
 	go.uber.org/zap v1.26.0
-	golang.org/x/crypto v0.16.0
+	golang.org/x/crypto v0.17.0
 	golang.org/x/oauth2 v0.15.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20231002182017-d307bd883b97
 	google.golang.org/grpc v1.58.2
@@ -71,7 +71,7 @@ require (
 	github.com/aws/aws-sdk-go v1.44.137 // indirect
 	github.com/chai2010/gettext-go v1.0.2 // indirect
 	github.com/chzyer/readline v0.0.0-20180603132655-2972be24d48e // indirect
-	github.com/cloudflare/circl v1.3.3 // indirect
+	github.com/cloudflare/circl v1.3.7 // indirect
 	github.com/cyphar/filepath-securejoin v0.2.4 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/emicklei/go-restful/v3 v3.11.0 // indirect
