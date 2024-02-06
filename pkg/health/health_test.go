@@ -121,6 +121,18 @@ func TestHealthCheck(t *testing.T) {
 			data:         "testdata/svc-progressing.yaml",
 			healthStatus: HealthStatusProgressing,
 		},
+		{
+			data:         "testdata/kstatus-healthy.yaml",
+			healthStatus: HealthStatusHealthy,
+		},
+		{
+			data:         "testdata/kstatus-progressing.yaml",
+			healthStatus: HealthStatusProgressing,
+		},
+		{
+			data:         "testdata/kstatus-unhealty.yaml",
+			healthStatus: HealthStatusUnhealthy,
+		},
 	} {
 		t.Run(fmt.Sprintf("%s is %s", scenario.data, scenario.healthStatus), func(t *testing.T) {
 			yamlBytes, err := os.ReadFile(scenario.data)
