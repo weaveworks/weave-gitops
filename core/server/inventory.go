@@ -286,7 +286,7 @@ func getObjectsWithChildren(ctx context.Context, defaultNS string, objects []*un
 				if !ok {
 					namespaced, err = apiutil.IsObjectNamespaced(&obj, k8sClient.Scheme(), k8sClient.RESTMapper())
 					if err != nil {
-						logger.Error(err, "failed to determine if %s is namespace scoped", obj.GetObjectKind().GroupVersionKind().Kind)
+						logger.Error(err, "failed to determine if %s is namespace scoped", "entry", obj)
 						return
 					}
 
