@@ -572,8 +572,8 @@ github.com/weaveworks/policy-agent/api v1.0.5 h1:4pqzzta8xPUsE9h9YhGJVg5XQ2NuAU/
 github.com/weaveworks/policy-agent/api v1.0.5/go.mod h1:LlhTiipsV5GSHkL/q7Wa7qrJPZGR9Xtoq2npXTWp9bI=
 github.com/weaveworks/tf-controller/api v0.0.0-20231212164812-c222d7f1024a h1:3crYbwLT0W+T10H7hTPVTiq/PELh4vMyHYWvqOblf+A=
 github.com/weaveworks/tf-controller/api v0.0.0-20231212164812-c222d7f1024a/go.mod h1:201u5xXY+YI7+ggWljE0VvqMxa+zP1Y1lyRXc1RlXBc=
-github.com/weaveworks/tf-controller/tfctl v0.0.0-20231228180612-918cb6250720 h1:aWmhjmq52mW7QBVgEcn5jHif1HltUtToDouFegchwwE=
-github.com/weaveworks/tf-controller/tfctl v0.0.0-20231228180612-918cb6250720/go.mod h1:t7p44M7BelgHIkdzD5sT32y3RU2mKp2VUuEb0uwimSY=
+github.com/weaveworks/tf-controller/tfctl v0.0.0-20240227084131-24518c85af22 h1:vFq1QG78G0FeBxqeXcunq+9Ph5Ope0UsKKAI8EeWTuk=
+github.com/weaveworks/tf-controller/tfctl v0.0.0-20240227084131-24518c85af22/go.mod h1:t7p44M7BelgHIkdzD5sT32y3RU2mKp2VUuEb0uwimSY=
 github.com/xanzy/go-gitlab v0.83.0 h1:37p0MpTPNbsTMKX/JnmJtY8Ch1sFiJzVF342+RvZEGw=
 github.com/xanzy/go-gitlab v0.83.0/go.mod h1:5ryv+MnpZStBH8I/77HuQBsMbBGANtVpLWC15qOjWAw=
 github.com/xanzy/ssh-agent v0.3.3 h1:+/15pJfg/RsTxqYcX6fHqOXZwwMP+2VyYWJeWM2qQFM=
