@@ -69,7 +69,9 @@ jobs:
         uses: fluxcd/flux2/action@709b17ce59d184427c1395bc70f496ba528d3bee # main
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-      - run: make unit-tests
+      - run: make ui-tests unit-tests
+        # server core fails if ui-tests have not just been run.
+        # was this all the case
       # - run: make lib-test
 
   ci-static:
