@@ -83,7 +83,7 @@ linters-settings:
       - performance
       - style
   gofumpt:
-    lang-version: "1.20"
+    lang-version: "1.23"
     extra-rules: true
   lll:
     line-length: 150
