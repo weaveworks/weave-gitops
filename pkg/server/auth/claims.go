@@ -56,7 +56,7 @@ func (c *ClaimsConfig) PrincipalFromClaims(token claimsToken) (*UserPrincipal, e
 				groups = append(groups, s)
 			}
 		} else {
-			if s, ok := v.(string); ok && len(s) > 0 {
+			if s, ok := v.(string); ok && s != "" {
 				groups = append(groups, s)
 			} else {
 				return nil, fmt.Errorf("the groups claim %q is an empty value", groupsKey)
