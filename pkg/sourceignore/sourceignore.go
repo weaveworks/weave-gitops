@@ -121,7 +121,7 @@ func ReadPatterns(reader io.Reader, domain []string) []gitignore.Pattern {
 	scanner := bufio.NewScanner(reader)
 	for scanner.Scan() {
 		s := scanner.Text()
-		if !strings.HasPrefix(s, "#") && len(strings.TrimSpace(s)) > 0 {
+		if !strings.HasPrefix(s, "#") && strings.TrimSpace(s) != "" {
 			ps = append(ps, gitignore.ParsePattern(s, domain))
 		}
 	}

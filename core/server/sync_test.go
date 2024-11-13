@@ -218,7 +218,7 @@ func TestSync(t *testing.T) {
 
 				case err := <-done:
 					if err != nil {
-						t.Errorf(err.Error())
+						t.Error(err)
 					}
 					return
 				}
