@@ -7,25 +7,20 @@ import (
 	"strings"
 	"time"
 
-	"github.com/weaveworks/weave-gitops/cmd/gitops/logs"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/replan"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/resume"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/suspend"
-
-	"github.com/weaveworks/weave-gitops/cmd/gitops/remove"
-
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/beta"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/beta/run"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/check"
 	cfg "github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/create"
 	deletepkg "github.com/weaveworks/weave-gitops/cmd/gitops/delete"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/docs"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/get"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/logs"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/replan"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/resume"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/set"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/suspend"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/version"
 	"github.com/weaveworks/weave-gitops/pkg/analytics"
 	"github.com/weaveworks/weave-gitops/pkg/config"
@@ -158,15 +153,12 @@ func RootCmd() *cobra.Command {
 	rootCmd.AddCommand(get.GetCommand(options))
 	rootCmd.AddCommand(set.SetCommand(options))
 	rootCmd.AddCommand(docs.Cmd)
-	rootCmd.AddCommand(check.Cmd)
-	rootCmd.AddCommand(beta.GetCommand(options))
+	rootCmd.AddCommand(check.GetCommand(options))
 	rootCmd.AddCommand(create.GetCommand(options))
 	rootCmd.AddCommand(deletepkg.GetCommand(options))
 	rootCmd.AddCommand(logs.GetCommand(options))
-	rootCmd.AddCommand(remove.GetCommand(options))
 	rootCmd.AddCommand(replan.Command(options))
 	rootCmd.AddCommand(resume.Command(options))
-	rootCmd.AddCommand(run.RunCommand(options))
 	rootCmd.AddCommand(suspend.Command(options))
 
 	return rootCmd

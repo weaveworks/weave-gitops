@@ -10,7 +10,7 @@ image:
   repository: ghcr.io/weaveworks/wego-app
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "v0.35.0"
+  tag: "v0.38.0"
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
@@ -24,6 +24,11 @@ envVars:
     value: "true"
   - name: WEAVE_GITOPS_FEATURE_CLUSTER
     value: "false"
+  # -- Enable this feature flag if you want to expand Flux Runtime UI with other Weave GitOps components like Policy Agent or TF-Controller.
+  # Ensure that Weave GitOps Deployment and CRDs have the label 'app.kubernetes.io/part-of=weave-gitops'. See https://docs.gitops.weave.works/docs/open-source/getting-started/install-OSS for more info.
+  - name: WEAVE_GITOPS_FEATURE_GITOPS_RUNTIME
+    value: "false"
+
 # -- Annotations to add to the deployment
 annotations: {}
 # Should the 'oidc-auth' secret be created. For a detailed
@@ -35,6 +40,12 @@ oidcSecret:
   # clientSecret:
   # issuerURL:
   # redirectURL:
+  # -- If non empty, additional keys can be added to the OIDC secret
+  additionalKeys: {}
+  # additionalKeys:
+  #   claimUsername: "email"
+  #   claimGroups: "groups"
+  #   customScopes: "openid,offline_access,email,groups"
 serviceAccount:
   # -- Specifies whether a service account should be created
   create: true

@@ -103,11 +103,30 @@ export type ListFluxRuntimeObjectsResponse = {
   errors?: ListError[]
 }
 
+export type ListRuntimeObjectsRequest = {
+  namespace?: string
+  clusterName?: string
+}
+
+export type ListRuntimeObjectsResponse = {
+  deployments?: Gitops_coreV1Types.Deployment[]
+  errors?: ListError[]
+}
+
 export type ListFluxCrdsRequest = {
   clusterName?: string
 }
 
 export type ListFluxCrdsResponse = {
+  crds?: Gitops_coreV1Types.Crd[]
+  errors?: ListError[]
+}
+
+export type ListRuntimeCrdsRequest = {
+  clusterName?: string
+}
+
+export type ListRuntimeCrdsResponse = {
   crds?: Gitops_coreV1Types.Crd[]
   errors?: ListError[]
 }
@@ -215,6 +234,7 @@ export type GetFeatureFlagsResponse = {
 export type ToggleSuspendResourceRequest = {
   objects?: Gitops_coreV1Types.ObjectRef[]
   suspend?: boolean
+  comment?: string
 }
 
 export type ToggleSuspendResourceResponse = {
@@ -326,6 +346,12 @@ export class Core {
   }
   static ListFluxCrds(req: ListFluxCrdsRequest, initReq?: fm.InitReq): Promise<ListFluxCrdsResponse> {
     return fm.fetchReq<ListFluxCrdsRequest, ListFluxCrdsResponse>(`/v1/flux_crds?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static ListRuntimeObjects(req: ListRuntimeObjectsRequest, initReq?: fm.InitReq): Promise<ListRuntimeObjectsResponse> {
+    return fm.fetchReq<ListRuntimeObjectsRequest, ListRuntimeObjectsResponse>(`/v1/runtime_objects?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static ListRuntimeCrds(req: ListRuntimeCrdsRequest, initReq?: fm.InitReq): Promise<ListRuntimeCrdsResponse> {
+    return fm.fetchReq<ListRuntimeCrdsRequest, ListRuntimeCrdsResponse>(`/v1/runtime_crds?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static GetReconciledObjects(req: GetReconciledObjectsRequest, initReq?: fm.InitReq): Promise<GetReconciledObjectsResponse> {
     return fm.fetchReq<GetReconciledObjectsRequest, GetReconciledObjectsResponse>(`/v1/reconciled_objects`, {...initReq, method: "POST", body: JSON.stringify(req)})

@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
+	helmv2 "github.com/fluxcd/helm-controller/api/v2beta2"
 	"github.com/fluxcd/pkg/runtime/transform"
 	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 	coretypes "github.com/weaveworks/weave-gitops/core/server/types"
@@ -228,8 +228,7 @@ func ReconcileDashboard(ctx context.Context, kubeClient client.Client, dashboard
 
 	var sourceRequestedAt string
 
-	//nolint:staticcheck // deprecated, tracking issue: https://github.com/weaveworks/weave-gitops/issues/3812
-	if err := wait.Poll(interval, timeout, func() (bool, error) {
+	if err := wait.PollUntilContextTimeout(context.Background(), interval, timeout, true, func(_ context.Context) (bool, error) {
 		var err error
 		sourceRequestedAt, err = run.RequestReconciliation(ctx, kubeClient,
 			namespacedName, gvk)
@@ -240,8 +239,7 @@ func ReconcileDashboard(ctx context.Context, kubeClient client.Client, dashboard
 	}
 
 	// wait for the reconciliation of dashboard to be done
-	//nolint:staticcheck // deprecated, tracking issue: https://github.com/weaveworks/weave-gitops/issues/3812
-	if err := wait.Poll(interval, timeout, func() (bool, error) {
+	if err := wait.PollUntilContextTimeout(context.Background(), interval, timeout, true, func(_ context.Context) (bool, error) {
 		dashboard := &sourcev1b2.HelmChart{}
 		if err := kubeClient.Get(ctx, types.NamespacedName{
 			Namespace: namespace,
@@ -256,8 +254,7 @@ func ReconcileDashboard(ctx context.Context, kubeClient client.Client, dashboard
 	}
 
 	// wait for dashboard to be ready
-	//nolint:staticcheck // deprecated, tracking issue: https://github.com/weaveworks/weave-gitops/issues/3812
-	if err := wait.Poll(interval, timeout, func() (bool, error) {
+	if err := wait.PollUntilContextTimeout(context.Background(), interval, timeout, true, func(_ context.Context) (bool, error) {
 		namespacedName := types.NamespacedName{Namespace: namespace, Name: podName}
 
 		var labels map[string]string = nil

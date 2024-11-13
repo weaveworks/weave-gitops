@@ -3,7 +3,7 @@ import React from "react";
 import styled from "styled-components";
 import useCommon from "../hooks/common";
 import { MultiRequestError, RequestError } from "../lib/types";
-import Alert from "./Alert";
+import { AlertListErrors } from "./AlertListErrors";
 import Breadcrumbs, { Breadcrumb } from "./Breadcrumbs";
 import Flex from "./Flex";
 import LoadingPage from "./LoadingPage";
@@ -62,11 +62,7 @@ export function Errors({ error }) {
   if (arr[0])
     return (
       <Flex wide column gap="4">
-        {_.map(arr, (e, i) => (
-          <Flex key={i} wide start>
-            <Alert title="Error" message={e?.message} severity="error" />
-          </Flex>
-        ))}
+        <AlertListErrors errors={arr} />
       </Flex>
     );
   return null;

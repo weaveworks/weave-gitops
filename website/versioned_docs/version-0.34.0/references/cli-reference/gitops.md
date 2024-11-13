@@ -45,7 +45,6 @@ Command line utility for managing Kubernetes applications via GitOps.
 * [gitops remove](gitops_remove.md)	 - Remove various components of Weave GitOps
 * [gitops replan](gitops_replan.md)	 - Replan a resource
 * [gitops resume](gitops_resume.md)	 - Resume a resource
-* [gitops run](gitops_run.md)	 - Set up an interactive sync between your cluster and your local file system
 * [gitops set](gitops_set.md)	 - Sets one or many Weave GitOps CLI configs or resources
 * [gitops suspend](gitops_suspend.md)	 - Suspend a resource
 * [gitops version](gitops_version.md)	 - Display gitops version

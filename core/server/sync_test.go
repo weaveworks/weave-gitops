@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
+	helmv2 "github.com/fluxcd/helm-controller/api/v2beta2"
 	imgautomationv1 "github.com/fluxcd/image-automation-controller/api/v1beta1"
 	reflectorv1 "github.com/fluxcd/image-reflector-controller/api/v1beta2"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
@@ -88,7 +88,7 @@ func TestSync(t *testing.T) {
 			WithSource: true,
 		},
 		reconcilable: fluxsync.HelmReleaseAdapter{HelmRelease: hr},
-		source:       fluxsync.NewReconcileable(helmRepo),
+		source:       fluxsync.HelmRepositoryAdapter{HelmRepository: helmRepo},
 	}, {
 		name: "kustomization no source",
 		msg: &pb.SyncFluxObjectRequest{
@@ -105,7 +105,7 @@ func TestSync(t *testing.T) {
 			WithSource: true,
 		},
 		reconcilable: fluxsync.KustomizationAdapter{Kustomization: kust},
-		source:       fluxsync.NewReconcileable(gitRepo),
+		source:       fluxsync.GitRepositoryAdapter{GitRepository: gitRepo},
 	}, {
 		name: "gitrepository",
 		msg: &pb.SyncFluxObjectRequest{
@@ -171,7 +171,7 @@ func TestSync(t *testing.T) {
 			WithSource: true,
 		},
 		reconcilable: fluxsync.HelmReleaseAdapter{HelmRelease: hr},
-		source:       fluxsync.NewReconcileable(helmRepo),
+		source:       fluxsync.HelmRepositoryAdapter{HelmRepository: helmRepo},
 	}}
 
 	for _, tt := range tests {
@@ -218,7 +218,7 @@ func TestSync(t *testing.T) {
 
 				case err := <-done:
 					if err != nil {
-						t.Errorf(err.Error())
+						t.Error(err)
 					}
 					return
 				}

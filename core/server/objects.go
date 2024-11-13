@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/fluxcd/helm-controller/api/v2beta1"
+	helmv2 "github.com/fluxcd/helm-controller/api/v2beta2"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
 	"github.com/hashicorp/go-multierror"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
@@ -25,7 +25,7 @@ const (
 )
 
 func getUnstructuredHelmReleaseInventory(ctx context.Context, obj unstructured.Unstructured, c clustersmngr.Client, cluster string) ([]*pb.GroupVersionKind, error) {
-	var release v2beta1.HelmRelease
+	var release helmv2.HelmRelease
 
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(obj.UnstructuredContent(), &release)
 	if err != nil {
@@ -116,7 +116,7 @@ func (cs *coreServer) ListObjects(ctx context.Context, msg *pb.ListObjectsReques
 						respErrors = append(respErrors, &pb.ListError{ClusterName: clusterName, Message: fmt.Sprintf("error sanitizing secrets: %v", err)})
 						continue
 					}
-				case v2beta1.HelmReleaseKind:
+				case helmv2.HelmReleaseKind:
 					inventory, err = getUnstructuredHelmReleaseInventory(ctx, unstructuredObj, clustersClient, clusterName)
 					if err != nil {
 						respErrors = append(respErrors, &pb.ListError{ClusterName: clusterName, Message: err.Error()})
@@ -175,7 +175,7 @@ func parseSessionInfo(unstructuredObj unstructured.Unstructured) (string, string
 	if annotations["run.weave.works/automation-kind"] == "ks" {
 		kind = kustomizev1.KustomizationKind
 	} else {
-		kind = v2beta1.HelmReleaseKind
+		kind = helmv2.HelmReleaseKind
 	}
 
 	ns := annotations["run.weave.works/namespace"]
@@ -253,7 +253,7 @@ func (cs *coreServer) GetObject(ctx context.Context, msg *pb.GetObjectRequest) (
 		if err != nil {
 			return nil, fmt.Errorf("error sanitizing secrets: %w", err)
 		}
-	case v2beta1.HelmReleaseKind:
+	case helmv2.HelmReleaseKind:
 		inventory, err = getUnstructuredHelmReleaseInventory(ctx, unstructuredObj, clustersClient, msg.ClusterName)
 		if err != nil {
 			inventory = nil // We can still display most things without inventory

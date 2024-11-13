@@ -128,7 +128,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe # v4.1.0
         with:
-          go-version: 1.20.X
+          go-version: 1.23.X
       - name: Use Node.js
         uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # v3.8.1
         with:
@@ -140,7 +140,6 @@ jobs:
           echo "BRANCH=$GITHUB_EVENT_PULL_REQUEST_HEAD_REF" >> $GITHUB_ENV
           echo "GORELEASER_PREVIOUS_TAG=$(git describe --abbrev=0 --tags $(git rev-list --tags --skip=1 --max-count=1))" >> $GITHUB_ENV
           echo "GORELEASER_CURRENT_TAG=${{ needs.tag-release.outputs.version }}" >> $GITHUB_ENV
-          echo "DEV_BUCKET_CONTAINER_IMAGE=$(make echo-dev-bucket-container)" >> $GITHUB_ENV
           echo "FLUX_VERSION=$(make echo-flux-version)" >> $GITHUB_ENV
           echo "CHART_VERSION=$(yq e '.version' charts/gitops-server/Chart.yaml)" >> $GITHUB_ENV
       - name: "Make All"

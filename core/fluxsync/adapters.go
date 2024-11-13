@@ -1,15 +1,16 @@
 package fluxsync
 
 import (
-	"errors"
-
-	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
+	helmv2 "github.com/fluxcd/helm-controller/api/v2beta2"
 	imgautomationv1 "github.com/fluxcd/image-automation-controller/api/v1beta1"
 	reflectorv1 "github.com/fluxcd/image-reflector-controller/api/v1beta2"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -23,7 +24,7 @@ type Reconcilable interface {
 	GetLastHandledReconcileRequest() string
 	AsClientObject() client.Object
 	GroupVersionKind() schema.GroupVersionKind
-	SetSuspended(suspend bool)
+	SetSuspended(suspend bool) error
 	DeepCopyClientObject() client.Object
 }
 
@@ -42,30 +43,6 @@ type Automation interface {
 	SourceRef() SourceRef
 }
 
-func NewReconcileable(obj client.Object) Reconcilable {
-	switch o := obj.(type) {
-	case *kustomizev1.Kustomization:
-		return KustomizationAdapter{Kustomization: o}
-	case *helmv2.HelmRelease:
-		return HelmReleaseAdapter{HelmRelease: o}
-	case *sourcev1.GitRepository:
-		return GitRepositoryAdapter{GitRepository: o}
-	case *sourcev1b2.HelmRepository:
-		return HelmRepositoryAdapter{HelmRepository: o}
-	case *sourcev1b2.Bucket:
-		return BucketAdapter{Bucket: o}
-	case *sourcev1b2.HelmChart:
-		return HelmChartAdapter{HelmChart: o}
-	case *sourcev1b2.OCIRepository:
-		return OCIRepositoryAdapter{OCIRepository: o}
-	case *reflectorv1.ImageRepository:
-		return ImageRepositoryAdapter{ImageRepository: o}
-	case *imgautomationv1.ImageUpdateAutomation:
-		return ImageUpdateAutomationAdapter{ImageUpdateAutomation: o}
-	}
-	return nil
-}
-
 type GitRepositoryAdapter struct {
 	*sourcev1.GitRepository
 }
@@ -82,8 +59,9 @@ func (obj GitRepositoryAdapter) GroupVersionKind() schema.GroupVersionKind {
 	return sourcev1.GroupVersion.WithKind(sourcev1.GitRepositoryKind)
 }
 
-func (obj GitRepositoryAdapter) SetSuspended(suspend bool) {
+func (obj GitRepositoryAdapter) SetSuspended(suspend bool) error {
 	obj.Spec.Suspend = suspend
+	return nil
 }
 
 func (obj GitRepositoryAdapter) DeepCopyClientObject() client.Object {
@@ -106,8 +84,9 @@ func (obj BucketAdapter) GroupVersionKind() schema.GroupVersionKind {
 	return sourcev1b2.GroupVersion.WithKind(sourcev1b2.BucketKind)
 }
 
-func (obj BucketAdapter) SetSuspended(suspend bool) {
+func (obj BucketAdapter) SetSuspended(suspend bool) error {
 	obj.Spec.Suspend = suspend
+	return nil
 }
 
 func (obj BucketAdapter) DeepCopyClientObject() client.Object {
@@ -130,8 +109,9 @@ func (obj HelmChartAdapter) GroupVersionKind() schema.GroupVersionKind {
 	return sourcev1b2.GroupVersion.WithKind(sourcev1b2.HelmChartKind)
 }
 
-func (obj HelmChartAdapter) SetSuspended(suspend bool) {
+func (obj HelmChartAdapter) SetSuspended(suspend bool) error {
 	obj.Spec.Suspend = suspend
+	return nil
 }
 
 func (obj HelmChartAdapter) DeepCopyClientObject() client.Object {
@@ -154,8 +134,9 @@ func (obj HelmRepositoryAdapter) GroupVersionKind() schema.GroupVersionKind {
 	return sourcev1b2.GroupVersion.WithKind(sourcev1b2.HelmRepositoryKind)
 }
 
-func (obj HelmRepositoryAdapter) SetSuspended(suspend bool) {
+func (obj HelmRepositoryAdapter) SetSuspended(suspend bool) error {
 	obj.Spec.Suspend = suspend
+	return nil
 }
 
 func (obj HelmRepositoryAdapter) DeepCopyClientObject() client.Object {
@@ -178,8 +159,9 @@ func (obj OCIRepositoryAdapter) GroupVersionKind() schema.GroupVersionKind {
 	return sourcev1b2.GroupVersion.WithKind(sourcev1b2.OCIRepositoryKind)
 }
 
-func (obj OCIRepositoryAdapter) SetSuspended(suspend bool) {
+func (obj OCIRepositoryAdapter) SetSuspended(suspend bool) error {
 	obj.Spec.Suspend = suspend
+	return nil
 }
 
 func (obj OCIRepositoryAdapter) DeepCopyClientObject() client.Object {
@@ -213,8 +195,9 @@ func (obj HelmReleaseAdapter) GroupVersionKind() schema.GroupVersionKind {
 	return helmv2.GroupVersion.WithKind(helmv2.HelmReleaseKind)
 }
 
-func (obj HelmReleaseAdapter) SetSuspended(suspend bool) {
+func (obj HelmReleaseAdapter) SetSuspended(suspend bool) error {
 	obj.Spec.Suspend = suspend
+	return nil
 }
 
 func (obj HelmReleaseAdapter) DeepCopyClientObject() client.Object {
@@ -246,8 +229,9 @@ func (obj KustomizationAdapter) GroupVersionKind() schema.GroupVersionKind {
 	return kustomizev1.GroupVersion.WithKind(kustomizev1.KustomizationKind)
 }
 
-func (obj KustomizationAdapter) SetSuspended(suspend bool) {
+func (obj KustomizationAdapter) SetSuspended(suspend bool) error {
 	obj.Spec.Suspend = suspend
+	return nil
 }
 
 func (obj KustomizationAdapter) DeepCopyClientObject() client.Object {
@@ -270,8 +254,9 @@ func (obj ImageRepositoryAdapter) GroupVersionKind() schema.GroupVersionKind {
 	return reflectorv1.GroupVersion.WithKind(reflectorv1.ImageRepositoryKind)
 }
 
-func (obj ImageRepositoryAdapter) SetSuspended(suspend bool) {
+func (obj ImageRepositoryAdapter) SetSuspended(suspend bool) error {
 	obj.Spec.Suspend = suspend
+	return nil
 }
 
 func (obj ImageRepositoryAdapter) DeepCopyClientObject() client.Object {
@@ -294,11 +279,58 @@ func (obj ImageUpdateAutomationAdapter) GroupVersionKind() schema.GroupVersionKi
 	return imgautomationv1.GroupVersion.WithKind(imgautomationv1.ImageUpdateAutomationKind)
 }
 
-func (obj ImageUpdateAutomationAdapter) SetSuspended(suspend bool) {
+func (obj ImageUpdateAutomationAdapter) SetSuspended(suspend bool) error {
 	obj.Spec.Suspend = suspend
+	return nil
 }
 
 func (obj ImageUpdateAutomationAdapter) DeepCopyClientObject() client.Object {
+	return obj.DeepCopy()
+}
+
+// UnstructuredAdapter implements the Reconcilable interface for unstructured resources.
+// The underlying resource gvk should have the standard flux object sync/suspend fields
+type UnstructuredAdapter struct {
+	*unstructured.Unstructured
+}
+
+func (obj UnstructuredAdapter) GetLastHandledReconcileRequest() string {
+	if val, found, _ := unstructured.NestedString(obj.Object, "status", "lastHandledReconcileAt"); found {
+		return val
+	}
+	return ""
+}
+
+func (obj UnstructuredAdapter) GetConditions() []metav1.Condition {
+	conditionsSlice, found, err := unstructured.NestedSlice(obj.Object, "status", "conditions")
+	if !found || err != nil {
+		return nil
+	}
+
+	var conditions []metav1.Condition
+	for _, c := range conditionsSlice {
+		var condition metav1.Condition
+		if err := runtime.DefaultUnstructuredConverter.FromUnstructured(c.(map[string]interface{}), &condition); err != nil {
+			continue
+		}
+		conditions = append(conditions, condition)
+	}
+
+	return conditions
+}
+
+func (obj UnstructuredAdapter) AsClientObject() client.Object {
+	// Important for the controller-runtime type reflection to work
+	// We can't return just `obj` here otherwise we get a
+	// panic: reflect: call of reflect.Value.Elem on struct Value
+	return obj.Unstructured
+}
+
+func (obj UnstructuredAdapter) SetSuspended(suspend bool) error {
+	return unstructured.SetNestedField(obj.Object, suspend, "spec", "suspend")
+}
+
+func (obj UnstructuredAdapter) DeepCopyClientObject() client.Object {
 	return obj.DeepCopy()
 }
 
@@ -325,35 +357,39 @@ func (s sRef) Kind() string {
 	return s.kind
 }
 
-func ToReconcileable(kind string) (client.ObjectList, Reconcilable, error) {
-	switch kind {
+// ToReconcileable takes a GVK and returns a "Reconcilable" for it.
+// The reconcilable can be passed to a controller-runtime client to fetch it
+// from the cluster. Once fetched we can query it for the last sync time, whether
+// its suspended etc, using the Reconcilable interface.
+//
+// The generic unstructured case handles "flux like" objects that we don't explicitly
+// know about, but which follow the same patterns for suspend/sync as a stadard flux object.
+// E.g. `spec.suspend` and `status.lastHandledReconcileRequest` etc.
+func ToReconcileable(gvk schema.GroupVersionKind) Reconcilable {
+	switch gvk.Kind {
 	case kustomizev1.KustomizationKind:
-		return &kustomizev1.KustomizationList{}, NewReconcileable(&kustomizev1.Kustomization{}), nil
-
+		return KustomizationAdapter{Kustomization: &kustomizev1.Kustomization{}}
 	case helmv2.HelmReleaseKind:
-		return &helmv2.HelmReleaseList{}, NewReconcileable(&helmv2.HelmRelease{}), nil
-
+		return HelmReleaseAdapter{HelmRelease: &helmv2.HelmRelease{}}
+	// TODO: remove all these and let them fall through to the Unstructured case?
 	case sourcev1.GitRepositoryKind:
-		return &sourcev1.GitRepositoryList{}, NewReconcileable(&sourcev1.GitRepository{}), nil
-
+		return GitRepositoryAdapter{GitRepository: &sourcev1.GitRepository{}}
 	case sourcev1b2.BucketKind:
-		return &sourcev1b2.BucketList{}, NewReconcileable(&sourcev1b2.Bucket{}), nil
-
+		return BucketAdapter{Bucket: &sourcev1b2.Bucket{}}
 	case sourcev1b2.HelmRepositoryKind:
-		return &sourcev1b2.HelmRepositoryList{}, NewReconcileable(&sourcev1b2.HelmRepository{}), nil
-
+		return HelmRepositoryAdapter{HelmRepository: &sourcev1b2.HelmRepository{}}
 	case sourcev1b2.HelmChartKind:
-		return &sourcev1b2.HelmChartList{}, NewReconcileable(&sourcev1b2.HelmChart{}), nil
-
+		return HelmChartAdapter{HelmChart: &sourcev1b2.HelmChart{}}
 	case sourcev1b2.OCIRepositoryKind:
-		return &sourcev1b2.OCIRepositoryList{}, NewReconcileable(&sourcev1b2.OCIRepository{}), nil
-
+		return OCIRepositoryAdapter{OCIRepository: &sourcev1b2.OCIRepository{}}
 	case reflectorv1.ImageRepositoryKind:
-		return &reflectorv1.ImageRepositoryList{}, NewReconcileable(&reflectorv1.ImageRepository{}), nil
-
+		return ImageRepositoryAdapter{ImageRepository: &reflectorv1.ImageRepository{}}
 	case imgautomationv1.ImageUpdateAutomationKind:
-		return &imgautomationv1.ImageUpdateAutomationList{}, NewReconcileable(&imgautomationv1.ImageUpdateAutomation{}), nil
+		return ImageUpdateAutomationAdapter{ImageUpdateAutomation: &imgautomationv1.ImageUpdateAutomation{}}
 	}
 
-	return nil, nil, errors.New("could not find source type")
+	// Return the UnstructuredAdapter for flux-like resources
+	obj := &unstructured.Unstructured{}
+	obj.SetGroupVersionKind(gvk)
+	return UnstructuredAdapter{Unstructured: obj}
 }

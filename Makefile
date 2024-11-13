@@ -7,9 +7,8 @@ BUILD_TIME?=$(shell date +'%Y-%m-%d_%T')
 BRANCH?=$(shell which git > /dev/null && git rev-parse --abbrev-ref HEAD)
 GIT_COMMIT?=$(shell which git > /dev/null && git log -n1 --pretty='%h')
 VERSION?=$(shell which git > /dev/null && git describe --always --match "v*")
-FLUX_VERSION=2.0.1
+FLUX_VERSION=2.3.0
 CHART_VERSION=$(shell which yq > /dev/null && yq e '.version' charts/gitops-server/Chart.yaml)
-DEV_BUCKET_CONTAINER_IMAGE?=ghcr.io/weaveworks/gitops-bucket-server@sha256:9fa2a68032b9d67197a3d41a46b5029ffdf9a7bc415e4e7e9794faec8bc3b8e4
 TIER=oss
 
 # Go build args
@@ -20,7 +19,6 @@ LDFLAGS?=-X github.com/weaveworks/weave-gitops/cmd/gitops/version.Branch=$(BRANC
 				 -X github.com/weaveworks/weave-gitops/cmd/gitops/version.GitCommit=$(GIT_COMMIT) \
 				 -X github.com/weaveworks/weave-gitops/cmd/gitops/version.Version=$(VERSION) \
 				 -X github.com/weaveworks/weave-gitops/pkg/version.FluxVersion=$(FLUX_VERSION) \
-				 -X github.com/weaveworks/weave-gitops/pkg/run/watch.DevBucketContainerImage=$(DEV_BUCKET_CONTAINER_IMAGE) \
 				 -X github.com/weaveworks/weave-gitops/pkg/analytics.Tier=$(TIER) \
 				 -X github.com/weaveworks/weave-gitops/core/server.Branch=$(BRANCH) \
 				 -X github.com/weaveworks/weave-gitops/core/server.Buildtime=$(BUILD_TIME) \
@@ -112,7 +110,7 @@ vet: ## Run go vet against code
 	go vet ./...
 
 lint: ## Run linters against code
-	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.52.0
+	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.62.0
 	golangci-lint run --out-format=github-actions --timeout 600s --skip-files "tilt_modules"
 	@go install github.com/yoheimuta/protolint/cmd/protolint@latest
 	protolint lint -config_path=.protolint.yaml ./api
@@ -140,6 +138,11 @@ proto: ## Generate protobuf files
 #	This job is complaining about a missing plugin and error-ing out
 #	oapi-codegen -config oapi-codegen.config.yaml api/applications/applications.swagger.json
 
+# Sometimes we get whitespace differences when running this on linux vs mac
+# So here's how you can do it under linux, on mac
+proto-linux:
+	docker run --rm -v "$(CURRENT_DIR):/app" -w /app golang:1.20 make proto
+
 ##@ Docker
 _docker:
 	DOCKER_BUILDKIT=1 docker build $(DOCKERARGS)\
@@ -166,7 +169,7 @@ ui: node_modules $(shell find ui -type f) ## Build the UI
 
 node_modules: ## Install node modules
 	rm -rf .parcel-cache
-	yarn config set network-timeout 600000 && yarn --pure-lockfile
+	yarn config set network-timeout 600000 && yarn --frozen-lockfile
 
 ui-lint: ## Run linter against the UI
 	yarn lint
@@ -225,9 +228,6 @@ echo-ldflags:
 echo-flux-version:
 	@echo $(FLUX_VERSION)
 
-echo-dev-bucket-container:
-	@echo $(DEV_BUCKET_CONTAINER_IMAGE)
-
 download-test-crds:
 	group_resources="source/helmrepositories source/buckets source/gitrepositories source/helmcharts source/ocirepositories"; \
 	for group_resource in $$group_resources; do \
@@ -236,7 +236,7 @@ download-test-crds:
 		curl -sL "https://raw.githubusercontent.com/fluxcd/source-controller/v1.0.0/config/crd/bases/$${group}.toolkit.fluxcd.io_$${resource}.yaml" -o "tools/testcrds/$${group}.toolkit.fluxcd.io_$${resource}.yaml"; \
 	done
 	curl -sL "https://raw.githubusercontent.com/fluxcd/kustomize-controller/v1.0.0/config/crd/bases/kustomize.toolkit.fluxcd.io_kustomizations.yaml" -o "tools/testcrds/kustomize.toolkit.fluxcd.io_kustomizations.yaml"
-	curl -sL "https://raw.githubusercontent.com/fluxcd/helm-controller/v0.35.0/config/crd/bases/helm.toolkit.fluxcd.io_helmreleases.yaml" -o "tools/testcrds/helm.toolkit.fluxcd.io_helmreleases.yaml"
+	curl -sL "https://raw.githubusercontent.com/fluxcd/helm-controller/v0.37.0/config/crd/bases/helm.toolkit.fluxcd.io_helmreleases.yaml" -o "tools/testcrds/helm.toolkit.fluxcd.io_helmreleases.yaml"
 
 .PHONY: help
 # Thanks to https://www.thapaliya.com/en/writings/well-documented-makefiles/

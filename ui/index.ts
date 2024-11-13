@@ -1,3 +1,4 @@
+import { AlertListErrors } from "./components/AlertListErrors";
 import { ReconciledObjectsAutomation } from "./components/AutomationDetail";
 import AutomationsTable from "./components/AutomationsTable";
 import BucketDetail from "./components/BucketDetail";
@@ -69,7 +70,7 @@ import SourceLink from "./components/SourceLink";
 import SourcesTable from "./components/SourcesTable";
 import Spacer from "./components/Spacer";
 import SubRouterTabs, { RouterTab } from "./components/SubRouterTabs";
-import SyncButton from "./components/SyncButton";
+import SyncControls from "./components/Sync/SyncControls";
 import Text from "./components/Text";
 import Timestamp from "./components/Timestamp";
 import UserGroupsTable from "./components/UserGroupsTable";
@@ -91,13 +92,17 @@ import {
 } from "./contexts/LinkResolverContext";
 import { useListAutomations, useSyncFluxObject } from "./hooks/automations";
 import { useDebounce, useRequestState } from "./hooks/common";
+import { useListEvents } from "./hooks/events";
 import { useFeatureFlags } from "./hooks/featureflags";
 import {
   useListFluxCrds,
   useListFluxRuntimeObjects,
+  useListRuntimeObjects,
+  useListRuntimeCrds,
   useToggleSuspend,
 } from "./hooks/flux";
 import { useCheckCRDInstalled } from "./hooks/imageautomation";
+import { useGetInventory } from "./hooks/inventory";
 import useNavigation from "./hooks/navigation";
 import { useListAlerts, useListProviders } from "./hooks/notifications";
 import { useGetObject, useListObjects } from "./hooks/objects";
@@ -136,10 +141,12 @@ import {
   withBasePath,
 } from "./lib/utils";
 import SignIn from "./pages/SignIn";
+import Runtime from "./pages/v2/Runtime";
 
 export {
   Alert,
   AppContext,
+  AlertListErrors,
   AppContextProvider,
   Auth,
   AuthCheck,
@@ -166,6 +173,7 @@ export {
   FluxObject,
   FluxObjectsTable,
   FluxRuntime,
+  Runtime,
   Footer,
   GitRepository,
   GitRepositoryDetail,
@@ -236,7 +244,7 @@ export {
   SourcesTable,
   Spacer,
   SubRouterTabs,
-  SyncButton,
+  SyncControls,
   Text,
   ThemeTypes,
   Timestamp,
@@ -268,11 +276,15 @@ export {
   useDebounce,
   useFeatureFlags,
   useGetObject,
+  useGetInventory,
   useLinkResolver,
   useListAlerts,
   useListAutomations,
+  useListEvents,
   useListFluxCrds,
   useListFluxRuntimeObjects,
+  useListRuntimeCrds,
+  useListRuntimeObjects,
   useListObjects,
   useListProviders,
   useListSources,
