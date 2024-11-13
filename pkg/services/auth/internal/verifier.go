@@ -14,8 +14,8 @@ type CodeVerifier struct {
 	value string
 }
 
-func NewCodeVerifier(min, max int) (CodeVerifier, error) {
-	value, err := utils.GenerateRandomString(min, max)
+func NewCodeVerifier(minLen, maxLen int) (CodeVerifier, error) {
+	value, err := utils.GenerateRandomString(minLen, maxLen)
 	if err != nil {
 		return CodeVerifier{}, fmt.Errorf("new code verifier: %w", err)
 	}

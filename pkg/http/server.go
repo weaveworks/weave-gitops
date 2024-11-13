@@ -72,7 +72,7 @@ func startServer(ctx context.Context, hndlr http.Handler, listener net.Listener,
 		Addr:    listener.Addr().String(),
 		Handler: hndlr,
 	}
-	logger.Printf("https://" + srv.Addr)
+	logger.Printf("https://%s", srv.Addr)
 
 	go func() {
 		if err := srv.Serve(listener); err != http.ErrServerClosed {
