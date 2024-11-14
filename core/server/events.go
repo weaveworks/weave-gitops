@@ -96,9 +96,9 @@ func list(ctx context.Context, k8s clustersmngr.Client, appName, namespace strin
 
 func wrapK8sAPIError(msg string, err error) error {
 	if k8serrors.IsUnauthorized(err) {
-		return status.Errorf(codes.PermissionDenied, err.Error())
+		return status.Errorf(codes.PermissionDenied, "%s", err.Error())
 	} else if k8serrors.IsNotFound(err) {
-		return status.Errorf(codes.NotFound, err.Error())
+		return status.Errorf(codes.NotFound, "%s", err.Error())
 	} else if err != nil {
 		return fmt.Errorf("%s: %w", msg, err)
 	}
