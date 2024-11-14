@@ -143,7 +143,7 @@ jobs:
           path: /tmp/${{ matrix.docker-image }}.tar
 
   ci-upload-images:
-    name: CI Upload Images
+    name: CI Upload Images - Disabled
     runs-on: ubuntu-latest
     # Make sure we only upload images if tests etc have passed
     needs: [ci-go, ci-static, ci-js, ci-build-gitops-image, ci-generate-tag]
@@ -164,21 +164,21 @@ jobs:
         with:
           name: ${{ matrix.docker-image }}
           path: /tmp
-      - name: Authenticate to Google Cloud
-        id: gcloud-auth
-        uses: google-github-actions/auth@35b0e87d162680511bf346c299f71c9c5c379033 # v1.1.1
-        with:
-          service_account: ${{ secrets.service_account }}
-          workload_identity_provider: ${{ secrets.workload_identity_provider }}
-      - name: Login to gcloud for docker
-        run: gcloud --quiet auth configure-docker ${{ env.CI_CONTAINER_REGISTRY }}
-      - name: Push images to gcloud
-        run: |
-          docker load --input /tmp/${{ matrix.docker-image }}.tar
-          docker push "${{ env.CI_CONTAINER_REPOSITORY }}/${{ matrix.docker-image }}:${{ needs.ci-generate-tag.outputs.tag }}"
+#      - name: Authenticate to Google Cloud
+#        id: gcloud-auth
+#        uses: google-github-actions/auth@35b0e87d162680511bf346c299f71c9c5c379033 # v1.1.1
+#        with:
+#          service_account: ${{ secrets.service_account }}
+#          workload_identity_provider: ${{ secrets.workload_identity_provider }}
+#      - name: Login to gcloud for docker
+#        run: gcloud --quiet auth configure-docker ${{ env.CI_CONTAINER_REGISTRY }}
+#      - name: Push images to gcloud
+#        run: |
+#          docker load --input /tmp/${{ matrix.docker-image }}.tar
+#          docker push "${{ env.CI_CONTAINER_REPOSITORY }}/${{ matrix.docker-image }}:${{ needs.ci-generate-tag.outputs.tag }}"
 
   ci-upload-binary:
-    name: Upload Binary
+    name: Upload Binary - Disabled
     runs-on: ${{matrix.os}}
     needs: [ci-go, ci-static, ci-js, ci-build-gitops-image]
     strategy:
@@ -201,15 +201,15 @@ jobs:
     - name: build
       run: |
         make gitops
-    - name: publish to s3
-      uses: aws-actions/configure-aws-credentials@8c3f20df09ac63af7b3ae3d7c91f105f857d8497 # v4.0.0
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-2
-    - run: |
-        aws s3 cp bin/gitops s3://weave-gitops/gitops-${{matrix.os}}-${{steps.gitsha.outputs.sha}}
-        aws s3 cp s3://weave-gitops/gitops-${{matrix.os}}-${{steps.gitsha.outputs.sha}} s3://weave-gitops/gitops-${{matrix.os}}
+#    - name: publish to s3
+#      uses: aws-actions/configure-aws-credentials@8c3f20df09ac63af7b3ae3d7c91f105f857d8497 # v4.0.0
+#      with:
+#        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#        aws-region: us-east-2
+#    - run: |
+#        aws s3 cp bin/gitops s3://weave-gitops/gitops-${{matrix.os}}-${{steps.gitsha.outputs.sha}}
+#        aws s3 cp s3://weave-gitops/gitops-${{matrix.os}}-${{steps.gitsha.outputs.sha}} s3://weave-gitops/gitops-${{matrix.os}}
 
   ci-publish-js-lib:
     name: Publish js library
@@ -257,7 +257,7 @@ jobs:
       - ci-go
       - ci-static
       - ci-js
-      - ci-build-gitops-image
+#      - ci-build-gitops-image
     if: github.event_name != 'push'
     steps:
       - run: echo "All done"
@@ -267,8 +267,8 @@ jobs:
     name: PR CI Pipeline
     runs-on: ubuntu-latest
     needs:
-      - ci-upload-images
-      - ci-upload-binary
+#      - ci-upload-images
+#      - ci-upload-binary
       - ci-publish-js-lib
     steps:
       - run: echo "All done"
