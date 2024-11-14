@@ -6,12 +6,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/fluxcd/cli-utils/pkg/object"
 	"github.com/fluxcd/pkg/ssa"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
-	"sigs.k8s.io/cli-utils/pkg/kstatus/polling"
-	"sigs.k8s.io/cli-utils/pkg/object"
 	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -21,15 +20,7 @@ type ResourceManagerForApply interface {
 }
 
 func NewManager(ctx context.Context, log logger.Logger, kubeClient ctrlclient.Client, kubeConfigArgs genericclioptions.RESTClientGetter) (*ssa.ResourceManager, error) {
-	restMapper, err := kubeConfigArgs.ToRESTMapper()
-	if err != nil {
-		log.Failuref("Error getting a restmapper")
-		return nil, err
-	}
-
-	kubePoller := polling.NewStatusPoller(kubeClient, restMapper, polling.Options{})
-
-	return ssa.NewResourceManager(kubeClient, kubePoller, ssa.Owner{
+	return ssa.NewResourceManager(kubeClient, nil, ssa.Owner{
 		Field: "flux",
 		Group: "fluxcd.io",
 	}), nil
@@ -47,8 +38,8 @@ func apply(ctx context.Context, log logger.Logger, manager ResourceManagerForApp
 		return "", fmt.Errorf("no Kubernetes objects found in the manifests")
 	}
 
-	if err := ssa.SetNativeKindsDefaults(objs); err != nil {
-		log.Failuref("Error setting native kinds defaults")
+	if err := ssa.NormalizeUnstructuredList(objs); err != nil {
+		log.Failuref("Error setting the list of resources to apply")
 		return "", err
 	}
 

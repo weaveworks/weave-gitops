@@ -28,6 +28,7 @@ import AppContextProvider, {
 } from "./contexts/AppContext";
 import AuthContextProvider, { AuthCheck } from "./contexts/AuthContext";
 import CoreClientContextProvider from "./contexts/CoreClientContext";
+import { useFeatureFlags } from "./hooks/featureflags";
 import useNavigation from "./hooks/navigation";
 import { useInDarkMode } from "./hooks/theme";
 import { Core } from "./lib/api/core/core.pb";
@@ -52,6 +53,7 @@ import OCIRepositoryPage from "./pages/v2/OCIRepositoryPage";
 import PoliciesList from "./pages/v2/PoliciesList";
 import PolicyDetailsPage from "./pages/v2/PolicyDetailsPage";
 import ProviderPage from "./pages/v2/ProviderPage";
+import Runtime from "./pages/v2/Runtime";
 import Sources from "./pages/v2/Sources";
 import UserInfo from "./pages/v2/UserInfo";
 
@@ -65,41 +67,60 @@ function withSearchParams(Cmp) {
   };
 }
 
-const navItems: NavItem[] = [
-  {
-    label: "Applications",
-    link: { value: V2Routes.Automations },
-    icon: IconType.ApplicationsIcon,
-  },
-  {
-    label: "Sources",
-    link: { value: V2Routes.Sources },
-    icon: IconType.SourcesIcon,
-  },
-  {
-    label: "Image Automation",
-    link: { value: V2Routes.ImageAutomation },
-    icon: IconType.ImageAutomationIcon,
-  },
-  {
-    label: "Policies",
-    link: { value: V2Routes.Policies },
-    icon: IconType.PoliciesIcon,
-  },
-  {
+function getRuntimeNavItem(isNewRuntimeEnabled: boolean): NavItem {
+  if (isNewRuntimeEnabled) {
+    return {
+      label: "Runtime",
+      link: { value: V2Routes.Runtime },
+      icon: IconType.FluxIcon,
+    };
+  }
+
+  return {
     label: "Flux Runtime",
     link: { value: V2Routes.FluxRuntime },
     icon: IconType.FluxIcon,
-  },
-  {
-    label: "Notifications",
-    link: { value: V2Routes.Notifications },
-    icon: IconType.NotificationsIcon,
-  },
-];
+  };
+}
 
 const App = () => {
   const dark = useInDarkMode();
+
+  const { isFlagEnabled } = useFeatureFlags();
+
+  const isNewRuntimeEnabled = isFlagEnabled(
+    "WEAVE_GITOPS_FEATURE_GITOPS_RUNTIME"
+  );
+
+  const navItems: NavItem[] = [
+    {
+      label: "Applications",
+      link: { value: V2Routes.Automations },
+      icon: IconType.ApplicationsIcon,
+    },
+    {
+      label: "Sources",
+      link: { value: V2Routes.Sources },
+      icon: IconType.SourcesIcon,
+    },
+    {
+      label: "Image Automation",
+      link: { value: V2Routes.ImageAutomation },
+      icon: IconType.ImageAutomationIcon,
+    },
+    {
+      label: "Policies",
+      link: { value: V2Routes.Policies },
+      icon: IconType.PoliciesIcon,
+    },
+    getRuntimeNavItem(isNewRuntimeEnabled),
+    {
+      label: "Notifications",
+      link: { value: V2Routes.Notifications },
+      icon: IconType.NotificationsIcon,
+    },
+  ];
+
   const [collapsed, setCollapsed] = React.useState<boolean>(false);
   const { currentPage } = useNavigation();
   const value = getParentNavRouteValue(currentPage);
@@ -143,7 +164,11 @@ const App = () => {
             path={V2Routes.ImagePolicyDetails}
             component={withSearchParams(ImagePolicyDetails)}
           />
-          <Route path={V2Routes.FluxRuntime} component={FluxRuntime} />
+          {isNewRuntimeEnabled ? (
+            <Route path={V2Routes.Runtime} component={Runtime} />
+          ) : (
+            <Route path={V2Routes.FluxRuntime} component={FluxRuntime} />
+          )}
           <Route
             path={V2Routes.GitRepo}
             component={withSearchParams(GitRepositoryDetail)}
@@ -181,15 +206,12 @@ const App = () => {
             component={withSearchParams(PolicyViolationPage)}
           />
           <Route path={V2Routes.UserInfo} component={UserInfo} />
-
           <Route path={V2Routes.Policies} component={PoliciesList} />
           <Route
             path={V2Routes.PolicyDetailsPage}
             component={withSearchParams(PolicyDetailsPage)}
           />
-
           <Redirect exact from="/" to={V2Routes.Automations} />
-
           <Route exact path="*" component={Error} />
         </Switch>
       </ErrorBoundary>

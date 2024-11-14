@@ -4,13 +4,14 @@ import (
 	"context"
 	"errors"
 
+	"github.com/fluxcd/cli-utils/pkg/object"
 	"github.com/fluxcd/pkg/ssa"
 	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"sigs.k8s.io/cli-utils/pkg/object"
+
+	"github.com/weaveworks/weave-gitops/pkg/logger"
 )
 
 // mock ssa.ResourceManager

@@ -4,16 +4,19 @@ import (
 	"context"
 	"testing"
 
+	"github.com/go-logr/logr"
 	. "github.com/onsi/gomega"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"google.golang.org/grpc/metadata"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 func TestGetVersion(t *testing.T) {
 	g := NewGomegaWithT(t)
 	c := makeGRPCServer(k8sEnv.Rest, t)
+	logf.SetLogger(logr.Discard())
 
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())

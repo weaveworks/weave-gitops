@@ -602,6 +602,74 @@
         ]
       }
     },
+    "/v1/runtime_crds": {
+      "get": {
+        "summary": "ListRuntimeCrds lists Weave GitOps runtime components CRDs.\nWeave GitOps runtime is composed of Flux runtime but also other components\nin the ecosystem like TF-controller or Policy Agent.",
+        "operationId": "Core_ListRuntimeCrds",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListRuntimeCrdsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Core"
+        ]
+      }
+    },
+    "/v1/runtime_objects": {
+      "get": {
+        "summary": "ListRuntimeObjects lists Weave GitOps runtime components.\nWeave GitOps runtime is composed of Flux runtime but also other components\nin the ecosystem like TF-controller or Policy Agent.",
+        "operationId": "Core_ListRuntimeObjects",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListRuntimeObjectsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "namespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Core"
+        ]
+      }
+    },
     "/v1/session_logs": {
       "post": {
         "summary": "GetSessionLogs returns the logs for a given session",
@@ -761,6 +829,7 @@
         "details": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/protobufAny"
           }
         }
@@ -832,6 +901,7 @@
         "conditions": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1Condition"
           }
         },
@@ -910,6 +980,7 @@
         "objects": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1Object"
           }
         }
@@ -943,6 +1014,7 @@
         "entries": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1InventoryEntry"
           }
         }
@@ -990,6 +1062,7 @@
         "kinds": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1GroupVersionKind"
           }
         },
@@ -1004,6 +1077,7 @@
         "objects": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1Object"
           }
         }
@@ -1035,6 +1109,7 @@
         "logs": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1LogEntry"
           }
         },
@@ -1116,6 +1191,7 @@
         "children": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1InventoryEntry"
           }
         }
@@ -1152,6 +1228,7 @@
         "events": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1Event"
           }
         }
@@ -1163,12 +1240,14 @@
         "crds": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1Crd"
           }
         },
         "errors": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1ListError"
           }
         }
@@ -1180,12 +1259,14 @@
         "deployments": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1Deployment"
           }
         },
         "errors": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1ListError"
           }
         }
@@ -1197,6 +1278,7 @@
         "namespaces": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1Namespace"
           }
         }
@@ -1228,18 +1310,21 @@
         "objects": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1Object"
           }
         },
         "errors": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1ListError"
           }
         },
         "searchedNamespaces": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1ClusterNamespaceList"
           }
         }
@@ -1251,6 +1336,7 @@
         "policies": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1PolicyObj"
           }
         },
@@ -1264,6 +1350,7 @@
         "errors": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1ListError"
           }
         }
@@ -1301,6 +1388,7 @@
         "violations": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1PolicyValidation"
           }
         },
@@ -1314,6 +1402,45 @@
         "errors": {
           "type": "array",
           "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1ListError"
+          }
+        }
+      }
+    },
+    "v1ListRuntimeCrdsResponse": {
+      "type": "object",
+      "properties": {
+        "crds": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1Crd"
+          }
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1ListError"
+          }
+        }
+      }
+    },
+    "v1ListRuntimeObjectsResponse": {
+      "type": "object",
+      "properties": {
+        "deployments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1Deployment"
+          }
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
             "$ref": "#/definitions/v1ListError"
           }
         }
@@ -1383,6 +1510,7 @@
         "inventory": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1GroupVersionKind"
           }
         },
@@ -1456,6 +1584,7 @@
         "standards": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1PolicyStandard"
           }
         },
@@ -1465,6 +1594,7 @@
         "parameters": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1PolicyParam"
           }
         },
@@ -1543,6 +1673,7 @@
         "labels": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1PolicyTargetLabel"
           }
         },
@@ -1602,6 +1733,7 @@
         "occurrences": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1PolicyValidationOccurrence"
           }
         },
@@ -1611,6 +1743,7 @@
         "parameters": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1PolicyValidationParam"
           }
         }
@@ -1650,6 +1783,7 @@
         "objects": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1ObjectRef"
           }
         },
@@ -1667,6 +1801,7 @@
         "objects": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1ObjectRef"
           }
         },

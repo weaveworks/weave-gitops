@@ -25,6 +25,14 @@ type CoreClient interface {
 	// ListFluxRuntimeObjects lists the flux runtime deployments from a cluster.
 	ListFluxRuntimeObjects(ctx context.Context, in *ListFluxRuntimeObjectsRequest, opts ...grpc.CallOption) (*ListFluxRuntimeObjectsResponse, error)
 	ListFluxCrds(ctx context.Context, in *ListFluxCrdsRequest, opts ...grpc.CallOption) (*ListFluxCrdsResponse, error)
+	// ListRuntimeObjects lists Weave GitOps runtime components.
+	// Weave GitOps runtime is composed of Flux runtime but also other components
+	// in the ecosystem like TF-controller or Policy Agent.
+	ListRuntimeObjects(ctx context.Context, in *ListRuntimeObjectsRequest, opts ...grpc.CallOption) (*ListRuntimeObjectsResponse, error)
+	// ListRuntimeCrds lists Weave GitOps runtime components CRDs.
+	// Weave GitOps runtime is composed of Flux runtime but also other components
+	// in the ecosystem like TF-controller or Policy Agent.
+	ListRuntimeCrds(ctx context.Context, in *ListRuntimeCrdsRequest, opts ...grpc.CallOption) (*ListRuntimeCrdsResponse, error)
 	// GetReconciledObjects returns a list of objects that were created
 	// as a result of reconciling a Flux automation.
 	// This list is derived by looking at the Kustomization or HelmRelease
@@ -104,6 +112,24 @@ func (c *coreClient) ListFluxRuntimeObjects(ctx context.Context, in *ListFluxRun
 func (c *coreClient) ListFluxCrds(ctx context.Context, in *ListFluxCrdsRequest, opts ...grpc.CallOption) (*ListFluxCrdsResponse, error) {
 	out := new(ListFluxCrdsResponse)
 	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/ListFluxCrds", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *coreClient) ListRuntimeObjects(ctx context.Context, in *ListRuntimeObjectsRequest, opts ...grpc.CallOption) (*ListRuntimeObjectsResponse, error) {
+	out := new(ListRuntimeObjectsResponse)
+	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/ListRuntimeObjects", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *coreClient) ListRuntimeCrds(ctx context.Context, in *ListRuntimeCrdsRequest, opts ...grpc.CallOption) (*ListRuntimeCrdsResponse, error) {
+	out := new(ListRuntimeCrdsResponse)
+	err := c.cc.Invoke(ctx, "/gitops_core.v1.Core/ListRuntimeCrds", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -265,6 +291,14 @@ type CoreServer interface {
 	// ListFluxRuntimeObjects lists the flux runtime deployments from a cluster.
 	ListFluxRuntimeObjects(context.Context, *ListFluxRuntimeObjectsRequest) (*ListFluxRuntimeObjectsResponse, error)
 	ListFluxCrds(context.Context, *ListFluxCrdsRequest) (*ListFluxCrdsResponse, error)
+	// ListRuntimeObjects lists Weave GitOps runtime components.
+	// Weave GitOps runtime is composed of Flux runtime but also other components
+	// in the ecosystem like TF-controller or Policy Agent.
+	ListRuntimeObjects(context.Context, *ListRuntimeObjectsRequest) (*ListRuntimeObjectsResponse, error)
+	// ListRuntimeCrds lists Weave GitOps runtime components CRDs.
+	// Weave GitOps runtime is composed of Flux runtime but also other components
+	// in the ecosystem like TF-controller or Policy Agent.
+	ListRuntimeCrds(context.Context, *ListRuntimeCrdsRequest) (*ListRuntimeCrdsResponse, error)
 	// GetReconciledObjects returns a list of objects that were created
 	// as a result of reconciling a Flux automation.
 	// This list is derived by looking at the Kustomization or HelmRelease
@@ -322,6 +356,12 @@ func (UnimplementedCoreServer) ListFluxRuntimeObjects(context.Context, *ListFlux
 }
 func (UnimplementedCoreServer) ListFluxCrds(context.Context, *ListFluxCrdsRequest) (*ListFluxCrdsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListFluxCrds not implemented")
+}
+func (UnimplementedCoreServer) ListRuntimeObjects(context.Context, *ListRuntimeObjectsRequest) (*ListRuntimeObjectsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListRuntimeObjects not implemented")
+}
+func (UnimplementedCoreServer) ListRuntimeCrds(context.Context, *ListRuntimeCrdsRequest) (*ListRuntimeCrdsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListRuntimeCrds not implemented")
 }
 func (UnimplementedCoreServer) GetReconciledObjects(context.Context, *GetReconciledObjectsRequest) (*GetReconciledObjectsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetReconciledObjects not implemented")
@@ -452,6 +492,42 @@ func _Core_ListFluxCrds_Handler(srv interface{}, ctx context.Context, dec func(i
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(CoreServer).ListFluxCrds(ctx, req.(*ListFluxCrdsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Core_ListRuntimeObjects_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListRuntimeObjectsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CoreServer).ListRuntimeObjects(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gitops_core.v1.Core/ListRuntimeObjects",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CoreServer).ListRuntimeObjects(ctx, req.(*ListRuntimeObjectsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Core_ListRuntimeCrds_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListRuntimeCrdsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CoreServer).ListRuntimeCrds(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gitops_core.v1.Core/ListRuntimeCrds",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CoreServer).ListRuntimeCrds(ctx, req.(*ListRuntimeCrdsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -766,6 +842,14 @@ var Core_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListFluxCrds",
 			Handler:    _Core_ListFluxCrds_Handler,
+		},
+		{
+			MethodName: "ListRuntimeObjects",
+			Handler:    _Core_ListRuntimeObjects_Handler,
+		},
+		{
+			MethodName: "ListRuntimeCrds",
+			Handler:    _Core_ListRuntimeCrds_Handler,
 		},
 		{
 			MethodName: "GetReconciledObjects",
