@@ -7,7 +7,7 @@ BUILD_TIME?=$(shell date +'%Y-%m-%d_%T')
 BRANCH?=$(shell which git > /dev/null && git rev-parse --abbrev-ref HEAD)
 GIT_COMMIT?=$(shell which git > /dev/null && git log -n1 --pretty='%h')
 VERSION?=$(shell which git > /dev/null && git describe --always --match "v*")
-FLUX_VERSION=2.0.1
+FLUX_VERSION=2.3.0
 CHART_VERSION=$(shell which yq > /dev/null && yq e '.version' charts/gitops-server/Chart.yaml)
 TIER=oss
 
@@ -110,7 +110,7 @@ vet: ## Run go vet against code
 	go vet ./...
 
 lint: ## Run linters against code
-	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.52.0
+	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.62.0
 	golangci-lint run --out-format=github-actions --timeout 600s --skip-files "tilt_modules"
 	@go install github.com/yoheimuta/protolint/cmd/protolint@latest
 	protolint lint -config_path=.protolint.yaml ./api
