@@ -143,7 +143,7 @@ jobs:
           path: /tmp/${{ matrix.docker-image }}.tar
 
   ci-upload-images:
-    name: CI Upload Images
+    name: CI Upload Images - Disabled
     runs-on: ubuntu-latest
     # Make sure we only upload images if tests etc have passed
     needs: [ci-go, ci-static, ci-js, ci-build-gitops-image, ci-generate-tag]
@@ -178,7 +178,7 @@ jobs:
 #          docker push "${{ env.CI_CONTAINER_REPOSITORY }}/${{ matrix.docker-image }}:${{ needs.ci-generate-tag.outputs.tag }}"
 
   ci-upload-binary:
-    name: Upload Binary
+    name: Upload Binary - Disabled
     runs-on: ${{matrix.os}}
     needs: [ci-go, ci-static, ci-js, ci-build-gitops-image]
     strategy:
