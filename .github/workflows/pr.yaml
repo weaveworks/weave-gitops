@@ -142,20 +142,20 @@ jobs:
           name: ${{ matrix.docker-image }}
           path: /tmp/${{ matrix.docker-image }}.tar
 
-  ci-upload-images:
-    name: CI Upload Images
-    runs-on: ubuntu-latest
-    # Make sure we only upload images if tests etc have passed
-    needs: [ci-go, ci-static, ci-js, ci-build-gitops-image, ci-generate-tag]
-    permissions:
-      contents: 'read'
-      id-token: 'write'
-    if: github.event_name == 'push'
-    strategy:
-      matrix:
-        docker-image:
-          - gitops
-          - gitops-server
+#  ci-upload-images:
+#    name: CI Upload Images
+#    runs-on: ubuntu-latest
+#    # Make sure we only upload images if tests etc have passed
+#    needs: [ci-go, ci-static, ci-js, ci-build-gitops-image, ci-generate-tag]
+#    permissions:
+#      contents: 'read'
+#      id-token: 'write'
+#    if: github.event_name == 'push'
+#    strategy:
+#      matrix:
+#        docker-image:
+#          - gitops
+#          - gitops-server
     steps:
       - uses: docker/setup-buildx-action@f95db51fddba0c2d1ec667646a06c2ce06100226 # v3.0.0
       - uses: google-github-actions/setup-gcloud@e30db14379863a8c79331b04a9969f4c1e225e0b # v1.1.1
@@ -177,39 +177,39 @@ jobs:
           docker load --input /tmp/${{ matrix.docker-image }}.tar
           docker push "${{ env.CI_CONTAINER_REPOSITORY }}/${{ matrix.docker-image }}:${{ needs.ci-generate-tag.outputs.tag }}"
 
-  ci-upload-binary:
-    name: Upload Binary
-    runs-on: ${{matrix.os}}
-    needs: [ci-go, ci-static, ci-js, ci-build-gitops-image]
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macOS-latest]
-    if: github.event_name == 'push'
-    steps:
-    - name: Install Go
-      uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe # v4.1.0
-      with:
-        go-version: 1.23.X
-    - name: Checkout code
-      uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
-    - name: Clean
-      run: make clean
-    - id: gitsha
-      run: |
-        gitsha=$(git rev-parse --short ${{ github.sha }})
-        echo "::set-output name=sha::$gitsha"
-    - name: build
-      run: |
-        make gitops
-    - name: publish to s3
-      uses: aws-actions/configure-aws-credentials@8c3f20df09ac63af7b3ae3d7c91f105f857d8497 # v4.0.0
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: us-east-2
-    - run: |
-        aws s3 cp bin/gitops s3://weave-gitops/gitops-${{matrix.os}}-${{steps.gitsha.outputs.sha}}
-        aws s3 cp s3://weave-gitops/gitops-${{matrix.os}}-${{steps.gitsha.outputs.sha}} s3://weave-gitops/gitops-${{matrix.os}}
+#  ci-upload-binary:
+#    name: Upload Binary
+#    runs-on: ${{matrix.os}}
+#    needs: [ci-go, ci-static, ci-js, ci-build-gitops-image]
+#    strategy:
+#      matrix:
+#        os: [ubuntu-latest, macOS-latest]
+#    if: github.event_name == 'push'
+#    steps:
+#    - name: Install Go
+#      uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe # v4.1.0
+#      with:
+#        go-version: 1.23.X
+#    - name: Checkout code
+#      uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+#    - name: Clean
+#      run: make clean
+#    - id: gitsha
+#      run: |
+#        gitsha=$(git rev-parse --short ${{ github.sha }})
+#        echo "::set-output name=sha::$gitsha"
+#    - name: build
+#      run: |
+#        make gitops
+#    - name: publish to s3
+#      uses: aws-actions/configure-aws-credentials@8c3f20df09ac63af7b3ae3d7c91f105f857d8497 # v4.0.0
+#      with:
+#        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#        aws-region: us-east-2
+#    - run: |
+#        aws s3 cp bin/gitops s3://weave-gitops/gitops-${{matrix.os}}-${{steps.gitsha.outputs.sha}}
+#        aws s3 cp s3://weave-gitops/gitops-${{matrix.os}}-${{steps.gitsha.outputs.sha}} s3://weave-gitops/gitops-${{matrix.os}}
 
   ci-publish-js-lib:
     name: Publish js library
