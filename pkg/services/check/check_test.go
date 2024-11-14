@@ -1,40 +1,78 @@
-package check
+package check_test
 
 import (
-	"github.com/Masterminds/semver/v3"
+	"errors"
+	"testing"
 
-	. "github.com/onsi/ginkgo/v2"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/version"
+	fakediscovery "k8s.io/client-go/discovery/fake"
+	fakeclientset "k8s.io/client-go/kubernetes/fake"
+	kubetesting "k8s.io/client-go/testing"
+
 	. "github.com/onsi/gomega"
+	"github.com/weaveworks/weave-gitops/pkg/services/check"
 )
 
-var _ = Describe("Check kubernetes version", func() {
-	It("should show kuberetes is a valid version", func() {
-		version, err := semver.NewVersion("1.21.1")
-		Expect(err).ShouldNot(HaveOccurred())
+func TestKubernetesVersionWithError(t *testing.T) {
+	g := NewWithT(t)
 
-		output, err := checkKubernetesVersion(version)
-		Expect(err).ShouldNot(HaveOccurred())
-
-		Expect(output).To(Equal("✔ Kubernetes 1.21.1 >=1.20.6-0"))
+	expectedError := errors.New("an error occurred")
+	fakeClient := fakeclientset.NewSimpleClientset()
+	fakeClient.Discovery().(*fakediscovery.FakeDiscovery).PrependReactor("*", "*", func(action kubetesting.Action) (handled bool, ret runtime.Object, err error) {
+		return true, nil, expectedError
 	})
 
-	It("should fail with version does not match", func() {
-		version, err := semver.NewVersion("1.19.1")
-		Expect(err).ShouldNot(HaveOccurred())
+	res, err := check.KubernetesVersion(fakeClient.Discovery())
 
-		_, err = checkKubernetesVersion(version)
-		Expect(err.Error()).Should(Equal("✗ kubernetes version 1.19.1 does not match >=1.20.6-0"))
-	})
-})
+	g.Expect(err).To(MatchError(ContainSubstring(expectedError.Error())))
+	g.Expect(res).To(BeEmpty())
+}
 
-var _ = Describe("parse version", func() {
-	It("should parse version", func() {
-		expectedVersion, err := semver.NewVersion("1.21.1")
-		Expect(err).ShouldNot(HaveOccurred())
+func TestKubernetesVersion(t *testing.T) {
+	tests := []struct {
+		name          string
+		serverVersion string
+		expectedErr   string
+		expectedRes   string
+	}{
+		{
+			name:          "server version satisfies constraint",
+			serverVersion: "v1.28.4",
+			expectedRes:   `^✔ Kubernetes 1.28.4 >=1.`,
+		},
+		{
+			name:          "server version too low",
+			serverVersion: "v1.20.5",
+			expectedErr:   `✗ kubernetes version v1\.20\.5 does not match >=1\.`,
+		},
+		{
+			name:          "server version not semver compliant",
+			serverVersion: "1.x",
+			expectedErr:   `"1.x".*Invalid Semantic Version`,
+		},
+	}
 
-		output, err := parseVersion("Server Version: v1.21.1")
-		Expect(err).ShouldNot(HaveOccurred())
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			g := NewWithT(t)
+			client := fakeclientset.NewSimpleClientset()
+			fakeDiscovery, ok := client.Discovery().(*fakediscovery.FakeDiscovery)
+			if !ok {
+				t.Fatalf("couldn't convert Discovery() to *FakeDiscovery")
+			}
 
-		Expect(output).To(Equal(expectedVersion))
-	})
-})
+			fakeDiscovery.FakedServerVersion = &version.Info{
+				GitVersion: tt.serverVersion,
+			}
+
+			res, err := check.KubernetesVersion(client.Discovery())
+
+			if tt.expectedErr != "" {
+				g.Expect(err).To(MatchError(MatchRegexp(tt.expectedErr)))
+			}
+
+			g.Expect(res).To(MatchRegexp(tt.expectedRes))
+		})
+	}
+}

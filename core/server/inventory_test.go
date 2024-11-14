@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"testing"
 
-	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
+	helmv2 "github.com/fluxcd/helm-controller/api/v2beta2"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
@@ -19,6 +19,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/meta/testrestmapper"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
@@ -268,6 +269,96 @@ func TestGetInventoryHelmRelease(t *testing.T) {
 	}
 
 	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ns, helm1, secret, cm).Build()
+	cfg := makeServerConfig(client, t, "")
+	c := makeServer(cfg, t)
+
+	res, err := c.GetInventory(ctx, &pb.GetInventoryRequest{
+		Namespace:    ns.Name,
+		ClusterName:  cluster.DefaultCluster,
+		Kind:         "HelmRelease",
+		Name:         helm1.Name,
+		WithChildren: true,
+	})
+
+	g.Expect(err).NotTo(HaveOccurred())
+	g.Expect(res.Entries).To(HaveLen(1))
+}
+
+func TestGetInventoryHelmReleaseNoNSResources(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	scheme, err := kube.CreateScheme()
+	g.Expect(err).NotTo(HaveOccurred())
+
+	ctx := context.Background()
+
+	ns := &corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "test-namespace",
+		},
+	}
+	helm1 := &helmv2.HelmRelease{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "first-helm-name",
+			Namespace: ns.Name,
+		},
+		Spec: helmv2.HelmReleaseSpec{
+			TargetNamespace: "test-ns",
+		},
+		Status: helmv2.HelmReleaseStatus{
+			StorageNamespace:    ns.Name,
+			LastReleaseRevision: 0,
+			History: helmv2.Snapshots{
+				{
+					Name:      "first-helm-name",
+					Version:   1,
+					Namespace: "test-ns",
+				},
+			},
+		},
+	}
+
+	cm := &corev1.ConfigMap{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "ConfigMap",
+			APIVersion: "v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "config-map-without-ns",
+		},
+		Data: map[string]string{
+			"key": "value",
+		},
+	}
+
+	cmData, err := json.Marshal(cm)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	// The version in the helm release manifest manifest has no Namespace.
+	// This is set to the namespace from the History data.
+	cm.SetNamespace("test-ns")
+
+	// Create helm storage.
+	storage := types.HelmReleaseStorage{
+		Name:     "",
+		Manifest: string(cmData),
+	}
+
+	storageData, _ := json.Marshal(storage)
+
+	secret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "sh.helm.release.v1.first-helm-name.v1",
+			Namespace: helm1.GetStorageNamespace(),
+		},
+		Data: map[string][]byte{
+			"release": []byte(base64.StdEncoding.EncodeToString(storageData)),
+		},
+	}
+
+	client := fake.NewClientBuilder().WithScheme(scheme).
+		WithRESTMapper(testrestmapper.TestOnlyStaticRESTMapper(scheme)).
+		WithRuntimeObjects(ns, helm1, secret, cm).Build()
 	cfg := makeServerConfig(client, t, "")
 	c := makeServer(cfg, t)
 

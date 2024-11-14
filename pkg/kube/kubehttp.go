@@ -9,7 +9,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
+	helmv2 "github.com/fluxcd/helm-controller/api/v2beta2"
 	imgautomationv1 "github.com/fluxcd/image-automation-controller/api/v1beta1"
 	reflectorv1 "github.com/fluxcd/image-reflector-controller/api/v1beta2"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
@@ -25,11 +25,13 @@ import (
 	rbacv1 "k8s.io/api/rbac/v1"
 	extensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apiruntime "k8s.io/apimachinery/pkg/runtime"
+	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 )
 
 func CreateScheme() (*apiruntime.Scheme, error) {
 	scheme := apiruntime.NewScheme()
 	builder := apiruntime.SchemeBuilder{
+		clientgoscheme.AddToScheme,
 		sourcev1.AddToScheme,
 		sourcev1b2.AddToScheme,
 		kustomizev1.AddToScheme,

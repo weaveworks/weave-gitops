@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"testing"
 
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
@@ -12,6 +13,7 @@ import (
 	"github.com/weaveworks/weave-gitops/core/server"
 	coretypes "github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
+	"github.com/weaveworks/weave-gitops/pkg/featureflags"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"google.golang.org/grpc/metadata"
 	appsv1 "k8s.io/api/apps/v1"
@@ -352,9 +354,9 @@ func TestListFluxRuntimeObjects(t *testing.T) {
 			"flux namespace label, with controllers",
 			[]runtime.Object{
 				&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "flux-ns", Labels: map[string]string{
-					coretypes.PartOfLabel: server.FluxNamespacePartOf,
+					coretypes.PartOfLabel: server.Flux,
 				}}},
-				newDeployment("random-flux-controller", "flux-ns", map[string]string{coretypes.PartOfLabel: server.FluxNamespacePartOf}),
+				newDeployment("random-flux-controller", "flux-ns", map[string]string{coretypes.PartOfLabel: server.Flux}),
 				newDeployment("other-controller-in-flux-ns", "flux-ns", map[string]string{}),
 			},
 			func(res *pb.ListFluxRuntimeObjectsResponse) {
@@ -366,7 +368,7 @@ func TestListFluxRuntimeObjects(t *testing.T) {
 			"use flux-system namespace when no namespace label available",
 			[]runtime.Object{
 				&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "flux-system"}},
-				newDeployment("random-flux-controller", "flux-system", map[string]string{coretypes.PartOfLabel: server.FluxNamespacePartOf}),
+				newDeployment("random-flux-controller", "flux-system", map[string]string{coretypes.PartOfLabel: server.Flux}),
 				newDeployment("other-controller-in-flux-ns", "flux-system", map[string]string{}),
 			},
 			func(res *pb.ListFluxRuntimeObjectsResponse) {
@@ -386,6 +388,79 @@ func TestListFluxRuntimeObjects(t *testing.T) {
 			res, err := c.ListFluxRuntimeObjects(ctx, &pb.ListFluxRuntimeObjectsRequest{})
 			g.Expect(err).NotTo(HaveOccurred())
 
+			tt.assertions(res)
+		})
+	}
+}
+
+func TestListRuntimeObjects(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	ctx := context.Background()
+
+	tests := []struct {
+		description string
+		objects     []runtime.Object
+		assertions  func(*pb.ListRuntimeObjectsResponse)
+	}{
+		{
+			"no runtime",
+			[]runtime.Object{
+				&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "ns1"}},
+			},
+			func(res *pb.ListRuntimeObjectsResponse) {
+				g.Expect(res.Errors[0].Message).To(Equal(server.ErrFluxNamespaceNotFound.Error()))
+				g.Expect(res.Errors[0].Namespace).To(BeEmpty())
+				g.Expect(res.Errors[0].ClusterName).To(Equal(cluster.DefaultCluster))
+			},
+		},
+		{
+			"return weave gitops",
+			[]runtime.Object{
+				&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "flux-ns", Labels: map[string]string{
+					coretypes.PartOfLabel: server.Flux,
+				}}},
+				newDeployment("kustomize-controller", "flux-ns", map[string]string{coretypes.PartOfLabel: server.Flux}),
+				newDeployment("policy-agent", "flux-ns", map[string]string{coretypes.PartOfLabel: server.WeaveGitops}),
+				newDeployment("other-controller-in-flux-ns", "flux-ns", map[string]string{}),
+			},
+			func(res *pb.ListRuntimeObjectsResponse) {
+				g.Expect(res.Deployments).To(HaveLen(2), "expected deployments in the flux namespace to be returned")
+				g.Expect(res.Deployments[0].Name).To(Equal("kustomize-controller"))
+				g.Expect(res.Deployments[1].Name).To(Equal("policy-agent"))
+			},
+		},
+		{
+			"use flux-system namespace when no namespace label available",
+			[]runtime.Object{
+				&corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "flux-system"}},
+				newDeployment("kustomize-controller", "flux-system", map[string]string{coretypes.PartOfLabel: server.Flux}),
+				newDeployment("policy-agent", "flux-system", map[string]string{coretypes.PartOfLabel: server.WeaveGitops}),
+				newDeployment("other-controller-in-flux-ns", "flux-system", map[string]string{}),
+			},
+			func(res *pb.ListRuntimeObjectsResponse) {
+				g.Expect(res.Deployments).To(HaveLen(2), "expected deployments in the default flux namespace to be returned")
+				g.Expect(res.Deployments[0].Name).To(Equal("kustomize-controller"))
+				g.Expect(res.Deployments[1].Name).To(Equal("policy-agent"))
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.description, func(t *testing.T) {
+			_ = os.Setenv(server.GitopsRuntimeFeatureFlag, "true")
+			defer func() {
+				_ = os.Unsetenv(server.GitopsRuntimeFeatureFlag)
+			}()
+			featureflags.SetFromEnv(os.Environ())
+			scheme, err := kube.CreateScheme()
+			g.Expect(err).To(BeNil())
+			client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(tt.objects...).Build()
+			cfg := makeServerConfig(client, t, "")
+			c := makeServer(cfg, t)
+
+			res, err := c.ListRuntimeObjects(ctx, &pb.ListRuntimeObjectsRequest{})
+
+			g.Expect(err).NotTo(HaveOccurred())
 			tt.assertions(res)
 		})
 	}
@@ -462,4 +537,55 @@ func TestListFluxCrds(t *testing.T) {
 	g.Expect(first.Kind).To(Equal("kind"))
 	g.Expect(first.ClusterName).To(Equal(cluster.DefaultCluster))
 	g.Expect(res.Crds[1].Version).To(Equal("1"))
+}
+
+func TestListRuntimeCrds(t *testing.T) {
+	g := NewGomegaWithT(t)
+	ctx := context.Background()
+
+	tests := []struct {
+		description string
+		objects     []runtime.Object
+		assertions  func(*pb.ListRuntimeCrdsResponse)
+	}{
+		{
+			"return weave gitops runtime crds",
+			[]runtime.Object{
+				&apiextensions.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{
+					Name:   "helmrelease",
+					Labels: map[string]string{coretypes.PartOfLabel: server.Flux},
+				}, Spec: apiextensions.CustomResourceDefinitionSpec{
+					Group:    "group",
+					Names:    apiextensions.CustomResourceDefinitionNames{Plural: "helmreleases", Kind: "kind"},
+					Versions: []apiextensions.CustomResourceDefinitionVersion{},
+				}},
+				&apiextensions.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{
+					Name:   "policy",
+					Labels: map[string]string{coretypes.PartOfLabel: server.WeaveGitops},
+				}, Spec: apiextensions.CustomResourceDefinitionSpec{
+					Group:    "group",
+					Names:    apiextensions.CustomResourceDefinitionNames{Plural: "policies", Kind: "kind"},
+					Versions: []apiextensions.CustomResourceDefinitionVersion{}}},
+			},
+			func(res *pb.ListRuntimeCrdsResponse) {
+				g.Expect(res.Crds).To(HaveLen(2))
+				g.Expect(res.Crds[0].GetName().Plural).To(Equal("helmreleases"))
+				g.Expect(res.Crds[1].GetName().Plural).To(Equal("policies"))
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.description, func(t *testing.T) {
+			scheme, err := kube.CreateScheme()
+			g.Expect(err).To(BeNil())
+			client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(tt.objects...).Build()
+			cfg := makeServerConfig(client, t, "")
+			c := makeServer(cfg, t)
+
+			res, err := c.ListRuntimeCrds(ctx, &pb.ListRuntimeCrdsRequest{})
+			g.Expect(err).NotTo(HaveOccurred())
+
+			tt.assertions(res)
+		})
+	}
 }

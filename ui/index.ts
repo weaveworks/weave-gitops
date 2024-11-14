@@ -97,6 +97,8 @@ import { useFeatureFlags } from "./hooks/featureflags";
 import {
   useListFluxCrds,
   useListFluxRuntimeObjects,
+  useListRuntimeObjects,
+  useListRuntimeCrds,
   useToggleSuspend,
 } from "./hooks/flux";
 import { useCheckCRDInstalled } from "./hooks/imageautomation";
@@ -139,6 +141,7 @@ import {
   withBasePath,
 } from "./lib/utils";
 import SignIn from "./pages/SignIn";
+import Runtime from "./pages/v2/Runtime";
 
 export {
   Alert,
@@ -170,6 +173,7 @@ export {
   FluxObject,
   FluxObjectsTable,
   FluxRuntime,
+  Runtime,
   Footer,
   GitRepository,
   GitRepositoryDetail,
@@ -279,6 +283,8 @@ export {
   useListEvents,
   useListFluxCrds,
   useListFluxRuntimeObjects,
+  useListRuntimeCrds,
+  useListRuntimeObjects,
   useListObjects,
   useListProviders,
   useListSources,

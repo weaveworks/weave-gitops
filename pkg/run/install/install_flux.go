@@ -26,6 +26,7 @@ import (
 // 3. Add the new mapping to the map below
 // 4. Don't forget to *remove the oldest mapping* from the map below
 var sourceVerToFluxVer = map[string]string{
+	"v1.2.2":      "v2.1.2",
 	"v1.0.1":      "v2.0.1",
 	"v1.0.0":      "v2.0.0",
 	"v1.0.0-rc.5": "v2.0.0-rc.5",
@@ -70,12 +71,12 @@ func GetFluxVersion(ctx context.Context, log logger.Logger, kubeClient client.Cl
 	if err := kubeClient.List(ctx, &namespaceList, listOptions); err != nil {
 		log.Failuref("error getting the list of Flux objects")
 		return nil, false, err
-	} else {
-		for _, item := range namespaceList.Items {
-			if item.GetLabels()[coretypes.VersionLabel] != "" {
-				foundNamespace = item
-				break
-			}
+	}
+
+	for _, item := range namespaceList.Items {
+		if item.GetLabels()[coretypes.VersionLabel] != "" {
+			foundNamespace = item
+			break
 		}
 	}
 
