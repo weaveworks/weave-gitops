@@ -1,0 +1,14 @@
+apiVersion: apps.example.com/v1
+kind: Application
+metadata:
+  generation: 1
+  name: my-app
+spec:
+  image: my-app:v1.2.3
+status:
+  conditions:
+    - message: "Available: 0/1"
+      reason: LessAvailable
+      status: "True"
+      type: Reconciling
+  observedGeneration: 1
