@@ -149,11 +149,33 @@ If you make a mistake configuring one of the resources, you can use WeGO to easi
 
 ## The Flux Runtime View
 
-Let's go back to the left-hand menu of the UI and click on `Flux Runtime`. This view provides information on the GitOps engine, which continuously reconciles your desired and live state, and helps users to know which apiVersion to use in manifests. It comes with two tabs: one for controllers, and other for custom resource definitions (CRDs).
+Let's go back to the left-hand menu of the UI and click on `Flux Runtime`. This view provides information on the GitOps engine,
+which continuously reconciles your desired and live state, and helps users to know which apiVersion to use in manifests.
 
-#### Controllers
+:::tip Beyond Flux Runtime
 
-The Controllers tab shows your installed [GitOps Toolkit Controllers](https://fluxcd.io/flux/components/) and their version.
+Enable the feature flag [`WEAVE_GITOPS_FEATURE_GITOPS_RUNTIME`](../../references/helm-reference.md) if you want to expand Flux Runtime UI with the ability to
+view other Weave GitOps Runtime Components like Policy Agent or TF-Controller
+
+![Runtime view showing Terraform CRDs](/img/dashboard-flux-runtime-terraform-crds.png)
+
+:::
+
+It comes with three tabs:
+
+1. [Flux Versions](#flux-versions) that summarizes the versions of Flux running in your cluster.
+2. [Controllers](#controllers): that shows your installed [GitOps Toolkit Controllers](https://fluxcd.io/flux/components/) and their versions.
+3. [CRDs](#crds): that shows your installed [GitOps Toolkit Custom Resources Definitions](https://fluxcd.io/flux/components/) and their versions.
+
+### Flux Versions
+
+The Flux Versions tab shows your installed [Flux Versions](https://github.com/fluxcd/flux2/releases).
+
+![Flux Runtime view showing the various GitOps Toolkit controllers](/img/dashboard-flux-runtime-versions.png)
+
+### Controllers
+
+The Controllers tab shows your installed [GitOps Toolkit Controllers](https://fluxcd.io/flux/components/) and their versions.
 
 ![Flux Runtime view showing the various GitOps Toolkit controllers](/img/dashboard-flux-runtime.png)
 
@@ -165,11 +187,12 @@ By default, `flux bootstrap` will install the following controllers:
 
 From this view you can see whether the controllers are healthy and which version of a given component is currently deployed.
 
-#### CRDs
+### CRDs
 
 The CRD tab lists the custom resources that the GitOps Toolkit Controllers use. This allows you to see which resources you will be able to create.
 
 ![Flux Runtime view showing the various GitOps Toolkit controllers](/img/dashboard-flux-runtime-crd.png)
+
 
 ## Moving On
 

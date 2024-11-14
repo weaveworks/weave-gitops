@@ -142,7 +142,7 @@ brew install weaveworks/tap/gitops
 </TabItem>
 </Tabs>
 
-### Deploy Weave GitOps
+## Install Weave GitOps
 
 In this section we will:
 
@@ -222,6 +222,56 @@ If you wait for a while and still nothing happens, it might be that your manifes
 You can use the Weave GitOps Helm Chart to customize your installation.
 Find the full Chart reference [here](../../references/helm-reference.md).
 :::
+
+## Supercharge your Weave GitOps
+
+You could optionally unlock more from Weave GitOps by installing other components:
+
+- [Policy Agent:](../../../policy/intro/) for policy enforcement. Use the Flux Manifests [Here](https://raw.githubusercontent.com/weaveworks/tf-controller/main/docs/release.yaml).
+- [Tf-Controller:](../../../terraform/terraform-intro/) for infrastructure management. Use the Flux Manifests [Here](https://raw.githubusercontent.com/weaveworks/policy-agent/dev/docs/examples/policy-agent-helmrelease.yaml)
+
+### View them in the UI
+
+1. Enable the feature flag [WEAVE_GITOPS_FEATURE_GITOPS_RUNTIME](../../references/helm-reference.md).
+2. Leverage [Flux Post-Rendering](https://fluxcd.io/flux/components/helm/helmreleases/#post-renderers) to label Deployments and CRDs with  `app.kubernetes.io/part-of: weave-gitops`
+
+
+<details><summary>Expand to see a simplified example for TF-controller</summary>
+
+```yaml
+apiVersion: helm.toolkit.fluxcd.io/v2beta2
+kind: HelmRelease
+metadata:
+  name: tf-controller
+  namespace: flux-system
+spec:
+  # ... omitted for simplicity
+  interval: 1h0s
+  postRenderers:
+  - kustomize:
+      patchesStrategicMerge:
+      - apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          labels:
+            app.kubernetes.io/part-of: weave-gitops
+          name: tf-controller
+      - apiVersion: apiextensions.k8s.io/v1
+        kind: CustomResourceDefinition
+        metadata:
+          labels:
+            app.kubernetes.io/part-of: weave-gitops
+          name: terraforms.infra.contrib.fluxcd.io
+```
+
+Deploy it and see controllers and CRDs in the UI:
+
+![Runtime view showing Terraform CRDs](/img/dashboard-flux-runtime-terraform-crds.png)
+:::
+
+
+</details>
+
 
 ## Next steps
 

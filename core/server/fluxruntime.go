@@ -19,7 +19,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
+	helmv2 "github.com/fluxcd/helm-controller/api/v2beta2"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
@@ -28,7 +28,9 @@ import (
 )
 
 const (
-	FluxNamespacePartOf = "flux"
+	Flux                     = "flux"
+	WeaveGitops              = "weave-gitops"
+	GitopsRuntimeFeatureFlag = "WEAVE_GITOPS_FEATURE_GITOPS_RUNTIME"
 )
 
 var (
@@ -45,6 +47,14 @@ var (
 	DefaultFluxNamespace = lookupEnv("WEAVE_GITOPS_FALLBACK_NAMESPACE", "flux-system")
 )
 
+var FluxRuntimeLabels = []string{
+	Flux,
+}
+
+var WeaveGitopsRuntimeLabels = []string{
+	Flux, WeaveGitops,
+}
+
 func lookupEnv(envVar, fallback string) string {
 	if val, ok := os.LookupEnv(envVar); ok {
 		return val
@@ -56,6 +66,20 @@ func lookupEnv(envVar, fallback string) string {
 func (cs *coreServer) ListFluxRuntimeObjects(ctx context.Context, msg *pb.ListFluxRuntimeObjectsRequest) (*pb.ListFluxRuntimeObjectsResponse, error) {
 	respErrors := []*pb.ListError{}
 
+	respErrors, results := listRuntimeObjectsByLabels(ctx, cs, respErrors, FluxRuntimeLabels)
+
+	return &pb.ListFluxRuntimeObjectsResponse{Deployments: results, Errors: respErrors}, nil
+}
+
+func (cs *coreServer) ListRuntimeObjects(ctx context.Context, msg *pb.ListRuntimeObjectsRequest) (*pb.ListRuntimeObjectsResponse, error) {
+	respErrors := []*pb.ListError{}
+
+	respErrors, results := listRuntimeObjectsByLabels(ctx, cs, respErrors, WeaveGitopsRuntimeLabels)
+
+	return &pb.ListRuntimeObjectsResponse{Deployments: results, Errors: respErrors}, nil
+}
+
+func listRuntimeObjectsByLabels(ctx context.Context, cs *coreServer, respErrors []*pb.ListError, labels []string) ([]*pb.ListError, []*pb.Deployment) {
 	clustersClient, err := cs.clustersManager.GetImpersonatedClient(ctx, auth.Principal(ctx))
 	if err != nil {
 		if merr, ok := err.(*multierror.Error); ok {
@@ -69,60 +93,79 @@ func (cs *coreServer) ListFluxRuntimeObjects(ctx context.Context, msg *pb.ListFl
 
 	var results []*pb.Deployment
 
-	for clusterName, nss := range cs.clustersManager.GetClustersNamespaces() {
-		fluxNamepsaces := filterFluxNamespace(nss)
-		if len(fluxNamepsaces) == 0 {
-			respErrors = append(respErrors, &pb.ListError{ClusterName: clusterName, Namespace: "", Message: ErrFluxNamespaceNotFound.Error()})
-			continue
-		}
-
-		opts := client.MatchingLabels{
-			coretypes.PartOfLabel: FluxNamespacePartOf,
-		}
-
-		list := &appsv1.DeploymentList{}
-
-		for _, fluxNs := range fluxNamepsaces {
-			if err := clustersClient.List(ctx, clusterName, list, opts, client.InNamespace(fluxNs.Name)); err != nil {
-				respErrors = append(respErrors, &pb.ListError{ClusterName: clusterName, Namespace: fluxNs.Name, Message: fmt.Sprintf("%s, %s", ErrListingDeployments.Error(), err)})
+	for _, runtimeLabel := range labels {
+		for clusterName, nss := range cs.clustersManager.GetClustersNamespaces() {
+			fluxNamespaces := filterFluxNamespace(nss)
+			if len(fluxNamespaces) == 0 {
+				respErrors = append(respErrors, &pb.ListError{ClusterName: clusterName, Namespace: "", Message: ErrFluxNamespaceNotFound.Error()})
 				continue
 			}
 
-			for _, d := range list.Items {
-				r := &pb.Deployment{
-					Name:        d.Name,
-					Namespace:   d.Namespace,
-					Conditions:  []*pb.Condition{},
-					ClusterName: clusterName,
-					Uid:         string(d.GetUID()),
-					Labels:      d.Labels,
+			opts := client.MatchingLabels{
+				coretypes.PartOfLabel: runtimeLabel,
+			}
+
+			deploymentList := &appsv1.DeploymentList{}
+
+			for _, fluxNs := range fluxNamespaces {
+				if err := clustersClient.List(ctx, clusterName, deploymentList, opts, client.InNamespace(fluxNs.Name)); err != nil {
+					respErrors = append(respErrors, &pb.ListError{ClusterName: clusterName, Namespace: fluxNs.Name, Message: fmt.Sprintf("%s, %s", ErrListingDeployments.Error(), err)})
+					continue
 				}
 
-				for _, cond := range d.Status.Conditions {
-					r.Conditions = append(r.Conditions, &pb.Condition{
-						Message: cond.Message,
-						Reason:  cond.Reason,
-						Status:  string(cond.Status),
-						Type:    string(cond.Type),
-					})
-				}
+				for _, d := range deploymentList.Items {
+					r := &pb.Deployment{
+						Name:        d.Name,
+						Namespace:   d.Namespace,
+						Conditions:  []*pb.Condition{},
+						ClusterName: clusterName,
+						Uid:         string(d.GetUID()),
+						Labels:      d.Labels,
+					}
 
-				for _, img := range d.Spec.Template.Spec.Containers {
-					r.Images = append(r.Images, img.Image)
-				}
+					for _, cond := range d.Status.Conditions {
+						r.Conditions = append(r.Conditions, &pb.Condition{
+							Message: cond.Message,
+							Reason:  cond.Reason,
+							Status:  string(cond.Status),
+							Type:    string(cond.Type),
+						})
+					}
 
-				results = append(results, r)
+					for _, img := range d.Spec.Template.Spec.Containers {
+						r.Images = append(r.Images, img.Image)
+					}
+
+					results = append(results, r)
+				}
 			}
 		}
 	}
-
-	return &pb.ListFluxRuntimeObjectsResponse{Deployments: results, Errors: respErrors}, nil
+	return respErrors, results
 }
 
 func (cs *coreServer) ListFluxCrds(ctx context.Context, msg *pb.ListFluxCrdsRequest) (*pb.ListFluxCrdsResponse, error) {
+	respErrors, results, err2 := listRuntimeCrdsByLabel(ctx, cs, FluxRuntimeLabels)
+	if err2 != nil {
+		return nil, err2
+	}
+
+	return &pb.ListFluxCrdsResponse{Crds: results, Errors: respErrors}, nil
+}
+
+func (cs *coreServer) ListRuntimeCrds(ctx context.Context, msg *pb.ListRuntimeCrdsRequest) (*pb.ListRuntimeCrdsResponse, error) {
+	respErrors, results, err2 := listRuntimeCrdsByLabel(ctx, cs, WeaveGitopsRuntimeLabels)
+	if err2 != nil {
+		return nil, err2
+	}
+
+	return &pb.ListRuntimeCrdsResponse{Crds: results, Errors: respErrors}, nil
+}
+
+func listRuntimeCrdsByLabel(ctx context.Context, cs *coreServer, labels []string) ([]*pb.ListError, []*pb.Crd, error) {
 	clustersClient, err := cs.clustersManager.GetImpersonatedClient(ctx, auth.Principal(ctx))
 	if err != nil {
-		return nil, fmt.Errorf("error getting impersonating client: %w", err)
+		return nil, nil, fmt.Errorf("error getting impersonating client: %w", err)
 	}
 
 	clist := clustersmngr.NewClusteredList(func() client.ObjectList {
@@ -131,22 +174,23 @@ func (cs *coreServer) ListFluxCrds(ctx context.Context, msg *pb.ListFluxCrdsRequ
 
 	respErrors := []*pb.ListError{}
 
-	opts := client.MatchingLabels{
-		coretypes.PartOfLabel: FluxNamespacePartOf,
-	}
-
-	if err := clustersClient.ClusteredList(ctx, clist, false, opts); err != nil {
-		var errs clustersmngr.ClusteredListError
-
-		if !errors.As(err, &errs) {
-			return nil, fmt.Errorf("CRDs clustered list: %w", errs)
+	for _, runtimeLabel := range labels {
+		opts := client.MatchingLabels{
+			coretypes.PartOfLabel: runtimeLabel,
 		}
+		if err := clustersClient.ClusteredList(ctx, clist, false, opts); err != nil {
+			var errs clustersmngr.ClusteredListError
 
-		for _, e := range errs.Errors {
-			respErrors = append(respErrors, &pb.ListError{
-				ClusterName: e.Cluster,
-				Message:     e.Err.Error(),
-			})
+			if !errors.As(err, &errs) {
+				return nil, nil, fmt.Errorf("CRDs clustered list: %w", errs)
+			}
+
+			for _, e := range errs.Errors {
+				respErrors = append(respErrors, &pb.ListError{
+					ClusterName: e.Cluster,
+					Message:     e.Err.Error(),
+				})
+			}
 		}
 	}
 
@@ -185,15 +229,14 @@ func (cs *coreServer) ListFluxCrds(ctx context.Context, msg *pb.ListFluxCrdsRequ
 			}
 		}
 	}
-
-	return &pb.ListFluxCrdsResponse{Crds: results, Errors: respErrors}, nil
+	return respErrors, results, nil
 }
 
 func filterFluxNamespace(nss []v1.Namespace) []v1.Namespace {
 	fluxSystem := []v1.Namespace{}
 
 	for _, ns := range nss {
-		if val, ok := ns.Labels[coretypes.PartOfLabel]; ok && val == FluxNamespacePartOf {
+		if val, ok := ns.Labels[coretypes.PartOfLabel]; ok && val == Flux {
 			fluxSystem = append(fluxSystem, ns)
 			continue
 		}

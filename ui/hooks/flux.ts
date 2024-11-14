@@ -4,6 +4,7 @@ import { CoreClientContext } from "../contexts/CoreClientContext";
 import {
   ListFluxCrdsResponse,
   ListFluxRuntimeObjectsResponse,
+  ListRuntimeObjectsResponse,
   ToggleSuspendResourceRequest,
   ToggleSuspendResourceResponse,
 } from "../lib/api/core/core.pb";
@@ -40,6 +41,33 @@ export function useListFluxCrds(clusterName = DefaultCluster) {
   return useQuery<ListFluxCrdsResponse, RequestError>(
     "flux_crds",
     () => api.ListFluxCrds({ clusterName }),
+    { retry: false, refetchInterval: 5000 }
+  );
+}
+
+export function useListRuntimeObjects(
+  clusterName = DefaultCluster,
+  namespace = NoNamespace,
+  opts: ReactQueryOptions<ListRuntimeObjectsResponse, RequestError> = {
+    retry: false,
+    refetchInterval: 5000,
+  }
+) {
+  const { api } = useContext(CoreClientContext);
+
+  return useQuery<ListRuntimeObjectsResponse, RequestError>(
+    "runtime_objects",
+    () => api.ListRuntimeObjects({ namespace, clusterName }),
+    opts
+  );
+}
+
+export function useListRuntimeCrds(clusterName = DefaultCluster) {
+  const { api } = useContext(CoreClientContext);
+
+  return useQuery<ListFluxCrdsResponse, RequestError>(
+    "runtime_crds",
+    () => api.ListRuntimeCrds({ clusterName }),
     { retry: false, refetchInterval: 5000 }
   );
 }

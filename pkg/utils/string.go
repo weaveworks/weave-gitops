@@ -15,10 +15,10 @@ const (
 // GenerateRandomString will create a new random string with alphanumeric characters.
 // The length can also vary by using the min and max parameters. To have a consistent length
 // such as 11, you would pass (11, 12) for the min and max respectively
-func GenerateRandomString(min, max int) (string, error) {
+func GenerateRandomString(minLen, maxLen int) (string, error) {
 	mrand.New(mrand.NewSource(time.Now().UnixNano()))
 
-	length := randInt(min, max)
+	length := randInt(minLen, maxLen)
 	value := make([]byte, length)
 
 	for i := 0; i < length; i++ {
@@ -33,6 +33,6 @@ func GenerateRandomString(min, max int) (string, error) {
 	return string(value), nil
 }
 
-func randInt(min, max int) int {
-	return min + mrand.Intn(max-min)
+func randInt(minVal, maxVal int) int {
+	return minVal + mrand.Intn(maxVal-minVal)
 }
