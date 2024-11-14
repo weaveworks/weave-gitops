@@ -42,13 +42,14 @@ func TestMain(m *testing.M) {
 	})
 
 	if err != nil {
-		panic(err)
+		fmt.Fprintf(os.Stderr, "Failed to start test environment: %v\n", err)
+		os.Exit(1)
 	}
 
 	code := m.Run()
-
-	k8sEnv.Stop()
-
+	if k8sEnv != nil {
+		k8sEnv.Stop() // No return value to handle here
+	}
 	os.Exit(code)
 }
 
@@ -62,12 +63,12 @@ func makeGRPCServer(cfg *rest.Config, t *testing.T) pb.CoreClient {
 
 	scheme, err := kube.CreateScheme()
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("Failed to create scheme: %v", err)
 	}
 
 	cluster, err := cluster.NewSingleCluster("Default", k8sEnv.Rest, scheme, kube.UserPrefixes{})
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("Failed to create cluster: %v", err)
 	}
 
 	fetch := fetcher.NewSingleClusterFetcher(cluster)
@@ -77,7 +78,7 @@ func makeGRPCServer(cfg *rest.Config, t *testing.T) pb.CoreClient {
 	clustersManager := clustersmngr.NewClustersManager([]clustersmngr.ClusterFetcher{fetch}, &nsChecker, log)
 	coreCfg, err := server.NewCoreConfig(log, cfg, "foobar", clustersManager, hc)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("Failed to create CoreConfig: %v", err)
 	}
 
 	coreCfg.NSAccess = &nsChecker
@@ -85,7 +86,7 @@ func makeGRPCServer(cfg *rest.Config, t *testing.T) pb.CoreClient {
 
 	core, err := server.NewCoreServer(coreCfg)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("Failed to create CoreServer: %v", err)
 	}
 
 	lis := bufconn.Listen(1024 * 1024)
@@ -102,18 +103,18 @@ func makeGRPCServer(cfg *rest.Config, t *testing.T) pb.CoreClient {
 
 	go func(tt *testing.T) {
 		if err := s.Serve(lis); err != nil {
-			tt.Error(err)
+			tt.Errorf("Failed to serve: %v", err)
 		}
 	}(t)
 
-	conn, err := grpc.DialContext(
-		context.Background(),
+	//nolint:staticcheck // Ignore SA1019 deprecation warning for grpc.Dial
+	conn, err := grpc.Dial(
 		"bufnet",
 		grpc.WithContextDialer(dialer),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("Failed to dial bufnet: %v", err)
 	}
 
 	t.Cleanup(func() {
@@ -136,10 +137,10 @@ const (
 func withClientsPoolInterceptor(clustersManager clustersmngr.ClustersManager) grpc.ServerOption {
 	return grpc.UnaryInterceptor(func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		if err := clustersManager.UpdateClusters(ctx); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to update clusters: %w", err)
 		}
 		if err := clustersManager.UpdateNamespaces(ctx); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to update namespaces: %w", err)
 		}
 
 		md, ok := metadata.FromIncomingContext(ctx)
@@ -191,7 +192,7 @@ func makeServerConfig(fakeClient client.Client, t *testing.T, clusterName string
 
 	coreCfg, err := server.NewCoreConfig(log, &rest.Config{}, "foobar", clustersManager, hc)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("Failed to create CoreServerConfig: %v", err)
 	}
 
 	coreCfg.NSAccess = &nsChecker
@@ -202,7 +203,7 @@ func makeServerConfig(fakeClient client.Client, t *testing.T, clusterName string
 func makeServer(cfg server.CoreServerConfig, t *testing.T) pb.CoreClient {
 	core, err := server.NewCoreServer(cfg)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("Failed to create CoreServer: %v", err)
 	}
 
 	lis := bufconn.Listen(1024 * 1024)
@@ -213,25 +214,13 @@ func makeServer(cfg server.CoreServerConfig, t *testing.T) pb.CoreClient {
 
 	pb.RegisterCoreServer(s, core)
 
-	dialer := func(context.Context, string) (net.Conn, error) {
-		return lis.Dial()
-	}
-
 	go func(tt *testing.T) {
 		if err := s.Serve(lis); err != nil {
-			tt.Error(err)
+			tt.Errorf("Failed to serve: %v", err)
 		}
 	}(t)
 
-	conn, err := grpc.DialContext(
-		context.Background(),
-		"bufnet",
-		grpc.WithContextDialer(dialer),
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
+	conn := dialBufnet(t, lis)
 
 	t.Cleanup(func() {
 		s.GracefulStop()
@@ -239,4 +228,21 @@ func makeServer(cfg server.CoreServerConfig, t *testing.T) pb.CoreClient {
 	})
 
 	return pb.NewCoreClient(conn)
+}
+
+func dialBufnet(t *testing.T, lis *bufconn.Listener) *grpc.ClientConn {
+	dialer := func(context.Context, string) (net.Conn, error) {
+		return lis.Dial()
+	}
+
+	//nolint:staticcheck // Ignore SA1019 deprecation warning for grpc.Dial
+	conn, err := grpc.Dial(
+		"bufnet", // The address is ignored when using WithContextDialer
+		grpc.WithContextDialer(dialer),
+		grpc.WithTransportCredentials(insecure.NewCredentials()), // Insecure for testing
+	)
+	if err != nil {
+		t.Fatalf("Failed to dial bufnet: %v", err)
+	}
+	return conn
 }

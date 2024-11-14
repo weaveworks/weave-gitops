@@ -1,13 +1,14 @@
 package terraform
 
 import (
+	"os"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/weaveworks/tf-controller/tfctl"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	"github.com/weaveworks/weave-gitops/pkg/run"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
-	"os"
 )
 
 var kubeConfigArgs *genericclioptions.ConfigFlags
@@ -38,14 +39,9 @@ gitops delete terraform -n default my-resource
 			kubeConfigArgs.Namespace = &namespace
 			kubeConfigArgs.Context = &context
 
-			cfg, err := kubeConfigArgs.ToRESTConfig()
-			if err != nil {
-				return err
-			}
-
 			v := viper.New()
 			v.Set("namespace", namespace)
-			if err := app.Init(cfg, v); err != nil {
+			if err := app.Init(kubeConfigArgs, v); err != nil {
 				return err
 			}
 

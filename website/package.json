@@ -34,7 +34,7 @@
     "swagger-ui-react": "^5.9.0",
     "trim": "^1.0.1",
     "url-loader": "^4.1.1",
-    "webpack": "^5.76.0"
+    "webpack": "^5.94.0"
   },
   "browserslist": {
     "production": [

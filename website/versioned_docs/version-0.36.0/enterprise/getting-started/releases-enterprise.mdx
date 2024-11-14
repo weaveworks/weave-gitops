@@ -10,17 +10,214 @@ import TierLabel from "../../_components/TierLabel";
 This page details the changes for Weave GitOps Enterprise and its associated components. For Weave GitOps OSS, please see the release notes on [GitHub](https://github.com/weaveworks/weave-gitops/releases).
 :::
 
+
+## v0.36.0
+2023-11-10
+
+### Highlights
+
+#### UI
+
+- New standardised sync/suspend/resume buttons across the UI
+- Dark mode fixes
+- Explorer gets support for filtering certain labels!
+- Explorer uses exact matching strategy for queries.
+
+
+### Dependency versions
+- Flux > v2.0.0
+- weave-gitops v0.36.0
+- cluster-controller v1.5.2
+- cluster-bootstrap-controller v0.7.1
+- (optional) pipeline-controller v0.21.0
+- (optional) policy-agent v2.5.0
+- (optional) gitopssets-controller v0.16.4
+
+
+## v0.35.0
+2023-10-28
+
+### Highlights
+
+#### Improvements to Pipelines UI
+
+Our Pipelines view is getting an overhaul as part of fundamental changes to make this feature simpler to use and more powerful. In this release, we’ve made the current app version prompt clearer about what it is showing. We’ve added summary boxes to environments in order to show how many targets have successfully updated. We’ve made it easier to find information about the promotion strategy used in an environment, so that users can better understand what's happening in that environment. Lastly, we better display the promotion strategy used in an environment.
+
+#### New feature
+
+You can now _disconnect_ `GitopsClusters` which involves removing the resources that were added when _connecting_ them.
+
+The command mirrors the `gitops connect cluster` command in functionality.
+
+Instructions are available in the CLI:
+
+```console
+gitops disconnect cluster --help
+```
+
+### ⚠ Breaking Changes
+
+#### Explorer Configuration
+
+We have changed the way the `explorer` feature is enabled. It is now possible to enable or disable `explorer` on different parts of the application. Previously, there was a global toggle set in the Helm Chart values called `enableExplorer`. This flag has been replaced by two keys: `explorer.enabled` and `explorer.enabledFor`:
+
+```yaml
+explorer:
+  enabled: true # global enable/disable flag
+  # ...
+  enabledFor: # list of components that can be enabled or disabled
+    - applications
+    - sources
+    - gitopssets
+    - templates
+  ```
+Adding or removing items from this list will control which parts of the UI utilize the explorer backend.
+
+The current values that are supported for this key:
+```yaml
+    - applications
+    - sources
+    - gitopssets
+    - templates
+ ```
+See this section of the docs for more info: https://docs.gitops.weave.works/docs/explorer/getting-started/
+
+#### Monitoring Configuration
+
+We have updated configuration values embedding `metrics` under `monitoring`. In case you
+have disabled metrics in your helm release values previously by setting:
+```
+metrics:
+  enabled: false
+```
+You should update it to have he same behavior
+```
+monitoring:
+  enabled: false
+```
+
+Please review [monitoring](https://docs.gitops.weave.works/docs/operations/monitoring/) for more info.
+
+### Dependency versions
+- Flux > v2.0.0
+- weave-gitops v0.35.0
+- cluster-controller v1.5.2
+- cluster-bootstrap-controller v0.7.1
+- (optional) pipeline-controller v0.21.0
+- (optional) policy-agent v2.5.0
+- (optional) gitopssets-controller v0.16.2
+
+
+## v0.34.1
+2023-10-13
+
+### Highlights
+
+This is a patch release to [v0.34.0](https://github.com/weaveworks/weave-gitops-enterprise/releases/tag/v0.34.0) with the following fixes:
+
+- PR: #3479 - fixes cli bootstrap command description
+
+### Dependency versions
+- Flux > v2.0.0
+- weave-gitops v0.34.0
+- cluster-controller v1.5.2
+- cluster-bootstrap-controller v0.7.1
+- (optional) pipeline-controller v0.21.0
+- (optional) policy-agent v2.5.0
+- (optional) gitopssets-controller v0.16.2
+
+## v0.34.0
+2023-10-12
+
+### Highlights
+
+#### WGE Bootstrap CLI - Initial Setup
+We are introducing a new command line `gitops-ee bootstrap` which will make installing Weave GitOps Enterprise much easier. The Bootstrap CLI will offer a wizard-like experience that will guide the users until they access WGE dashboards. This release contains the following functionality to provide the initial setup for WGE.
+
+- Verify Entitlement and flux installation
+- Configure admin login
+- Set up external DNS to host our dashboards.
+
+We will be building on this experience and making it more feature-rich in the following releases.
+
+#### Explorer | GitOpsSets & Templates implementation
+We are expanding on the usage of the explorer service to be included in other product areas like GitOpsSets and Templates UI to be able to enhance the performance of loading the data and improve the user experience.
+
+#### UI Enhancements
+We have several UI improvements going out in this release, including the use of ImageAutomation components from OSS, standardizing the column names in Events tabs, and improving the Pipelines manual promotion button.
+
+### Dependency versions
+- Flux > v2.0.0
+- weave-gitops v0.34.0
+- cluster-controller v1.5.2
+- cluster-bootstrap-controller v0.7.1
+- (optional) pipeline-controller v0.21.0
+- (optional) policy-agent v2.5.0
+- (optional) gitopssets-controller v0.16.2
+
+## v0.33.0
+2023-09-28
+
+### Highlights
+
+#### UI
+
+- Templates are now included in the Explorer for seeing more of your resources in a single pane of glass view.
+- New icon design and tweaks to the Nav bar
+
+### Dependency versions
+
+- Flux > v2.0.0
+- weave-gitops v0.33.0
+- cluster-controller v1.5.2
+- cluster-bootstrap-controller v0.7.1
+- (optional) pipeline-controller v0.21.0
+- (optional) policy-agent v2.5.0
+- (optional) gitopssets-controller v0.16.2
+
+
+## v0.32.1
+2023-09-15
+
+### Highlights
+
+#### Cluster Management
+
+- New connect cluster cmd to gitops to enable using the connector pkg to connect a remote cluster to a cluster.
+- It’s now possible to use the existing cluster role instead of creating a new one for a service account, which reduces resource creation.
+- Cleaning up of the gitops-server API continues apace in preparation for publication of the API documentation and OpenAPI spec.
+
+#### UI Improvements
+
+- GitOpsSets added to Explorer filters in the WGE UI, extending the Explorer to be compatible with the filter based on the GitOpsSets kind.
+- Improved formatting of Policy Config | Policy Parameters cards so that users experience more readable data when creating a new policy config and selecting the Policy from the policies list.
+- New section added to the Metadata component for OCI Repositories to provide users with more clarity.
+
+#### Bug fixes
+
+- The Metric template details now renders the canary a user clicks on, instead of all the metrics templates in the canary.
+
+### Dependency versions
+
+- Flux > v2.0.0
+- weave-gitops v0.32.0
+- cluster-controller v1.5.2
+- cluster-bootstrap-controller v0.7.1
+- (optional) pipeline-controller v0.21.0
+- (optional) policy-agent v2.5.0
+- (optional) gitopssets-controller v0.16.2
+
 ## v0.31.0
 2023-08-31
 
-## Highlights
+### Highlights
 
 - ConnectCluster Functionality: Adding the foundation functionality to support connecting leaf clusters via CLI `gitops connect cluster`.
 - Explorer extends source rendering to include OCIRepository resources to be rendered as regular flux sources. 
 - [UI Enhancement] Improved Top-Right Applied Status and Time Text for Applications and Terraform Details pages. 
 
-## Dependency versions
-- flux >v2.0.0
+### Dependency versions
+- Flux >v2.0.0
 - weave-gitops v0.31.2
 - cluster-controller v1.5.2
 - cluster-bootstrap-controller v0.6.1
@@ -31,26 +228,25 @@ This page details the changes for Weave GitOps Enterprise and its associated com
 ## v0.30.0
 2023-08-17
 
-## Highlights
+### Highlights
 
-### UI
+#### UI
 
 - UI token refreshing! OIDC token refreshing is now handled by the UI, this avoids unintentionally making multiple token requests to the OIDC provider. This old behaviour sometimes triggered rate limiting in OIDC providers, causing errors.
 - UI polish including removing duplicate error messages and more consistency in headers and font sizes.
 
-### Policy
+#### Policy
 
 - View Policy Audit violations in policies page as a tab
 
-### GitOpsSets
+#### GitOpsSets
 
 * ClusterGenerator - return labels as generic maps, allows for easily using them in params.
 * Handle empty artifacts in directory processing, if a `GitRepository` or `OCIRepository` has no artifact, stop generating with an error.
 * Update the ImagePolicy generator to add the image. 
 * Ignore empty generators in the Matrix generator, fixing a panic if a generator produced an empty list.
 
-
-## Dependency versions
+### Dependency versions
 - flux >v2.0.0
 - weave-gitops v0.30.0
 - cluster-controller v1.5.2
@@ -62,12 +258,19 @@ This page details the changes for Weave GitOps Enterprise and its associated com
 ## v0.29.1
 2023-08-04
 
+### Highlights
+
 :::caution
 
 This release builds upon Weave GitOps v0.29.0 that has breaking changes from Flux v2.0.0. Please make
 sure that you read [these release notes](#v0290).
 
 :::
+
+- PR: #3126 - Uses weave-gitops [v0.29.0](https://github.com/weaveworks/weave-gitops/releases/tag/v0.29.0) that as major changes include:
+    - Support for Flux v2.0.0
+    - Suspend/resume/reconcile Image Repositories
+    - Add Verified sources to Applications and Sources UI
 
 ### Dependency versions
 - flux >v2.0.0
@@ -79,27 +282,10 @@ sure that you read [these release notes](#v0290).
 - (optional) policy-agent v2.5.0
 - (optional) gitopssets-controller v0.14.1
 
-### 🚀 Enhancements
-
-- PR: #3126 - Uses weave-gitops [v0.29.0](https://github.com/weaveworks/weave-gitops/releases/tag/v0.29.0) that as
-major changes include:
-  - Support for Flux v2.0.0
-  - Suspend/resume/reconcile Image Repositories
-  - Add Verified sources to Applications and Sources UI
 
 ## v0.29.0
 2023-08-03
 
-:::danger
-
-### ⚠️ Breaking changes
-
-We introduced a breaking change in this release by upgrading to Flux v2 APIs, notably `GitRepository` v1, `Kustomization` v1, and `Receiver` v1. This means that this version of Weave GitOps Enterprise is not compatible with previous versions of Flux v2, such as v0.41.x and earlier.
-
-### ✍️ Action required
-
-Follow [Flux](https://github.com/fluxcd/flux2/releases/tag/v2.0.0) or [Weave GitOps](https://docs.gitops.weave.works/docs/guides/fluxga-upgrade/) to upgrade to Flux v2 GA before upgrading Weave GitOps Enterprise.
-:::
 
 ### Highlights
 
@@ -108,6 +294,18 @@ Follow [Flux](https://github.com/fluxcd/flux2/releases/tag/v2.0.0) or [Weave Git
 
 #### Explorer
 - Generates metrics for indexer write operations
+
+
+### ⚠️ Breaking changes
+
+:::danger
+
+We introduced a breaking change in this release by upgrading to Flux v2 APIs, notably `GitRepository` v1, `Kustomization` v1, and `Receiver` v1. This means that this version of Weave GitOps Enterprise is not compatible with previous versions of Flux v2, such as v0.41.x and earlier.
+
+#### ✍️ Action required
+
+Follow [Flux](https://github.com/fluxcd/flux2/releases/tag/v2.0.0) or [Weave GitOps](https://docs.gitops.weave.works/docs/guides/fluxga-upgrade/) to upgrade to Flux v2 GA before upgrading Weave GitOps Enterprise.
+:::
 
 ### Dependency versions
 - flux >v2.0.0
@@ -118,21 +316,6 @@ Follow [Flux](https://github.com/fluxcd/flux2/releases/tag/v2.0.0) or [Weave Git
 - (optional) pipeline-controller v0.21.0
 - (optional) policy-agent v2.5.0
 - (optional) gitopssets-controller v0.14.1
-
-### 🚀 Enhancements
-
-- PR: #3137 - Upgrade to Weave GitOps OSS v0.29.0-rc.1 and Flux v2.0.0 APIs
-- PR: #3119 - Bump GitOpsSets to v0.14.0
-- PR: #3134 - add RED metrics for indexer writes
-- PR: #3098 - [UI] Cleanup forms across sections to ensure consistency
-- PR: #3145 - Wge 3144 - create sops secrets uses v1 kustomizations api
-- PR: #3146 - generate v1 kustomizations when adding apps
-- PR: #3164 - Bump gitopssets-controller to v0.14.1
-
-### 🔥 UI
-
-- PR: #3120 - Add large info display of Applied Revision and Last Updated on Terraform detail page
-- PR: #3138 - Fix checkboxes on terraform data table
 
 ## v0.28.0
 2023-07-20

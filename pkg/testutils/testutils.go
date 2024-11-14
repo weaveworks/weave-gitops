@@ -82,17 +82,20 @@ func StartK8sTestEnvironment(crdPaths []string) (*K8sTestEnv, error) {
 	}
 
 	k8sManager, err := ctrl.NewManager(cfg, ctrl.Options{
-		ClientDisableCacheFor: []client.Object{
-			&corev1.Namespace{},
-			&corev1.Secret{},
-			&appsv1.Deployment{},
-			&corev1.ConfigMap{},
-			&kustomizev2.Kustomization{},
-			&sourcev1.GitRepository{},
-			&v1.CustomResourceDefinition{},
+		Client: client.Options{
+			Cache: &client.CacheOptions{
+				DisableFor: []client.Object{
+					&corev1.Namespace{},
+					&corev1.Secret{},
+					&appsv1.Deployment{},
+					&corev1.ConfigMap{},
+					&kustomizev2.Kustomization{},
+					&sourcev1.GitRepository{},
+					&v1.CustomResourceDefinition{},
+				},
+			},
+			Scheme: scheme,
 		},
-		Scheme:             scheme,
-		MetricsBindAddress: "0",
 	})
 	if err != nil {
 		return nil, fmt.Errorf("could not create controller manager: %w", err)

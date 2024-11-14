@@ -11,7 +11,7 @@ import (
 	"strings"
 	"sync"
 
-	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
+	helmv2 "github.com/fluxcd/helm-controller/api/v2beta2"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
 	"github.com/fluxcd/pkg/ssa"
 	"github.com/go-logr/logr"
@@ -26,6 +26,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/cli-utils/pkg/object"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 )
 
 // ObjectWithChildren is a recursive data structure containing a tree of Unstructured
@@ -48,6 +49,8 @@ func (cs *coreServer) GetInventory(ctx context.Context, msg *pb.GetInventoryRequ
 
 	var inventoryRefs []*unstructured.Unstructured
 
+	defaultNS := msg.Namespace
+
 	switch msg.Kind {
 	case kustomizev1.KustomizationKind:
 		inventoryRefs, err = cs.getKustomizationInventory(ctx, client, msg.Name, msg.Namespace)
@@ -55,10 +58,15 @@ func (cs *coreServer) GetInventory(ctx context.Context, msg *pb.GetInventoryRequ
 			return nil, fmt.Errorf("failed getting kustomization inventory: %w", err)
 		}
 	case helmv2.HelmReleaseKind:
-		inventoryRefs, err = cs.getHelmReleaseInventory(ctx, client, msg.Name, msg.Namespace)
+		hr, err := cs.getHelmRelease(ctx, client, msg.Name, msg.Namespace)
 		if err != nil {
-			return nil, fmt.Errorf("failed getting helm Release inventory: %w", err)
+			return nil, fmt.Errorf("failed getting Helm Release for inventory: %w", err)
 		}
+		inventoryRefs, err = cs.getHelmReleaseInventory(ctx, client, hr)
+		if err != nil {
+			return nil, fmt.Errorf("failed getting Helm Release inventory: %w", err)
+		}
+		defaultNS = defaultNSFromHelmRelease(hr)
 	default:
 		gvk, err := cs.primaryKinds.Lookup(msg.Kind)
 		if err != nil {
@@ -70,10 +78,7 @@ func (cs *coreServer) GetInventory(ctx context.Context, msg *pb.GetInventoryRequ
 		}
 	}
 
-	objsWithChildren, err := GetObjectsWithChildren(ctx, inventoryRefs, client, msg.WithChildren, cs.logger)
-	if err != nil {
-		return nil, fmt.Errorf("failed getting objects with children: %w", err)
-	}
+	objsWithChildren := getObjectsWithChildren(ctx, defaultNS, inventoryRefs, client, msg.WithChildren, cs.logger)
 
 	entries := []*pb.InventoryEntry{}
 	clusterUserNamespaces := cs.clustersManager.GetUserNamespaces(auth.Principal(ctx))
@@ -123,7 +128,7 @@ func (cs *coreServer) getKustomizationInventory(ctx context.Context, k8sClient c
 	return objects, nil
 }
 
-func (cs *coreServer) getHelmReleaseInventory(ctx context.Context, k8sClient client.Client, name, namespace string) ([]*unstructured.Unstructured, error) {
+func (cs *coreServer) getHelmRelease(ctx context.Context, k8sClient client.Client, name, namespace string) (*helmv2.HelmRelease, error) {
 	release := &helmv2.HelmRelease{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -132,10 +137,14 @@ func (cs *coreServer) getHelmReleaseInventory(ctx context.Context, k8sClient cli
 	}
 
 	if err := k8sClient.Get(ctx, client.ObjectKeyFromObject(release), release); err != nil {
-		return nil, fmt.Errorf("failed to get kustomization: %w", err)
+		return nil, fmt.Errorf("failed to get helm release: %w", err)
 	}
 
-	objects, err := getHelmReleaseObjects(ctx, k8sClient, release)
+	return release, nil
+}
+
+func (cs *coreServer) getHelmReleaseInventory(ctx context.Context, k8sClient client.Client, hr *helmv2.HelmRelease) ([]*unstructured.Unstructured, error) {
+	objects, err := getHelmReleaseObjects(ctx, k8sClient, hr)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get helm release objects: %w", err)
 	}
@@ -145,29 +154,18 @@ func (cs *coreServer) getHelmReleaseInventory(ctx context.Context, k8sClient cli
 
 // Returns the list of resources applied in the helm chart.
 func getHelmReleaseObjects(ctx context.Context, k8sClient client.Client, helmRelease *helmv2.HelmRelease) ([]*unstructured.Unstructured, error) {
-	storageNamespace := helmRelease.GetStorageNamespace()
-
-	storageName := helmRelease.GetReleaseName()
-
-	storageVersion := helmRelease.Status.LastReleaseRevision
-	if storageVersion < 1 {
+	secretName := secretNameFromHelmRelease(helmRelease)
+	if secretName == nil {
 		// skip release if it failed to install
 		return nil, nil
 	}
-
 	storageSecret := &v1.Secret{}
-	secretName := fmt.Sprintf("sh.helm.release.v1.%s.v%v", storageName, storageVersion)
-	key := client.ObjectKey{
-		Name:      secretName,
-		Namespace: storageNamespace,
-	}
-
 	if helmRelease.Spec.KubeConfig != nil {
 		// helmrelease secret is on another cluster so we cannot inspect it to figure out the inventory and version and other things
 		return nil, nil
 	}
 
-	if err := k8sClient.Get(ctx, key, storageSecret); err != nil {
+	if err := k8sClient.Get(ctx, *secretName, storageSecret); err != nil {
 		return nil, err
 	}
 
@@ -258,17 +256,50 @@ func unstructuredToInventoryEntry(clusterName string, objWithChildren ObjectWith
 // GetObjectsWithChildren returns objects with their children populated if withChildren is true.
 // Objects are retrieved in parallel.
 // Children are retrieved recusively, e.g. Deployment -> ReplicaSet -> Pod
-func GetObjectsWithChildren(ctx context.Context, objects []*unstructured.Unstructured, k8sClient client.Client, withChildren bool, logger logr.Logger) ([]*ObjectWithChildren, error) {
+func getObjectsWithChildren(ctx context.Context, defaultNS string, objects []*unstructured.Unstructured, k8sClient client.Client, withChildren bool, logger logr.Logger) []*ObjectWithChildren {
 	result := []*ObjectWithChildren{}
-	resultMu := sync.Mutex{}
 
-	wg := sync.WaitGroup{}
+	var (
+		isNamespacedGVK = map[string]bool{}
+		resultMu        sync.Mutex
+		gvkMu           sync.RWMutex
+		wg              sync.WaitGroup
+		err             error
+	)
 
 	for _, o := range objects {
 		wg.Add(1)
 
 		go func(obj unstructured.Unstructured) {
 			defer wg.Done()
+
+			// Set the namespace of the object if it is not set.
+			if obj.GetNamespace() == "" {
+				// Manifest does not contain the namespace of the release.
+				// Figure out if the object is namespaced if the namespace is not
+				// explicitly set, and configure the namespace accordingly.
+				objGVK := obj.GetObjectKind().GroupVersionKind().String()
+				gvkMu.RLock()
+				namespaced, ok := isNamespacedGVK[objGVK]
+				gvkMu.RUnlock()
+
+				if !ok {
+					namespaced, err = apiutil.IsObjectNamespaced(&obj, k8sClient.Scheme(), k8sClient.RESTMapper())
+					if err != nil {
+						logger.Error(err, "failed to determine if %s is namespace scoped", obj.GetObjectKind().GroupVersionKind().Kind)
+						return
+					}
+
+					// Cache the result, so we don't have to do this for every object
+					gvkMu.Lock()
+					isNamespacedGVK[objGVK] = namespaced
+					gvkMu.Unlock()
+				}
+
+				if namespaced {
+					obj.SetNamespace(defaultNS)
+				}
+			}
 
 			if err := k8sClient.Get(ctx, client.ObjectKeyFromObject(&obj), &obj); err != nil {
 				logger.Error(err, "failed to get object", "entry", obj)
@@ -291,14 +322,14 @@ func GetObjectsWithChildren(ctx context.Context, objects []*unstructured.Unstruc
 			}
 
 			resultMu.Lock()
+			defer resultMu.Unlock()
 			result = append(result, entry)
-			resultMu.Unlock()
 		}(*o)
 	}
 
 	wg.Wait()
 
-	return result, nil
+	return result
 }
 
 func getChildren(ctx context.Context, k8sClient client.Client, parentObj unstructured.Unstructured) ([]*ObjectWithChildren, error) {
@@ -445,4 +476,36 @@ func parseInventoryFromUnstructured(obj *unstructured.Unstructured) ([]*unstruct
 	}
 
 	return objects, nil
+}
+
+const helmSecretNameFmt = "sh.helm.release.v1.%s.v%v"
+
+func secretNameFromHelmRelease(helmRelease *helmv2.HelmRelease) *client.ObjectKey {
+	if latest := helmRelease.Status.History.Latest(); latest != nil {
+		return &client.ObjectKey{
+			Name:      fmt.Sprintf(helmSecretNameFmt, latest.Name, latest.Version),
+			Namespace: helmRelease.GetStorageNamespace(),
+		}
+	}
+
+	if latestRevision := helmRelease.Status.LastReleaseRevision; latestRevision > 0 {
+		return &client.ObjectKey{
+			Name:      fmt.Sprintf(helmSecretNameFmt, helmRelease.GetReleaseName(), latestRevision),
+			Namespace: helmRelease.GetStorageNamespace(),
+		}
+	}
+
+	return nil
+}
+
+func defaultNSFromHelmRelease(helmRelease *helmv2.HelmRelease) string {
+	if latest := helmRelease.Status.History.Latest(); latest != nil {
+		return latest.Namespace
+	}
+
+	if latestRevision := helmRelease.Status.LastReleaseRevision; latestRevision > 0 {
+		return helmRelease.GetReleaseNamespace()
+	}
+
+	return ""
 }

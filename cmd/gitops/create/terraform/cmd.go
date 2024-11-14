@@ -57,14 +57,9 @@ gitops create terraform -n default my-resource --source GitRepository/my-project
 			kubeConfigArgs.Namespace = &namespace
 			kubeConfigArgs.Context = &context
 
-			cfg, err := kubeConfigArgs.ToRESTConfig()
-			if err != nil {
-				return err
-			}
-
 			v := viper.New()
 			v.Set("namespace", namespace)
-			if err := app.Init(cfg, v); err != nil {
+			if err := app.Init(kubeConfigArgs, v); err != nil {
 				return err
 			}
 

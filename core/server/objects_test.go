@@ -568,6 +568,7 @@ func TestListObjectMultipleWithClusterName(t *testing.T) {
 	g.Expect(res.Objects[0].Payload).To(ContainSubstring("helm-name"))
 	g.Expect(res.Objects[1].Payload).To(ContainSubstring("helm-name"))
 }
+
 func TestListObject_HelmReleaseWithInventory(t *testing.T) {
 	g := NewGomegaWithT(t)
 
@@ -749,9 +750,11 @@ func TestListObjectsLabels(t *testing.T) {
 	c := makeServer(cfg, t)
 
 	res, err := c.ListObjects(ctx, &pb.ListObjectsRequest{
-		Kind:          "Deployment",
-		ClusterName:   "Default",
-		LabelSelector: "key=the-value",
+		Kind:        "Deployment",
+		ClusterName: "Default",
+		Labels: map[string]string{
+			"key": "the-value",
+		},
 	})
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(res.Objects).To(HaveLen(1))

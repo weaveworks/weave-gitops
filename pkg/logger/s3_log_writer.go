@@ -45,7 +45,7 @@ func (l *S3LogWriter) putLog(msg string) {
 
 	level := "info"
 
-	if len(msg) > 0 {
+	if msg != "" {
 		if strings.HasPrefix(msg, "✗") {
 			level = "error"
 		} else if strings.HasPrefix(msg, "⚠️") {

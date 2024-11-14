@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
+	helmv2 "github.com/fluxcd/helm-controller/api/v2beta2"
 	"github.com/fluxcd/pkg/runtime/transform"
 	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 	coretypes "github.com/weaveworks/weave-gitops/core/server/types"
