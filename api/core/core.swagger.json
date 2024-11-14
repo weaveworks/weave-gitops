@@ -829,6 +829,7 @@
         "details": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/protobufAny"
           }
         }
@@ -900,6 +901,7 @@
         "conditions": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1Condition"
           }
         },
@@ -978,6 +980,7 @@
         "objects": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1Object"
           }
         }
@@ -1011,6 +1014,7 @@
         "entries": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1InventoryEntry"
           }
         }
@@ -1058,6 +1062,7 @@
         "kinds": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1GroupVersionKind"
           }
         },
@@ -1072,6 +1077,7 @@
         "objects": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1Object"
           }
         }
@@ -1103,6 +1109,7 @@
         "logs": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1LogEntry"
           }
         },
@@ -1184,6 +1191,7 @@
         "children": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1InventoryEntry"
           }
         }
@@ -1220,6 +1228,7 @@
         "events": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1Event"
           }
         }
@@ -1231,12 +1240,14 @@
         "crds": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1Crd"
           }
         },
         "errors": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1ListError"
           }
         }
@@ -1248,12 +1259,14 @@
         "deployments": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1Deployment"
           }
         },
         "errors": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1ListError"
           }
         }
@@ -1265,6 +1278,7 @@
         "namespaces": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1Namespace"
           }
         }
@@ -1296,18 +1310,21 @@
         "objects": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1Object"
           }
         },
         "errors": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1ListError"
           }
         },
         "searchedNamespaces": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1ClusterNamespaceList"
           }
         }
@@ -1319,6 +1336,7 @@
         "policies": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1PolicyObj"
           }
         },
@@ -1332,6 +1350,7 @@
         "errors": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1ListError"
           }
         }
@@ -1369,6 +1388,7 @@
         "violations": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1PolicyValidation"
           }
         },
@@ -1382,6 +1402,7 @@
         "errors": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1ListError"
           }
         }
@@ -1393,12 +1414,14 @@
         "crds": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1Crd"
           }
         },
         "errors": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1ListError"
           }
         }
@@ -1410,12 +1433,14 @@
         "deployments": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1Deployment"
           }
         },
         "errors": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1ListError"
           }
         }
@@ -1485,6 +1510,7 @@
         "inventory": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1GroupVersionKind"
           }
         },
@@ -1558,6 +1584,7 @@
         "standards": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1PolicyStandard"
           }
         },
@@ -1567,6 +1594,7 @@
         "parameters": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1PolicyParam"
           }
         },
@@ -1645,6 +1673,7 @@
         "labels": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1PolicyTargetLabel"
           }
         },
@@ -1704,6 +1733,7 @@
         "occurrences": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1PolicyValidationOccurrence"
           }
         },
@@ -1713,6 +1743,7 @@
         "parameters": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1PolicyValidationParam"
           }
         }
@@ -1752,6 +1783,7 @@
         "objects": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1ObjectRef"
           }
         },
@@ -1769,6 +1801,7 @@
         "objects": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1ObjectRef"
           }
         },
