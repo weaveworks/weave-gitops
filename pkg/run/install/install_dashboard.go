@@ -364,7 +364,7 @@ func makeHelmRelease(log logger.Logger, name, namespace, username, passwordHash,
 			Interval: metav1.Duration{
 				Duration: 60 * time.Minute,
 			},
-			Chart: helmv2.HelmChartTemplate{
+			Chart: &helmv2.HelmChartTemplate{
 				Spec: helmv2.HelmChartTemplateSpec{
 					Chart: ossDashboardHelmChartName,
 					SourceRef: helmv2.CrossNamespaceObjectReference{

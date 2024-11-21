@@ -66,7 +66,7 @@ var helmReleaseFixtures = []runtime.Object{
 			Name:      "dashboard-2",
 		},
 		Spec: helmv2.HelmReleaseSpec{
-			Chart: helmv2.HelmChartTemplate{
+			Chart: &helmv2.HelmChartTemplate{
 				Spec: helmv2.HelmChartTemplateSpec{
 					Chart: ossDashboardHelmChartName,
 				},
@@ -79,7 +79,7 @@ var helmReleaseFixtures = []runtime.Object{
 			Name:      "dashboard-3",
 		},
 		Spec: helmv2.HelmReleaseSpec{
-			Chart: helmv2.HelmChartTemplate{
+			Chart: &helmv2.HelmChartTemplate{
 				Spec: helmv2.HelmChartTemplateSpec{
 					Chart: enterpriseDashboardHelmChartName,
 					SourceRef: helmv2.CrossNamespaceObjectReference{

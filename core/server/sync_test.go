@@ -7,7 +7,7 @@ import (
 	"time"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
-	imgautomationv1 "github.com/fluxcd/image-automation-controller/api/v1beta1"
+	imgautomationv1 "github.com/fluxcd/image-automation-controller/api/v1beta2"
 	reflectorv1 "github.com/fluxcd/image-reflector-controller/api/v1beta2"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
 	"github.com/fluxcd/pkg/apis/meta"
@@ -417,7 +417,7 @@ func makeHelmRelease(name string, ns corev1.Namespace, repo *sourcev1b2.HelmRepo
 			Namespace: ns.Name,
 		},
 		Spec: helmv2.HelmReleaseSpec{
-			Chart: helmv2.HelmChartTemplate{
+			Chart: &helmv2.HelmChartTemplate{
 				Spec: helmv2.HelmChartTemplateSpec{
 					Chart:   chart.Spec.Chart,
 					Version: chart.Spec.Version,
