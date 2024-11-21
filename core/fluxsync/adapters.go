@@ -106,7 +106,7 @@ func (obj HelmChartAdapter) AsClientObject() client.Object {
 }
 
 func (obj HelmChartAdapter) GroupVersionKind() schema.GroupVersionKind {
-	return sourcev1b2.GroupVersion.WithKind(sourcev1b2.HelmChartKind)
+	return sourcev1.GroupVersion.WithKind(sourcev1.HelmChartKind)
 }
 
 func (obj HelmChartAdapter) SetSuspended(suspend bool) error {
@@ -131,7 +131,7 @@ func (obj HelmRepositoryAdapter) AsClientObject() client.Object {
 }
 
 func (obj HelmRepositoryAdapter) GroupVersionKind() schema.GroupVersionKind {
-	return sourcev1b2.GroupVersion.WithKind(sourcev1b2.HelmRepositoryKind)
+	return sourcev1.GroupVersion.WithKind(sourcev1.HelmRepositoryKind)
 }
 
 func (obj HelmRepositoryAdapter) SetSuspended(suspend bool) error {
