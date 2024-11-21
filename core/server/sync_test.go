@@ -126,7 +126,7 @@ func TestSync(t *testing.T) {
 		name: "helmchart",
 		msg: &pb.SyncFluxObjectRequest{
 			Objects: []*pb.ObjectRef{{ClusterName: "Default",
-				Kind: sourcev1b2.HelmChartKind}},
+				Kind: sourcev1.HelmChartKind}},
 			WithSource: false,
 		},
 		reconcilable: fluxsync.HelmChartAdapter{HelmChart: chart},
@@ -134,7 +134,7 @@ func TestSync(t *testing.T) {
 		name: "helmrepository",
 		msg: &pb.SyncFluxObjectRequest{
 			Objects: []*pb.ObjectRef{{ClusterName: "Default",
-				Kind: sourcev1b2.HelmRepositoryKind}},
+				Kind: sourcev1.HelmRepositoryKind}},
 			WithSource: false,
 		},
 		reconcilable: fluxsync.HelmRepositoryAdapter{HelmRepository: helmRepo},
