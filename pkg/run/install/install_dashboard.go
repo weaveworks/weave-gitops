@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"os"
 	"strings"
 	"time"
@@ -223,7 +222,7 @@ func ReconcileDashboard(ctx context.Context, kubeClient client.Client, dashboard
 	}
 	gvk := schema.GroupVersionKind{
 		Group:   "source.toolkit.fluxcd.io",
-		Version: "v1beta2",
+		Version: "v2",
 		Kind:    sourcev1.HelmChartKind,
 	}
 
