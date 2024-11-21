@@ -7,7 +7,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/fluxcd/helm-controller/api/v2"
 	"io"
 	"strings"
 	"sync"
@@ -154,7 +153,7 @@ func (cs *coreServer) getHelmReleaseInventory(ctx context.Context, k8sClient cli
 }
 
 // Returns the list of resources applied in the helm chart.
-func getHelmReleaseObjects(ctx context.Context, k8sClient client.Client, helmRelease *v2.HelmRelease) ([]*unstructured.Unstructured, error) {
+func getHelmReleaseObjects(ctx context.Context, k8sClient client.Client, helmRelease *helmv2.HelmRelease) ([]*unstructured.Unstructured, error) {
 	secretName := secretNameFromHelmRelease(helmRelease)
 	if secretName == nil {
 		// skip release if it failed to install
