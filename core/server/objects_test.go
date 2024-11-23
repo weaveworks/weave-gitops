@@ -8,6 +8,8 @@ import (
 	"encoding/json"
 	"testing"
 
+	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
+
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
@@ -927,12 +929,12 @@ func TestGetObjectSessionObjects(t *testing.T) {
 		Spec: helmv2.HelmReleaseSpec{},
 	}
 
-	bucket := &sourcev1.Bucket{
+	bucket := &sourcev1b2.Bucket{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      constants.RunDevBucketName,
 			Namespace: testNS,
 		},
-		Spec: sourcev1.BucketSpec{},
+		Spec: sourcev1b2.BucketSpec{},
 	}
 
 	fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ns, kust, helm, bucket).Build()
@@ -964,7 +966,7 @@ func TestGetObjectSessionObjects(t *testing.T) {
 	res, err = c.GetObject(ctx, &pb.GetObjectRequest{
 		Name:        constants.RunDevBucketName,
 		Namespace:   testNS,
-		Kind:        sourcev1.BucketKind,
+		Kind:        sourcev1b2.BucketKind,
 		ClusterName: testCluster,
 	})
 
