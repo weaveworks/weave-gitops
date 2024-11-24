@@ -60,7 +60,7 @@ func getClientFromConfig(config *rest.Config, scheme *apiruntime.Scheme) (client
 		return nil, fmt.Errorf("could not create HTTP client from config: %w", err)
 	}
 
-	mapper, err := apiutil.NewDiscoveryRESTMapper(config, httpClient)
+	mapper, err := apiutil.NewDynamicRESTMapper(config, httpClient)
 	if err != nil {
 		return nil, fmt.Errorf("could not create RESTMapper from config: %w", err)
 	}

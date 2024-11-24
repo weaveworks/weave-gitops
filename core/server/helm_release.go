@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	helmv2 "github.com/fluxcd/helm-controller/api/v2beta2"
+	helmv2 "github.com/fluxcd/helm-controller/api/v2"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 )

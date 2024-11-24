@@ -1,4 +1,4 @@
-ARG FLUX_VERSION=0.24.1
+ARG FLUX_VERSION=2.3.0
 ARG FLUX_CLI=ghcr.io/fluxcd/flux-cli:v$FLUX_VERSION
 
 # Alias for flux
