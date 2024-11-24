@@ -227,7 +227,11 @@ module.exports = {
         sitemap: {
             changefreq: 'weekly',
             priority: 0.5,
-            ignorePatterns: ['/tags/**'],
+            ignorePatterns: [
+                '/docs/next/**',
+              '/docs/archives/**',
+              '/docs/*[0-9].*[0-9].*[0-9]/**'
+            ],
             filename: 'sitemap.xml',
         },
       },
