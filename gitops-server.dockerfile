@@ -40,7 +40,7 @@ ARG LDFLAGS="-X localbuild=true"
 RUN --mount=type=cache,target=/root/.cache/go-build LDFLAGS=${LDFLAGS##-X localbuild=true} GIT_COMMIT=$GIT_COMMIT make gitops-server
 
 #  Distroless
-FROM gcr.io/distroless/base as runtime
+FROM gcr.io/distroless/base AS runtime
 COPY --from=ui /home/app/bin/dist/ /dist/
 COPY --from=go-build /app/bin/gitops-server /gitops-server
 COPY --from=go-build /root/.ssh/known_hosts /root/.ssh/known_hosts
