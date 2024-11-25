@@ -69,7 +69,7 @@ func (obj GitRepositoryAdapter) DeepCopyClientObject() client.Object {
 }
 
 type BucketAdapter struct {
-	*sourcev1b2.Bucket
+	*sourcev1.Bucket
 }
 
 func (obj BucketAdapter) GetLastHandledReconcileRequest() string {
@@ -81,7 +81,7 @@ func (obj BucketAdapter) AsClientObject() client.Object {
 }
 
 func (obj BucketAdapter) GroupVersionKind() schema.GroupVersionKind {
-	return sourcev1b2.GroupVersion.WithKind(sourcev1b2.BucketKind)
+	return sourcev1.GroupVersion.WithKind(sourcev1.BucketKind)
 }
 
 func (obj BucketAdapter) SetSuspended(suspend bool) error {
@@ -374,8 +374,8 @@ func ToReconcileable(gvk schema.GroupVersionKind) Reconcilable {
 	// TODO: remove all these and let them fall through to the Unstructured case?
 	case sourcev1.GitRepositoryKind:
 		return GitRepositoryAdapter{GitRepository: &sourcev1.GitRepository{}}
-	case sourcev1b2.BucketKind:
-		return BucketAdapter{Bucket: &sourcev1b2.Bucket{}}
+	case sourcev1.BucketKind:
+		return BucketAdapter{Bucket: &sourcev1.Bucket{}}
 	case sourcev1b2.HelmRepositoryKind:
 		return HelmRepositoryAdapter{HelmRepository: &sourcev1b2.HelmRepository{}}
 	case sourcev1b2.HelmChartKind:
