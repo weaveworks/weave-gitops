@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	"io"
 	"strings"
 	"testing"
@@ -33,7 +33,7 @@ func (m *mockGet) Get(ctx context.Context, key types.NamespacedName, obj client.
 			"accesskey": []byte("abcd"),
 			"secretkey": []byte("1234"),
 		}
-	case *sourcev1b2.Bucket:
+	case *sourcev1.Bucket:
 		obj.Spec.Endpoint = "endpoint:9000"
 		obj.Spec.Insecure = false
 	}

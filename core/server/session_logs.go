@@ -4,14 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	"io"
 	"regexp"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
-
-	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 
 	"github.com/weaveworks/weave-gitops/pkg/compositehash"
 
@@ -421,7 +420,7 @@ func getBucketConnectionInfo(ctx context.Context, clusterName, fluxNamespace str
 	}
 
 	// get bucket source
-	bucket := sourcev1b2.Bucket{
+	bucket := sourcev1.Bucket{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      constants.RunDevBucketName,
 			Namespace: fluxNamespace,

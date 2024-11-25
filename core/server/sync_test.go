@@ -118,7 +118,7 @@ func TestSync(t *testing.T) {
 		name: "bucket",
 		msg: &pb.SyncFluxObjectRequest{
 			Objects: []*pb.ObjectRef{{ClusterName: "Default",
-				Kind: sourcev1b2.BucketKind}},
+				Kind: sourcev1.BucketKind}},
 			WithSource: false,
 		},
 		reconcilable: fluxsync.BucketAdapter{Bucket: bucket},
@@ -247,7 +247,7 @@ func simulateReconcile(ctx context.Context, k client.Client, name types.Namespac
 
 		return k.Status().Update(ctx, obj)
 
-	case *sourcev1b2.Bucket:
+	case *sourcev1.Bucket:
 		if err := k.Get(ctx, name, obj); err != nil {
 			return err
 		}
@@ -378,14 +378,14 @@ func makeHelmChart(name string, ns corev1.Namespace) *sourcev1b2.HelmChart {
 	}
 }
 
-func makeBucket(name string, ns corev1.Namespace) *sourcev1b2.Bucket {
-	return &sourcev1b2.Bucket{
+func makeBucket(name string, ns corev1.Namespace) *sourcev1.Bucket {
+	return &sourcev1.Bucket{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: ns.Name,
 		},
-		Spec: sourcev1b2.BucketSpec{},
-		Status: sourcev1b2.BucketStatus{
+		Spec: sourcev1.BucketSpec{},
+		Status: sourcev1.BucketStatus{
 			ReconcileRequestStatus: meta.ReconcileRequestStatus{
 				LastHandledReconcileAt: time.Now().Format(time.RFC3339Nano),
 			},
