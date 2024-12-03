@@ -24,7 +24,7 @@ ARG LDFLAGS="-X localbuild=true"
 RUN --mount=type=cache,target=/root/.cache/go-build LDFLAGS=${LDFLAGS##-X localbuild=true} GIT_COMMIT=$GIT_COMMIT make gitops-bucket-server
 
 #  Distroless
-FROM gcr.io/distroless/base as runtime
+FROM gcr.io/distroless/base AS runtime
 COPY --from=go-build /app/bin/gitops-bucket-server /gitops-bucket-server
 COPY --from=go-build /root/.ssh/known_hosts /root/.ssh/known_hosts
 
