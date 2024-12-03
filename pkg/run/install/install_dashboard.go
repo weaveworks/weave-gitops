@@ -157,7 +157,6 @@ func GetInstalledDashboard(ctx context.Context, kubeClient client.Client, namesp
 	dashboardName := ""
 
 	for _, helmRelease := range helmReleaseList.Items {
-
 		chart := helmRelease.Spec.Chart
 
 		if chart == nil {
@@ -175,7 +174,6 @@ func GetInstalledDashboard(ctx context.Context, kubeClient client.Client, namesp
 			ossDashboardInstalled = true
 			dashboardName = helmRelease.Name
 		}
-
 	}
 
 	if ossDashboardInstalled {
