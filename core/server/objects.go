@@ -16,6 +16,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	v1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -75,8 +76,13 @@ func (cs *coreServer) ListObjects(ctx context.Context, msg *pb.ListObjectsReques
 	listOptions := []client.ListOption{
 		client.InNamespace(msg.Namespace),
 	}
-	if len(msg.Labels) > 0 {
-		listOptions = append(listOptions, client.MatchingLabels(msg.Labels))
+
+	if len(msg.LabelSelector) > 0 {
+		selector, err := labels.Parse(msg.LabelSelector)
+		if err != nil {
+			return nil, fmt.Errorf("error parsing label selector: %w", err)
+		}
+		listOptions = append(listOptions, client.MatchingLabelsSelector{Selector: selector})
 	}
 
 	if err := clustersClient.ClusteredList(ctx, clist, true, listOptions...); err != nil {

@@ -47,7 +47,7 @@ message ObjectRef {
     string         kind      = 1;
     string         name      = 2;
     string         namespace = 3;
-    string         clusterName = 4;
+    string         cluster_name = 4;
 }
 
 message Condition {
@@ -83,32 +83,44 @@ message HealthStatus {
 }
 
 message InventoryEntry {
+    // A JSON string containing the complete Kubernetes object.
     string payload = 1;
+    // The tenant the object belongs to if any.
     string tenant = 2;
-    string clusterName = 3;
+    // The cluster the object is deployed to.
+    string cluster_name = 3;
     HealthStatus health = 4;
+    // If the object is a parent e.g. `ReplicaSet` -> `Pod`
+    // Then the children are included here with their payload, clusterName etc
+    // This a recursive structure.
     repeated InventoryEntry children = 5;
 }
 
 message Object {
-    string   payload                    = 1;
-    string   clusterName                = 2;
-    string   tenant                     = 3;
-    string   uid                        = 4;
-    repeated GroupVersionKind inventory = 5;
-    string   info                       = 6;
-    HealthStatus health                 = 7;
+    // A JSON string containing the complete Kubernetes object.
+    string   payload                     = 1;
+    // The cluster the object is deployed to.
+    string   cluster_name                = 2;
+    // The tenant the object belongs to if any.
+    string   tenant                      = 3;
+    // The Kubernetes UID of the object.
+    string   uid                         = 4;
+    // DEPRECATED, use /inventory endpoint.
+    repeated GroupVersionKind inventory  = 5;
+    // DEPRECATED, GitOpsRun field.
+    string   info                        = 6;
+    HealthStatus health                  = 7;
 }
 
 message Deployment {
-    string   name                 = 1;
-    string   namespace            = 2;
-    repeated Condition conditions = 3;
-    repeated string images        = 4;
-    bool     suspended            = 5;
-    string   clusterName          = 6;
-    string   uid                  = 7;
-    map<string, string> labels    = 8;
+    string   name                  = 1;
+    string   namespace             = 2;
+    repeated Condition conditions  = 3;
+    repeated string images         = 4;
+    bool     suspended             = 5;
+    string   cluster_name          = 6;
+    string   uid                   = 7;
+    map<string, string> labels     = 8;
 }
 
 message Crd {
@@ -116,11 +128,11 @@ message Crd {
         string plural = 1;
         string group  = 2;
     }
-    Name     name                 = 1;
-    string   version              = 2;
-    string   kind                 = 3;
-    string   clusterName          = 4;
-    string   uid                  = 5;
+    Name     name                  = 1;
+    string   version               = 2;
+    string   kind                  = 3;
+    string   cluster_name          = 4;
+    string   uid                   = 5;
 }
 
 message Namespace {
@@ -128,15 +140,18 @@ message Namespace {
   string status = 2;
   map<string, string> annotations = 3;
   map<string, string> labels = 4;
-  string clusterName = 5;
+  string cluster_name = 5;
 }
 
 message Event {
     string type      = 1;
     string reason    = 2;
     string message   = 3;
+    // The LastTimestamp of the event.
     string timestamp = 4;
+    // The Source Component.
     string component = 5;
+    // The Source Host.
     string host      = 6;
     string name      = 7;
     string uid       = 8;

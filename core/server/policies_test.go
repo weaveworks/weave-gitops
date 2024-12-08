@@ -96,7 +96,7 @@ func TestGetPolicy(t *testing.T) {
 	c := makeServer(cfg, t)
 
 	res, err := c.GetPolicy(ctx, &pb.GetPolicyRequest{
-		PolicyName: policy.Spec.ID,
+		Name: policy.Spec.ID,
 	})
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(res.Policy).NotTo(BeNil())
@@ -110,7 +110,7 @@ func TestGetPolicy(t *testing.T) {
 
 	// Test non existing policy
 	_, err = c.GetPolicy(ctx, &pb.GetPolicyRequest{
-		PolicyName: "foo",
+		Name: "foo",
 	})
 	g.Expect(err).To(HaveOccurred())
 }

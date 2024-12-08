@@ -10,7 +10,7 @@ lint:
     # The specific linters to add.
     add:
       - MESSAGE_NAMES_UPPER_CAMEL_CASE
-      - MAX_LINE_LENGTH
+      - MAX_LINE_LENGTH 120
       - INDENT 4
       - SERVICE_NAMES_END_WITH
       - FILE_NAMES_LOWER_SNAKE_CASE

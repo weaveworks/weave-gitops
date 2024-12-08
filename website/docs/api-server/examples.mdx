@@ -1,0 +1,65 @@
+---
+title: Examples
+---
+
+import CodeBlock from "@theme/CodeBlock";
+
+## Templates
+
+### Render a template
+
+This example demonstrates rendering a template to a local directory via the API
+
+It shows off:
+
+- Logging into the WGE API and storing a session cookie
+- Rendering a template and writing the result to the terminal
+
+import TemplatesRender from "!!raw-loader!./examples/templates/render.py";
+
+<CodeBlock
+  language="python"
+  title="templates/render.py"
+  showLineNumbers
+>
+  {TemplatesRender}
+</CodeBlock>
+
+### Create Pull Request
+
+We build of the previous example and instead of writing the result to the terminal, we create a Pull Request.
+
+It shows off:
+- Exchanging a local `GITHUB_TOKEN` for a JWT token we can then use to do git operations via the API
+- Rendering a template and writing the result to a Pull Request
+
+import TemplatesCreatePullRequest from "!!raw-loader!./examples/templates/create_pull_request.py";
+
+<CodeBlock
+  language="python"
+  title="templates/create_pull_request.py"
+  showLineNumbers
+>
+  {TemplatesCreatePullRequest}
+</CodeBlock>
+
+
+## Automations
+
+Weave Gitops Enterprise allows you to easily add Automations like `Kustomization`s and `HelmRelease`s to your GitOps repository.
+
+### Render and Create Pull Request
+
+Here we first create a `Kustomization` and then a `HelmRelease` and then render the result to stdout.
+
+We then create a Pull Request with the rendered result to demonstrate this flow too
+
+import AutomationsRender from "!!raw-loader!./examples/automations/render_and_create_pull_request.py";
+
+<CodeBlock
+  language="python"
+  title="automations/render_and_create_pull_request.py"
+  showLineNumbers
+>
+  {AutomationsRender}
+</CodeBlock>

@@ -17,10 +17,7 @@ export function useListEvents(
 
   return useQuery<ListEventsResponse, RequestError>(
     ["events", obj],
-    () =>
-      api.ListEvents({
-        involvedObject: obj,
-      }),
+    () => api.ListEvents(obj),
     opts
   );
 }

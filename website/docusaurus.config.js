@@ -1,4 +1,6 @@
 const versions = require("./versions.json");
+const webpack = require('webpack');
+
 /** @type {import('@docusaurus/types').DocusaurusConfig} */
 module.exports = {
   title: "Weave GitOps",
@@ -16,6 +18,17 @@ module.exports = {
       // Load yaml files as blobs
       configureWebpack: function () {
         return {
+          resolve: {
+            fallback: {
+              stream: require.resolve("stream-browserify"),
+              buffer: require.resolve('buffer/'),
+            }
+          },
+          plugins: [
+            new webpack.ProvidePlugin({
+              Buffer: ['buffer', 'Buffer'],
+            }),
+          ],
           module: {
             rules: [
               {

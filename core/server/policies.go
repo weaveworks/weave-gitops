@@ -225,8 +225,8 @@ func (cs *coreServer) GetPolicy(ctx context.Context, m *pb.GetPolicyRequest) (*p
 
 	policyCR := pacv2beta2.Policy{}
 
-	if err := clustersClient.Get(ctx, m.ClusterName, types.NamespacedName{Name: m.PolicyName}, &policyCR); err != nil {
-		return nil, fmt.Errorf("error while getting policy %s from cluster %s: %w", m.PolicyName, m.ClusterName, err)
+	if err := clustersClient.Get(ctx, m.ClusterName, types.NamespacedName{Name: m.Name}, &policyCR); err != nil {
+		return nil, fmt.Errorf("error while getting policy %s from cluster %s: %w", m.Name, m.ClusterName, err)
 	}
 
 	var policy *pb.PolicyObj

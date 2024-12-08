@@ -101,6 +101,10 @@ export function useListObjects<T extends FluxObject>(
 ) {
   const { api } = useContext(CoreClientContext);
 
+  const labelSelector = Object.entries(labels)
+    .map(([key, value]) => `${key}=${value}`)
+    .join(",");
+
   return useQuery<Res, RequestError>(
     ["objects", clusterName, kind, namespace],
     async () => {
@@ -108,7 +112,7 @@ export function useListObjects<T extends FluxObject>(
         namespace,
         kind,
         clusterName,
-        labels,
+        labelSelector,
       });
       let objects: FluxObject[];
       if (res.objects)

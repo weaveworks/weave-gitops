@@ -79,8 +79,8 @@ func TestWithAPIAuthReturns401ForUnauthenticatedRequests(t *testing.T) {
 
 	// Test out the publicRoutes
 	res = httptest.NewRecorder()
-	req = httptest.NewRequest(http.MethodGet, s.URL+"/v1/featureflags", nil)
-	auth.WithAPIAuth(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {}), srv, []string{"/v1/featureflags"}, sm).ServeHTTP(res, req)
+	req = httptest.NewRequest(http.MethodGet, s.URL+"/v1/feature-flags", nil)
+	auth.WithAPIAuth(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {}), srv, []string{"/v1/feature-flags"}, sm).ServeHTTP(res, req)
 
 	g.Expect(res).To(HaveHTTPStatus(http.StatusOK))
 }
@@ -177,8 +177,8 @@ func TestWithAPIAuthOnlyUsesValidMethods(t *testing.T) {
 
 	// Test out the publicRoutes
 	res = httptest.NewRecorder()
-	req = httptest.NewRequest(http.MethodGet, s.URL+"/v1/featureflags", nil)
-	auth.WithAPIAuth(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {}), srv, []string{"/v1/featureflags"}, scs.New()).ServeHTTP(res, req)
+	req = httptest.NewRequest(http.MethodGet, s.URL+"/v1/feature-flags", nil)
+	auth.WithAPIAuth(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {}), srv, []string{"/v1/feature-flags"}, scs.New()).ServeHTTP(res, req)
 
 	g.Expect(res).To(HaveHTTPStatus(http.StatusOK))
 }

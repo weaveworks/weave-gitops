@@ -38,3 +38,110 @@
   top: 0;
   left: 0;
 }
+
+
+/*
+Remove some of the title block margins.
+They are very big headline things designed to be
+at the top of pages.
+*/
+.swagger-ui .info {
+  margin: 0 !important;
+}
+
+/*
+clear docusaurus table style
+*/
+.swagger-ui table tr,
+.swagger-ui table td,
+.swagger-ui table th {
+  border: none;
+}
+.swagger-ui table thead {
+  background: none;
+}
+
+/*
+docusaurus adds some top margin here
+Presumably for vertical lists
+*/
+.swagger-ui .tab li + li {
+  margin-top: 0;
+}
+
+/*
+Make the titles smaller.
+We provide our own bigger titles in docusaurus to get a
+basic TOC on the left side.
+*/
+.swagger-ui h2.title {
+  font-size: 1em !important;
+}
+
+/* 
+Hide the little version bubbles.
+The versions mentioned there are not correct.
+*/
+.swagger-ui h2.title small {
+  display: none !important;
+}
+
+/* Give the URL in "GET $URL + description" a bit more space
+so it doesn't wrap as often */
+.swagger-ui .opblock .opblock-summary-path {
+  font-size: 14px !important;
+  max-width: calc(100% - 50px - 15rem) !important;
+}
+
+/* markdown `code` blocks are a bit big */
+.swagger-ui .opblock-description-wrapper {
+  font-size: 14px !important;
+}
+.swagger-ui .markdown code {
+  padding: 2px 4px !important;
+}
+
+/* style internal methods similarly to "deprecated" ones */
+.swagger-ui .opblock[id*='-internal-'], .swagger-ui .opblock-tag[id$='-internal'] {
+  opacity: 0.5;
+}
+
+/* hide error responses */
+.swagger-ui .responses-wrapper tr[data-code="default"] {
+  display: none;
+}
+
+/* hide the name of the submodel v1clusterobject etc */
+.swagger-ui .model-box-control {
+  display: none !important;
+}
+/* Enum's aren't auto expanded so we have to show the expander
+So the user can do it manually */
+.swagger-ui .prop-enum .model-box-control {
+  display: block !important;
+}
+
+/* non-monospace for the field descriptions */
+.swagger-ui .model .markdown {
+  font-family: sans-serif;
+  font-weight: normal;
+  font-size: 14px;
+}
+
+/* narrow up the table a bit */
+.swagger-ui table.model tbody tr td:first-of-type {
+  width: unset !important;
+}
+/* Fix up the close brace, has some funny padding */
+.swagger-ui span>span.model .brace-close {
+  padding: 0 !important;
+}
+/* global style set by docusaurus we want to undo */
+.swagger-ui table {
+  margin-bottom: 0;
+}
+/* reduce padding on the table */
+.swagger-ui table.model tr.property-row td {
+  padding-right: 1em !important;
+  padding-left: 0 !important;
+}

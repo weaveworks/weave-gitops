@@ -1,0 +1,4 @@
+# Collapse the diff of generated files in github by default
+**/*.swagger.json linguist-generated=true
+**/*.pb.* linguist-generated=true
+

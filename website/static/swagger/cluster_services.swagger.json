@@ -1,0 +1,3351 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Weave GitOps Enterprise API",
+    "description": "The API handles operations for Weave GitOps Enterprise",
+    "version": "0.1"
+  },
+  "tags": [
+    {
+      "name": "default",
+      "description": "system endpoints"
+    },
+    {
+      "name": "internal",
+      "description": "Internal APIs which should not be used"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/v1/automations/pull-request": {
+      "post": {
+        "summary": "Creates a pull request to add automations to a cluster",
+        "description": "Add kustomizations, helm releases, external secrets, policy configs, and sops secrets\n\n**See the Examples for a complete solution.**\n\nAs in the template pull-request endpoint, this endpoint requires a few different parameters to be set.\n\n1. The details of the git repository to create the pull request in.\n2. An JWT encoded git provider token to autheticate the create-pull-request request.\n3. What kustomizations, helm releases, external secrets, policy configs, and sops secrets to add.",
+        "operationId": "ClustersService_CreateAutomationsPullRequest",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1CreateAutomationsPullRequestResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1CreateAutomationsPullRequestRequest"
+            }
+          }
+        ],
+        "tags": [
+          "automations"
+        ]
+      }
+    },
+    "/v1/automations/render": {
+      "post": {
+        "summary": "Preview adding automations to a cluster",
+        "description": "Preview what the automations would look like if added to a cluster.\n\nVarious resources can be created via this endpoint, see the `Model` section for full params\n\n- Kustomization \n- HelmRelease \n- ExternalSecret \n- PolicyConfig\n- SopsSecret",
+        "operationId": "ClustersService_RenderAutomation",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1RenderAutomationResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1RenderAutomationRequest"
+            }
+          }
+        ],
+        "tags": [
+          "automations"
+        ]
+      }
+    },
+    "/v1/charts/jobs/{jobId}": {
+      "get": {
+        "summary": "Retrieve the results of a /v1/charts/values job",
+        "description": "After calling `/v1/charts/values` a job will be created and a `jobId` returned in the response.\nThe jobId is then used with this endpoint to retrieve the results of the job.\n\nIf the job has not finished yet `values` will be empty.\nWhen the job has finished the `values` will contain the contents of `values.yaml` for the chart.\nIf an error has occurred the `error` will contain the error message.",
+        "operationId": "ClustersService_GetChartsJob",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetChartsJobResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "charts"
+        ]
+      }
+    },
+    "/v1/charts/list": {
+      "get": {
+        "summary": "Lists charts in a HelmRepository",
+        "description": "Given a HelmRepository list the available charts and their versions.",
+        "operationId": "ClustersService_ListChartsForRepository",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListChartsForRepositoryResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "repository.cluster.namespace",
+            "description": "Namespace of the cluster.\nShould be an empty string when referencing the \"management\" / \"control-plane\" cluster\n(the cluster running Weave Gitops).",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "repository.cluster.name",
+            "description": "Name of the cluster.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "repository.name",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "repository.namespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "repository.kind",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "charts"
+        ]
+      }
+    },
+    "/v1/charts/values": {
+      "post": {
+        "summary": "Get the values.yaml for a chart",
+        "description": "Given\n- a helm repository reference of `{ cluster, name, namespace, kind }`\n- a chart reference within the helm repository of `{ name, version }`\n\nThen retrieve the values.yaml for this version of the chart.\n\nCreates a job. Job status the final result can be retrieved via /v1/charts/jobs/{job_id}",
+        "operationId": "ClustersService_GetValuesForChart",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetValuesForChartResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1GetValuesForChartRequest"
+            }
+          }
+        ],
+        "tags": [
+          "charts"
+        ]
+      }
+    },
+    "/v1/clusters": {
+      "get": {
+        "summary": "List GitOpsClusters",
+        "description": "List the `GitOpsClusters` in the management cluster.\n\nIf the GitopsCluster references a CAPI Cluster via a `capiClusterRef` then retrieve and include\nthat resources too.",
+        "operationId": "ClustersService_ListGitopsClusters",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListGitopsClustersResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "label",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "pageToken",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "refType",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "clusters"
+        ]
+      }
+    },
+    "/v1/config": {
+      "get": {
+        "summary": "Get the Weave Gitops Enterprise configuration",
+        "description": "Returns information about the current configuration of the Weave GitOps Enterprise.",
+        "operationId": "ClustersService_GetConfig",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetConfigResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        }
+      }
+    },
+    "/v1/encrypt-sops-secret": {
+      "post": {
+        "summary": "Encrypts a sops secret",
+        "operationId": "ClustersService_EncryptSopsSecret",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1EncryptSopsSecretResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1EncryptSopsSecretRequest"
+            }
+          }
+        ],
+        "tags": [
+          "secrets"
+        ]
+      }
+    },
+    "/v1/enterprise/events": {
+      "get": {
+        "summary": "List the kubernetes events for a resource",
+        "operationId": "ClustersService_ListEvents",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListEventsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "involvedObject.kind",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "involvedObject.name",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "involvedObject.namespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "internal"
+        ]
+      }
+    },
+    "/v1/enterprise/version": {
+      "get": {
+        "summary": "Get the Weave Gitops Enterprise version",
+        "description": "Returns the version of the Weave GitOps Enterprise server.",
+        "operationId": "ClustersService_GetEnterpriseVersion",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetEnterpriseVersionResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        }
+      }
+    },
+    "/v1/external-secrets": {
+      "get": {
+        "summary": "List external secrets",
+        "operationId": "ClustersService_ListExternalSecrets",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListExternalSecretsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "secrets"
+        ]
+      }
+    },
+    "/v1/external-secrets-stores": {
+      "get": {
+        "summary": "List external secrets stores",
+        "operationId": "ClustersService_ListExternalSecretStores",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListExternalSecretStoresResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "secrets"
+        ]
+      }
+    },
+    "/v1/external-secrets/sync": {
+      "patch": {
+        "summary": "Sync externalSecret Operator secrets",
+        "operationId": "ClustersService_SyncExternalSecrets",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1SyncExternalSecretsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1SyncExternalSecretsRequest"
+            }
+          }
+        ],
+        "tags": [
+          "secrets"
+        ]
+      }
+    },
+    "/v1/namespaces/{namespace}/clusters/{name}/kubeconfig": {
+      "get": {
+        "summary": "Get the kubeconfig for a GitOpsCluster",
+        "description": "Provide the name and namespace of a `GitOpsCluster` to retrieve its kubeconfig",
+        "operationId": "ClustersService_GetKubeconfig",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiHttpBody"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "namespace",
+            "description": "The namespace of the `GitopsCluster`.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "name",
+            "description": "The name of the `GitopsCluster`.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "clusters"
+        ]
+      }
+    },
+    "/v1/namespaces/{namespace}/external-secrets/{name}": {
+      "get": {
+        "summary": "Get secret details",
+        "operationId": "ClustersService_GetExternalSecret",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetExternalSecretResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "namespace",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "secrets"
+        ]
+      }
+    },
+    "/v1/namespaces/{namespace}/templates/{name}": {
+      "get": {
+        "summary": "Get template details",
+        "description": "Get a single template from the management cluster.",
+        "operationId": "ClustersService_GetTemplate",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetTemplateResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "namespace",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "templateKind",
+            "description": "Kind of the template\n`GitopsTemplate` or `CAPITemplate` (Default)",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "templates"
+        ]
+      }
+    },
+    "/v1/namespaces/{namespace}/templates/{name}/pull-request": {
+      "post": {
+        "summary": "Create a pull request from a rendered template",
+        "description": "Render a template and create a pull request containing the output.\n\n**See the Examples for a complete solution.**\n\nThis endpoint requires a few different parameters to be set.\n\n1. The details of the git repository to create the pull request in.\n2. An JWT encoded git provider token to autheticate the create-pull-request request.\n   This is provided via the `Git-Provider-Token` header. An existing git provider (github/gitlab)\n   token should be wrapped in a JWT via the Weave Gitops GitAuth APIs.\n3. The template params and list of charts to include in the pull request.",
+        "operationId": "ClustersService_CreatePullRequest",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1CreatePullRequestResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "namespace",
+            "description": "The namespace of the template.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "name",
+            "description": "The name of the template to create a pull request for.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "repositoryUrl": {
+                  "type": "string",
+                  "description": "The repository to use e.g. https://github.com/my-org/my-repo."
+                },
+                "headBranch": {
+                  "type": "string",
+                  "description": "The name of the new branch to be created e.g. adds-cluster-dev-01."
+                },
+                "baseBranch": {
+                  "type": "string",
+                  "description": "The target branch to merge the new PR into, e.g. main."
+                },
+                "title": {
+                  "type": "string",
+                  "description": "The title of the pull request."
+                },
+                "description": {
+                  "type": "string",
+                  "description": "The description of the pull request."
+                },
+                "parameterValues": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "description": "The values that populate the templates parameters.\n\nA map of string keys and values.\ne.g. `{\"CLUSTER_NAME\": \"my-cluster\"}`"
+                },
+                "commitMessage": {
+                  "type": "string",
+                  "description": "The commit message."
+                },
+                "credentials": {
+                  "$ref": "#/definitions/v1Credential"
+                },
+                "profiles": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "$ref": "#/definitions/v1ProfileValues"
+                  },
+                  "description": "The values for each profile that will be installed."
+                },
+                "repositoryApiUrl": {
+                  "type": "string",
+                  "description": "_DEPRECATED: This is no longer used and will be removed in the future._\nThe repo api url."
+                },
+                "clusterNamespace": {
+                  "type": "string",
+                  "description": "_DEPRECATED: This is no longer used and will be removed in the future._\nThe cluster namespace."
+                },
+                "kustomizations": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "$ref": "#/definitions/v1Kustomization"
+                  },
+                  "description": "Additional kustomizations to be created in the pull request."
+                },
+                "templateKind": {
+                  "type": "string",
+                  "description": "The kind of the template, either `GitopsTemplate` or `CAPITemplate`."
+                },
+                "previousValues": {
+                  "$ref": "#/definitions/v1PreviousValues"
+                },
+                "externalSecrets": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "$ref": "#/definitions/v1ExternalSecret"
+                  },
+                  "description": "Additional external secrets to be created in the pull request."
+                },
+                "policyConfigs": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "$ref": "#/definitions/v1PolicyConfigObject"
+                  },
+                  "description": "Additional policy configs to be created in the pull request."
+                },
+                "sopsSecrets": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "$ref": "#/definitions/v1SopsSecret"
+                  },
+                  "description": "Additional sops secrets to be created in the pull request."
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "templates"
+        ]
+      }
+    },
+    "/v1/namespaces/{namespace}/templates/{name}/render": {
+      "post": {
+        "summary": "Renders a template using given values.",
+        "description": "Render out a template using the given values. See the /pull-request endpoint for more details.",
+        "operationId": "ClustersService_RenderTemplate",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1RenderTemplateResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "namespace",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "parameterValues": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                },
+                "credentials": {
+                  "$ref": "#/definitions/v1Credential"
+                },
+                "templateKind": {
+                  "type": "string"
+                },
+                "clusterNamespace": {
+                  "type": "string"
+                },
+                "profiles": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "$ref": "#/definitions/v1ProfileValues"
+                  }
+                },
+                "kustomizations": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "$ref": "#/definitions/v1Kustomization"
+                  }
+                },
+                "externalSecrets": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "$ref": "#/definitions/v1ExternalSecret"
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "templates"
+        ]
+      }
+    },
+    "/v1/policy-configs": {
+      "get": {
+        "summary": "List policy configs",
+        "operationId": "ClustersService_ListPolicyConfigs",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListPolicyConfigsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "policies"
+        ]
+      }
+    },
+    "/v1/policy-configs/{name}": {
+      "get": {
+        "summary": "Get policy config details",
+        "operationId": "ClustersService_GetPolicyConfig",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetPolicyConfigResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "policies"
+        ]
+      }
+    },
+    "/v1/sops-kustomizations": {
+      "get": {
+        "summary": "List Sops kustomizations",
+        "operationId": "ClustersService_ListSopsKustomizations",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListSopsKustomizationsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "secrets"
+        ]
+      }
+    },
+    "/v1/templates": {
+      "get": {
+        "summary": "List templates",
+        "description": "List templates from the management cluster.",
+        "operationId": "ClustersService_ListTemplates",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListTemplatesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "provider",
+            "description": "Filter by the capi provider resources used in the template\n`aws`, `azure`, `vsphere`, `gcp`, `openstack`, `digitalocean`, `packet`, `docker`",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "templateKind",
+            "description": "Filter by template's kind\n`GitopTemplate` or `CAPITemplate`",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "templates"
+        ]
+      }
+    },
+    "/v1/templates/capi-identities": {
+      "get": {
+        "summary": "List available CAPI identities",
+        "description": "Search the cluster for available CAPI identities.",
+        "operationId": "ClustersService_ListCredentials",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListCredentialsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "templates"
+        ]
+      }
+    },
+    "/v1/templates/deletion-pull-request": {
+      "post": {
+        "summary": "Create a pull request to delete templated resources",
+        "description": "_INTERNAL: will undergo changes to how we calculate which files to delete in the future._",
+        "operationId": "ClustersService_CreateDeletionPullRequest",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1CreateDeletionPullRequestResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1CreateDeletionPullRequestRequest"
+            }
+          }
+        ],
+        "tags": [
+          "internal"
+        ]
+      }
+    },
+    "/v1/tfcontrollers/pull-request": {
+      "post": {
+        "summary": "Creates a pull request from a tfcontroller template.",
+        "description": "Use CreatePullRequest instead",
+        "operationId": "ClustersService_CreateTfControllerPullRequest",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1CreateTfControllerPullRequestResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1CreateTfControllerPullRequestRequest"
+            }
+          }
+        ],
+        "tags": [
+          "templates"
+        ],
+        "deprecated": true
+      }
+    },
+    "/v1/workspaces": {
+      "get": {
+        "summary": "List workspaces",
+        "description": "See the workspaces documentation for an overview of how they work.\nIn effect a workspace is a set of namespaces, roles, rolebindings, serviceaccounts, and policies.\nAll these resources are labeled with the workspace.\n\nReturns a list of workspaces and the namespaces they each manage.",
+        "operationId": "ClustersService_ListWorkspaces",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListWorkspacesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "pagination.pageSize",
+            "description": "controls the number of results per page from each cluster",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pagination.pageToken",
+            "description": "a composite token used to retrieve the next page of results across all clusters\nthis is availble in the response as `nextPageToken`",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "workspaces"
+        ]
+      }
+    },
+    "/v1/workspaces/{name}": {
+      "get": {
+        "summary": "Get workspace details",
+        "description": "Get a single workspace and its namespaces.",
+        "operationId": "ClustersService_GetWorkspace",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetWorkspaceResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "workspaces"
+        ]
+      }
+    },
+    "/v1/workspaces/{name}/policies": {
+      "get": {
+        "summary": "List workspace service accounts",
+        "operationId": "ClustersService_GetWorkspacePolicies",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetWorkspacePoliciesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "workspaces"
+        ]
+      }
+    },
+    "/v1/workspaces/{name}/rolebindings": {
+      "get": {
+        "summary": "List workspace role bindings",
+        "operationId": "ClustersService_GetWorkspaceRoleBindings",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetWorkspaceRoleBindingsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "workspaces"
+        ]
+      }
+    },
+    "/v1/workspaces/{name}/roles": {
+      "get": {
+        "summary": "List workspace roles",
+        "operationId": "ClustersService_GetWorkspaceRoles",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetWorkspaceRolesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "workspaces"
+        ]
+      }
+    },
+    "/v1/workspaces/{name}/serviceaccounts": {
+      "get": {
+        "summary": "List workspace service accounts",
+        "operationId": "ClustersService_GetWorkspaceServiceAccounts",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetWorkspaceServiceAccountsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "workspaces"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "CostEstimateRange": {
+      "type": "object",
+      "properties": {
+        "low": {
+          "type": "number",
+          "format": "float"
+        },
+        "high": {
+          "type": "number",
+          "format": "float"
+        }
+      }
+    },
+    "apiHttpBody": {
+      "type": "object",
+      "properties": {
+        "contentType": {
+          "type": "string",
+          "description": "The HTTP Content-Type header value specifying the content type of the body."
+        },
+        "data": {
+          "type": "string",
+          "format": "byte",
+          "description": "The HTTP request/response body as raw binary."
+        },
+        "extensions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          },
+          "description": "Application specific response metadata. Must be set in the first response\nfor streaming APIs."
+        }
+      },
+      "description": "Message that represents an arbitrary HTTP body. It should only be used for\npayload formats that can't be represented as JSON, such as raw binary or\nan HTML page.\n\n\nThis message can be used both in streaming and non-streaming API methods in\nthe request as well as the response.\n\nIt can be used as a top-level request field, which is convenient if one\nwants to extract parameters from either the URL or HTTP template into the\nrequest fields and also want access to the raw HTTP body.\n\nExample:\n\n    message GetResourceRequest {\n      // A unique request id.\n      string request_id = 1;\n\n      // The raw HTTP body is bound to this field.\n      google.api.HttpBody http_body = 2;\n\n    }\n\n    service ResourceService {\n      rpc GetResource(GetResourceRequest)\n        returns (google.api.HttpBody);\n      rpc UpdateResource(google.api.HttpBody)\n        returns (google.protobuf.Empty);\n\n    }\n\nExample with streaming methods:\n\n    service CaldavService {\n      rpc GetCalendar(stream google.api.HttpBody)\n        returns (stream google.api.HttpBody);\n      rpc UpdateCalendar(stream google.api.HttpBody)\n        returns (stream google.api.HttpBody);\n\n    }\n\nUse of this type only changes how the request and response bodies are\nhandled, all other features will continue to work unchanged."
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string",
+          "description": "A URL/resource name that uniquely identifies the type of the serialized\nprotocol buffer message. This string must contain at least\none \"/\" character. The last segment of the URL's path must represent\nthe fully qualified name of the type (as in\n`path/google.protobuf.Duration`). The name should be in a canonical form\n(e.g., leading \".\" is not accepted).\n\nIn practice, teams usually precompile into the binary all types that they\nexpect it to use in the context of Any. However, for URLs which use the\nscheme `http`, `https`, or no scheme, one can optionally set up a type\nserver that maps type URLs to message definitions as follows:\n\n* If no scheme is provided, `https` is assumed.\n* An HTTP GET on the URL must yield a [google.protobuf.Type][]\n  value in binary format, or produce an error.\n* Applications are allowed to cache lookup results based on the\n  URL, or have them precompiled into a binary to avoid any\n  lookup. Therefore, binary compatibility needs to be preserved\n  on changes to types. (Use versioned type names to manage\n  breaking changes.)\n\nNote: this functionality is not currently available in the official\nprotobuf release, and it is not used for type URLs beginning with\ntype.googleapis.com.\n\nSchemes other than `http`, `https` (or the empty scheme) might be\nused with implementation specific semantics."
+        }
+      },
+      "additionalProperties": {},
+      "description": "`Any` contains an arbitrary serialized protocol buffer message along with a\nURL that describes the type of the serialized message.\n\nProtobuf library provides support to pack/unpack Any values in the form\nof utility functions or additional generated methods of the Any type.\n\nExample 1: Pack and unpack a message in C++.\n\n    Foo foo = ...;\n    Any any;\n    any.PackFrom(foo);\n    ...\n    if (any.UnpackTo(\u0026foo)) {\n      ...\n    }\n\nExample 2: Pack and unpack a message in Java.\n\n    Foo foo = ...;\n    Any any = Any.pack(foo);\n    ...\n    if (any.is(Foo.class)) {\n      foo = any.unpack(Foo.class);\n    }\n    // or ...\n    if (any.isSameTypeAs(Foo.getDefaultInstance())) {\n      foo = any.unpack(Foo.getDefaultInstance());\n    }\n\nExample 3: Pack and unpack a message in Python.\n\n    foo = Foo(...)\n    any = Any()\n    any.Pack(foo)\n    ...\n    if any.Is(Foo.DESCRIPTOR):\n      any.Unpack(foo)\n      ...\n\nExample 4: Pack and unpack a message in Go\n\n     foo := \u0026pb.Foo{...}\n     any, err := anypb.New(foo)\n     if err != nil {\n       ...\n     }\n     ...\n     foo := \u0026pb.Foo{}\n     if err := any.UnmarshalTo(foo); err != nil {\n       ...\n     }\n\nThe pack methods provided by protobuf library will by default use\n'type.googleapis.com/full.type.name' as the type URL and the unpack\nmethods only use the fully qualified type name after the last '/'\nin the type URL, for example \"foo.bar.com/x/y.z\" will yield type\nname \"y.z\".\n\nJSON\n\nThe JSON representation of an `Any` value uses the regular\nrepresentation of the deserialized, embedded message, with an\nadditional field `@type` which contains the type URL. Example:\n\n    package google.profile;\n    message Person {\n      string first_name = 1;\n      string last_name = 2;\n    }\n\n    {\n      \"@type\": \"type.googleapis.com/google.profile.Person\",\n      \"firstName\": \u003cstring\u003e,\n      \"lastName\": \u003cstring\u003e\n    }\n\nIf the embedded message type is well-known and has a custom JSON\nrepresentation, that representation will be embedded adding a field\n`value` which holds the custom JSON in addition to the `@type`\nfield. Example (for message [google.protobuf.Duration][]):\n\n    {\n      \"@type\": \"type.googleapis.com/google.protobuf.Duration\",\n      \"value\": \"1.212s\"\n    }"
+    },
+    "protobufNullValue": {
+      "type": "string",
+      "enum": [
+        "NULL_VALUE"
+      ],
+      "default": "NULL_VALUE",
+      "description": "`NullValue` is a singleton enumeration to represent the null value for the\n`Value` type union.\n\n The JSON representation for `NullValue` is JSON `null`.\n\n - NULL_VALUE: Null value."
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v1CapiCluster": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "annotations": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "labels": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "status": {
+          "$ref": "#/definitions/v1CapiClusterStatus"
+        },
+        "infrastructureRef": {
+          "$ref": "#/definitions/v1CapiClusterInfrastructureRef"
+        }
+      }
+    },
+    "v1CapiClusterInfrastructureRef": {
+      "type": "object",
+      "properties": {
+        "apiVersion": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "v1CapiClusterStatus": {
+      "type": "object",
+      "properties": {
+        "phase": {
+          "type": "string"
+        },
+        "infrastructureReady": {
+          "type": "boolean"
+        },
+        "controlPlaneInitialized": {
+          "type": "boolean"
+        },
+        "controlPlaneReady": {
+          "type": "boolean"
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1Condition"
+          }
+        },
+        "observedGeneration": {
+          "type": "string",
+          "format": "int64"
+        }
+      }
+    },
+    "v1Chart": {
+      "type": "object",
+      "properties": {
+        "spec": {
+          "$ref": "#/definitions/v1ChartSpec"
+        }
+      }
+    },
+    "v1ChartSpec": {
+      "type": "object",
+      "properties": {
+        "chart": {
+          "type": "string"
+        },
+        "sourceRef": {
+          "$ref": "#/definitions/v1SourceRef"
+        },
+        "version": {
+          "type": "string"
+        }
+      }
+    },
+    "v1ClusterAutomation": {
+      "type": "object",
+      "properties": {
+        "cluster": {
+          "$ref": "#/definitions/v1ClusterNamespacedName"
+        },
+        "isControlPlane": {
+          "type": "boolean",
+          "description": "If the cluster is the \"management\" aka \"control-plane\" cluster then this is set to true.\nEnsures the file_path is correctly constructed if an explicit path is not set."
+        },
+        "kustomization": {
+          "$ref": "#/definitions/v1Kustomization"
+        },
+        "helmRelease": {
+          "$ref": "#/definitions/v1HelmRelease"
+        },
+        "filePath": {
+          "type": "string",
+          "description": "A path to write the resource to in the management git repo."
+        },
+        "externalSecret": {
+          "$ref": "#/definitions/v1ExternalSecret"
+        },
+        "policyConfig": {
+          "$ref": "#/definitions/v1PolicyConfigObject"
+        },
+        "sopsSecret": {
+          "$ref": "#/definitions/v1SopsSecret"
+        }
+      }
+    },
+    "v1ClusterNamespacedName": {
+      "type": "object",
+      "properties": {
+        "namespace": {
+          "type": "string",
+          "description": "Namespace of the cluster.\nShould be an empty string when referencing the \"management\" / \"control-plane\" cluster\n(the cluster running Weave Gitops)."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the cluster."
+        }
+      }
+    },
+    "v1CommitFile": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "content": {
+          "type": "string"
+        }
+      }
+    },
+    "v1Condition": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string"
+        }
+      },
+      "title": "kubernetes status condition field\nXXX: is dup'd in core, can we share?"
+    },
+    "v1CostEstimate": {
+      "type": "object",
+      "properties": {
+        "currency": {
+          "type": "string"
+        },
+        "range": {
+          "$ref": "#/definitions/CostEstimateRange"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "v1CreateAutomationsPullRequestRequest": {
+      "type": "object",
+      "properties": {
+        "repositoryUrl": {
+          "type": "string",
+          "description": "The repository to use e.g. https://github.com/my-org/my-repo."
+        },
+        "headBranch": {
+          "type": "string",
+          "description": "The name of the new branch to be created e.g. adds-cluster-dev-01."
+        },
+        "baseBranch": {
+          "type": "string",
+          "description": "The target branch to merge the new PR into, e.g. main."
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the pull request."
+        },
+        "description": {
+          "type": "string",
+          "description": "The description of the pull request."
+        },
+        "commitMessage": {
+          "type": "string",
+          "description": "The commit message."
+        },
+        "repositoryApiUrl": {
+          "type": "string",
+          "description": "_DEPRECATED: This is no longer used and will be removed in the future._\nThe repo api url."
+        },
+        "clusterAutomations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1ClusterAutomation"
+          },
+          "description": "A list of cluster and kustomization.\nThe cluster is used to determine the file path."
+        }
+      }
+    },
+    "v1CreateAutomationsPullRequestResponse": {
+      "type": "object",
+      "properties": {
+        "webUrl": {
+          "type": "string",
+          "description": "The url of the new pull request."
+        }
+      }
+    },
+    "v1CreateDeletionPullRequestRequest": {
+      "type": "object",
+      "properties": {
+        "repositoryUrl": {
+          "type": "string",
+          "description": "The repository to use."
+        },
+        "headBranch": {
+          "type": "string",
+          "description": "The new branch that will be created."
+        },
+        "baseBranch": {
+          "type": "string",
+          "description": "The target branch."
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the pull request."
+        },
+        "description": {
+          "type": "string",
+          "title": "The description of the pull request"
+        },
+        "clusterNames": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The name of the clusters to be delete via a PR."
+        },
+        "commitMessage": {
+          "type": "string",
+          "title": "The commit message"
+        },
+        "credentials": {
+          "$ref": "#/definitions/v1Credential",
+          "title": "Credentials"
+        },
+        "repositoryApiUrl": {
+          "type": "string",
+          "description": "_DEPRECATED: This is no longer used and will be removed in the future._\nThe repo api url."
+        },
+        "clusterNamespacedNames": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1ClusterNamespacedName"
+          }
+        }
+      }
+    },
+    "v1CreateDeletionPullRequestResponse": {
+      "type": "object",
+      "properties": {
+        "webUrl": {
+          "type": "string",
+          "description": "The url of the new pull request."
+        }
+      }
+    },
+    "v1CreatePullRequestResponse": {
+      "type": "object",
+      "properties": {
+        "webUrl": {
+          "type": "string",
+          "description": "The url of the new pull request."
+        }
+      }
+    },
+    "v1CreateTfControllerPullRequestRequest": {
+      "type": "object",
+      "properties": {
+        "repositoryUrl": {
+          "type": "string",
+          "description": "The repository to use."
+        },
+        "headBranch": {
+          "type": "string",
+          "description": "The new branch that will be created."
+        },
+        "baseBranch": {
+          "type": "string",
+          "description": "The target branch."
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the pull request."
+        },
+        "description": {
+          "type": "string",
+          "title": "The description of the pull request"
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the template to create a pull request for."
+        },
+        "parameterValues": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "The values that populate the template's parameters."
+        },
+        "commitMessage": {
+          "type": "string",
+          "title": "The commit message"
+        },
+        "repositoryApiUrl": {
+          "type": "string",
+          "description": "The repo api url."
+        },
+        "namespace": {
+          "type": "string"
+        }
+      }
+    },
+    "v1CreateTfControllerPullRequestResponse": {
+      "type": "object",
+      "properties": {
+        "webUrl": {
+          "type": "string",
+          "description": "The url of the new pull request."
+        }
+      }
+    },
+    "v1Credential": {
+      "type": "object",
+      "properties": {
+        "group": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        }
+      },
+      "description": "A reference to a CAPI identity.\n\nSupported Identity kinds:\n- `AWSClusterStaticIdentity`\n- `AWSClusterRoleIdentity`\n- `AzureClusterIdentity`\n- `VSphereClusterIdentity`\n\nThe credentials available on the system can be listed via the /capi-identities endpoint."
+    },
+    "v1Decryption": {
+      "type": "object",
+      "properties": {
+        "provider": {
+          "type": "string"
+        },
+        "secretRef": {
+          "$ref": "#/definitions/v1SecretRef"
+        }
+      }
+    },
+    "v1EncryptSopsSecretRequest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "labels": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "type": {
+          "type": "string"
+        },
+        "immutable": {
+          "type": "boolean"
+        },
+        "data": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "stringData": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "kustomizationName": {
+          "type": "string"
+        },
+        "kustomizationNamespace": {
+          "type": "string"
+        },
+        "clusterName": {
+          "type": "string"
+        }
+      }
+    },
+    "v1EncryptSopsSecretResponse": {
+      "type": "object",
+      "properties": {
+        "encryptedSecret": {},
+        "path": {
+          "type": "string"
+        }
+      }
+    },
+    "v1Event": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string"
+        },
+        "component": {
+          "type": "string"
+        },
+        "host": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "v1ExternalSecret": {
+      "type": "object",
+      "properties": {
+        "metadata": {
+          "$ref": "#/definitions/v1Metadata"
+        },
+        "spec": {
+          "$ref": "#/definitions/v1ExternalSecretSpec"
+        }
+      },
+      "title": "External Secrets template"
+    },
+    "v1ExternalSecretData": {
+      "type": "object",
+      "properties": {
+        "secretKey": {
+          "type": "string"
+        },
+        "remoteRef": {
+          "$ref": "#/definitions/v1ExternalSecretRemoteRef"
+        }
+      }
+    },
+    "v1ExternalSecretDataFromRemoteRef": {
+      "type": "object",
+      "properties": {
+        "extract": {
+          "$ref": "#/definitions/v1ExternalSecretDataRemoteRef"
+        }
+      }
+    },
+    "v1ExternalSecretDataRemoteRef": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string"
+        }
+      }
+    },
+    "v1ExternalSecretItem": {
+      "type": "object",
+      "properties": {
+        "secretName": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "clusterName": {
+          "type": "string"
+        },
+        "secretStore": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string"
+        }
+      }
+    },
+    "v1ExternalSecretRemoteRef": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "property": {
+          "type": "string"
+        }
+      }
+    },
+    "v1ExternalSecretSpec": {
+      "type": "object",
+      "properties": {
+        "refreshInterval": {
+          "type": "string"
+        },
+        "secretStoreRef": {
+          "$ref": "#/definitions/v1ExternalSecretStoreRef"
+        },
+        "target": {
+          "$ref": "#/definitions/v1ExternalSecretTarget"
+        },
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1ExternalSecretData"
+          }
+        },
+        "dataFrom": {
+          "$ref": "#/definitions/v1ExternalSecretDataFromRemoteRef"
+        }
+      }
+    },
+    "v1ExternalSecretStore": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        }
+      }
+    },
+    "v1ExternalSecretStoreRef": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        }
+      }
+    },
+    "v1ExternalSecretTarget": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "v1GetChartsJobResponse": {
+      "type": "object",
+      "properties": {
+        "values": {
+          "type": "string",
+          "description": "This is the base64 encoded version of the raw values data."
+        },
+        "error": {
+          "type": "string"
+        }
+      }
+    },
+    "v1GetConfigResponse": {
+      "type": "object",
+      "properties": {
+        "repositoryUrl": {
+          "type": "string",
+          "description": "_DEPRECATED: This is no longer used and will be removed in the future._\nThe default git repository URL for the management cluster."
+        },
+        "managementClusterName": {
+          "type": "string",
+          "description": "The given name of the management cluster which is used for some multi-cluster operations."
+        },
+        "uiConfig": {
+          "type": "string",
+          "description": "JSON encoded string of UI configuration."
+        },
+        "gitHostTypes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "The configured mapping of domains to git providers.\ne.g. `{ \"git.myhost.com\": \"gitlab\" }`) used\nfor authentication and creating pull requests."
+        }
+      }
+    },
+    "v1GetEnterpriseVersionResponse": {
+      "type": "object",
+      "example": {
+        "version": "0.42.0"
+      },
+      "properties": {
+        "version": {
+          "type": "string",
+          "description": "The version of Weave GitOps Enterprise."
+        }
+      }
+    },
+    "v1GetExternalSecretResponse": {
+      "type": "object",
+      "properties": {
+        "secretName": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "clusterName": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "secretStore": {
+          "type": "string"
+        },
+        "secretStoreType": {
+          "type": "string"
+        },
+        "secretPath": {
+          "type": "string"
+        },
+        "properties": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "version": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string"
+        },
+        "yaml": {
+          "type": "string"
+        }
+      }
+    },
+    "v1GetPolicyConfigResponse": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "clusterName": {
+          "type": "string"
+        },
+        "age": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "matchType": {
+          "type": "string"
+        },
+        "match": {
+          "$ref": "#/definitions/v1PolicyConfigMatch"
+        },
+        "policies": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1PolicyConfigPolicy"
+          }
+        },
+        "totalPolicies": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "v1GetTemplateResponse": {
+      "type": "object",
+      "properties": {
+        "template": {
+          "$ref": "#/definitions/v1Template"
+        }
+      }
+    },
+    "v1GetValuesForChartRequest": {
+      "type": "object",
+      "properties": {
+        "repository": {
+          "$ref": "#/definitions/v1RepositoryRef"
+        },
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      }
+    },
+    "v1GetValuesForChartResponse": {
+      "type": "object",
+      "properties": {
+        "jobId": {
+          "type": "string"
+        }
+      }
+    },
+    "v1GetWorkspacePoliciesResponse": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The name of the workspace."
+        },
+        "clusterName": {
+          "type": "string",
+          "description": "The cluster the workspaces is in."
+        },
+        "objects": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1WorkspacePolicy"
+          },
+          "description": "The list of policies that are part of the workspace."
+        }
+      }
+    },
+    "v1GetWorkspaceResponse": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The name of the workspace."
+        },
+        "clusterName": {
+          "type": "string",
+          "description": "The cluster the workspace is in."
+        },
+        "namespaces": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The list of namespaces that are part of the workspace."
+        }
+      }
+    },
+    "v1GetWorkspaceRoleBindingsResponse": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The name of the workspace."
+        },
+        "clusterName": {
+          "type": "string",
+          "description": "The cluster the workspace is in."
+        },
+        "objects": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1WorkspaceRoleBinding"
+          },
+          "description": "The list of role bindings that are part of the workspace."
+        }
+      }
+    },
+    "v1GetWorkspaceRolesResponse": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The name of the workspace."
+        },
+        "clusterName": {
+          "type": "string",
+          "description": "The cluster the workspace is in."
+        },
+        "objects": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1WorkspaceRole"
+          },
+          "description": "The list of roles that are part of the workspace."
+        }
+      }
+    },
+    "v1GetWorkspaceServiceAccountsResponse": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The name of the workspace."
+        },
+        "clusterName": {
+          "type": "string",
+          "description": "The cluster the workspace is in."
+        },
+        "objects": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1WorkspaceServiceAccount"
+          },
+          "description": "The list of service accounts that are part of the workspace."
+        }
+      }
+    },
+    "v1GitopsCluster": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "annotations": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "labels": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1Condition"
+          }
+        },
+        "capiClusterRef": {
+          "$ref": "#/definitions/v1GitopsClusterRef"
+        },
+        "secretRef": {
+          "$ref": "#/definitions/v1GitopsClusterRef"
+        },
+        "capiCluster": {
+          "$ref": "#/definitions/v1CapiCluster"
+        },
+        "controlPlane": {
+          "type": "boolean"
+        },
+        "type": {
+          "type": "string"
+        }
+      }
+    },
+    "v1GitopsClusterRef": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "v1HelmRelease": {
+      "type": "object",
+      "properties": {
+        "metadata": {
+          "$ref": "#/definitions/v1Metadata"
+        },
+        "spec": {
+          "$ref": "#/definitions/v1HelmReleaseSpec"
+        }
+      }
+    },
+    "v1HelmReleaseSpec": {
+      "type": "object",
+      "properties": {
+        "chart": {
+          "$ref": "#/definitions/v1Chart"
+        },
+        "values": {
+          "type": "string"
+        }
+      }
+    },
+    "v1Kustomization": {
+      "type": "object",
+      "properties": {
+        "metadata": {
+          "$ref": "#/definitions/v1Metadata"
+        },
+        "spec": {
+          "$ref": "#/definitions/v1KustomizationSpec"
+        }
+      }
+    },
+    "v1KustomizationSpec": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "sourceRef": {
+          "$ref": "#/definitions/v1SourceRef"
+        },
+        "targetNamespace": {
+          "type": "string"
+        },
+        "createNamespace": {
+          "type": "boolean"
+        },
+        "decryption": {
+          "$ref": "#/definitions/v1Decryption"
+        }
+      }
+    },
+    "v1ListChartsForRepositoryResponse": {
+      "type": "object",
+      "properties": {
+        "charts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1RepositoryChart"
+          }
+        }
+      }
+    },
+    "v1ListCredentialsResponse": {
+      "type": "object",
+      "properties": {
+        "credentials": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1Credential"
+          }
+        },
+        "total": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "v1ListError": {
+      "type": "object",
+      "properties": {
+        "clusterName": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "v1ListEventsResponse": {
+      "type": "object",
+      "properties": {
+        "events": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1Event"
+          }
+        }
+      }
+    },
+    "v1ListExternalSecretStoresResponse": {
+      "type": "object",
+      "properties": {
+        "stores": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1ExternalSecretStore"
+          }
+        },
+        "total": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "v1ListExternalSecretsResponse": {
+      "type": "object",
+      "properties": {
+        "secrets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1ExternalSecretItem"
+          }
+        },
+        "total": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1ListError"
+          }
+        }
+      }
+    },
+    "v1ListGitopsClustersResponse": {
+      "type": "object",
+      "properties": {
+        "gitopsClusters": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1GitopsCluster"
+          }
+        },
+        "total": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "nextPageToken": {
+          "type": "string"
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1ListError"
+          }
+        }
+      }
+    },
+    "v1ListPolicyConfigsResponse": {
+      "type": "object",
+      "properties": {
+        "policyConfigs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1PolicyConfigListItem"
+          }
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1ListError"
+          }
+        },
+        "total": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "v1ListSopsKustomizationsResponse": {
+      "type": "object",
+      "properties": {
+        "kustomizations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1SopsKustomizations"
+          }
+        },
+        "total": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "v1ListTemplatesResponse": {
+      "type": "object",
+      "properties": {
+        "templates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1Template"
+          }
+        },
+        "total": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1ListError"
+          }
+        }
+      }
+    },
+    "v1ListWorkspacesResponse": {
+      "type": "object",
+      "properties": {
+        "workspaces": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1Workspace"
+          }
+        },
+        "total": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "nextPageToken": {
+          "type": "string"
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1ListError"
+          }
+        }
+      }
+    },
+    "v1Metadata": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "annotations": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v1ObjectRef": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        }
+      }
+    },
+    "v1Pagination": {
+      "type": "object",
+      "properties": {
+        "pageSize": {
+          "type": "integer",
+          "format": "int32",
+          "title": "controls the number of results per page from each cluster"
+        },
+        "pageToken": {
+          "type": "string",
+          "title": "a composite token used to retrieve the next page of results across all clusters\nthis is availble in the response as `nextPageToken`"
+        }
+      }
+    },
+    "v1Parameter": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "default": {
+          "type": "string"
+        },
+        "editable": {
+          "type": "boolean"
+        }
+      }
+    },
+    "v1PolicyConfigApplicationMatch": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        }
+      }
+    },
+    "v1PolicyConfigConf": {
+      "type": "object",
+      "properties": {
+        "parameters": {
+          "type": "object",
+          "additionalProperties": {}
+        }
+      }
+    },
+    "v1PolicyConfigListItem": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "clusterName": {
+          "type": "string"
+        },
+        "totalPolicies": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "match": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "age": {
+          "type": "string"
+        }
+      }
+    },
+    "v1PolicyConfigMatch": {
+      "type": "object",
+      "properties": {
+        "namespaces": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "workspaces": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "apps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1PolicyConfigApplicationMatch"
+          }
+        },
+        "resources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1PolicyConfigResourceMatch"
+          }
+        }
+      }
+    },
+    "v1PolicyConfigObject": {
+      "type": "object",
+      "properties": {
+        "metadata": {
+          "$ref": "#/definitions/v1Metadata"
+        },
+        "spec": {
+          "$ref": "#/definitions/v1PolicyConfigObjectSpec"
+        }
+      }
+    },
+    "v1PolicyConfigObjectSpec": {
+      "type": "object",
+      "properties": {
+        "match": {
+          "$ref": "#/definitions/v1PolicyConfigMatch"
+        },
+        "config": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/v1PolicyConfigConf"
+          }
+        }
+      }
+    },
+    "v1PolicyConfigPolicy": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": {}
+        },
+        "status": {
+          "type": "string"
+        }
+      }
+    },
+    "v1PolicyConfigResourceMatch": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        }
+      }
+    },
+    "v1PreviousValues": {
+      "type": "object",
+      "properties": {
+        "parameterValues": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "credentials": {
+          "$ref": "#/definitions/v1Credential"
+        },
+        "values": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1ProfileValues"
+          }
+        },
+        "kustomizations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1Kustomization"
+          }
+        },
+        "externalSecrets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1ExternalSecret"
+          }
+        },
+        "policyConfigs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1PolicyConfigObject"
+          }
+        },
+        "sopsSecrets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1SopsSecret"
+          }
+        }
+      },
+      "description": "INTERNAL: DO NOT USE - This field will change.\n\nPrevious values for a CreatePullRequestRequest.\nIf provided this request will be considered an edit to previous set of resources that\nhave been rendered and merged. Files written by the previous request that are no longer\npresent in the current render will be deleted in the new Pull Request."
+    },
+    "v1ProfileValues": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "values": {
+          "type": "string"
+        },
+        "layer": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        }
+      }
+    },
+    "v1RenderAutomationRequest": {
+      "type": "object",
+      "properties": {
+        "clusterAutomations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1ClusterAutomation"
+          }
+        }
+      }
+    },
+    "v1RenderAutomationResponse": {
+      "type": "object",
+      "properties": {
+        "kustomizationFiles": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1CommitFile"
+          }
+        },
+        "helmReleaseFiles": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1CommitFile"
+          }
+        },
+        "externalSecretsFiles": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1CommitFile"
+          }
+        },
+        "policyConfigFiles": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1CommitFile"
+          }
+        },
+        "sopsSecertFiles": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1CommitFile"
+          }
+        }
+      }
+    },
+    "v1RenderTemplateResponse": {
+      "type": "object",
+      "properties": {
+        "renderedTemplates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1CommitFile"
+          }
+        },
+        "profileFiles": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1CommitFile"
+          }
+        },
+        "kustomizationFiles": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1CommitFile"
+          }
+        },
+        "costEstimate": {
+          "$ref": "#/definitions/v1CostEstimate"
+        },
+        "externalSecretsFiles": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1CommitFile"
+          }
+        },
+        "policyConfigFiles": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1CommitFile"
+          }
+        },
+        "sopsSecretFiles": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1CommitFile"
+          }
+        }
+      }
+    },
+    "v1RepositoryChart": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "versions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "This is the available versions in reverse semver order."
+        },
+        "layer": {
+          "type": "string"
+        }
+      }
+    },
+    "v1RepositoryRef": {
+      "type": "object",
+      "properties": {
+        "cluster": {
+          "$ref": "#/definitions/v1ClusterNamespacedName"
+        },
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        }
+      }
+    },
+    "v1SecretRef": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "v1SopsKustomizations": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        }
+      }
+    },
+    "v1SopsSecret": {
+      "type": "object",
+      "properties": {
+        "apiVersion": {
+          "type": "string",
+          "title": "(-- protolint:disable:next FIELD_NAMES_LOWER_SNAKE_CASE --)"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "metadata": {
+          "$ref": "#/definitions/v1SopsSecretMetadata"
+        },
+        "data": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "stringData": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "(-- protolint:disable:next FIELD_NAMES_LOWER_SNAKE_CASE --)"
+        },
+        "type": {
+          "type": "string"
+        },
+        "immutable": {
+          "type": "boolean"
+        },
+        "sops": {}
+      }
+    },
+    "v1SopsSecretMetadata": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "labels": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v1SourceRef": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        }
+      }
+    },
+    "v1SyncExternalSecretsRequest": {
+      "type": "object",
+      "properties": {
+        "clusterName": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "v1SyncExternalSecretsResponse": {
+      "type": "object"
+    },
+    "v1Template": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The name of the template."
+        },
+        "description": {
+          "type": "string",
+          "description": "The description of the template given in the spec."
+        },
+        "provider": {
+          "type": "string",
+          "description": "The provider that the kinds found in the template belong to.\nE.g. If the template includes an AWSCluster then **aws** is returned here. Values:\naws, azure, vsphere, gcp, openstack, digitalocean, packet, docker."
+        },
+        "parameters": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1Parameter"
+          },
+          "description": "The parameters that the template provides."
+        },
+        "objects": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1TemplateObject"
+          },
+          "description": "Metadata about the resources found in the template body.\nWhat kind they are, which parameters are found in this block etc."
+        },
+        "error": {
+          "type": "string",
+          "description": "Any errors that occurred while parsing the template."
+        },
+        "annotations": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "The metadata.annotations of the template resource."
+        },
+        "templateKind": {
+          "type": "string",
+          "description": "The kind of the template. Either **CAPITemplate** or **GitopsTemplate**."
+        },
+        "templateType": {
+          "type": "string",
+          "description": "The type of the template declared by the weave.works/template-type label."
+        },
+        "labels": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "The metadata.labels of the template resource."
+        },
+        "namespace": {
+          "type": "string",
+          "description": "The namespace of the template."
+        },
+        "profiles": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1TemplateProfile"
+          },
+          "description": "Required and recommended profiles for the template."
+        }
+      }
+    },
+    "v1TemplateObject": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string"
+        },
+        "apiVersion": {
+          "type": "string"
+        },
+        "parameters": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "name": {
+          "type": "string"
+        },
+        "displayName": {
+          "type": "string"
+        }
+      }
+    },
+    "v1TemplateProfile": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "editable": {
+          "type": "boolean"
+        },
+        "values": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "profileTemplate": {
+          "type": "string"
+        },
+        "layer": {
+          "type": "string"
+        }
+      }
+    },
+    "v1Workspace": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The name of the workspace."
+        },
+        "clusterName": {
+          "type": "string",
+          "description": "The cluster the workspaces is in."
+        },
+        "namespaces": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The list of namespaces that are part of the workspace."
+        }
+      }
+    },
+    "v1WorkspacePolicy": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "category": {
+          "type": "string"
+        },
+        "severity": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string"
+        }
+      }
+    },
+    "v1WorkspaceRole": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "rules": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1WorkspaceRoleRule"
+          }
+        },
+        "manifest": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        }
+      }
+    },
+    "v1WorkspaceRoleBinding": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "manifest": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string"
+        },
+        "role": {
+          "$ref": "#/definitions/v1WorkspaceRoleBindingRoleRef"
+        },
+        "subjects": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1WorkspaceRoleBindingSubject"
+          }
+        },
+        "kind": {
+          "type": "string"
+        }
+      }
+    },
+    "v1WorkspaceRoleBindingRoleRef": {
+      "type": "object",
+      "properties": {
+        "apiGroup": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "v1WorkspaceRoleBindingSubject": {
+      "type": "object",
+      "properties": {
+        "apiGroup": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        }
+      }
+    },
+    "v1WorkspaceRoleRule": {
+      "type": "object",
+      "properties": {
+        "groups": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "resources": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "verbs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v1WorkspaceServiceAccount": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string"
+        },
+        "manifest": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
