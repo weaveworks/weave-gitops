@@ -1,0 +1,266 @@
+# Project information
+site_name: Weave GitOps
+site_description: The Flux expansion pack from the founders of Flux
+site_author: Weave GitOps authors
+site_url: https://docs.gitops.weave.works
+
+# Repository
+repo_name: weaveworks/weave-gitops
+repo_url: https://github.com/weaveworks/weave-gitops
+docs_dir: docs
+edit_uri: ""
+
+# Configuration
+theme:
+    name: material
+    custom_dir: theme
+    favicon: img/favicon_150px.png
+    logo: img/logo.ico
+    font:
+        text: Segoe UI
+        code: Roboto Mono
+    palette:
+      - media: "(prefers-color-scheme: light)"
+        scheme: default
+        toggle:
+          icon: material/weather-night
+          name: Switch to dark mode
+        primary: deep orange
+        accent: light blue
+      - media: "(prefers-color-scheme: dark)"
+        scheme: slate
+        toggle:
+          icon: material/weather-sunny
+          name: Switch to light mode
+        primary: deep orange
+        accent: light blue
+    highlightjs: true
+    hljs_languages:
+        - yaml
+        - json
+        - bash
+    features:
+      - header.autohide
+      - navigation.instant
+      - navigation.top
+      - navigation.tabs
+      - navigation.tabs.sticky
+      - navigation.footer
+      - search.highlight
+      - search.share
+      - search.suggest
+      - content.code.annotate
+      - content.tooltips
+      - content.tabs.link
+      - content.code.copy
+    
+# Plugins
+plugins:
+  - search
+  - glightbox
+  - minify:
+      minify_html: true
+  - social:
+      cards: true
+      cards_font: Roboto
+
+# Customization
+extra:
+    social:
+    - icon: fontawesome/brands/facebook
+      link: https://www.facebook.com/WeaveworksInc/
+    - icon: fontawesome/brands/linkedin
+      link: https://www.linkedin.com/company/weaveworks
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/weaveworks
+    - icon: fontawesome/brands/slack
+      link: https://slack.weave.works/
+    - icon: fontawesome/brands/youtube
+      link: https://www.youtube.com/c/WeaveWorksInc
+    analytics:
+      provider: google
+      property: process.env.GA_KEY
+      feedback:
+        title: Was this page helpful?
+        ratings:
+          - icon: material/thumb-up-outline
+            name: This page was helpful
+            data: 1
+            note: >-
+              Thanks for your feedback!
+          - icon: material/thumb-down-outline
+            name: This page could be improved
+            data: 0
+            note: >- 
+              Thanks for your feedback! Help us improve this page by using our 
+              <a href="https://github.com/eksctl-io/eksctl/issues/new/?title=[Feedback]+{title}+-+{url}" target="_blank" rel="noopener">feedback form <a>.
+    consent:
+      title: Cookie consent
+      description: >- 
+        We use cookies to recognize your repeated visits and preferences, as well as to measure the effectiveness of our documentation and whether users
+        find what they're searching for. With your consent, you're helping us to make our documentation better.
+      actions:
+        - accept
+        - manage 
+
+extra_css:
+  - stylesheets/extra.css
+
+extra_javascript:
+  - javascripts/extra.js
+
+# Extensions
+markdown_extensions:
+  - toc:
+      permalink: true
+  - admonition
+  - codehilite:
+      linenums: true
+  - pymdownx.superfences
+  - pymdownx.details
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
+  - pymdownx.caret
+  - pymdownx.mark
+  - pymdownx.tilde
+  - pymdownx.snippets
+  - attr_list
+  - md_in_html
+
+# Page tree
+nav:
+  - Home: index.md
+  - Docs:
+    - Introducing Weave GitOps: 
+      - intro-weave-gitops.md
+      - Weave GitOps OSS:
+        - open-source/install-oss.md
+        - open-source/ui-oss.md
+        - open-source/deploy-oss.md
+        - open-source/aws-marketplace.md
+        - open-source/run-ui-subpath.md
+      - Weave GitOps Enterprise:
+        - enterprise/index.md
+        - enterprise/install-enterprise.md
+        - enterprise/install-enterprise-cli.md
+        - enterprise/install-enterprise-airgap.md
+        - enterprise/releases-enterprise.md
+        - enterprise/install-enterprise-azure.md
+        - enterprise/join-cluster-azure-flux.md
+    - Backstage: backstage.md
+    - Cluster Management: 
+      - cluster-management/index.md
+      - cluster-management/managing-clusters-without-capi.md
+      - cluster-management/deploying-capa-eks.md
+      - cluster-management/profiles.md
+      - cluster-management/cluster-management-troubleshooting.md
+      - Advanced Cluster management: 
+        - cluster-management/advanced-cluster-management-topics/how-to-inject-credentials-into-template.md
+    - Explorer: 
+      - explorer/index.md
+      - explorer/getting-started.md
+      - explorer/configuration.md
+      - explorer/querying.md
+      - explorer/operations.md
+    - GitOpsSets:
+      - gitopssets/index.md
+      - gitopssets/gitopssets-installation.md
+      - gitopssets/templating-from-generators.md
+      - gitopssets/gitopssets-api-reference.md
+      - gitopssets/gitopssets-releases.md
+    - Guides:
+      - guides/displaying-custom-metadata.md
+      - guides/fluxga-upgrade.md
+      - guides/anonymous-access.md
+    - Operations: monitoring.md
+    - Pipelines:
+      - pipelines/index.md
+      - pipelines/pipelines-getting-started.md
+      - pipelines/authorization.md
+      - pipelines/promoting-applications.md
+      - pipelines/pipelines-templates.md
+      - pipelines/pipelines-with-jenkins.md
+      - pipelines/pipelines-with-tekton.md
+      - Reference:
+        - v1alpha1: pipelines/spec/v1alpha1/pipeline.md
+    - Policy:
+      - policy/index.md
+      - policy/getting-started.md
+      - policy/authorization.md
+      - policy/policy.md
+      - policy/weave-policy-profile.md
+      - policy/policy-set.md
+      - policy/policy-configuration.md
+      - policy/releases.md
+      - policy/commit-time-checks.md
+    - Progressive Delivery:
+      - progressive-delivery/progressive-delivery-flagger-install.md
+      - progressive-delivery/flagger-manual-gating.md
+    - Secrets:
+      - secrets/index.md
+      - secrets/getting-started.md
+      - secrets/bootstrapping-secrets.md
+      - secrets/setup-eso.md
+      - secrets/setup-sops.md
+      - secrets/manage-secrets-ui.md
+      - Reference:
+        - v1alpha1: secrets/spec/v1alpha1/secretSync.md
+    - Templates:
+      - gitops-templates/index.md
+      - Creating Templates: 
+        - gitops-templates/creating-templates.md
+        - gitops-templates/resource-templates.md
+        - gitops-templates/repo-rendered-paths.md
+        - gitops-templates/profiles.md
+        - gitops-templates/annotations.md
+        - gitops-templates/params.md
+        - gitops-templates/supported-langs.md
+        - gitops-templates/create-cluster-example.md
+        - gitops-templates/quickstart-templates.md
+      - gitops-templates/cli.md
+      - gitops-templates/versions.md
+    - Terraform:
+      - terraform/index.md
+      - terraform/get-started-terraform.md
+      - terraform/using-terraform-templates.md
+    - Workspaces:
+      - workspaces/index.md
+      - workspaces/multi-tenancy.md
+      - workspaces/view-workspaces.md
+  - Reference:
+    - OSS Helm Reference: references/helm-reference.md
+    - CLI Reference: 
+      - references/cli-reference/gitops.md
+      - references/cli-reference/gitops_check.md
+      - references/cli-reference/gitops_completion.md
+      - references/cli-reference/gitops_completion_bash.md
+      - references/cli-reference/gitops_completion_fish.md
+      - references/cli-reference/gitops_completion_powershell.md
+      - references/cli-reference/gitops_completion_zsh.md
+      - references/cli-reference/gitops_create.md
+      - references/cli-reference/gitops_create_dashboard.md
+      - references/cli-reference/gitops_create_terraform.md
+      - references/cli-reference/gitops_delete.md
+      - references/cli-reference/gitops_delete_terraform.md
+      - references/cli-reference/gitops_get.md
+      - references/cli-reference/gitops_get_bcrypt-hash.md
+      - references/cli-reference/gitops_get_config.md
+      - references/cli-reference/gitops_logs.md
+      - references/cli-reference/gitops_logs_terraform.md
+      - references/cli-reference/gitops_replan.md
+      - references/cli-reference/gitops_replan_terraform.md
+      - references/cli-reference/gitops_resume.md
+      - references/cli-reference/gitops_resume_terraform.md
+      - references/cli-reference/gitops_set.md
+      - references/cli-reference/gitops_set_config.md
+      - references/cli-reference/gitops_suspend.md
+      - references/cli-reference/gitops_suspend_terraform.md
+      - references/cli-reference/gitops_version.md
+  - Security: security.md
+  - Feedback & Telemetry: feedback-and-telemetry.md
+  - Support: help-and-support.md
