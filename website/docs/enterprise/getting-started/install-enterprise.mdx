@@ -102,7 +102,7 @@ flux bootstrap gitlab \
 </TabItem>
 </Tabs>
 
-Your private Git repo should have a clusters/management folder that includes the manifests Flux needs to operate, and that also generates a key value pair for Flux to access the repo. 
+Your private Git repo should have a clusters/management folder that includes the manifests Flux needs to operate, and that also generates a key value pair for Flux to access the repo.
 
 * **owner**: The username (or organization) of the Git repository
 * **repository**: Git repository name
@@ -351,7 +351,7 @@ spec:
 </details>
 
 An important part of the configuration is the `orgs` field on the GitHub
-connector, which allows you to define groups within a GitHub organisation: 
+connector, which allows you to define groups within a GitHub organisation:
 
 ```yaml
 orgs:
@@ -592,7 +592,7 @@ for the Weave GitOps application, which the WGE UI requires to work. The default
 ```yaml
 rules:
 - apiGroups: [""]
-  resources:  ["users", "groups"] 
+  resources:  ["users", "groups"]
   verbs: [ "impersonate" ]
 - apiGroups: [""]
   resources: [ "secrets" ]
@@ -612,7 +612,7 @@ These allow the pod to do three things:
 #### Impersonation
 
 The primary way Weave GitOps queries the Kube API is via `impersonation`. The permissions granted to users and groups that Weave GitOps
-can impersonate will determine the scope of actions that WGE can take within your cluster. 
+can impersonate will determine the scope of actions that WGE can take within your cluster.
 
 The application, not the cluster, authenticates the user, either via the [emergency
 cluster user](#configuring-the-emergency-user) credentials or OIDC. Then it makes Kube API calls on the user's
@@ -623,7 +623,7 @@ $ kubectl get deployments --as aisha@example.com
 ```
 
 Assuming the user `aisha@example.com` has permissions to get
-deployments within the cluster, this will return those deployments. The same occurs 
+deployments within the cluster, this will return those deployments. The same occurs
 within the application, so properly configuring application
 permissions is very important. Without proper restrictions the application can impersonate
 very powerful `users` or `groups`. For example, the `system:masters` is a group
@@ -984,7 +984,7 @@ If BitBucket Server is running on the default port (7990), make sure you include
 
 <TabItem value="azure-devops" label="Azure DevOps">
 
-Navigate to [VisualStudio](https://app.vsaex.visualstudio.com/app/register) and register a new application, as explained in the [docs](https://learn.microsoft.com/en-us/azure/devops/integrate/get-started/authentication/oauth?view=azure-devops#1-register-your-app). Set the authorization callback URL and select which scopes to grant. Set the callback URL to `<WGE dashboard URL>/oauth/azuredevops`. 
+Navigate to [VisualStudio](https://app.vsaex.visualstudio.com/app/register) and register a new application, as explained in the [docs](https://learn.microsoft.com/en-us/azure/devops/integrate/get-started/authentication/oauth?view=azure-devops#1-register-your-app). Set the authorization callback URL and select which scopes to grant. Set the callback URL to `<WGE dashboard URL>/oauth/azuredevops`.
 
 Select the `Code (read and write)` scope from the list. This is necessary so that WGE can create pull requests on behalf of users. An example of configuring these settings is shown below.
 
