@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 	"sync"
 	"time"
 
@@ -34,24 +33,8 @@ const (
 )
 
 var (
-	usersClientsTTL = getEnvDuration("WEAVE_GITOPS_USERS_CLIENTS_TTL", 30*time.Minute)
+	usersClientsTTL = 24 * time.Hour
 )
-
-func getEnvDuration(key string, defaultDuration time.Duration) time.Duration {
-	val := os.Getenv(key)
-	if val == "" {
-		return defaultDuration
-	}
-
-	d, err := time.ParseDuration(val)
-
-	// on error return the default duration
-	if err != nil {
-		return defaultDuration
-	}
-
-	return d
-}
 
 var (
 	opsUpdateClusters = prometheus.NewCounter(
@@ -228,7 +211,7 @@ func NewClustersManager(fetchers []ClusterFetcher, nsChecker nsaccess.Checker, l
 		clusters:                   &Clusters{},
 		clustersNamespaces:         &ClustersNamespaces{},
 		usersNamespaces:            &UsersNamespaces{Cache: ttlcache.New(userNamespaceResolution)},
-		usersClients:               &UsersClients{Cache: ttlcache.New(usersClientResolution)},
+		usersClients:               &UsersClients{Cache: ttlcache.New(usersClientResolution), log: logger},
 		log:                        logger,
 		initialClustersLoad:        make(chan bool),
 		watchers:                   []*ClustersWatcher{},
@@ -609,10 +592,14 @@ func (cf *clustersManager) getOrCreateClient(user *auth.UserPrincipal, cluster c
 		}
 		isServer = true
 	}
+	cf.log.Info("getOrCreateClient", "user", user.ID, "cluster", cluster.GetName())
 
 	if client, found := cf.usersClients.Get(user, cluster.GetName()); found {
+		cf.log.Info("found cached client")
 		return client, nil
 	}
+
+	cf.log.Info("client not found in cache so creating ", "user", user.ID, "cluster", cluster.GetName())
 
 	var (
 		client client.Client
@@ -622,9 +609,11 @@ func (cf *clustersManager) getOrCreateClient(user *auth.UserPrincipal, cluster c
 	if isServer {
 		opsCreateServerClient.WithLabelValues(cluster.GetName()).Inc()
 		client, err = cluster.GetServerClient()
+		cf.log.Info("created server client", "user", user.ID, "cluster", cluster.GetName())
 	} else {
 		opsCreateUserClient.WithLabelValues(cluster.GetName()).Inc()
 		client, err = cluster.GetUserClient(user)
+		cf.log.Info("created user client", "user", user.ID, "cluster", cluster.GetName())
 	}
 
 	if err != nil {
@@ -632,6 +621,7 @@ func (cf *clustersManager) getOrCreateClient(user *auth.UserPrincipal, cluster c
 	}
 
 	cf.usersClients.Set(user, cluster.GetName(), client)
+	cf.log.Info("set client", "user", user.ID, "cluster", cluster.GetName())
 
 	return client, nil
 }
