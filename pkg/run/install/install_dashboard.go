@@ -157,15 +157,9 @@ func GetInstalledDashboard(ctx context.Context, kubeClient client.Client, namesp
 	dashboardName := ""
 
 	for _, helmRelease := range helmReleaseList.Items {
-		chart := helmRelease.Spec.Chart
-
-		if shouldDetectEnterpriseDashboard && chart != nil && chart.Spec.Chart == enterpriseDashboardHelmChartName &&
-			chart.Spec.SourceRef.Name == enterpriseDashboardHelmRepositoryName {
-			return DashboardTypeEnterprise, helmRelease.Name, nil
-		}
-
-		if shouldDetectOSSDashboard && chart == nil {
-			return DashboardTypeOSS, dashboardName, nil
+		// TODO(Flux 2.4 migration): We might want to also check the new ChartRef sibling field.
+		if helmRelease.Spec.Chart == nil {
+			continue
 		}
 
 		chartSpec := helmRelease.Spec.Chart.Spec
