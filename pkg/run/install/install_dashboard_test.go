@@ -218,27 +218,27 @@ var _ = Describe("GetInstalledDashboard", func() {
 		})
 		Expect(err).ToNot(HaveOccurred())
 		Expect(dashboardType).To(Equal(DashboardTypeOSS))
-		Expect(dashboardName).To(Equal([]string{dashboardName, "-", "?"}))
+		Expect(dashboardName).To(Equal(nil))
 	})
 
-	// It("returns the enterprise dashboard type if the dashboard is installed with a helmrelease", func() {
-	//	dashboardType, dashboardName, err := GetInstalledDashboard(fakeContext, fakeClientWithHelmReleases, testNamespace, map[DashboardType]bool{
-	//		DashboardTypeEnterprise: true,
-	//	})
-	//	Expect(err).ToNot(HaveOccurred())
-	//	Expect(dashboardType).To(Equal(DashboardTypeEnterprise))
-	//	Expect(dashboardName).To(Equal("Dashboard-3"))
-	// })
-	//
-	// It("returns the enterprise dashboard type if both dashboards are installed with a helmrelease", func() {
-	//	dashboardType, dashboardName, err := GetInstalledDashboard(fakeContext, fakeClientWithHelmReleases, testNamespace, map[DashboardType]bool{
-	//		DashboardTypeOSS:        true,
-	//		DashboardTypeEnterprise: true,
-	//	})
-	//	Expect(err).ToNot(HaveOccurred())
-	//	Expect(dashboardType).To(Equal(DashboardTypeEnterprise))
-	//	Expect(dashboardName).To(Equal("Dashboard-3"))
-	// })
+	It("returns the enterprise dashboard type if the dashboard is installed with a helmrelease", func() {
+		dashboardType, dashboardName, err := GetInstalledDashboard(fakeContext, fakeClientWithHelmReleases, testNamespace, map[DashboardType]bool{
+			DashboardTypeEnterprise: true,
+		})
+		Expect(err).ToNot(HaveOccurred())
+		Expect(dashboardType).To(Equal(DashboardTypeEnterprise))
+		Expect(dashboardName).To(Equal(dashboardName))
+	})
+
+	It("returns the enterprise dashboard type if both dashboards are installed with a helmrelease", func() {
+		dashboardType, dashboardName, err := GetInstalledDashboard(fakeContext, fakeClientWithHelmReleases, testNamespace, map[DashboardType]bool{
+			DashboardTypeOSS:        true,
+			DashboardTypeEnterprise: true,
+		})
+		Expect(err).ToNot(HaveOccurred())
+		Expect(dashboardType).To(Equal(DashboardTypeEnterprise))
+		Expect(dashboardName).To(Equal(dashboardName))
+	})
 
 	It("returns the oss dashboard type if the dashboard is installed with a deployment only", func() {
 		dashboardType, dashboardName, err := GetInstalledDashboard(fakeContext, fakeClientWithDeployments, testNamespace, map[DashboardType]bool{
