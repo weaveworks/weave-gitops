@@ -159,7 +159,12 @@ func GetInstalledDashboard(ctx context.Context, kubeClient client.Client, namesp
 	for _, helmRelease := range helmReleaseList.Items {
 		chart := helmRelease.Spec.Chart
 
-		if chart == nil {
+		if shouldDetectEnterpriseDashboard && chart != nil && chart.Spec.Chart == enterpriseDashboardHelmChartName &&
+			chart.Spec.SourceRef.Name == enterpriseDashboardHelmRepositoryName {
+			return DashboardTypeEnterprise, helmRelease.Name, nil
+		}
+
+		if shouldDetectOSSDashboard && chart == nil {
 			return DashboardTypeOSS, dashboardName, nil
 		}
 
