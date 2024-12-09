@@ -1,8 +1,8 @@
 package fluxsync
 
 import (
-	helmv2 "github.com/fluxcd/helm-controller/api/v2beta2"
-	imgautomationv1 "github.com/fluxcd/image-automation-controller/api/v1beta1"
+	helmv2 "github.com/fluxcd/helm-controller/api/v2"
+	imgautomationv1 "github.com/fluxcd/image-automation-controller/api/v1beta2"
 	reflectorv1 "github.com/fluxcd/image-reflector-controller/api/v1beta2"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
 	"github.com/fluxcd/pkg/apis/meta"
@@ -69,7 +69,7 @@ func (obj GitRepositoryAdapter) DeepCopyClientObject() client.Object {
 }
 
 type BucketAdapter struct {
-	*sourcev1b2.Bucket
+	*sourcev1.Bucket
 }
 
 func (obj BucketAdapter) GetLastHandledReconcileRequest() string {
@@ -81,7 +81,7 @@ func (obj BucketAdapter) AsClientObject() client.Object {
 }
 
 func (obj BucketAdapter) GroupVersionKind() schema.GroupVersionKind {
-	return sourcev1b2.GroupVersion.WithKind(sourcev1b2.BucketKind)
+	return sourcev1.GroupVersion.WithKind(sourcev1.BucketKind)
 }
 
 func (obj BucketAdapter) SetSuspended(suspend bool) error {
@@ -106,7 +106,7 @@ func (obj HelmChartAdapter) AsClientObject() client.Object {
 }
 
 func (obj HelmChartAdapter) GroupVersionKind() schema.GroupVersionKind {
-	return sourcev1b2.GroupVersion.WithKind(sourcev1b2.HelmChartKind)
+	return sourcev1.GroupVersion.WithKind(sourcev1.HelmChartKind)
 }
 
 func (obj HelmChartAdapter) SetSuspended(suspend bool) error {
@@ -131,7 +131,7 @@ func (obj HelmRepositoryAdapter) AsClientObject() client.Object {
 }
 
 func (obj HelmRepositoryAdapter) GroupVersionKind() schema.GroupVersionKind {
-	return sourcev1b2.GroupVersion.WithKind(sourcev1b2.HelmRepositoryKind)
+	return sourcev1.GroupVersion.WithKind(sourcev1.HelmRepositoryKind)
 }
 
 func (obj HelmRepositoryAdapter) SetSuspended(suspend bool) error {
@@ -374,8 +374,8 @@ func ToReconcileable(gvk schema.GroupVersionKind) Reconcilable {
 	// TODO: remove all these and let them fall through to the Unstructured case?
 	case sourcev1.GitRepositoryKind:
 		return GitRepositoryAdapter{GitRepository: &sourcev1.GitRepository{}}
-	case sourcev1b2.BucketKind:
-		return BucketAdapter{Bucket: &sourcev1b2.Bucket{}}
+	case sourcev1.BucketKind:
+		return BucketAdapter{Bucket: &sourcev1.Bucket{}}
 	case sourcev1b2.HelmRepositoryKind:
 		return HelmRepositoryAdapter{HelmRepository: &sourcev1b2.HelmRepository{}}
 	case sourcev1b2.HelmChartKind:

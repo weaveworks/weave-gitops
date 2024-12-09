@@ -55,10 +55,10 @@ TEST_TO_RUN?=./...
 TEST_V?=-v
 ##@ Test
 unit-tests: ## Run unit tests
-	@go install github.com/onsi/ginkgo/v2/ginkgo@v2.1.3
+	@go install github.com/onsi/ginkgo/v2/ginkgo@v2.19.0
 	# This tool doesn't have releases - it also is only a shim
 	@go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
-	KUBEBUILDER_ASSETS=$$(setup-envtest use -p path 1.24.2) CGO_ENABLED=0 ginkgo $(TEST_V) -tags unittest $(TEST_TO_RUN)
+	KUBEBUILDER_ASSETS=$$(setup-envtest use -p path 1.31.0) CGO_ENABLED=0 ginkgo $(TEST_V) -tags unittest $(TEST_TO_RUN)
 
 local-kind-cluster-with-registry:
 	./tools/kind-with-registry.sh
@@ -233,10 +233,10 @@ download-test-crds:
 	for group_resource in $$group_resources; do \
 		group="$${group_resource%/*}"; resource="$${group_resource#*/}"; \
 		echo "Downloading $${group}.$${resource}"; \
-		curl -sL "https://raw.githubusercontent.com/fluxcd/source-controller/v1.0.0/config/crd/bases/$${group}.toolkit.fluxcd.io_$${resource}.yaml" -o "tools/testcrds/$${group}.toolkit.fluxcd.io_$${resource}.yaml"; \
+		curl -sL "https://raw.githubusercontent.com/fluxcd/source-controller/v1.4.1/config/crd/bases/$${group}.toolkit.fluxcd.io_$${resource}.yaml" -o "tools/testcrds/$${group}.toolkit.fluxcd.io_$${resource}.yaml"; \
 	done
-	curl -sL "https://raw.githubusercontent.com/fluxcd/kustomize-controller/v1.0.0/config/crd/bases/kustomize.toolkit.fluxcd.io_kustomizations.yaml" -o "tools/testcrds/kustomize.toolkit.fluxcd.io_kustomizations.yaml"
-	curl -sL "https://raw.githubusercontent.com/fluxcd/helm-controller/v0.37.0/config/crd/bases/helm.toolkit.fluxcd.io_helmreleases.yaml" -o "tools/testcrds/helm.toolkit.fluxcd.io_helmreleases.yaml"
+	curl -sL "https://raw.githubusercontent.com/fluxcd/kustomize-controller/v1.4.0/config/crd/bases/kustomize.toolkit.fluxcd.io_kustomizations.yaml" -o "tools/testcrds/kustomize.toolkit.fluxcd.io_kustomizations.yaml"
+	curl -sL "https://raw.githubusercontent.com/fluxcd/helm-controller/v1.1.0/config/crd/bases/helm.toolkit.fluxcd.io_helmreleases.yaml" -o "tools/testcrds/helm.toolkit.fluxcd.io_helmreleases.yaml"
 
 .PHONY: help
 # Thanks to https://www.thapaliya.com/en/writings/well-documented-makefiles/

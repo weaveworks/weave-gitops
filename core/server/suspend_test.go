@@ -4,12 +4,11 @@ import (
 	"context"
 	"testing"
 
-	helmv2 "github.com/fluxcd/helm-controller/api/v2beta2"
-	imgautomationv1 "github.com/fluxcd/image-automation-controller/api/v1beta1"
+	helmv2 "github.com/fluxcd/helm-controller/api/v2"
+	imgautomationv1 "github.com/fluxcd/image-automation-controller/api/v1beta2"
 	reflectorv1 "github.com/fluxcd/image-reflector-controller/api/v1beta2"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
-	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 	. "github.com/onsi/gomega"
 	api "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
@@ -51,13 +50,13 @@ func TestSuspend_Suspend(t *testing.T) {
 			obj:        gr,
 		},
 		{
-			kind:       sourcev1b2.HelmRepositoryKind,
-			apiVersion: sourcev1b2.GroupVersion.String(),
+			kind:       sourcev1.HelmRepositoryKind,
+			apiVersion: sourcev1.GroupVersion.String(),
 			obj:        hr,
 		},
 		{
-			kind:       sourcev1b2.BucketKind,
-			apiVersion: sourcev1b2.GroupVersion.String(),
+			kind:       sourcev1.BucketKind,
+			apiVersion: sourcev1.GroupVersion.String(),
 			obj:        makeBucket("bucket-1", *ns),
 		},
 		{

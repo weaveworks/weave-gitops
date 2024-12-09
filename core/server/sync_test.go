@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	helmv2 "github.com/fluxcd/helm-controller/api/v2beta2"
-	imgautomationv1 "github.com/fluxcd/image-automation-controller/api/v1beta1"
+	helmv2 "github.com/fluxcd/helm-controller/api/v2"
+	imgautomationv1 "github.com/fluxcd/image-automation-controller/api/v1beta2"
 	reflectorv1 "github.com/fluxcd/image-reflector-controller/api/v1beta2"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
 	"github.com/fluxcd/pkg/apis/meta"
@@ -118,7 +118,7 @@ func TestSync(t *testing.T) {
 		name: "bucket",
 		msg: &pb.SyncFluxObjectRequest{
 			Objects: []*pb.ObjectRef{{ClusterName: "Default",
-				Kind: sourcev1b2.BucketKind}},
+				Kind: sourcev1.BucketKind}},
 			WithSource: false,
 		},
 		reconcilable: fluxsync.BucketAdapter{Bucket: bucket},
@@ -126,7 +126,7 @@ func TestSync(t *testing.T) {
 		name: "helmchart",
 		msg: &pb.SyncFluxObjectRequest{
 			Objects: []*pb.ObjectRef{{ClusterName: "Default",
-				Kind: sourcev1b2.HelmChartKind}},
+				Kind: sourcev1.HelmChartKind}},
 			WithSource: false,
 		},
 		reconcilable: fluxsync.HelmChartAdapter{HelmChart: chart},
@@ -134,7 +134,7 @@ func TestSync(t *testing.T) {
 		name: "helmrepository",
 		msg: &pb.SyncFluxObjectRequest{
 			Objects: []*pb.ObjectRef{{ClusterName: "Default",
-				Kind: sourcev1b2.HelmRepositoryKind}},
+				Kind: sourcev1.HelmRepositoryKind}},
 			WithSource: false,
 		},
 		reconcilable: fluxsync.HelmRepositoryAdapter{HelmRepository: helmRepo},
@@ -247,7 +247,7 @@ func simulateReconcile(ctx context.Context, k client.Client, name types.Namespac
 
 		return k.Status().Update(ctx, obj)
 
-	case *sourcev1b2.Bucket:
+	case *sourcev1.Bucket:
 		if err := k.Get(ctx, name, obj); err != nil {
 			return err
 		}
@@ -378,14 +378,14 @@ func makeHelmChart(name string, ns corev1.Namespace) *sourcev1b2.HelmChart {
 	}
 }
 
-func makeBucket(name string, ns corev1.Namespace) *sourcev1b2.Bucket {
-	return &sourcev1b2.Bucket{
+func makeBucket(name string, ns corev1.Namespace) *sourcev1.Bucket {
+	return &sourcev1.Bucket{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: ns.Name,
 		},
-		Spec: sourcev1b2.BucketSpec{},
-		Status: sourcev1b2.BucketStatus{
+		Spec: sourcev1.BucketSpec{},
+		Status: sourcev1.BucketStatus{
 			ReconcileRequestStatus: meta.ReconcileRequestStatus{
 				LastHandledReconcileAt: time.Now().Format(time.RFC3339Nano),
 			},
@@ -417,7 +417,7 @@ func makeHelmRelease(name string, ns corev1.Namespace, repo *sourcev1b2.HelmRepo
 			Namespace: ns.Name,
 		},
 		Spec: helmv2.HelmReleaseSpec{
-			Chart: helmv2.HelmChartTemplate{
+			Chart: &helmv2.HelmChartTemplate{
 				Spec: helmv2.HelmChartTemplateSpec{
 					Chart:   chart.Spec.Chart,
 					Version: chart.Spec.Version,

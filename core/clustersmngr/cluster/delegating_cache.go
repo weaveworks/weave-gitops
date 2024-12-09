@@ -46,7 +46,7 @@ func (c *delegatingCacheCluster) makeCachingClient(leafClient client.Client) (cl
 		return nil, fmt.Errorf("could not create HTTP client from config: %w", err)
 	}
 
-	mapper, err := apiutil.NewDiscoveryRESTMapper(c.restConfig, httpClient)
+	mapper, err := apiutil.NewDynamicRESTMapper(c.restConfig, httpClient)
 	if err != nil {
 		return nil, fmt.Errorf("could not create RESTMapper from config: %w", err)
 	}

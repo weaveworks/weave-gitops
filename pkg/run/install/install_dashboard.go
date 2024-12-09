@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	helmv2 "github.com/fluxcd/helm-controller/api/v2beta2"
+	helmv2 "github.com/fluxcd/helm-controller/api/v2"
 	"github.com/fluxcd/pkg/runtime/transform"
-	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	coretypes "github.com/weaveworks/weave-gitops/core/server/types"
 	"github.com/weaveworks/weave-gitops/pkg/config"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
@@ -73,7 +73,7 @@ func GeneratePasswordHash(log logger.Logger, password string) (string, error) {
 
 type DashboardObjects struct {
 	Manifests      []byte
-	HelmRepository *sourcev1b2.HelmRepository
+	HelmRepository *sourcev1.HelmRepository
 	HelmRelease    *helmv2.HelmRelease
 }
 
@@ -157,6 +157,17 @@ func GetInstalledDashboard(ctx context.Context, kubeClient client.Client, namesp
 	dashboardName := ""
 
 	for _, helmRelease := range helmReleaseList.Items {
+		chart := helmRelease.Spec.Chart
+
+		if shouldDetectEnterpriseDashboard && chart != nil && chart.Spec.Chart == enterpriseDashboardHelmChartName &&
+			chart.Spec.SourceRef.Name == enterpriseDashboardHelmRepositoryName {
+			return DashboardTypeEnterprise, helmRelease.Name, nil
+		}
+
+		if shouldDetectOSSDashboard && chart == nil {
+			return DashboardTypeOSS, dashboardName, nil
+		}
+
 		chartSpec := helmRelease.Spec.Chart.Spec
 
 		if shouldDetectEnterpriseDashboard && chartSpec.Chart == enterpriseDashboardHelmChartName &&
@@ -222,8 +233,8 @@ func ReconcileDashboard(ctx context.Context, kubeClient client.Client, dashboard
 	}
 	gvk := schema.GroupVersionKind{
 		Group:   "source.toolkit.fluxcd.io",
-		Version: "v1beta2",
-		Kind:    sourcev1b2.HelmChartKind,
+		Version: "v2",
+		Kind:    sourcev1.HelmChartKind,
 	}
 
 	var sourceRequestedAt string
@@ -240,7 +251,7 @@ func ReconcileDashboard(ctx context.Context, kubeClient client.Client, dashboard
 
 	// wait for the reconciliation of dashboard to be done
 	if err := wait.PollUntilContextTimeout(context.Background(), interval, timeout, true, func(_ context.Context) (bool, error) {
-		dashboard := &sourcev1b2.HelmChart{}
+		dashboard := &sourcev1.HelmChart{}
 		if err := kubeClient.Get(ctx, types.NamespacedName{
 			Namespace: namespace,
 			Name:      helmChartName,
@@ -280,7 +291,7 @@ func ReconcileDashboard(ctx context.Context, kubeClient client.Client, dashboard
 }
 
 // generateManifestsForDashboard generates dashboard manifests from objects.
-func generateManifestsForDashboard(log logger.Logger, helmRepository *sourcev1b2.HelmRepository, helmRelease *helmv2.HelmRelease) ([]byte, error) {
+func generateManifestsForDashboard(log logger.Logger, helmRepository *sourcev1.HelmRepository, helmRelease *helmv2.HelmRelease) ([]byte, error) {
 	helmRepositoryData, err := yaml.Marshal(helmRepository)
 	if err != nil {
 		log.Failuref("Error generating HelmRepository manifest from object")
@@ -315,11 +326,11 @@ func generateManifestsForDashboard(log logger.Logger, helmRepository *sourcev1b2
 }
 
 // makeHelmRepository creates a HelmRepository object for installing the GitOps Dashboard.
-func makeHelmRepository(name, namespace string) *sourcev1b2.HelmRepository {
-	helmRepository := &sourcev1b2.HelmRepository{
+func makeHelmRepository(name, namespace string) *sourcev1.HelmRepository {
+	helmRepository := &sourcev1.HelmRepository{
 		TypeMeta: metav1.TypeMeta{
-			Kind:       sourcev1b2.HelmRepositoryKind,
-			APIVersion: sourcev1b2.GroupVersion.Identifier(),
+			Kind:       sourcev1.HelmRepositoryKind,
+			APIVersion: sourcev1.GroupVersion.Identifier(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -334,7 +345,7 @@ func makeHelmRepository(name, namespace string) *sourcev1b2.HelmRepository {
 				"metadata.weave.works/description": "This is the source location for the Weave GitOps Dashboard's helm chart.",
 			},
 		},
-		Spec: sourcev1b2.HelmRepositorySpec{
+		Spec: sourcev1.HelmRepositorySpec{
 			URL:  helmRepositoryURL,
 			Type: "oci",
 			Interval: metav1.Duration{
@@ -364,11 +375,11 @@ func makeHelmRelease(log logger.Logger, name, namespace, username, passwordHash,
 			Interval: metav1.Duration{
 				Duration: 60 * time.Minute,
 			},
-			Chart: helmv2.HelmChartTemplate{
+			Chart: &helmv2.HelmChartTemplate{
 				Spec: helmv2.HelmChartTemplateSpec{
 					Chart: ossDashboardHelmChartName,
 					SourceRef: helmv2.CrossNamespaceObjectReference{
-						Kind: sourcev1b2.HelmRepositoryKind,
+						Kind: sourcev1.HelmRepositoryKind,
 						Name: name,
 					},
 				},
