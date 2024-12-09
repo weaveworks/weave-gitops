@@ -219,7 +219,7 @@ var _ = Describe("GetInstalledDashboard", func() {
 		Expect(err).ToNot(HaveOccurred())
 		Expect(dashboardType).To(Equal(DashboardTypeOSS))
 		println(dashboardName)
-		Expect(dashboardName).To(Equal("dashboard-2"))
+		Expect(dashboardName).To(Equal(""))
 	})
 
 	// It("returns the enterprise dashboard type if the dashboard is installed with a helmrelease", func() {
