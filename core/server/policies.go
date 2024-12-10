@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 	"time"
@@ -44,14 +45,20 @@ func getPolicyParamValue(param pacv2beta2.PolicyParameters, policyID string) (*a
 		value := wrapperspb.String(strValue)
 		anyValue, err = anypb.New(value)
 	case "integer":
-		intValue, convErr := strconv.Atoi(string(param.Value.Raw))
+		intValue, convErr := strconv.ParseInt(string(param.Value.Raw), 10, 32)
 		if convErr != nil {
 			err = convErr
+			break
+		}
+		if intValue < math.MinInt32 || intValue > math.MaxInt32 {
+			err = fmt.Errorf("integer value out of int32 range")
 			break
 		}
 		value := wrapperspb.Int32(int32(intValue))
 		anyValue, err = anypb.New(value)
 	case "boolean":
+		// fixes CWE-190 CWE-681
+		// https://github.com/weaveworks/weave-gitops/security/code-scanning/3886
 		boolValue, convErr := strconv.ParseBool(string(param.Value.Raw))
 		if convErr != nil {
 			err = convErr
