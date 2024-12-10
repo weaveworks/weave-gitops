@@ -17,7 +17,7 @@ Command line utility for managing Kubernetes applications via GitOps.
   # Get the version of gitops along with commit, branch, and flux version
   gitops version
 
-  To learn more, you can find our documentation at https://docs.gitops.weave.works/
+  To learn more, you can find our documentation at https://docs.gitops.weaveworks.org/
 
 ```
 

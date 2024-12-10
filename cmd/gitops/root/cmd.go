@@ -59,7 +59,7 @@ func RootCmd() *cobra.Command {
   # Get the version of gitops along with commit, branch, and flux version
   gitops version
 
-  To learn more, you can find our documentation at https://docs.gitops.weave.works/
+  To learn more, you can find our documentation at https://docs.gitops.weaveworks.org/
 `,
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			// Sync flag values and env vars.
@@ -102,7 +102,7 @@ func RootCmd() *cobra.Command {
 
 			gitopsConfig, err = config.GetConfig(false)
 			if err != nil {
-				fmt.Fprintln(os.Stderr, "To improve our product, we would like to collect analytics data. You can read more about what data we collect here: https://docs.gitops.weave.works/docs/feedback-and-telemetry/")
+				fmt.Fprintln(os.Stderr, "To improve our product, we would like to collect analytics data. You can read more about what data we collect here: https://docs.gitops.weaveworks.org/docs/feedback-and-telemetry/")
 
 				enableAnalytics := false
 

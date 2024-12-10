@@ -6,7 +6,7 @@ brews:
       name: weave-gitops-bot
       email: weave-gitops-bot@weave.works
     folder: Formula
-    homepage: "https://docs.gitops.weave.works/docs/getting-started"
+    homepage: "https://docs.gitops.weaveworks.org/docs/getting-started"
     description: "GitOps support for Kubernetes"
     install: |
         bin.install "gitops"

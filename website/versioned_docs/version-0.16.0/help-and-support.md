@@ -16,7 +16,7 @@ The Flux project has a fantastic community to help support your GitOps journey, 
 
 Weaveworks provides [Weave GitOps Enterprise](https://www.weave.works/product/gitops-enterprise/), a continuous operations product that makes it easy to deploy and manage Kubernetes clusters and applications at scale in any environment. The single management console automates trusted application delivery and secure infrastructure operations on premise, in the cloud and at the edge.
 
-To discuss your support needs, please contact us at [sales@weave.works](mailto:sales@weave.works).
+To discuss your support needs, please contact us at [sales@weaveworks.org](mailto:sales@weaveworks.org).
 
 ## Recommended resources
 

@@ -73,4 +73,4 @@ aggregates Prometheus alerts to assist with troubleshooting.
 
 ### How to purchase
 
-Get in touch with sales@weave.works to discuss your needs.
+Get in touch with sales@weaveworks.org to discuss your needs.

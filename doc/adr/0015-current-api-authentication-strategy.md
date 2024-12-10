@@ -18,7 +18,7 @@ The 'decision' section has been skipped as the decisions have been made and reve
 * **Principal** an entity that is interacting with a system, this may be a user or an automated system
 * **Authentication (AKA auth, authN)** the process of verifying who a principal is
 * **Authorization (AKA authZ)** the process of determining what actions a principal is permitted to carry out (this is out of scope of this document)
-* **OIDC** [OpenID Connect](https://docs.gitops.weave.works/docs/configuration/securing-access-to-the-dashboard/), a protocol that allows third-parties to authenticate end-users to an application
+* **OIDC** [OpenID Connect](https://docs.gitops.weaveworks.org/docs/configuration/securing-access-to-the-dashboard/), a protocol that allows third-parties to authenticate end-users to an application
 * **BearerToken** A token that allows direct authentication with the kubernetes API, used in the token-passthrough authentication method
 
 ## Context
@@ -80,8 +80,8 @@ flowchart TD
 
 Currently there are 3 supported methods:
 
-* [OIDC (via header and cookie)](https://docs.gitops.weave.works/docs/configuration/service-account-permissions/)
-* [Cluster user account](https://docs.gitops.weave.works/docs/configuration/service-account-permissions/)
+* [OIDC (via header and cookie)](https://docs.gitops.weaveworks.org/docs/configuration/service-account-permissions/)
+* [Cluster user account](https://docs.gitops.weaveworks.org/docs/configuration/service-account-permissions/)
 * Token passthrough -- this is only used as part of enterprise installations.
 
 methods must implement the `PrincipalGetter` interface which returns a `UserPrincipal`:
@@ -105,7 +105,7 @@ It is important to note that the authentication method is also 'used' by the `/o
 
 ### Authentication from the server to Kubernetes
 
-The Gitops server's service account only needs a very limited set of permissions (`impersonate`, `get,list` on the secrets used to configure authentication and `get,list` on namespaces), the purpose of these permissions is covered in the [security docs](https://docs.gitops.weave.works/docs/configuration/service-account-permissions/). All interactions with the Kubernetes API should go via a `clustermngr` which will correctly set the Kubernetes client's impersonation configuration or bearer token (depending on the authentication method used).
+The Gitops server's service account only needs a very limited set of permissions (`impersonate`, `get,list` on the secrets used to configure authentication and `get,list` on namespaces), the purpose of these permissions is covered in the [security docs](https://docs.gitops.weaveworks.org/docs/configuration/service-account-permissions/). All interactions with the Kubernetes API should go via a `clustermngr` which will correctly set the Kubernetes client's impersonation configuration or bearer token (depending on the authentication method used).
 
 The principal returned by `WithAPIAuthentication` is added to the request context to authenticate with the Kubernetes API. For OIDC and user-account methods the principal is extracted from the header or cookie token which is expected to have the following attributes:
 
