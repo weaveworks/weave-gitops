@@ -1,6 +1,6 @@
 ## Base ########################################################################
 # Use a larger node image to do the build for native deps (e.g., gcc, python)
-FROM node:lts AS base
+FROM node:lts@sha256:35a5dd72bcac4bce43266408b58a02be6ff0b6098ffa6f5435aeea980a8951d7 AS base
 
 # Reduce npm log spam and colour during install within Docker
 ENV NPM_CONFIG_LOGLEVEL=warn
@@ -15,7 +15,7 @@ COPY --chown=node:node ./yarn.lock /home/node/app/
 
 ## Development #################################################################
 # Define a development target that installs devDeps and runs in dev mode
-FROM base AS development
+FROM base@sha256:35a5dd72bcac4bce43266408b58a02be6ff0b6098ffa6f5435aeea980a8951d7 AS development
 WORKDIR /home/node/app
 # Install (not ci) with dependencies, and for Linux vs. Linux Musl (which we use for -alpine)
 RUN npm install
