@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	helmv2 "github.com/fluxcd/helm-controller/api/v2beta2"
+	helmv2 "github.com/fluxcd/helm-controller/api/v2"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
 	"github.com/hashicorp/go-multierror"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"

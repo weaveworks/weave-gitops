@@ -1,5 +1,5 @@
 # Go build
-FROM golang:1.23 AS go-build
+FROM golang:1.23@sha256:574185e5c6b9d09873f455a7c205ea0514bfd99738c5dc7750196403a44ed4b7 AS go-build
 
 # Add known_hosts entries for GitHub and GitLab
 RUN mkdir ~/.ssh
@@ -24,7 +24,7 @@ ARG LDFLAGS="-X localbuild=true"
 RUN --mount=type=cache,target=/root/.cache/go-build LDFLAGS=${LDFLAGS##-X localbuild=true} GIT_COMMIT=$GIT_COMMIT make gitops-bucket-server
 
 #  Distroless
-FROM gcr.io/distroless/base as runtime
+FROM gcr.io/distroless/base@sha256:e9d0321de8927f69ce20e39bfc061343cce395996dfc1f0db6540e5145bc63a5 AS runtime
 COPY --from=go-build /app/bin/gitops-bucket-server /gitops-bucket-server
 COPY --from=go-build /root/.ssh/known_hosts /root/.ssh/known_hosts
 
