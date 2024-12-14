@@ -1,0 +1,148 @@
+---
+title: Step 3 - Expand Capabilities
+hide_title: true
+toc_max_heading_level: 4
+pagination_prev: enterprise/getting-started/install-enterprise-getting-started-harden
+---
+
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+import TierLabel from "@site/docs/_components/TierLabel";
+import AlphaWarning from "../../_components/_alpha_warning.mdx";
+import CurlCodeBlock from "../../_components/CurlCodeBlock";
+import oauthBitbucket from '/img/oauth-bitbucket.png';
+import oauthAzureDevOps from '/img/oauth-azure-devops.png';
+import oauthAzureDevOpsSuccess from '/img/oauth-azure-devops-success.png';
+
+# Step 3 - Expand Capabilities
+
+:::info What to expect
+You are a Platform Engineer onboarded to Weave GitOps Enterprise that wants to either explore or to
+setup WGE capabilities beyond Flux. Use this guide to help you doing so.At the end of it, your Platform would be ready to start onboarding your Developers.
+:::
+
+## Enable Cluster Management via Cluster API
+
+<Tabs groupId="clusterManagement" defaultValue="manual">
+<TabItem value="cli" label="cli">
+
+:::caution
+
+Not yet supported but planned as part of https://github.com/weaveworks/weave-gitops-enterprise/issues/3698
+
+:::
+
+</TabItem>
+<TabItem value="manual" label="manual">
+
+Our user guide provides two pathways to deployment:
+
+- One path that shows you how to manage clusters [without adding Cluster API](managing-clusters-without-capi.mdx). Join a cluster by hooking WGE to it, then install an application on that cluster.
+- An **optional** path that shows you how to create, provision, and delete your first API cluster with [EKS/CAPA](../cluster-management/deploying-capa-eks.mdx).
+
+Just click the option you want to get started with, and let's go.
+
+</TabItem>
+</Tabs>
+
+## Enable Policy via Weave Policy
+
+To install [Policy Agent](../../policy/intro.mdx) follow any of the following approaches:
+
+<Tabs groupId="policy agent" defaultValue="cli">
+<TabItem value="cli" label="cli">
+
+Installing Weave Policy Agent is possible using CLI interactive session questions or via `components-extra` flag as shown:
+
+```bash
+ # install Policy Agent alongside Weave GitOps Enterprise
+ gitops bootstrap --components-extra="policy-agent"
+```
+
+:::note
+The controller will be installed with the default values. To customize controller values, Please edit the corresponding values file and reconcile
+:::
+
+For more information about the CLI configurations, check the below sections [here](#cli-configurations)
+
+</TabItem>
+<TabItem value="manual" label="manual">
+
+[Policy agent](../../policy/intro.mdx) comes packaged with the WGE chart. To install it, set the following values:
+
+- `values.policy-agent.enabled`: set to true to install the agent with WGE
+- `values.policy-agent.config.accountId`: organization name, used as identifier
+- `values.policy-agent.config.clusterId`: unique identifier for the cluster
+
+Commit and push all the files
+
+```bash
+git add clusters/management/weave-gitops-enterprise.yaml
+git commit -m "Add Policy Agent"
+git push
+```
+
+Flux will reconcile the helm-release and WGE will be deployed into the cluster. You can check the `flux-system` namespace to verify all pods are running.
+
+</TabItem>
+</Tabs>
+
+## Enable Infrastructure Management via Tf-Controller
+
+To install [Policy Agent](../../policy/intro.mdx) follow any of the following approaches:
+
+<Tabs groupId="tf-controller" defaultValue="cli">
+<TabItem value="cli" label="cli">
+
+Installing TF-Controller is possible using CLI interactive session questions or via `components-extra` flag as shown:
+
+```bash
+ # Install TF-Controller alongside Weave GitOps Enterprise
+ gitops bootstrap --components-extra="tf-controller"
+```
+
+:::note
+The controller will be installed with the default values. To customize controller values, Please edit the corresponding values file and reconcile
+:::
+
+For more information about the CLI configurations, check the below sections [here](#cli-configurations)
+
+</TabItem>
+<TabItem value="manual" label="manual">
+
+You could install TF-Controller in two steps:
+1. Install the controller via its [getting started](../../../terraform/get-started-terraform).
+2. Enable it Weave GitOps Enterprise by adding `enableTerraformUI` values to `true`:
+
+```yaml
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: weave-gitops-enterprise
+  namespace: flux-system
+spec:
+  values:
+    ...
+    enableTerraformUI: true
+```
+
+Commit and push all the files
+
+```bash
+git add clusters/management/weave-gitops-enterprise.yaml
+git commit -m "Add Tf-Controller"
+git push
+```
+
+Flux will reconcile the helm-release and WGE will be deployed into the cluster. You can check the `flux-system` namespace to verify all pods are running.
+
+</TabItem>
+</Tabs>
+
+## Next Steps
+
+Congratulations! You have successfully installed Weave GitOps Enterprise and enabled its capabilities.
+
+Next steps for you are to start onboarding your Developers and operate the platform.
+

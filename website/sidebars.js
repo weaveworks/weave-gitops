@@ -36,15 +36,42 @@ module.exports = {
           label: "Weave GitOps Enterprise",
           link: {
             type: "doc",
-            id: "enterprise/getting-started/intro-enterprise",
+            id: "enterprise/getting-started/intro",
           },
           items: [
-            "enterprise/getting-started/install-enterprise",
-            "enterprise/getting-started/install-enterprise-cli",
-            "enterprise/getting-started/install-enterprise-airgap",
+            {
+              type: "category",
+              label: "Step 1 - Getting Started",
+              link: {
+                type: "doc",
+                id: "enterprise/getting-started/install-enterprise-getting-started",
+              },
+              items: [
+                "enterprise/getting-started/install-enterprise-getting-started-manual",
+              ],
+            },
+            {
+              type: "category",
+              label: "Step 2 - Harden",
+              link: {
+                type: "doc",
+                id: "enterprise/getting-started/install-enterprise-getting-started-harden",
+              },
+              items: [
+                "enterprise/getting-started/install-enterprise-getting-started-advanced-topics",
+              ],
+            },
+            "enterprise/getting-started/install-enterprise-getting-started-expand",
             "enterprise/getting-started/releases-enterprise",
-            "enterprise/getting-started/install-enterprise-azure",
-            "enterprise/getting-started/join-cluster-azure-flux",
+            {
+              type: "category",
+              label: "Advanced Installation",
+              items: [
+                "enterprise/getting-started/install-enterprise-airgap",
+                "enterprise/getting-started/install-enterprise-azure",
+                "enterprise/getting-started/join-cluster-azure-flux",
+              ],
+            },
           ],
         },
         {
@@ -260,6 +287,11 @@ module.exports = {
   ref: [
     {
       type: "doc",
+      label: "Concepts",
+      id: "references/concepts",
+    },
+    {
+      type: "doc",
       label: "OSS Helm Reference",
       id: "references/helm-reference",
     },
@@ -273,5 +305,11 @@ module.exports = {
         },
       ],
     },
+    {
+      type: "doc",
+      label: "CLI Bootstrapping",
+      id: "references/cli-bootstrapping",
+    },
+
   ],
 };
