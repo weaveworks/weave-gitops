@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/cheshir/ttlcache"
+	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	v1 "k8s.io/api/core/v1"
@@ -155,6 +156,7 @@ func (un UsersNamespaces) cacheKey(user *auth.UserPrincipal, cluster string) uin
 
 type UsersClients struct {
 	Cache *ttlcache.Cache
+	log   logr.Logger
 }
 
 func (uc *UsersClients) cacheKey(user *auth.UserPrincipal, clusterName string) uint64 {
@@ -162,14 +164,28 @@ func (uc *UsersClients) cacheKey(user *auth.UserPrincipal, clusterName string) u
 }
 
 func (uc *UsersClients) Set(user *auth.UserPrincipal, clusterName string, client client.Client) {
-	uc.Cache.Set(uc.cacheKey(user, clusterName), client, usersClientsTTL)
+	cacheKey := uc.cacheKey(user, clusterName)
+	uc.log.Info("set cached connection", "user", user, "cluster", clusterName, "cacheKey", cacheKey, "ttl", usersClientsTTL)
+
+	uc.Cache.Set(cacheKey, client, usersClientsTTL)
+
+	if _, found := uc.Cache.Get(cacheKey); found {
+		uc.log.Info("found after set")
+	} else {
+		uc.log.Info("not found after set")
+	}
 }
 
 func (uc *UsersClients) Get(user *auth.UserPrincipal, clusterName string) (client.Client, bool) {
-	if val, found := uc.Cache.Get(uc.cacheKey(user, clusterName)); found {
+	cacheKey := uc.cacheKey(user, clusterName)
+	uc.log.Info("get cached connection", "user", user, "cluster", clusterName, "cacheKey", cacheKey)
+
+	if val, found := uc.Cache.Get(cacheKey); found {
+		uc.log.Info("client found")
 		return val.(client.Client), true
 	}
 
+	uc.log.Info("client not found")
 	return nil, false
 }
 
