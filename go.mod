@@ -1,7 +1,6 @@
 module github.com/weaveworks/weave-gitops
 
-go 1.23
-
+go 1.23.2
 require (
 	github.com/Masterminds/semver/v3 v3.2.1
 	github.com/NYTimes/gziphandler v1.1.1
