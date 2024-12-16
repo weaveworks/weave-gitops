@@ -34,7 +34,7 @@ require (
 	github.com/mattn/go-tty v0.0.4
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.7.0
 	github.com/minio/minio-go/v7 v7.0.31
-	github.com/oauth2-proxy/mockoidc v0.0.0-20220308204021-b9169deeb282
+	github.com/oauth2-proxy/mockoidc v0.0.0-20240214162133-caebfff84d25
 	github.com/onsi/ginkgo/v2 v2.19.0
 	github.com/onsi/gomega v1.33.1
 	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8
@@ -80,10 +80,11 @@ require (
 	github.com/evanphx/json-patch/v5 v5.9.0 // indirect
 	github.com/fatih/color v1.16.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.7.0 // indirect
+	github.com/go-jose/go-jose/v3 v3.0.1 // indirect
 	github.com/go-jose/go-jose/v4 v4.0.1 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
-	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
+	github.com/golang-jwt/jwt/v5 v5.2.0 // indirect
 	github.com/google/gnostic-models v0.6.8 // indirect
 	github.com/google/go-github/v52 v52.0.0 // indirect
 	github.com/google/pprof v0.0.0-20240525223248-4bfdf5a9a2af // indirect
@@ -117,7 +118,6 @@ require (
 	golang.org/x/sync v0.10.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20241021214115-324edc3d5d38 // indirect
 	gopkg.in/evanphx/json-patch.v4 v4.12.0 // indirect
-	gopkg.in/square/go-jose.v2 v2.6.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
 
@@ -232,3 +232,12 @@ replace github.com/johannesboyne/gofakes3 => github.com/chanwit/gofakes3 v0.0.0-
 // replace k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20220614142933-1062c7ade5f8
 
 // Use patched version that fixed recursive gets, and force delete for buckets
+
+//exclude gopkg.in/square/go-jose.v2 v2.6.0
+//exclude gopkg.in/square/go-jose.v2 v2.0.0-00010101000000-000000000000
+
+replace gopkg.in/square/go-jose.v2 => gopkg.in/go-jose/go-jose.v2 v2.6.3
+
+replace gopkg.in/square/go-jose.v2 v2.0.0-00010101000000-000000000000 => gopkg.in/go-jose/go-jose.v2 v2.6.3
+
+//replace gopkg.in/go-jose/go-jose.v2 => gopkg.in/go-jose/go-jose.v2 v2.6.3
