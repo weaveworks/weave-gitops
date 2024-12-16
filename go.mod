@@ -222,5 +222,3 @@ require (
 
 // Use patched version that fixed recursive gets, and force delete for buckets
 replace github.com/johannesboyne/gofakes3 => github.com/chanwit/gofakes3 v0.0.0-20220715114300-3f51f1961f7b
-
-replace gopkg.in/square/go-jose.v2 => gopkg.in/go-jose/go-jose.v2 v2.6.3
