@@ -220,24 +220,9 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.4.1 // indirect
 )
 
-// Fix for CVE-2022-1996
-// replace k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20220614142933-1062c7ade5f8
-
 // Use patched version that fixed recursive gets, and force delete for buckets
 replace github.com/johannesboyne/gofakes3 => github.com/chanwit/gofakes3 v0.0.0-20220715114300-3f51f1961f7b
-
-//replace github.com/golang/protobuf => google.golang.org/protobuf v1.33.0
-
-// Fix for CVE-2022-1996
-// replace k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20220614142933-1062c7ade5f8
-
-// Use patched version that fixed recursive gets, and force delete for buckets
-
-//exclude gopkg.in/square/go-jose.v2 v2.6.0
-//exclude gopkg.in/square/go-jose.v2 v2.0.0-00010101000000-000000000000
 
 replace gopkg.in/square/go-jose.v2 => gopkg.in/go-jose/go-jose.v2 v2.6.3
 
 replace gopkg.in/square/go-jose.v2 v2.0.0-00010101000000-000000000000 => gopkg.in/go-jose/go-jose.v2 v2.6.3
-
-//replace gopkg.in/go-jose/go-jose.v2 => gopkg.in/go-jose/go-jose.v2 v2.6.3
