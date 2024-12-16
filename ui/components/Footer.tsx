@@ -46,8 +46,8 @@ function Footer({ className }: Props) {
       <LeftFoot>
         <Text noWrap>Need help? Contact us at</Text>
         <Spacer padding="xxs" />
-        <Link newTab href="mailto:sales@weaveworks.org">
-          sales@weaveworks.org
+        <Link newTab href="mailto:info@weaveworks.org">
+          info@weaveworks.org
         </Link>
       </LeftFoot>
       <RightFoot>
