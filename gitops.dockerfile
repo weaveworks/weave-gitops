@@ -1,11 +1,11 @@
-ARG FLUX_VERSION=2.3.0
+ARG FLUX_VERSION=2.4.0
 ARG FLUX_CLI=ghcr.io/fluxcd/flux-cli:v$FLUX_VERSION
 
 # Alias for flux
-FROM $FLUX_CLI AS flux
+FROM $FLUX_CLI@sha256:a9cb966cddc1a0c56dc0d57dda485d9477dd397f8b45f222717b24663471fd1f AS flux
 
 # Go build
-FROM golang:1.23 AS go-build
+FROM golang:1.23.2@sha256:ad5c126b5cf501a8caef751a243bb717ec204ab1aa56dc41dc11be089fafcb4f AS go-build
 
 # Add known_hosts entries for GitHub and GitLab
 RUN mkdir ~/.ssh
@@ -28,7 +28,7 @@ ARG GIT_COMMIT="_unset_"
 RUN LDFLAGS=$LDFLAGS GIT_COMMIT=$GIT_COMMIT make gitops
 
 # Distroless
-FROM gcr.io/distroless/base AS runtime
+FROM gcr.io/distroless/base@sha256:e9d0321de8927f69ce20e39bfc061343cce395996dfc1f0db6540e5145bc63a5 AS runtime
 COPY --from=flux /usr/local/bin/flux /usr/local/bin/flux
 COPY --from=go-build /app/bin/gitops /gitops
 COPY --from=go-build /root/.ssh/known_hosts /root/.ssh/known_hosts

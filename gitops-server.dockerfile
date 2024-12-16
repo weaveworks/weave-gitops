@@ -1,5 +1,5 @@
 # UI build
-FROM node:16-bullseye AS ui
+FROM node:16-bullseye@sha256:cd59a61258b82b86c1ff0ead50c8a689f6c3483c5ed21036e11ee741add419eb AS ui
 RUN apt-get update -y && apt-get install -y build-essential
 RUN mkdir -p /home/app && chown -R node:node /home/app
 WORKDIR /home/app
@@ -15,7 +15,7 @@ COPY --chown=node:node ui /home/app/ui
 RUN --mount=type=cache,target=/home/app/ui/.parcel-cache make ui
 
 # Go build
-FROM golang:1.23 AS go-build
+FROM golang:1.23.2@sha256:ad5c126b5cf501a8caef751a243bb717ec204ab1aa56dc41dc11be089fafcb4f AS go-build
 
 # Add known_hosts entries for GitHub and GitLab
 RUN mkdir ~/.ssh
@@ -40,7 +40,7 @@ ARG LDFLAGS="-X localbuild=true"
 RUN --mount=type=cache,target=/root/.cache/go-build LDFLAGS=${LDFLAGS##-X localbuild=true} GIT_COMMIT=$GIT_COMMIT make gitops-server
 
 #  Distroless
-FROM gcr.io/distroless/base AS runtime
+FROM gcr.io/distroless/base@sha256:e9d0321de8927f69ce20e39bfc061343cce395996dfc1f0db6540e5145bc63a5 AS runtime
 COPY --from=ui /home/app/bin/dist/ /dist/
 COPY --from=go-build /app/bin/gitops-server /gitops-server
 COPY --from=go-build /root/.ssh/known_hosts /root/.ssh/known_hosts

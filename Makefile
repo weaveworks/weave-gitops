@@ -141,7 +141,7 @@ proto: ## Generate protobuf files
 # Sometimes we get whitespace differences when running this on linux vs mac
 # So here's how you can do it under linux, on mac
 proto-linux:
-	docker run --rm -v "$(CURRENT_DIR):/app" -w /app golang:1.20 make proto
+	docker run --rm -v "$(CURRENT_DIR):/app" -w /app golang:1.23.2 make proto
 
 ##@ Docker
 _docker:

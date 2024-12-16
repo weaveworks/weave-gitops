@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 
 	"github.com/hashicorp/go-cleanhttp"
@@ -284,7 +285,12 @@ func untar(destDir string, r io.Reader) (retErr error) {
 		}
 
 		// the target location where the dir/file should be created
-		target := filepath.Join(destDir, header.Name)
+		// fixes CWE-22 by cleaning the path
+		cleanedName := filepath.Clean(header.Name)
+		if strings.Contains(cleanedName, "..") {
+			return fmt.Errorf("invalid file path: %s", header.Name)
+		}
+		target := filepath.Join(destDir, cleanedName)
 
 		// the following switch could also be done using fi.Mode(), not sure if there
 		// a benefit of using one vs. the other.
