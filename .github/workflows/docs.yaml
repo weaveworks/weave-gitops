@@ -40,7 +40,7 @@ jobs:
           yarn install --frozen-lockfile
           yarn clear
           export DOC_BASE_URL="/$GITHUB_HEAD_REF/"
-          export DOC_URL=https://staging.docs.gitops.weave.works
+          export DOC_URL=https://staging.docs.gitops.weaveworks.org
           export STAGING_BUILD=true
           yarn build
       - id: auth
@@ -51,7 +51,7 @@ jobs:
         uses: google-github-actions/upload-cloud-storage@e95a15f226403ed658d3e65f40205649f342ba2c # v1.0.3
         with:
           path: website/build
-          destination: staging.docs.gitops.weave.works/${{ github.head_ref }}
+          destination: staging.docs.gitops.weaveworks.org/${{ github.head_ref }}
           parent: false
           headers: |-
             cache-control: no-cache
@@ -64,7 +64,7 @@ jobs:
           {
             "state": "success",
             "context": "Doc site preview",
-            "target_url": "https://staging.docs.gitops.weave.works/$GITHUB_HEAD_REF"
+            "target_url": "https://staging.docs.gitops.weaveworks.org/$GITHUB_HEAD_REF"
           }
           EOF
           )
@@ -104,5 +104,5 @@ jobs:
         uses: google-github-actions/upload-cloud-storage@e95a15f226403ed658d3e65f40205649f342ba2c # v1.0.3
         with:
           path: website/build
-          destination: production.docs.gitops.weave.works
+          destination: production.docs.gitops.weaveworks.org
           parent: false

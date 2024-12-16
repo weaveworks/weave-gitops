@@ -14,7 +14,7 @@ This section introduces you to the Policy Profile and details the steps required
 ## Pre-requisites
 
 ### Weave GitOps
-You need to have a running instance of Weave GitOps with at least one CAPI provider installed to provision Kubernetes clusters. See [Weave GitOps Installation](https://docs.gitops.weave.works/docs/installation/) page for more details about installing Weave GitOps.
+You need to have a running instance of Weave GitOps with at least one CAPI provider installed to provision Kubernetes clusters. See [Weave GitOps Installation](https://docs.gitops.weaveworks.org/docs/installation/) page for more details about installing Weave GitOps.
 
 ### Policy Library
 For the policy agent to work, it will need a source for the policies that it will enforce in the cluster. You should have a policy library repo set up which includes your policies resources as CRDs. You can also add a `kustomization.yaml` file selecting the policies you want to install on that specific cluster that will be provisioned by Weave Gitops:

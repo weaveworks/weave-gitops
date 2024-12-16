@@ -77,7 +77,7 @@ brew tap weaveworks/tap
 brew install weaveworks/tap/gitops
 ```
 
-Please see the [getting started guide](https://docs.gitops.weave.works/docs/next/open-source/getting-started/install-OSS/).
+Please see the [getting started guide](https://docs.gitops.weaveworks.org/docs/next/open-source/getting-started/install-OSS/).
 
 ## CLI Reference
 
@@ -96,7 +96,7 @@ Examples:
   # Get the version of gitops along with commit, branch, and flux version
   gitops version
 
-  To learn more, you can find our documentation at https://docs.gitops.weave.works/
+  To learn more, you can find our documentation at https://docs.gitops.weaveworks.org/
 
 
 Available Commands:
@@ -120,7 +120,7 @@ Flags:
 Use "gitops [command] --help" for more information about a command.
 ```
 
-For more information please see the [docs](https://docs.gitops.weave.works/docs/references/cli-reference/gitops/)
+For more information please see the [docs](https://docs.gitops.weaveworks.org/docs/references/cli-reference/gitops/)
 
 ## FAQ
 
@@ -131,7 +131,7 @@ Please see our Weave GitOps OSS [FAQ](https://www.weave.works/faqs-for-weave-git
 Need help or want to contribute? Please see the links below.
 
 - Getting Started?
-    - Follow our [Get Started guide](https://docs.gitops.weave.works/docs/next/open-source/getting-started/install-OSS/) and give us feedback
+    - Follow our [Get Started guide](https://docs.gitops.weaveworks.org/docs/next/open-source/getting-started/install-OSS/) and give us feedback
 - Need help?
     - Talk to us in
       the [#weave-gitops channel](https://app.slack.com/client/T2NDH1D9D/C0248LVC719/thread/C2ND76PAA-1621532937.019800)

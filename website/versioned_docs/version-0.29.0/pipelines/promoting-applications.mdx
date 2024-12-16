@@ -229,7 +229,7 @@ spec:
 
 :::caution
 
-Policies typically allow exclusions, to accommodate privileged workloads like Flux. You can manage them via [PolicyConfig](https://docs.gitops.weave.works/docs/policy/policy-configuration/).
+Policies typically allow exclusions, to accommodate privileged workloads like Flux. You can manage them via [PolicyConfig](https://docs.gitops.weaveworks.org/docs/policy/policy-configuration/).
 For example, in order to allow Flux you could use the following `PolicyConfig`:
 
 ```yaml
@@ -276,11 +276,11 @@ In addition to guarding against privilege escalation via RBAC, you should guard 
 
 You could do that by creating pipeline namespaces to hold the Pipeline and its Secret, without permission to run workloads. You
 could enforce the latter one by using the Policy [Containers Should Not Run In Namespace](https://github.com/weaveworks/policy-library/blob/main/policies/ControllerProhibitNamespace/policy.yaml)
-from the Policy Library and [PolicyConfig](https://docs.gitops.weave.works/docs/policy/policy-configuration/) as follows:
+from the Policy Library and [PolicyConfig](https://docs.gitops.weaveworks.org/docs/policy/policy-configuration/) as follows:
 
 :::tip
 Update updates when onboarding a new pipeline. Consider using Weave Gitops self-service capabilities
-[GitOps Templates](https://docs.gitops.weave.works/docs/gitops-templates/intro/) or [GitOpsSets](https://docs.gitops.weave.works/docs/gitopssets/intro/)
+[GitOps Templates](https://docs.gitops.weaveworks.org/docs/gitops-templates/intro/) or [GitOpsSets](https://docs.gitops.weaveworks.org/docs/gitopssets/intro/)
 to help you with the task.
 :::
 

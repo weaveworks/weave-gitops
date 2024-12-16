@@ -3,7 +3,7 @@ const versions = require("./versions.json");
 module.exports = {
   title: "Weave GitOps",
   tagline: "The Flux expansion pack from the founders of Flux",
-  url: process.env.DOC_URL || "https://docs.gitops.weave.works",
+  url: process.env.DOC_URL || "https://docs.gitops.weaveworks.org",
   baseUrl: process.env.DOC_BASE_URL || "/",
   onBrokenLinks: "throw",
   onBrokenMarkdownLinks: "warn",
@@ -126,7 +126,7 @@ module.exports = {
           items: [
             {
               label: "Contact Us",
-              href: "mailto:sales@weave.works",
+              href: "mailto:sales@weaveworks.org",
             },
           ],
         },

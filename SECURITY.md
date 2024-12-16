@@ -8,7 +8,7 @@ This document defines security reporting, handling and disclosure information fo
 
 We're very thankful for – and if desired happy to credit – security researchers and users who report vulnerabilities to the Weave GitOps community.
 
-- To make a report please email the private security list at <security@weave.works> with the details.
+- To make a report please email the private security list at <security@weaveworks.org> with the details.
   We ask that reporters act in good faith by not disclosing the issue to others.
 - The Security Team will investigate the issue as soon as possible and where needed, coordinate a release date with relevant parties.
 - You will be able to choose if you want public acknowledgement of your effort and how you would like to be credited.

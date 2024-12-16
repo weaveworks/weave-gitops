@@ -70,7 +70,7 @@ function UserSettings({ className, darkModeEnabled = true }: Props) {
       <Tooltip title="Docs" enterDelay={500} enterNextDelay={500}>
         <Link
           as={PersonButton}
-          href="https://docs.gitops.weave.works/"
+          href="https://docs.gitops.weaveworks.org/"
           target="_blank"
           rel="noreferrer"
         >

@@ -120,7 +120,7 @@ jobs:
              |--------------------|------------------|
              | `v2.0`            | `>= 2.0.0`   |
             
-             For Flux migrations to v2.0 see [flux](https://github.com/fluxcd/flux2/releases/tag/v2.0.0) or [weave gitops](https://docs.gitops.weave.works/docs/guides/fluxga-upgrade/) documentation.
+             For Flux migrations to v2.0 see [flux](https://github.com/fluxcd/flux2/releases/tag/v2.0.0) or [weave gitops](https://docs.gitops.weaveworks.org/docs/guides/fluxga-upgrade/) documentation.
             
            ${{ steps.github_release.outputs.changelog }}
           token: ${{ secrets.WEAVE_GITOPS_BOT_ACCESS_TOKEN }}

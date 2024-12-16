@@ -224,7 +224,7 @@ function SignIn({ darkModeEnabled = true }: Props) {
         <DocsWrapper center align>
           Need help? Have a look at the&nbsp;
           <a
-            href="https://docs.gitops.weave.works/docs/getting-started"
+            href="https://docs.gitops.weaveworks.org/docs/getting-started"
             target="_blank"
             rel="noopener noreferrer"
           >

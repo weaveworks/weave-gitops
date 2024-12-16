@@ -44,7 +44,7 @@ This is a bug fix release that fixes a few notable issues:
 ### Highlights
 
 You can now run Weave GitOps Enterprise under a subpath e.g. https://example.com/wego/ .
-This is useful if you want to make the application available alongside other applications on the same domain, please see the documentation [here](https://docs.gitops.weave.works/docs/guides/run-ui-subpath/).
+This is useful if you want to make the application available alongside other applications on the same domain, please see the documentation [here](https://docs.gitops.weaveworks.org/docs/guides/run-ui-subpath/).
 
 In the context of the Bootstrapping CLI command, this version allows installing Policy Agent or Tf-Controller as extra components.
 
@@ -78,7 +78,7 @@ Explorer is enabled by default for GitOpsSets and GitOpsTemplates. This improves
  - Showing GitOpsSets on multiple clusters
  - Faster page load and full-text search for enhanced . 
 
-You could control where Explorer is enabled via [configuration](https://docs.gitops.weave.works/docs/explorer/getting-started/#setup). 
+You could control where Explorer is enabled via [configuration](https://docs.gitops.weaveworks.org/docs/explorer/getting-started/#setup).
 
 ##### Explorer RED metrics
 
@@ -174,7 +174,7 @@ The current values that are supported for this key:
     - gitopssets
     - templates
  ```
-See this section of the docs for more info: https://docs.gitops.weave.works/docs/explorer/getting-started/
+See this section of the docs for more info: https://docs.gitops.weaveworks.org/docs/explorer/getting-started/
 
 #### Monitoring Configuration
 
@@ -190,7 +190,7 @@ monitoring:
   enabled: false
 ```
 
-Please review [monitoring](https://docs.gitops.weave.works/docs/operations/monitoring/) for more info.
+Please review [monitoring](https://docs.gitops.weaveworks.org/docs/operations/monitoring/) for more info.
 
 ### Dependency versions
 - Flux > v2.0.0
@@ -398,7 +398,7 @@ We introduced a breaking change in this release by upgrading to Flux v2 APIs, no
 
 #### ✍️ Action required
 
-Follow [Flux](https://github.com/fluxcd/flux2/releases/tag/v2.0.0) or [Weave GitOps](https://docs.gitops.weave.works/docs/guides/fluxga-upgrade/) to upgrade to Flux v2 GA before upgrading Weave GitOps Enterprise.
+Follow [Flux](https://github.com/fluxcd/flux2/releases/tag/v2.0.0) or [Weave GitOps](https://docs.gitops.weaveworks.org/docs/guides/fluxga-upgrade/) to upgrade to Flux v2 GA before upgrading Weave GitOps Enterprise.
 :::
 
 ### Dependency versions
@@ -556,7 +556,7 @@ _Bug fixes_
 - Health status is now displayed for Kubernetes built-in resources.
 
 #### Explorer
-- You could [configure the service account](https://docs.gitops.weave.works/docs/explorer/configuration/#authentication-and-authorization-for-collecting) to use for collecting resources.
+- You could [configure the service account](https://docs.gitops.weaveworks.org/docs/explorer/configuration/#authentication-and-authorization-for-collecting) to use for collecting resources.
 
 #### Templates
 
@@ -572,7 +572,7 @@ _Bug fixes_
 
 #### Explorer
 
-- When enabled [useQueryServiceBackend](https://docs.gitops.weave.works/docs/explorer/configuration/#setup) navigation from Clusters UI to Applications UI is not possible as Explorer does not yet support filtering.
+- When enabled [useQueryServiceBackend](https://docs.gitops.weaveworks.org/docs/explorer/configuration/#setup) navigation from Clusters UI to Applications UI is not possible as Explorer does not yet support filtering.
 
 ### Dependency versions
 
@@ -608,7 +608,7 @@ _Bug fixes_
 
 ### Upgrade Notes (from the previous release)
 
-- Explorer: you should configure [collector service account](https://docs.gitops.weave.works/docs/explorer/configuration/#authentication-and-authorization-for-collecting) in your leaf clusters.
+- Explorer: you should configure [collector service account](https://docs.gitops.weaveworks.org/docs/explorer/configuration/#authentication-and-authorization-for-collecting) in your leaf clusters.
 
 ### Known issues
 
