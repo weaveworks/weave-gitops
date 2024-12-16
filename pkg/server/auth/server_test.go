@@ -628,11 +628,11 @@ func TestUserInfoOIDCFlow(t *testing.T) {
 
 	tokens := getVerifyTokens(t, m)
 
-	_, err = m.Keypair.VerifyJWT(tokens["access_token"].(string))
+	_, err = m.Keypair.VerifyJWT(tokens["access_token"].(string), nil)
 	g.Expect(err).NotTo(HaveOccurred())
-	_, err = m.Keypair.VerifyJWT(tokens["refresh_token"].(string))
+	_, err = m.Keypair.VerifyJWT(tokens["refresh_token"].(string), nil)
 	g.Expect(err).NotTo(HaveOccurred())
-	idToken, err := m.Keypair.VerifyJWT(tokens["id_token"].(string))
+	idToken, err := m.Keypair.VerifyJWT(tokens["id_token"].(string), nil)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	req := httptest.NewRequest(http.MethodGet, "https://example.com/userinfo", nil).WithContext(
@@ -711,7 +711,7 @@ func TestUserInfoOIDCFlow_with_custom_claims(t *testing.T) {
 	tokens := make(map[string]interface{})
 	g.Expect(json.Unmarshal(body, &tokens)).To(Succeed())
 
-	idToken, err := m.Keypair.VerifyJWT(tokens["id_token"].(string))
+	idToken, err := m.Keypair.VerifyJWT(tokens["id_token"].(string), nil)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	req := httptest.NewRequest(http.MethodGet, "https://example.com/userinfo", nil).WithContext(
@@ -770,11 +770,11 @@ func TestRefresh(t *testing.T) {
 	g.Expect(sm.PutValues).To(HaveKey(auth.RefreshTokenCookieName))
 
 	// And they should all be valid!
-	_, err = m.Keypair.VerifyJWT(sm.stringValue(auth.IDTokenCookieName))
+	_, err = m.Keypair.VerifyJWT(sm.stringValue(auth.IDTokenCookieName), nil)
 	g.Expect(err).NotTo(HaveOccurred())
-	_, err = m.Keypair.VerifyJWT(sm.stringValue(auth.AccessTokenCookieName))
+	_, err = m.Keypair.VerifyJWT(sm.stringValue(auth.AccessTokenCookieName), nil)
 	g.Expect(err).NotTo(HaveOccurred())
-	_, err = m.Keypair.VerifyJWT(sm.stringValue(auth.RefreshTokenCookieName))
+	_, err = m.Keypair.VerifyJWT(sm.stringValue(auth.RefreshTokenCookieName), nil)
 	g.Expect(err).NotTo(HaveOccurred())
 }
 
