@@ -7,6 +7,7 @@
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fweaveworks%2Fweave-gitops.svg?type=shield&issueType=license)](https://app.fossa.com/projects/git%2Bgithub.com%2Fweaveworks%2Fweave-gitops?ref=badge_shield&issueType=license)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fweaveworks%2Fweave-gitops.svg?type=shield&issueType=security)](https://app.fossa.com/projects/git%2Bgithub.com%2Fweaveworks%2Fweave-gitops?ref=badge_shield&issueType=security)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/7820/badge)](https://www.bestpractices.dev/projects/7820)
+[![Go Report Card](https://goreportcard.com/badge/github.com/weaveworks/weave-gitops)](https://goreportcard.com/report/github.com/weaveworks/weave-gitops)
 
 Weave GitOps is a simple, open source developer platform for people who want cloud native applications but who don't have
 Kubernetes expertise. Experience how easy it is to enable GitOps and run your apps in a cluster. Use Git to collaborate
