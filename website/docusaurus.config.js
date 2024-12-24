@@ -168,24 +168,24 @@ module.exports = {
       logo: {
         alt: 'Weaveworks Logo',
         src: 'img/weave-logo.png',
-        href: 'https://weave.works',
+        href: 'https://weaveworks.org',
         width: 35,
         height: 35,
       },
       copyright: `Copyright © ${new Date().getFullYear()} Weaveworks`,
     },
-    algolia: {
-      appId: "Z1KEXCDHZE",
-      apiKey: process.env.ALGOLIA_API_KEY,
-      indexName: "weave",
-      // Needed to handle the different versions of docs
-      contextualSearch: true,
-
-      // Optional: Algolia search parameters
-      // searchParameters: {
-      //   facetFilters: ['type:content']
-      // },
-    },
+  //   algolia: {
+  //     appId: "Z1KEXCDHZE",
+  //     apiKey: process.env.ALGOLIA_API_KEY,
+  //     indexName: "weave",
+  //     // Needed to handle the different versions of docs
+  //     contextualSearch: true,
+  //
+  //     // Optional: Algolia search parameters
+  //     // searchParameters: {
+  //     //   facetFilters: ['type:content']
+  //     // },
+  //   },
   },
   scripts: [
     {
@@ -220,10 +220,10 @@ module.exports = {
         theme: {
           customCss: require.resolve("./src/css/custom.css"),
         },
-        gtag: {
-          trackingID: process.env.GA_KEY,
-          anonymizeIP: true, // Should IPs be anonymized?
-        },
+        // gtag: {
+        //   trackingID: process.env.GA_KEY,
+        //   anonymizeIP: true, // Should IPs be anonymized?
+        // },
         sitemap: {
             changefreq: 'weekly',
             priority: 0.5,
