@@ -43,10 +43,10 @@ jobs:
           export DOC_URL=https://staging.docs.gitops.weaveworks.org
           export STAGING_BUILD=true
           yarn build
-      - id: auth
-        uses: google-github-actions/auth@35b0e87d162680511bf346c299f71c9c5c379033 # v1.1.1
-        with:
-          credentials_json: ${{ secrets.PROD_DOCS_GITOPS_UPLOAD }}
+#      - id: auth
+#        uses: google-github-actions/auth@35b0e87d162680511bf346c299f71c9c5c379033 # v1.1.1
+#        with:
+#          credentials_json: ${{ secrets.PROD_DOCS_GITOPS_UPLOAD }}
 #      - id: upload-file
 #        uses: google-github-actions/upload-cloud-storage@e95a15f226403ed658d3e65f40205649f342ba2c # v1.0.3
 #        with:
