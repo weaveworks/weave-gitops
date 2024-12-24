@@ -82,7 +82,7 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           name: github-pages
-          path: website/build
+          path: build
           retention-days: 365
 
   # Deployment job
