@@ -3,7 +3,7 @@ name: Docs
 on:
   pull_request:
     branches:
-      - 'main-disabled'
+      - 'main'
     paths:
       - 'website/**'
   push:
@@ -32,8 +32,8 @@ jobs:
           node-version: "16.x"
       - name: Build docs
         env:
-          GA_KEY: "dummy"
-          ALGOLIA_API_KEY: ${{ secrets.ALGOLIA_API_KEY }}
+#          GA_KEY: "dummy"
+#          ALGOLIA_API_KEY: ${{ secrets.ALGOLIA_API_KEY }}
           NODE_OPTIONS: "--max-old-space-size=4096"
           GITHUB_HEAD_REF: ${{ github.head_ref }}
         run: |
@@ -87,22 +87,32 @@ jobs:
       - uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # v3.8.1
         with:
           node-version: "16.x"
+      - name: Setup Pages
+        uses: actions/configure-pages@v2
       - name: Build docs
         env:
-          GA_KEY: ${{ secrets.GA_KEY }}
-          ALGOLIA_API_KEY: ${{ secrets.ALGOLIA_API_KEY }}
+#          GA_KEY: ${{ secrets.GA_KEY }}
+#          ALGOLIA_API_KEY: ${{ secrets.ALGOLIA_API_KEY }}
           NODE_OPTIONS: "--max-old-space-size=4096"
         run: |
           yarn install --frozen-lockfile
           yarn clear
           yarn build
-      - id: auth
-        uses: google-github-actions/auth@35b0e87d162680511bf346c299f71c9c5c379033 # v1.1.1
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          credentials_json: ${{ secrets.PROD_DOCS_GITOPS_UPLOAD }}
-      - id: upload-file
-        uses: google-github-actions/upload-cloud-storage@e95a15f226403ed658d3e65f40205649f342ba2c # v1.0.3
-        with:
+          name: github-pages
           path: website/build
-          destination: production.docs.gitops.weaveworks.org
-          parent: false
+          retention-days: 365
+
+#      - id: auth
+#        uses: google-github-actions/auth@35b0e87d162680511bf346c299f71c9c5c379033 # v1.1.1
+#        with:
+#          credentials_json: ${{ secrets.PROD_DOCS_GITOPS_UPLOAD }}
+#      - id: upload-file
+#        uses: google-github-actions/upload-cloud-storage@e95a15f226403ed658d3e65f40205649f342ba2c # v1.0.3
+#        with:
+#          path: website/build
+#          destination: production.docs.gitops.weaveworks.org
+#          parent: false

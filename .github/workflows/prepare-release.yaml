@@ -63,16 +63,17 @@ jobs:
          go install github.com/norwoodj/helm-docs/cmd/helm-docs@v1.9.1
          helm-docs -c charts/gitops-server -o ../../website/docs/references/helm-reference.md
          git commit -am "Update the helm reference" || : # This may not have changed
-#      - name: Update docs version
-#        env:
+      - name: Update docs version
+        env:
+          FOO: BAR
 #          ALGOLIA_API_KEY: ${{ secrets.ALGOLIA_API_KEY }}
 #          GA_KEY: ${{ secrets.GA_KEY }}
-#        run: |
-#          VERSION=${{ github.event.inputs.version }} make bin/gitops
-#          tools/update-docs.sh ${PWD}/bin/gitops ${PWD}/website
-#          git add website
-#          git commit -m "Update docs for release $GITOPS_VERSION"
-#        if: ${{ !contains(github.event.inputs.version, '-') }}
+        run: |
+          VERSION=${{ github.event.inputs.version }} make bin/gitops
+          tools/update-docs.sh ${PWD}/bin/gitops ${PWD}/website
+          git add website
+          git commit -m "Update docs for release $GITOPS_VERSION"
+        if: ${{ !contains(github.event.inputs.version, '-') }}
 
       - name: Update README
         run: |
