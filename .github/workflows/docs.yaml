@@ -73,8 +73,8 @@ jobs:
           yarn install --frozen-lockfile
           yarn clear
           export DOC_BASE_URL="/$GITHUB_HEAD_REF/"
-          export DOC_URL=https://staging.docs.gitops.weaveworks.org
-          export STAGING_BUILD=true
+          export DOC_URL=https://docs.gitops.weaveworks.org
+#          export STAGING_BUILD=true
           yarn build
           touch build/.nojekyll
 
@@ -100,32 +100,3 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 
-  prod-release:
-    if: github.event_name != 'pull_request'
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: website
-    steps:
-      - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
-      - uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # v3.8.1
-        with:
-          node-version: "16.x"
-      - name: Setup Pages
-        uses: actions/configure-pages@v2
-      - name: Build docs
-        env:
-#          GA_KEY: ${{ secrets.GA_KEY }}
-#          ALGOLIA_API_KEY: ${{ secrets.ALGOLIA_API_KEY }}
-          NODE_OPTIONS: "--max-old-space-size=4096"
-        run: |
-          yarn install --frozen-lockfile
-          yarn clear
-          yarn build
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          name: github-pages
-          path: website/build
-          retention-days: 365
