@@ -17,8 +17,10 @@ permissions:
   contents: read # for actions/checkout to fetch code
 
 jobs:
-  build:
-    # Specify runner +  build & upload the static files as an artifact
+  staging-release:
+    permissions:
+      statuses: write
+    if: ${{ github.event_name != 'push' && github.repository_owner == 'weaveworks' && !github.event.pull_request.head.repo.fork }}
     runs-on: ubuntu-latest
     defaults:
       run:
