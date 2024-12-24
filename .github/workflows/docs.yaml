@@ -54,10 +54,17 @@ jobs:
 
   # Deployment job
   deploy:
+    permissions:
+      statuses: write
+      pull-requests: write
+    if: ${{ github.event_name != 'push' && github.repository_owner == 'weaveworks' && !github.event.pull_request.head.repo.fork }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: website
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
     needs: build
     steps:
       - name: Deploy to GitHub Pages
