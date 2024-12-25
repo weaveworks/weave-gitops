@@ -31,7 +31,7 @@ jobs:
         uses: actions/configure-pages@v5
       - uses: actions/setup-node@v4
         with:
-          node-version: '16.x'
+          node-version: '18.x'
       - name: Build docs
         env:
           NODE_OPTIONS: "--max-old-space-size=4096"

@@ -52,5 +52,8 @@
   "resolutions": {
     "ua-parser-js": "^0.7.33",
     "yaml": "^2.2.2"
+  },
+  "engines": {
+    "node": ">=18.0"
   }
 }
