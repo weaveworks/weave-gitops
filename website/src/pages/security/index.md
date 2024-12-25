@@ -13,7 +13,7 @@ This document defines security reporting, handling, disclosure, and audit inform
 
 ### Report a Vulnerability
 
-- To make a report please email the private security list at [security@weaveworks.org](security@weaveworks.org) with the details.
+- To make a report please email the private security list at <security@weaveworks.org> with the details.
   We ask that reporters act in good faith by not disclosing the issue to others.
 - Reported vulnerabilities are triaged by Weaveworks Security team.   
 - Weaveworks Security team would acknowledge to the reporter for any valid request.  
@@ -45,7 +45,7 @@ Here is an overview of all our published security advisories.
 
 Date | CVE | Security Advisory                                                                                                                                                   | Severity | Affected version(s) | 
 ---- | -- |----------------------------------------------------------------------------------------------------------------------------------------------------------|-----------| ------------------- | 
-2022-06-23 | [CVE-2022-31098](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-31098)| [Weave GitOps leaked cluster credentials into logs on connection errors](https://github.com/advisories/GHSA-xggc-qprg-x6mw) | Critical  | \<= 0.8.1-rc.5| 
+2022-06-23 | [CVE-2022-31098](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-31098)| [Weave GitOps leaked cluster credentials into logs on connection errors](https://github.com/advisories/GHSA-xggc-qprg-x6mw) | Critical  | <= 0.8.1-rc.5| 
 
 
 ### Weave Gitops Enterprise
