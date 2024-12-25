@@ -14,21 +14,21 @@
     "write-heading-ids": "docusaurus write-heading-ids"
   },
   "dependencies": {
-    "@docusaurus/core": "^2.4.1",
-    "@docusaurus/plugin-client-redirects": "^2.4.1",
-    "@docusaurus/plugin-google-analytics": "^2.4.1",
-    "@docusaurus/plugin-google-gtag": "^2.4.1",
-    "@docusaurus/plugin-sitemap": "^2.4.1",
-    "@docusaurus/preset-classic": "^2.4.1",
-    "@docusaurus/theme-search-algolia": "^2.4.1",
+    "@docusaurus/core": "^3.6.3",
+    "@docusaurus/plugin-client-redirects": "^3.6.3",
+    "@docusaurus/plugin-google-analytics": "^3.6.3",
+    "@docusaurus/plugin-google-gtag": "^3.6.3",
+    "@docusaurus/plugin-sitemap": "^3.6.3",
+    "@docusaurus/preset-classic": "^3.6.3",
+    "@docusaurus/theme-search-algolia": "^3.6.3",
     "@fortawesome/fontawesome-svg-core": "^6.3.0",
     "@fortawesome/free-regular-svg-icons": "^6.3.0",
     "@fortawesome/free-solid-svg-icons": "^6.3.0",
     "@fortawesome/react-fontawesome": "^0.2.0",
     "file-loader": "^6.2.0",
     "raw-loader": "^4.0.2",
-    "react": "^17.0.1",
-    "react-dom": "^17.0.1",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
     "react-player": "^2.11.0",
     "trim": "^1.0.1",
     "url-loader": "^4.1.1",
@@ -52,5 +52,8 @@
   "resolutions": {
     "ua-parser-js": "^0.7.33",
     "yaml": "^2.2.2"
+  },
+  "engines": {
+    "node": ">=18.0"
   }
 }
