@@ -7,7 +7,7 @@ hide_title: true
 
 By default, TF-controller will use the [Kubernetes backend](https://www.terraform.io/language/settings/backends/kubernetes)
 to store the Terraform state file (tfstate) in the cluster.
-The tfstate is stored in a `Secret` named "tfstate-${workspace}-${secretSuffix}",
+The tfstate is stored in a `Secret` named "tfstate-$\{workspace\}-$\{secretSuffix\}",
 where the default suffix is the name of the `Terraform` resource.
 
 You can override this default suffix by setting `.spec.backendConfig.secretSuffix`
