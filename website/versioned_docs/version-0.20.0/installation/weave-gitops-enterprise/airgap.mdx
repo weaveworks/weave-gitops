@@ -81,7 +81,8 @@ We are going to install [ChartMuseum](https://chartmuseum.com/) via flux.
 Remember to also install helm plugin
 [cm-push](https://github.com/chartmuseum/helm-push).
 
-<details><summary>Expand to see installation yaml</summary>
+<details>
+<summary>Expand to see installation yaml</summary>
 
 ```yaml
 ---
@@ -191,7 +192,8 @@ EOF
 ```
 Execute `make` using the following makefile to intialise capi in your cluster:
 
-<details><summary>Expand to see Makefile contents</summary>
+<details>
+<summary>Expand to see Makefile contents</summary>
 
 ```makefile
 .PHONY := capi
@@ -238,7 +240,8 @@ capi-cluster:
 
 Apply the following example manifest to deploy the terraform controller:
 
-<details><summary>Expand to see file contents</summary>
+<details>
+<summary>Expand to see file contents</summary>
 
 ```yaml
 apiVersion: source.toolkit.fluxcd.io/v1beta2
@@ -279,7 +282,8 @@ spec:
 
 Update the following manifest to your context.
 
-<details><summary>Expand to see file contents</summary>
+<details>
+<summary>Expand to see file contents</summary>
 
 ```yaml {4-7,19-20}
 ---
@@ -423,7 +427,8 @@ ghcr.io/fluxcd/notification-controller:v0.25.2
 This section guides you to push installed artifacts to your private registry.
 The following Makefile is supplied to help you with each stage.
 
-<details><summary>Expand to see Makefile contents</summary>
+<details>
+<summary>Expand to see Makefile contents</summary>
 
 ```makefile {4-6}
 .PHONY := all
@@ -495,7 +500,8 @@ with the following considerations:
 
 An example of how it would look like for Weave Gitops Enterprise is shown below.
 
-<details><summary>Expand to view example WGE manifest</summary>
+<details>
+<summary>Expand to view example WGE manifest</summary>
 
 ```yaml title="weave-gitops-enterprise.yaml" {21-24,32}
 ---

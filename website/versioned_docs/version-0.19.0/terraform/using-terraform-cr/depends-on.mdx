@@ -22,7 +22,8 @@ First, create a `Terraform` object to provision the S3 bucket, name it `aws-s3-b
 The S3 bucket is provisioned by the Terraform module `aws_s3_bucket` in the OCI image `aws-package-v4.33.0`.
 It is configured to use the `auto-apply` mode, and write outputs to the secret `aws-s3-bucket-outputs`.
 
-<details><summary>Expand to view</summary>
+<details>
+<summary>Expand to view</summary>
 
 ```yaml {20-24}
 ---
@@ -71,7 +72,8 @@ For example, the `spec.values.bucket` field in the `aws-s3-bucket-acl` Terraform
 
 Please note that we use `${{` and  `}}` as the delimiters for the variable name, instead of the Helm default ones, `{{` and `}}`.
 
-<details><summary>Expand to view</summary>
+<details>
+<summary>Expand to view</summary>
 
 ```yaml hl_lines="11 18 20-21"
 ---

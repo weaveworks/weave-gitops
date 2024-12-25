@@ -371,21 +371,24 @@ app-promotion-credentials   Opaque   1      21m
 1. **Create a user account for pull request changes**: this user context would be used to do any git provider operation,
 and from the security and auditing perspectives, you don't want to impersonate a real user for it.
 
-<details><summary>Expand to see example</summary>
+<details>
+<summary>Expand to see example</summary>
 
 ![using bot account](img/bot-account.png)
 </details>
 
 2. **Do not use long-live tokens**: set an expiration date and rotate them according to your security policy.
 
-<details><summary>Expand to see example</summary>
+<details>
+<summary>Expand to see example</summary>
 
 ![create token with expiration](img/create-token-with-expiration.png)
 </details>
 
 3. **Honour the least privilege principle**: avoid having high privilege tokens. Restrict the token to your just your repo and to just the operations required.
 
-<details><summary>Expand to see example</summary>
+<details>
+<summary>Expand to see example</summary>
 
 For example, if the case of GitHub, use [fine-grained tokens](https://github.blog/2022-10-18-introducing-fine-grained-personal-access-tokens-for-github/) to only
 allow access to the single repo that your configuration manifests exist.
@@ -397,7 +400,8 @@ allow access to the single repo that your configuration manifests exist.
     - Only the ones that are required are present.
     - Tokens close to their expiration date are cycled.
 
-<details><summary>Expand to see example</summary>
+<details>
+<summary>Expand to see example</summary>
 
 For example, using github and fine-grained tokens you [could do so](https://github.blog/2022-10-18-introducing-fine-grained-personal-access-tokens-for-github/#approving-and-auditing-personal-access-tokens).
 
@@ -463,7 +467,8 @@ In the journey of creating a pull request, there are different secrets involved:
 
 Create a Kubernetes secret with the previous data.
 
-<details><summary>Expand to see example</summary>
+<details>
+<summary>Expand to see example</summary>
 
 ```shell
 # example to use git over https with basic auth and pat
@@ -582,7 +587,8 @@ Promotion notifications from leaf clusters should now be forwarded via the notif
 
 The supported strategies mentioned above, do not require any user interaction when handling promotions. However, there is often a need for a human operator to manually approve a promotion to the next environment. To achieve that, set the `spec.promotion.manual` key to `true`.
 
-<details><summary>Expand to see example</summary>
+<details>
+<summary>Expand to see example</summary>
 
 ```yaml {8}
 apiVersion: pipelines.weave.works/v1alpha1
