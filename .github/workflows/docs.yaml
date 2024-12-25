@@ -2,8 +2,6 @@ name: Docs
 
 on:
   pull_request:
-    branches:
-      - 'main'
     paths:
       - 'website/**'
   push:
@@ -20,13 +18,12 @@ jobs:
   build:
     permissions:
       statuses: write
-    if: "${{ github.event_name != 'push' && github.repository_owner == 'weaveworks' && !github.event.pull_request.head.repo.fork }}"
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: website
     steps:
-      - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+      - uses: actions/checkout@v4
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - uses: actions/setup-node@v4
@@ -50,14 +47,13 @@ jobs:
           path: website/build
           retention-days: 365
 
-  # Deployment job
   deploy:
     permissions:
       statuses: write
       pull-requests: write
       id-token: write
       pages: write
-    if: "${{ github.event_name != 'push' && github.repository_owner == 'weaveworks' && !github.event.pull_request.head.repo.fork }}"
+    if: "${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}"
     runs-on: ubuntu-latest
     defaults:
       run:
