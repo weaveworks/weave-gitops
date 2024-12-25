@@ -13,7 +13,7 @@ This document defines security reporting, handling, disclosure, and audit inform
 
 ### Report a Vulnerability
 
-- To make a report please email the private security list at [security@weaveworks.org](security@weaveworks.org) with the details.
+- To make a report please email the private security list at [security@weaveworks.org](mailto:security@weaveworks.org) with the details.
   We ask that reporters act in good faith by not disclosing the issue to others.
 - Reported vulnerabilities are triaged by Weaveworks Security team.   
 - Weaveworks Security team would acknowledge to the reporter for any valid request.  
