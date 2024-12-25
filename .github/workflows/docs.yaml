@@ -20,7 +20,7 @@ jobs:
   build:
     permissions:
       statuses: write
-    #if: ${{ github.event_name != 'push' && github.repository_owner == 'weaveworks' && !github.event.pull_request.head.repo.fork }}
+    if: "${{ github.event_name != 'push' && github.repository_owner == 'weaveworks' && !github.event.pull_request.head.repo.fork }}"
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -35,12 +35,10 @@ jobs:
       - name: Build docs
         env:
           NODE_OPTIONS: "--max-old-space-size=4096"
-          GITHUB_HEAD_REF: ${{ github.head_ref }}
+          GITHUB_HEAD_REF: "${{ github.event_name == 'pull_request' && github.head_ref || 'main' }}"
         run: |
           yarn install --frozen-lockfile
           yarn clear
-#          export DOC_BASE_URL="/$GITHUB_HEAD_REF/"
-#          export DOC_URL=https://docs.gitops.weaveworks.org
           export STAGING_BUILD=false
           yarn build
           touch build/.nojekyll
@@ -59,7 +57,7 @@ jobs:
       pull-requests: write
       id-token: write
       pages: write
-    # if: ${{ github.event_name != 'push' && github.repository_owner == 'weaveworks' && !github.event.pull_request.head.repo.fork }}
+    if: "${{ github.event_name != 'push' && github.repository_owner == 'weaveworks' && !github.event.pull_request.head.repo.fork }}"
     runs-on: ubuntu-latest
     defaults:
       run:
