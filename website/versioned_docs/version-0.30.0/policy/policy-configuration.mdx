@@ -16,7 +16,8 @@ The `PolicyConfig` CRD allows us to do that without duplicating policies by over
 
 The PolicyConfig CRD consists of two sections 1) `match` used to specify the target of this PolicyConfig and 2) `config` used to specify the policy parameters that will override the orginal policy parameters.
 
-<details><summary>Expand to see a PolicyConfig example</summary>
+<details>
+<summary>Expand to see a PolicyConfig example</summary>
 
   ```yaml
   apiVersion: pac.weave.works/v2beta2
@@ -111,7 +112,8 @@ Those are the possible targets from lowest to highest precendence:
 
 We have a Kustomization application `app-a` and deployment `deployment-1` which is part of this application.
 
-<details><summary>Expand to see manifests</summary>
+<details>
+<summary>Expand to see manifests</summary>
 
 ```yaml
 apiVersion: pac.weave.works/v2beta2

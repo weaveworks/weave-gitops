@@ -9,7 +9,8 @@ In some situations, it is needed to add custom labels and annotations to the run
 For example, for Azure AKS to grant pod active directory permissions using Azure Active Directory (AAD) Pod Identity,
 a label like `aadpodidbinding: myIdentity` on the pod is required.
 
-<details><summary>Expand to view</summary>
+<details>
+<summary>Expand to view</summary>
 
 ```yaml
 apiVersion: infra.contrib.fluxcd.io/v1alpha1
@@ -38,7 +39,8 @@ spec:
 
 By default, the Terraform controller uses `RUNNER_POD_IMAGE` environment variable to identify the Runner Pod's image to use. You can customize the image on the global level by updating the value of the environment variable or, you can specify an image to use per Terraform object for its reconciliation.
 
-<details><summary>Expand to view</summary>
+<details>
+<summary>Expand to view</summary>
 
 ```yaml
 apiVersion: infra.contrib.fluxcd.io/v1alpha1

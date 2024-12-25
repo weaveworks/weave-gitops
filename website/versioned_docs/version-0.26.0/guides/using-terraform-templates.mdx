@@ -22,7 +22,8 @@ Add the following template to a path in your Git repository that is synced by Fl
 
 Commit and push these changes. Once a template is available in the cluster, it can be used to create a resource, which will be shown in the next step.
 
-<details><summary>Expand to see ./clusters/management/tf-template.yaml</summary>
+<details>
+<summary>Expand to see ./clusters/management/tf-template.yaml</summary>
 
 ```yaml title="./clusters/management/tf-template.yaml"
 ---
@@ -175,7 +176,8 @@ Commit and push your changes. You can now store encrypted secrets to your Git re
 
 Add the following Terraform manifest to the root of your Git repository.
 
-<details><summary>Expand to see Terraform manifest</summary>
+<details>
+<summary>Expand to see Terraform manifest</summary>
 
 ```yaml title="./rds.tf"
 terraform {
@@ -250,7 +252,8 @@ resource "aws_rds_cluster_instance" "cluster_instance" {
 
 Add the following template to a path in your Git repository that is synced by Flux. In the [quickstart guide](../enterprise/getting-started/install-enterprise.mdx#install-flux-onto-your-cluster-with-the-flux-bootstrap-command), we set this path to `./clusters/management`.
 
-<details><summary>Expand to see Terraform manifest at
+<details>
+<summary>Expand to see Terraform manifest at
 ./clusters/management/rds-template.yaml</summary>
 
 ```yaml title="./clusters/management/rds-template.yaml"
