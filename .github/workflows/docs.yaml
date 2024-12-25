@@ -40,7 +40,7 @@ jobs:
           yarn install --frozen-lockfile
           yarn clear
 #          export DOC_BASE_URL="/$GITHUB_HEAD_REF/"
-          export DOC_URL=https://docs.gitops.weaveworks.org
+#          export DOC_URL=https://docs.gitops.weaveworks.org
           export STAGING_BUILD=false
           yarn build
           touch build/.nojekyll
