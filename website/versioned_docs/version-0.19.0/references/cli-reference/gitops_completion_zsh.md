@@ -13,17 +13,23 @@ to enable it.  You can execute the following once:
 
 To load completions in your current shell session:
 
-	source <(gitops completion zsh); compdef _gitops gitops
+```
+source <(gitops completion zsh); compdef _gitops gitops
+```
 
 To load completions for every new session, execute once:
 
 #### Linux:
 
-	gitops completion zsh > "${fpath[1]}/_gitops"
+```
+gitops completion zsh > "${fpath[1]}/_gitops"
+```
 
 #### macOS:
 
-	gitops completion zsh > $(brew --prefix)/share/zsh/site-functions/_gitops
+```
+gitops completion zsh > $(brew --prefix)/share/zsh/site-functions/_gitops
+```
 
 You will need to start a new shell for this setup to take effect.
 
