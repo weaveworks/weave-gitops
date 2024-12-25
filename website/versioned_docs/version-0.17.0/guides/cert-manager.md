@@ -63,7 +63,7 @@ spec:
 
 :::note cert-manager version
 At time of writing, cert manager v1.8.0 was the latest available release and a newer version may exist, please
-ensure to check <https://github.com/cert-manager/cert-manager/tags> for updates.
+ensure to check [https://github.com/cert-manager/cert-manager/tags](https://github.com/cert-manager/cert-manager/tags) for updates.
 :::
 
 Now that `cert-manager` is running, we can create a `ClusterIssuer` to represent the certificate authority

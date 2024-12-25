@@ -193,7 +193,8 @@ To configure Weave GitOps for OIDC authentication via Keycloak, we need to confi
 - the `claimGroups` to `groups` to work with our mapper, mapping from roles->groups
 - the `claimUsername` to `sub`
 
-<details><summary>Expand to see secret definition </summary>
+<details>
+<summary>Expand to see secret definition </summary>
 
 ```yaml
 apiVersion: v1
@@ -221,7 +222,8 @@ The following example assumes that the ClusterRole `wego-admin-cluster-role` and
 in the `wego-admin` group within Keycloak admin access. See the [recommendations on setting up RBAC](../../enterprise/getting-started/install-enterprise/#recommended-rbac-configuration)
 for details.
 
-<details><summary>Expand to see group role bindings</summary>
+<details>
+<summary>Expand to see group role bindings</summary>
 
 ```yaml
 ---

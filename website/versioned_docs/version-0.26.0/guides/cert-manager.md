@@ -25,7 +25,8 @@ simply create a `HelmRepository` and a `HelmRelease` to have Flux install everyt
 
 Commit the following to a location being reconciled by Flux.
 
-<details><summary>Expand to see manifest contents</summary>
+<details>
+<summary>Expand to see manifest contents</summary>
 
 ```yaml
 ---
@@ -67,14 +68,15 @@ spec:
 
 :::note cert-manager version
 At time of writing, cert manager v1.8.0 was the latest available release and a newer version may exist, please
-ensure to check <https://github.com/cert-manager/cert-manager/tags> for updates.
+ensure to check [https://github.com/cert-manager/cert-manager/tags](https://github.com/cert-manager/cert-manager/tags) for updates.
 :::
 
 Now that `cert-manager` is running, we can create a `ClusterIssuer` to represent the certificate authority
 from which we will obtain signed certificates, in this example we are using Let's Encrypt. After changing
 the email address, commit this to the same location as above.
 
-<details><summary>Expand to see manifest contents</summary>
+<details>
+<summary>Expand to see manifest contents</summary>
 
 ```yaml
 ---

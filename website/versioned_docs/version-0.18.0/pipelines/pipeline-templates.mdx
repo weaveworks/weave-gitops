@@ -46,7 +46,8 @@ This template is shipped by default with Weave GitOps Enterprise to help you get
 
 For flexibility, this allows the user of the template to specify the names of the Clusters where the application is deployed, and to vary the namespace per cluster. This means it would even work in a tenancy model where environments co-exist on the same cluster and use namespaces for isolation. 
 
-<details><summary>Expand to view example template</summary>
+<details>
+<summary>Expand to view example template</summary>
 
 ```yaml
 ---
@@ -120,7 +121,8 @@ spec:
 
 This example extends the above to add a promotion strategy, in this case it will raise a pull request to update the application version in subsequent environments.
 
-<details><summary>Expand to view example template</summary>
+<details>
+<summary>Expand to view example template</summary>
 
 ```yaml
 ---
@@ -230,7 +232,8 @@ For the `Alert`, this template is filtering events to detect when an update has 
 
 For the `Provider`, this template uses authenticated (HMAC) communication to the promotion endpoint, where a secret will need to be present on both the management cluster and leaf cluster(s). For simplicity, a `generic` provider could be used instead - which would not require the secret.
 
-<details><summary>Expand to view example template</summary>
+<details>
+<summary>Expand to view example template</summary>
 
 ```yaml
 ---
