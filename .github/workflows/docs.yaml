@@ -20,7 +20,7 @@ jobs:
   build:
     permissions:
       statuses: write
-    if: "${{ github.event_name != 'push' && github.repository_owner == 'weaveworks' && !github.event.pull_request.head.repo.fork }}"
+    if: "${{ github.event_name != 'push' }}"
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -45,6 +45,7 @@ jobs:
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
+        if: "${{ github.repository_owner == 'weaveworks' && !github.event.pull_request.head.repo.fork }}"
         with:
           name: github-pages
           path: website/build
