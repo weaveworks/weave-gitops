@@ -20,7 +20,7 @@ jobs:
   build:
     permissions:
       statuses: write
-    # if: ${{ github.event_name != 'push' && github.repository_owner == 'weaveworks' && !github.event.pull_request.head.repo.fork }}
+    #if: ${{ github.event_name != 'push' && github.repository_owner == 'weaveworks' && !github.event.pull_request.head.repo.fork }}
     runs-on: ubuntu-latest
     defaults:
       run:
