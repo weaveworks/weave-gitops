@@ -45,7 +45,7 @@ Here is an overview of all our published security advisories.
 
 Date | CVE | Security Advisory                                                                                                                                                   | Severity | Affected version(s) | 
 ---- | -- |----------------------------------------------------------------------------------------------------------------------------------------------------------|-----------| ------------------- | 
-2022-06-23 | [CVE-2022-31098](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-31098)| [Weave GitOps leaked cluster credentials into logs on connection errors](https://github.com/advisories/GHSA-xggc-qprg-x6mw) | Critical  | <= 0.8.1-rc.5| 
+2022-06-23 | [CVE-2022-31098](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-31098)| [Weave GitOps leaked cluster credentials into logs on connection errors](https://github.com/advisories/GHSA-xggc-qprg-x6mw) | Critical  | \<= 0.8.1-rc.5| 
 
 
 ### Weave Gitops Enterprise
