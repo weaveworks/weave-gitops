@@ -60,8 +60,7 @@ kubectl create secret generic github-client \
 As we did before, we can use `HelmRepository` and `HelmRelease` objects to let
 Flux deploy everything.
 
-<details>
-<summary>Expand to see resource manifests</summary>
+<details><summary>Expand to see resource manifests</summary>
 
 ```yaml
 ---
@@ -181,8 +180,7 @@ the user.
 
 Based on these groups, we can bind roles to groups:
 
-<details>
-<summary>Expand to see group role bindings</summary>
+<details><summary>Expand to see group role bindings</summary>
 
 ```yaml
 ---
@@ -230,8 +228,7 @@ rules:
 
 The same way we can bind cluster roles to a group:
 
-<details>
-<summary>Expand to see group cluster role bindings</summary>
+<details><summary>Expand to see group cluster role bindings</summary>
 
 ```yaml
 ---

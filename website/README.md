@@ -128,8 +128,7 @@ Smaller chunks are usually fine. But for anything more that 10 lines it is
 neater to wrap it.
 
 ~~~markdown
-<details>
-<summary>Expand to see this awesome HelmRepository</summary>
+<details><summary>Expand to see this awesome HelmRepository</summary>
 
 Don't forget to leave a line break below the opening tag...
 ```yaml
@@ -142,8 +141,7 @@ and before the closing one.
 </details>
 ~~~
 
-<details>
-<summary>Expand to see this awesome HelmRepository</summary>
+<details><summary>Expand to see this awesome HelmRepository</summary>
 
 Don't forget to leave a line break below the opening tag...
 ```
