@@ -15,7 +15,8 @@ import BrowserOnly from "@docusaurus/BrowserOnly";
 You do **not** need Cluster API to add your Kubernetes cluster to Weave GitOps Enterprise. The only thing you need is a secret containing a valid `kubeconfig`.
 
 import TOCInline from "@theme/TOCInline";
-<TOCInline /> 
+
+<TOCInline toc={toc} />
 
 <Tabs groupId="have-a-secret" default>
 <TabItem value="existing-kubeconfig-secret" label="Existing kubeconfig">
@@ -48,7 +49,8 @@ Here's how to create a kubeconfig secret.
 
 2. Add RBAC permissions for the service account:
 
-	<details><summary>Expand to see role manifests</summary>
+	<details>
+	<summary>Expand to see role manifests</summary>
 
 	```yaml
 	---
@@ -103,7 +105,8 @@ Here's how to create a kubeconfig secret.
 
 4. Create a kubeconfig secret. We'll use a helper script to generate the kubeconfig, and then save it into `static-kubeconfig.sh`:
 
-	<details><summary>Expand to see script</summary>
+	<details>
+	<summary>Expand to see script</summary>
 
 	```bash title="static-kubeconfig.sh"
 	#!/bin/bash
@@ -215,7 +218,8 @@ Download the config with:
 
 Then update the `GITHUB_USER` variable to point to your repository
 
-<details><summary>Expand to see full yaml</summary>
+<details>
+<summary>Expand to see full yaml</summary>
 
 <CodeBlock
   title="clusters/management/capi/boostrap/capi-gitops-cluster-bootstrap-config.yaml"
@@ -244,7 +248,8 @@ import WegoAdmin from "!!raw-loader!./assets/rbac/wego-admin.yaml";
   )}
 </BrowserOnly>
 
-<details><summary>Expand to see full template yaml</summary>
+<details>
+<summary>Expand to see full template yaml</summary>
 
 <CodeBlock
   title="clusters/bases/rbac/wego-admin.yaml"
@@ -299,7 +304,8 @@ Once Flux has reconciled the cluster, you can inspect your Flux resources via th
 
 To test that your kubeconfig secret is correctly set up, apply the following manifest and check the logs after the job completes:
 
-<details><summary>Expand to see manifest</summary>
+<details>
+<summary>Expand to see manifest</summary>
 
 ```yaml
 ---

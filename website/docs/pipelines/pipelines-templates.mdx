@@ -48,7 +48,8 @@ This default template is shipped with Weave GitOps Enterprise to help you get st
 
 For flexibility, this allows the template user to specify the names of the clusters where the application is deployed, and to vary the namespace per cluster. This works even in a tenancy model where environments coexist on the same cluster and use namespaces for isolation.
 
-<details><summary>Expand to view example template</summary>
+<details>
+<summary>Expand to view example template</summary>
 
 ```yaml
 ---
@@ -122,7 +123,8 @@ spec:
 
 This example extends the above to add a promotion strategy. In this case, it will raise a pull request to update the application version in subsequent environments.
 
-<details><summary>Expand to view example template</summary>
+<details>
+<summary>Expand to view example template</summary>
 
 ```yaml
 ---
@@ -206,7 +208,7 @@ spec:
 
 #### Git Credentials
 
-For guidance on configuring credentials, find instructions in the [Promoting Applications](../promoting-applications#create-credentials-secret) documentation.
+For guidance on configuring credentials, find instructions in the [Promoting Applications](../promoting-applications#credentials-secret) documentation.
 
 #### Promotion Marker Added to HelmRelease in `Second-Environment`
 
@@ -233,7 +235,8 @@ For the `Alert`, this template filters events to detect when an update has occur
 
 For the `Provider`, this template uses authenticated (HMAC) communication to the promotion endpoint, where a secret must be present on both the management cluster and the leaf cluster(s). For simplicity's sake, you can use a `generic` provider instead; this will not require the secret.
 
-<details><summary>Expand to view example template</summary>
+<details>
+<summary>Expand to view example template</summary>
 
 ```yaml
 ---

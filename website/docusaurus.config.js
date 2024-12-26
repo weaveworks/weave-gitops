@@ -14,6 +14,7 @@ module.exports = {
   plugins: [
     () => ({
       // Load yaml files as blobs
+      name: "yaml-files-as-blobs",
       configureWebpack: function () {
         return {
           module: {

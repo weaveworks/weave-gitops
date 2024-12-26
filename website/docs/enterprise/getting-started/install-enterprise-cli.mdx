@@ -94,15 +94,15 @@ Please use the following command to start the installation wizard of Weave GitOp
 
 `gitops-ee bootstrap` is a workflow that will take you through the following stages:
 
-1. [Verify Flux](#verifying-flux): verify Flux installation on the Management cluster.
+1. [Verify Flux](#verify-flux): verify Flux installation on the Management cluster.
 2. (Optional) [Bootstrap Flux](#bootstrap-flux): bootstrap Flux in case is not found.
-3. [Verify Entitlement](#verifying-entitlement): verify the Entitlements secret content (username, password, entitlement).
+3. [Verify Entitlement](#verify-entitlement): verify the Entitlements secret content (username, password, entitlement).
 4. [Configure Git Access](#configure-git-access): configure the access to your configuration repo.
-5. [Select WGE version](#selecting-wge-version): from the latest 3 available releases.
+5. [Select WGE version](#select-wge-version): from the latest 3 available releases.
 6. [Create Cluster User](#create-cluster-user): create a Secret with the username and password for the emergency cluster user.
 7. [Configure Dashboard Access](#configure-dashboard-access): choose between 2 methods to access the dashboard either local or external.
-8. (Optional) [Configure OIDC](#configure-oidc): to enable login to dashboard via OIDC providers.
-9. (Optional) [Extra Components](#extra-components): to install extra components from (Policy Agent, Terraform Controller).
+8. (Optional) [Configure OIDC](#optional-configure-oidc): to enable login to dashboard via OIDC providers.
+9. (Optional) [Extra Components](#optional-extra-components): to install extra components from (Policy Agent, Terraform Controller).
 10. [Access the dashboard](#access-the-dashboard): via the link from the installation success message.
 
 #### Verify Flux

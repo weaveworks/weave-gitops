@@ -77,7 +77,8 @@ Let's add the three manifests for Linkerd components under the `./linkerd` direc
 - A `HelmRelease` resource to install the latest version of Linkerd from the
 	`HelmRepository`
 
-<details><summary>Expand to see and copy-paste the three Linkerd manifests to add</summary>
+<details>
+<summary>Expand to see and copy-paste the three Linkerd manifests to add</summary>
 
 ```yaml title="linkerd/namespace.yaml"
 ---
@@ -167,7 +168,8 @@ Next, add the following manifests. The first file instructs Kustomize to patch a
 `HelmRelease` manifests. The second file is a `Kustomization` that references all the
 other `linkerd` resource files.
 
-<details><summary>Expand to see the Linkerd Kustomization manifests</summary>
+<details>
+<summary>Expand to see the Linkerd Kustomization manifests</summary>
 
 ```yaml title="linkerd/kustomizeconfig.yaml"
 nameReference:
@@ -260,7 +262,8 @@ Now add under this directory the three resource manifests for Flagger:
 	tester app (which generates synthetic traffic during the
 	analysis phase), from that `HelmRepository`
 
-<details><summary>Expand to see the three Flagger resource manifests</summary>
+<details>
+<summary>Expand to see the three Flagger resource manifests</summary>
 
 ```yaml title="flagger/namespace.yaml"
 ---
@@ -325,7 +328,8 @@ spec:
 Now add the following Kustomization file. It references all of the previous files that you've
 added:
 
-<details><summary>Expand to see the Flagger Kustomization manifest</summary>
+<details>
+<summary>Expand to see the Flagger Kustomization manifest</summary>
 
 ```yaml title="flagger/kustomization.yaml"
 ---
@@ -382,7 +386,8 @@ Create a new `test` directory and add these three canary resource manifests unde
 
 We don't need to define a service resource. This is specified within the canary definition and created by Flagger.
 
-<details><summary>Expand to see the three canary resource manifests</summary>
+<details>
+<summary>Expand to see the three canary resource manifests</summary>
 
 ```yaml title="test/namespace.yaml"
 ---
@@ -566,7 +571,8 @@ spec:
 
 Add a Kustomization file to apply all resources to the `test` namespace:
 
-<details><summary>Expand to see the Canary Kustomization manifest</summary>
+<details>
+<summary>Expand to see the Canary Kustomization manifest</summary>
 
 ```yaml title="test/kustomization.yaml"
 ---

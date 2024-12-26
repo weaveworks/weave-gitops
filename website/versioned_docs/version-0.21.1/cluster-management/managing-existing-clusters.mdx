@@ -15,7 +15,8 @@ import TierLabel from "../_components/TierLabel";
 Any kubernetes cluster whether capi or not can be added to Weave Gitops Enterprise. The only thing we need is a secret containing a valid `kubeconfig`.
 
 import TOCInline from "@theme/TOCInline";
-<TOCInline />;
+
+<TOCInline toc={toc} />
 
 <Tabs groupId="have-a-secret" default>
 <TabItem value="existing-kubeconfig-secret" label="Existing kubeconfig">
@@ -46,7 +47,8 @@ kubectl create secret generic demo-01-kubeconfig \
 
 1. Add RBAC permissions for the service account
 
-	<details><summary>Expand to see role manifests</summary>
+	<details>
+	<summary>Expand to see role manifests</summary>
 
 	```yaml
 	---
@@ -105,7 +107,8 @@ kubectl create secret generic demo-01-kubeconfig \
 
 	We'll use a helper script to generate the kubeconfig, save this into `static-kubeconfig.sh`:
 
-	<details><summary>Expand to see script</summary>
+	<details>
+	<summary>Expand to see script</summary>
 
 	```bash title="static-kubeconfig.sh"
 	#!/bin/bash
@@ -237,7 +240,8 @@ Once flux has reconciled the cluster you can inspect your flux resources via the
 
 To test a kubeconfig secret has been correctly setup apply the following manifest and check the logs after the job completes:
 
-<details><summary>Expand to see manifest</summary>
+<details>
+<summary>Expand to see manifest</summary>
 
 ```yaml
 ---

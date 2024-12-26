@@ -123,7 +123,8 @@ The following table provides a list of all the custom resources that Flagger gen
 
 For example, the following manifest shows how `gitops-canaries-reader` has been extended to allow the user for viewing TrafficSplit resources when Linkerd is used:
 
-<details><summary>Expand to see example canary reader RBAC</summary>
+<details>
+<summary>Expand to see example canary reader RBAC</summary>
 
 ```yaml title="gitops-canaries-reader.yaml"
 apiVersion: rbac.authorization.k8s.io/v1
@@ -167,7 +168,8 @@ In order to view canaries in a remote cluster from the management cluster, you n
 
 For example, applying the following manifest on remote clusters, ensures that the `wego-admin` user will be able to view canary information from within the Weave GitOps Enterprise UI on the management cluster:
 
-<details><summary>Expand to see example of remote cluster canary reader</summary>
+<details>
+<summary>Expand to see example of remote cluster canary reader</summary>
 
 ```yaml title="remote-cluster-service-user-rbac.yaml"
 apiVersion: rbac.authorization.k8s.io/v1

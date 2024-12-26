@@ -24,7 +24,7 @@ The following configuration options are available for you to setup Explorer.
 - `.spec.values.useQueryServiceBackend`: feature flag to control whether you want to leverage Explorer backend capabilities for
 other UI experiences like [Applications](../open-source/getting-started/ui-OSS.mdx#the-applications-view) or [Sources](../open-source/getting-started/ui-OSS.mdx#the-sources-view)
 - `.spec.values.explorer.collector.serviceAccount`: ServiceAccount `name` and `namespace` that explorer collector will use to impersonate
-in leaf clusters. Make sure you read [authz for collector](#Authentication_and_Authorization_for_collecting) before setting it. Default
+in leaf clusters. Make sure you read [authz for collector](#authentication-and-authorization-for-collecting) before setting it. Default
 values are `name: collector`, `namespace: flux-system`.
 
 You should specify them in your HelmRelease values:
@@ -52,7 +52,7 @@ spec:
 
 ### Clusters
 
-Explorer watches the [GitopsClusters](../cluster-management/managing-clusters-without-capi.mdx/#connect-a-cluster)
+Explorer watches the [GitopsClusters](../../cluster-management/managing-clusters-without-capi#connect-a-cluster)
 that you have connected to Weave Gitops Enterprise, as well as your Management cluster.
 
 ### Kinds
@@ -93,7 +93,7 @@ Query results are filtered honouring the access determined via RBAC.
 
 ## Authentication and Authorization for collecting
 
-[GitopsClusters](../cluster-management/managing-clusters-without-capi.mdx/#connect-a-cluster)
+[GitopsClusters](../../cluster-management/managing-clusters-without-capi#connect-a-cluster)
 define the connection and security context that Explorer leverages to collect data from leaf clusters. Given that you have followed the indications
 in [setup RBAC](../enterprise/getting-started/install-enterprise.mdx#gitops-dashboard-service-account-permissions), the GitopsCluster service account is able to impersonate any user or group.
 
@@ -109,7 +109,8 @@ To configure collection, you would need to extend this configuration with the fo
 
 1. Create a ServiceAccount for the one that you specified in your [setup](#setup) `.spec.values.explorer.collector.serviceAccount`.
 
-<details><summary>Expand to see an example</summary>
+<details>
+<summary>Expand to see an example</summary>
 
 ```yaml
 apiVersion: v1
@@ -124,7 +125,8 @@ metadata:
 
 2. Create a ClusterRole with the permissions to watch the supported resources.
 
-<details><summary>Expand to see an example</summary>
+<details>
+<summary>Expand to see an example</summary>
 
 ```yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -150,7 +152,8 @@ rules:
 
 3. Create a ClusterRolebinding to assign previous ClusterRole to the created collector `ServiceAccount`.
 
-<details><summary>Expand to see an example</summary>
+<details>
+<summary>Expand to see an example</summary>
 
 ```yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -173,7 +176,8 @@ If you want the collector to watch a particular namespace use a RoleBinding inst
 
 4. Extend impersonation rules to allow service account impersonation for ServiceAccount `collector`
 
-<details><summary>Expand to see an example</summary>
+<details>
+<summary>Expand to see an example</summary>
 
 ```yaml
 apiVersion: rbac.authorization.k8s.io/v1

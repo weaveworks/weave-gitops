@@ -19,7 +19,7 @@ cluster.
 
 ## Prerequisites
 ### Required
-- Install the GitOps CLI. See [the installation](../installation/weave-gitops.mdx#gitops-cli)
+- Install the GitOps CLI. See [the installation](../installation/weave-gitops.mdx#install-the-gitops-cli)
 
 ### Optional
 - This guide uses [kubectl](https://kubernetes.io/docs/tasks/tools/#kubectl) for demonstrations, but it is not required to use GitOps Run
@@ -166,7 +166,8 @@ You should see three files now exist in your `./podinfo` directory.
 
 Save the contents of the following files to the `./podinfo` directory.
 
-<details><summary>./podinfo/namespace.yaml</summary>
+<details>
+<summary>./podinfo/namespace.yaml</summary>
 
 ```yaml
 ---
@@ -178,7 +179,8 @@ metadata:
 
 </details>
 
-<details><summary>./podinfo/podinfo-source.yaml</summary>
+<details>
+<summary>./podinfo/podinfo-source.yaml</summary>
 
 ```yaml
 ---
@@ -194,7 +196,8 @@ spec:
 
 </details>
 
-<details><summary>./podinfo/podinfo-helmrelease.yaml</summary>
+<details>
+<summary>./podinfo/podinfo-helmrelease.yaml</summary>
 
 ```yaml
 ---

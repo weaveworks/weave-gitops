@@ -21,7 +21,8 @@ flux tag artifact oci://ghcr.io/tf-controller/helloworld:$(git rev-parse --short
 To use the OCI artifact as the source for your `Terraform` object,
 you'll need to define an `OCIRepository` and use it as the `spec.sourceRef` of your `Terraform` object:
 
-<details><summary>Expand to view</summary>
+<details>
+<summary>Expand to view</summary>
 
 ```yaml {5,20-22}
 ---

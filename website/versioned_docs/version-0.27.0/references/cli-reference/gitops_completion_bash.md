@@ -11,7 +11,9 @@ If it is not installed already, you can install it via your OS's package manager
 
 To load completions in your current shell session:
 
-	source <(gitops completion bash)
+```
+source <(gitops completion bash)
+```
 
 To load completions for every new session, execute once:
 

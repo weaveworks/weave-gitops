@@ -33,7 +33,8 @@ To make use of the policy features, [policy agent](/policy/intro.mdx) needs to b
 
 Below is an example of a tenancy file:
 
-<details><summary>Expand to view</summary>
+<details>
+<summary>Expand to view</summary>
 
 ```yaml title="tenancy.yaml"
 ---
@@ -115,7 +116,8 @@ For more control on a specific tenant a tenancy file should be used, the command
 gitops create tenants --name test-tenant --namespace test-ns1 --namespace test-ns2
 ```
 
-<details><summary>Expand to view command output</summary>
+<details>
+<summary>Expand to view command output</summary>
 
 ```bash
 namespace/test-ns1 created
@@ -144,7 +146,8 @@ tenants:
 gitops create tenants --from-file tenants.yaml
 ```
 
-<details><summary>Expand to view command output</summary>
+<details>
+<summary>Expand to view command output</summary>
 
 ```bash
 namespace/test-ns1 created
@@ -164,7 +167,8 @@ To check the resources that would be deployed first use the `export` flag:
 gitops create tenants --from-file tenants.yaml --export
 ```
 
-<details><summary>Expand to view command output</summary>
+<details>
+<summary>Expand to view command output</summary>
 
 ```bash
 apiVersion: v1

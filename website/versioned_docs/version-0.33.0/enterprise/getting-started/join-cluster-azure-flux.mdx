@@ -54,7 +54,8 @@ If you already have Flux running, you can create the service account in your fle
 
 1. Create a service account file:
 
-<details><summary>Expand to see role manifests</summary>
+<details>
+<summary>Expand to see role manifests</summary>
 
 ```yaml
 apiVersion: v1
@@ -77,7 +78,8 @@ metadata:
 
 2. Create a roles file:
 
-<details><summary>Expand to see role manifests</summary>
+<details>
+<summary>Expand to see role manifests</summary>
 
 ```yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -124,7 +126,8 @@ Kubernetes 1.24+ [will not create secrets for Service Accounts for you](https://
 
 6. Create a kubeconfig secret. We'll use a helper script to generate the kubeconfig, and then save it into `static-kubeconfig.sh`:
 
-	<details><summary>Expand to see script</summary>
+	<details>
+	<summary>Expand to see script</summary>
 
 	```bash title="static-kubeconfig.sh"
 	#!/bin/bash
