@@ -1,4 +1,4 @@
-# Weave GitOps Product Website
+# Weave GitOps Product Website!
 
 This website is built using [Docusaurus 2](https://docusaurus.io/), a modern static website generator.
 It requires Node.js installed on your system. Install or Update your current setup for Node.js from [here](https://nodejs.org/en/download/)
