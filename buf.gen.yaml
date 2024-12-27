@@ -1,21 +1,19 @@
-version: v1beta1
+version: v2
 plugins:
-  - name: go
+  - local: protoc-gen-go
     out: pkg
     opt: paths=source_relative
-  - name: go-grpc
+  - local: protoc-gen-go-grpc
     out: pkg
     opt: paths=source_relative
-  - name: grpc-gateway
+  - local: protoc-gen-grpc-gateway
     out: pkg
     opt:
       - paths=source_relative
       - allow_delete_body=true
-  - name: openapiv2
+  - local: protoc-gen-openapiv2
     out: ./
-    opt:
-      - allow_delete_body=true
-  - name: grpc-gateway-ts
+    opt: allow_delete_body=true
+  - local: protoc-gen-grpc-gateway-ts
     out: ./ui/lib
-    opt: []
     strategy: all

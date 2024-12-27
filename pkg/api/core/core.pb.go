@@ -1,4 +1,4 @@
-//
+//*
 // This file holds the protobuf definitions for the Weave GitOps gRPC API.
 // Messages and enums are defined in types.proto.
 
