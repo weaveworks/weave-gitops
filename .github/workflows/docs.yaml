@@ -35,7 +35,7 @@ jobs:
           NODE_OPTIONS: "--max-old-space-size=4096"
           GITHUB_HEAD_REF: "${{ github.event_name == 'pull_request' && github.head_ref || 'main' }}"
         run: |
-          yarn install --frozen-lockfile
+          yarn install --immutable
           yarn clear
           export STAGING_BUILD=false
           yarn build
