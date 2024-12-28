@@ -1,9 +1,9 @@
 package auth
 
 import (
+	"errors"
+	"fmt"
 	"time"
-
-	"github.com/pkg/errors"
 
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 
@@ -80,7 +80,7 @@ func (i *internalJWTClient) VerifyJWT(accessToken string) (*Claims, error) {
 	)
 
 	if err != nil {
-		return nil, errors.WithMessage(ErrUnauthorizedToken, err.Error())
+		return nil, fmt.Errorf("%w: %w", ErrUnauthorizedToken, err)
 	}
 
 	claims, ok := token.Claims.(*Claims)
