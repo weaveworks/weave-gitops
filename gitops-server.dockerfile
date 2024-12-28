@@ -1,5 +1,5 @@
 # UI build
-FROM node:16-bullseye@sha256:cd59a61258b82b86c1ff0ead50c8a689f6c3483c5ed21036e11ee741add419eb AS ui
+FROM node:18-bullseye@sha256:ebc078fb915bf117cde806a3201eb4eb791b6480735a1efbc823c2317f25de9a AS ui
 RUN apt-get update -y && apt-get install -y build-essential
 RUN mkdir -p /home/app && chown -R node:node /home/app
 WORKDIR /home/app
