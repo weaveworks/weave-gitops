@@ -33,3 +33,11 @@ gha-creds-*.json
 # macOS
 .DS_Store
 gitops-server.dockerfile
+
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
