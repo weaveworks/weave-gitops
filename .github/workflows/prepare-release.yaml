@@ -30,7 +30,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # v3.8.1
         with:
-          node-version: 16.X
+          node-version: 22.x
       - name: Set up environment vars
         run: |
           echo "BRANCH=releases/${{ github.event.inputs.version }}" >> $GITHUB_ENV
