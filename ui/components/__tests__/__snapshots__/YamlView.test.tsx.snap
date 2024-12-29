@@ -172,7 +172,7 @@ exports[`YamlView snapshots renders 1`] = `
     <div
       onClick={[Function]}
       style={
-        Object {
+        {
           "cursor": "pointer",
         }
       }
@@ -203,7 +203,7 @@ exports[`YamlView snapshots renders 1`] = `
       <div
         onClick={[Function]}
         style={
-          Object {
+          {
             "cursor": "pointer",
           }
         }
@@ -227,7 +227,7 @@ exports[`YamlView snapshots renders 1`] = `
     </div>
     <pre
       style={
-        Object {
+        {
           "MozHyphens": "none",
           "MozTabSize": "4",
           "OTabSize": "4",
@@ -255,7 +255,7 @@ exports[`YamlView snapshots renders 1`] = `
     >
       <code
         style={
-          Object {
+          {
             "whiteSpace": "pre",
             "wordBreak": "break-word",
           }
@@ -263,7 +263,7 @@ exports[`YamlView snapshots renders 1`] = `
       >
         <span
           style={
-            Object {
+            {
               "textWrap": "wrap",
             }
           }
@@ -271,7 +271,7 @@ exports[`YamlView snapshots renders 1`] = `
           <span
             className="linenumber react-syntax-highlighter-line-number"
             style={
-              Object {
+              {
                 "color": "slategray",
                 "display": "inline-block",
                 "minWidth": "1.25em",
@@ -284,7 +284,7 @@ exports[`YamlView snapshots renders 1`] = `
             1
           </span>
           <span
-            style={Object {}}
+            style={{}}
           >
             yaml\\nyaml\\nyaml\\n
           </span>

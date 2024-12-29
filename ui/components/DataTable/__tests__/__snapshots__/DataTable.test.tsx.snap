@@ -429,7 +429,7 @@ exports[`DataTable snapshots renders 1`] = `
                 </button>
                 <div
                   style={
-                    Object {
+                    {
                       "width": "16px",
                     }
                   }
@@ -471,7 +471,7 @@ exports[`DataTable snapshots renders 1`] = `
                 </button>
                 <div
                   style={
-                    Object {
+                    {
                       "width": "16px",
                     }
                   }
@@ -513,7 +513,7 @@ exports[`DataTable snapshots renders 1`] = `
                 </button>
                 <div
                   style={
-                    Object {
+                    {
                       "width": "16px",
                     }
                   }

@@ -705,7 +705,7 @@ exports[`SyncActions snapshots non-suspended 1`] = `
         </span>
         <span
           className="MuiTypography-root MuiTypography-body1 MuiFormControlLabel-label css-1lw54ax-MuiTypography-root"
-          style={Object {}}
+          style={{}}
         >
           with Source
         </span>
@@ -771,7 +771,7 @@ exports[`SyncActions snapshots non-suspended 1`] = `
         </span>
         <span
           className="MuiTypography-root MuiTypography-body1 MuiFormControlLabel-label css-1lw54ax-MuiTypography-root"
-          style={Object {}}
+          style={{}}
         >
           without Source
         </span>
@@ -1254,7 +1254,7 @@ exports[`SyncActions snapshots suspended 1`] = `
         </span>
         <span
           className="MuiTypography-root MuiTypography-body1 MuiFormControlLabel-label Mui-disabled css-1lw54ax-MuiTypography-root"
-          style={Object {}}
+          style={{}}
         >
           with Source
         </span>
@@ -1321,7 +1321,7 @@ exports[`SyncActions snapshots suspended 1`] = `
         </span>
         <span
           className="MuiTypography-root MuiTypography-body1 MuiFormControlLabel-label Mui-disabled css-1lw54ax-MuiTypography-root"
-          style={Object {}}
+          style={{}}
         >
           without Source
         </span>
