@@ -1,4 +1,4 @@
-import { Slider } from "@mui/core";
+import { Slider } from "@mui/material";
 import * as d3d from "d3-dag";
 import _ from "lodash";
 import * as React from "react";

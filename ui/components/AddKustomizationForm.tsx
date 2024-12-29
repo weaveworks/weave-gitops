@@ -1,4 +1,4 @@
-import { Divider, MenuItem } from "@mui/core";
+import { Divider, MenuItem } from "@mui/material";
 import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";

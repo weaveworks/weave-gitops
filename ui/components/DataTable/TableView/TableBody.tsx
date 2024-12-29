@@ -1,4 +1,4 @@
-import { Checkbox, TableBody, TableCell, TableRow } from "@mui/core";
+import { Checkbox, TableBody, TableCell, TableRow } from "@mui/material";
 import React from "react";
 import styled from "styled-components";
 import Flex from "../../Flex";

@@ -1,5 +1,5 @@
-import { IconButton } from "@mui/core";
-import { Close } from "@mui/icons";
+import { IconButton } from "@mui/material";
+import { Close } from "@mui/icons-material";
 import React, { useContext } from "react";
 import styled from "styled-components";
 import { AppContext } from "../contexts/AppContext";

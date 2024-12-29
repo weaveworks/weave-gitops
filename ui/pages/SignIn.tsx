@@ -1,5 +1,5 @@
-import { IconButton, Input, InputAdornment } from "@mui/core";
-import { Visibility, VisibilityOff } from "@mui/icons";
+import { IconButton, Input, InputAdornment } from "@mui/material";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 import qs from "query-string";
 import * as React from "react";
 import styled from "styled-components";

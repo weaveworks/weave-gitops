@@ -1,4 +1,4 @@
-import { List, ListItem } from "@mui/core";
+import { List, ListItem } from "@mui/material";
 import React, { Dispatch, Fragment, SetStateAction } from "react";
 import styled from "styled-components";
 import { SearchedNamespaces } from "../lib/types";

@@ -1,4 +1,4 @@
-import { MuiThemeProvider, Theme, StyledEngineProvider } from "@mui/core";
+import { ThemeProvider as MuiThemeProvider, Theme, StyledEngineProvider } from "@mui/material";
 import qs from "query-string";
 import * as React from "react";
 import { QueryClient, QueryClientProvider } from "react-query";
@@ -56,13 +56,6 @@ import ProviderPage from "./pages/v2/ProviderPage";
 import Runtime from "./pages/v2/Runtime";
 import Sources from "./pages/v2/Sources";
 import UserInfo from "./pages/v2/UserInfo";
-
-
-declare module '@mui/styles/defaultTheme' {
-  // eslint-disable-next-line @typescript-eslint/no-empty-interface
-  interface DefaultTheme extends Theme {}
-}
-
 
 const queryClient = new QueryClient();
 

@@ -1,4 +1,4 @@
-import { FormControl, FormLabel } from "@mui/core";
+import { FormControl, FormLabel } from "@mui/material";
 import * as React from "react";
 import styled from "styled-components";
 import { FormContext } from "./ControlledForm";

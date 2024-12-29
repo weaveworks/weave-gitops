@@ -1,4 +1,4 @@
-import { MuiThemeProvider, Theme, StyledEngineProvider } from "@mui/core";
+import { MuiThemeProvider, Theme, StyledEngineProvider } from "@mui/material";
 import { createMemoryHistory } from "history";
 import _ from "lodash";
 import * as React from "react";
@@ -23,13 +23,6 @@ import {
 } from "./api/core/core.pb";
 import theme, { muiTheme } from "./theme";
 import { RequestError } from "./types";
-
-
-declare module '@mui/styles/defaultTheme' {
-  // eslint-disable-next-line @typescript-eslint/no-empty-interface
-  interface DefaultTheme extends Theme {}
-}
-
 
 export type CoreOverrides = {
   GetChildObjects?: (req: GetChildObjectsRequest) => GetChildObjectsResponse;

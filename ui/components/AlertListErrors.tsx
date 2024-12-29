@@ -1,4 +1,4 @@
-import { Box, Button, Collapse } from "@mui/core";
+import { Box, Button, Collapse } from "@mui/material";
 import Alert from "@mui/lab/Alert";
 import { sortBy, uniqBy } from "lodash";
 import React, { FC, useEffect, useState } from "react";

@@ -1,4 +1,4 @@
-import MaterialModal from "@mui/core/Modal";
+import MaterialModal from "@mui/material/Modal";
 import * as React from "react";
 import styled from "styled-components";
 import { IconButton } from "./Button";

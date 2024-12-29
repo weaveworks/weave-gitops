@@ -1,4 +1,4 @@
-import { Tooltip } from "@mui/core";
+import { Tooltip } from "@mui/material";
 import { DateTime } from "luxon";
 import * as React from "react";
 import styled from "styled-components";

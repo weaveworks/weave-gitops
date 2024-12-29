@@ -1,4 +1,4 @@
-import { Slider } from "@mui/core";
+import { Slider } from "@mui/material";
 import * as d3 from "d3";
 import * as React from "react";
 import styled from "styled-components";

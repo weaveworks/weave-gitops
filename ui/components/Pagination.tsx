@@ -1,4 +1,4 @@
-import { FormControl, MenuItem, Select } from "@mui/core";
+import { FormControl, MenuItem, Select } from "@mui/material";
 import * as React from "react";
 import styled from "styled-components";
 import Button from "./Button";

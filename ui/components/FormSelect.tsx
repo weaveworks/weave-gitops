@@ -1,4 +1,4 @@
-import { FormHelperText, Select } from "@mui/core";
+import { FormHelperText, Select } from "@mui/material";
 import * as React from "react";
 import styled from "styled-components";
 import FormInput, { FormInputProps } from "./FormInput";

@@ -4,7 +4,7 @@ import {
   Menu,
   MenuItem,
   Tooltip,
-} from "@mui/core";
+} from "@mui/material";
 import * as React from "react";
 import { useHistory } from "react-router-dom";
 import styled from "styled-components";
