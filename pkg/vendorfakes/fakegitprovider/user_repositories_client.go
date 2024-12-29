@@ -39,6 +39,19 @@ type UserRepositoriesClient struct {
 		result1 gitprovider.UserRepository
 		result2 error
 	}
+	GetUserLoginStub        func(context.Context) (gitprovider.IdentityRef, error)
+	getUserLoginMutex       sync.RWMutex
+	getUserLoginArgsForCall []struct {
+		arg1 context.Context
+	}
+	getUserLoginReturns struct {
+		result1 gitprovider.IdentityRef
+		result2 error
+	}
+	getUserLoginReturnsOnCall map[int]struct {
+		result1 gitprovider.IdentityRef
+		result2 error
+	}
 	ListStub        func(context.Context, gitprovider.UserRef) ([]gitprovider.UserRepository, error)
 	listMutex       sync.RWMutex
 	listArgsForCall []struct {
@@ -207,6 +220,70 @@ func (fake *UserRepositoriesClient) GetReturnsOnCall(i int, result1 gitprovider.
 	}{result1, result2}
 }
 
+func (fake *UserRepositoriesClient) GetUserLogin(arg1 context.Context) (gitprovider.IdentityRef, error) {
+	fake.getUserLoginMutex.Lock()
+	ret, specificReturn := fake.getUserLoginReturnsOnCall[len(fake.getUserLoginArgsForCall)]
+	fake.getUserLoginArgsForCall = append(fake.getUserLoginArgsForCall, struct {
+		arg1 context.Context
+	}{arg1})
+	stub := fake.GetUserLoginStub
+	fakeReturns := fake.getUserLoginReturns
+	fake.recordInvocation("GetUserLogin", []interface{}{arg1})
+	fake.getUserLoginMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *UserRepositoriesClient) GetUserLoginCallCount() int {
+	fake.getUserLoginMutex.RLock()
+	defer fake.getUserLoginMutex.RUnlock()
+	return len(fake.getUserLoginArgsForCall)
+}
+
+func (fake *UserRepositoriesClient) GetUserLoginCalls(stub func(context.Context) (gitprovider.IdentityRef, error)) {
+	fake.getUserLoginMutex.Lock()
+	defer fake.getUserLoginMutex.Unlock()
+	fake.GetUserLoginStub = stub
+}
+
+func (fake *UserRepositoriesClient) GetUserLoginArgsForCall(i int) context.Context {
+	fake.getUserLoginMutex.RLock()
+	defer fake.getUserLoginMutex.RUnlock()
+	argsForCall := fake.getUserLoginArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *UserRepositoriesClient) GetUserLoginReturns(result1 gitprovider.IdentityRef, result2 error) {
+	fake.getUserLoginMutex.Lock()
+	defer fake.getUserLoginMutex.Unlock()
+	fake.GetUserLoginStub = nil
+	fake.getUserLoginReturns = struct {
+		result1 gitprovider.IdentityRef
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *UserRepositoriesClient) GetUserLoginReturnsOnCall(i int, result1 gitprovider.IdentityRef, result2 error) {
+	fake.getUserLoginMutex.Lock()
+	defer fake.getUserLoginMutex.Unlock()
+	fake.GetUserLoginStub = nil
+	if fake.getUserLoginReturnsOnCall == nil {
+		fake.getUserLoginReturnsOnCall = make(map[int]struct {
+			result1 gitprovider.IdentityRef
+			result2 error
+		})
+	}
+	fake.getUserLoginReturnsOnCall[i] = struct {
+		result1 gitprovider.IdentityRef
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *UserRepositoriesClient) List(arg1 context.Context, arg2 gitprovider.UserRef) ([]gitprovider.UserRepository, error) {
 	fake.listMutex.Lock()
 	ret, specificReturn := fake.listReturnsOnCall[len(fake.listArgsForCall)]
@@ -349,6 +426,8 @@ func (fake *UserRepositoriesClient) Invocations() map[string][][]interface{} {
 	defer fake.createMutex.RUnlock()
 	fake.getMutex.RLock()
 	defer fake.getMutex.RUnlock()
+	fake.getUserLoginMutex.RLock()
+	defer fake.getUserLoginMutex.RUnlock()
 	fake.listMutex.RLock()
 	defer fake.listMutex.RUnlock()
 	fake.reconcileMutex.RLock()
