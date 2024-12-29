@@ -112,7 +112,7 @@ func Validate(log logger.Logger, targetDir, rootDir, kubernetesVersion, fluxVers
 		return err
 	}
 
-	if o, err = output.New("text", false, false, false); err != nil {
+	if o, err = output.New(os.Stdout, "text", false, false, false); err != nil {
 		return err
 	}
 
