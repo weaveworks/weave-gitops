@@ -48,7 +48,7 @@ function UnstyledModal({
   children,
 }: Props) {
   return (
-    (<MaterialModal
+    <MaterialModal
       open={open}
       onClose={onClose}
       aria-labelledby="simple-modal-title"
@@ -63,7 +63,8 @@ function UnstyledModal({
               className={className}
               variant="text"
               color="inherit"
-              size="large">
+              size="large"
+            >
               <Icon type={IconType.ClearIcon} size="medium" color="neutral30" />
             </IconButton>
           </Flex>
@@ -72,7 +73,7 @@ function UnstyledModal({
         </Flex>
         {children}
       </Body>
-    </MaterialModal>)
+    </MaterialModal>
   );
 }
 

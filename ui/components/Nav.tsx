@@ -164,7 +164,7 @@ function Nav({
   currentPage,
 }: Props) {
   return (
-    (<NavContainer collapsed={collapsed}>
+    <NavContainer collapsed={collapsed}>
       <NavContent className={className} collapsed={collapsed}>
         <Tabs
           centered={false}
@@ -222,7 +222,7 @@ function Nav({
           </CollapseButton>
         </Flex>
       </NavContent>
-    </NavContainer>)
+    </NavContainer>
   );
 }
 

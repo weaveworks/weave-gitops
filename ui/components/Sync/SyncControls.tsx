@@ -118,7 +118,7 @@ const SyncControls = ({
   const disableSyncButtons = syncDisabled || syncLoading;
 
   return (
-    (<Flex wide start align className={className}>
+    <Flex wide start align className={className}>
       {customActions && (
         <>
           <CustomActions actions={customActions} />
@@ -178,7 +178,8 @@ const SyncControls = ({
             data-testid="sync-button"
             disabled={disableSyncButtons}
             onClick={() => onSyncClick(syncType)}
-            size="large">
+            size="large"
+          >
             <Icon type={IconType.PlayIcon} size="medium" />
           </IconButton>
         </div>
@@ -192,7 +193,8 @@ const SyncControls = ({
                 data-testid="suspend-button"
                 disabled={suspendDisabled}
                 onClick={onSuspendClick}
-                size="large">
+                size="large"
+              >
                 <Icon type={IconType.PauseIcon} size="medium" />
               </IconButton>
             </div>
@@ -204,7 +206,8 @@ const SyncControls = ({
                 data-testid="resume-button"
                 disabled={resumeDisabled}
                 onClick={onResumeClick}
-                size="large">
+                size="large"
+              >
                 <Icon
                   type={IconType.ResumeIcon}
                   size="medium"
@@ -215,7 +218,7 @@ const SyncControls = ({
           </Tooltip>
         </>
       )}
-    </Flex>)
+    </Flex>
   );
 };
 

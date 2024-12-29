@@ -111,7 +111,7 @@ function SignIn({ darkModeEnabled = true }: Props) {
   const dark = useInDarkMode();
 
   return (
-    (<Flex
+    <Flex
       tall
       wide
       center
@@ -207,7 +207,8 @@ function SignIn({ darkModeEnabled = true }: Props) {
                       aria-label="toggle password visibility"
                       onClick={() => setShowPassword(!showPassword)}
                       color="primary"
-                      size="large">
+                      size="large"
+                    >
                       {showPassword ? <Visibility /> : <VisibilityOff />}
                     </IconButton>
                   </InputAdornment>
@@ -235,7 +236,7 @@ function SignIn({ darkModeEnabled = true }: Props) {
           <img src={dark ? images.signInWheelDark : images.signInWheel} />
         </Footer>
       </FormWrapper>
-    </Flex>)
+    </Flex>
   );
 }
 

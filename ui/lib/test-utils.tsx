@@ -1,4 +1,7 @@
-import { ThemeProvider as MuiThemeProvider, StyledEngineProvider } from "@mui/material";
+import {
+  ThemeProvider as MuiThemeProvider,
+  StyledEngineProvider,
+} from "@mui/material";
 import { createMemoryHistory } from "history";
 import _ from "lodash";
 import * as React from "react";
@@ -58,13 +61,13 @@ export const createCoreMockClient = (
 export function withTheme(element, mode: ThemeTypes = ThemeTypes.Light) {
   const appliedTheme = theme(mode);
   return (
-    (<ThemeProvider theme={appliedTheme}>
+    <ThemeProvider theme={appliedTheme}>
       <StyledEngineProvider injectFirst>
         <MuiThemeProvider theme={muiTheme(appliedTheme.colors, mode)}>
           {element}
         </MuiThemeProvider>
       </StyledEngineProvider>
-    </ThemeProvider>)
+    </ThemeProvider>
   );
 }
 

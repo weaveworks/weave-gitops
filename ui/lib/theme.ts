@@ -193,113 +193,115 @@ input:-webkit-autofill:focus {
 `;
 
 export const muiTheme = (colors, mode) =>
-  createTheme(adaptV4Theme({
-    typography: { fontFamily: "proxima-nova" },
-    palette: {
-      primary: {
-        //Main - Primary Color Dark - 10
-        main: colors.primary10,
-      },
-      secondary: {
-        //Feedback - Alert - Original
-        main: colors.alertOriginal,
-      },
-      text: {
-        //Neutral - Neutral - 40
-        primary: colors.neutral40,
-        //Neutral - Neutral - 30
-        secondary: colors.neutral30,
-        disabled: colors.neutral30,
-      },
-    },
-    overrides: {
-      MuiSlider: {
-        root: {
-          color: colors.primary,
+  createTheme(
+    adaptV4Theme({
+      typography: { fontFamily: "proxima-nova" },
+      palette: {
+        primary: {
+          //Main - Primary Color Dark - 10
+          main: colors.primary10,
+        },
+        secondary: {
+          //Feedback - Alert - Original
+          main: colors.alertOriginal,
+        },
+        text: {
+          //Neutral - Neutral - 40
+          primary: colors.neutral40,
+          //Neutral - Neutral - 30
+          secondary: colors.neutral30,
+          disabled: colors.neutral30,
         },
       },
-      MuiTooltip: {
-        tooltip: {
-          fontSize: "1rem",
-        },
-      },
-      MuiPaper: {
-        root: {
-          overflowX: "hidden",
-          backgroundColor: colors.white,
-        },
-      },
-      MuiDrawer: {
-        paper: {
-          width: "60%",
-          minWidth: 600,
-        },
-      },
-      //for dark mode disabled buttons
-      MuiButton: {
-        root: {
-          "&$disabled": {
-            color:
-              mode === ThemeTypes.Dark ? colors.primary30 : colors.neutral20,
+      overrides: {
+        MuiSlider: {
+          root: {
+            color: colors.primary,
           },
         },
-        outlined: {
-          "&$disabled": {
-            borderColor:
-              mode === ThemeTypes.Dark
-                ? `${colors.primary30}`
-                : `${colors.neutral20}`,
-          },
-          "&$outlinedPrimary": {
-            borderColor:
-              mode === ThemeTypes.Dark
-                ? `${colors.primary30}`
-                : `${colors.neutral20}`,
+        MuiTooltip: {
+          tooltip: {
+            fontSize: "1rem",
           },
         },
-      },
-      //disabled checkboxes in dark mode
-      MuiCheckbox: {
-        colorSecondary: {
-          "&$disabled": {
-            color: mode === ThemeTypes.Dark && colors.neutral40,
+        MuiPaper: {
+          root: {
+            overflowX: "hidden",
+            backgroundColor: colors.white,
           },
         },
-      },
-      MuiInput: {
-        underline: {
-          "&::before": {
-            borderBottom:
-              mode === ThemeTypes.Dark && `1px solid ${colors.neutral40}`,
+        MuiDrawer: {
+          paper: {
+            width: "60%",
+            minWidth: 600,
           },
         },
-      },
-      // radio buttons
-      MuiRadio: {
-        root: {
-          padding: 0,
-          color: colors.primary30,
+        //for dark mode disabled buttons
+        MuiButton: {
+          root: {
+            "&$disabled": {
+              color:
+                mode === ThemeTypes.Dark ? colors.primary30 : colors.neutral20,
+            },
+          },
+          outlined: {
+            "&$disabled": {
+              borderColor:
+                mode === ThemeTypes.Dark
+                  ? `${colors.primary30}`
+                  : `${colors.neutral20}`,
+            },
+            "&$outlinedPrimary": {
+              borderColor:
+                mode === ThemeTypes.Dark
+                  ? `${colors.primary30}`
+                  : `${colors.neutral20}`,
+            },
+          },
         },
-
-        colorSecondary: {
-          color: colors.primary30,
-
-          "&:hover": {
-            backgroundColor: ThemeTypes.Dark
-              ? alpha(colors.primary10, 0.2)
-              : alpha(colors.primary, 0.1),
-            color: colors.primary10,
+        //disabled checkboxes in dark mode
+        MuiCheckbox: {
+          colorSecondary: {
+            "&$disabled": {
+              color: mode === ThemeTypes.Dark && colors.neutral40,
+            },
+          },
+        },
+        MuiInput: {
+          underline: {
+            "&::before": {
+              borderBottom:
+                mode === ThemeTypes.Dark && `1px solid ${colors.neutral40}`,
+            },
+          },
+        },
+        // radio buttons
+        MuiRadio: {
+          root: {
+            padding: 0,
+            color: colors.primary30,
           },
 
-          "&$checked": {
-            color: colors.primary10,
-          },
+          colorSecondary: {
+            color: colors.primary30,
 
-          "&$disabled": {
-            color:
-              mode === ThemeTypes.Dark ? colors.primary30 : colors.neutral20,
+            "&:hover": {
+              backgroundColor: ThemeTypes.Dark
+                ? alpha(colors.primary10, 0.2)
+                : alpha(colors.primary, 0.1),
+              color: colors.primary10,
+            },
+
+            "&$checked": {
+              color: colors.primary10,
+            },
+
+            "&$disabled": {
+              color:
+                mode === ThemeTypes.Dark ? colors.primary30 : colors.neutral20,
+            },
           },
         },
       },
-    },
-  }));
+    })
+  );
