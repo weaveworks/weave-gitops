@@ -51,7 +51,8 @@
   },
   "resolutions": {
     "ua-parser-js": "^0.7.33",
-    "yaml": "^2.2.2"
+    "yaml": "^2.2.2",
+    "path-to-regexp@npm:0.1.10": "^0.1.12"
   },
   "engines": {
     "node": ">=22.0"
