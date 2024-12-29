@@ -1,4 +1,4 @@
-import { MuiThemeProvider } from "@material-ui/core";
+import { MuiThemeProvider } from "@mui/core";
 import { createMemoryHistory } from "history";
 import _ from "lodash";
 import * as React from "react";

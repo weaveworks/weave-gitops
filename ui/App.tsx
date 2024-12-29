@@ -1,4 +1,4 @@
-import { MuiThemeProvider } from "@material-ui/core";
+import { MuiThemeProvider } from "@mui/core";
 import qs from "query-string";
 import * as React from "react";
 import { QueryClient, QueryClientProvider } from "react-query";

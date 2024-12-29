@@ -1,5 +1,5 @@
-import { IconButton, Input, InputAdornment } from "@material-ui/core";
-import { Visibility, VisibilityOff } from "@material-ui/icons";
+import { IconButton, Input, InputAdornment } from "@mui/core";
+import { Visibility, VisibilityOff } from "@mui/icons";
 import qs from "query-string";
 import * as React from "react";
 import styled from "styled-components";

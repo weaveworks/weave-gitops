@@ -4,8 +4,8 @@ import {
   Radio,
   RadioGroup,
   Tooltip,
-} from "@material-ui/core";
-import { alpha } from "@material-ui/core/styles/colorManipulator";
+} from "@mui/core";
+import { alpha } from "@mui/core/styles/colorManipulator";
 import React from "react";
 import styled, { keyframes } from "styled-components";
 import { ThemeTypes } from "../../contexts/AppContext";

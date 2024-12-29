@@ -1,5 +1,5 @@
-import { IconButton, Tab, Tabs, Tooltip } from "@material-ui/core";
-import { ArrowLeft, ArrowRight } from "@material-ui/icons";
+import { IconButton, Tab, Tabs, Tooltip } from "@mui/core";
+import { ArrowLeft, ArrowRight } from "@mui/icons";
 import _ from "lodash";
 import React, { Dispatch, SetStateAction } from "react";
 import styled from "styled-components";

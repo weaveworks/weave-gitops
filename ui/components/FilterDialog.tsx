@@ -1,4 +1,4 @@
-import { Checkbox, List, ListItem, ListItemIcon } from "@material-ui/core";
+import { Checkbox, List, ListItem, ListItemIcon } from "@mui/core";
 import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";

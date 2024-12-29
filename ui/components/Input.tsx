@@ -2,7 +2,7 @@ import {
   TextField,
   // eslint-disable-next-line
   TextFieldProps,
-} from "@material-ui/core";
+} from "@mui/core";
 import * as React from "react";
 import styled from "styled-components";
 

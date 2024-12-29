@@ -1,4 +1,4 @@
-import { Tabs } from "@material-ui/core";
+import { Tabs } from "@mui/core";
 import * as React from "react";
 import styled from "styled-components";
 import { Container, FluxObject } from "../lib/objects";

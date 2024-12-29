@@ -1,5 +1,5 @@
-import { Box, Collapse } from "@material-ui/core";
-import { Alert } from "@material-ui/lab";
+import { Box, Collapse } from "@mui/core";
+import { Alert } from "@mui/lab";
 import { sortBy, uniqBy } from "lodash";
 import * as React from "react";
 import styled from "styled-components";

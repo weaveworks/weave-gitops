@@ -1,6 +1,6 @@
 // Typescript will handle type-checking/linting for this file
-import { createTheme } from "@material-ui/core";
-import { alpha } from "@material-ui/core/styles/colorManipulator";
+import { createTheme } from "@mui/core";
+import { alpha } from "@mui/core/styles/colorManipulator";
 // eslint-disable-next-line
 import { createGlobalStyle, DefaultTheme } from "styled-components";
 import { ThemeTypes } from "../contexts/AppContext";

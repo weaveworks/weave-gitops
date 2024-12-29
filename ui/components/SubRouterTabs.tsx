@@ -1,4 +1,4 @@
-import { Tabs } from "@material-ui/core";
+import { Tabs } from "@mui/core";
 import _ from "lodash";
 import qs from "query-string";
 import * as React from "react";
