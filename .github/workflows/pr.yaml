@@ -19,9 +19,6 @@ jobs:
   ci-js:
     name: CI Test JS
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [22.x]
     steps:
       - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
       - name: Node modules cache
@@ -36,10 +33,10 @@ jobs:
             ${{ runner.os }}-build-${{ env.cache-name }}-
             ${{ runner.os }}-build-
             ${{ runner.os }}-
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Setup Node.js
         uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version-file: package.json
       - run: make node_modules
       - name: Check that package.json & package-lock.json were updated in commit
         run: |
@@ -56,15 +53,12 @@ jobs:
   ci-go:
     name: CI Test Go
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        go-version: [1.23.X]
     steps:
       - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
       - name: Setup Go
-        uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe # v4.1.0
+        uses: actions/setup-go@3041bf56c941b39c61721a86cd11f3bb1338122a # v5.2.0
         with:
-          go-version: ${{ matrix.go-version }}
+          go-version-file: go.mod
       - name: Setup Flux CLI
         uses: fluxcd/flux2/action@709b17ce59d184427c1395bc70f496ba528d3bee # main
         with:
@@ -77,16 +71,12 @@ jobs:
   ci-static:
     name: CI Check Static Checks
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        go-version: [1.23.X]
-        node-version: [22.x]
     steps:
       - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
       - name: Setup Go
-        uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe # v4.1.0
+        uses: actions/setup-go@3041bf56c941b39c61721a86cd11f3bb1338122a # v5.2.0
         with:
-          go-version: ${{ matrix.go-version }}
+          go-version-file: go.mod
       - run: make check-format
       - run: make lint
       - run: go mod tidy
@@ -186,10 +176,10 @@ jobs:
         os: [ubuntu-latest, macOS-latest]
     if: github.event_name == 'push'
     steps:
-    - name: Install Go
-      uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe # v4.1.0
+    - name: Setup Go
+      uses: actions/setup-go@3041bf56c941b39c61721a86cd11f3bb1338122a # v5.2.0
       with:
-        go-version: 1.23.X
+        go-version-file: go.mod
     - name: Checkout code
       uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
     - name: Clean
@@ -230,9 +220,10 @@ jobs:
           # We want the correct sha so we can tag the npm package correctly
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
-      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+      - name: Setup Node.js
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
         with:
-          node-version: "22.x"
+          node-version-file: package.json
           registry-url: "https://npm.pkg.github.com"
           scope: "@weaveworks"
       - run: yarn

@@ -24,13 +24,13 @@ jobs:
         run: |
           git fetch --prune --unshallow
       - name: Setup Go
-        uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe # v4.1.0
+        uses: actions/setup-go@3041bf56c941b39c61721a86cd11f3bb1338122a # v5.2.0
         with:
-          go-version: 1.23.X
+          go-version-file: go.mod
       - name: Setup Node.js
         uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
         with:
-          node-version: 22.x
+          node-version-file: package.json
       - name: Set up environment vars
         run: |
           echo "BRANCH=releases/${{ github.event.inputs.version }}" >> $GITHUB_ENV
