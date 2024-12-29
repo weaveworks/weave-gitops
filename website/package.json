@@ -21,18 +21,18 @@
     "@docusaurus/plugin-sitemap": "^3.6.3",
     "@docusaurus/preset-classic": "^3.6.3",
     "@docusaurus/theme-search-algolia": "^3.6.3",
-    "@fortawesome/fontawesome-svg-core": "^6.3.0",
-    "@fortawesome/free-regular-svg-icons": "^6.3.0",
-    "@fortawesome/free-solid-svg-icons": "^6.3.0",
-    "@fortawesome/react-fontawesome": "^0.2.0",
+    "@fortawesome/fontawesome-svg-core": "^6.7.2",
+    "@fortawesome/free-regular-svg-icons": "^6.7.2",
+    "@fortawesome/free-solid-svg-icons": "^6.7.2",
+    "@fortawesome/react-fontawesome": "^0.2.2",
     "file-loader": "^6.2.0",
     "raw-loader": "^4.0.2",
-    "react": "^18.0.0",
-    "react-dom": "^18.0.0",
-    "react-player": "^2.11.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-player": "^2.16.0",
     "trim": "^1.0.1",
     "url-loader": "^4.1.1",
-    "webpack": "^5.94.0"
+    "webpack": "^5.97.1"
   },
   "browserslist": {
     "production": [
@@ -47,7 +47,7 @@
     ]
   },
   "devDependencies": {
-    "yarn-audit-fix": "^9.2.1"
+    "yarn-audit-fix": "^10.1.1"
   },
   "resolutions": {
     "ua-parser-js": "^0.7.33",
