@@ -110,8 +110,8 @@ vet: ## Run go vet against code
 	go vet ./...
 
 lint: ## Run linters against code
-	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.62.0
-	golangci-lint run --out-format=github-actions --timeout 600s --skip-files "tilt_modules"
+	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.62.2
+	golangci-lint run --out-format=colored-line-number --timeout 600s
 	@go install github.com/yoheimuta/protolint/cmd/protolint@latest
 	protolint lint -config_path=.protolint.yaml ./api
 

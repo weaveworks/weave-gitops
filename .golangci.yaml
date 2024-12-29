@@ -1,13 +1,12 @@
 run:
   timeout: 5m
-  go: '1.23.2'
 
 linters:
   disable-all: true
   enable:
     #- containedctx
     #- contextcheck
-    #- depguard
+    - depguard
     - errcheck
     #- errchkjson
     #- errname
@@ -39,11 +38,12 @@ linters:
 
 linters-settings:
   depguard:
-    list-type: blacklist
-    packages:
-      - k8s.io/kubernetes
-    packages-with-error-messages:
-      k8s.io/kubernetes: "do not use k8s.io/kubernetes directly"
+    rules:
+      prevent_kubernetes_dependency:
+        list-mode: lax # allow unless explicitly denied
+        deny:
+          - pkg: k8s.io/kubernetes
+            desc: "do not use k8s.io/kubernetes directly"
   errcheck:
     exclude-functions:
       - encoding/json.Marshal
@@ -83,12 +83,13 @@ linters-settings:
       - performance
       - style
   gofumpt:
-    lang-version: "1.23.2"
     extra-rules: true
   lll:
     line-length: 150
 
 issues:
+  exclude-dirs:
+    - tilt_modules
   exclude-rules:
     # ignore errcheck for code under a /test folder
     - path: "test/*"
