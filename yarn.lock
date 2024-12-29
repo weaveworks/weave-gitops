@@ -2862,7 +2862,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@parcel/core@npm:2.13.3":
+"@parcel/core@npm:2.13.3, @parcel/core@npm:^2.13.3":
   version: 2.13.3
   resolution: "@parcel/core@npm:2.13.3"
   dependencies:
@@ -4628,6 +4628,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/react-is@npm:^19":
+  version: 19.0.0
+  resolution: "@types/react-is@npm:19.0.0"
+  dependencies:
+    "@types/react": "npm:*"
+  checksum: 10c0/d5fa0294f95cf301540f3e28fb44c00524c74a7de3ef9757703d76067206f3ecc002da6486e1581f23b54173b6449db8631acc3088009116e4569ff216df3ecc
+  languageName: node
+  linkType: hard
+
 "@types/react-router-dom@npm:^5.1.6":
   version: 5.3.3
   resolution: "@types/react-router-dom@npm:5.3.3"
@@ -4900,6 +4909,7 @@ __metadata:
     "@mui/lab": "npm:^6.0.0-beta.21"
     "@mui/material": "npm:^6.3.0"
     "@parcel/config-default": "npm:^2.8.3"
+    "@parcel/core": "npm:^2.13.3"
     "@parcel/optimizer-data-url": "npm:^2.8.3"
     "@parcel/transformer-inline-string": "npm:^2.8.3"
     "@parcel/transformer-typescript-tsc": "npm:^2.8.3"
@@ -4911,6 +4921,7 @@ __metadata:
     "@types/luxon": "npm:^1.26.5"
     "@types/react": "npm:^17.0.6"
     "@types/react-dom": "npm:^17.0.5"
+    "@types/react-is": "npm:^19"
     "@types/react-router-dom": "npm:^5.1.6"
     "@types/styled-components": "npm:^5.1.9"
     "@typescript-eslint/eslint-plugin": "npm:^6.6.0"
@@ -4946,6 +4957,7 @@ __metadata:
     query-string: "npm:^4.3.4"
     react: "npm:^17.0.2"
     react-dom: "npm:^17.0.2"
+    react-is: "npm:^19.0.0"
     react-lottie-player: "npm:^1.4.3"
     react-markdown: "npm:^8.0.7"
     react-query: "npm:^3.34.7"
