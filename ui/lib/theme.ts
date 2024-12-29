@@ -1,5 +1,5 @@
 // Typescript will handle type-checking/linting for this file
-import { createTheme, adaptV4Theme, alpha } from "@mui/material/styles";
+import { createTheme, alpha } from "@mui/material/styles";
 // eslint-disable-next-line
 import { createGlobalStyle, DefaultTheme } from "styled-components";
 import { ThemeTypes } from "../contexts/AppContext";
@@ -193,51 +193,61 @@ input:-webkit-autofill:focus {
 `;
 
 export const muiTheme = (colors, mode) =>
-  createTheme(
-    adaptV4Theme({
-      typography: { fontFamily: "proxima-nova" },
-      palette: {
-        primary: {
-          //Main - Primary Color Dark - 10
-          main: colors.primary10,
-        },
-        secondary: {
-          //Feedback - Alert - Original
-          main: colors.alertOriginal,
-        },
-        text: {
-          //Neutral - Neutral - 40
-          primary: colors.neutral40,
-          //Neutral - Neutral - 30
-          secondary: colors.neutral30,
-          disabled: colors.neutral30,
-        },
+  createTheme({
+    typography: { fontFamily: "proxima-nova" },
+    mixins: {},
+    palette: {
+      mode: "light",
+      primary: {
+        //Main - Primary Color Dark - 10
+        main: colors.primary10,
       },
-      overrides: {
-        MuiSlider: {
+      secondary: {
+        //Feedback - Alert - Original
+        main: colors.alertOriginal,
+      },
+      text: {
+        //Neutral - Neutral - 40
+        primary: colors.neutral40,
+        //Neutral - Neutral - 30
+        secondary: colors.neutral30,
+        disabled: colors.neutral30,
+      },
+    },
+    components: {
+      MuiSlider: {
+        styleOverrides: {
           root: {
             color: colors.primary,
           },
         },
-        MuiTooltip: {
+      },
+      MuiTooltip: {
+        styleOverrides: {
           tooltip: {
             fontSize: "1rem",
           },
         },
-        MuiPaper: {
+      },
+      MuiPaper: {
+        styleOverrides: {
           root: {
             overflowX: "hidden",
             backgroundColor: colors.white,
           },
         },
-        MuiDrawer: {
+      },
+      MuiDrawer: {
+        styleOverrides: {
           paper: {
             width: "60%",
             minWidth: 600,
           },
         },
-        //for dark mode disabled buttons
-        MuiButton: {
+      },
+      //for dark mode disabled buttons
+      MuiButton: {
+        styleOverrides: {
           root: {
             "&$disabled": {
               color:
@@ -259,15 +269,19 @@ export const muiTheme = (colors, mode) =>
             },
           },
         },
-        //disabled checkboxes in dark mode
-        MuiCheckbox: {
+      },
+      //disabled checkboxes in dark mode
+      MuiCheckbox: {
+        styleOverrides: {
           colorSecondary: {
             "&$disabled": {
               color: mode === ThemeTypes.Dark && colors.neutral40,
             },
           },
         },
-        MuiInput: {
+      },
+      MuiInput: {
+        styleOverrides: {
           underline: {
             "&::before": {
               borderBottom:
@@ -275,8 +289,10 @@ export const muiTheme = (colors, mode) =>
             },
           },
         },
-        // radio buttons
-        MuiRadio: {
+      },
+      // radio buttons
+      MuiRadio: {
+        styleOverrides: {
           root: {
             padding: 0,
             color: colors.primary30,
@@ -303,5 +319,5 @@ export const muiTheme = (colors, mode) =>
           },
         },
       },
-    })
-  );
+    },
+  });
