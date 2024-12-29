@@ -96,6 +96,7 @@
     "@types/jest": "^29.5.14",
     "@types/lodash": "^4.14.165",
     "@types/luxon": "^1.26.5",
+    "@types/node": "^22.10.2",
     "@types/react": "^17.0.6",
     "@types/react-dom": "^17.0.5",
     "@types/react-router-dom": "^5.1.6",
