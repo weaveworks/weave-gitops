@@ -134,7 +134,6 @@
   "resolutions": {
     "htmlnano": "2.0.3",
     "eslint": "8.50.0",
-    "jest": "^29.0.0",
     "cross-spawn": "^7.0.5",
     "commander": "^11.0.0"
   },
