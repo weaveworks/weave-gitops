@@ -249,23 +249,19 @@ export const muiTheme = (colors, mode) =>
       MuiButton: {
         styleOverrides: {
           root: {
-            "&$disabled": {
+            "&.Mui-disabled": {
               color:
                 mode === ThemeTypes.Dark ? colors.primary30 : colors.neutral20,
             },
           },
           outlined: {
-            "&$disabled": {
+            "&.Mui-disabled": {
               borderColor:
-                mode === ThemeTypes.Dark
-                  ? `${colors.primary30}`
-                  : `${colors.neutral20}`,
+                mode === ThemeTypes.Dark ? colors.primary30 : colors.neutral20,
             },
-            "&$outlinedPrimary": {
+            "&.Mui-outlinedPrimary": {
               borderColor:
-                mode === ThemeTypes.Dark
-                  ? `${colors.primary30}`
-                  : `${colors.neutral20}`,
+                mode === ThemeTypes.Dark ? colors.primary30 : colors.neutral20,
             },
           },
         },
@@ -273,8 +269,8 @@ export const muiTheme = (colors, mode) =>
       //disabled checkboxes in dark mode
       MuiCheckbox: {
         styleOverrides: {
-          colorSecondary: {
-            "&$disabled": {
+          root: {
+            "&.Mui-disabled": {
               color: mode === ThemeTypes.Dark && colors.neutral40,
             },
           },
@@ -296,10 +292,6 @@ export const muiTheme = (colors, mode) =>
           root: {
             padding: 0,
             color: colors.primary30,
-          },
-
-          colorSecondary: {
-            color: colors.primary30,
 
             "&:hover": {
               backgroundColor: ThemeTypes.Dark
@@ -308,11 +300,11 @@ export const muiTheme = (colors, mode) =>
               color: colors.primary10,
             },
 
-            "&$checked": {
+            "&.Mui-checked": {
               color: colors.primary10,
             },
 
-            "&$disabled": {
+            "&.Mui-disabled": {
               color:
                 mode === ThemeTypes.Dark ? colors.primary30 : colors.neutral20,
             },

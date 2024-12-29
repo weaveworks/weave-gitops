@@ -62,6 +62,4 @@ function FormInput({
   );
 }
 
-export default styled(FormInput).attrs({ className: FormInput.name })`
-  min-width: 300px;
-`;
+export default styled(FormInput).attrs({ className: FormInput.name })``;
