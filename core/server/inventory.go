@@ -13,7 +13,7 @@ import (
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
-	"github.com/fluxcd/pkg/ssa"
+	"github.com/fluxcd/pkg/ssa/utils"
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops/core/server/types"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
@@ -201,7 +201,7 @@ func getHelmReleaseObjects(ctx context.Context, k8sClient client.Client, helmRel
 		return nil, fmt.Errorf("failed to decode the Helm storage object for HelmRelease '%s': %w", helmRelease.Name, err)
 	}
 
-	objects, err := ssa.ReadObjects(strings.NewReader(storage.Manifest))
+	objects, err := utils.ReadObjects(strings.NewReader(storage.Manifest))
 	if err != nil {
 		return nil, fmt.Errorf("failed to read the Helm storage object for HelmRelease '%s': %w", helmRelease.Name, err)
 	}
