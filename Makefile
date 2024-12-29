@@ -169,7 +169,7 @@ ui: node_modules $(shell find ui -type f) ## Build the UI
 
 node_modules: ## Install node modules
 	rm -rf .parcel-cache
-	yarn config set network-timeout 600000 && yarn --frozen-lockfile
+	yarn --immutable --network-timeout 600000
 
 ui-lint: ## Run linter against the UI
 	yarn lint
@@ -188,7 +188,7 @@ ui-test: ## Run UI tests
 	yarn test
 
 ui-audit: ## Run audit against the UI
-	yarn audit --production
+	yarn npm audit --environment production
 
 ui-audit-fix: ## Fix UI audit errors
 	yarn yarn-audit-fix
