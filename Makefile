@@ -100,8 +100,8 @@ gitops-bucket-server: bin/gitops-bucket-server ## Build the GitOps bucket server
 
 # Clean up images and binaries
 clean: ## Clean up images and binaries
-#	Clean up everything. This includes files git has been told to ignore (-x) and directories (-d)
-	git clean -x -d --force --exclude .idea
+	# Clean up everything. This includes files git has been told to ignore (-x) and directories (-d)
+	git clean -xfd -e .idea -e *.iml
 
 fmt: ## Run go fmt against code
 	go fmt ./...
