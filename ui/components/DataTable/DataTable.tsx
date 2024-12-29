@@ -179,7 +179,7 @@ function UnstyledDataTable({
   };
 
   return (
-    <Flex wide tall column className={className}>
+    (<Flex wide tall column className={className}>
       <TopBar wide align end>
         {checkboxes && <CheckboxActions checked={checked} rows={filtered} />}
         {filters && !hideSearchAndFilters && (
@@ -200,7 +200,7 @@ function UnstyledDataTable({
                 onClick={() => setFilterDialogOpen(!filterDialogOpen)}
                 variant={filterDialogOpen ? "contained" : "text"}
                 color="inherit"
-              >
+                size="large">
                 <Icon
                   type={IconType.FilterIcon}
                   size="medium"
@@ -236,7 +236,7 @@ function UnstyledDataTable({
           />
         )}
       </Flex>
-    </Flex>
+    </Flex>)
   );
 }
 export const DataTable = styled(UnstyledDataTable)`

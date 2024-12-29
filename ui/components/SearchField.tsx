@@ -45,13 +45,13 @@ function SearchField({ className, onSubmit }: Props) {
   };
 
   return (
-    <Flex align className={className}>
+    (<Flex align className={className}>
       <IconButton
         onClick={handleExpand}
         className={className}
         variant="text"
         color="inherit"
-      >
+        size="large">
         <Icon
           type={IconType.ExploreIcon}
           size="medium"
@@ -69,7 +69,7 @@ function SearchField({ className, onSubmit }: Props) {
           />
         </form>
       </Expander>
-    </Flex>
+    </Flex>)
   );
 }
 

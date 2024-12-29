@@ -1,4 +1,4 @@
-import { MuiThemeProvider } from "@mui/core";
+import { MuiThemeProvider, Theme, StyledEngineProvider } from "@mui/core";
 import { createMemoryHistory } from "history";
 import _ from "lodash";
 import * as React from "react";
@@ -23,6 +23,14 @@ import {
 } from "./api/core/core.pb";
 import theme, { muiTheme } from "./theme";
 import { RequestError } from "./types";
+
+
+declare module '@mui/styles/defaultTheme' {
+  // eslint-disable-next-line @typescript-eslint/no-empty-interface
+  interface DefaultTheme extends Theme {}
+}
+
+
 export type CoreOverrides = {
   GetChildObjects?: (req: GetChildObjectsRequest) => GetChildObjectsResponse;
   GetReconciledObjects?: (
@@ -57,11 +65,13 @@ export const createCoreMockClient = (
 export function withTheme(element, mode: ThemeTypes = ThemeTypes.Light) {
   const appliedTheme = theme(mode);
   return (
-    <ThemeProvider theme={appliedTheme}>
-      <MuiThemeProvider theme={muiTheme(appliedTheme.colors, mode)}>
-        {element}
-      </MuiThemeProvider>
-    </ThemeProvider>
+    (<ThemeProvider theme={appliedTheme}>
+      <StyledEngineProvider injectFirst>
+        <MuiThemeProvider theme={muiTheme(appliedTheme.colors, mode)}>
+          {element}
+        </MuiThemeProvider>
+      </StyledEngineProvider>
+    </ThemeProvider>)
   );
 }
 

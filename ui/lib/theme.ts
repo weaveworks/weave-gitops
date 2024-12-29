@@ -1,5 +1,6 @@
 // Typescript will handle type-checking/linting for this file
 import { createTheme } from "@mui/core";
+import { adaptV4Theme } from '@mui/material/styles';
 import { alpha } from "@mui/core/styles/colorManipulator";
 // eslint-disable-next-line
 import { createGlobalStyle, DefaultTheme } from "styled-components";
@@ -194,7 +195,7 @@ input:-webkit-autofill:focus {
 `;
 
 export const muiTheme = (colors, mode) =>
-  createTheme({
+  createTheme(adaptV4Theme({
     typography: { fontFamily: "proxima-nova" },
     palette: {
       primary: {
@@ -303,4 +304,4 @@ export const muiTheme = (colors, mode) =>
         },
       },
     },
-  });
+  }));

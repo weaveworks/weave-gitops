@@ -1,4 +1,4 @@
-import { MuiThemeProvider } from "@mui/core";
+import { MuiThemeProvider, Theme, StyledEngineProvider } from "@mui/core";
 import qs from "query-string";
 import * as React from "react";
 import { QueryClient, QueryClientProvider } from "react-query";
@@ -56,6 +56,13 @@ import ProviderPage from "./pages/v2/ProviderPage";
 import Runtime from "./pages/v2/Runtime";
 import Sources from "./pages/v2/Sources";
 import UserInfo from "./pages/v2/UserInfo";
+
+
+declare module '@mui/styles/defaultTheme' {
+  // eslint-disable-next-line @typescript-eslint/no-empty-interface
+  interface DefaultTheme extends Theme {}
+}
+
 
 const queryClient = new QueryClient();
 
@@ -230,13 +237,15 @@ const StylesProvider = ({ children }) => {
   const mode = settings.theme;
   const appliedTheme = theme(mode);
   return (
-    <ThemeProvider theme={appliedTheme}>
-      <MuiThemeProvider theme={muiTheme(appliedTheme.colors, mode)}>
-        <Fonts />
-        <GlobalStyle />
-        {children}
-      </MuiThemeProvider>
-    </ThemeProvider>
+    (<ThemeProvider theme={appliedTheme}>
+      <StyledEngineProvider injectFirst>
+        <MuiThemeProvider theme={muiTheme(appliedTheme.colors, mode)}>
+          <Fonts />
+          <GlobalStyle />
+          {children}
+        </MuiThemeProvider>
+      </StyledEngineProvider>
+    </ThemeProvider>)
   );
 };
 

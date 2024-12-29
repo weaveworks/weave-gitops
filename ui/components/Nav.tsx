@@ -164,14 +164,14 @@ function Nav({
   currentPage,
 }: Props) {
   return (
-    <NavContainer collapsed={collapsed}>
+    (<NavContainer collapsed={collapsed}>
       <NavContent className={className} collapsed={collapsed}>
         <Tabs
           centered={false}
           orientation="vertical"
           value={currentPage === V2Routes.UserInfo ? false : currentPage}
           variant="scrollable"
-          scrollButtons="off"
+          scrollButtons={false}
         >
           {_.map(navItems, (n) => {
             if (n.disabled) return;
@@ -222,7 +222,7 @@ function Nav({
           </CollapseButton>
         </Flex>
       </NavContent>
-    </NavContainer>
+    </NavContainer>)
   );
 }
 

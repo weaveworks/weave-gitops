@@ -43,17 +43,17 @@ const content = (object) => {
 function DetailModal({ object, className }: DetailViewProps) {
   const { setDetailModal } = useContext(AppContext);
   return (
-    <div className={className}>
+    (<div className={className}>
       <HeaderFlex wide between align>
         <Text size="large" bold color="neutral30" titleHeight>
           {object.name}
         </Text>
-        <IconButton onClick={() => setDetailModal(null)}>
+        <IconButton onClick={() => setDetailModal(null)} size="large">
           <Close />
         </IconButton>
       </HeaderFlex>
       {content(object)}
-    </div>
+    </div>)
   );
 }
 
