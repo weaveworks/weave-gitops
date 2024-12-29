@@ -260,9 +260,11 @@ exports[`Page snapshots default 1`] = `
         className="c4"
       >
         <span
-          aria-describedby={null}
+          aria-label="test"
+          aria-labelledby={null}
           className="c5 c6 c7 ellipsis"
           color="neutral40"
+          data-mui-internal-clone-element={true}
           data-testid="text-test"
           onBlur={[Function]}
           onFocus={[Function]}
@@ -271,7 +273,6 @@ exports[`Page snapshots default 1`] = `
           onTouchEnd={[Function]}
           onTouchStart={[Function]}
           size="large"
-          title="test"
         >
           test
         </span>
@@ -281,12 +282,12 @@ exports[`Page snapshots default 1`] = `
       className="c8 "
     >
       <span
-        className="MuiSwitch-root c9 DarkModeSwitch"
+        className="MuiSwitch-root MuiSwitch-sizeMedium c9 DarkModeSwitch css-rehya9-MuiSwitch-root"
       >
         <span
-          aria-disabled={false}
-          className="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-1 MuiSwitch-switchBase MuiSwitch-colorPrimary"
+          className="MuiButtonBase-root MuiSwitch-switchBase MuiSwitch-colorPrimary PrivateSwitchBase-root MuiSwitch-switchBase MuiSwitch-colorPrimary css-n2qy4p-MuiButtonBase-root-MuiSwitch-switchBase"
           onBlur={[Function]}
+          onContextMenu={[Function]}
           onDragLeave={[Function]}
           onFocus={[Function]}
           onKeyDown={[Function]}
@@ -299,33 +300,29 @@ exports[`Page snapshots default 1`] = `
           onTouchStart={[Function]}
           tabIndex={null}
         >
+          <input
+            checked={false}
+            className="PrivateSwitchBase-input MuiSwitch-input css-j8yymo"
+            onChange={[Function]}
+            required={false}
+            type="checkbox"
+          />
           <span
-            className="MuiIconButton-label"
-          >
-            <input
-              checked={false}
-              className="PrivateSwitchBase-input-4 MuiSwitch-input"
-              onChange={[Function]}
-              type="checkbox"
-            />
-            <span
-              className="MuiSwitch-thumb"
-            />
-          </span>
-          <span
-            className="MuiTouchRipple-root"
+            className="MuiSwitch-thumb css-17jyosd-MuiSwitch-thumb"
           />
         </span>
         <span
-          className="MuiSwitch-track"
+          className="MuiSwitch-track css-tj8d99-MuiSwitch-track"
         />
       </span>
       <a
-        aria-describedby={null}
-        aria-disabled={false}
-        className="MuiButtonBase-root MuiIconButton-root c10 c11 Link"
+        aria-label="Docs"
+        aria-labelledby={null}
+        className="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeMedium c10 c11 Link css-aixiz9-MuiButtonBase-root-MuiIconButton-root"
+        data-mui-internal-clone-element={true}
         href="https://docs.gitops.weaveworks.org/"
         onBlur={[Function]}
+        onContextMenu={[Function]}
         onDragLeave={[Function]}
         onFocus={[Function]}
         onKeyDown={[Function]}
@@ -340,37 +337,33 @@ exports[`Page snapshots default 1`] = `
         rel="noreferrer"
         tabIndex={0}
         target="_blank"
-        title="Docs"
       >
-        <span
-          className="MuiIconButton-label"
+        <div
+          className="c4 c12"
         >
-          <div
-            className="c4 c12"
+          <svg
+            aria-hidden={true}
+            className="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
+            data-testid="FindInPageIcon"
+            focusable="false"
+            viewBox="0 0 24 24"
           >
-            <svg
-              aria-hidden={true}
-              className="MuiSvgIcon-root"
-              focusable="false"
-              viewBox="0 0 24 24"
-            >
-              <path
-                d="M20 19.59V8l-6-6H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c.45 0 .85-.15 1.19-.4l-4.43-4.43c-.8.52-1.74.83-2.76.83-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5c0 1.02-.31 1.96-.83 2.75L20 19.59zM9 13c0 1.66 1.34 3 3 3s3-1.34 3-3-1.34-3-3-3-3 1.34-3 3z"
-              />
-            </svg>
-          </div>
-        </span>
-        <span
-          className="MuiTouchRipple-root"
-        />
+            <path
+              d="M20 19.59V8l-6-6H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c.45 0 .85-.15 1.19-.4l-4.43-4.43c-.8.52-1.74.83-2.76.83-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5c0 1.02-.31 1.96-.83 2.75zM9 13c0 1.66 1.34 3 3 3s3-1.34 3-3-1.34-3-3-3-3 1.34-3 3"
+            />
+          </svg>
+        </div>
       </a>
       <button
-        aria-describedby={null}
         aria-haspopup="true"
-        className="MuiButtonBase-root MuiIconButton-root c10"
+        aria-label="Account settings"
+        aria-labelledby={null}
+        className="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeMedium c10 css-aixiz9-MuiButtonBase-root-MuiIconButton-root"
+        data-mui-internal-clone-element={true}
         disabled={false}
         onBlur={[Function]}
         onClick={[Function]}
+        onContextMenu={[Function]}
         onDragLeave={[Function]}
         onFocus={[Function]}
         onKeyDown={[Function]}
@@ -384,30 +377,23 @@ exports[`Page snapshots default 1`] = `
         onTouchStart={[Function]}
         open={false}
         tabIndex={0}
-        title="Account settings"
         type="button"
       >
-        <span
-          className="MuiIconButton-label"
+        <div
+          className="c4 c12"
         >
-          <div
-            className="c4 c12"
+          <svg
+            aria-hidden={true}
+            className="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
+            data-testid="PersonIcon"
+            focusable="false"
+            viewBox="0 0 24 24"
           >
-            <svg
-              aria-hidden={true}
-              className="MuiSvgIcon-root"
-              focusable="false"
-              viewBox="0 0 24 24"
-            >
-              <path
-                d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
-              />
-            </svg>
-          </div>
-        </span>
-        <span
-          className="MuiTouchRipple-root"
-        />
+            <path
+              d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4m0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4"
+            />
+          </svg>
+        </div>
       </button>
     </div>
   </div>
