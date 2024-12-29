@@ -46,7 +46,7 @@ Step one, make sure you've installed the tools listed at the very top of this fi
 
 Step two, now you **must** **ALSO** have the following installed.
 
-- [node](https://nodejs.org/en/) v18 - Install Node.js
+- [node](https://nodejs.org/en/) v22 - Install Node.js
 
 Now you have those things installed, lets go!
 
