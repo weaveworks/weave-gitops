@@ -1,4 +1,4 @@
-import { FormControl, MenuItem, Select } from "@mui/material";
+import { FormControl, MenuItem, Select, type SelectChangeEvent } from "@mui/material";
 import * as React from "react";
 import styled from "styled-components";
 import Button from "./Button";
@@ -51,8 +51,8 @@ function unstyledPagination({
           <Select
             id="pagination"
             variant="outlined"
-            defaultValue={perPageOptions[0]}
-            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+            defaultValue={perPageOptions[0].toString()}
+            onChange={(e: SelectChangeEvent<string>) => {
               onSelect(e.target.value);
             }}
           >

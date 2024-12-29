@@ -1,4 +1,4 @@
-import { MuiThemeProvider, Theme, StyledEngineProvider } from "@mui/material";
+import { ThemeProvider as MuiThemeProvider, StyledEngineProvider } from "@mui/material";
 import { createMemoryHistory } from "history";
 import _ from "lodash";
 import * as React from "react";

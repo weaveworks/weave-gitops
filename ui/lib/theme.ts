@@ -1,7 +1,5 @@
 // Typescript will handle type-checking/linting for this file
-import { createTheme } from "@mui/material/styles";
-import { adaptV4Theme } from '@mui/material/styles';
-import { alpha } from "@mui/material/styles";
+import { createTheme, adaptV4Theme, alpha } from "@mui/material/styles";
 // eslint-disable-next-line
 import { createGlobalStyle, DefaultTheme } from "styled-components";
 import { ThemeTypes } from "../contexts/AppContext";

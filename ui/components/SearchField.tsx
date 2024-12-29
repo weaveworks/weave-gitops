@@ -63,7 +63,7 @@ function SearchField({ className, onSubmit }: Props) {
           <Input
             id="table-search"
             placeholder="Search"
-            inputProps={{ ref: inputRef }}
+            inputRef={inputRef}
             value={value}
             onChange={(ev) => setValue(ev.target.value)}
           />

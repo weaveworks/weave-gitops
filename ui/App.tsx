@@ -1,4 +1,4 @@
-import { ThemeProvider as MuiThemeProvider, Theme, StyledEngineProvider } from "@mui/material";
+import { ThemeProvider as MuiThemeProvider, StyledEngineProvider } from "@mui/material";
 import qs from "query-string";
 import * as React from "react";
 import { QueryClient, QueryClientProvider } from "react-query";
