@@ -11,7 +11,7 @@ const config = {
     "\\.jsx?$": [
       "babel-jest",
       {
-        configFile: "./babel.config.js",
+        configFile: "./babel.config.json",
       },
     ],
   },
