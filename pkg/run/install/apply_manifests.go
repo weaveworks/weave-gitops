@@ -8,6 +8,8 @@ import (
 
 	"github.com/fluxcd/cli-utils/pkg/object"
 	"github.com/fluxcd/pkg/ssa"
+	"github.com/fluxcd/pkg/ssa/normalize"
+	"github.com/fluxcd/pkg/ssa/utils"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
@@ -28,7 +30,7 @@ func NewManager(ctx context.Context, log logger.Logger, kubeClient ctrlclient.Cl
 
 // apply is the equivalent of 'kubectl apply --server-side -f'.
 func apply(ctx context.Context, log logger.Logger, manager ResourceManagerForApply, manifestsContent []byte) (string, error) { // nolint:unparam
-	objs, err := ssa.ReadObjects(bytes.NewReader(manifestsContent))
+	objs, err := utils.ReadObjects(bytes.NewReader(manifestsContent))
 	if err != nil {
 		log.Failuref("Error reading Kubernetes objects from the manifests")
 		return "", err
@@ -38,7 +40,7 @@ func apply(ctx context.Context, log logger.Logger, manager ResourceManagerForApp
 		return "", fmt.Errorf("no Kubernetes objects found in the manifests")
 	}
 
-	if err := ssa.NormalizeUnstructuredList(objs); err != nil {
+	if err := normalize.UnstructuredList(objs); err != nil {
 		log.Failuref("Error setting the list of resources to apply")
 		return "", err
 	}
@@ -52,7 +54,7 @@ func apply(ctx context.Context, log logger.Logger, manager ResourceManagerForApp
 	var stageTwo []*unstructured.Unstructured
 
 	for _, u := range objs {
-		if ssa.IsClusterDefinition(u) {
+		if utils.IsClusterDefinition(u) {
 			stageOne = append(stageOne, u)
 		} else {
 			stageTwo = append(stageTwo, u)
