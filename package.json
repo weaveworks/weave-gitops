@@ -62,7 +62,6 @@
     "http-proxy-middleware": "^2.0.3",
     "install": "^0.13.0",
     "jest-canvas-mock": "^2.4.0",
-    "jest-fail-on-console": "^3.0.1",
     "jest-worker": "^27.5.1",
     "js-sha3": "0.8.0",
     "lodash": "^4.17.21",
@@ -88,6 +87,9 @@
       "\\.(jpg|ico|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/ui/lib/fileMock.js",
       "\\.(css|less)$": "<rootDir>/ui/lib/fileMock.js"
     },
+    "setupFilesAfterEnv": [
+      "<rootDir>/setup-jest.ts"
+    ],
     "modulePathIgnorePatterns": [
       "<rootDir>/dist/"
     ],
@@ -118,6 +120,7 @@
     "eslint": "^8.48.0",
     "eslint-plugin-import": "^2.25.4",
     "jest": "^27.3.1",
+    "jest-fail-on-console": "^3.3.1",
     "jest-styled-components": "^7.0.4",
     "jsdom": "^16.6.0",
     "parcel": "^2.13.3",
