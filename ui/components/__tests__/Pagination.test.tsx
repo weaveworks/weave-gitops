@@ -80,8 +80,8 @@ describe("Pagination", () => {
       )
     );
     let select;
-    screen.getAllByRole("button").forEach((button) => {
-      if (button.getAttribute("aria-haspopup")) select = button;
+    screen.getAllByText("25").forEach((button) => {
+      select = button;
     });
     fireEvent.mouseDown(select);
     const listbox = within(screen.getByRole("listbox"));

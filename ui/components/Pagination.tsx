@@ -57,7 +57,7 @@ function unstyledPagination({
             id="pagination"
             variant="outlined"
             defaultValue={perPageOptions[0].toString()}
-            onChange={(e: SelectChangeEvent<string>) => {
+            onChange={(e: SelectChangeEvent) => {
               onSelect(e.target.value);
             }}
           >
