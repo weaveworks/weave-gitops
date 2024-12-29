@@ -1,5 +1,5 @@
-import { IconButton, Input, InputAdornment } from "@material-ui/core";
-import { Visibility, VisibilityOff } from "@material-ui/icons";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
+import { IconButton, Input, InputAdornment } from "@mui/material";
 import qs from "query-string";
 import * as React from "react";
 import styled from "styled-components";
@@ -207,6 +207,7 @@ function SignIn({ darkModeEnabled = true }: Props) {
                       aria-label="toggle password visibility"
                       onClick={() => setShowPassword(!showPassword)}
                       color="primary"
+                      size="large"
                     >
                       {showPassword ? <Visibility /> : <VisibilityOff />}
                     </IconButton>

@@ -51,6 +51,7 @@ function SearchField({ className, onSubmit }: Props) {
         className={className}
         variant="text"
         color="inherit"
+        size="large"
       >
         <Icon
           type={IconType.ExploreIcon}
@@ -63,7 +64,7 @@ function SearchField({ className, onSubmit }: Props) {
           <Input
             id="table-search"
             placeholder="Search"
-            inputProps={{ ref: inputRef }}
+            inputRef={inputRef}
             value={value}
             onChange={(ev) => setValue(ev.target.value)}
           />

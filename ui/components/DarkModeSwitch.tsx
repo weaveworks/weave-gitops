@@ -1,4 +1,4 @@
-import { Switch } from "@material-ui/core";
+import { Switch } from "@mui/material";
 import * as React from "react";
 import styled from "styled-components";
 import { AppContext, ThemeTypes } from "../contexts/AppContext";

@@ -200,6 +200,7 @@ function UnstyledDataTable({
                 onClick={() => setFilterDialogOpen(!filterDialogOpen)}
                 variant={filterDialogOpen ? "contained" : "text"}
                 color="inherit"
+                size="large"
               >
                 <Icon
                   type={IconType.FilterIcon}

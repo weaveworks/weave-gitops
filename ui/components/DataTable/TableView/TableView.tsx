@@ -1,4 +1,4 @@
-import { Table, TableContainer } from "@material-ui/core";
+import { Table, TableContainer } from "@mui/material";
 import React from "react";
 import TableBodyView from "./TableBody";
 import TableHeader from "./TableHeader";

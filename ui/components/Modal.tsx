@@ -1,4 +1,4 @@
-import MaterialModal from "@material-ui/core/Modal";
+import MaterialModal from "@mui/material/Modal";
 import * as React from "react";
 import styled from "styled-components";
 import { IconButton } from "./Button";
@@ -63,6 +63,7 @@ function UnstyledModal({
               className={className}
               variant="text"
               color="inherit"
+              size="large"
             >
               <Icon type={IconType.ClearIcon} size="medium" color="neutral30" />
             </IconButton>

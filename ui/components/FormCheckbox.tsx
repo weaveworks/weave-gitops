@@ -1,4 +1,4 @@
-import { Checkbox } from "@material-ui/core";
+import { Checkbox } from "@mui/material";
 import * as React from "react";
 import styled from "styled-components";
 import FormInput, { FormInputProps } from "./FormInput";

@@ -1,4 +1,4 @@
-import { Tab } from "@material-ui/core";
+import { Tab } from "@mui/material";
 import * as React from "react";
 import styled from "styled-components";
 import Text from "./Text";

@@ -1,4 +1,7 @@
-import { MuiThemeProvider } from "@material-ui/core";
+import {
+  ThemeProvider as MuiThemeProvider,
+  StyledEngineProvider,
+} from "@mui/material";
 import qs from "query-string";
 import * as React from "react";
 import { QueryClient, QueryClientProvider } from "react-query";
@@ -231,11 +234,13 @@ const StylesProvider = ({ children }) => {
   const appliedTheme = theme(mode);
   return (
     <ThemeProvider theme={appliedTheme}>
-      <MuiThemeProvider theme={muiTheme(appliedTheme.colors, mode)}>
-        <Fonts />
-        <GlobalStyle />
-        {children}
-      </MuiThemeProvider>
+      <StyledEngineProvider injectFirst>
+        <MuiThemeProvider theme={muiTheme(appliedTheme.colors, mode)}>
+          <Fonts />
+          <GlobalStyle />
+          {children}
+        </MuiThemeProvider>
+      </StyledEngineProvider>
     </ThemeProvider>
   );
 };

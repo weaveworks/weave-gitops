@@ -4,8 +4,8 @@ import {
   Radio,
   RadioGroup,
   Tooltip,
-} from "@material-ui/core";
-import { alpha } from "@material-ui/core/styles/colorManipulator";
+} from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import React from "react";
 import styled, { keyframes } from "styled-components";
 import { ThemeTypes } from "../../contexts/AppContext";
@@ -178,6 +178,7 @@ const SyncControls = ({
             data-testid="sync-button"
             disabled={disableSyncButtons}
             onClick={() => onSyncClick(syncType)}
+            size="large"
           >
             <Icon type={IconType.PlayIcon} size="medium" />
           </IconButton>
@@ -192,6 +193,7 @@ const SyncControls = ({
                 data-testid="suspend-button"
                 disabled={suspendDisabled}
                 onClick={onSuspendClick}
+                size="large"
               >
                 <Icon type={IconType.PauseIcon} size="medium" />
               </IconButton>
@@ -204,6 +206,7 @@ const SyncControls = ({
                 data-testid="resume-button"
                 disabled={resumeDisabled}
                 onClick={onResumeClick}
+                size="large"
               >
                 <Icon
                   type={IconType.ResumeIcon}

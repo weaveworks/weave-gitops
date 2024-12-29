@@ -1,5 +1,5 @@
-import { IconButton } from "@material-ui/core";
-import { Close } from "@material-ui/icons";
+import { Close } from "@mui/icons-material";
+import { IconButton } from "@mui/material";
 import React, { useContext } from "react";
 import styled from "styled-components";
 import { AppContext } from "../contexts/AppContext";
@@ -48,7 +48,7 @@ function DetailModal({ object, className }: DetailViewProps) {
         <Text size="large" bold color="neutral30" titleHeight>
           {object.name}
         </Text>
-        <IconButton onClick={() => setDetailModal(null)}>
+        <IconButton onClick={() => setDetailModal(null)} size="large">
           <Close />
         </IconButton>
       </HeaderFlex>

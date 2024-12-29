@@ -1,4 +1,4 @@
-import { Collapse } from "@material-ui/core";
+import { Collapse } from "@mui/material";
 import React from "react";
 import styled from "styled-components";
 import Flex from "./Flex";

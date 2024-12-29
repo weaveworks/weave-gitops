@@ -1,4 +1,4 @@
-import { CircularProgress } from "@material-ui/core";
+import { CircularProgress } from "@mui/material";
 import * as React from "react";
 import styled from "styled-components";
 import Flex from "./Flex";

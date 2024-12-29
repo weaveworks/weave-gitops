@@ -1,5 +1,5 @@
-import { IconButton, Tab, Tabs, Tooltip } from "@material-ui/core";
-import { ArrowLeft, ArrowRight } from "@material-ui/icons";
+import { ArrowLeft, ArrowRight } from "@mui/icons-material";
+import { IconButton, Tab, Tabs, Tooltip } from "@mui/material";
 import _ from "lodash";
 import React, { Dispatch, SetStateAction } from "react";
 import styled from "styled-components";
@@ -171,7 +171,7 @@ function Nav({
           orientation="vertical"
           value={currentPage === V2Routes.UserInfo ? false : currentPage}
           variant="scrollable"
-          scrollButtons="off"
+          scrollButtons={false}
         >
           {_.map(navItems, (n) => {
             if (n.disabled) return;

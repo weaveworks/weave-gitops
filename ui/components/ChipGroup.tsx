@@ -1,4 +1,4 @@
-import { Chip } from "@material-ui/core";
+import { Chip } from "@mui/material";
 import _ from "lodash";
 import * as React from "react";
 import styled from "styled-components";

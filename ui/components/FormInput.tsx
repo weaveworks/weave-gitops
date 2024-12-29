@@ -1,4 +1,4 @@
-import { FormControl, FormLabel } from "@material-ui/core";
+import { FormControl, FormLabel } from "@mui/material";
 import * as React from "react";
 import styled from "styled-components";
 import { FormContext } from "./ControlledForm";
@@ -62,6 +62,4 @@ function FormInput({
   );
 }
 
-export default styled(FormInput).attrs({ className: FormInput.name })`
-  min-width: 300px;
-`;
+export default styled(FormInput).attrs({ className: FormInput.name })``;

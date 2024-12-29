@@ -1,4 +1,4 @@
-import { Tooltip } from "@material-ui/core";
+import { Tooltip } from "@mui/material";
 import React from "react";
 import { useListSources } from "../hooks/sources";
 import { Condition, ObjectRef } from "../lib/api/core/types.pb";

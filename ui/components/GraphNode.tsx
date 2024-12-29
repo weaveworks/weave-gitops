@@ -1,4 +1,4 @@
-import { Tooltip } from "@material-ui/core";
+import { Tooltip } from "@mui/material";
 import * as React from "react";
 import styled from "styled-components";
 import { AppContext } from "../contexts/AppContext";

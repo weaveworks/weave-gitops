@@ -1,4 +1,4 @@
-import { AlertTitle, Alert as MaterialAlert } from "@material-ui/lab";
+import { AlertTitle, Alert as MaterialAlert } from "@mui/lab";
 import * as React from "react";
 import styled from "styled-components";
 import { ThemeTypes } from "../contexts/AppContext";
