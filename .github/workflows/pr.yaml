@@ -165,12 +165,12 @@ jobs:
         os: [ubuntu-latest, macOS-latest]
     if: github.event_name == 'push'
     steps:
+    - name: Checkout code
+      uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
     - name: Setup Go
       uses: actions/setup-go@3041bf56c941b39c61721a86cd11f3bb1338122a # v5.2.0
       with:
         go-version-file: go.mod
-    - name: Checkout code
-      uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
     - name: Clean
       run: make clean
     - id: gitsha
