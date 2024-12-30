@@ -13366,13 +13366,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"trim@npm:^1.0.1":
-  version: 1.0.1
-  resolution: "trim@npm:1.0.1"
-  checksum: 10c0/04adf6f239befd4a1ef229304828bae88d513063148de591d86c6da4053d3d823058465d03c1cd87c4929dbaa8c3eb89f891abfa664cfed2fb520cf6b752c693
-  languageName: node
-  linkType: hard
-
 "trough@npm:^2.0.0":
   version: 2.2.0
   resolution: "trough@npm:2.2.0"
@@ -13768,7 +13761,6 @@ __metadata:
     react: "npm:^18.0.0"
     react-dom: "npm:^18.0.0"
     react-player: "npm:^2.16.0"
-    trim: "npm:^1.0.1"
     webpack: "npm:^5.97.1"
     yarn-audit-fix: "npm:^9.2.1"
   languageName: unknown

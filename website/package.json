@@ -31,7 +31,6 @@
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "react-player": "^2.16.0",
-    "trim": "^1.0.1",
     "webpack": "^5.97.1"
   },
   "browserslist": {
