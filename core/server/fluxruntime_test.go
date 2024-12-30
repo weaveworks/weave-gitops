@@ -447,10 +447,7 @@ func TestListRuntimeObjects(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.description, func(t *testing.T) {
-			_ = os.Setenv(server.GitopsRuntimeFeatureFlag, "true")
-			defer func() {
-				_ = os.Unsetenv(server.GitopsRuntimeFeatureFlag)
-			}()
+			t.Setenv(server.GitopsRuntimeFeatureFlag, "true")
 			featureflags.SetFromEnv(os.Environ())
 			scheme, err := kube.CreateScheme()
 			g.Expect(err).To(BeNil())

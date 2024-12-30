@@ -27,7 +27,7 @@ linters:
     #- prealloc
     - staticcheck
     - stylecheck
-    #- tenv
+    - tenv
     #- thelper
     #- tparallel
     - typecheck
