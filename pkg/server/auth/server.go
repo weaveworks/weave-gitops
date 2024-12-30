@@ -555,13 +555,9 @@ func (s *AuthServer) Refresh(rw http.ResponseWriter, r *http.Request) (*UserPrin
 }
 
 func toJSON(rw http.ResponseWriter, ui UserInfo, log logr.Logger) {
-	b, err := json.Marshal(ui)
-	if err != nil {
-		JSONError(log, rw, fmt.Sprintf("failed to marshal to JSON: %v", err), http.StatusInternalServerError)
-		return
-	}
+	b, _ := json.Marshal(ui)
 
-	_, err = rw.Write(b)
+	_, err := rw.Write(b)
 	if err != nil {
 		log.Error(err, "Failing to write response")
 	}
@@ -580,14 +576,10 @@ func (s *AuthServer) startAuthFlow(rw http.ResponseWriter, r *http.Request) {
 		returnURL = r.URL.String()
 	}
 
-	b, err := json.Marshal(SessionState{
+	b, _ := json.Marshal(SessionState{
 		Nonce:     nonce,
 		ReturnURL: returnURL,
 	})
-	if err != nil {
-		JSONError(s.Log, rw, fmt.Sprintf("failed to marshal state to JSON: %v", err), http.StatusInternalServerError)
-		return
-	}
 
 	state := base64.StdEncoding.EncodeToString(b)
 
