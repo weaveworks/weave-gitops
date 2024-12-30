@@ -2797,7 +2797,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@docusaurus/theme-search-algolia@npm:3.6.3, @docusaurus/theme-search-algolia@npm:^3.6.3":
+"@docusaurus/theme-search-algolia@npm:3.6.3":
   version: 3.6.3
   resolution: "@docusaurus/theme-search-algolia@npm:3.6.3"
   dependencies:
@@ -13748,7 +13748,6 @@ __metadata:
     "@docusaurus/plugin-google-gtag": "npm:^3.6.3"
     "@docusaurus/plugin-sitemap": "npm:^3.6.3"
     "@docusaurus/preset-classic": "npm:^3.6.3"
-    "@docusaurus/theme-search-algolia": "npm:^3.6.3"
     "@fortawesome/fontawesome-svg-core": "npm:^6.7.2"
     "@fortawesome/free-solid-svg-icons": "npm:^6.7.2"
     "@fortawesome/react-fontawesome": "npm:^0.2.2"
