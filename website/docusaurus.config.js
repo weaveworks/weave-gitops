@@ -37,11 +37,11 @@ module.exports = {
       },
     }),
     [
-        '@docusaurus/plugin-client-redirects',
+      '@docusaurus/plugin-client-redirects',
       {
         fromExtensions: ['html', 'htm'], // /myPage.html -> /myPage
         redirects: [
-          { 
+          {
             to: '/docs/intro-weave-gitops/',
             from: ['/docs/getting-started'],
           },
@@ -135,38 +135,38 @@ module.exports = {
           ],
         },
         {
-            title: "Community",
-            items: [
-                {
-                label: "GitHub",
-                href: "https://github.com/weaveworks/weave-gitops",
-                },
-            ],
+          title: "Community",
+          items: [
+            {
+              label: "GitHub",
+              href: "https://github.com/weaveworks/weave-gitops",
+            },
+          ],
         },
         {
-            title: 'Follow us',
-            items: [
-              {
-                label: 'Facebook',
-                href: 'https://www.facebook.com/WeaveworksInc/',
-              },
-              {
-                label: 'LinkedIn',
-                href: 'https://www.linkedin.com/company/weaveworks',
-              },
-              {
-                label: 'Twitter',
-                href: 'https://twitter.com/weaveworks',
-              },
-              {
-                label: 'Slack',
-                href: 'https://slack.weave.works/',
-              },
-              {
-                label: 'Youtube',
-                href: 'https://www.youtube.com/c/WeaveWorksInc',
-              },
-            ],
+          title: 'Follow us',
+          items: [
+            {
+              label: 'Facebook',
+              href: 'https://www.facebook.com/WeaveworksInc/',
+            },
+            {
+              label: 'LinkedIn',
+              href: 'https://www.linkedin.com/company/weaveworks',
+            },
+            {
+              label: 'Twitter',
+              href: 'https://twitter.com/weaveworks',
+            },
+            {
+              label: 'Slack',
+              href: 'https://slack.weave.works/',
+            },
+            {
+              label: 'Youtube',
+              href: 'https://www.youtube.com/c/WeaveWorksInc',
+            },
+          ],
         },
       ],
       logo: {
@@ -178,18 +178,18 @@ module.exports = {
       },
       copyright: `Copyright © ${new Date().getFullYear()} Weaveworks`,
     },
-  //   algolia: {
-  //     appId: "Z1KEXCDHZE",
-  //     apiKey: process.env.ALGOLIA_API_KEY,
-  //     indexName: "weave",
-  //     // Needed to handle the different versions of docs
-  //     contextualSearch: true,
-  //
-  //     // Optional: Algolia search parameters
-  //     // searchParameters: {
-  //     //   facetFilters: ['type:content']
-  //     // },
-  //   },
+    //   algolia: {
+    //     appId: "Z1KEXCDHZE",
+    //     apiKey: process.env.ALGOLIA_API_KEY,
+    //     indexName: "weave",
+    //     // Needed to handle the different versions of docs
+    //     contextualSearch: true,
+    //
+    //     // Optional: Algolia search parameters
+    //     // searchParameters: {
+    //     //   facetFilters: ['type:content']
+    //     // },
+    //   },
   },
   scripts: [
     {
@@ -229,14 +229,14 @@ module.exports = {
         //   anonymizeIP: true, // Should IPs be anonymized?
         // },
         sitemap: {
-            changefreq: 'weekly',
-            priority: 0.5,
-            ignorePatterns: [
-                '/docs/next/**',
-              '/docs/archives/**',
-              '/docs/*[0-9].*[0-9].*[0-9]/**'
-            ],
-            filename: 'sitemap.xml',
+          changefreq: 'weekly',
+          priority: 0.5,
+          ignorePatterns: [
+            '/docs/next/**',
+            '/docs/archives/**',
+            '/docs/*[0-9].*[0-9].*[0-9]/**'
+          ],
+          filename: 'sitemap.xml',
         },
       },
     ],
