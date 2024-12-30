@@ -10,7 +10,6 @@ import (
 )
 
 var _ = Describe("TokenResponseState", func() {
-
 	var token *TokenResponseState
 	var tokenResponse internal.GitlabTokenResponse
 
@@ -39,6 +38,5 @@ var _ = Describe("TokenResponseState", func() {
 		Expect(token.ExpiresIn).To(Equal(time.Duration(seconds) * time.Second))
 		Expect(token.RefreshToken).To(Equal(refreshToken))
 		Expect(token.CreatedAt).To(Equal(createdAt))
-
 	})
 })

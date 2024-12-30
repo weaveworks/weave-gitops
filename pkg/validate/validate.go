@@ -41,7 +41,6 @@ func Validate(log logger.Logger, targetDir, rootDir, kubernetesVersion, fluxVers
 		cli := cleanhttp.DefaultClient()
 		url := fmt.Sprintf("https://github.com/fluxcd/flux2/releases/download/%s/crd-schemas.tar.gz", fluxVersion)
 		response, err := cli.Get(url)
-
 		if err != nil {
 			return err
 		}
@@ -108,7 +107,6 @@ func Validate(log logger.Logger, targetDir, rootDir, kubernetesVersion, fluxVers
 
 		return nil
 	})
-
 	if err != nil {
 		return err
 	}
@@ -143,7 +141,6 @@ func Validate(log logger.Logger, targetDir, rootDir, kubernetesVersion, fluxVers
 		Strict:               true,
 		IgnoreMissingSchemas: true,
 	})
-
 	if err != nil {
 		return err
 	}

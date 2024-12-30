@@ -1,4 +1,6 @@
 package server
 
-const DefaultHost = "0.0.0.0"
-const DefaultPort = "9001"
+const (
+	DefaultHost = "0.0.0.0"
+	DefaultPort = "9001"
+)

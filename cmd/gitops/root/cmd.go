@@ -46,7 +46,7 @@ func init() {
 }
 
 func RootCmd() *cobra.Command {
-	var rootCmd = &cobra.Command{
+	rootCmd := &cobra.Command{
 		Use:           "gitops",
 		SilenceUsage:  true,
 		SilenceErrors: true,

@@ -429,7 +429,8 @@ func createRole(t *testing.T, cl client.Client, key types.NamespacedName, rules 
 
 	binding := &rbacv1.RoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "test-role-binding", Namespace: key.Namespace},
+			Name: "test-role-binding", Namespace: key.Namespace,
+		},
 		Subjects: []rbacv1.Subject{
 			{
 				Kind:     "User",

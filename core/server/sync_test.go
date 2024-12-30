@@ -75,16 +75,20 @@ func TestSync(t *testing.T) {
 	}{{
 		name: "helm release no source",
 		msg: &pb.SyncFluxObjectRequest{
-			Objects: []*pb.ObjectRef{{ClusterName: "Default",
-				Kind: helmv2.HelmReleaseKind}},
+			Objects: []*pb.ObjectRef{{
+				ClusterName: "Default",
+				Kind:        helmv2.HelmReleaseKind,
+			}},
 			WithSource: false,
 		},
 		reconcilable: fluxsync.HelmReleaseAdapter{HelmRelease: hr},
 	}, {
 		name: "helm release with source",
 		msg: &pb.SyncFluxObjectRequest{
-			Objects: []*pb.ObjectRef{{ClusterName: "Default",
-				Kind: helmv2.HelmReleaseKind}},
+			Objects: []*pb.ObjectRef{{
+				ClusterName: "Default",
+				Kind:        helmv2.HelmReleaseKind,
+			}},
 			WithSource: true,
 		},
 		reconcilable: fluxsync.HelmReleaseAdapter{HelmRelease: hr},
@@ -92,16 +96,20 @@ func TestSync(t *testing.T) {
 	}, {
 		name: "kustomization no source",
 		msg: &pb.SyncFluxObjectRequest{
-			Objects: []*pb.ObjectRef{{ClusterName: "Default",
-				Kind: kustomizev1.KustomizationKind}},
+			Objects: []*pb.ObjectRef{{
+				ClusterName: "Default",
+				Kind:        kustomizev1.KustomizationKind,
+			}},
 			WithSource: false,
 		},
 		reconcilable: fluxsync.KustomizationAdapter{Kustomization: kust},
 	}, {
 		name: "kustomization with source",
 		msg: &pb.SyncFluxObjectRequest{
-			Objects: []*pb.ObjectRef{{ClusterName: "Default",
-				Kind: kustomizev1.KustomizationKind}},
+			Objects: []*pb.ObjectRef{{
+				ClusterName: "Default",
+				Kind:        kustomizev1.KustomizationKind,
+			}},
 			WithSource: true,
 		},
 		reconcilable: fluxsync.KustomizationAdapter{Kustomization: kust},
@@ -109,65 +117,83 @@ func TestSync(t *testing.T) {
 	}, {
 		name: "gitrepository",
 		msg: &pb.SyncFluxObjectRequest{
-			Objects: []*pb.ObjectRef{{ClusterName: "Default",
-				Kind: sourcev1.GitRepositoryKind}},
+			Objects: []*pb.ObjectRef{{
+				ClusterName: "Default",
+				Kind:        sourcev1.GitRepositoryKind,
+			}},
 			WithSource: false,
 		},
 		reconcilable: fluxsync.GitRepositoryAdapter{GitRepository: gitRepo},
 	}, {
 		name: "bucket",
 		msg: &pb.SyncFluxObjectRequest{
-			Objects: []*pb.ObjectRef{{ClusterName: "Default",
-				Kind: sourcev1.BucketKind}},
+			Objects: []*pb.ObjectRef{{
+				ClusterName: "Default",
+				Kind:        sourcev1.BucketKind,
+			}},
 			WithSource: false,
 		},
 		reconcilable: fluxsync.BucketAdapter{Bucket: bucket},
 	}, {
 		name: "helmchart",
 		msg: &pb.SyncFluxObjectRequest{
-			Objects: []*pb.ObjectRef{{ClusterName: "Default",
-				Kind: sourcev1.HelmChartKind}},
+			Objects: []*pb.ObjectRef{{
+				ClusterName: "Default",
+				Kind:        sourcev1.HelmChartKind,
+			}},
 			WithSource: false,
 		},
 		reconcilable: fluxsync.HelmChartAdapter{HelmChart: chart},
 	}, {
 		name: "helmrepository",
 		msg: &pb.SyncFluxObjectRequest{
-			Objects: []*pb.ObjectRef{{ClusterName: "Default",
-				Kind: sourcev1.HelmRepositoryKind}},
+			Objects: []*pb.ObjectRef{{
+				ClusterName: "Default",
+				Kind:        sourcev1.HelmRepositoryKind,
+			}},
 			WithSource: false,
 		},
 		reconcilable: fluxsync.HelmRepositoryAdapter{HelmRepository: helmRepo},
 	}, {
 		name: "ocirepository",
 		msg: &pb.SyncFluxObjectRequest{
-			Objects: []*pb.ObjectRef{{ClusterName: "Default",
-				Kind: sourcev1b2.OCIRepositoryKind}},
+			Objects: []*pb.ObjectRef{{
+				ClusterName: "Default",
+				Kind:        sourcev1b2.OCIRepositoryKind,
+			}},
 			WithSource: false,
 		},
 		reconcilable: fluxsync.OCIRepositoryAdapter{OCIRepository: ociRepo},
 	}, {
 		name: "image repository",
 		msg: &pb.SyncFluxObjectRequest{
-			Objects: []*pb.ObjectRef{{ClusterName: "Default",
-				Kind: reflectorv1.ImageRepositoryKind}},
+			Objects: []*pb.ObjectRef{{
+				ClusterName: "Default",
+				Kind:        reflectorv1.ImageRepositoryKind,
+			}},
 			WithSource: false,
 		},
 		reconcilable: fluxsync.ImageRepositoryAdapter{ImageRepository: ir},
 	}, {
 		name: "image update automation",
 		msg: &pb.SyncFluxObjectRequest{
-			Objects: []*pb.ObjectRef{{ClusterName: "Default",
-				Kind: imgautomationv1.ImageUpdateAutomationKind}},
+			Objects: []*pb.ObjectRef{{
+				ClusterName: "Default",
+				Kind:        imgautomationv1.ImageUpdateAutomationKind,
+			}},
 			WithSource: false,
 		},
 		reconcilable: fluxsync.ImageUpdateAutomationAdapter{ImageUpdateAutomation: iua},
 	}, {
 		name: "multiple objects",
 		msg: &pb.SyncFluxObjectRequest{
-			Objects: []*pb.ObjectRef{{ClusterName: "Default",
-				Kind: helmv2.HelmReleaseKind}, {ClusterName: "Default",
-				Kind: helmv2.HelmReleaseKind}},
+			Objects: []*pb.ObjectRef{{
+				ClusterName: "Default",
+				Kind:        helmv2.HelmReleaseKind,
+			}, {
+				ClusterName: "Default",
+				Kind:        helmv2.HelmReleaseKind,
+			}},
 			WithSource: true,
 		},
 		reconcilable: fluxsync.HelmReleaseAdapter{HelmRelease: hr},

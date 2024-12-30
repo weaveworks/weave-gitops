@@ -32,7 +32,6 @@ func hashCommandRunE() func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		file := os.Stdin
 		stats, err := file.Stat()
-
 		if err != nil {
 			return err
 		}
@@ -41,7 +40,6 @@ func hashCommandRunE() func(*cobra.Command, []string) error {
 
 		if (stats.Mode() & os.ModeCharDevice) == 0 {
 			p, err = io.ReadAll(os.Stdin)
-
 			if err != nil {
 				return err
 			}
@@ -58,7 +56,6 @@ func hashCommandRunE() func(*cobra.Command, []string) error {
 		}
 
 		secret, err := bcrypt.GenerateFromPassword(p, bcrypt.DefaultCost)
-
 		if err != nil {
 			return err
 		}

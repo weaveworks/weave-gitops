@@ -16,7 +16,7 @@ linters:
     - gocritic
     #- gocyclo
     #- godot
-    #- gofumpt
+    - gofumpt
     #- gosec
     - gosimple
     - govet

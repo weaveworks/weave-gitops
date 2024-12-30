@@ -9,7 +9,6 @@ import (
 )
 
 var _ = Describe("GetKubeClient", func() {
-
 	It("returns kube client", func() {
 		kubeConfigArgs := GetKubeConfigArgs()
 

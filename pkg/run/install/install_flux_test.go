@@ -117,5 +117,4 @@ var _ = Describe("GetFluxVersion", func() {
 
 		Eventually(kubeClient.Delete(ctx, fluxNs)).ProbeEvery(1 * time.Second).Should(Succeed())
 	})
-
 })

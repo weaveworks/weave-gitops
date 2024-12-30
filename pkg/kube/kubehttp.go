@@ -56,17 +56,17 @@ func CreateScheme() (*apiruntime.Scheme, error) {
 	return scheme, nil
 }
 
-const WeGOCRDName = "apps.wego.weave.works"
-const FluxNamespace = "flux-system"
+const (
+	WeGOCRDName   = "apps.wego.weave.works"
+	FluxNamespace = "flux-system"
+)
 
 const (
 	WegoConfigMapName = "weave-gitops-config"
 )
 
-var (
-	// ErrWegoConfigNotFound indicates weave gitops config could not be found
-	ErrWegoConfigNotFound = errors.New("wego config not found")
-)
+// ErrWegoConfigNotFound indicates weave gitops config could not be found
+var ErrWegoConfigNotFound = errors.New("wego config not found")
 
 // InClusterConfig defines a function for checking if this code is executing in kubernetes.
 // This can be overriden if needed.

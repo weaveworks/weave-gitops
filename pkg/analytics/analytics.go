@@ -37,9 +37,11 @@ type analyticsRequestBody struct {
 	Properties    *eventProperties `json:"properties"`
 }
 
-const tierKey = "tier"
-const versionKey = "version"
-const appKey = "app"
+const (
+	tierKey    = "tier"
+	versionKey = "version"
+	appKey     = "app"
+)
 
 type eventProperties map[string]interface{}
 

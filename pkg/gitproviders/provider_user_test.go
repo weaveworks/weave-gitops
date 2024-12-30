@@ -28,7 +28,7 @@ var _ = Describe("User Provider", func() {
 		repoURL RepoURL
 	)
 
-	var _ = BeforeEach(func() {
+	_ = BeforeEach(func() {
 		commitClient = &fakegitprovider.CommitClient{}
 		branchesClient = &fakegitprovider.BranchClient{}
 		pullRequestsClient = &fakegitprovider.PullRequestClient{}

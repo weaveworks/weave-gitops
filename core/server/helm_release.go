@@ -18,7 +18,6 @@ func getHelmReleaseInventory(ctx context.Context, helmRelease helmv2.HelmRelease
 	}
 
 	objects, err := getHelmReleaseObjects(ctx, k8sClient, &helmRelease)
-
 	if err != nil {
 		return nil, err
 	}

@@ -13,11 +13,9 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 )
 
-var (
-	PublicRoutes = []string{
-		"/v1/featureflags",
-	}
-)
+var PublicRoutes = []string{
+	"/v1/featureflags",
+}
 
 type Config struct {
 	CoreServerConfig core.CoreServerConfig

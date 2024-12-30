@@ -16,9 +16,7 @@ import (
 )
 
 var _ = Describe("KubeHTTP", func() {
-	var (
-		namespace *corev1.Namespace
-	)
+	var namespace *corev1.Namespace
 
 	BeforeEach(func() {
 		namespace = &corev1.Namespace{}

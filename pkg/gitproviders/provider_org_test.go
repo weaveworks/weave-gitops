@@ -29,7 +29,7 @@ var _ = Describe("Org Provider", func() {
 		repoURL RepoURL
 	)
 
-	var _ = BeforeEach(func() {
+	_ = BeforeEach(func() {
 		commitClient = &fakegitprovider.CommitClient{}
 		branchesClient = &fakegitprovider.BranchClient{}
 		pullRequestsClient = &fakegitprovider.PullRequestClient{}

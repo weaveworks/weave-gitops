@@ -95,7 +95,6 @@ gitops check oidc-config --skip-secret --client-id=CID --client-secret=SEC --iss
 				ClaimUsername:   claimUsernameFlag,
 				ClaimGroups:     claimGroupsFlag,
 			}, log, kubeClient)
-
 			if err != nil {
 				return fmt.Errorf("failed getting claims: %w", err)
 			}

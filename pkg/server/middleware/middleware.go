@@ -25,9 +25,11 @@ func (r *statusRecorder) WriteHeader(status int) {
 	r.ResponseWriter.WriteHeader(status)
 }
 
-var RequestOkText = "request success"
-var RequestErrorText = "request error"
-var ServerErrorText = "server error"
+var (
+	RequestOkText    = "request success"
+	RequestErrorText = "request error"
+	ServerErrorText  = "server error"
+)
 
 // WithGrpcErrorLogging logs errors returned from server RPC handlers.
 // Our errors happen in gRPC land, so we cannot introspect into the content of

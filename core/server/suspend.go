@@ -12,8 +12,10 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 )
 
-const SuspendedByAnnotation = "metadata.weave.works/suspended-by"
-const SuspendedCommentAnnotation = "metadata.weave.works/suspended-comment"
+const (
+	SuspendedByAnnotation      = "metadata.weave.works/suspended-by"
+	SuspendedCommentAnnotation = "metadata.weave.works/suspended-comment"
+)
 
 func (cs *coreServer) ToggleSuspendResource(ctx context.Context, msg *pb.ToggleSuspendResourceRequest) (*pb.ToggleSuspendResourceResponse, error) {
 	principal := auth.Principal(ctx)

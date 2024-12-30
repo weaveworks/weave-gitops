@@ -78,7 +78,6 @@ func (i *internalJWTClient) VerifyJWT(accessToken string) (*Claims, error) {
 			return []byte(i.secretKey), nil
 		},
 	)
-
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrUnauthorizedToken, err)
 	}

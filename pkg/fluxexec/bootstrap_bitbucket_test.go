@@ -44,7 +44,5 @@ var _ = Describe("bootstrapBitBucketServerCmd", func() {
 				"--group", "group1,group2",
 			}))
 		})
-
 	})
-
 })

@@ -9,9 +9,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 )
 
-var (
-	cliRunner runner.Runner
-)
+var cliRunner runner.Runner
 
 var _ = BeforeEach(func() {
 	cliRunner = &runner.CLIRunner{}

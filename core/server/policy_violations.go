@@ -60,8 +60,8 @@ func (cs *coreServer) ListPolicyValidations(ctx context.Context, m *pb.ListPolic
 	}
 
 	labelSelector, err := k8sLabels.ValidatedSelectorFromSet(map[string]string{
-		"pac.weave.works/type": validationType})
-
+		"pac.weave.works/type": validationType,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("error building selector for events query: %v", err)
 	}
@@ -134,8 +134,8 @@ func (cs *coreServer) GetPolicyValidation(ctx context.Context, m *pb.GetPolicyVa
 
 	selector, err := k8sLabels.ValidatedSelectorFromSet(map[string]string{
 		"pac.weave.works/type": validationType,
-		"pac.weave.works/id":   m.ValidationId})
-
+		"pac.weave.works/id":   m.ValidationId,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("error building selector for events query: %v", err)
 	}

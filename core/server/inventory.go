@@ -180,7 +180,7 @@ func getHelmReleaseObjects(ctx context.Context, k8sClient client.Client, helmRel
 		return nil, err
 	}
 
-	var magicGzip = []byte{0x1f, 0x8b, 0x08}
+	magicGzip := []byte{0x1f, 0x8b, 0x08}
 	if bytes.Equal(byteData[0:3], magicGzip) {
 		r, err := gzip.NewReader(bytes.NewReader(byteData))
 		if err != nil {

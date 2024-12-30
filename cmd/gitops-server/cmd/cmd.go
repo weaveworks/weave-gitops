@@ -151,7 +151,6 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	mux.Handle("/health/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		_, err := w.Write([]byte("ok"))
-
 		if err != nil {
 			log.Error(err, "error writing health check")
 		}
