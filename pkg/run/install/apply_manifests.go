@@ -29,7 +29,7 @@ func NewManager(ctx context.Context, log logger.Logger, kubeClient ctrlclient.Cl
 }
 
 // apply is the equivalent of 'kubectl apply --server-side -f'.
-func apply(ctx context.Context, log logger.Logger, manager ResourceManagerForApply, manifestsContent []byte) (string, error) { // nolint:unparam
+func apply(ctx context.Context, log logger.Logger, manager ResourceManagerForApply, manifestsContent []byte) (string, error) { //nolint:unparam
 	objs, err := utils.ReadObjects(bytes.NewReader(manifestsContent))
 	if err != nil {
 		log.Failuref("Error reading Kubernetes objects from the manifests")

@@ -23,7 +23,7 @@ linters:
     - ineffassign
     #- lll
     #- misspell
-    #- nolintlint
+    - nolintlint
     #- prealloc
     - staticcheck
     - stylecheck
