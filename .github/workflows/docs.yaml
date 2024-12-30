@@ -47,7 +47,7 @@ jobs:
         with:
           name: github-pages
           path: website/build
-          retention-days: 365
+          retention-days: 90
 
   deploy:
     permissions:
