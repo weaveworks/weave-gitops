@@ -27,7 +27,7 @@ jobs:
       old-version: ${{ steps.old-version.outputs.version }}
       new-version: ${{ steps.new-version.outputs.version }}
     steps:
-      - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0
       - name: Find new version
@@ -47,7 +47,7 @@ jobs:
     needs: helm-new-version
     if: github.event_name == 'pull_request' && needs.helm-new-version.outputs.old-version != needs.helm-new-version.outputs.new-version
     steps:
-      - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0
       - name: Find out if there's more changes to release
@@ -62,7 +62,7 @@ jobs:
               echo "::set-output name=unreleased-commits::The last chart was last released in $last_revision and there have been other changes in the chart since"
           fi
       - name: Let user know merging will cause a release
-        uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         with:
           github-token: ${{ secrets.WEAVE_GITOPS_BOT_ACCESS_TOKEN }}
           script: |
@@ -81,7 +81,7 @@ jobs:
     permissions:
       packages: write # needed for ghcr access
     steps:
-      - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Find new version
         id: new_version
         run: |
@@ -95,17 +95,17 @@ jobs:
           curl -O $URL/index.yaml
           helm repo index helm-release --merge=index.yaml --url=$URL
       - id: auth
-        uses: google-github-actions/auth@35b0e87d162680511bf346c299f71c9c5c379033 # v1.1.1
+        uses: google-github-actions/auth@6fc4af4b145ae7821d527454aa9bd537d1f2dc5f # v2.1.7
         with:
           credentials_json: ${{ secrets.PROD_DOCS_GITOPS_UPLOAD }}
       - id: upload-file
-        uses: google-github-actions/upload-cloud-storage@e95a15f226403ed658d3e65f40205649f342ba2c # v1.0.3
+        uses: google-github-actions/upload-cloud-storage@386ab77f37fdf51c0e38b3d229fad286861cc0d0 # v2.2.1
         with:
           path: helm-release
           destination: helm.gitops.weave.works
           parent: false
       - name: Log in to the Container registry
-        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
