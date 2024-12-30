@@ -11,6 +11,9 @@ module.exports = {
   organizationName: "weaveworks", // Usually your GitHub org/user name.
   projectName: "weave-gitops", // Usually your repo name.
   trailingSlash: true,
+  future: {
+    experimental_faster: true,
+  },
   plugins: [
     () => ({
       // Load yaml files as blobs

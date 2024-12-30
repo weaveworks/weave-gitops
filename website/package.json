@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@docusaurus/core": "^3.6.3",
+    "@docusaurus/faster": "^3.6.3",
     "@docusaurus/plugin-client-redirects": "^3.6.3",
     "@docusaurus/plugin-google-analytics": "^3.6.3",
     "@docusaurus/plugin-google-gtag": "^3.6.3",
@@ -31,7 +32,7 @@
     "react-player": "^2.11.0",
     "trim": "^1.0.1",
     "url-loader": "^4.1.1",
-    "webpack": "^5.94.0"
+    "webpack": "^5.97.1"
   },
   "browserslist": {
     "production": [
