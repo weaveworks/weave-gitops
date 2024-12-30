@@ -13758,7 +13758,6 @@ __metadata:
     react-dom: "npm:^18.0.0"
     react-player: "npm:^2.11.0"
     trim: "npm:^1.0.1"
-    url-loader: "npm:^4.1.1"
     webpack: "npm:^5.97.1"
     yarn-audit-fix: "npm:^9.2.1"
   languageName: unknown
