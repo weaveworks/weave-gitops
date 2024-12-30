@@ -8,11 +8,12 @@ import (
 
 	"github.com/alexedwards/scs/v2"
 	"github.com/go-logr/logr"
-	"github.com/weaveworks/weave-gitops/core/logger"
-	"github.com/weaveworks/weave-gitops/pkg/featureflags"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/weaveworks/weave-gitops/core/logger"
+	"github.com/weaveworks/weave-gitops/pkg/featureflags"
 )
 
 // AuthParams provides the configuration for the AuthServer.

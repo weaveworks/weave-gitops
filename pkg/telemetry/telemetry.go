@@ -5,11 +5,12 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
-	"github.com/weaveworks/weave-gitops/pkg/featureflags"
 	"golang.org/x/crypto/sha3"
 	v1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
+	"github.com/weaveworks/weave-gitops/pkg/featureflags"
 )
 
 func InitTelemetry(ctx context.Context, cl cluster.Cluster) error {

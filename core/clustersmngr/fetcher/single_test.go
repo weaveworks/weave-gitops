@@ -5,10 +5,11 @@ import (
 	"testing"
 
 	. "github.com/onsi/gomega"
+	"k8s.io/client-go/rest"
+
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/fetcher"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"k8s.io/client-go/rest"
 )
 
 func TestSingleFetcher(t *testing.T) {

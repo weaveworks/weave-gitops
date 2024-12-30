@@ -10,9 +10,8 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/onsi/gomega"
-
 	"github.com/minio/minio-go/v7/pkg/signer"
+	. "github.com/onsi/gomega"
 )
 
 func generateRandomBody(method string) io.Reader {

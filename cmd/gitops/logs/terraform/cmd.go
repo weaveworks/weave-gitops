@@ -5,14 +5,16 @@ import (
 	ctx "context"
 	"errors"
 	"fmt"
-	"github.com/spf13/cobra"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
-	"github.com/weaveworks/weave-gitops/pkg/run"
 	"io"
+
+	"github.com/spf13/cobra"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/client-go/kubernetes"
+
+	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
+	"github.com/weaveworks/weave-gitops/pkg/run"
 )
 
 var kubeConfigArgs *genericclioptions.ConfigFlags

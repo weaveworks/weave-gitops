@@ -2,10 +2,11 @@ package run
 
 import (
 	runclient "github.com/fluxcd/pkg/runtime/client"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/client-go/rest"
+
+	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/logger"
 )
 
 func GetKubeConfigArgs() *genericclioptions.ConfigFlags {

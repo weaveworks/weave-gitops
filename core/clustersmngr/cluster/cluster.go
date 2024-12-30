@@ -6,11 +6,12 @@ import (
 	"os"
 	"time"
 
-	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/cli-utils/pkg/flowcontrol"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate

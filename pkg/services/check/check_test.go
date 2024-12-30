@@ -4,13 +4,13 @@ import (
 	"errors"
 	"testing"
 
+	. "github.com/onsi/gomega"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/version"
 	fakediscovery "k8s.io/client-go/discovery/fake"
 	fakeclientset "k8s.io/client-go/kubernetes/fake"
 	kubetesting "k8s.io/client-go/testing"
 
-	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops/pkg/services/check"
 )
 

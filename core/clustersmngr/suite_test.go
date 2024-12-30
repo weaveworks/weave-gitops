@@ -4,10 +4,11 @@ import (
 	"os"
 	"testing"
 
+	"k8s.io/client-go/rest"
+
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
-	"k8s.io/client-go/rest"
 )
 
 var k8sEnv *testutils.K8sTestEnv

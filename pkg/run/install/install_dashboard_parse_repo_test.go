@@ -1,8 +1,9 @@
 package install
 
 import (
-	"github.com/onsi/gomega"
 	"testing"
+
+	"github.com/onsi/gomega"
 )
 
 func TestParseImageRepository(t *testing.T) {

@@ -5,6 +5,10 @@ import (
 
 	"github.com/go-logr/logr"
 	. "github.com/onsi/gomega"
+	"golang.org/x/net/context"
+	v1 "k8s.io/api/core/v1"
+	"k8s.io/client-go/kubernetes"
+
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster/clusterfakes"
@@ -15,9 +19,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/featureflags"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
-	"golang.org/x/net/context"
-	v1 "k8s.io/api/core/v1"
-	"k8s.io/client-go/kubernetes"
 )
 
 func TestGetImpersonatedClient(t *testing.T) {

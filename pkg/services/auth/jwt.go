@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
-
 	"github.com/golang-jwt/jwt/v4"
+
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate

@@ -3,11 +3,9 @@ package testutils
 import (
 	"fmt"
 
-	"google.golang.org/grpc/codes"
-
-	"google.golang.org/grpc/status"
-
 	"github.com/onsi/gomega/types"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func MatchGRPCError(code, err interface{}) types.GomegaMatcher {

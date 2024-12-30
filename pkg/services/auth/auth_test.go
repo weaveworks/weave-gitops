@@ -3,19 +3,19 @@ package auth_test
 import (
 	"context"
 
-	"github.com/go-logr/logr"
-	"github.com/weaveworks/weave-gitops/pkg/names"
-	"github.com/weaveworks/weave-gitops/pkg/services/auth"
-
 	"github.com/fluxcd/go-git-providers/gitprovider"
+	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/util/rand"
+
 	"github.com/weaveworks/weave-gitops/pkg/flux"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
+	"github.com/weaveworks/weave-gitops/pkg/names"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/util/rand"
+	"github.com/weaveworks/weave-gitops/pkg/services/auth"
 )
 
 var _ = Describe("auth", func() {

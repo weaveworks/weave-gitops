@@ -24,6 +24,11 @@ import (
 	httpmiddleware "github.com/slok/go-http-metrics/middleware"
 	httpmiddlewarestd "github.com/slok/go-http-metrics/middleware/std"
 	"github.com/spf13/cobra"
+	"k8s.io/client-go/tools/clientcmd"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/config"
+	k8sMetrics "sigs.k8s.io/controller-runtime/pkg/metrics"
+
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
@@ -38,10 +43,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"github.com/weaveworks/weave-gitops/pkg/telemetry"
-	"k8s.io/client-go/tools/clientcmd"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/client/config"
-	k8sMetrics "sigs.k8s.io/controller-runtime/pkg/metrics"
 )
 
 const (

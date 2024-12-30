@@ -5,11 +5,13 @@ import (
 	"testing"
 
 	. "github.com/onsi/gomega"
-	pacv2beta2 "github.com/weaveworks/policy-agent/api/v2beta2"
-	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+
+	pacv2beta2 "github.com/weaveworks/policy-agent/api/v2beta2"
+
+	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 )
 
 func TestListPolicies(t *testing.T) {

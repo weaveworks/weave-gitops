@@ -6,9 +6,10 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/term"
+
+	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 )
 
 func HashCommand(opts *config.Options) *cobra.Command {

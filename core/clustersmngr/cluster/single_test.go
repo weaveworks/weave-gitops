@@ -5,11 +5,12 @@ import (
 	"testing"
 
 	. "github.com/onsi/gomega"
+	"k8s.io/apimachinery/pkg/util/rand"
+	"k8s.io/client-go/rest"
+
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
-	"k8s.io/apimachinery/pkg/util/rand"
-	"k8s.io/client-go/rest"
 )
 
 func TestSingleCluster(t *testing.T) {

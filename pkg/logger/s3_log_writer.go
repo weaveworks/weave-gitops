@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/weaveworks/weave-gitops/pkg/compositehash"
 	"strings"
 	"time"
 
@@ -12,6 +11,7 @@ import (
 	"github.com/minio/minio-go/v7"
 
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
+	"github.com/weaveworks/weave-gitops/pkg/compositehash"
 )
 
 type S3LogWriter struct {

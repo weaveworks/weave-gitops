@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/onsi/gomega"
+
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 )
 

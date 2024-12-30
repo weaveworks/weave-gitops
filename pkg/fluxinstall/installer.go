@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-multierror"
+
 	"github.com/weaveworks/weave-gitops/pkg/fluxinstall/errors"
 	"github.com/weaveworks/weave-gitops/pkg/fluxinstall/src"
 )

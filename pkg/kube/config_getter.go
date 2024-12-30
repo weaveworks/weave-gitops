@@ -3,8 +3,9 @@ package kube
 import (
 	"context"
 
-	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"k8s.io/client-go/rest"
+
+	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 )
 
 // UserPrefixes contains the prefixes for the user and groups

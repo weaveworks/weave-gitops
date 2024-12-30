@@ -5,8 +5,9 @@ import (
 	"sync"
 
 	"github.com/go-logr/logr"
-	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+
+	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 )
 
 // NewNoCacheFetcher creates a new fetcher without cache.

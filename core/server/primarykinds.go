@@ -6,8 +6,9 @@ import (
 	"regexp"
 	"strconv"
 
-	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 )
 
 const (

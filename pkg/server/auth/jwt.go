@@ -10,6 +10,7 @@ import (
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/go-logr/logr"
+
 	"github.com/weaveworks/weave-gitops/core/logger"
 )
 

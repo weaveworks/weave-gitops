@@ -14,7 +14,6 @@ import (
 	notificationv1b2 "github.com/fluxcd/notification-controller/api/v1beta2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
-	pacv2beta2 "github.com/weaveworks/policy-agent/api/v2beta2"
 	appsv1 "k8s.io/api/apps/v1"
 	authv1 "k8s.io/api/authentication/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -25,6 +24,8 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	pacv2beta2 "github.com/weaveworks/policy-agent/api/v2beta2"
 )
 
 func CreateScheme() (*apiruntime.Scheme, error) {

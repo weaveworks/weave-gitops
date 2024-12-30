@@ -13,12 +13,13 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/mattn/go-tty"
 	"github.com/pkg/browser"
-	"github.com/weaveworks/weave-gitops/core/logger"
-	clilogger "github.com/weaveworks/weave-gitops/pkg/logger"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/portforward"
 	"k8s.io/client-go/transport/spdy"
+
+	"github.com/weaveworks/weave-gitops/core/logger"
+	clilogger "github.com/weaveworks/weave-gitops/pkg/logger"
 )
 
 type PortForwardSpec struct {
