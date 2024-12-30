@@ -53,9 +53,6 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
       - run: make unit-tests
-        # server core fails if ui-tests have not just been run.
-        # was this all the case
-      # - run: make lib-test
 
   ci-static:
     name: CI Check Static Checks
