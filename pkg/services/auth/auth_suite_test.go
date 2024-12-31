@@ -5,9 +5,10 @@ import (
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 )
 
 var k8sClient client.Client

@@ -3,8 +3,9 @@ package kubefakes
 import (
 	"context"
 
-	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 )
 
 var _ kube.ClientGetter = &FakeClientGetter{}

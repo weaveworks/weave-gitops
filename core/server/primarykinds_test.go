@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	. "github.com/onsi/gomega"
-
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 

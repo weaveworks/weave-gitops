@@ -6,12 +6,13 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"k8s.io/client-go/rest"
+
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/nsaccess"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/health"
 	"github.com/weaveworks/weave-gitops/pkg/services/crd"
-	"k8s.io/client-go/rest"
 )
 
 func Hydrate(ctx context.Context, mux *runtime.ServeMux, cfg CoreServerConfig) error {

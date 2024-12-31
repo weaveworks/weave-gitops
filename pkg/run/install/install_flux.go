@@ -7,10 +7,10 @@ import (
 
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	coretypes "github.com/weaveworks/weave-gitops/core/server/types"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // Heuristic mapping from the Source controller version to the Flux version.

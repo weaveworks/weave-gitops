@@ -6,9 +6,10 @@ import (
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/go-logr/logr"
-	"github.com/weaveworks/weave-gitops/core/logger"
 	authv1 "k8s.io/api/authentication/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/weaveworks/weave-gitops/core/logger"
 )
 
 // BearerTokenPassthroughPrincipalGetter inspects the Authorization

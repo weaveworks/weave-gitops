@@ -12,7 +12,6 @@ import (
 
 	"github.com/tomwright/dasel"
 	yaml "gopkg.in/yaml.v3"
-
 	validation "k8s.io/apimachinery/pkg/api/validation"
 )
 

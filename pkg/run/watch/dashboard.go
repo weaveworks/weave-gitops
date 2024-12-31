@@ -4,12 +4,13 @@ import (
 	"context"
 	"sync"
 
-	"github.com/weaveworks/weave-gitops/pkg/logger"
-	"github.com/weaveworks/weave-gitops/pkg/run"
-	"github.com/weaveworks/weave-gitops/pkg/server"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"github.com/weaveworks/weave-gitops/pkg/run"
+	"github.com/weaveworks/weave-gitops/pkg/server"
 )
 
 // EnablePortForwardingForDashboard enables port forwarding for the GitOps Dashboard.

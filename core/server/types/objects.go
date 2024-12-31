@@ -3,9 +3,10 @@ package types
 import (
 	"bytes"
 
-	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"k8s.io/apimachinery/pkg/runtime/serializer/json"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 )
 
 type HelmReleaseStorage struct {

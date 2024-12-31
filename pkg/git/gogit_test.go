@@ -9,16 +9,14 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/go-git/go-git/v5/plumbing/transport"
-	"github.com/weaveworks/weave-gitops/pkg/git/wrapper/wrapperfakes"
-
-	"github.com/weaveworks/weave-gitops/pkg/git/wrapper"
-
 	gogit "github.com/go-git/go-git/v5"
-
+	"github.com/go-git/go-git/v5/plumbing/transport"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
 	"github.com/weaveworks/weave-gitops/pkg/git"
+	"github.com/weaveworks/weave-gitops/pkg/git/wrapper"
+	"github.com/weaveworks/weave-gitops/pkg/git/wrapper/wrapperfakes"
 )
 
 var (

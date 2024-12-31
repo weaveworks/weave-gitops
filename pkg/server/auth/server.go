@@ -12,12 +12,13 @@ import (
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/go-logr/logr"
-	"github.com/weaveworks/weave-gitops/core/logger"
-	"github.com/weaveworks/weave-gitops/pkg/featureflags"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/oauth2"
 	corev1 "k8s.io/api/core/v1"
 	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/weaveworks/weave-gitops/core/logger"
+	"github.com/weaveworks/weave-gitops/pkg/featureflags"
 )
 
 const (

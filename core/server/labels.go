@@ -1,8 +1,9 @@
 package server
 
 import (
-	"github.com/weaveworks/weave-gitops/core/server/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/weaveworks/weave-gitops/core/server/types"
 )
 
 type matchLabelOptionFn func() (key, value string)

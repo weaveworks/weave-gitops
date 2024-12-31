@@ -5,10 +5,11 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-multierror"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+
 	"github.com/weaveworks/weave-gitops/core/fluxsync"
 	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const SuspendedByAnnotation = "metadata.weave.works/suspended-by"

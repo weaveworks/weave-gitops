@@ -8,9 +8,10 @@ import (
 	"testing"
 
 	. "github.com/onsi/gomega"
-	l "github.com/weaveworks/weave-gitops/core/logger"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+
+	l "github.com/weaveworks/weave-gitops/core/logger"
 )
 
 func TestNewFromConfigCreatesDevLogger(t *testing.T) {

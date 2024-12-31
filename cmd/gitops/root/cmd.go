@@ -10,6 +10,8 @@ import (
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"k8s.io/client-go/rest"
+
 	"github.com/weaveworks/weave-gitops/cmd/gitops/check"
 	cfg "github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/create"
@@ -26,7 +28,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/config"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
-	"k8s.io/client-go/rest"
 )
 
 const defaultNamespace = "flux-system"

@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/go-logr/logr"
+
 	"github.com/weaveworks/weave-gitops/core/logger"
 )
 

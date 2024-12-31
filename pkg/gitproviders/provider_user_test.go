@@ -8,6 +8,7 @@ import (
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
 	"github.com/weaveworks/weave-gitops/pkg/vendorfakes/fakegitprovider"
 )
 

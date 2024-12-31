@@ -19,13 +19,14 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/oauth2-proxy/mockoidc"
 	. "github.com/onsi/gomega"
-	"github.com/weaveworks/weave-gitops/pkg/featureflags"
-	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"golang.org/x/crypto/bcrypt"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	ctrlclient "sigs.k8s.io/controller-runtime/pkg/client"
 	ctrlclientfake "sigs.k8s.io/controller-runtime/pkg/client/fake"
+
+	"github.com/weaveworks/weave-gitops/pkg/featureflags"
+	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 )
 
 // A custom client that doesn't automatically follow redirects

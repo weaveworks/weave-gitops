@@ -11,7 +11,7 @@ linters:
     #- errchkjson
     #- errname
     #- gochecknoinits
-    #- gci
+    - gci
     #- goconst
     - gocritic
     #- gocyclo

@@ -8,6 +8,7 @@ import (
 	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitlab"
 	"github.com/spf13/viper"
+
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
