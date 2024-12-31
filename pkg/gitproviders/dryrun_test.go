@@ -17,7 +17,7 @@ var (
 )
 
 var _ = Describe("DryRun", func() {
-	var _ = BeforeEach(func() {
+	_ = BeforeEach(func() {
 		orgProvider := orgGitProvider{
 			domain: "github.com",
 			provider: &fakegitprovider.Client{

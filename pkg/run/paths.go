@@ -71,7 +71,6 @@ func findGitRepoDir() (string, error) {
 
 func GetRelativePathToRootDir(rootDir, path string) (string, error) {
 	absGitDir, err := filepath.Abs(rootDir)
-
 	if err != nil { // not in a git repo
 		return "", err
 	}

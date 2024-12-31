@@ -112,7 +112,6 @@ func parseTokenResponseBody(body io.ReadCloser) (internal.GitlabTokenResponse, e
 
 	var tokenResponse internal.GitlabTokenResponse
 	err := json.NewDecoder(body).Decode(&tokenResponse)
-
 	if err != nil {
 		return internal.GitlabTokenResponse{}, err
 	}

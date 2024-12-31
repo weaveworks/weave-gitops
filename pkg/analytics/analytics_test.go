@@ -8,15 +8,15 @@ import (
 
 var _ = Describe("getCommandPath", func() {
 	It("gets command path from command", func() {
-		var rootCmd = &cobra.Command{
+		rootCmd := &cobra.Command{
 			Use: "root",
 		}
 
-		var parentCmd = &cobra.Command{
+		parentCmd := &cobra.Command{
 			Use: "parent",
 		}
 
-		var cmd = &cobra.Command{
+		cmd := &cobra.Command{
 			Use: "cmd",
 		}
 
@@ -27,7 +27,6 @@ var _ = Describe("getCommandPath", func() {
 		commandPath := getCommandPath(cmd)
 
 		Expect(commandPath).To(Equal("parent cmd"))
-
 	})
 })
 

@@ -51,6 +51,5 @@ var _ = Describe("installCmd", func() {
 				"image-reflector-controller,image-automation-controller",
 			}))
 		})
-
 	})
 })

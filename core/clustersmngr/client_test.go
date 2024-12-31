@@ -138,7 +138,7 @@ func TestClientClusteredListPagination(t *testing.T) {
 
 	clusterName := "mycluster"
 
-	createKust := func(name string, nsName string) {
+	createKust := func(name, nsName string) {
 		kust := &kustomizev1.Kustomization{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      name,

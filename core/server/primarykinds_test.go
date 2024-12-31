@@ -16,7 +16,6 @@ func TestVersionRank(t *testing.T) {
 		gvk2     schema.GroupVersionKind
 		expected int
 	}{
-
 		{schema.GroupVersionKind{Version: "v1"}, schema.GroupVersionKind{Version: "v1alpha1"}, 1},
 		{schema.GroupVersionKind{Version: "v1"}, schema.GroupVersionKind{Version: "v1beta1"}, 1},
 		{schema.GroupVersionKind{Version: "v1"}, schema.GroupVersionKind{Version: "v1beta2"}, 1},
@@ -70,7 +69,8 @@ func TestGetPrimaryKinds(t *testing.T) {
 				{Group: "core", Version: "v2", Kind: "Pod"}:        reflect.TypeOf(PodV2{}),
 				{Group: "core", Version: "v1alpha1", Kind: "Node"}: reflect.TypeOf(NodeV1a1{}),
 				{Group: "core", Version: "v1beta2", Kind: "Node"}:  reflect.TypeOf(NodeV1b2{}),
-				{Group: "core", Version: "v1beta1", Kind: "Node"}:  reflect.TypeOf(NodeV1b1{})},
+				{Group: "core", Version: "v1beta1", Kind: "Node"}:  reflect.TypeOf(NodeV1b1{}),
+			},
 		}
 
 		primaryKinds, err := getPrimaryKinds(scheme)

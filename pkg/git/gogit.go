@@ -53,7 +53,6 @@ func New(auth transport.AuthMethod, wrapper wrapper.Git) Git {
 func (g *GoGit) Open(path string) (*gogit.Repository, error) {
 	g.path = path
 	repo, err := g.git.PlainOpen(path)
-
 	if err != nil {
 		return nil, err
 	}
@@ -144,7 +143,6 @@ func (g *GoGit) clone(ctx context.Context, path, url, branch string, depth int) 
 		Depth:         depth,
 		Tags:          gogit.NoTags,
 	})
-
 	if err != nil {
 		return nil, err
 	}

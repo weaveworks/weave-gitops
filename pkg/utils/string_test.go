@@ -6,7 +6,6 @@ import (
 )
 
 var _ = Describe("Generate random string", func() {
-
 	It("does not return the same value on each call", func() {
 		value1, _ := GenerateRandomString(10, 20)
 		value2, _ := GenerateRandomString(10, 20)
@@ -36,5 +35,4 @@ var _ = Describe("Generate random string", func() {
 		Expect(err).To(BeNil())
 		Expect(len(value)).To(BeNumerically("<", 12))
 	})
-
 })

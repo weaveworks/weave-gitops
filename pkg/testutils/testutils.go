@@ -71,7 +71,6 @@ func StartK8sTestEnvironment(crdPaths []string) (*K8sTestEnv, error) {
 
 	var err error
 	cfg, err := testEnv.Start()
-
 	if err != nil {
 		return nil, fmt.Errorf("could not start testEnv: %w", err)
 	}

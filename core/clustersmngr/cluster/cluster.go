@@ -88,7 +88,6 @@ func getEnvDuration(key string, defaultDuration time.Duration) time.Duration {
 	}
 
 	d, err := time.ParseDuration(val)
-
 	// on error return the default duration
 	if err != nil {
 		return defaultDuration

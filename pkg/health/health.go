@@ -180,14 +180,15 @@ func checkStatefulSet(obj unstructured.Unstructured) (HealthStatus, error) {
 		return HealthStatus{Status: HealthStatusProgressing, Message: "waiting for ready replicas"}, nil
 	}
 
-	//ref: https://github.com/kubernetes/kubernetes/blob/5232ad4a00ec93942d0b2c6359ee6cd1201b46bc/pkg/kubectl/rollout_status.go#L137
+	// ref: https://github.com/kubernetes/kubernetes/blob/5232ad4a00ec93942d0b2c6359ee6cd1201b46bc/pkg/kubectl/rollout_status.go#L137
 	if sts.Spec.UpdateStrategy.Type == appsv1.RollingUpdateStatefulSetStrategyType && sts.Spec.UpdateStrategy.RollingUpdate != nil {
 		if sts.Spec.Replicas != nil && sts.Spec.UpdateStrategy.RollingUpdate.Partition != nil {
 			if sts.Status.UpdatedReplicas < (*sts.Spec.Replicas - *sts.Spec.UpdateStrategy.RollingUpdate.Partition) {
 				return HealthStatus{
 					Status: HealthStatusProgressing,
 					Message: fmt.Sprintf("Waiting for partitioned roll out to finish: %d out of %d new pods have been updated...\n",
-						sts.Status.UpdatedReplicas, (*sts.Spec.Replicas - *sts.Spec.UpdateStrategy.RollingUpdate.Partition))}, nil
+						sts.Status.UpdatedReplicas, (*sts.Spec.Replicas - *sts.Spec.UpdateStrategy.RollingUpdate.Partition)),
+				}, nil
 			}
 		}
 

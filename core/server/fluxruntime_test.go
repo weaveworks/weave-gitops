@@ -563,7 +563,8 @@ func TestListRuntimeCrds(t *testing.T) {
 				}, Spec: apiextensions.CustomResourceDefinitionSpec{
 					Group:    "group",
 					Names:    apiextensions.CustomResourceDefinitionNames{Plural: "policies", Kind: "kind"},
-					Versions: []apiextensions.CustomResourceDefinitionVersion{}}},
+					Versions: []apiextensions.CustomResourceDefinitionVersion{},
+				}},
 			},
 			func(res *pb.ListRuntimeCrdsResponse) {
 				g.Expect(res.Crds).To(HaveLen(2))

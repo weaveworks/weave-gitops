@@ -32,8 +32,10 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
 )
 
-var k8sEnv *testutils.K8sTestEnv
-var nsChecker nsaccessfakes.FakeChecker
+var (
+	k8sEnv    *testutils.K8sTestEnv
+	nsChecker nsaccessfakes.FakeChecker
+)
 
 func TestMain(m *testing.M) {
 	var err error
@@ -41,7 +43,6 @@ func TestMain(m *testing.M) {
 		"../../manifests/crds",
 		"../../tools/testcrds",
 	})
-
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to start test environment: %v\n", err)
 		os.Exit(1)

@@ -104,7 +104,6 @@ func CreateDashboardObjects(log logger.Logger, name, namespace, username, passwo
 
 	helmRepository := makeHelmRepository(name, namespace)
 	helmRelease, err := makeHelmRelease(log, name, namespace, username, passwordHash, chartVersion, dashboardImage, valuesFromFiles)
-
 	if err != nil {
 		log.Failuref("Creating HelmRelease failed")
 		return nil, err
@@ -445,12 +444,11 @@ func parseImageRepository(input string) (repository, image, tag string, err erro
 func makeValues(username, passwordHash, dashboardImage string, valuesFromFiles map[string]interface{}) ([]byte, error) {
 	valuesMap := make(map[string]interface{})
 	if username != "" && passwordHash != "" {
-		valuesMap["adminUser"] =
-			map[string]interface{}{
-				"create":       true,
-				"username":     username,
-				"passwordHash": passwordHash,
-			}
+		valuesMap["adminUser"] = map[string]interface{}{
+			"create":       true,
+			"username":     username,
+			"passwordHash": passwordHash,
+		}
 	}
 
 	gitopsConfig, err := config.GetConfig(false)

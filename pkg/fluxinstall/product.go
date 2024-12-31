@@ -63,7 +63,6 @@ func (p *Product) Install(ctx context.Context) (string, error) {
 	binaryURL := fmt.Sprintf("https://github.com/fluxcd/flux2/releases/download/v%s/flux_%s_%s_%s.%s", p.Version, p.Version, runtime.GOOS, runtime.GOARCH, extension)
 	client := p.cli
 	resp, err := client.Get(binaryURL)
-
 	if err != nil {
 		return "", err
 	}
@@ -123,7 +122,6 @@ func (p *Product) verifyChecksum(filename, sum string) error {
 	checkSumURL := fmt.Sprintf("https://github.com/fluxcd/flux2/releases/download/v%s/flux_%s_checksums.txt", p.Version, p.Version)
 	client := p.cli
 	resp, err := client.Get(checkSumURL)
-
 	if err != nil {
 		return err
 	}

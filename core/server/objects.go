@@ -202,7 +202,6 @@ func (cs *coreServer) sessionObjectsCreated(ctx context.Context, clusterName, ob
 		Kind:        automationKind,
 		ClusterName: clusterName,
 	})
-
 	if err != nil {
 		return false, err
 	}
@@ -213,7 +212,6 @@ func (cs *coreServer) sessionObjectsCreated(ctx context.Context, clusterName, ob
 		Kind:        "Bucket",
 		ClusterName: clusterName,
 	})
-
 	if err != nil {
 		return false, err
 	}
@@ -268,7 +266,6 @@ func (cs *coreServer) GetObject(ctx context.Context, msg *pb.GetObjectRequest) (
 	tenant := GetTenant(obj.GetNamespace(), msg.ClusterName, clusterUserNamespaces)
 
 	res, err := types.K8sObjectToProto(obj, msg.ClusterName, tenant, inventory, "")
-
 	if err != nil {
 		return nil, fmt.Errorf("converting object to proto: %w", err)
 	}

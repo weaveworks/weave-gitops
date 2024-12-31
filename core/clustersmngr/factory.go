@@ -34,9 +34,7 @@ const (
 	usersClientResolution   = 30 * time.Second
 )
 
-var (
-	usersClientsTTL = getEnvDuration("WEAVE_GITOPS_USERS_CLIENTS_TTL", 30*time.Minute)
-)
+var usersClientsTTL = getEnvDuration("WEAVE_GITOPS_USERS_CLIENTS_TTL", 30*time.Minute)
 
 func getEnvDuration(key string, defaultDuration time.Duration) time.Duration {
 	val := os.Getenv(key)
@@ -45,7 +43,6 @@ func getEnvDuration(key string, defaultDuration time.Duration) time.Duration {
 	}
 
 	d, err := time.ParseDuration(val)
-
 	// on error return the default duration
 	if err != nil {
 		return defaultDuration

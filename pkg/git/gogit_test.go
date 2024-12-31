@@ -102,7 +102,6 @@ var _ = Describe("ValidateAccess", func() {
 	})
 
 	It("should not fail on an empty repo", func() {
-
 		fakeGit.PlainCloneContextReturns(nil, transport.ErrEmptyRemoteRepository)
 
 		err := fakeGitClient.ValidateAccess(context.Background(), "https://github.com/githubtraining/hellogitworld", "master")
@@ -111,7 +110,6 @@ var _ = Describe("ValidateAccess", func() {
 	})
 
 	It("should fail with custom error", func() {
-
 		customError := errors.New("my-custom-error")
 
 		fakeGit.PlainCloneContextReturns(nil, customError)
@@ -122,7 +120,6 @@ var _ = Describe("ValidateAccess", func() {
 	})
 
 	It("should fail to create temporary directory", func() {
-
 		tempDirName := "-*/3486rw7f"
 
 		os.Setenv("TMPDIR", tempDirName)
@@ -444,7 +441,6 @@ var _ = Describe("Remove", func() {
 
 var _ = Describe("Checkout", func() {
 	It("succeeds", func() {
-
 		_, err = gitClient.Clone(context.Background(), dir, "https://github.com/github/gitignore", "main")
 		Expect(err).ShouldNot(HaveOccurred())
 
@@ -461,7 +457,8 @@ var _ = Describe("Checkout", func() {
 			Author: git.Author{
 				Name:  "test",
 				Email: "test@test.com",
-			}},
+			},
+		},
 			func(s string) bool {
 				return true
 			})

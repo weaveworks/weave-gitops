@@ -177,7 +177,7 @@ func (c *clustersClient) ClusteredList(ctx context.Context, clist ClusteredObjec
 
 			wg.Add(1)
 
-			go func(clusterName string, nsName string, c client.Client, optsWithNamespace ...client.ListOption) {
+			go func(clusterName, nsName string, c client.Client, optsWithNamespace ...client.ListOption) {
 				defer wg.Done()
 
 				list := clist.NewList()

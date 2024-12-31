@@ -22,10 +22,8 @@ const (
 	ExcludeExtra = "**/.goreleaser.yml,**/.goreleaser.brew.yml,**/.sops.yaml,**/.flux.yaml,**/.golangci.yaml"
 )
 
-var (
-	// ErrIgnoreFileExists is returned when the ignore file already exists when attempting to create it
-	ErrIgnoreFileExists = fmt.Errorf("%s file  already exists", IgnoreFilename)
-)
+// ErrIgnoreFileExists is returned when the ignore file already exists when attempting to create it
+var ErrIgnoreFileExists = fmt.Errorf("%s file  already exists", IgnoreFilename)
 
 // IgnoreFilter ignores certain files based on a list of patterns and domain.
 type IgnoreFilter func(p string, fi os.FileInfo) bool

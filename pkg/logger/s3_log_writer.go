@@ -20,9 +20,11 @@ type S3LogWriter struct {
 	log0  Logger
 }
 
-const SessionLogBucketName = "gitops-run-logs"
-const PodLogBucketName = "pod-logs"
-const SessionLogSource = "gitops-run-client"
+const (
+	SessionLogBucketName = "gitops-run-logs"
+	PodLogBucketName     = "pod-logs"
+	SessionLogSource     = "gitops-run-client"
+)
 
 func (l *S3LogWriter) L() logr.Logger {
 	return l.log0.L()
@@ -78,7 +80,6 @@ func (l *S3LogWriter) putLog(msg string) {
 		// This funny pattern 20060102-150405.00000 is the layout needed by time.Format
 		fmt.Sprintf("%s/%s.txt", l.id, now.Format("20060102-150405.00000")),
 		strings.NewReader(logMsg), int64(len(logMsg)), minio.PutObjectOptions{})
-
 	if err != nil {
 		l.log0.Failuref("failed to put log to s3: %v", err)
 	}

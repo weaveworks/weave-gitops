@@ -144,16 +144,17 @@ func TestSuspend_Suspend(t *testing.T) {
 		md := metadata.Pairs(MetadataUserKey, "anne", MetadataGroupsKey, "system:masters")
 		outgoingCtx := metadata.NewOutgoingContext(ctx, md)
 		_, err = c.ToggleSuspendResource(outgoingCtx, &api.ToggleSuspendResourceRequest{
-
 			Objects: []*api.ObjectRef{{
 				Kind:        sourcev1.GitRepositoryKind,
 				Name:        "fakeName",
 				Namespace:   "fakeNamespace",
 				ClusterName: "Default",
-			}, {Kind: sourcev1.GitRepositoryKind,
+			}, {
+				Kind:        sourcev1.GitRepositoryKind,
 				Name:        "fakeName2",
 				Namespace:   "fakeNamespace2",
-				ClusterName: "Default2"}},
+				ClusterName: "Default2",
+			}},
 			Suspend: true,
 		})
 

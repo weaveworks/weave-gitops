@@ -18,7 +18,6 @@ var _ = DescribeTable("buildGitProvider", func(input Config, expected expectedGi
 	Expect(c.ProviderID()).To(Equal(gitprovider.ProviderID(expected.clientProviderID)), "ProviderID")
 	Expect(c.SupportedDomain()).To(Equal(expected.clientDomain), "SupportedDomain")
 	Expect(h).To(Equal(expected.hostname), "hostname")
-
 },
 	Entry("github.com", Config{Provider: "github", Hostname: "github.com", Token: "abc"}, expectedGitProvider{
 		clientDomain:     "github.com",

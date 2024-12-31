@@ -46,5 +46,4 @@ var _ = Describe("Install Flux CLI", func() {
 			Expect(err).To(BeNil())
 		})
 	})
-
 })

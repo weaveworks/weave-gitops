@@ -420,7 +420,6 @@ ItemsLoop:
 		tenant := GetTenant(obj.GetNamespace(), msg.ClusterName, clusterUserNamespaces)
 
 		obj, err := coretypes.K8sObjectToProto(&obj, msg.ClusterName, tenant, nil, "")
-
 		if err != nil {
 			respErrors = *multierror.Append(fmt.Errorf("error converting objects: %w", err), respErrors.Errors...)
 			continue

@@ -7,10 +7,12 @@ import (
 )
 
 // Version is the current wego version
-var Version = "v0.0.0"
-var GitCommit = ""
-var Branch = ""
-var BuildTime = ""
+var (
+	Version   = "v0.0.0"
+	GitCommit = ""
+	Branch    = ""
+	BuildTime = ""
+)
 
 var Cmd = &cobra.Command{
 	Use:   "version",

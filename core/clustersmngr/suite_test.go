@@ -19,7 +19,6 @@ func TestMain(m *testing.M) {
 		"../../manifests/crds",
 		"../../tools/testcrds",
 	})
-
 	if err != nil {
 		panic(err)
 	}

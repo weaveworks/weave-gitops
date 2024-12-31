@@ -31,6 +31,5 @@ var _ = Describe("bootstrapGitLabCmd", func() {
 				"--secret-name", "weave-gitops-system",
 			}))
 		})
-
 	})
 })

@@ -14,8 +14,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-var k8sPollInterval = 2 * time.Second
-var k8sTimeout = 1 * time.Minute
+var (
+	k8sPollInterval = 2 * time.Second
+	k8sTimeout      = 1 * time.Minute
+)
 
 // RequestReconciliation sets the annotations of an object so that the flux controller(s) will force a reconciliation.
 // Take straight from the flux CLI source:

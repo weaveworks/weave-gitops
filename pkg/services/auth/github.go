@@ -112,11 +112,15 @@ func doGithubCodeRequest(client *http.Client, scope string) (*GithubDeviceCodeRe
 	return d, nil
 }
 
-var ErrAuthPending = errors.New("auth pending")
-var ErrSlowDown = errors.New("slow down")
+var (
+	ErrAuthPending = errors.New("auth pending")
+	ErrSlowDown    = errors.New("slow down")
+)
 
-const accessTokenURL = "https://github.com/login/oauth/access_token?%s"
-const githubRequiredGrantType = "urn:ietf:params:oauth:grant-type:device_code"
+const (
+	accessTokenURL          = "https://github.com/login/oauth/access_token?%s"
+	githubRequiredGrantType = "urn:ietf:params:oauth:grant-type:device_code"
+)
 
 // It appears we need `repo` scope, which is VERY permissive.
 // We need to be able to push a deploy key and merge commits. No other scopes matched.
