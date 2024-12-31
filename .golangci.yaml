@@ -8,7 +8,7 @@ linters:
     #- contextcheck
     - depguard
     - errcheck
-    #- errchkjson
+    - errchkjson
     #- errname
     #- gochecknoinits
     - gci

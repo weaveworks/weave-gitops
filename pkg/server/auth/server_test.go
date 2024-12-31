@@ -233,8 +233,7 @@ func TestSignInNoSecret(t *testing.T) {
 
 	s, _ := makeAuthServer(t, ctrlclientfake.NewClientBuilder().Build(), tokenSignerVerifier, []auth.AuthMethod{auth.OIDC}, &fakeSessionManager{})
 
-	j, err := json.Marshal(auth.LoginRequest{})
-	g.Expect(err).NotTo(HaveOccurred())
+	j, _ := json.Marshal(auth.LoginRequest{})
 
 	reader := bytes.NewReader(j)
 
@@ -277,8 +276,7 @@ func TestSignInWrongUsernameReturnsUnauthorized(t *testing.T) {
 		Password: "my-secret-password",
 	}
 
-	j, err := json.Marshal(login)
-	g.Expect(err).NotTo(HaveOccurred())
+	j, _ := json.Marshal(login)
 
 	reader := bytes.NewReader(j)
 
@@ -318,8 +316,7 @@ func TestSignInWrongPasswordReturnsUnauthorized(t *testing.T) {
 		Password: "wrong",
 	}
 
-	j, err := json.Marshal(login)
-	g.Expect(err).NotTo(HaveOccurred())
+	j, _ := json.Marshal(login)
 
 	reader := bytes.NewReader(j)
 
@@ -358,8 +355,7 @@ func TestSignInCorrectPassword(t *testing.T) {
 		Password: password,
 	}
 
-	j, err := json.Marshal(login)
-	g.Expect(err).NotTo(HaveOccurred())
+	j, _ := json.Marshal(login)
 
 	reader := bytes.NewReader(j)
 

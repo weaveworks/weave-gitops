@@ -67,10 +67,7 @@ func (l *S3LogWriter) putLog(msg string) {
 		Message:    msg,
 	}
 
-	logData, err := json.Marshal(result)
-	if err != nil {
-		l.log0.Failuref("failed to marshal log data to JSON: %v", err)
-	}
+	logData, _ := json.Marshal(result)
 
 	// append new line at the end of each log
 	logMsg := string(logData) + "\n"
