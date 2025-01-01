@@ -17,6 +17,7 @@ export interface Breadcrumb {
   url?: string;
 }
 interface Props {
+  className?: string;
   path: Breadcrumb[];
 }
 export const Breadcrumbs = ({ path = [] }: Props) => {

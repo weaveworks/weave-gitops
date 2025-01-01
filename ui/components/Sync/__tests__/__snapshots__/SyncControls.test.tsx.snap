@@ -2,35 +2,16 @@
 
 exports[`SyncControls snapshots allButtonsDisabled 1`] = `
 .c0 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
   flex-direction: row;
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
   align-items: center;
   width: 100%;
-  -webkit-box-pack: start;
-  -webkit-justify-content: flex-start;
-  -ms-flex-pack: start;
   justify-content: flex-start;
 }
 
 .c3 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
   flex-direction: row;
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
   align-items: center;
 }
 
@@ -46,8 +27,7 @@ exports[`SyncControls snapshots allButtonsDisabled 1`] = `
 .c4 svg circle.path-fill,
 .c4 svg polyline.path-fill {
   fill: !important;
-  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
 }
 
 .c4 svg path.stroke-fill,
@@ -57,8 +37,7 @@ exports[`SyncControls snapshots allButtonsDisabled 1`] = `
 .c4 svg circle.stroke-fill,
 .c4 svg polyline.stroke-fill {
   stroke: !important;
-  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
 }
 
 .c4 svg rect.rect-height {
@@ -67,14 +46,10 @@ exports[`SyncControls snapshots allButtonsDisabled 1`] = `
 }
 
 .c4.downward {
-  -webkit-transform: rotate(180deg);
-  -ms-transform: rotate(180deg);
   transform: rotate(180deg);
 }
 
 .c4.upward {
-  -webkit-transform: initial;
-  -ms-transform: initial;
   transform: initial;
 }
 
@@ -94,9 +69,8 @@ exports[`SyncControls snapshots allButtonsDisabled 1`] = `
 .c8 svg rect.path-fill,
 .c8 svg circle.path-fill,
 .c8 svg polyline.path-fill {
-  fill: #009CCC !important;
-  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  fill: #009CCC!important;
+  transition: fill 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
 }
 
 .c8 svg path.stroke-fill,
@@ -105,9 +79,8 @@ exports[`SyncControls snapshots allButtonsDisabled 1`] = `
 .c8 svg rect.stroke-fill,
 .c8 svg circle.stroke-fill,
 .c8 svg polyline.stroke-fill {
-  stroke: #009CCC !important;
-  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  stroke: #009CCC!important;
+  transition: stroke 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
 }
 
 .c8 svg rect.rect-height {
@@ -116,14 +89,10 @@ exports[`SyncControls snapshots allButtonsDisabled 1`] = `
 }
 
 .c8.downward {
-  -webkit-transform: rotate(180deg);
-  -ms-transform: rotate(180deg);
   transform: rotate(180deg);
 }
 
 .c8.upward {
-  -webkit-transform: initial;
-  -ms-transform: initial;
   transform: initial;
 }
 
@@ -138,9 +107,6 @@ exports[`SyncControls snapshots allButtonsDisabled 1`] = `
 .c2.MuiButton-root {
   height: 32px;
   font-size: 12px;
-  -webkit-letter-spacing: 1px;
-  -moz-letter-spacing: 1px;
-  -ms-letter-spacing: 1px;
   letter-spacing: 1px;
   line-height: 1;
   border-radius: 2px;
@@ -175,12 +141,12 @@ exports[`SyncControls snapshots allButtonsDisabled 1`] = `
   padding: 0;
 }
 
-.c7.MuiButton-root:disabled svg {
+.c7.MuiButton-root :disabled svg {
   fill: #d8d8d8;
 }
 
-.c7.MuiButton-root:hover {
-  background-color: rgba(0,179,236,0.1);
+.c7.MuiButton-root :hover {
+  background-color: rgba(0, 179, 236, 0.1);
 }
 
 .c7.MuiButton-text {
@@ -194,7 +160,6 @@ exports[`SyncControls snapshots allButtonsDisabled 1`] = `
 
 .c1 .rotate-icon {
   color: #009CCC;
-  -webkit-animation: 1s linear infinite dxlcOg;
   animation: 1s linear infinite dxlcOg;
 }
 
@@ -543,35 +508,16 @@ exports[`SyncControls snapshots allButtonsDisabled 1`] = `
 
 exports[`SyncControls snapshots hasTooltipSuffix 1`] = `
 .c0 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
   flex-direction: row;
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
   align-items: center;
   width: 100%;
-  -webkit-box-pack: start;
-  -webkit-justify-content: flex-start;
-  -ms-flex-pack: start;
   justify-content: flex-start;
 }
 
 .c3 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
   flex-direction: row;
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
   align-items: center;
 }
 
@@ -587,8 +533,7 @@ exports[`SyncControls snapshots hasTooltipSuffix 1`] = `
 .c4 svg circle.path-fill,
 .c4 svg polyline.path-fill {
   fill: !important;
-  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
 }
 
 .c4 svg path.stroke-fill,
@@ -598,8 +543,7 @@ exports[`SyncControls snapshots hasTooltipSuffix 1`] = `
 .c4 svg circle.stroke-fill,
 .c4 svg polyline.stroke-fill {
   stroke: !important;
-  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
 }
 
 .c4 svg rect.rect-height {
@@ -608,14 +552,10 @@ exports[`SyncControls snapshots hasTooltipSuffix 1`] = `
 }
 
 .c4.downward {
-  -webkit-transform: rotate(180deg);
-  -ms-transform: rotate(180deg);
   transform: rotate(180deg);
 }
 
 .c4.upward {
-  -webkit-transform: initial;
-  -ms-transform: initial;
   transform: initial;
 }
 
@@ -635,9 +575,8 @@ exports[`SyncControls snapshots hasTooltipSuffix 1`] = `
 .c8 svg rect.path-fill,
 .c8 svg circle.path-fill,
 .c8 svg polyline.path-fill {
-  fill: #009CCC !important;
-  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  fill: #009CCC!important;
+  transition: fill 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
 }
 
 .c8 svg path.stroke-fill,
@@ -646,9 +585,8 @@ exports[`SyncControls snapshots hasTooltipSuffix 1`] = `
 .c8 svg rect.stroke-fill,
 .c8 svg circle.stroke-fill,
 .c8 svg polyline.stroke-fill {
-  stroke: #009CCC !important;
-  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  stroke: #009CCC!important;
+  transition: stroke 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
 }
 
 .c8 svg rect.rect-height {
@@ -657,14 +595,10 @@ exports[`SyncControls snapshots hasTooltipSuffix 1`] = `
 }
 
 .c8.downward {
-  -webkit-transform: rotate(180deg);
-  -ms-transform: rotate(180deg);
   transform: rotate(180deg);
 }
 
 .c8.upward {
-  -webkit-transform: initial;
-  -ms-transform: initial;
   transform: initial;
 }
 
@@ -679,9 +613,6 @@ exports[`SyncControls snapshots hasTooltipSuffix 1`] = `
 .c2.MuiButton-root {
   height: 32px;
   font-size: 12px;
-  -webkit-letter-spacing: 1px;
-  -moz-letter-spacing: 1px;
-  -ms-letter-spacing: 1px;
   letter-spacing: 1px;
   line-height: 1;
   border-radius: 2px;
@@ -716,12 +647,12 @@ exports[`SyncControls snapshots hasTooltipSuffix 1`] = `
   padding: 0;
 }
 
-.c7.MuiButton-root:disabled svg {
+.c7.MuiButton-root :disabled svg {
   fill: #d8d8d8;
 }
 
-.c7.MuiButton-root:hover {
-  background-color: rgba(0,179,236,0.1);
+.c7.MuiButton-root :hover {
+  background-color: rgba(0, 179, 236, 0.1);
 }
 
 .c7.MuiButton-text {
@@ -735,7 +666,6 @@ exports[`SyncControls snapshots hasTooltipSuffix 1`] = `
 
 .c1 .rotate-icon {
   color: #009CCC;
-  -webkit-animation: 1s linear infinite dxlcOg;
   animation: 1s linear infinite dxlcOg;
 }
 
@@ -1082,35 +1012,16 @@ exports[`SyncControls snapshots hasTooltipSuffix 1`] = `
 
 exports[`SyncControls snapshots hideSuspend 1`] = `
 .c0 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
   flex-direction: row;
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
   align-items: center;
   width: 100%;
-  -webkit-box-pack: start;
-  -webkit-justify-content: flex-start;
-  -ms-flex-pack: start;
   justify-content: flex-start;
 }
 
 .c3 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
   flex-direction: row;
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
   align-items: center;
 }
 
@@ -1126,8 +1037,7 @@ exports[`SyncControls snapshots hideSuspend 1`] = `
 .c4 svg circle.path-fill,
 .c4 svg polyline.path-fill {
   fill: !important;
-  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
 }
 
 .c4 svg path.stroke-fill,
@@ -1137,8 +1047,7 @@ exports[`SyncControls snapshots hideSuspend 1`] = `
 .c4 svg circle.stroke-fill,
 .c4 svg polyline.stroke-fill {
   stroke: !important;
-  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
 }
 
 .c4 svg rect.rect-height {
@@ -1147,14 +1056,10 @@ exports[`SyncControls snapshots hideSuspend 1`] = `
 }
 
 .c4.downward {
-  -webkit-transform: rotate(180deg);
-  -ms-transform: rotate(180deg);
   transform: rotate(180deg);
 }
 
 .c4.upward {
-  -webkit-transform: initial;
-  -ms-transform: initial;
   transform: initial;
 }
 
@@ -1169,9 +1074,6 @@ exports[`SyncControls snapshots hideSuspend 1`] = `
 .c2.MuiButton-root {
   height: 32px;
   font-size: 12px;
-  -webkit-letter-spacing: 1px;
-  -moz-letter-spacing: 1px;
-  -ms-letter-spacing: 1px;
   letter-spacing: 1px;
   line-height: 1;
   border-radius: 2px;
@@ -1206,12 +1108,12 @@ exports[`SyncControls snapshots hideSuspend 1`] = `
   padding: 0;
 }
 
-.c7.MuiButton-root:disabled svg {
+.c7.MuiButton-root :disabled svg {
   fill: #d8d8d8;
 }
 
-.c7.MuiButton-root:hover {
-  background-color: rgba(0,179,236,0.1);
+.c7.MuiButton-root :hover {
+  background-color: rgba(0, 179, 236, 0.1);
 }
 
 .c7.MuiButton-text {
@@ -1225,7 +1127,6 @@ exports[`SyncControls snapshots hideSuspend 1`] = `
 
 .c1 .rotate-icon {
   color: #009CCC;
-  -webkit-animation: 1s linear infinite dxlcOg;
   animation: 1s linear infinite dxlcOg;
 }
 
@@ -1471,35 +1372,16 @@ exports[`SyncControls snapshots hideSuspend 1`] = `
 
 exports[`SyncControls snapshots hideSyncOptions 1`] = `
 .c0 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
   flex-direction: row;
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
   align-items: center;
   width: 100%;
-  -webkit-box-pack: start;
-  -webkit-justify-content: flex-start;
-  -ms-flex-pack: start;
   justify-content: flex-start;
 }
 
 .c3 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
   flex-direction: row;
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
   align-items: center;
 }
 
@@ -1515,8 +1397,7 @@ exports[`SyncControls snapshots hideSyncOptions 1`] = `
 .c4 svg circle.path-fill,
 .c4 svg polyline.path-fill {
   fill: !important;
-  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
 }
 
 .c4 svg path.stroke-fill,
@@ -1526,8 +1407,7 @@ exports[`SyncControls snapshots hideSyncOptions 1`] = `
 .c4 svg circle.stroke-fill,
 .c4 svg polyline.stroke-fill {
   stroke: !important;
-  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
 }
 
 .c4 svg rect.rect-height {
@@ -1536,14 +1416,10 @@ exports[`SyncControls snapshots hideSyncOptions 1`] = `
 }
 
 .c4.downward {
-  -webkit-transform: rotate(180deg);
-  -ms-transform: rotate(180deg);
   transform: rotate(180deg);
 }
 
 .c4.upward {
-  -webkit-transform: initial;
-  -ms-transform: initial;
   transform: initial;
 }
 
@@ -1563,9 +1439,8 @@ exports[`SyncControls snapshots hideSyncOptions 1`] = `
 .c7 svg rect.path-fill,
 .c7 svg circle.path-fill,
 .c7 svg polyline.path-fill {
-  fill: #009CCC !important;
-  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  fill: #009CCC!important;
+  transition: fill 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
 }
 
 .c7 svg path.stroke-fill,
@@ -1574,9 +1449,8 @@ exports[`SyncControls snapshots hideSyncOptions 1`] = `
 .c7 svg rect.stroke-fill,
 .c7 svg circle.stroke-fill,
 .c7 svg polyline.stroke-fill {
-  stroke: #009CCC !important;
-  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  stroke: #009CCC!important;
+  transition: stroke 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
 }
 
 .c7 svg rect.rect-height {
@@ -1585,14 +1459,10 @@ exports[`SyncControls snapshots hideSyncOptions 1`] = `
 }
 
 .c7.downward {
-  -webkit-transform: rotate(180deg);
-  -ms-transform: rotate(180deg);
   transform: rotate(180deg);
 }
 
 .c7.upward {
-  -webkit-transform: initial;
-  -ms-transform: initial;
   transform: initial;
 }
 
@@ -1607,9 +1477,6 @@ exports[`SyncControls snapshots hideSyncOptions 1`] = `
 .c2.MuiButton-root {
   height: 32px;
   font-size: 12px;
-  -webkit-letter-spacing: 1px;
-  -moz-letter-spacing: 1px;
-  -ms-letter-spacing: 1px;
   letter-spacing: 1px;
   line-height: 1;
   border-radius: 2px;
@@ -1627,12 +1494,12 @@ exports[`SyncControls snapshots hideSyncOptions 1`] = `
   padding: 0;
 }
 
-.c6.MuiButton-root:disabled svg {
+.c6.MuiButton-root :disabled svg {
   fill: #d8d8d8;
 }
 
-.c6.MuiButton-root:hover {
-  background-color: rgba(0,179,236,0.1);
+.c6.MuiButton-root :hover {
+  background-color: rgba(0, 179, 236, 0.1);
 }
 
 .c6.MuiButton-text {
@@ -1646,7 +1513,6 @@ exports[`SyncControls snapshots hideSyncOptions 1`] = `
 
 .c1 .rotate-icon {
   color: #009CCC;
-  -webkit-animation: 1s linear infinite dxlcOg;
   animation: 1s linear infinite dxlcOg;
 }
 
@@ -1850,35 +1716,16 @@ exports[`SyncControls snapshots hideSyncOptions 1`] = `
 
 exports[`SyncControls snapshots non-suspended 1`] = `
 .c0 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
   flex-direction: row;
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
   align-items: center;
   width: 100%;
-  -webkit-box-pack: start;
-  -webkit-justify-content: flex-start;
-  -ms-flex-pack: start;
   justify-content: flex-start;
 }
 
 .c3 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
   flex-direction: row;
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
   align-items: center;
 }
 
@@ -1894,8 +1741,7 @@ exports[`SyncControls snapshots non-suspended 1`] = `
 .c4 svg circle.path-fill,
 .c4 svg polyline.path-fill {
   fill: !important;
-  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
 }
 
 .c4 svg path.stroke-fill,
@@ -1905,8 +1751,7 @@ exports[`SyncControls snapshots non-suspended 1`] = `
 .c4 svg circle.stroke-fill,
 .c4 svg polyline.stroke-fill {
   stroke: !important;
-  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
 }
 
 .c4 svg rect.rect-height {
@@ -1915,14 +1760,10 @@ exports[`SyncControls snapshots non-suspended 1`] = `
 }
 
 .c4.downward {
-  -webkit-transform: rotate(180deg);
-  -ms-transform: rotate(180deg);
   transform: rotate(180deg);
 }
 
 .c4.upward {
-  -webkit-transform: initial;
-  -ms-transform: initial;
   transform: initial;
 }
 
@@ -1942,9 +1783,8 @@ exports[`SyncControls snapshots non-suspended 1`] = `
 .c8 svg rect.path-fill,
 .c8 svg circle.path-fill,
 .c8 svg polyline.path-fill {
-  fill: #009CCC !important;
-  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  fill: #009CCC!important;
+  transition: fill 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
 }
 
 .c8 svg path.stroke-fill,
@@ -1953,9 +1793,8 @@ exports[`SyncControls snapshots non-suspended 1`] = `
 .c8 svg rect.stroke-fill,
 .c8 svg circle.stroke-fill,
 .c8 svg polyline.stroke-fill {
-  stroke: #009CCC !important;
-  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  stroke: #009CCC!important;
+  transition: stroke 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
 }
 
 .c8 svg rect.rect-height {
@@ -1964,14 +1803,10 @@ exports[`SyncControls snapshots non-suspended 1`] = `
 }
 
 .c8.downward {
-  -webkit-transform: rotate(180deg);
-  -ms-transform: rotate(180deg);
   transform: rotate(180deg);
 }
 
 .c8.upward {
-  -webkit-transform: initial;
-  -ms-transform: initial;
   transform: initial;
 }
 
@@ -1986,9 +1821,6 @@ exports[`SyncControls snapshots non-suspended 1`] = `
 .c2.MuiButton-root {
   height: 32px;
   font-size: 12px;
-  -webkit-letter-spacing: 1px;
-  -moz-letter-spacing: 1px;
-  -ms-letter-spacing: 1px;
   letter-spacing: 1px;
   line-height: 1;
   border-radius: 2px;
@@ -2023,12 +1855,12 @@ exports[`SyncControls snapshots non-suspended 1`] = `
   padding: 0;
 }
 
-.c7.MuiButton-root:disabled svg {
+.c7.MuiButton-root :disabled svg {
   fill: #d8d8d8;
 }
 
-.c7.MuiButton-root:hover {
-  background-color: rgba(0,179,236,0.1);
+.c7.MuiButton-root :hover {
+  background-color: rgba(0, 179, 236, 0.1);
 }
 
 .c7.MuiButton-text {
@@ -2042,7 +1874,6 @@ exports[`SyncControls snapshots non-suspended 1`] = `
 
 .c1 .rotate-icon {
   color: #009CCC;
-  -webkit-animation: 1s linear infinite dxlcOg;
   animation: 1s linear infinite dxlcOg;
 }
 

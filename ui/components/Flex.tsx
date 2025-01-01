@@ -16,12 +16,15 @@ type Props = {
   start?: string;
   end?: string;
   gap?: string;
+  children?: any;
   onMouseEnter?: React.ReactEventHandler;
   onMouseLeave?: React.ReactEventHandler;
   "data-testid"?: string;
 };
 
-const Styled = (component) => styled(component)`
+const Styled = (component) => styled(component).withConfig({
+  shouldForwardProp: (prop) => !["wide", "between"].includes(prop),
+})`
   display: flex;
   flex-direction: ${({ column }) => (column ? "column" : "row")};
   align-items: ${({ align, alignItems }) =>

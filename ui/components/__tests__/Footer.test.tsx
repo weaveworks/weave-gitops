@@ -1,8 +1,8 @@
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/dom";
+import { render } from "@testing-library/react";
 import "jest-canvas-mock";
 import "jest-styled-components";
-import React from "react";
-import { act } from "react-dom/test-utils";
+import React, { act } from "react";
 import {
   createCoreMockClient,
   withContext,

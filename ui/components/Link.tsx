@@ -11,6 +11,7 @@ type Props = {
   innerRef?: any;
   children?: any;
   href?: any;
+  target?: any;
   newTab?: boolean;
   textProps?: TextProps;
   icon?: JSX.Element;

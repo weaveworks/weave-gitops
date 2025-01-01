@@ -19,6 +19,7 @@ import { ChipWrap, SectionWrapper } from "../Utils/PolicyUtils";
 import Severity from "../Utils/Severity";
 
 type Props = {
+  className?: string;
   policy: Policy;
 };
 

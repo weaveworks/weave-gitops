@@ -2,109 +2,49 @@
 
 exports[`Page snapshots default 1`] = `
 .c0 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-flex-direction: column;
-  -ms-flex-direction: column;
   flex-direction: column;
-  -webkit-align-items: start;
-  -webkit-box-align: start;
-  -ms-flex-align: start;
   align-items: start;
   height: 100%;
   width: 100%;
 }
 
 .c2 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
   flex-direction: row;
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
   align-items: center;
   width: 100%;
-  -webkit-box-pack: start;
-  -webkit-justify-content: flex-start;
-  -ms-flex-pack: start;
   justify-content: flex-start;
-  -webkit-box-pack: justify;
-  -webkit-justify-content: space-between;
-  -ms-flex-pack: justify;
   justify-content: space-between;
 }
 
 .c4 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
   flex-direction: row;
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
   align-items: center;
 }
 
 .c8 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
   flex-direction: row;
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
   align-items: center;
   gap: 8px;
 }
 
 .c14 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-flex-direction: column;
-  -ms-flex-direction: column;
   flex-direction: column;
-  -webkit-align-items: start;
-  -webkit-box-align: start;
-  -ms-flex-align: start;
   align-items: start;
   width: 100%;
-  -webkit-box-pack: justify;
-  -webkit-justify-content: space-between;
-  -ms-flex-pack: justify;
   justify-content: space-between;
 }
 
 .c17 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-flex-direction: column;
-  -ms-flex-direction: column;
   flex-direction: column;
-  -webkit-align-items: start;
-  -webkit-box-align: start;
-  -ms-flex-align: start;
   align-items: start;
   height: 100%;
   width: 100%;
-  -webkit-box-pack: start;
-  -webkit-justify-content: flex-start;
-  -ms-flex-pack: start;
   justify-content: flex-start;
 }
 
@@ -129,8 +69,7 @@ exports[`Page snapshots default 1`] = `
 .c12 svg circle.path-fill,
 .c12 svg polyline.path-fill {
   fill: !important;
-  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
 }
 
 .c12 svg path.stroke-fill,
@@ -140,8 +79,7 @@ exports[`Page snapshots default 1`] = `
 .c12 svg circle.stroke-fill,
 .c12 svg polyline.stroke-fill {
   stroke: !important;
-  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
 }
 
 .c12 svg rect.rect-height {
@@ -150,14 +88,10 @@ exports[`Page snapshots default 1`] = `
 }
 
 .c12.downward {
-  -webkit-transform: rotate(180deg);
-  -ms-transform: rotate(180deg);
   transform: rotate(180deg);
 }
 
 .c12.upward {
-  -webkit-transform: initial;
-  -ms-transform: initial;
   transform: initial;
 }
 
@@ -170,7 +104,6 @@ exports[`Page snapshots default 1`] = `
 }
 
 .c11 {
-  -webkit-text-decoration: none;
   text-decoration: none;
 }
 
@@ -196,7 +129,7 @@ exports[`Page snapshots default 1`] = `
   color: #737373;
 }
 
-.c10.MuiIconButton-root:hover {
+.c10.MuiIconButton-root :hover {
   background-color: #ffffff;
   color: #009CCC;
 }
@@ -213,9 +146,6 @@ exports[`Page snapshots default 1`] = `
 
 .c1 {
   width: 100%;
-  -webkit-box-flex: 1;
-  -webkit-flex-grow: 1;
-  -ms-flex-positive: 1;
   flex-grow: 1;
   overflow: hidden;
 }
@@ -263,7 +193,6 @@ exports[`Page snapshots default 1`] = `
           aria-label="test"
           aria-labelledby={null}
           className="c5 c6 c7 ellipsis"
-          color="neutral40"
           data-mui-internal-clone-element={true}
           data-testid="text-test"
           onBlur={[Function]}
@@ -272,7 +201,6 @@ exports[`Page snapshots default 1`] = `
           onMouseOver={[Function]}
           onTouchEnd={[Function]}
           onTouchStart={[Function]}
-          size="large"
         >
           test
         </span>
