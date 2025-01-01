@@ -4528,10 +4528,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/luxon@npm:^1.26.5":
-  version: 1.27.1
-  resolution: "@types/luxon@npm:1.27.1"
-  checksum: 10c0/2c6d131ceaeb842ba562843075bc470d4eaa3895a45ccd8a5cfbccab2f4e997dc41826064883d1966843f81afeccd324872d8d2a7952bbfbf93ee913de324b91
+"@types/luxon@npm:^3.4.2":
+  version: 3.4.2
+  resolution: "@types/luxon@npm:3.4.2"
+  checksum: 10c0/d835467de3daf7e17ba78b50bb5a14efd94272439ca067990d71332a54b311544459c69623eddd243b511b28d70194c9591a9ee8cf9c038962c965f991affd7e
   languageName: node
   linkType: hard
 
@@ -4884,7 +4884,7 @@ __metadata:
     "@testing-library/react-hooks": "npm:^7.0.0"
     "@types/jest": "npm:^29.5.14"
     "@types/lodash": "npm:^4.14.165"
-    "@types/luxon": "npm:^1.26.5"
+    "@types/luxon": "npm:^3.4.2"
     "@types/react": "npm:^18.0.0"
     "@types/react-dom": "npm:^18.0.0"
     "@types/react-is": "npm:^18"
@@ -4913,7 +4913,7 @@ __metadata:
     js-sha3: "npm:0.8.0"
     jsdom: "npm:^16.6.0"
     lodash: "npm:^4.17.21"
-    luxon: "npm:^3.2.1"
+    luxon: "npm:^3.5.0"
     mnemonic-browser: "npm:^0.0.1"
     parcel: "npm:^2.13.3"
     postcss: "npm:^8.4.31"
@@ -9583,10 +9583,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"luxon@npm:^3.2.1":
-  version: 3.2.1
-  resolution: "luxon@npm:3.2.1"
-  checksum: 10c0/2edd1400c7a785b01fa24ab491675c490a763054e0e147507b7b64caa6caad50329b48d482300c7ab5dc1a2630aaf84997496ffe7d2e166f9ea223f6caa719d9
+"luxon@npm:^3.5.0":
+  version: 3.5.0
+  resolution: "luxon@npm:3.5.0"
+  checksum: 10c0/335789bba95077db831ef99894edadeb23023b3eb2137a1b56acd0d290082b691cf793143d69e30bc069ec95f0b49f36419f48e951c68014f19ffe12045e3494
   languageName: node
   linkType: hard
 
