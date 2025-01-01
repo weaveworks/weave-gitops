@@ -10,9 +10,21 @@ type Props = {
   onSubmit: (val: string) => void;
 };
 
-const Expander = styled(({ expanded, className, children }) => (
-  <div className={`${className} ${expanded ? "expanded" : ""}`}>{children}</div>
-))`
+const Expander = styled(
+  ({
+    expanded,
+    className,
+    children,
+  }: {
+    expanded: boolean;
+    className?: string;
+    children?: any;
+  }) => (
+    <div className={`${className} ${expanded ? "expanded" : ""}`}>
+      {children}
+    </div>
+  )
+)`
   width: 0px;
   transition: width 0.3s ease-in-out;
   margin-left: 4px;

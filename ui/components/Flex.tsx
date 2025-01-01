@@ -16,6 +16,7 @@ type Props = {
   start?: string;
   end?: string;
   gap?: string;
+  children?: any;
   onMouseEnter?: React.ReactEventHandler;
   onMouseLeave?: React.ReactEventHandler;
   "data-testid"?: string;

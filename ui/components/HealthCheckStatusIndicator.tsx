@@ -53,7 +53,7 @@ function HealthCheckStatusIndicator({
   className,
   health,
 }: {
-  className: string;
+  className?: string;
   health: { message?: string; status?: string };
 }) {
   const { type, color, icon } = getIndicatorInfo(

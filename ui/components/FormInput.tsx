@@ -13,13 +13,25 @@ export type FormInputProps = {
   valuePropName?: string;
 } & InputProps;
 
-export const Label = styled(({ className, children, name, required }) => (
-  <FormLabel className={className} htmlFor={name} required={required}>
-    <Text size="small" bold>
-      {children}
-    </Text>
-  </FormLabel>
-))`
+export const Label = styled(
+  ({
+    className,
+    children,
+    name,
+    required,
+  }: {
+    className?: string;
+    children?: any;
+    name: string;
+    required: boolean;
+  }) => (
+    <FormLabel className={className} htmlFor={name} required={required}>
+      <Text size="small" bold>
+        {children}
+      </Text>
+    </FormLabel>
+  )
+)`
   ${Text} {
     text-transform: uppercase;
   }

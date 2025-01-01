@@ -14,6 +14,6 @@ function ClusterDashboardLink({ clusterName }: { clusterName: string }) {
 
   return <Text>{clusterName}</Text>;
 }
-export default styled(ClusterDashboardLink).attrs({
+export default styled(ClusterDashboardLink).attrs<{ className?: string }>({
   className: ClusterDashboardLink.name,
 })``;
