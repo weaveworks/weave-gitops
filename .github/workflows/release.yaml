@@ -31,7 +31,7 @@ jobs:
           GITHUB_EVENT_PULL_REQUEST_HEAD_REF: ${{ github.event.pull_request.head.ref }}
         run: |
           version=$(echo $GITHUB_EVENT_PULL_REQUEST_HEAD_REF | cut -d'/' -f2)
-          echo "::set-output name=version::$version"
+          echo "version=$version" >> $GITHUB_OUTPUT
       - name: Set tag
         run: |
           git config user.name weave-gitops-bot

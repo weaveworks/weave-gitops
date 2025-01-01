@@ -23,7 +23,7 @@ jobs:
           new_version="$(curl -s --request GET --url "https://api.github.com/repos/fluxcd/flux2/releases?per_page=1" | jq . | jq '.[0] | .tag_name' | jq -r | sed -e 's/v//')"
 
           if [[ "$old_version" != "$new_version" ]]; then
-              echo "::set-output name=version::$new_version"
+              echo "version=$new_version" >> $GITHUB_OUTPUT
           fi
   upgrade-flux:
     needs:
