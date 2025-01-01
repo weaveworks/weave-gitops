@@ -27,8 +27,8 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.5.1
 	github.com/golang/protobuf v1.5.4
 	github.com/google/go-cmp v0.6.0
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.23.0
-	github.com/grpc-ecosystem/protoc-gen-grpc-gateway-ts v1.1.1
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.25.1
+	github.com/grpc-ecosystem/protoc-gen-grpc-gateway-ts v1.1.2
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/manifoldco/promptui v0.9.0
 	github.com/mattn/go-tty v0.0.7

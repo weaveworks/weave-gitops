@@ -10,6 +10,7 @@ package api
 
 import (
 	"context"
+	"errors"
 	"io"
 	"net/http"
 
@@ -24,771 +25,666 @@ import (
 )
 
 // Suppress "imported and not used" errors
-var _ codes.Code
-var _ io.Reader
-var _ status.Status
-var _ = runtime.String
-var _ = utilities.NewDoubleArray
-var _ = metadata.Join
-
 var (
-	filter_Core_GetObject_0 = &utilities.DoubleArray{Encoding: map[string]int{"name": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
+	_ codes.Code
+	_ io.Reader
+	_ status.Status
+	_ = errors.New
+	_ = runtime.String
+	_ = utilities.NewDoubleArray
+	_ = metadata.Join
 )
 
+var filter_Core_GetObject_0 = &utilities.DoubleArray{Encoding: map[string]int{"name": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
+
 func request_Core_GetObject_0(ctx context.Context, marshaler runtime.Marshaler, client CoreClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetObjectRequest
-	var metadata runtime.ServerMetadata
-
 	var (
-		val string
-		ok  bool
-		err error
-		_   = err
+		protoReq GetObjectRequest
+		metadata runtime.ServerMetadata
+		err      error
 	)
-
-	val, ok = pathParams["name"]
+	val, ok := pathParams["name"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
 	}
-
 	protoReq.Name, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
 	}
-
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Core_GetObject_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := client.GetObject(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_Core_GetObject_0(ctx context.Context, marshaler runtime.Marshaler, server CoreServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetObjectRequest
-	var metadata runtime.ServerMetadata
-
 	var (
-		val string
-		ok  bool
-		err error
-		_   = err
+		protoReq GetObjectRequest
+		metadata runtime.ServerMetadata
+		err      error
 	)
-
-	val, ok = pathParams["name"]
+	val, ok := pathParams["name"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
 	}
-
 	protoReq.Name, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
 	}
-
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Core_GetObject_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := server.GetObject(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_Core_ListObjects_0(ctx context.Context, marshaler runtime.Marshaler, client CoreClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ListObjectsRequest
-	var metadata runtime.ServerMetadata
-
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
+	var (
+		protoReq ListObjectsRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := client.ListObjects(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_Core_ListObjects_0(ctx context.Context, marshaler runtime.Marshaler, server CoreServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ListObjectsRequest
-	var metadata runtime.ServerMetadata
-
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
+	var (
+		protoReq ListObjectsRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := server.ListObjects(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
-var (
-	filter_Core_ListFluxRuntimeObjects_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
-)
+var filter_Core_ListFluxRuntimeObjects_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
 
 func request_Core_ListFluxRuntimeObjects_0(ctx context.Context, marshaler runtime.Marshaler, client CoreClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ListFluxRuntimeObjectsRequest
-	var metadata runtime.ServerMetadata
-
+	var (
+		protoReq ListFluxRuntimeObjectsRequest
+		metadata runtime.ServerMetadata
+	)
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Core_ListFluxRuntimeObjects_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := client.ListFluxRuntimeObjects(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_Core_ListFluxRuntimeObjects_0(ctx context.Context, marshaler runtime.Marshaler, server CoreServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ListFluxRuntimeObjectsRequest
-	var metadata runtime.ServerMetadata
-
+	var (
+		protoReq ListFluxRuntimeObjectsRequest
+		metadata runtime.ServerMetadata
+	)
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Core_ListFluxRuntimeObjects_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := server.ListFluxRuntimeObjects(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
-var (
-	filter_Core_ListFluxCrds_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
-)
+var filter_Core_ListFluxCrds_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
 
 func request_Core_ListFluxCrds_0(ctx context.Context, marshaler runtime.Marshaler, client CoreClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ListFluxCrdsRequest
-	var metadata runtime.ServerMetadata
-
+	var (
+		protoReq ListFluxCrdsRequest
+		metadata runtime.ServerMetadata
+	)
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Core_ListFluxCrds_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := client.ListFluxCrds(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_Core_ListFluxCrds_0(ctx context.Context, marshaler runtime.Marshaler, server CoreServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ListFluxCrdsRequest
-	var metadata runtime.ServerMetadata
-
+	var (
+		protoReq ListFluxCrdsRequest
+		metadata runtime.ServerMetadata
+	)
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Core_ListFluxCrds_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := server.ListFluxCrds(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
-var (
-	filter_Core_ListRuntimeObjects_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
-)
+var filter_Core_ListRuntimeObjects_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
 
 func request_Core_ListRuntimeObjects_0(ctx context.Context, marshaler runtime.Marshaler, client CoreClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ListRuntimeObjectsRequest
-	var metadata runtime.ServerMetadata
-
+	var (
+		protoReq ListRuntimeObjectsRequest
+		metadata runtime.ServerMetadata
+	)
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Core_ListRuntimeObjects_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := client.ListRuntimeObjects(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_Core_ListRuntimeObjects_0(ctx context.Context, marshaler runtime.Marshaler, server CoreServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ListRuntimeObjectsRequest
-	var metadata runtime.ServerMetadata
-
+	var (
+		protoReq ListRuntimeObjectsRequest
+		metadata runtime.ServerMetadata
+	)
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Core_ListRuntimeObjects_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := server.ListRuntimeObjects(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
-var (
-	filter_Core_ListRuntimeCrds_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
-)
+var filter_Core_ListRuntimeCrds_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
 
 func request_Core_ListRuntimeCrds_0(ctx context.Context, marshaler runtime.Marshaler, client CoreClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ListRuntimeCrdsRequest
-	var metadata runtime.ServerMetadata
-
+	var (
+		protoReq ListRuntimeCrdsRequest
+		metadata runtime.ServerMetadata
+	)
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Core_ListRuntimeCrds_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := client.ListRuntimeCrds(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_Core_ListRuntimeCrds_0(ctx context.Context, marshaler runtime.Marshaler, server CoreServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ListRuntimeCrdsRequest
-	var metadata runtime.ServerMetadata
-
+	var (
+		protoReq ListRuntimeCrdsRequest
+		metadata runtime.ServerMetadata
+	)
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Core_ListRuntimeCrds_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := server.ListRuntimeCrds(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_Core_GetReconciledObjects_0(ctx context.Context, marshaler runtime.Marshaler, client CoreClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetReconciledObjectsRequest
-	var metadata runtime.ServerMetadata
-
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
+	var (
+		protoReq GetReconciledObjectsRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := client.GetReconciledObjects(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_Core_GetReconciledObjects_0(ctx context.Context, marshaler runtime.Marshaler, server CoreServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetReconciledObjectsRequest
-	var metadata runtime.ServerMetadata
-
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
+	var (
+		protoReq GetReconciledObjectsRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := server.GetReconciledObjects(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_Core_GetChildObjects_0(ctx context.Context, marshaler runtime.Marshaler, client CoreClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetChildObjectsRequest
-	var metadata runtime.ServerMetadata
-
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
+	var (
+		protoReq GetChildObjectsRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := client.GetChildObjects(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_Core_GetChildObjects_0(ctx context.Context, marshaler runtime.Marshaler, server CoreServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetChildObjectsRequest
-	var metadata runtime.ServerMetadata
-
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
+	var (
+		protoReq GetChildObjectsRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := server.GetChildObjects(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_Core_GetFluxNamespace_0(ctx context.Context, marshaler runtime.Marshaler, client CoreClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetFluxNamespaceRequest
-	var metadata runtime.ServerMetadata
-
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
+	var (
+		protoReq GetFluxNamespaceRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := client.GetFluxNamespace(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_Core_GetFluxNamespace_0(ctx context.Context, marshaler runtime.Marshaler, server CoreServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetFluxNamespaceRequest
-	var metadata runtime.ServerMetadata
-
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
+	var (
+		protoReq GetFluxNamespaceRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := server.GetFluxNamespace(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_Core_ListNamespaces_0(ctx context.Context, marshaler runtime.Marshaler, client CoreClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ListNamespacesRequest
-	var metadata runtime.ServerMetadata
-
+	var (
+		protoReq ListNamespacesRequest
+		metadata runtime.ServerMetadata
+	)
 	msg, err := client.ListNamespaces(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_Core_ListNamespaces_0(ctx context.Context, marshaler runtime.Marshaler, server CoreServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ListNamespacesRequest
-	var metadata runtime.ServerMetadata
-
+	var (
+		protoReq ListNamespacesRequest
+		metadata runtime.ServerMetadata
+	)
 	msg, err := server.ListNamespaces(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
-var (
-	filter_Core_ListEvents_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
-)
+var filter_Core_ListEvents_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
 
 func request_Core_ListEvents_0(ctx context.Context, marshaler runtime.Marshaler, client CoreClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ListEventsRequest
-	var metadata runtime.ServerMetadata
-
+	var (
+		protoReq ListEventsRequest
+		metadata runtime.ServerMetadata
+	)
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Core_ListEvents_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := client.ListEvents(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_Core_ListEvents_0(ctx context.Context, marshaler runtime.Marshaler, server CoreServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ListEventsRequest
-	var metadata runtime.ServerMetadata
-
+	var (
+		protoReq ListEventsRequest
+		metadata runtime.ServerMetadata
+	)
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Core_ListEvents_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := server.ListEvents(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_Core_SyncFluxObject_0(ctx context.Context, marshaler runtime.Marshaler, client CoreClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq SyncFluxObjectRequest
-	var metadata runtime.ServerMetadata
-
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
+	var (
+		protoReq SyncFluxObjectRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := client.SyncFluxObject(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_Core_SyncFluxObject_0(ctx context.Context, marshaler runtime.Marshaler, server CoreServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq SyncFluxObjectRequest
-	var metadata runtime.ServerMetadata
-
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
+	var (
+		protoReq SyncFluxObjectRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := server.SyncFluxObject(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_Core_GetVersion_0(ctx context.Context, marshaler runtime.Marshaler, client CoreClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetVersionRequest
-	var metadata runtime.ServerMetadata
-
+	var (
+		protoReq GetVersionRequest
+		metadata runtime.ServerMetadata
+	)
 	msg, err := client.GetVersion(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_Core_GetVersion_0(ctx context.Context, marshaler runtime.Marshaler, server CoreServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetVersionRequest
-	var metadata runtime.ServerMetadata
-
+	var (
+		protoReq GetVersionRequest
+		metadata runtime.ServerMetadata
+	)
 	msg, err := server.GetVersion(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_Core_GetFeatureFlags_0(ctx context.Context, marshaler runtime.Marshaler, client CoreClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetFeatureFlagsRequest
-	var metadata runtime.ServerMetadata
-
+	var (
+		protoReq GetFeatureFlagsRequest
+		metadata runtime.ServerMetadata
+	)
 	msg, err := client.GetFeatureFlags(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_Core_GetFeatureFlags_0(ctx context.Context, marshaler runtime.Marshaler, server CoreServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetFeatureFlagsRequest
-	var metadata runtime.ServerMetadata
-
+	var (
+		protoReq GetFeatureFlagsRequest
+		metadata runtime.ServerMetadata
+	)
 	msg, err := server.GetFeatureFlags(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_Core_ToggleSuspendResource_0(ctx context.Context, marshaler runtime.Marshaler, client CoreClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ToggleSuspendResourceRequest
-	var metadata runtime.ServerMetadata
-
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
+	var (
+		protoReq ToggleSuspendResourceRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := client.ToggleSuspendResource(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_Core_ToggleSuspendResource_0(ctx context.Context, marshaler runtime.Marshaler, server CoreServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ToggleSuspendResourceRequest
-	var metadata runtime.ServerMetadata
-
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
+	var (
+		protoReq ToggleSuspendResourceRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := server.ToggleSuspendResource(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_Core_GetSessionLogs_0(ctx context.Context, marshaler runtime.Marshaler, client CoreClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetSessionLogsRequest
-	var metadata runtime.ServerMetadata
-
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
+	var (
+		protoReq GetSessionLogsRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := client.GetSessionLogs(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_Core_GetSessionLogs_0(ctx context.Context, marshaler runtime.Marshaler, server CoreServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetSessionLogsRequest
-	var metadata runtime.ServerMetadata
-
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
+	var (
+		protoReq GetSessionLogsRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := server.GetSessionLogs(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
-var (
-	filter_Core_IsCRDAvailable_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
-)
+var filter_Core_IsCRDAvailable_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
 
 func request_Core_IsCRDAvailable_0(ctx context.Context, marshaler runtime.Marshaler, client CoreClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq IsCRDAvailableRequest
-	var metadata runtime.ServerMetadata
-
+	var (
+		protoReq IsCRDAvailableRequest
+		metadata runtime.ServerMetadata
+	)
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Core_IsCRDAvailable_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := client.IsCRDAvailable(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_Core_IsCRDAvailable_0(ctx context.Context, marshaler runtime.Marshaler, server CoreServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq IsCRDAvailableRequest
-	var metadata runtime.ServerMetadata
-
+	var (
+		protoReq IsCRDAvailableRequest
+		metadata runtime.ServerMetadata
+	)
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Core_IsCRDAvailable_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := server.IsCRDAvailable(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
-var (
-	filter_Core_GetInventory_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
-)
+var filter_Core_GetInventory_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
 
 func request_Core_GetInventory_0(ctx context.Context, marshaler runtime.Marshaler, client CoreClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetInventoryRequest
-	var metadata runtime.ServerMetadata
-
+	var (
+		protoReq GetInventoryRequest
+		metadata runtime.ServerMetadata
+	)
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Core_GetInventory_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := client.GetInventory(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_Core_GetInventory_0(ctx context.Context, marshaler runtime.Marshaler, server CoreServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetInventoryRequest
-	var metadata runtime.ServerMetadata
-
+	var (
+		protoReq GetInventoryRequest
+		metadata runtime.ServerMetadata
+	)
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Core_GetInventory_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := server.GetInventory(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
-var (
-	filter_Core_ListPolicies_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
-)
+var filter_Core_ListPolicies_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
 
 func request_Core_ListPolicies_0(ctx context.Context, marshaler runtime.Marshaler, client CoreClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ListPoliciesRequest
-	var metadata runtime.ServerMetadata
-
+	var (
+		protoReq ListPoliciesRequest
+		metadata runtime.ServerMetadata
+	)
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Core_ListPolicies_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := client.ListPolicies(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_Core_ListPolicies_0(ctx context.Context, marshaler runtime.Marshaler, server CoreServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ListPoliciesRequest
-	var metadata runtime.ServerMetadata
-
+	var (
+		protoReq ListPoliciesRequest
+		metadata runtime.ServerMetadata
+	)
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Core_ListPolicies_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := server.ListPolicies(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
-var (
-	filter_Core_GetPolicy_0 = &utilities.DoubleArray{Encoding: map[string]int{"policyName": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
-)
+var filter_Core_GetPolicy_0 = &utilities.DoubleArray{Encoding: map[string]int{"policyName": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
 
 func request_Core_GetPolicy_0(ctx context.Context, marshaler runtime.Marshaler, client CoreClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetPolicyRequest
-	var metadata runtime.ServerMetadata
-
 	var (
-		val string
-		ok  bool
-		err error
-		_   = err
+		protoReq GetPolicyRequest
+		metadata runtime.ServerMetadata
+		err      error
 	)
-
-	val, ok = pathParams["policyName"]
+	val, ok := pathParams["policyName"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "policyName")
 	}
-
 	protoReq.PolicyName, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "policyName", err)
 	}
-
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Core_GetPolicy_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := client.GetPolicy(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_Core_GetPolicy_0(ctx context.Context, marshaler runtime.Marshaler, server CoreServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetPolicyRequest
-	var metadata runtime.ServerMetadata
-
 	var (
-		val string
-		ok  bool
-		err error
-		_   = err
+		protoReq GetPolicyRequest
+		metadata runtime.ServerMetadata
+		err      error
 	)
-
-	val, ok = pathParams["policyName"]
+	val, ok := pathParams["policyName"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "policyName")
 	}
-
 	protoReq.PolicyName, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "policyName", err)
 	}
-
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Core_GetPolicy_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := server.GetPolicy(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_Core_ListPolicyValidations_0(ctx context.Context, marshaler runtime.Marshaler, client CoreClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ListPolicyValidationsRequest
-	var metadata runtime.ServerMetadata
-
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
+	var (
+		protoReq ListPolicyValidationsRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := client.ListPolicyValidations(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_Core_ListPolicyValidations_0(ctx context.Context, marshaler runtime.Marshaler, server CoreServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ListPolicyValidationsRequest
-	var metadata runtime.ServerMetadata
-
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && err != io.EOF {
+	var (
+		protoReq ListPolicyValidationsRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := server.ListPolicyValidations(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
-var (
-	filter_Core_GetPolicyValidation_0 = &utilities.DoubleArray{Encoding: map[string]int{"validationId": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
-)
+var filter_Core_GetPolicyValidation_0 = &utilities.DoubleArray{Encoding: map[string]int{"validationId": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
 
 func request_Core_GetPolicyValidation_0(ctx context.Context, marshaler runtime.Marshaler, client CoreClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetPolicyValidationRequest
-	var metadata runtime.ServerMetadata
-
 	var (
-		val string
-		ok  bool
-		err error
-		_   = err
+		protoReq GetPolicyValidationRequest
+		metadata runtime.ServerMetadata
+		err      error
 	)
-
-	val, ok = pathParams["validationId"]
+	val, ok := pathParams["validationId"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "validationId")
 	}
-
 	protoReq.ValidationId, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "validationId", err)
 	}
-
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Core_GetPolicyValidation_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := client.GetPolicyValidation(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_Core_GetPolicyValidation_0(ctx context.Context, marshaler runtime.Marshaler, server CoreServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetPolicyValidationRequest
-	var metadata runtime.ServerMetadata
-
 	var (
-		val string
-		ok  bool
-		err error
-		_   = err
+		protoReq GetPolicyValidationRequest
+		metadata runtime.ServerMetadata
+		err      error
 	)
-
-	val, ok = pathParams["validationId"]
+	val, ok := pathParams["validationId"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "validationId")
 	}
-
 	protoReq.ValidationId, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "validationId", err)
 	}
-
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Core_GetPolicyValidation_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := server.GetPolicyValidation(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 // RegisterCoreHandlerServer registers the http handlers for service Core to "mux".
@@ -797,16 +693,13 @@ func local_request_Core_GetPolicyValidation_0(ctx context.Context, marshaler run
 // Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterCoreHandlerFromEndpoint instead.
 // GRPC interceptors will not work for this type of registration. To use interceptors, you must use the "runtime.WithMiddlewares" option in the "runtime.NewServeMux" call.
 func RegisterCoreHandlerServer(ctx context.Context, mux *runtime.ServeMux, server CoreServer) error {
-
-	mux.Handle("GET", pattern_Core_GetObject_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_Core_GetObject_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/GetObject", runtime.WithHTTPPathPattern("/v1/object/{name}"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/GetObject", runtime.WithHTTPPathPattern("/v1/object/{name}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -818,20 +711,15 @@ func RegisterCoreHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_Core_GetObject_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("POST", pattern_Core_ListObjects_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_Core_ListObjects_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/ListObjects", runtime.WithHTTPPathPattern("/v1/objects"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/ListObjects", runtime.WithHTTPPathPattern("/v1/objects"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -843,20 +731,15 @@ func RegisterCoreHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_Core_ListObjects_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("GET", pattern_Core_ListFluxRuntimeObjects_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_Core_ListFluxRuntimeObjects_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/ListFluxRuntimeObjects", runtime.WithHTTPPathPattern("/v1/flux_runtime_objects"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/ListFluxRuntimeObjects", runtime.WithHTTPPathPattern("/v1/flux_runtime_objects"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -868,20 +751,15 @@ func RegisterCoreHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_Core_ListFluxRuntimeObjects_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("GET", pattern_Core_ListFluxCrds_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_Core_ListFluxCrds_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/ListFluxCrds", runtime.WithHTTPPathPattern("/v1/flux_crds"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/ListFluxCrds", runtime.WithHTTPPathPattern("/v1/flux_crds"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -893,20 +771,15 @@ func RegisterCoreHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_Core_ListFluxCrds_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("GET", pattern_Core_ListRuntimeObjects_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_Core_ListRuntimeObjects_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/ListRuntimeObjects", runtime.WithHTTPPathPattern("/v1/runtime_objects"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/ListRuntimeObjects", runtime.WithHTTPPathPattern("/v1/runtime_objects"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -918,20 +791,15 @@ func RegisterCoreHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_Core_ListRuntimeObjects_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("GET", pattern_Core_ListRuntimeCrds_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_Core_ListRuntimeCrds_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/ListRuntimeCrds", runtime.WithHTTPPathPattern("/v1/runtime_crds"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/ListRuntimeCrds", runtime.WithHTTPPathPattern("/v1/runtime_crds"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -943,20 +811,15 @@ func RegisterCoreHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_Core_ListRuntimeCrds_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("POST", pattern_Core_GetReconciledObjects_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_Core_GetReconciledObjects_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/GetReconciledObjects", runtime.WithHTTPPathPattern("/v1/reconciled_objects"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/GetReconciledObjects", runtime.WithHTTPPathPattern("/v1/reconciled_objects"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -968,20 +831,15 @@ func RegisterCoreHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_Core_GetReconciledObjects_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("POST", pattern_Core_GetChildObjects_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_Core_GetChildObjects_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/GetChildObjects", runtime.WithHTTPPathPattern("/v1/child_objects"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/GetChildObjects", runtime.WithHTTPPathPattern("/v1/child_objects"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -993,20 +851,15 @@ func RegisterCoreHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_Core_GetChildObjects_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("POST", pattern_Core_GetFluxNamespace_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_Core_GetFluxNamespace_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/GetFluxNamespace", runtime.WithHTTPPathPattern("/v1/namespace/flux"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/GetFluxNamespace", runtime.WithHTTPPathPattern("/v1/namespace/flux"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1018,20 +871,15 @@ func RegisterCoreHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_Core_GetFluxNamespace_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("GET", pattern_Core_ListNamespaces_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_Core_ListNamespaces_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/ListNamespaces", runtime.WithHTTPPathPattern("/v1/namespaces"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/ListNamespaces", runtime.WithHTTPPathPattern("/v1/namespaces"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1043,20 +891,15 @@ func RegisterCoreHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_Core_ListNamespaces_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("GET", pattern_Core_ListEvents_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_Core_ListEvents_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/ListEvents", runtime.WithHTTPPathPattern("/v1/events"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/ListEvents", runtime.WithHTTPPathPattern("/v1/events"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1068,20 +911,15 @@ func RegisterCoreHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_Core_ListEvents_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("POST", pattern_Core_SyncFluxObject_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_Core_SyncFluxObject_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/SyncFluxObject", runtime.WithHTTPPathPattern("/v1/sync"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/SyncFluxObject", runtime.WithHTTPPathPattern("/v1/sync"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1093,20 +931,15 @@ func RegisterCoreHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_Core_SyncFluxObject_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("GET", pattern_Core_GetVersion_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_Core_GetVersion_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/GetVersion", runtime.WithHTTPPathPattern("/v1/version"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/GetVersion", runtime.WithHTTPPathPattern("/v1/version"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1118,20 +951,15 @@ func RegisterCoreHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_Core_GetVersion_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("GET", pattern_Core_GetFeatureFlags_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_Core_GetFeatureFlags_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/GetFeatureFlags", runtime.WithHTTPPathPattern("/v1/featureflags"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/GetFeatureFlags", runtime.WithHTTPPathPattern("/v1/featureflags"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1143,20 +971,15 @@ func RegisterCoreHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_Core_GetFeatureFlags_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("POST", pattern_Core_ToggleSuspendResource_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_Core_ToggleSuspendResource_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/ToggleSuspendResource", runtime.WithHTTPPathPattern("/v1/suspend"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/ToggleSuspendResource", runtime.WithHTTPPathPattern("/v1/suspend"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1168,20 +991,15 @@ func RegisterCoreHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_Core_ToggleSuspendResource_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("POST", pattern_Core_GetSessionLogs_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_Core_GetSessionLogs_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/GetSessionLogs", runtime.WithHTTPPathPattern("/v1/session_logs"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/GetSessionLogs", runtime.WithHTTPPathPattern("/v1/session_logs"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1193,20 +1011,15 @@ func RegisterCoreHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_Core_GetSessionLogs_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("GET", pattern_Core_IsCRDAvailable_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_Core_IsCRDAvailable_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/IsCRDAvailable", runtime.WithHTTPPathPattern("/v1/crd/is_available"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/IsCRDAvailable", runtime.WithHTTPPathPattern("/v1/crd/is_available"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1218,20 +1031,15 @@ func RegisterCoreHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_Core_IsCRDAvailable_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("GET", pattern_Core_GetInventory_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_Core_GetInventory_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/GetInventory", runtime.WithHTTPPathPattern("/v1/inventory"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/GetInventory", runtime.WithHTTPPathPattern("/v1/inventory"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1243,20 +1051,15 @@ func RegisterCoreHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_Core_GetInventory_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("GET", pattern_Core_ListPolicies_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_Core_ListPolicies_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/ListPolicies", runtime.WithHTTPPathPattern("/v1/policies"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/ListPolicies", runtime.WithHTTPPathPattern("/v1/policies"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1268,20 +1071,15 @@ func RegisterCoreHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_Core_ListPolicies_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("GET", pattern_Core_GetPolicy_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_Core_GetPolicy_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/GetPolicy", runtime.WithHTTPPathPattern("/v1/policies/{policyName}"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/GetPolicy", runtime.WithHTTPPathPattern("/v1/policies/{policyName}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1293,20 +1091,15 @@ func RegisterCoreHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_Core_GetPolicy_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("POST", pattern_Core_ListPolicyValidations_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_Core_ListPolicyValidations_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/ListPolicyValidations", runtime.WithHTTPPathPattern("/v1/policyvalidations"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/ListPolicyValidations", runtime.WithHTTPPathPattern("/v1/policyvalidations"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1318,20 +1111,15 @@ func RegisterCoreHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_Core_ListPolicyValidations_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("GET", pattern_Core_GetPolicyValidation_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_Core_GetPolicyValidation_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/GetPolicyValidation", runtime.WithHTTPPathPattern("/v1/policyvalidations/{validationId}"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitops_core.v1.Core/GetPolicyValidation", runtime.WithHTTPPathPattern("/v1/policyvalidations/{validationId}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1343,9 +1131,7 @@ func RegisterCoreHandlerServer(ctx context.Context, mux *runtime.ServeMux, serve
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_Core_GetPolicyValidation_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	return nil
@@ -1372,7 +1158,6 @@ func RegisterCoreHandlerFromEndpoint(ctx context.Context, mux *runtime.ServeMux,
 			}
 		}()
 	}()
-
 	return RegisterCoreHandler(ctx, mux, conn)
 }
 
@@ -1388,14 +1173,11 @@ func RegisterCoreHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.
 // doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
 // "CoreClient" to call the correct interceptors. This client ignores the HTTP middlewares.
 func RegisterCoreHandlerClient(ctx context.Context, mux *runtime.ServeMux, client CoreClient) error {
-
-	mux.Handle("GET", pattern_Core_GetObject_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_Core_GetObject_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/GetObject", runtime.WithHTTPPathPattern("/v1/object/{name}"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/GetObject", runtime.WithHTTPPathPattern("/v1/object/{name}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1406,18 +1188,13 @@ func RegisterCoreHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_Core_GetObject_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("POST", pattern_Core_ListObjects_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_Core_ListObjects_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/ListObjects", runtime.WithHTTPPathPattern("/v1/objects"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/ListObjects", runtime.WithHTTPPathPattern("/v1/objects"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1428,18 +1205,13 @@ func RegisterCoreHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_Core_ListObjects_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("GET", pattern_Core_ListFluxRuntimeObjects_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_Core_ListFluxRuntimeObjects_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/ListFluxRuntimeObjects", runtime.WithHTTPPathPattern("/v1/flux_runtime_objects"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/ListFluxRuntimeObjects", runtime.WithHTTPPathPattern("/v1/flux_runtime_objects"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1450,18 +1222,13 @@ func RegisterCoreHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_Core_ListFluxRuntimeObjects_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("GET", pattern_Core_ListFluxCrds_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_Core_ListFluxCrds_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/ListFluxCrds", runtime.WithHTTPPathPattern("/v1/flux_crds"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/ListFluxCrds", runtime.WithHTTPPathPattern("/v1/flux_crds"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1472,18 +1239,13 @@ func RegisterCoreHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_Core_ListFluxCrds_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("GET", pattern_Core_ListRuntimeObjects_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_Core_ListRuntimeObjects_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/ListRuntimeObjects", runtime.WithHTTPPathPattern("/v1/runtime_objects"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/ListRuntimeObjects", runtime.WithHTTPPathPattern("/v1/runtime_objects"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1494,18 +1256,13 @@ func RegisterCoreHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_Core_ListRuntimeObjects_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("GET", pattern_Core_ListRuntimeCrds_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_Core_ListRuntimeCrds_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/ListRuntimeCrds", runtime.WithHTTPPathPattern("/v1/runtime_crds"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/ListRuntimeCrds", runtime.WithHTTPPathPattern("/v1/runtime_crds"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1516,18 +1273,13 @@ func RegisterCoreHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_Core_ListRuntimeCrds_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("POST", pattern_Core_GetReconciledObjects_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_Core_GetReconciledObjects_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/GetReconciledObjects", runtime.WithHTTPPathPattern("/v1/reconciled_objects"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/GetReconciledObjects", runtime.WithHTTPPathPattern("/v1/reconciled_objects"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1538,18 +1290,13 @@ func RegisterCoreHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_Core_GetReconciledObjects_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("POST", pattern_Core_GetChildObjects_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_Core_GetChildObjects_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/GetChildObjects", runtime.WithHTTPPathPattern("/v1/child_objects"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/GetChildObjects", runtime.WithHTTPPathPattern("/v1/child_objects"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1560,18 +1307,13 @@ func RegisterCoreHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_Core_GetChildObjects_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("POST", pattern_Core_GetFluxNamespace_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_Core_GetFluxNamespace_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/GetFluxNamespace", runtime.WithHTTPPathPattern("/v1/namespace/flux"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/GetFluxNamespace", runtime.WithHTTPPathPattern("/v1/namespace/flux"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1582,18 +1324,13 @@ func RegisterCoreHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_Core_GetFluxNamespace_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("GET", pattern_Core_ListNamespaces_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_Core_ListNamespaces_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/ListNamespaces", runtime.WithHTTPPathPattern("/v1/namespaces"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/ListNamespaces", runtime.WithHTTPPathPattern("/v1/namespaces"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1604,18 +1341,13 @@ func RegisterCoreHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_Core_ListNamespaces_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("GET", pattern_Core_ListEvents_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_Core_ListEvents_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/ListEvents", runtime.WithHTTPPathPattern("/v1/events"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/ListEvents", runtime.WithHTTPPathPattern("/v1/events"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1626,18 +1358,13 @@ func RegisterCoreHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_Core_ListEvents_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("POST", pattern_Core_SyncFluxObject_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_Core_SyncFluxObject_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/SyncFluxObject", runtime.WithHTTPPathPattern("/v1/sync"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/SyncFluxObject", runtime.WithHTTPPathPattern("/v1/sync"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1648,18 +1375,13 @@ func RegisterCoreHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_Core_SyncFluxObject_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("GET", pattern_Core_GetVersion_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_Core_GetVersion_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/GetVersion", runtime.WithHTTPPathPattern("/v1/version"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/GetVersion", runtime.WithHTTPPathPattern("/v1/version"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1670,18 +1392,13 @@ func RegisterCoreHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_Core_GetVersion_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("GET", pattern_Core_GetFeatureFlags_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_Core_GetFeatureFlags_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/GetFeatureFlags", runtime.WithHTTPPathPattern("/v1/featureflags"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/GetFeatureFlags", runtime.WithHTTPPathPattern("/v1/featureflags"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1692,18 +1409,13 @@ func RegisterCoreHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_Core_GetFeatureFlags_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("POST", pattern_Core_ToggleSuspendResource_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_Core_ToggleSuspendResource_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/ToggleSuspendResource", runtime.WithHTTPPathPattern("/v1/suspend"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/ToggleSuspendResource", runtime.WithHTTPPathPattern("/v1/suspend"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1714,18 +1426,13 @@ func RegisterCoreHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_Core_ToggleSuspendResource_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("POST", pattern_Core_GetSessionLogs_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_Core_GetSessionLogs_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/GetSessionLogs", runtime.WithHTTPPathPattern("/v1/session_logs"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/GetSessionLogs", runtime.WithHTTPPathPattern("/v1/session_logs"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1736,18 +1443,13 @@ func RegisterCoreHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_Core_GetSessionLogs_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("GET", pattern_Core_IsCRDAvailable_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_Core_IsCRDAvailable_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/IsCRDAvailable", runtime.WithHTTPPathPattern("/v1/crd/is_available"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/IsCRDAvailable", runtime.WithHTTPPathPattern("/v1/crd/is_available"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1758,18 +1460,13 @@ func RegisterCoreHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_Core_IsCRDAvailable_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("GET", pattern_Core_GetInventory_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_Core_GetInventory_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/GetInventory", runtime.WithHTTPPathPattern("/v1/inventory"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/GetInventory", runtime.WithHTTPPathPattern("/v1/inventory"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1780,18 +1477,13 @@ func RegisterCoreHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_Core_GetInventory_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("GET", pattern_Core_ListPolicies_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_Core_ListPolicies_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/ListPolicies", runtime.WithHTTPPathPattern("/v1/policies"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/ListPolicies", runtime.WithHTTPPathPattern("/v1/policies"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1802,18 +1494,13 @@ func RegisterCoreHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_Core_ListPolicies_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("GET", pattern_Core_GetPolicy_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_Core_GetPolicy_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/GetPolicy", runtime.WithHTTPPathPattern("/v1/policies/{policyName}"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/GetPolicy", runtime.WithHTTPPathPattern("/v1/policies/{policyName}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1824,18 +1511,13 @@ func RegisterCoreHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_Core_GetPolicy_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("POST", pattern_Core_ListPolicyValidations_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_Core_ListPolicyValidations_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/ListPolicyValidations", runtime.WithHTTPPathPattern("/v1/policyvalidations"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/ListPolicyValidations", runtime.WithHTTPPathPattern("/v1/policyvalidations"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1846,18 +1528,13 @@ func RegisterCoreHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_Core_ListPolicyValidations_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("GET", pattern_Core_GetPolicyValidation_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_Core_GetPolicyValidation_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/GetPolicyValidation", runtime.WithHTTPPathPattern("/v1/policyvalidations/{validationId}"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/gitops_core.v1.Core/GetPolicyValidation", runtime.WithHTTPPathPattern("/v1/policyvalidations/{validationId}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1868,102 +1545,57 @@ func RegisterCoreHandlerClient(ctx context.Context, mux *runtime.ServeMux, clien
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_Core_GetPolicyValidation_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
 	return nil
 }
 
 var (
-	pattern_Core_GetObject_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "object", "name"}, ""))
-
-	pattern_Core_ListObjects_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "objects"}, ""))
-
+	pattern_Core_GetObject_0              = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "object", "name"}, ""))
+	pattern_Core_ListObjects_0            = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "objects"}, ""))
 	pattern_Core_ListFluxRuntimeObjects_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "flux_runtime_objects"}, ""))
-
-	pattern_Core_ListFluxCrds_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "flux_crds"}, ""))
-
-	pattern_Core_ListRuntimeObjects_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "runtime_objects"}, ""))
-
-	pattern_Core_ListRuntimeCrds_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "runtime_crds"}, ""))
-
-	pattern_Core_GetReconciledObjects_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "reconciled_objects"}, ""))
-
-	pattern_Core_GetChildObjects_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "child_objects"}, ""))
-
-	pattern_Core_GetFluxNamespace_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "namespace", "flux"}, ""))
-
-	pattern_Core_ListNamespaces_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "namespaces"}, ""))
-
-	pattern_Core_ListEvents_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "events"}, ""))
-
-	pattern_Core_SyncFluxObject_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "sync"}, ""))
-
-	pattern_Core_GetVersion_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "version"}, ""))
-
-	pattern_Core_GetFeatureFlags_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "featureflags"}, ""))
-
-	pattern_Core_ToggleSuspendResource_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "suspend"}, ""))
-
-	pattern_Core_GetSessionLogs_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "session_logs"}, ""))
-
-	pattern_Core_IsCRDAvailable_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "crd", "is_available"}, ""))
-
-	pattern_Core_GetInventory_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "inventory"}, ""))
-
-	pattern_Core_ListPolicies_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "policies"}, ""))
-
-	pattern_Core_GetPolicy_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "policies", "policyName"}, ""))
-
-	pattern_Core_ListPolicyValidations_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "policyvalidations"}, ""))
-
-	pattern_Core_GetPolicyValidation_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "policyvalidations", "validationId"}, ""))
+	pattern_Core_ListFluxCrds_0           = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "flux_crds"}, ""))
+	pattern_Core_ListRuntimeObjects_0     = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "runtime_objects"}, ""))
+	pattern_Core_ListRuntimeCrds_0        = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "runtime_crds"}, ""))
+	pattern_Core_GetReconciledObjects_0   = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "reconciled_objects"}, ""))
+	pattern_Core_GetChildObjects_0        = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "child_objects"}, ""))
+	pattern_Core_GetFluxNamespace_0       = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "namespace", "flux"}, ""))
+	pattern_Core_ListNamespaces_0         = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "namespaces"}, ""))
+	pattern_Core_ListEvents_0             = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "events"}, ""))
+	pattern_Core_SyncFluxObject_0         = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "sync"}, ""))
+	pattern_Core_GetVersion_0             = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "version"}, ""))
+	pattern_Core_GetFeatureFlags_0        = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "featureflags"}, ""))
+	pattern_Core_ToggleSuspendResource_0  = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "suspend"}, ""))
+	pattern_Core_GetSessionLogs_0         = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "session_logs"}, ""))
+	pattern_Core_IsCRDAvailable_0         = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "crd", "is_available"}, ""))
+	pattern_Core_GetInventory_0           = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "inventory"}, ""))
+	pattern_Core_ListPolicies_0           = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "policies"}, ""))
+	pattern_Core_GetPolicy_0              = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "policies", "policyName"}, ""))
+	pattern_Core_ListPolicyValidations_0  = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "policyvalidations"}, ""))
+	pattern_Core_GetPolicyValidation_0    = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "policyvalidations", "validationId"}, ""))
 )
 
 var (
-	forward_Core_GetObject_0 = runtime.ForwardResponseMessage
-
-	forward_Core_ListObjects_0 = runtime.ForwardResponseMessage
-
+	forward_Core_GetObject_0              = runtime.ForwardResponseMessage
+	forward_Core_ListObjects_0            = runtime.ForwardResponseMessage
 	forward_Core_ListFluxRuntimeObjects_0 = runtime.ForwardResponseMessage
-
-	forward_Core_ListFluxCrds_0 = runtime.ForwardResponseMessage
-
-	forward_Core_ListRuntimeObjects_0 = runtime.ForwardResponseMessage
-
-	forward_Core_ListRuntimeCrds_0 = runtime.ForwardResponseMessage
-
-	forward_Core_GetReconciledObjects_0 = runtime.ForwardResponseMessage
-
-	forward_Core_GetChildObjects_0 = runtime.ForwardResponseMessage
-
-	forward_Core_GetFluxNamespace_0 = runtime.ForwardResponseMessage
-
-	forward_Core_ListNamespaces_0 = runtime.ForwardResponseMessage
-
-	forward_Core_ListEvents_0 = runtime.ForwardResponseMessage
-
-	forward_Core_SyncFluxObject_0 = runtime.ForwardResponseMessage
-
-	forward_Core_GetVersion_0 = runtime.ForwardResponseMessage
-
-	forward_Core_GetFeatureFlags_0 = runtime.ForwardResponseMessage
-
-	forward_Core_ToggleSuspendResource_0 = runtime.ForwardResponseMessage
-
-	forward_Core_GetSessionLogs_0 = runtime.ForwardResponseMessage
-
-	forward_Core_IsCRDAvailable_0 = runtime.ForwardResponseMessage
-
-	forward_Core_GetInventory_0 = runtime.ForwardResponseMessage
-
-	forward_Core_ListPolicies_0 = runtime.ForwardResponseMessage
-
-	forward_Core_GetPolicy_0 = runtime.ForwardResponseMessage
-
-	forward_Core_ListPolicyValidations_0 = runtime.ForwardResponseMessage
-
-	forward_Core_GetPolicyValidation_0 = runtime.ForwardResponseMessage
+	forward_Core_ListFluxCrds_0           = runtime.ForwardResponseMessage
+	forward_Core_ListRuntimeObjects_0     = runtime.ForwardResponseMessage
+	forward_Core_ListRuntimeCrds_0        = runtime.ForwardResponseMessage
+	forward_Core_GetReconciledObjects_0   = runtime.ForwardResponseMessage
+	forward_Core_GetChildObjects_0        = runtime.ForwardResponseMessage
+	forward_Core_GetFluxNamespace_0       = runtime.ForwardResponseMessage
+	forward_Core_ListNamespaces_0         = runtime.ForwardResponseMessage
+	forward_Core_ListEvents_0             = runtime.ForwardResponseMessage
+	forward_Core_SyncFluxObject_0         = runtime.ForwardResponseMessage
+	forward_Core_GetVersion_0             = runtime.ForwardResponseMessage
+	forward_Core_GetFeatureFlags_0        = runtime.ForwardResponseMessage
+	forward_Core_ToggleSuspendResource_0  = runtime.ForwardResponseMessage
+	forward_Core_GetSessionLogs_0         = runtime.ForwardResponseMessage
+	forward_Core_IsCRDAvailable_0         = runtime.ForwardResponseMessage
+	forward_Core_GetInventory_0           = runtime.ForwardResponseMessage
+	forward_Core_ListPolicies_0           = runtime.ForwardResponseMessage
+	forward_Core_GetPolicy_0              = runtime.ForwardResponseMessage
+	forward_Core_ListPolicyValidations_0  = runtime.ForwardResponseMessage
+	forward_Core_GetPolicyValidation_0    = runtime.ForwardResponseMessage
 )
