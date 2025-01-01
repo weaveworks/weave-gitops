@@ -1,4 +1,5 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/dom";
+import { fireEvent, render } from "@testing-library/react";
 import "jest-styled-components";
 import React from "react";
 import { withTheme } from "../../lib/test-utils";

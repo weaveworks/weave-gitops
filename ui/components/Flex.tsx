@@ -22,7 +22,9 @@ type Props = {
   "data-testid"?: string;
 };
 
-const Styled = (component) => styled(component)`
+const Styled = (component) => styled(component).withConfig({
+  shouldForwardProp: (prop) => !["wide", "between"].includes(prop),
+})`
   display: flex;
   flex-direction: ${({ column }) => (column ? "column" : "row")};
   align-items: ${({ align, alignItems }) =>
