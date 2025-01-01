@@ -91,7 +91,7 @@ import {
   useLinkResolver,
 } from "./contexts/LinkResolverContext";
 import { useListAutomations, useSyncFluxObject } from "./hooks/automations";
-import { useDebounce, useRequestState } from "./hooks/common";
+import { useDebounce } from "./hooks/common";
 import { useListEvents } from "./hooks/events";
 import { useFeatureFlags } from "./hooks/featureflags";
 import {
@@ -289,7 +289,6 @@ export {
   useListProviders,
   useListSources,
   useNavigation,
-  useRequestState,
   useSyncFluxObject,
   useToggleSuspend,
   withBasePath,
