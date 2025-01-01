@@ -34,13 +34,13 @@ jobs:
         id: new-version
         run: |
           NEW_VERSION=$(yq e '.version' charts/gitops-server/Chart.yaml)
-          echo "::set-output name=version::$NEW_VERSION"
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
       - name: Find old version
         id: old-version
         run: |
           git checkout ${{ github.event.pull_request.base.sha || github.event.before }}
           OLD_VERSION=$(yq e '.version' charts/gitops-server/Chart.yaml)
-          echo "::set-output name=version::$OLD_VERSION"
+          echo "version=$OLD_VERSION" >> $GITHUB_OUTPUT
 
   helm-will-release:
     runs-on: ubuntu-latest
@@ -59,7 +59,7 @@ jobs:
           git log --exit-code $last_revision...${{ github.event.pull_request.base.sha }} charts/gitops-server
           unreleased_commits=$?
           if [[ $unreleased_commits == 1 ]]; then
-              echo "::set-output name=unreleased-commits::The last chart was last released in $last_revision and there have been other changes in the chart since"
+              echo "unreleased-commits=The last chart was last released in $last_revision and there have been other changes in the chart since" >> $GITHUB_OUTPUT
           fi
       - name: Let user know merging will cause a release
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
@@ -86,7 +86,7 @@ jobs:
         id: new_version
         run: |
           NEW_VERSION=$(yq e '.version' charts/gitops-server/Chart.yaml)
-          echo "::set-output name=version::$NEW_VERSION"
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
       - name: Generate new chart
         run: |
           URL=https://helm.gitops.weave.works
