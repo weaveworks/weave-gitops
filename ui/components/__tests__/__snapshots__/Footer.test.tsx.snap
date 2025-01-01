@@ -2,35 +2,16 @@
 
 exports[`Footer snapshots default 1`] = `
 .c0 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
   flex-direction: row;
-  -webkit-align-items: start;
-  -webkit-box-align: start;
-  -ms-flex-align: start;
   align-items: start;
   width: 100%;
-  -webkit-box-pack: justify;
-  -webkit-justify-content: space-between;
-  -ms-flex-pack: justify;
   justify-content: space-between;
 }
 
 .c2 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
   flex-direction: row;
-  -webkit-align-items: start;
-  -webkit-box-align: start;
-  -ms-flex-align: start;
   align-items: start;
 }
 
@@ -82,7 +63,6 @@ exports[`Footer snapshots default 1`] = `
 }
 
 .c5 {
-  -webkit-text-decoration: none;
   text-decoration: none;
 }
 
@@ -122,7 +102,6 @@ exports[`Footer snapshots default 1`] = `
     >
       <span
         class="c6"
-        color="primary"
       >
         info@weaveworks.org
       </span>
@@ -175,7 +154,6 @@ exports[`Footer snapshots default 1`] = `
       >
         <span
           class="c6"
-          color="primary"
         >
           <span
             class="c10"
@@ -201,35 +179,16 @@ exports[`Footer snapshots default 1`] = `
 
 exports[`Footer snapshots no api version 1`] = `
 .c0 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
   flex-direction: row;
-  -webkit-align-items: start;
-  -webkit-box-align: start;
-  -ms-flex-align: start;
   align-items: start;
   width: 100%;
-  -webkit-box-pack: justify;
-  -webkit-justify-content: space-between;
-  -ms-flex-pack: justify;
   justify-content: space-between;
 }
 
 .c2 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
   flex-direction: row;
-  -webkit-align-items: start;
-  -webkit-box-align: start;
-  -ms-flex-align: start;
   align-items: start;
 }
 
@@ -281,7 +240,6 @@ exports[`Footer snapshots no api version 1`] = `
 }
 
 .c5 {
-  -webkit-text-decoration: none;
   text-decoration: none;
 }
 
@@ -321,7 +279,6 @@ exports[`Footer snapshots no api version 1`] = `
     >
       <span
         class="c6"
-        color="primary"
       >
         info@weaveworks.org
       </span>
@@ -374,7 +331,6 @@ exports[`Footer snapshots no api version 1`] = `
       >
         <span
           class="c6"
-          color="primary"
         >
           <span
             class="c10"

@@ -2,37 +2,20 @@
 
 exports[`Logo snapshots renders collapsed view 1`] = `
 .c0 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
   flex-direction: row;
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
   align-items: center;
 }
 
 .c2 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
   flex-direction: row;
-  -webkit-align-items: start;
-  -webkit-box-align: start;
-  -ms-flex-align: start;
   align-items: start;
 }
 
 .c3 {
   opacity: 0;
-  -webkit-transition: opacity 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: opacity 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: opacity 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
   pointer-events: none;
 }
 
@@ -40,18 +23,11 @@ exports[`Logo snapshots renders collapsed view 1`] = `
   padding-left: 16px;
   height: 60px;
   width: 36px;
-  -webkit-transition: width 0.5s;
   transition: width 0.5s;
 }
 
 .c1 a {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
   align-items: center;
 }
 
@@ -92,55 +68,31 @@ exports[`Logo snapshots renders collapsed view 1`] = `
 
 exports[`Logo snapshots renders open view 1`] = `
 .c0 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
   flex-direction: row;
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
   align-items: center;
 }
 
 .c2 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
   flex-direction: row;
-  -webkit-align-items: start;
-  -webkit-box-align: start;
-  -ms-flex-align: start;
   align-items: start;
 }
 
 .c3 {
   opacity: 1;
-  -webkit-transition: opacity 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: opacity 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: opacity 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
 }
 
 .c1 {
   padding-left: 16px;
   height: 60px;
   width: 180px;
-  -webkit-transition: width 0.5s;
   transition: width 0.5s;
 }
 
 .c1 a {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
   align-items: center;
 }
 

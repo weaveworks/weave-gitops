@@ -2,16 +2,8 @@
 
 exports[`Version snapshots renders a dash as plain text without version text and with version href 1`] = `
 .c0 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
   flex-direction: row;
-  -webkit-align-items: start;
-  -webkit-box-align: start;
-  -ms-flex-align: start;
   align-items: start;
 }
 
@@ -41,7 +33,6 @@ exports[`Version snapshots renders a dash as plain text without version text and
 >
   <span
     className="c1"
-    size="medium"
   >
     product name
     :
@@ -51,7 +42,6 @@ exports[`Version snapshots renders a dash as plain text without version text and
   />
   <span
     className="c3"
-    size="medium"
   >
     -
   </span>
@@ -60,16 +50,8 @@ exports[`Version snapshots renders a dash as plain text without version text and
 
 exports[`Version snapshots renders a dash without version text and without version href 1`] = `
 .c0 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
   flex-direction: row;
-  -webkit-align-items: start;
-  -webkit-box-align: start;
-  -ms-flex-align: start;
   align-items: start;
 }
 
@@ -99,7 +81,6 @@ exports[`Version snapshots renders a dash without version text and without versi
 >
   <span
     className="c1"
-    size="medium"
   >
     product name
     :
@@ -109,7 +90,6 @@ exports[`Version snapshots renders a dash without version text and without versi
   />
   <span
     className="c3"
-    size="medium"
   >
     -
   </span>
@@ -118,16 +98,8 @@ exports[`Version snapshots renders a dash without version text and without versi
 
 exports[`Version snapshots renders a link with version text and version href 1`] = `
 .c0 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
   flex-direction: row;
-  -webkit-align-items: start;
-  -webkit-box-align: start;
-  -ms-flex-align: start;
   align-items: start;
 }
 
@@ -162,7 +134,6 @@ exports[`Version snapshots renders a link with version text and version href 1`]
 }
 
 .c3 {
-  -webkit-text-decoration: none;
   text-decoration: none;
 }
 
@@ -171,7 +142,6 @@ exports[`Version snapshots renders a link with version text and version href 1`]
 >
   <span
     className="c1"
-    size="medium"
   >
     product name
     :
@@ -187,12 +157,9 @@ exports[`Version snapshots renders a link with version text and version href 1`]
   >
     <span
       className="c4"
-      color="primary"
-      size="medium"
     >
       <span
         className="c5"
-        size="medium"
       >
         version text
       </span>
@@ -203,16 +170,8 @@ exports[`Version snapshots renders a link with version text and version href 1`]
 
 exports[`Version snapshots renders plain text with version text and without version href 1`] = `
 .c0 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
   flex-direction: row;
-  -webkit-align-items: start;
-  -webkit-box-align: start;
-  -ms-flex-align: start;
   align-items: start;
 }
 
@@ -242,7 +201,6 @@ exports[`Version snapshots renders plain text with version text and without vers
 >
   <span
     className="c1"
-    size="medium"
   >
     product name
     :
@@ -252,7 +210,6 @@ exports[`Version snapshots renders plain text with version text and without vers
   />
   <span
     className="c3"
-    size="medium"
   >
     version text
   </span>

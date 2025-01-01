@@ -11,7 +11,6 @@ exports[`Text snapshots bold 1`] = `
 
 <span
   className="c0"
-  size="medium"
 >
   some text
 </span>
@@ -28,7 +27,6 @@ exports[`Text snapshots normal 1`] = `
 
 <span
   className="c0"
-  size="medium"
 >
   some text
 </span>
@@ -46,8 +44,6 @@ exports[`Text snapshots with color 1`] = `
 
 <span
   className="c0"
-  color="successOriginal"
-  size="medium"
 >
   some text
 </span>

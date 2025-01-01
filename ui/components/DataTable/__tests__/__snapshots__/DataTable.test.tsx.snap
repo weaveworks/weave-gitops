@@ -2,123 +2,55 @@
 
 exports[`DataTable snapshots renders 1`] = `
 .c0 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-flex-direction: column;
-  -ms-flex-direction: column;
   flex-direction: column;
-  -webkit-align-items: start;
-  -webkit-box-align: start;
-  -ms-flex-align: start;
   align-items: start;
   height: 100%;
   width: 100%;
 }
 
 .c2 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
   flex-direction: row;
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
   align-items: center;
   width: 100%;
-  -webkit-box-pack: end;
-  -webkit-justify-content: flex-end;
-  -ms-flex-pack: end;
   justify-content: flex-end;
 }
 
 .c4 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
   flex-direction: row;
-  -webkit-align-items: start;
-  -webkit-box-align: start;
-  -ms-flex-align: start;
   align-items: start;
   height: 100%;
   width: 100%;
 }
 
 .c5 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
   flex-direction: row;
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
   align-items: center;
   gap: 4px;
-  -webkit-box-pack: start;
-  -webkit-justify-content: flex-start;
-  -ms-flex-pack: start;
   justify-content: flex-start;
 }
 
 .c7 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
   flex-direction: row;
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
   align-items: center;
 }
 
 .c13 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-flex-direction: column;
-  -ms-flex-direction: column;
   flex-direction: column;
-  -webkit-align-items: start;
-  -webkit-box-align: start;
-  -ms-flex-align: start;
   align-items: start;
-  -webkit-box-pack: start;
-  -webkit-justify-content: flex-start;
-  -ms-flex-pack: start;
   justify-content: flex-start;
 }
 
 .c15 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
   flex-direction: row;
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
   align-items: center;
   width: 100%;
-  -webkit-box-pack: start;
-  -webkit-justify-content: flex-start;
-  -ms-flex-pack: start;
   justify-content: flex-start;
 }
 
@@ -151,8 +83,7 @@ exports[`DataTable snapshots renders 1`] = `
 .c8 svg circle.path-fill,
 .c8 svg polyline.path-fill {
   fill: !important;
-  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
 }
 
 .c8 svg path.stroke-fill,
@@ -162,8 +93,7 @@ exports[`DataTable snapshots renders 1`] = `
 .c8 svg circle.stroke-fill,
 .c8 svg polyline.stroke-fill {
   stroke: !important;
-  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
 }
 
 .c8 svg rect.rect-height {
@@ -172,14 +102,10 @@ exports[`DataTable snapshots renders 1`] = `
 }
 
 .c8.downward {
-  -webkit-transform: rotate(180deg);
-  -ms-transform: rotate(180deg);
   transform: rotate(180deg);
 }
 
 .c8.upward {
-  -webkit-transform: initial;
-  -ms-transform: initial;
   transform: initial;
 }
 
@@ -196,11 +122,8 @@ exports[`DataTable snapshots renders 1`] = `
   height: 100%;
   width: 0px;
   left: 24px;
-  -webkit-transition-property: width,left;
   transition-property: width,left;
-  -webkit-transition-duration: 0.5s;
   transition-duration: 0.5s;
-  -webkit-transition-timing-function: ease-in-out;
   transition-timing-function: ease-in-out;
 }
 
@@ -210,7 +133,7 @@ exports[`DataTable snapshots renders 1`] = `
 }
 
 .c12 {
-  background: rbga(255,255,255,0.75);
+  background: rbga(255, 255, 255, 0.75);
   height: 100%;
   width: 100%;
   border-left: 2px solid #d8d8d8;
@@ -233,9 +156,6 @@ exports[`DataTable snapshots renders 1`] = `
 .c6.MuiButton-root {
   margin: 0;
   text-transform: none;
-  -webkit-letter-spacing: 0;
-  -moz-letter-spacing: 0;
-  -ms-letter-spacing: 0;
   letter-spacing: 0;
 }
 
@@ -257,8 +177,6 @@ exports[`DataTable snapshots renders 1`] = `
 
 .c1 {
   width: 100%;
-  -webkit-flex-wrap: nowrap;
-  -ms-flex-wrap: nowrap;
   flex-wrap: nowrap;
   overflow-x: hidden;
 }
@@ -271,20 +189,15 @@ exports[`DataTable snapshots renders 1`] = `
   margin: 0px;
   white-space: nowrap;
   text-transform: uppercase;
-  -webkit-letter-spacing: 1px;
-  -moz-letter-spacing: 1px;
-  -ms-letter-spacing: 1px;
   letter-spacing: 1px;
 }
 
 .c1 .MuiTableRow-root {
-  -webkit-transition: background 0.5s ease-in-out;
   transition: background 0.5s ease-in-out;
 }
 
 .c1 .MuiTableRow-root:not(.MuiTableRow-head):hover {
   background: #f5f5f5;
-  -webkit-transition: background 0.5s ease-in-out;
   transition: background 0.5s ease-in-out;
 }
 
@@ -305,11 +218,11 @@ exports[`DataTable snapshots renders 1`] = `
   padding: 4px 9px;
 }
 
-.c1 th:first-child {
+.c1 th :first-child {
   border-top-left-radius: 4px;
 }
 
-.c1 th:last-child {
+.c1 th :last-child {
   border-top-right-radius: 4px;
 }
 
@@ -536,7 +449,6 @@ exports[`DataTable snapshots renders 1`] = `
             >
               <span
                 className="c9 c10"
-                size="medium"
               >
                 <a
                   href="/some_url"
@@ -551,7 +463,6 @@ exports[`DataTable snapshots renders 1`] = `
             >
               <span
                 className="c9 c10"
-                size="medium"
               >
                 Ready
               </span>
@@ -562,7 +473,6 @@ exports[`DataTable snapshots renders 1`] = `
             >
               <span
                 className="c9 c10"
-                size="medium"
               >
                 2004-01-02T15:04:05-0700
               </span>
@@ -573,7 +483,6 @@ exports[`DataTable snapshots renders 1`] = `
             >
               <span
                 className="c9 c10"
-                size="medium"
               >
                 3000
               </span>
@@ -589,7 +498,6 @@ exports[`DataTable snapshots renders 1`] = `
             >
               <span
                 className="c9 c10"
-                size="medium"
               >
                 <a
                   href="/some_url"
@@ -604,7 +512,6 @@ exports[`DataTable snapshots renders 1`] = `
             >
               <span
                 className="c9 c10"
-                size="medium"
               >
                 -
               </span>
@@ -615,7 +522,6 @@ exports[`DataTable snapshots renders 1`] = `
             >
               <span
                 className="c9 c10"
-                size="medium"
               >
                 2006-01-02T15:04:05-0700
               </span>
@@ -626,7 +532,6 @@ exports[`DataTable snapshots renders 1`] = `
             >
               <span
                 className="c9 c10"
-                size="medium"
               >
                 2000
               </span>
@@ -642,7 +547,6 @@ exports[`DataTable snapshots renders 1`] = `
             >
               <span
                 className="c9 c10"
-                size="medium"
               >
                 <a
                   href="/some_url"
@@ -657,7 +561,6 @@ exports[`DataTable snapshots renders 1`] = `
             >
               <span
                 className="c9 c10"
-                size="medium"
               />
             </td>
             <td
@@ -666,7 +569,6 @@ exports[`DataTable snapshots renders 1`] = `
             >
               <span
                 className="c9 c10"
-                size="medium"
               >
                 2005-01-02T15:04:05-0700
               </span>
@@ -677,7 +579,6 @@ exports[`DataTable snapshots renders 1`] = `
             >
               <span
                 className="c9 c10"
-                size="medium"
               >
                 1000
               </span>
@@ -701,8 +602,6 @@ exports[`DataTable snapshots renders 1`] = `
           >
             <span
               className="c9 c16"
-              color="neutral30"
-              size="large"
             >
               Filters
             </span>

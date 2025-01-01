@@ -2,16 +2,8 @@
 
 exports[`Metadata snapshots renders nothing without data 1`] = `
 .c0 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-flex-direction: column;
-  -ms-flex-direction: column;
   flex-direction: column;
-  -webkit-align-items: start;
-  -webkit-box-align: start;
-  -ms-flex-align: start;
   align-items: start;
   gap: 12px;
   width: 100%;
@@ -28,91 +20,43 @@ exports[`Metadata snapshots renders nothing without data 1`] = `
 
 exports[`Metadata snapshots renders with data 1`] = `
 .c0 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-flex-direction: column;
-  -ms-flex-direction: column;
   flex-direction: column;
-  -webkit-align-items: start;
-  -webkit-box-align: start;
-  -ms-flex-align: start;
   align-items: start;
   gap: 12px;
   width: 100%;
 }
 
 .c2 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-flex-direction: column;
-  -ms-flex-direction: column;
   flex-direction: column;
-  -webkit-align-items: start;
-  -webkit-box-align: start;
-  -ms-flex-align: start;
   align-items: start;
   gap: 8px;
 }
 
 .c4 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-flex-direction: column;
-  -ms-flex-direction: column;
   flex-direction: column;
-  -webkit-align-items: start;
-  -webkit-box-align: start;
-  -ms-flex-align: start;
   align-items: start;
   gap: 8px;
   width: 100%;
 }
 
 .c5 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
   flex-direction: row;
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
   align-items: center;
   gap: 8px;
-  -webkit-box-pack: center;
-  -webkit-justify-content: center;
-  -ms-flex-pack: center;
   justify-content: center;
 }
 
 .c10 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
   flex-direction: row;
-  -webkit-align-items: start;
-  -webkit-box-align: start;
-  -ms-flex-align: start;
   align-items: start;
   gap: 4px;
   width: 100%;
-  -webkit-flex-wrap: wrap;
-  -ms-flex-wrap: wrap;
   flex-wrap: wrap;
-  -webkit-box-pack: start;
-  -webkit-justify-content: flex-start;
-  -ms-flex-pack: start;
   justify-content: flex-start;
 }
 
@@ -162,7 +106,6 @@ exports[`Metadata snapshots renders with data 1`] = `
 }
 
 .c8 {
-  -webkit-text-decoration: none;
   text-decoration: none;
 }
 
@@ -185,8 +128,6 @@ exports[`Metadata snapshots renders with data 1`] = `
   >
     <span
       className="c3"
-      color="neutral30"
-      size="large"
     >
       Metadata
     </span>
@@ -199,16 +140,12 @@ exports[`Metadata snapshots renders with data 1`] = `
       >
         <span
           className="c6"
-          color="neutral30"
-          size="medium"
         >
           Created By
           :
         </span>
         <span
           className="c7"
-          color="neutral40"
-          size="medium"
         >
           Value 2
         </span>
@@ -219,16 +156,12 @@ exports[`Metadata snapshots renders with data 1`] = `
       >
         <span
           className="c6"
-          color="neutral30"
-          size="medium"
         >
           CreatedBy
           :
         </span>
         <span
           className="c7"
-          color="neutral40"
-          size="medium"
         >
           Value 3
         </span>
@@ -239,16 +172,12 @@ exports[`Metadata snapshots renders with data 1`] = `
       >
         <span
           className="c6"
-          color="neutral30"
-          size="medium"
         >
           CreatedBy
           :
         </span>
         <span
           className="c7"
-          color="neutral40"
-          size="medium"
         >
           Value 4
         </span>
@@ -259,16 +188,12 @@ exports[`Metadata snapshots renders with data 1`] = `
       >
         <span
           className="c6"
-          color="neutral30"
-          size="medium"
         >
           Description
           :
         </span>
         <span
           className="c7"
-          color="neutral40"
-          size="medium"
         >
           Value 1
         </span>
@@ -279,16 +204,12 @@ exports[`Metadata snapshots renders with data 1`] = `
       >
         <span
           className="c6"
-          color="neutral30"
-          size="medium"
         >
           Html
           :
         </span>
         <span
           className="c7"
-          color="neutral40"
-          size="medium"
         >
           &lt;p&gt;&lt;b&gt;html&lt;/b&gt;&lt;/p&gt;
         </span>
@@ -299,16 +220,12 @@ exports[`Metadata snapshots renders with data 1`] = `
       >
         <span
           className="c6"
-          color="neutral30"
-          size="medium"
         >
           Link To Google
           :
         </span>
         <span
           className="c7"
-          color="neutral40"
-          size="medium"
         >
           <a
             className="c8 Link"
@@ -318,8 +235,6 @@ exports[`Metadata snapshots renders with data 1`] = `
           >
             <span
               className="c9"
-              color="primary"
-              size="medium"
             >
               https://google.com
             </span>
@@ -332,16 +247,12 @@ exports[`Metadata snapshots renders with data 1`] = `
       >
         <span
           className="c6"
-          color="neutral30"
-          size="medium"
         >
           Multi Lines
           :
         </span>
         <span
           className="c7"
-          color="neutral40"
-          size="medium"
         >
           This is first line
 This is second line
@@ -354,16 +265,12 @@ This is second line
       >
         <span
           className="c6"
-          color="neutral30"
-          size="medium"
         >
           Version
           :
         </span>
         <span
           className="c7"
-          color="neutral40"
-          size="medium"
         >
           some version
         </span>
@@ -375,8 +282,6 @@ This is second line
   >
     <span
       className="c3"
-      color="neutral30"
-      size="large"
     >
       Artifact Metadata
     </span>
@@ -389,16 +294,12 @@ This is second line
       >
         <span
           className="c6"
-          color="neutral30"
-          size="medium"
         >
           Description
           :
         </span>
         <span
           className="c7"
-          color="neutral40"
-          size="medium"
         >
           Value 1
         </span>
@@ -409,16 +310,12 @@ This is second line
       >
         <span
           className="c6"
-          color="neutral30"
-          size="medium"
         >
           Html
           :
         </span>
         <span
           className="c7"
-          color="neutral40"
-          size="medium"
         >
           &lt;p&gt;&lt;b&gt;html&lt;/b&gt;&lt;/p&gt;
         </span>
@@ -429,16 +326,12 @@ This is second line
       >
         <span
           className="c6"
-          color="neutral30"
-          size="medium"
         >
           Link To Google
           :
         </span>
         <span
           className="c7"
-          color="neutral40"
-          size="medium"
         >
           <a
             className="c8 Link"
@@ -448,8 +341,6 @@ This is second line
           >
             <span
               className="c9"
-              color="primary"
-              size="medium"
             >
               https://google.com
             </span>
@@ -463,8 +354,6 @@ This is second line
   >
     <span
       className="c3"
-      color="neutral30"
-      size="large"
     >
       Labels
     </span>
@@ -473,7 +362,6 @@ This is second line
     >
       <span
         className="c11 c12"
-        size="medium"
       >
         label
         : 
@@ -481,7 +369,6 @@ This is second line
       </span>
       <span
         className="c11 c12"
-        size="medium"
       >
         goose
         : 
