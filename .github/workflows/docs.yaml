@@ -50,12 +50,12 @@ jobs:
           retention-days: 90
 
   deploy:
+    if: "${{ github.repository_owner == 'weaveworks' && github.ref == 'refs/heads/main' && !github.event.pull_request.head.repo.fork" }}"
     permissions:
       statuses: write
       pull-requests: write
       id-token: write
       pages: write
-    if: "${{ github.repository_owner == 'weaveworks' && !github.event.pull_request.head.repo.fork }}"
     runs-on: ubuntu-latest
     defaults:
       run:
