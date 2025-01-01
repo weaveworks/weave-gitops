@@ -17,8 +17,8 @@ permissions:
 jobs:
   fossa:
     name: FOSSA
-    # FOSSA API key secret is not available in forks
-    if: github.secret_source != 'None'
+    # Needs access to the FOSSA API key secret, so don't run on pull request events
+    if: ${{ ! github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
