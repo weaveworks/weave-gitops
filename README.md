@@ -142,7 +142,9 @@ Need help or want to contribute? Please see the links below.
     - Please create a [Github issue](https://github.com/weaveworks/weave-gitops/issues)
     - Learn more about contributing [here](./CONTRIBUTING.md).
 
-## License scan details
+[//]: # (## License scan details)
 
-[![FOSSA Status](https://app.fossa.com/api/projects/custom%2B19155%2Fgithub.com%2Fweaveworks%2Fweave-gitops.svg?type=large)](https://app.fossa.com/reports/005da7c4-1f10-4889-9432-8b97c2084e41)
+[//]: # ()
+[//]: # ([![FOSSA Status]&#40;https://app.fossa.com/api/projects/custom%2B19155%2Fgithub.com%2Fweaveworks%2Fweave-gitops.svg?type=large&#41;]&#40;https://app.fossa.com/reports/005da7c4-1f10-4889-9432-8b97c2084e41&#41;)
 
+[//]: # ()
