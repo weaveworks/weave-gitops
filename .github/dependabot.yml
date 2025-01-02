@@ -5,6 +5,12 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+    groups:
+      react:
+        patterns:
+          - react
+          - react-*
+          - "@*/react-*"
   # Maintain dependencies for backend
   - package-ecosystem: "gomod"
     directory: "/"
@@ -15,6 +21,12 @@ updates:
     directory: "/website"
     schedule:
       interval: "daily"
+    groups:
+      react:
+        patterns:
+          - react
+          - react-*
+          - "@*/react-*"
   # maintain dependencies for github actions
   - package-ecosystem: "github-actions"
     directory: "/"
