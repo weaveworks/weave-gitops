@@ -22,6 +22,8 @@ import (
 func TestGetFeatureFlags(t *testing.T) {
 	RegisterFailHandler(Fail)
 
+	ctx := context.Background()
+
 	featureflags.Set("this is a flag", "you won't find it anywhere else")
 
 	scheme, err := kube.CreateScheme()
@@ -42,7 +44,7 @@ func TestGetFeatureFlags(t *testing.T) {
 
 	cfg, err := server.NewCoreConfig(logr.Discard(), &rest.Config{}, "test", clustersManager, hc)
 	Expect(err).NotTo(HaveOccurred())
-	coreSrv, err := server.NewCoreServer(cfg)
+	coreSrv, err := server.NewCoreServer(ctx, cfg)
 	Expect(err).NotTo(HaveOccurred())
 
 	resp, err := coreSrv.GetFeatureFlags(context.Background(), &pb.GetFeatureFlagsRequest{})

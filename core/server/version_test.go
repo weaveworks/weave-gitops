@@ -16,13 +16,14 @@ import (
 
 func TestGetVersion(t *testing.T) {
 	g := NewGomegaWithT(t)
-	c := makeGRPCServer(k8sEnv.Rest, t)
+
+	ctx := context.Background()
+
+	c := makeGRPCServer(ctx, k8sEnv.Rest, t)
 	logf.SetLogger(logr.Discard())
 
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
-
-	ctx := context.Background()
 
 	_, err = client.New(k8sEnv.Rest, client.Options{
 		Scheme: scheme,

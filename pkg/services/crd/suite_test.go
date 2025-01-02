@@ -43,7 +43,7 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func newService(k8sEnv *testutils.K8sTestEnv) (crd.Fetcher, error) {
+func newService(ctx context.Context, k8sEnv *testutils.K8sTestEnv) (crd.Fetcher, error) {
 	_, clustersManager, err := createClient(k8sEnv)
 	if err != nil {
 		return nil, err
@@ -51,7 +51,7 @@ func newService(k8sEnv *testutils.K8sTestEnv) (crd.Fetcher, error) {
 
 	log := logr.Discard()
 
-	return crd.NewFetcher(log, clustersManager), nil
+	return crd.NewFetcher(ctx, log, clustersManager), nil
 }
 
 func createClient(k8sEnv *testutils.K8sTestEnv) (clustersmngr.Client, clustersmngr.ClustersManager, error) {

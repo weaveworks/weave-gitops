@@ -11,6 +11,6 @@ import (
 // installed or not on that cluster.
 func (cs *coreServer) IsCRDAvailable(ctx context.Context, msg *pb.IsCRDAvailableRequest) (*pb.IsCRDAvailableResponse, error) {
 	return &pb.IsCRDAvailableResponse{
-		Clusters: cs.crd.IsAvailableOnClusters(msg.Name),
+		Clusters: cs.crd.IsAvailableOnClusters(ctx, msg.Name),
 	}, nil
 }

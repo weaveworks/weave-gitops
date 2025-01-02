@@ -18,7 +18,7 @@ func TestFetcher_IsAvailable(t *testing.T) {
 
 	defer cancelFn()
 
-	service, err := newService(k8sEnv)
+	service, err := newService(ctx, k8sEnv)
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
 	k, err := client.New(k8sEnv.Rest, client.Options{
@@ -31,7 +31,7 @@ func TestFetcher_IsAvailable(t *testing.T) {
 
 	var found bool
 
-	found = service.IsAvailable(defaultClusterName, "customobjects.example.com")
+	found = service.IsAvailable(ctx, defaultClusterName, "customobjects.example.com")
 	g.Expect(found).To(gomega.BeFalse(), "customobjects crd should not be defined in %s cluster", defaultClusterName)
 
 	newCRD(ctx, g, k,
@@ -42,15 +42,15 @@ func TestFetcher_IsAvailable(t *testing.T) {
 			Kind:     "CustomObject",
 		})
 
-	service.UpdateCRDList()
+	service.UpdateCRDList(ctx)
 
-	found = service.IsAvailable(defaultClusterName, "customobjects.example.com")
+	found = service.IsAvailable(ctx, defaultClusterName, "customobjects.example.com")
 	g.Expect(found).To(gomega.BeTrue(), "customobjects crd should be defined in %s cluster", defaultClusterName)
 
-	found = service.IsAvailable(defaultClusterName, "somethingelse.example.com")
+	found = service.IsAvailable(ctx, defaultClusterName, "somethingelse.example.com")
 	g.Expect(found).To(gomega.BeFalse(), "somethingelse crd should not be defined in %s Cluster", defaultClusterName)
 
-	found = service.IsAvailable("Other", "customobjects.example.com")
+	found = service.IsAvailable(ctx, "Other", "customobjects.example.com")
 	g.Expect(found).To(gomega.BeFalse(), "customobjects crd should not be defined in Other cluster")
 }
 
@@ -61,7 +61,7 @@ func TestFetcher_IsAvailableOnClusters(t *testing.T) {
 
 	defer cancelFn()
 
-	service, err := newService(k8sEnv)
+	service, err := newService(ctx, k8sEnv)
 	g.Expect(err).NotTo(gomega.HaveOccurred())
 
 	k, err := client.New(k8sEnv.Rest, client.Options{
@@ -83,9 +83,9 @@ func TestFetcher_IsAvailableOnClusters(t *testing.T) {
 
 	crdName := "xclustercustomons.example.com"
 
-	service.UpdateCRDList()
+	service.UpdateCRDList(ctx)
 
-	response := service.IsAvailableOnClusters(crdName)
+	response := service.IsAvailableOnClusters(ctx, crdName)
 
 	g.Expect(response).To(gomega.HaveLen(1), "cluster list should contain one entry")
 	g.Expect(response).To(gomega.HaveKey(defaultClusterName), "cluster list should contain info about %s cluster", defaultClusterName)
@@ -93,7 +93,7 @@ func TestFetcher_IsAvailableOnClusters(t *testing.T) {
 
 	crdName = "xclusterothercustomons.example.com"
 
-	response = service.IsAvailableOnClusters(crdName)
+	response = service.IsAvailableOnClusters(ctx, crdName)
 
 	g.Expect(response).To(gomega.HaveLen(1), "cluster list should contain one entry")
 	g.Expect(response).To(gomega.HaveKey(defaultClusterName), "cluster list should contain info about %s cluster", defaultClusterName)

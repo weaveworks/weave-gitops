@@ -55,7 +55,7 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func makeGRPCServer(cfg *rest.Config, t *testing.T) pb.CoreClient {
+func makeGRPCServer(ctx context.Context, cfg *rest.Config, t *testing.T) pb.CoreClient {
 	log := logr.Discard()
 	nsChecker = nsaccessfakes.FakeChecker{}
 	nsChecker.FilterAccessibleNamespacesStub = func(ctx context.Context, t typedauth.AuthorizationV1Interface, n []v1.Namespace) ([]v1.Namespace, error) {
@@ -86,7 +86,7 @@ func makeGRPCServer(cfg *rest.Config, t *testing.T) pb.CoreClient {
 	coreCfg.NSAccess = &nsChecker
 	coreCfg.CRDService = crd.NewNoCacheFetcher(clustersManager)
 
-	core, err := server.NewCoreServer(coreCfg)
+	core, err := server.NewCoreServer(ctx, coreCfg)
 	if err != nil {
 		t.Fatalf("Failed to create CoreServer: %v", err)
 	}
@@ -202,8 +202,8 @@ func makeServerConfig(fakeClient client.Client, t *testing.T, clusterName string
 	return coreCfg
 }
 
-func makeServer(cfg server.CoreServerConfig, t *testing.T) pb.CoreClient {
-	core, err := server.NewCoreServer(cfg)
+func makeServer(ctx context.Context, cfg server.CoreServerConfig, t *testing.T) pb.CoreClient {
+	core, err := server.NewCoreServer(ctx, cfg)
 	if err != nil {
 		t.Fatalf("Failed to create CoreServer: %v", err)
 	}
