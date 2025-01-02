@@ -44,7 +44,7 @@ jobs:
           jq '.version = "'$GITOPS_VERSION'"' < package.json > package-new.json
           mv package-new.json package.json
           yarn
-          yarn test -- -u
+          yarn test -u
           git commit -am "Update javascript library version to $GITOPS_VERSION"
 
       - name: Update Chart
