@@ -174,7 +174,6 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/')
       with:
         files: |
-          - Release.txt
           - bin/gitops-${{matrix.os}}-${{steps.gitsha.outputs.sha}}
           - bin/gitops-server
 
