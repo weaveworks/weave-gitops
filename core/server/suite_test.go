@@ -171,7 +171,7 @@ func makeServerConfig(fakeClient client.Client, t *testing.T, clusterName string
 		// Pretend the user has access to everything
 		return n, nil
 	}
-	clientset := fake.NewSimpleClientset()
+	clientset := fake.NewClientset()
 
 	cluster := clusterfakes.FakeCluster{}
 
