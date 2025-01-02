@@ -87,7 +87,7 @@
   "devDependencies": {
     "@babel/core": "^7.26.0",
     "@babel/preset-env": "^7.26.0",
-    "@babel/preset-react": "^7.25.9",
+    "@babel/preset-react": "^7.26.3",
     "@parcel/config-default": "^2.8.3",
     "@parcel/core": "^2.13.3",
     "@parcel/optimizer-data-url": "^2.8.3",
