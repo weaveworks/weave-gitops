@@ -10,7 +10,7 @@ We ❤️ your comments and suggestions as we look to make successfully adopting
 - Raise an [issue](https://github.com/weaveworks/weave-gitops/issues)
 - Invite yourself to the <a href="https://slack.weave.works/" target="_blank">Weave Users Slack</a>.
 - Chat to us on the [#weave-gitops](https://weave-community.slack.com/messages/weave-gitops/) slack channel.
-- Set up time with one of our team: [James](https://calendly.com/james-weave-works/product-interview) - Product Director (US - East Coast)
+- Set up time with one of our team: [Charles](https://calendly.com/casibbald/30min) - Community Support
 - Come along to one of our [events](https://www.meetup.com/Weave-User-Group/)
 
 ## Anonymous Aggregate User Behavior Analytics
