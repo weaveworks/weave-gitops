@@ -169,7 +169,11 @@ func TestGetObject_HelmReleaseWithInventory(t *testing.T) {
 		},
 		Spec: helmv2.HelmReleaseSpec{},
 		Status: helmv2.HelmReleaseStatus{
-			LastReleaseRevision: 1,
+			History: helmv2.Snapshots{{
+				Name:      "first-helm-name",
+				Version:   1,
+				Namespace: ns.Name,
+			}},
 		},
 	}
 	// Create helm storage.
@@ -248,7 +252,11 @@ func TestGetObject_HelmReleaseWithCompressedInventory(t *testing.T) {
 		},
 		Spec: helmv2.HelmReleaseSpec{},
 		Status: helmv2.HelmReleaseStatus{
-			LastReleaseRevision: 1,
+			History: helmv2.Snapshots{{
+				Name:      "first-helm-name",
+				Version:   1,
+				Namespace: ns.Name,
+			}},
 		},
 	}
 	// Create helm storage.
@@ -310,7 +318,11 @@ func TestGetObject_HelmReleaseCantGetSecret(t *testing.T) {
 		},
 		Spec: helmv2.HelmReleaseSpec{},
 		Status: helmv2.HelmReleaseStatus{
-			LastReleaseRevision: 1,
+			History: helmv2.Snapshots{{
+				Name:      "first-helm-name",
+				Version:   1,
+				Namespace: ns.Name,
+			}},
 		},
 	}
 	secret := &corev1.Secret{
@@ -588,7 +600,11 @@ func TestListObject_HelmReleaseWithInventory(t *testing.T) {
 		},
 		Spec: helmv2.HelmReleaseSpec{},
 		Status: helmv2.HelmReleaseStatus{
-			LastReleaseRevision: 1,
+			History: helmv2.Snapshots{{
+				Name:      "first-helm-name",
+				Version:   1,
+				Namespace: ns.Name,
+			}},
 		},
 	}
 	// Create helm storage.
@@ -643,12 +659,12 @@ func TestListObject_HelmReleaseWithInventoryHistory(t *testing.T) {
 		},
 		Spec: helmv2.HelmReleaseSpec{},
 		Status: helmv2.HelmReleaseStatus{
-			StorageNamespace:    ns.Name,
-			LastReleaseRevision: 0,
+			StorageNamespace: ns.Name,
 			History: helmv2.Snapshots{
 				{
-					Name:    "first-helm-name",
-					Version: 1,
+					Name:      "first-helm-name",
+					Version:   1,
+					Namespace: ns.Name,
 				},
 			},
 		},
@@ -705,7 +721,11 @@ func TestListObject_HelmReleaseCantGetSecret(t *testing.T) {
 		},
 		Spec: helmv2.HelmReleaseSpec{},
 		Status: helmv2.HelmReleaseStatus{
-			LastReleaseRevision: 1,
+			History: helmv2.Snapshots{{
+				Name:      "first-helm-name",
+				Version:   1,
+				Namespace: ns.Name,
+			}},
 		},
 	}
 	secret := &corev1.Secret{
