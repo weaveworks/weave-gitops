@@ -9,14 +9,15 @@ updates:
       react:
         patterns:
           - react
+          - "react-*"
           - "@types/react"
+          - "@types/react-*"
         exclude-patterns:
           - react-lottie-player
           - react-markdown
           - react-router-dom
           - react-syntax-highlighter
           - react-toastify
-          - "@testing-library/react-hooks"
   # Maintain dependencies for backend
   - package-ecosystem: "gomod"
     directory: "/"
@@ -30,18 +31,19 @@ updates:
     groups:
       docusaurus:
         patterns:
-          - "@docusaurus"
-      react:
+          - "@docusaurus/*"
+      react-docs:
         patterns:
           - react
+          - "react-*"
           - "@types/react"
+          - "@types/react-*"
         exclude-patterns:
           - react-lottie-player
           - react-markdown
           - react-router-dom
           - react-syntax-highlighter
           - react-toastify
-          - "@testing-library/react-hooks"
   # maintain dependencies for github actions
   - package-ecosystem: "github-actions"
     directory: "/"
