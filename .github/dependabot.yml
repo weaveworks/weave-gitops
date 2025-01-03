@@ -22,6 +22,9 @@ updates:
     schedule:
       interval: "daily"
     groups:
+      docusaurus:
+        patterns:
+          - "@docusaurus/*"
       react:
         patterns:
           - react
