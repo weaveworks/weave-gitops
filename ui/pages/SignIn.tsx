@@ -28,6 +28,7 @@ export const FormWrapper = styled(Flex)`
   #email,
   #password {
     padding-bottom: ${(props) => props.theme.spacing.xs};
+    padding-left: ${(props) => props.theme.spacing.xxs};
   }
 `;
 
@@ -47,6 +48,7 @@ const Footer = styled(Flex)`
   & img {
     width: 500px;
     height: 300px;
+    object-fit: cover;
   }
 `;
 
