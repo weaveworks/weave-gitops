@@ -109,9 +109,8 @@ func makeGRPCServer(ctx context.Context, cfg *rest.Config, t *testing.T) pb.Core
 		}
 	}(t)
 
-	//nolint:staticcheck // Ignore SA1019 deprecation warning for grpc.Dial
-	conn, err := grpc.Dial(
-		"bufnet",
+	conn, err := grpc.NewClient(
+		"passthrough://bufnet",
 		grpc.WithContextDialer(dialer),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
@@ -237,9 +236,8 @@ func dialBufnet(t *testing.T, lis *bufconn.Listener) *grpc.ClientConn {
 		return lis.Dial()
 	}
 
-	//nolint:staticcheck // Ignore SA1019 deprecation warning for grpc.Dial
-	conn, err := grpc.Dial(
-		"bufnet", // The address is ignored when using WithContextDialer
+	conn, err := grpc.NewClient(
+		"passthrough://bufnet",
 		grpc.WithContextDialer(dialer),
 		grpc.WithTransportCredentials(insecure.NewCredentials()), // Insecure for testing
 	)
