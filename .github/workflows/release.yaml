@@ -126,6 +126,12 @@ jobs:
         run: |
           git fetch --prune --unshallow
           git fetch --tags -f
+      - name: Import GPG key
+        id: import_gpg
+        uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ secrets.WEAVEWORKS_ORG_GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.WEAVEWORKS_ORG_GPG_PRIVATE_KEY_PASSPHRASE }}
       - name: Setup Go
         uses: actions/setup-go@3041bf56c941b39c61721a86cd11f3bb1338122a # v5.2.0
         with:
@@ -166,6 +172,11 @@ jobs:
           BRANCH: ${{ env.BRANCH }}
           GORELEASER_PREVIOUS_TAG: ${{ env.GORELEASER_PREVIOUS_TAG }}
           GORELEASER_CURRENT_TAG: ${{ env.GORELEASER_CURRENT_TAG }}
+          GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
+
+  signs:
+    - artifacts: checksum
+      args: ["--batch", "-u", "{{ .Env.GPG_FINGERPRINT }}", "--output", "${signature}", "--detach-sign", "${artifact}"]
 
   merge-pr:
     runs-on: ubuntu-latest
