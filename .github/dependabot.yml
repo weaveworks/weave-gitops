@@ -7,10 +7,14 @@ updates:
       interval: "daily"
     groups:
       react:
-        patterns:
+        patterns: &react-deps
           - react
-          - react-*
-          - "@*/react-*"
+          - react-dom
+          - react-is
+          - react-test-renderer
+          - @types/react
+          - @types/react-dom
+          - @types/react-is
   # Maintain dependencies for backend
   - package-ecosystem: "gomod"
     directory: "/"
@@ -23,10 +27,7 @@ updates:
       interval: "daily"
     groups:
       react:
-        patterns:
-          - react
-          - react-*
-          - "@*/react-*"
+        patterns: *react-deps
   # maintain dependencies for github actions
   - package-ecosystem: "github-actions"
     directory: "/"
