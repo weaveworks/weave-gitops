@@ -15,23 +15,23 @@ import (
 const watchCRDsFrequency = 30 * time.Second
 
 type Fetcher interface {
-	IsAvailable(clusterName, name string) bool
-	IsAvailableOnClusters(name string) map[string]bool
-	UpdateCRDList()
+	IsAvailable(ctx context.Context, clusterName, name string) bool
+	IsAvailableOnClusters(ctx context.Context, name string) map[string]bool
+	UpdateCRDList(context.Context)
 }
 
 // NewFetcher creates a new default fetcher with cache.
 //
 // With NewFetcher, it will automatically start a background go routine to watch
 // CRDs.
-func NewFetcher(logger logr.Logger, clustersManager clustersmngr.ClustersManager) Fetcher {
+func NewFetcher(ctx context.Context, logger logr.Logger, clustersManager clustersmngr.ClustersManager) Fetcher {
 	fetcher := &defaultFetcher{
 		logger:          logger,
 		clustersManager: clustersManager,
 		crds:            map[string][]v1.CustomResourceDefinition{},
 	}
 
-	go fetcher.watchCRDs()
+	go fetcher.watchCRDs(ctx)
 
 	return fetcher
 }
@@ -43,21 +43,18 @@ type defaultFetcher struct {
 	crds            map[string][]v1.CustomResourceDefinition
 }
 
-func (s *defaultFetcher) watchCRDs() {
-	//nolint:staticcheck // deprecated, tracking issue: https://github.com/weaveworks/weave-gitops/issues/3812
-	_ = wait.PollImmediateInfinite(watchCRDsFrequency, func() (bool, error) {
-		s.UpdateCRDList()
+func (s *defaultFetcher) watchCRDs(ctx context.Context) {
+	_ = wait.PollUntilContextCancel(ctx, watchCRDsFrequency, true, func(ctx context.Context) (bool, error) {
+		s.UpdateCRDList(ctx)
 
 		return false, nil
 	})
 }
 
 // UpdateCRDList updates the cached CRD list.
-func (s *defaultFetcher) UpdateCRDList() {
+func (s *defaultFetcher) UpdateCRDList(ctx context.Context) {
 	s.Lock()
 	defer s.Unlock()
-
-	ctx := context.Background()
 
 	client, err := s.clustersManager.GetServerClient(ctx)
 	if err != nil {
@@ -83,7 +80,7 @@ func (s *defaultFetcher) UpdateCRDList() {
 }
 
 // IsAvailable tells if a given CRD is available on the specified cluster.
-func (s *defaultFetcher) IsAvailable(clusterName, name string) bool {
+func (s *defaultFetcher) IsAvailable(_ context.Context, clusterName, name string) bool {
 	s.Lock()
 	defer s.Unlock()
 
@@ -97,7 +94,7 @@ func (s *defaultFetcher) IsAvailable(clusterName, name string) bool {
 }
 
 // IsAvailableOnClusters tells the availability of a given CRD on all clusters.
-func (s *defaultFetcher) IsAvailableOnClusters(name string) map[string]bool {
+func (s *defaultFetcher) IsAvailableOnClusters(_ context.Context, name string) map[string]bool {
 	result := map[string]bool{}
 
 	s.Lock()

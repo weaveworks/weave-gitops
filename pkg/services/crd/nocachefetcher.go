@@ -30,11 +30,9 @@ type noCacheFetcher struct {
 }
 
 // UpdateCRDList updates the CRD list.
-func (s *noCacheFetcher) UpdateCRDList() {
+func (s *noCacheFetcher) UpdateCRDList(ctx context.Context) {
 	s.Lock()
 	defer s.Unlock()
-
-	ctx := context.Background()
 
 	client, err := s.clustersManager.GetServerClient(ctx)
 	if err != nil {
@@ -61,8 +59,8 @@ func (s *noCacheFetcher) UpdateCRDList() {
 // IsAvailable tells if a given CRD is available on the specified cluster.
 //
 // It calls UpdateCRDList always.
-func (s *noCacheFetcher) IsAvailable(clusterName, name string) bool {
-	s.UpdateCRDList()
+func (s *noCacheFetcher) IsAvailable(ctx context.Context, clusterName, name string) bool {
+	s.UpdateCRDList(ctx)
 
 	s.Lock()
 	defer s.Unlock()
@@ -79,8 +77,8 @@ func (s *noCacheFetcher) IsAvailable(clusterName, name string) bool {
 // IsAvailableOnClusters tells the availability of a given CRD on all clusters.
 //
 // It calls UpdateCRDList always.
-func (s *noCacheFetcher) IsAvailableOnClusters(name string) map[string]bool {
-	s.UpdateCRDList()
+func (s *noCacheFetcher) IsAvailableOnClusters(ctx context.Context, name string) map[string]bool {
+	s.UpdateCRDList(ctx)
 
 	s.Lock()
 	defer s.Unlock()

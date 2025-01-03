@@ -273,8 +273,7 @@ func (cf *clustersManager) watchClusters(ctx context.Context) {
 
 	cf.initialClustersLoad <- true
 
-	//nolint:staticcheck // deprecated, tracking issue: https://github.com/weaveworks/weave-gitops/issues/3812
-	if err := wait.PollImmediateInfinite(watchClustersFrequency, func() (bool, error) {
+	if err := wait.PollUntilContextCancel(ctx, watchClustersFrequency, true, func(ctx context.Context) (bool, error) {
 		if err := cf.UpdateClusters(ctx); err != nil {
 			cf.log.Error(err, "Failed to update clusters")
 		}
@@ -311,8 +310,7 @@ func (cf *clustersManager) watchNamespaces(ctx context.Context) {
 	// waits the first load of cluster to start watching namespaces
 	<-cf.initialClustersLoad
 
-	//nolint:staticcheck // deprecated, tracking issue: https://github.com/weaveworks/weave-gitops/issues/3812
-	if err := wait.PollImmediateInfinite(watchNamespaceFrequency, func() (bool, error) {
+	if err := wait.PollUntilContextCancel(ctx, watchNamespaceFrequency, true, func(ctx context.Context) (bool, error) {
 		if err := cf.UpdateNamespaces(ctx); err != nil {
 			if merr, ok := err.(*multierror.Error); ok {
 				for _, cerr := range merr.Errors {

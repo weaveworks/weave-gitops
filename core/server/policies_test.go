@@ -56,7 +56,7 @@ func TestListPolicies(t *testing.T) {
 
 	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(policy1, policy2).Build()
 	cfg := makeServerConfig(client, t, "")
-	c := makeServer(cfg, t)
+	c := makeServer(ctx, cfg, t)
 
 	res, err := c.ListPolicies(ctx, &pb.ListPoliciesRequest{})
 
@@ -95,7 +95,7 @@ func TestGetPolicy(t *testing.T) {
 
 	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(policy).Build()
 	cfg := makeServerConfig(client, t, "")
-	c := makeServer(cfg, t)
+	c := makeServer(ctx, cfg, t)
 
 	res, err := c.GetPolicy(ctx, &pb.GetPolicyRequest{
 		PolicyName: policy.Spec.ID,
