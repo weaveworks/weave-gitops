@@ -230,7 +230,11 @@ func TestGetInventoryHelmRelease(t *testing.T) {
 		},
 		Spec: helmv2.HelmReleaseSpec{},
 		Status: helmv2.HelmReleaseStatus{
-			LastReleaseRevision: 1,
+			History: helmv2.Snapshots{{
+				Name:      "first-helm-name",
+				Version:   1,
+				Namespace: ns.Name,
+			}},
 		},
 	}
 
@@ -307,8 +311,7 @@ func TestGetInventoryHelmReleaseNoNSResources(t *testing.T) {
 			TargetNamespace: "test-ns",
 		},
 		Status: helmv2.HelmReleaseStatus{
-			StorageNamespace:    ns.Name,
-			LastReleaseRevision: 0,
+			StorageNamespace: ns.Name,
 			History: helmv2.Snapshots{
 				{
 					Name:      "first-helm-name",
@@ -401,7 +404,11 @@ func TestGetInventoryHelmReleaseWithKubeconfig(t *testing.T) {
 			},
 		},
 		Status: helmv2.HelmReleaseStatus{
-			LastReleaseRevision: 1,
+			History: helmv2.Snapshots{{
+				Name:      "first-helm-name",
+				Version:   1,
+				Namespace: ns.Name,
+			}},
 		},
 	}
 

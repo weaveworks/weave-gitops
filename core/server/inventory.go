@@ -489,23 +489,12 @@ func secretNameFromHelmRelease(helmRelease *helmv2.HelmRelease) *client.ObjectKe
 		}
 	}
 
-	if latestRevision := helmRelease.Status.LastReleaseRevision; latestRevision > 0 {
-		return &client.ObjectKey{
-			Name:      fmt.Sprintf(helmSecretNameFmt, helmRelease.GetReleaseName(), latestRevision),
-			Namespace: helmRelease.GetStorageNamespace(),
-		}
-	}
-
 	return nil
 }
 
 func defaultNSFromHelmRelease(helmRelease *helmv2.HelmRelease) string {
 	if latest := helmRelease.Status.History.Latest(); latest != nil {
 		return latest.Namespace
-	}
-
-	if latestRevision := helmRelease.Status.LastReleaseRevision; latestRevision > 0 {
-		return helmRelease.GetReleaseNamespace()
 	}
 
 	return ""
