@@ -17,7 +17,7 @@ type HelmReleaseStorage struct {
 func K8sObjectToProto(object client.Object, clusterName, tenant string, inventory []*pb.GroupVersionKind, info string) (*pb.Object, error) {
 	var buf bytes.Buffer
 
-	serializer := json.NewSerializer(json.DefaultMetaFactory, nil, nil, false)
+	serializer := json.NewSerializerWithOptions(json.DefaultMetaFactory, nil, nil, json.SerializerOptions{})
 	if err := serializer.Encode(object, &buf); err != nil {
 		return nil, err
 	}
