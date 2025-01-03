@@ -18,7 +18,7 @@ import (
 var DefautltWegoAppRules = []rbacv1.PolicyRule{
 	{
 		APIGroups: []string{""},
-		Resources: []string{"secrets", "pods", "events"},
+		Resources: []string{"pods", "events"},
 		Verbs:     []string{"get", "list"},
 	},
 	{
