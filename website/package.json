@@ -17,7 +17,7 @@
     "@docusaurus/core": "^3.6.3",
     "@docusaurus/faster": "^3.6.3",
     "@docusaurus/plugin-client-redirects": "^3.6.3",
-    "@docusaurus/plugin-google-analytics": "^3.6.3",
+    "@docusaurus/plugin-google-analytics": "^3.7.0",
     "@docusaurus/plugin-google-gtag": "^3.6.3",
     "@docusaurus/plugin-sitemap": "^3.6.3",
     "@docusaurus/preset-classic": "^3.6.3",
