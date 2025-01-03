@@ -6,15 +6,17 @@ updates:
     schedule:
       interval: "daily"
     groups:
-      react:
-        patterns: &react-deps
+      react: &react-group
+        patterns:
           - react
-          - react-dom
-          - react-is
-          - react-test-renderer
           - @types/react
-          - @types/react-dom
-          - @types/react-is
+        exclude-patterns:
+          - react-lottie-player
+          - react-markdown
+          - react-router-dom
+          - react-syntax-highlighter
+          - react-toastify
+          - @testing-library/react-hooks
   # Maintain dependencies for backend
   - package-ecosystem: "gomod"
     directory: "/"
@@ -28,9 +30,8 @@ updates:
     groups:
       docusaurus:
         patterns:
-          - "@docusaurus/*"
-      react:
-        patterns: *react-deps
+          - @docusaurus
+      react: *react-group
   # maintain dependencies for github actions
   - package-ecosystem: "github-actions"
     directory: "/"
