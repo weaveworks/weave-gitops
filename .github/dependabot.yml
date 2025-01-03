@@ -6,7 +6,7 @@ updates:
     schedule:
       interval: "daily"
     groups:
-      react: &react-group
+      react:
         patterns:
           - react
           - "@types/react"
@@ -31,7 +31,17 @@ updates:
       docusaurus:
         patterns:
           - "@docusaurus"
-      react: *react-group
+      react:
+        patterns:
+          - react
+          - "@types/react"
+        exclude-patterns:
+          - react-lottie-player
+          - react-markdown
+          - react-router-dom
+          - react-syntax-highlighter
+          - react-toastify
+          - "@testing-library/react-hooks"
   # maintain dependencies for github actions
   - package-ecosystem: "github-actions"
     directory: "/"
