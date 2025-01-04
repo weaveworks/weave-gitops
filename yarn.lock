@@ -4895,7 +4895,7 @@ __metadata:
     babel-jest: "npm:^29.7.0"
     babel-plugin-styled-components: "npm:^2.1.4"
     buffer: "npm:^5.7.1"
-    commander: "npm:^11.0.0"
+    commander: "npm:^13.0.0"
     cross-spawn: "npm:^7.0.5"
     d3: "npm:^7.6.1"
     d3-dag: "npm:^0.11.5"
