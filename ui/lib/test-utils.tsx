@@ -30,7 +30,7 @@ import { RequestError } from "./types";
 export type CoreOverrides = {
   GetChildObjects?: (req: GetChildObjectsRequest) => GetChildObjectsResponse;
   GetReconciledObjects?: (
-    req: GetReconciledObjectsRequest
+    req: GetReconciledObjectsRequest,
   ) => GetReconciledObjectsResponse;
   GetVersion?: (req: GetVersionRequest) => GetVersionResponse;
   ListObjects?: (req: ListObjectsRequest) => ListObjectsResponse;
@@ -38,7 +38,7 @@ export type CoreOverrides = {
 
 export const createCoreMockClient = (
   ovr: CoreOverrides,
-  error?: RequestError
+  error?: RequestError,
 ): typeof Core => {
   const promisified = _.reduce(
     ovr,
@@ -52,7 +52,7 @@ export const createCoreMockClient = (
 
       return result;
     },
-    {}
+    {},
   );
 
   return promisified as typeof Core;
@@ -79,7 +79,7 @@ type TestContextProps = AppProps & {
 export function withContext(
   TestComponent,
   url: string,
-  { api, featureFlags, ...appProps }: TestContextProps
+  { api, featureFlags, ...appProps }: TestContextProps,
 ) {
   const history = createMemoryHistory();
   history.push(url);

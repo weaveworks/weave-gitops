@@ -11,21 +11,21 @@ function checkPath(path: Breadcrumb[]) {
     withTheme(
       <BrowserRouter>
         <Breadcrumbs path={path} />
-      </BrowserRouter>
-    )
+      </BrowserRouter>,
+    ),
   );
 
   path.forEach(({ url, label }) => {
     if (url) {
       const ele = document.querySelector(
-        `[data-testid="link-${label}"]`
+        `[data-testid="link-${label}"]`,
       ) as HTMLLinkElement;
       expect(ele).toBeTruthy();
       expect(ele.textContent).toEqual(label);
       expect(ele.href).toEqual(`${location.origin}${url}`);
     } else {
       const ele = document.querySelector(
-        `[data-testid="text-${label}"]`
+        `[data-testid="text-${label}"]`,
       ) as HTMLElement;
       expect(ele).toBeTruthy();
       expect(ele.textContent).toEqual(label);

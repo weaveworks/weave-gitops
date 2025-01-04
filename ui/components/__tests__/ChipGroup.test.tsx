@@ -23,8 +23,8 @@ describe("ChipGroup", () => {
           chips={chipList}
           onChipRemove={setActiveChips}
           onClearAll={() => jest.fn()}
-        />
-      )
+        />,
+      ),
     );
     expect(screen.queryByText("app")).toBeTruthy();
     expect(screen.queryByText("app3")).toBeTruthy();
@@ -37,8 +37,8 @@ describe("ChipGroup", () => {
           chips={chipList}
           onChipRemove={setActiveChips}
           onClearAll={() => jest.fn()}
-        />
-      )
+        />,
+      ),
     );
     expect(screen.queryByText(`appapp${filterSeparator}null`)).toBeTruthy();
     expect(screen.queryByText(`app${filterSeparator}app`)).toBeTruthy();

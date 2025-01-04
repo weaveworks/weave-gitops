@@ -78,7 +78,7 @@ function AutomationDetail({
     name,
     clusterName,
     namespace,
-    false
+    false,
   );
 
   const canaryStatus = createCanaryCondition(data?.objects);
@@ -155,7 +155,7 @@ function AutomationDetail({
             header={createYamlCommand(
               automation.type,
               automation.name,
-              automation.namespace
+              automation.namespace,
             )}
           />
         );

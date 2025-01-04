@@ -21,11 +21,11 @@ describe("FilterDialog", () => {
           formState={initialFormState(filterList)}
           onFilterSelect={setActiveFilters}
           open={false}
-        />
-      )
+        />,
+      ),
     );
     expect(screen.getByTestId("container").getAttribute("class")).not.toContain(
-      "open"
+      "open",
     );
   });
   it("should reveal filter list when open", () => {
@@ -36,11 +36,11 @@ describe("FilterDialog", () => {
           formState={initialFormState(filterList)}
           filterList={filterList}
           onFilterSelect={setActiveFilters}
-        />
-      )
+        />,
+      ),
     );
     expect(screen.getByTestId("container").getAttribute("class")).toContain(
-      "open"
+      "open",
     );
   });
   it("should return a value when a parameter is clicked", () => {
@@ -52,12 +52,12 @@ describe("FilterDialog", () => {
           formState={initialFormState(filterList)}
           filterList={filterList}
           onFilterSelect={onFilterSelect}
-        />
-      )
+        />,
+      ),
     );
 
     const checkbox1 = document.getElementById(
-      `Name${filterSeparator}app`
+      `Name${filterSeparator}app`,
     ) as HTMLInputElement;
 
     expect(checkbox1.checked).toEqual(false);

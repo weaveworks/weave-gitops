@@ -34,9 +34,9 @@ describe("Footer", () => {
                   commit: "123abcd",
                 }),
               }),
-            })
+            }),
           ),
-          container
+          container,
         );
       });
 
@@ -51,9 +51,9 @@ describe("Footer", () => {
               api: createCoreMockClient({
                 GetVersion: () => ({}),
               }),
-            })
+            }),
           ),
-          container
+          container,
         );
       });
 

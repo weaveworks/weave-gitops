@@ -19,7 +19,7 @@ type IndicatorInfo = {
 };
 
 export const getIndicatorInfo = (
-  healthType: HealthStatusType
+  healthType: HealthStatusType,
 ): IndicatorInfo => {
   switch (healthType) {
     case HealthStatusType.Unhealthy:
@@ -57,7 +57,7 @@ function HealthCheckStatusIndicator({
   health: { message?: string; status?: string };
 }) {
   const { type, color, icon } = getIndicatorInfo(
-    HealthStatusType[health.status]
+    HealthStatusType[health.status],
   );
 
   const text = health.message ? health.message : type;

@@ -38,7 +38,7 @@ function InfoModal({ searchedNamespaces, onCloseModal, open }: Props) {
                 </ListItem>
               ))}
             </Fragment>
-          )
+          ),
         )}
       </List>
     </OverflowWrapper>

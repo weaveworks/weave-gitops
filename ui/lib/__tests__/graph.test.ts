@@ -69,7 +69,7 @@ describe("graph lib", () => {
       app.namespace,
       app.automationKind,
       [{ group: "apps", version: "v1", kind: "Deployment" }],
-      app.clusterName
+      app.clusterName,
     );
     const dep = objects[0];
     expect(dep).toBeTruthy();
@@ -131,7 +131,7 @@ describe("graph lib", () => {
         app.namespace,
         app.automationKind,
         [{ group: "apps", version: "v1", kind: "Deployment" }],
-        app.clusterName
+        app.clusterName,
       );
 
       const firstPods = _.get(objects[0], ["children", 0, "children"]);
@@ -145,7 +145,7 @@ describe("graph lib", () => {
           // Changing the order here
           const reversed = res.objects.reverse();
           return new Promise<GetChildObjectsResponse>((accept) =>
-            accept({ objects: reversed })
+            accept({ objects: reversed }),
           );
         },
       };
@@ -157,7 +157,7 @@ describe("graph lib", () => {
         app.namespace,
         app.automationKind,
         [{ group: "apps", version: "v1", kind: "Deployment" }],
-        app.clusterName
+        app.clusterName,
       );
 
       const secondPods = _.get(objects2[0], ["children", 0, "children"]);
@@ -175,7 +175,7 @@ describe("graph lib", () => {
         app.namespace,
         app.automationKind,
         [{ group: "apps", version: "v1", kind: "Deployment" }],
-        app.clusterName
+        app.clusterName,
       );
 
       const firstReplicaSets = _.get(objects[0], ["children"]);
@@ -192,7 +192,7 @@ describe("graph lib", () => {
 
           const reversed = res.objects.reverse();
           return new Promise<GetChildObjectsResponse>((accept) =>
-            accept({ objects: reversed })
+            accept({ objects: reversed }),
           );
         },
       };
@@ -204,7 +204,7 @@ describe("graph lib", () => {
         app.namespace,
         app.automationKind,
         [{ group: "apps", version: "v1", kind: "Deployment" }],
-        app.clusterName
+        app.clusterName,
       );
 
       const secondReplicaSets = _.get(objects2[0], ["children"]);

@@ -28,7 +28,7 @@ function HelmRepositoryDetail({
     name,
     namespace,
     Kind.HelmRepository,
-    clusterName
+    clusterName,
   );
 
   return (

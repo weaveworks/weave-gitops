@@ -16,7 +16,7 @@ describe("FluxObjectsTable", () => {
 
   beforeEach(() => {
     objs = _.map(objects, (o) =>
-      convertResponse(o.obj.kind, { payload: JSON.stringify(o.obj) })
+      convertResponse(o.obj.kind, { payload: JSON.stringify(o.obj) }),
     );
   });
   it("renders", async () => {
@@ -27,9 +27,9 @@ describe("FluxObjectsTable", () => {
             <FluxObjectsTable objects={objs} />
           </MemoryRouter>,
           "/",
-          {}
-        )
-      )
+          {},
+        ),
+      ),
     );
 
     const rows = document.querySelectorAll("tbody tr");
@@ -56,9 +56,9 @@ describe("FluxObjectsTable", () => {
             </LinkResolverProvider>
           </MemoryRouter>,
           "/",
-          {}
-        )
-      )
+          {},
+        ),
+      ),
     );
     const rows = document.querySelectorAll("tbody tr");
 
@@ -84,9 +84,9 @@ describe("FluxObjectsTable", () => {
             <FluxObjectsTable onClick={onClick} objects={objs} />
           </MemoryRouter>,
           "/",
-          {}
-        )
-      )
+          {},
+        ),
+      ),
     );
 
     const rows = document.querySelectorAll("tbody tr");
@@ -117,9 +117,9 @@ describe("FluxObjectsTable", () => {
             />
           </MemoryRouter>,
           "/",
-          {}
-        )
-      )
+          {},
+        ),
+      ),
     );
 
     const secret = await screen.findByText("my-secret");

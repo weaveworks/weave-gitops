@@ -28,7 +28,7 @@ describe("HeaderRows", () => {
     render(withTheme(<HeaderRows items={items} />));
     items.forEach((h) => {
       const ele = document.querySelector(
-        `[data-testid="${h.rowkey}"]`
+        `[data-testid="${h.rowkey}"]`,
       ) as HTMLElement;
       if (h.visible !== false) {
         expect(ele).toBeTruthy();

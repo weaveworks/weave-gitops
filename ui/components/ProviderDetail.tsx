@@ -34,7 +34,7 @@ function ProviderDetail({ className, provider }: Props) {
             header={createYamlCommand(
               Kind.Provider,
               provider.name,
-              provider.namespace
+              provider.namespace,
             )}
             yaml={provider.yaml}
           />

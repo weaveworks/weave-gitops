@@ -22,7 +22,7 @@ describe("Flex", () => {
         .create(
           <Flex wide center align>
             My Text
-          </Flex>
+          </Flex>,
         )
         .toJSON();
       expect(tree).toMatchSnapshot();

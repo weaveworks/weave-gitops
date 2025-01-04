@@ -44,7 +44,7 @@ export const getChildrenRecursive = async (
 
   object: FluxObject,
   clusterName: string,
-  lookup: any
+  lookup: any,
 ) => {
   const children: FluxObject[] = [];
 
@@ -83,7 +83,7 @@ export const getChildren = async (
   namespace,
   automationKind: Kind,
   kinds: GroupVersionKind[],
-  clusterName
+  clusterName,
 ): Promise<FluxObject[]> => {
   const { objects } = await client.GetReconciledObjects({
     automationName,
@@ -104,7 +104,7 @@ export const getChildren = async (
       namespace,
       obj,
       clusterName,
-      PARENT_CHILD_LOOKUP
+      PARENT_CHILD_LOOKUP,
     );
     result.push(obj);
   }

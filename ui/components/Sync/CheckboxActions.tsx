@@ -35,7 +35,7 @@ const noSource = {
 function createSuspendHandler(
   reqObjects: ObjectRef[],
   suspend: boolean,
-  suspendMessage: string
+  suspendMessage: string,
 ) {
   const result = useToggleSuspend(
     {
@@ -46,7 +46,7 @@ function createSuspendHandler(
     reqObjects[0]?.kind === "HelmRelease" ||
       reqObjects[0]?.kind === "Kustomization"
       ? "automations"
-      : "sources"
+      : "sources",
   );
   return result;
 }

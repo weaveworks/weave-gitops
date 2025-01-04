@@ -23,7 +23,7 @@ const Expander = styled(
     <div className={`${className} ${expanded ? "expanded" : ""}`}>
       {children}
     </div>
-  )
+  ),
 )`
   width: 0px;
   transition: width 0.3s ease-in-out;

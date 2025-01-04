@@ -11,8 +11,8 @@ const renderSignIn = (featureFlags: Record<string, string>) => {
     withTheme(
       withContext(<SignIn />, "/sign_in", {
         featureFlags,
-      })
-    )
+      }),
+    ),
   );
 };
 
@@ -53,7 +53,7 @@ describe("SignIn", () => {
     fireEvent.click(screen.queryByText(defaultButtonLabel));
 
     expect(window.location.href).toEqual(
-      "/oauth2?return_url=http%3A%2F%2Flocalhost"
+      "/oauth2?return_url=http%3A%2F%2Flocalhost",
     );
   });
 
@@ -69,13 +69,13 @@ describe("SignIn", () => {
       withTheme(
         withContext(signInWithBaseTag, "/sign_in", {
           featureFlags: { OIDC_AUTH: "true" },
-        })
-      )
+        }),
+      ),
     );
 
     fireEvent.click(screen.queryByText(defaultButtonLabel));
     expect(window.location.href).toEqual(
-      "/wego/oauth2?return_url=http%3A%2F%2Flocalhost%2Fwego"
+      "/wego/oauth2?return_url=http%3A%2F%2Flocalhost%2Fwego",
     );
   });
 

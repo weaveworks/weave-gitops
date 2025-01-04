@@ -18,7 +18,7 @@ function ProviderPage({ className, name, namespace, clusterName }: Props) {
     name,
     namespace,
     Kind.Provider,
-    clusterName
+    clusterName,
   );
   return (
     <Page

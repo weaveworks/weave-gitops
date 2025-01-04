@@ -30,8 +30,8 @@ describe("Metadata", () => {
                 ["label", "label"],
                 ["goose", "goose"],
               ]}
-            />
-          )
+            />,
+          ),
         )
         .toJSON();
       expect(tree).toMatchSnapshot();

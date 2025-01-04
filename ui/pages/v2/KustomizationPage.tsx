@@ -23,7 +23,7 @@ function KustomizationPage({ className, name, namespace, clusterName }: Props) {
     name,
     namespace,
     Kind.Kustomization,
-    clusterName
+    clusterName,
   );
   return (
     <Page

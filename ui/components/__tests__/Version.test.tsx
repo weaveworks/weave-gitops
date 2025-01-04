@@ -14,8 +14,8 @@ describe("Version", () => {
       const tree = renderer
         .create(
           withTheme(
-            <Version productName={productName} appVersion={{ versionText }} />
-          )
+            <Version productName={productName} appVersion={{ versionText }} />,
+          ),
         )
         .toJSON();
       expect(tree).toMatchSnapshot();
@@ -27,8 +27,8 @@ describe("Version", () => {
             <Version
               productName={productName}
               appVersion={{ versionText, versionHref }}
-            />
-          )
+            />,
+          ),
         )
         .toJSON();
       expect(tree).toMatchSnapshot();
@@ -40,8 +40,8 @@ describe("Version", () => {
             <Version
               productName={productName}
               appVersion={{ versionText: "" }}
-            />
-          )
+            />,
+          ),
         )
         .toJSON();
       expect(tree).toMatchSnapshot();
@@ -53,8 +53,8 @@ describe("Version", () => {
             <Version
               productName={productName}
               appVersion={{ versionText: "", versionHref }}
-            />
-          )
+            />,
+          ),
         )
         .toJSON();
       expect(tree).toMatchSnapshot();

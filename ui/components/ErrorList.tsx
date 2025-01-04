@@ -72,7 +72,7 @@ function ErrorList({ className, errors }: Props) {
   }
 
   const uniq = uniqBy(errors, (error) =>
-    [error.clusterName, error.message].join()
+    [error.clusterName, error.message].join(),
   );
 
   const sorted = sortBy(uniq, "clusterName", "namespace", "message");

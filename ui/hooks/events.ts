@@ -11,7 +11,7 @@ export function useListEvents(
     retry: false,
     refetchOnWindowFocus: false,
     refetchInterval: 5000,
-  }
+  },
 ) {
   const { api } = useContext(CoreClientContext);
 
@@ -21,6 +21,6 @@ export function useListEvents(
       api.ListEvents({
         involvedObject: obj,
       }),
-    opts
+    opts,
   );
 }

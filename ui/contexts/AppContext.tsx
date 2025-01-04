@@ -37,7 +37,7 @@ export type AppContextType = {
 };
 
 export const AppContext = React.createContext<AppContextType>(
-  null as AppContextType
+  null as AppContextType,
 );
 
 export interface AppProps {
@@ -121,7 +121,7 @@ export default function AppContextProvider({ ...props }: AppProps) {
     },
     request: (
       input: RequestInfo | URL,
-      init?: RequestInit
+      init?: RequestInit,
     ): Promise<Response> => {
       if (typeof input === "string") {
         input = withBasePath(input);

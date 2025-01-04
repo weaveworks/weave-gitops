@@ -29,7 +29,7 @@ export function useListAutomations(
   opts: ReactQueryOptions<Res, RequestError> = {
     retry: false,
     refetchInterval: 5000,
-  }
+  },
 ) {
   const { api } = useContext(CoreClientContext);
 
@@ -43,7 +43,7 @@ export function useListAutomations(
             if (!response.objects) response.objects = [];
             if (!response.errors) response.errors = [];
             return { kind, response };
-          })
+          }),
       );
       return Promise.all(p).then((responses) => {
         const final: Res = {
@@ -54,20 +54,20 @@ export function useListAutomations(
         for (const { kind, response } of responses) {
           final.result.push(
             ...response.objects.map(
-              (o) => convertResponse(kind, o) as Automation
-            )
+              (o) => convertResponse(kind, o) as Automation,
+            ),
           );
           final.errors.push(
             ...response.errors.map((o) => {
               return { ...o, kind };
-            })
+            }),
           );
           final.searchedNamespaces[kind] = response.searchedNamespaces;
         }
         return final;
       });
     },
-    opts
+    opts,
   );
 }
 

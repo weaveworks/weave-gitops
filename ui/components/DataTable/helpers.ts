@@ -20,7 +20,7 @@ export const filterByStatusCallback = (v) => {
 export function filterConfig(
   rows,
   key: string,
-  computeValue?: (k: any) => any
+  computeValue?: (k: any) => any,
 ): FilterConfig {
   const config = _.reduce(
     rows,
@@ -32,7 +32,7 @@ export function filterConfig(
 
       return r;
     },
-    []
+    [],
   );
 
   return { [key]: { options: config, transformFunc: computeValue } };
@@ -66,7 +66,7 @@ export function filterRows<T>(rows: T[], filters: FilterConfig) {
 export function filterText(
   rows,
   fields: Field[],
-  textFilters: FilterState["textFilters"]
+  textFilters: FilterState["textFilters"],
 ) {
   if (textFilters.length === 0) {
     return rows;
@@ -119,7 +119,7 @@ export function initialFormState(cfg: FilterConfig, initialSelections?) {
 
       return r;
     },
-    {}
+    {},
   );
   return allFilters;
 }
@@ -169,7 +169,7 @@ export const sortByField = (
   reverseSort: boolean,
   sortFields: Field[],
   useSecondarySort?: boolean,
-  disableSort?: boolean
+  disableSort?: boolean,
 ) => {
   if (disableSort) {
     return rows;
@@ -190,6 +190,6 @@ export const sortByField = (
         reverseSort && (!useSecondarySort || index != 1) ? "desc" : "asc";
 
       return sortOrders;
-    })
+    }),
   );
 };

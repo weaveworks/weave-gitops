@@ -72,7 +72,7 @@ export function isHTTP(uri: string): boolean {
       // resource path (optional)
       "(?:[/?#]\\S*)?" +
       "$",
-    "i"
+    "i",
   );
 
   return regex.test(uri);
@@ -85,7 +85,7 @@ export function isHTTP(uri: string): boolean {
 export function isAllowedLink(uri: string): boolean {
   // Regex from https://github.com/cure53/DOMPurify/blob/cce00ac40d33c2aae6422eaa59e6a8aad5c73901/src/regexp.js
   const regex = new RegExp(
-    /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i // eslint-disable-line no-useless-escape
+    /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i, // eslint-disable-line no-useless-escape
   );
   return regex.test(uri);
 }
@@ -187,7 +187,7 @@ export const convertImage = (image: string) => {
 // getSourceRefForAutomation returns the automation's sourceRef
 // depending on whether the automation is a Kustomization or a HelmRelease.
 export function getSourceRefForAutomation(
-  automation?: Automation
+  automation?: Automation,
 ): ObjectRef | undefined {
   return automation?.type === Kind.Kustomization
     ? (automation as Kustomization)?.sourceRef
@@ -199,7 +199,7 @@ export function getAppVersion(
   versionData: GetVersionResponse,
   defaultVersion: string,
   isLoading = false,
-  defaultVersionPrefix = ""
+  defaultVersionPrefix = "",
 ): AppVersion {
   const shouldDisplayApiVersion =
     !isLoading &&
@@ -247,7 +247,7 @@ export const createYamlCommand = (
   kind?: string,
   name?: string,
   namespace?: string,
-  path?: string
+  path?: string,
 ): string => {
   if (path) return path;
   if (kind && name) {

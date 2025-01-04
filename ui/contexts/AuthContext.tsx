@@ -95,7 +95,7 @@ export default function AuthContextProvider({ children }) {
         return response.json();
       })
       .then((data) =>
-        setUserInfo({ email: data?.email, groups: data?.groups, id: data?.id })
+        setUserInfo({ email: data?.email, groups: data?.groups, id: data?.id }),
       )
       .catch((err) => console.log(err))
       .finally(() => setLoading(false));

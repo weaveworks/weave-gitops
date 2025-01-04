@@ -22,9 +22,9 @@ describe("SyncActions", () => {
                 <SyncActions />
               </CoreClientContext.Provider>,
               "/",
-              {}
-            )
-          )
+              {},
+            ),
+          ),
         )
         .toJSON();
       expect(tree).toMatchSnapshot();
@@ -38,9 +38,9 @@ describe("SyncActions", () => {
                 <SyncActions suspended />
               </CoreClientContext.Provider>,
               "/",
-              {}
-            )
-          )
+              {},
+            ),
+          ),
         )
         .toJSON();
       expect(tree).toMatchSnapshot();
@@ -54,9 +54,9 @@ describe("SyncActions", () => {
                 <SyncActions hideSyncOptions />
               </CoreClientContext.Provider>,
               "/",
-              {}
-            )
-          )
+              {},
+            ),
+          ),
         )
         .toJSON();
       expect(tree).toMatchSnapshot();

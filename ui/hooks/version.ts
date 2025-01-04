@@ -13,6 +13,6 @@ export function useVersion() {
     {
       staleTime: Infinity,
       cacheTime: Infinity,
-    }
+    },
   );
 }

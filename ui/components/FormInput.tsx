@@ -30,7 +30,7 @@ export const Label = styled(
         {children}
       </Text>
     </FormLabel>
-  )
+  ),
 )`
   ${Text} {
     text-transform: uppercase;

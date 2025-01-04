@@ -67,7 +67,7 @@ export const AlertListErrors: FC<{
   useEffect(() => {
     const fErrors = sortBy(
       uniqBy(errors, (error) => [error.clusterName, error.message].join()),
-      [(v) => v.clusterName, (v) => v.namespace, (v) => v.message]
+      [(v) => v.clusterName, (v) => v.namespace, (v) => v.message],
     );
     setFilteredErrors(fErrors);
     setIndex(0);

@@ -14,7 +14,7 @@ const InfoList = styled(
         ))}
       </Flex>
     );
-  }
+  },
 )``;
 
 export default InfoList;

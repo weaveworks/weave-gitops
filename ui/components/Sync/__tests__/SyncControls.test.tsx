@@ -22,9 +22,9 @@ describe("SyncControls", () => {
                 <SyncControls onSyncClick={() => {}} />
               </CoreClientContext.Provider>,
               "/",
-              {}
-            )
-          )
+              {},
+            ),
+          ),
         )
         .toJSON();
       expect(tree).toMatchSnapshot();
@@ -43,9 +43,9 @@ describe("SyncControls", () => {
                 />
               </CoreClientContext.Provider>,
               "/",
-              {}
-            )
-          )
+              {},
+            ),
+          ),
         )
         .toJSON();
       expect(tree).toMatchSnapshot();
@@ -59,9 +59,9 @@ describe("SyncControls", () => {
                 <SyncControls hideSyncOptions onSyncClick={() => {}} />
               </CoreClientContext.Provider>,
               "/",
-              {}
-            )
-          )
+              {},
+            ),
+          ),
         )
         .toJSON();
       expect(tree).toMatchSnapshot();
@@ -75,9 +75,9 @@ describe("SyncControls", () => {
                 <SyncControls hideSuspend onSyncClick={() => {}} />
               </CoreClientContext.Provider>,
               "/",
-              {}
-            )
-          )
+              {},
+            ),
+          ),
         )
         .toJSON();
       expect(tree).toMatchSnapshot();
@@ -94,9 +94,9 @@ describe("SyncControls", () => {
                 />
               </CoreClientContext.Provider>,
               "/",
-              {}
-            )
-          )
+              {},
+            ),
+          ),
         )
         .toJSON();
       expect(tree).toMatchSnapshot();

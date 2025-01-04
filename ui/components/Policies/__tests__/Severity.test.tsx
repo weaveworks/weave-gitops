@@ -6,7 +6,7 @@ import Severity from "../Utils/Severity";
 function checkSeverity(severity: string) {
   render(withTheme(<Severity severity={severity} />));
   const ele = document.querySelector(
-    `[data-testid="${severity}"]`
+    `[data-testid="${severity}"]`,
   ) as HTMLElement;
   expect(ele).toBeTruthy();
   expect(ele.textContent).toEqual(severity);

@@ -14,7 +14,7 @@ import Timestamp from "../../Timestamp";
 
 const ImageAutomationUpdatesTable = () => {
   const { data, isLoading, error } = useListImageAutomation(
-    Kind.ImageUpdateAutomation
+    Kind.ImageUpdateAutomation,
   );
   const initialFilterState = {
     ...filterConfig(data?.objects, "name"),

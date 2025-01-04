@@ -11,7 +11,7 @@ export function useListImageAutomation(
   opts: ReactQueryOptions<ListObjectsResponse, RequestError> = {
     retry: false,
     refetchInterval: 5000,
-  }
+  },
 ) {
   const { api } = useContext(CoreClientContext);
 
@@ -22,7 +22,7 @@ export function useListImageAutomation(
         const providers = res.objects?.map((obj) => convertResponse(kind, obj));
         return { objects: providers, errors: res.errors };
       }),
-    opts
+    opts,
   );
 }
 
@@ -31,7 +31,7 @@ export function useCheckCRDInstalled(
   opts: ReactQueryOptions<boolean, RequestError> = {
     retry: false,
     refetchInterval: (data) => (data ? false : 5000),
-  }
+  },
 ) {
   const { api } = useContext(CoreClientContext);
 
@@ -41,6 +41,6 @@ export function useCheckCRDInstalled(
       api.IsCRDAvailable({ name }).then(({ clusters }) => {
         return Object.values(clusters).some((r) => r === true);
       }),
-    opts
+    opts,
   );
 }

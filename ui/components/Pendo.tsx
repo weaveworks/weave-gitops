@@ -59,7 +59,7 @@ export default function Pendo({
       console.warn("no local storage found");
     } else {
       pendoKeys = Object.keys(window.localStorage).filter(
-        (key) => key.toLowerCase().indexOf(pendoKey) != -1
+        (key) => key.toLowerCase().indexOf(pendoKey) != -1,
       );
     }
 
@@ -129,7 +129,7 @@ export default function Pendo({
                 o[m] ||
                 function () {
                   o._q[m === v[0] ? "unshift" : "push"](
-                    [m].concat([].slice.call(arguments, 0))
+                    [m].concat([].slice.call(arguments, 0)),
                   );
                 };
             })(v[w]);

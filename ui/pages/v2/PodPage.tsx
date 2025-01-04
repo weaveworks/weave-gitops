@@ -17,7 +17,7 @@ function PodPage({ className, object }: Props) {
     object.namespace,
     Kind.Pod,
     object.clusterName,
-    { refetchInterval: false }
+    { refetchInterval: false },
   );
   return (
     <RequestStateHandler

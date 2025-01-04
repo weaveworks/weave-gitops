@@ -22,7 +22,7 @@ export function useGetInventory(
   opts: ReactQueryOptions<GetInventoryResponse, RequestError> = {
     retry: false,
     refetchInterval: (data) => (data ? false : 5000),
-  }
+  },
 ) {
   const { api } = useContext(CoreClientContext);
 
@@ -37,7 +37,7 @@ export function useGetInventory(
             : res.entries?.map((obj) => new FluxObject(obj));
           return { objects: listObjects, errors: [] };
         }),
-    opts
+    opts,
   );
 }
 
@@ -80,7 +80,7 @@ export const createCanaryCondition = (objs: FluxObject[]): Condition => {
       }
       return prev;
     },
-    { True: 0, False: 0, Unknown: 0 }
+    { True: 0, False: 0, Unknown: 0 },
   );
   //create conditions object
   let condition: Condition = {

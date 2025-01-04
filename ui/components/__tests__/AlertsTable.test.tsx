@@ -14,7 +14,7 @@ describe("AlertsTable", () => {
       const sourceLink = makeEventSourceLink(allNames);
       expect(sourceLink.includes("/sources")).toEqual(true);
       expect(
-        sourceLink.includes("type") && sourceLink.includes("GitRepository")
+        sourceLink.includes("type") && sourceLink.includes("GitRepository"),
       ).toEqual(true);
       expect(sourceLink.includes("*")).toEqual(false);
       const allNamespaces = {
@@ -27,7 +27,7 @@ describe("AlertsTable", () => {
       const automationLink = makeEventSourceLink(allNamespaces);
       expect(automationLink.includes("/applications")).toEqual(true);
       expect(
-        automationLink.includes("name") && automationLink.includes("goose")
+        automationLink.includes("name") && automationLink.includes("goose"),
       ).toEqual(true);
       expect(automationLink.includes("namespace")).toEqual(false);
     });

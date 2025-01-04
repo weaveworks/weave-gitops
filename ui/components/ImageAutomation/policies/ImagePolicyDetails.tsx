@@ -30,7 +30,7 @@ function ImagePolicyDetails({
     clusterName,
     {
       refetchInterval: 5000,
-    }
+    },
   );
   const { isFlagEnabled } = useFeatureFlags();
   const rootPath = V2Routes.ImagePolicyDetails;

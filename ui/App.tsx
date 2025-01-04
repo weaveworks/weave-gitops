@@ -92,7 +92,7 @@ const App = () => {
   const { isFlagEnabled } = useFeatureFlags();
 
   const isNewRuntimeEnabled = isFlagEnabled(
-    "WEAVE_GITOPS_FEATURE_GITOPS_RUNTIME"
+    "WEAVE_GITOPS_FEATURE_GITOPS_RUNTIME",
   );
 
   const navItems: NavItem[] = [

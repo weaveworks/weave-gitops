@@ -27,7 +27,7 @@ function GitRepositoryDetail({
     name,
     namespace,
     Kind.GitRepository,
-    clusterName
+    clusterName,
   );
 
   return (
