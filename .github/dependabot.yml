@@ -18,6 +18,10 @@ updates:
       mui:
         patterns:
           - "@mui/*"
+      parcel:
+        patterns:
+          - parcel
+          - "@parcel/*"
       react:
         patterns:
           - react
