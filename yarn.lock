@@ -5003,7 +5003,7 @@ __metadata:
     jest-fail-on-console: "npm:^3.3.1"
     jest-styled-components: "npm:^7.2.0"
     jest-worker: "npm:^29.7.0"
-    js-sha3: "npm:0.8.0"
+    js-sha3: "npm:0.9.3"
     jsdom: "npm:^16.6.0"
     lodash: "npm:^4.17.21"
     luxon: "npm:^3.5.0"
@@ -9363,6 +9363,13 @@ __metadata:
   version: 0.8.0
   resolution: "js-sha3@npm:0.8.0"
   checksum: 10c0/43a21dc7967c871bd2c46cb1c2ae97441a97169f324e509f382d43330d8f75cf2c96dba7c806ab08a425765a9c847efdd4bffbac2d99c3a4f3de6c0218f40533
+  languageName: node
+  linkType: hard
+
+"js-sha3@npm:0.9.3":
+  version: 0.9.3
+  resolution: "js-sha3@npm:0.9.3"
+  checksum: 10c0/6976feaf79842e39b87d17e41c5bd397240a5d68920ea911fdfb3615eea29f72c6067a5aa19e38989a29b3031ff39834ec9fb2ab066c59368751296629a798f1
   languageName: node
   linkType: hard
 
