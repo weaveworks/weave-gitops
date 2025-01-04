@@ -82,7 +82,7 @@
     "react-toastify": "^9.1.2",
     "remark-gfm": "^3.0.1",
     "styled-components": "^6.1.13",
-    "yaml": "^2.2.2"
+    "yaml": "^2.7.0"
   },
   "devDependencies": {
     "@babel/core": "^7.26.0",
