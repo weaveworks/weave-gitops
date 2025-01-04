@@ -4897,7 +4897,7 @@ __metadata:
     buffer: "npm:^5.7.1"
     commander: "npm:^13.0.0"
     cross-spawn: "npm:^7.0.5"
-    d3: "npm:^7.6.1"
+    d3: "npm:^7.9.0"
     d3-dag: "npm:^0.11.5"
     eslint: "npm:^8.48.0"
     eslint-plugin-import: "npm:^2.25.4"
@@ -6361,9 +6361,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"d3@npm:^7.6.1":
-  version: 7.6.1
-  resolution: "d3@npm:7.6.1"
+"d3@npm:^7.9.0":
+  version: 7.9.0
+  resolution: "d3@npm:7.9.0"
   dependencies:
     d3-array: "npm:3"
     d3-axis: "npm:3"
@@ -6395,7 +6395,7 @@ __metadata:
     d3-timer: "npm:3"
     d3-transition: "npm:3"
     d3-zoom: "npm:3"
-  checksum: 10c0/867f3214dfd286215979b5aeb96d3bdb0ad24e662637c95cc30f41356b262750cc154dd62143a9b1f90f823329eb1fd8bdaa1332df193dfafbee818093345247
+  checksum: 10c0/3dd9c08c73cfaa69c70c49e603c85e049c3904664d9c79a1a52a0f52795828a1ff23592dc9a7b2257e711d68a615472a13103c212032f38e016d609796e087e8
   languageName: node
   linkType: hard
 
