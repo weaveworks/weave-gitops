@@ -3190,15 +3190,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@parcel/optimizer-data-url@npm:^2.8.3":
-  version: 2.8.3
-  resolution: "@parcel/optimizer-data-url@npm:2.8.3"
+"@parcel/optimizer-data-url@npm:^2.13.3":
+  version: 2.13.3
+  resolution: "@parcel/optimizer-data-url@npm:2.13.3"
   dependencies:
-    "@parcel/plugin": "npm:2.8.3"
-    "@parcel/utils": "npm:2.8.3"
-    isbinaryfile: "npm:^4.0.2"
-    mime: "npm:^2.4.4"
-  checksum: 10c0/b9ea38f081c74563fb5aa18935542b902a0d00b65c12ea6e3b6c03f5a2b7549e2bdf4b379b1949e7d0f24f00ad2d81bcbcc9468693997527e1e84cf459286afe
+    "@parcel/plugin": "npm:2.13.3"
+    "@parcel/utils": "npm:2.13.3"
+    isbinaryfile: "npm:^5.0.2"
+    mime: "npm:^3.0.0"
+  checksum: 10c0/a9a1b7ce5057c9ab3e56354cafa805e338261781e56bb92b11076ceaeaaf94e9854d7166f6a86bf694348d403cd00346b8e1e3198682183f772c48ba0faf1566
   languageName: node
   linkType: hard
 
@@ -4975,7 +4975,7 @@ __metadata:
     "@mui/material": "npm:^6.3.1"
     "@parcel/config-default": "npm:^2.8.3"
     "@parcel/core": "npm:^2.13.3"
-    "@parcel/optimizer-data-url": "npm:^2.8.3"
+    "@parcel/optimizer-data-url": "npm:^2.13.3"
     "@parcel/transformer-inline-string": "npm:^2.8.3"
     "@parcel/transformer-typescript-tsc": "npm:^2.13.3"
     "@testing-library/dom": "npm:^10.4.0"
@@ -8758,10 +8758,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"isbinaryfile@npm:^4.0.2":
-  version: 4.0.8
-  resolution: "isbinaryfile@npm:4.0.8"
-  checksum: 10c0/4bffeff291023d2693216cc5d678783c5c1ac11af73eb6c2b6e230f01588a8966812a85fb43b4aee79ec7ff64c8689e5e45ac07bde57409344478831a3a18702
+"isbinaryfile@npm:^5.0.2":
+  version: 5.0.4
+  resolution: "isbinaryfile@npm:5.0.4"
+  checksum: 10c0/fea255bfae67ff4827e8dd2238d6700d4803d02b4d892b72eeac4541487284e901251a3427966af5018d4eb29fa155b036dcb75dd217634146a072991afbc2c2
   languageName: node
   linkType: hard
 
@@ -10620,12 +10620,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mime@npm:^2.4.4":
-  version: 2.6.0
-  resolution: "mime@npm:2.6.0"
+"mime@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "mime@npm:3.0.0"
   bin:
     mime: cli.js
-  checksum: 10c0/a7f2589900d9c16e3bdf7672d16a6274df903da958c1643c9c45771f0478f3846dcb1097f31eb9178452570271361e2149310931ec705c037210fc69639c8e6c
+  checksum: 10c0/402e792a8df1b2cc41cb77f0dcc46472b7944b7ec29cb5bbcd398624b6b97096728f1239766d3fdeb20551dd8d94738344c195a6ea10c4f906eb0356323b0531
   languageName: node
   linkType: hard
 
