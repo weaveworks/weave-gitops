@@ -1,11 +1,7 @@
 {
+    "extends": "@tsconfig/node-lts/tsconfig.json",
     "compilerOptions": {
-        "esModuleInterop": true,
         "jsx": "react",
-        "resolveJsonModule": true,
-        "skipLibCheck": true,
-        "target": "ES5",
-        "module": "CommonJS",
     },
     "include": [
         "ui/**/*"

@@ -18,6 +18,8 @@ export const parseValue = (parameter: {
       return parameter.value.value;
     case "integer":
       return parameter.value.value.toString();
+    default:
+      throw new Error('No mapping defined for parameter of type: ' + parameter.type);
   }
 };
 

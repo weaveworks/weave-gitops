@@ -4434,6 +4434,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tsconfig/node-lts@npm:^22.0.1":
+  version: 22.0.1
+  resolution: "@tsconfig/node-lts@npm:22.0.1"
+  checksum: 10c0/9e8dbe98daac8eaebd78fc3aea33ee479e7ec9c6f34550ca024ab48d5f9cbe225de8ab9d56e10cf7416261d3ad72b2657fbb8d560443dafb21eabf615b8ad98e
+  languageName: node
+  linkType: hard
+
 "@types/aria-query@npm:^5.0.1":
   version: 5.0.4
   resolution: "@types/aria-query@npm:5.0.4"
@@ -4982,6 +4989,7 @@ __metadata:
     "@testing-library/jest-dom": "npm:^6.6.3"
     "@testing-library/react": "npm:^16.1.0"
     "@testing-library/react-hooks": "npm:^7.0.0"
+    "@tsconfig/node-lts": "npm:^22.0.1"
     "@types/jest": "npm:^29.5.14"
     "@types/lodash": "npm:^4.17.14"
     "@types/luxon": "npm:^3.4.2"
