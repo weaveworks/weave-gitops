@@ -5,6 +5,8 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+    # Raised limit temporarily to get all potential upgrades
+    open-pull-requests-limit: 15
     groups:
       react:
         patterns:
