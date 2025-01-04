@@ -78,7 +78,7 @@
     "react-markdown": "^8.0.7",
     "react-query": "^3.39.3",
     "react-router-dom": "^5.2.0",
-    "react-syntax-highlighter": "^15.5.0",
+    "react-syntax-highlighter": "^15.6.1",
     "react-toastify": "^9.1.2",
     "remark-gfm": "^3.0.1",
     "styled-components": "^6.1.13",
