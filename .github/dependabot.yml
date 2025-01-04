@@ -8,6 +8,16 @@ updates:
     # Raised limit temporarily to get all potential upgrades
     open-pull-requests-limit: 15
     groups:
+      emotion:
+        patterns:
+          - "@emotion/*"
+      eslint:
+        patterns:
+          - eslint
+          - "@typescript-eslint/*"
+      mui:
+        patterns:
+          - "@mui/*"
       react:
         patterns:
           - react
