@@ -4917,7 +4917,7 @@ __metadata:
     mnemonic-browser: "npm:^0.0.1"
     parcel: "npm:^2.13.3"
     postcss: "npm:^8.4.49"
-    prettier: "npm:^2.6.2"
+    prettier: "npm:^3.4.2"
     process: "npm:^0.11.10"
     query-string: "npm:^4.3.4"
     react: "npm:^18.0.0"
@@ -11023,12 +11023,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prettier@npm:^2.6.2":
-  version: 2.6.2
-  resolution: "prettier@npm:2.6.2"
+"prettier@npm:^3.4.2":
+  version: 3.4.2
+  resolution: "prettier@npm:3.4.2"
   bin:
-    prettier: bin-prettier.js
-  checksum: 10c0/4a2717d0aca6b5b5c24570854fdf119c4184ff7422a1aa283364bdfe5394ecff4f6ac375663840dc2680ea09b1d5370329b83ac06579588db6f8bc71620e1267
+    prettier: bin/prettier.cjs
+  checksum: 10c0/99e076a26ed0aba4ebc043880d0f08bbb8c59a4c6641cdee6cdadf2205bdd87aa1d7823f50c3aea41e015e99878d37c58d7b5f0e663bba0ef047f94e36b96446
   languageName: node
   linkType: hard
 
