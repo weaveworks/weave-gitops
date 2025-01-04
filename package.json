@@ -64,7 +64,7 @@
     "history": "^5.0.0",
     "http-proxy-middleware": "^2.0.3",
     "install": "^0.13.0",
-    "jest-canvas-mock": "^2.4.0",
+    "jest-canvas-mock": "^2.5.2",
     "js-sha3": "0.8.0",
     "lodash": "^4.17.21",
     "luxon": "^3.5.0",
