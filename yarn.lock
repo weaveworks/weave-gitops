@@ -4901,7 +4901,7 @@ __metadata:
     d3-dag: "npm:^0.11.5"
     eslint: "npm:^8.48.0"
     eslint-plugin-import: "npm:^2.25.4"
-    history: "npm:^5.0.0"
+    history: "npm:^5.3.0"
     http-proxy-middleware: "npm:^2.0.3"
     install: "npm:^0.13.0"
     jest: "npm:^29.7.0"
@@ -7676,12 +7676,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"history@npm:^5.0.0":
-  version: 5.2.0
-  resolution: "history@npm:5.2.0"
+"history@npm:^5.3.0":
+  version: 5.3.0
+  resolution: "history@npm:5.3.0"
   dependencies:
     "@babel/runtime": "npm:^7.7.6"
-  checksum: 10c0/45d5e1650e2161f0cf4ead3a1d6361e3973a035f44ace8a3b75ff9fe295039b45407af4e397ecfa2f49eb51ae1f051a3800ccf8c2455881ccf91727b846d07c2
+  checksum: 10c0/812ec839386222d6437bd78d9f05db32e47d105ada0ad8834b32626919dd2fee7a10001bc489510f93a8069d02f118214bd8d42a82f7cf9daf8e84fbcbbb2016
   languageName: node
   linkType: hard
 
