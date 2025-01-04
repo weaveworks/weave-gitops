@@ -3802,12 +3802,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@parcel/transformer-inline-string@npm:^2.8.3":
-  version: 2.8.3
-  resolution: "@parcel/transformer-inline-string@npm:2.8.3"
+"@parcel/transformer-inline-string@npm:^2.13.3":
+  version: 2.13.3
+  resolution: "@parcel/transformer-inline-string@npm:2.13.3"
   dependencies:
-    "@parcel/plugin": "npm:2.8.3"
-  checksum: 10c0/9ce74076de0e35de0c13caee699a40c1ee68b05c837a05b9e2f0c7ebef84082911065fe3b6d66d6bcf1e7c7c85a750e7d5347c941b775e018e06015f1cfc2c5b
+    "@parcel/plugin": "npm:2.13.3"
+  checksum: 10c0/e8610ff848230c5d4c89312c6d2780ec51ac9631cc5c6bf5737ce6df48bb2730686b17d54e4e99600e141c47debafa372b26c82f6b6010b9c4df0bcf75f40fbb
   languageName: node
   linkType: hard
 
@@ -4976,7 +4976,7 @@ __metadata:
     "@parcel/config-default": "npm:^2.8.3"
     "@parcel/core": "npm:^2.13.3"
     "@parcel/optimizer-data-url": "npm:^2.8.3"
-    "@parcel/transformer-inline-string": "npm:^2.8.3"
+    "@parcel/transformer-inline-string": "npm:^2.13.3"
     "@parcel/transformer-typescript-tsc": "npm:^2.13.3"
     "@testing-library/dom": "npm:^10.4.0"
     "@testing-library/jest-dom": "npm:^6.6.3"
