@@ -4934,7 +4934,7 @@ __metadata:
     styled-components: "npm:^6.1.13"
     ts-jest: "npm:^29.2.5"
     typescript: "npm:^5.2.2"
-    yaml: "npm:^2.2.2"
+    yaml: "npm:^2.7.0"
     yarn-audit-fix: "npm:^10.1.1"
   peerDependencies:
     lodash: ^4.17.21
@@ -13073,10 +13073,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"yaml@npm:^2.2.2":
-  version: 2.2.2
-  resolution: "yaml@npm:2.2.2"
-  checksum: 10c0/a95bed9205a1f1cac11b315cb3f7ddf6b9979b85a478a18c86abf3066fd8d32c88f8de128c1ea97c2ac5f05de3268ff64e8286c241fd956851f1308044a50a9d
+"yaml@npm:^2.7.0":
+  version: 2.7.0
+  resolution: "yaml@npm:2.7.0"
+  bin:
+    yaml: bin.mjs
+  checksum: 10c0/886a7d2abbd70704b79f1d2d05fe9fb0aa63aefb86e1cb9991837dced65193d300f5554747a872b4b10ae9a12bc5d5327e4d04205f70336e863e35e89d8f4ea9
   languageName: node
   linkType: hard
 
