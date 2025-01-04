@@ -4908,7 +4908,7 @@ __metadata:
     jest-canvas-mock: "npm:^2.5.2"
     jest-environment-jsdom: "npm:^29.7.0"
     jest-fail-on-console: "npm:^3.3.1"
-    jest-styled-components: "npm:^7.0.4"
+    jest-styled-components: "npm:^7.2.0"
     jest-worker: "npm:^29.7.0"
     js-sha3: "npm:0.8.0"
     jsdom: "npm:^16.6.0"
@@ -8787,14 +8787,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jest-styled-components@npm:^7.0.4":
-  version: 7.1.1
-  resolution: "jest-styled-components@npm:7.1.1"
+"jest-styled-components@npm:^7.2.0":
+  version: 7.2.0
+  resolution: "jest-styled-components@npm:7.2.0"
   dependencies:
     "@adobe/css-tools": "npm:^4.0.1"
   peerDependencies:
     styled-components: ">= 5"
-  checksum: 10c0/24eef0a700e24439d59e7aaa0a5e8bc24a1633a6cde0b6184dacc2f3143e0144492a66f0acfdf0ddc78fce103cbfdf661e589ce1c274897e07d17ed933fcb5fd
+  checksum: 10c0/44eecf73cd1ee50686c9c16517222e2c012422dd7d90a07813f82f3ccce4059563e620d25aed60274e05d31fe6375b1f31a3486033aa39ea5e82fd94afcfa32f
   languageName: node
   linkType: hard
 
