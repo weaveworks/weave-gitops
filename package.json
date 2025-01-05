@@ -85,10 +85,10 @@
   "devDependencies": {
     "@babel/core": "^7.26.0",
     "@parcel/babel-preset-env": "^2.13.3",
-    "@parcel/config-default": "^2.8.3",
+    "@parcel/config-default": "^2.13.3",
     "@parcel/core": "^2.13.3",
-    "@parcel/optimizer-data-url": "^2.8.3",
-    "@parcel/transformer-inline-string": "^2.8.3",
+    "@parcel/optimizer-data-url": "^2.13.3",
+    "@parcel/transformer-inline-string": "^2.13.3",
     "@parcel/transformer-typescript-tsc": "^2.13.3",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
@@ -117,6 +117,7 @@
     "prettier": "^3.4.2",
     "process": "^0.11.10",
     "react-test-renderer": "^18.0.0",
+    "svgo": "^3",
     "ts-jest": "^29.2.5",
     "typescript": "^5.2.2",
     "yarn-audit-fix": "^10.1.1"
