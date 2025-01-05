@@ -7,7 +7,7 @@ import { NoNamespace, PageRoute, V2Routes } from "./types";
 // This keeps the nav element highlighted if we are on a child page.
 // Example: /sources and /git_repo will both show the "Sources" nav as selected.
 export const getParentNavValue = (
-  path: string
+  path: string,
 ): V2Routes | PageRoute | boolean => {
   const [, currentPage] = _.split(path, "/");
   switch (`/${currentPage}`) {
@@ -62,7 +62,7 @@ export const getParentNavValue = (
 };
 
 export const getParentNavRouteValue = (
-  path: string
+  path: string,
 ): V2Routes | PageRoute | boolean => {
   const [, currentPage] = _.split(path, "/");
 
@@ -138,7 +138,7 @@ export const formatSourceURL = (
   kind: string,
   name: string,
   namespace: string = NoNamespace,
-  clusterName: string
+  clusterName: string,
 ) => {
   return formatURL(objectTypeToRoute(Kind[kind]), {
     name,

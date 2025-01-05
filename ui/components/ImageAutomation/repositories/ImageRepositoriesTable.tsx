@@ -12,7 +12,7 @@ import RequestStateHandler from "../../RequestStateHandler";
 
 const ImageRepositoriesTable = () => {
   const { data, isLoading, error } = useListImageAutomation(
-    Kind.ImageRepository
+    Kind.ImageRepository,
   );
   const initialFilterState = {
     ...filterConfig(data?.objects, "name"),

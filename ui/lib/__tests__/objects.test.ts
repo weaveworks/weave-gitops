@@ -48,7 +48,7 @@ describe("objects lib", () => {
 
     const yaml = obj.yaml;
     expect(yaml).toEqual(
-      "apiVersion: helm.toolkit.fluxcd.io/v2beta1\nkind: HelmRelease\n"
+      "apiVersion: helm.toolkit.fluxcd.io/v2beta1\nkind: HelmRelease\n",
     );
   });
 
@@ -405,7 +405,7 @@ describe("objects lib", () => {
     });
     it("extracts last revision", () => {
       expect(obj.lastAppliedRevision).toEqual(
-        "6.2.0/79f81383288bf6542fcb5bdd8144b826b33b36e7"
+        "6.2.0/79f81383288bf6542fcb5bdd8144b826b33b36e7",
       );
     });
   });

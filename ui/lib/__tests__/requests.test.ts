@@ -3,7 +3,7 @@ import { TokenRefreshWrapper } from "../requests";
 describe("ServiceWrapper", () => {
   const mockGetData = jest.fn();
   const mockRefreshToken = jest.fn(
-    () => new Promise<void>((resolve) => setTimeout(resolve, 100))
+    () => new Promise<void>((resolve) => setTimeout(resolve, 100)),
   );
   const service = { getData: mockGetData };
 

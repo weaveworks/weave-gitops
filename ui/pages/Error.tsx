@@ -10,7 +10,7 @@ type Props = {
 
 function ErrorPage({ className }: Props) {
   const Error404Animation = React.lazy(
-    () => import("../components/Animations/Error404")
+    () => import("../components/Animations/Error404"),
   );
 
   return (

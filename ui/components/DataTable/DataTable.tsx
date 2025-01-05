@@ -108,7 +108,7 @@ function UnstyledDataTable({
       sorted = _.orderBy(
         filtered,
         [sortedItem.sortValue || sortedItem.value],
-        [sortedItem.reverseSort ? "desc" : "asc"]
+        [sortedItem.reverseSort ? "desc" : "asc"],
       );
     }
     return sorted;
@@ -135,7 +135,7 @@ function UnstyledDataTable({
 
     const textFilters = _.filter(
       next.textFilters,
-      (f) => !_.includes(chips, f)
+      (f) => !_.includes(chips, f),
     );
 
     let query = qs.parse(search);

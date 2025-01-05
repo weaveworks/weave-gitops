@@ -21,7 +21,7 @@ describe("CoreContextProvider", () => {
         <CoreClientContextProvider api={Core}>
           <TestComponent />
         </CoreClientContextProvider>
-      </QueryClientProvider>
+      </QueryClientProvider>,
     );
   });
 });

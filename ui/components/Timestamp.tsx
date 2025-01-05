@@ -15,7 +15,7 @@ function Timestamp({ className, time, hideSeconds, tooltip }: Props) {
 
   let relativeTime = dateTime.toRelative();
   const fullTime = dateTime.toLocaleString(
-    DateTime.DATETIME_SHORT_WITH_SECONDS
+    DateTime.DATETIME_SHORT_WITH_SECONDS,
   );
 
   if (hideSeconds && relativeTime.includes("second")) {

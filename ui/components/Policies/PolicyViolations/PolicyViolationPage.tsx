@@ -33,7 +33,7 @@ const getPath = (kind: string, violation?: PolicyValidation) => {
       name: entity,
       namespace: namespace,
       clusterName: clusterName,
-    }
+    },
   );
   return [
     { label: "Applications", url: V2Routes.Automations },

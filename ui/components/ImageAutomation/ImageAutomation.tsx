@@ -45,7 +45,7 @@ const ImageAutomation = () => {
               <RouterTab name={subRoute.name} path={subRoute.path} key={index}>
                 {subRoute.component()}
               </RouterTab>
-            )
+            ),
         )}
       </SubRouterTabs>
     </Flex>

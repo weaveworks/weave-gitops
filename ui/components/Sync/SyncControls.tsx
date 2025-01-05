@@ -108,7 +108,7 @@ const SyncControls = ({
   onResumeClick,
 }: Props) => {
   const [syncType, setSyncType] = React.useState(
-    hideSyncOptions ? SyncType.WithoutSource : SyncType.WithSource
+    hideSyncOptions ? SyncType.WithoutSource : SyncType.WithSource,
   );
 
   const handleSyncTypeChange = (value: SyncType) => {

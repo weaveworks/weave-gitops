@@ -57,17 +57,17 @@ describe("Parameters", () => {
       }
 
       const policyConfig = row.querySelector(
-        `[data-testid="Policy Config Name"]`
+        `[data-testid="Policy Config Name"]`,
       );
       expect(policyConfig.textContent).toEqual(
-        `Policy Config Name${p.configRef || "-"}`
+        `Policy Config Name${p.configRef || "-"}`,
       );
     });
   });
 
   it("validate Policy parameters display", async () => {
     render(
-      withTheme(<Parameters parameters={parameters} parameterType="policy" />)
+      withTheme(<Parameters parameters={parameters} parameterType="policy" />),
     );
     parameters.forEach((p) => {
       const row = document.querySelector(`.${p.name}`);
@@ -89,7 +89,7 @@ describe("Parameters", () => {
 
       const requiredParam = row.querySelector(`[data-testid="Required"]`);
       expect(requiredParam.textContent).toEqual(
-        `Required${p.required ? "True" : "False"}`
+        `Required${p.required ? "True" : "False"}`,
       );
     });
   });

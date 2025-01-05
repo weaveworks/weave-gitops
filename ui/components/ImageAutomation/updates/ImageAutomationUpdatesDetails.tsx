@@ -20,7 +20,7 @@ type Props = {
 };
 function getInfoList(
   data: ImageUpdateAutomation,
-  clusterName: string
+  clusterName: string,
 ): RowItem[] {
   const {
     kind,
@@ -90,7 +90,7 @@ function ImageAutomationUpdatesDetails({
     clusterName,
     {
       refetchInterval: 5000,
-    }
+    },
   );
 
   const rootPath = V2Routes.ImageAutomationUpdatesDetails;

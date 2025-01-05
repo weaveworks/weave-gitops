@@ -187,9 +187,9 @@ describe("DataTableFilters", () => {
         withContext(
           <DataTable fields={fields} rows={rows} filters={{}} />,
           "/applications",
-          {}
-        )
-      )
+          {},
+        ),
+      ),
     );
 
     expect(screen.queryAllByText("slick")).toBeTruthy();
@@ -212,13 +212,13 @@ describe("DataTableFilters", () => {
             dialogOpen
           />,
           "/applications",
-          {}
-        )
-      )
+          {},
+        ),
+      ),
     );
 
     const checkbox1 = document.getElementById(
-      `type${filterSeparator}foo`
+      `type${filterSeparator}foo`,
     ) as HTMLInputElement;
     fireEvent.click(checkbox1);
 
@@ -232,7 +232,7 @@ describe("DataTableFilters", () => {
     expect(chip1).toBeTruthy();
 
     const checkbox2 = document.getElementById(
-      `type${filterSeparator}baz`
+      `type${filterSeparator}baz`,
     ) as HTMLInputElement;
     fireEvent.click(checkbox2);
 
@@ -259,13 +259,13 @@ describe("DataTableFilters", () => {
             dialogOpen
           />,
           "/applications",
-          {}
-        )
-      )
+          {},
+        ),
+      ),
     );
 
     const checkbox1 = document.getElementById(
-      `status${filterSeparator}Ready`
+      `status${filterSeparator}Ready`,
     ) as HTMLInputElement;
     fireEvent.click(checkbox1);
 
@@ -278,7 +278,7 @@ describe("DataTableFilters", () => {
     expect(chip1).toBeTruthy();
 
     const checkbox2 = document.getElementById(
-      `status${filterSeparator}Suspended`
+      `status${filterSeparator}Suspended`,
     ) as HTMLInputElement;
     fireEvent.click(checkbox2);
 
@@ -304,9 +304,9 @@ describe("DataTableFilters", () => {
             dialogOpen
           />,
           "/applications",
-          {}
-        )
-      )
+          {},
+        ),
+      ),
     );
 
     const checkbox1 = document.getElementById("status") as HTMLInputElement;
@@ -335,9 +335,9 @@ describe("DataTableFilters", () => {
             dialogOpen
           />,
           "/applications",
-          {}
-        )
-      )
+          {},
+        ),
+      ),
     );
     const checkbox1 = document.getElementById("status") as HTMLInputElement;
     fireEvent.click(checkbox1);
@@ -365,13 +365,13 @@ describe("DataTableFilters", () => {
             dialogOpen
           />,
           "/applications",
-          {}
-        )
-      )
+          {},
+        ),
+      ),
     );
 
     const checkbox1 = document.getElementById(
-      `type${filterSeparator}foo`
+      `type${filterSeparator}foo`,
     ) as HTMLInputElement;
     fireEvent.click(checkbox1);
 
@@ -407,13 +407,13 @@ describe("DataTableFilters", () => {
             dialogOpen
           />,
           "/applications",
-          {}
-        )
-      )
+          {},
+        ),
+      ),
     );
 
     const checkbox1 = document.getElementById(
-      `type${filterSeparator}foo`
+      `type${filterSeparator}foo`,
     ) as HTMLInputElement;
     fireEvent.click(checkbox1);
     const chip1 = screen.getByText(`type${filterSeparator}foo`);
@@ -423,7 +423,7 @@ describe("DataTableFilters", () => {
     expect(tableRows1).toHaveLength(2);
 
     const checkbox2 = document.getElementById(
-      `type${filterSeparator}baz`
+      `type${filterSeparator}baz`,
     ) as HTMLInputElement;
     fireEvent.click(checkbox2);
     const chip2 = screen.getByText(`type${filterSeparator}baz`);
@@ -456,9 +456,9 @@ describe("DataTableFilters", () => {
             dialogOpen
           />,
           "/applications",
-          {}
-        )
-      )
+          {},
+        ),
+      ),
     );
 
     const searchTerms = "my-criterion";
@@ -483,9 +483,9 @@ describe("DataTableFilters", () => {
             dialogOpen
           />,
           "/applications",
-          {}
-        )
-      )
+          {},
+        ),
+      ),
     );
 
     const searchTerms = "my-criterion";
@@ -513,9 +513,9 @@ describe("DataTableFilters", () => {
             dialogOpen
           />,
           "/applications",
-          {}
-        )
-      )
+          {},
+        ),
+      ),
     );
 
     const searchTerms = rows[0].name;
@@ -531,9 +531,9 @@ describe("DataTableFilters", () => {
         withContext(
           <DataTable fields={fields} rows={rows} filters={{}} dialogOpen />,
           "/applications",
-          {}
-        )
-      )
+          {},
+        ),
+      ),
     );
 
     const term1 = "a";
@@ -552,9 +552,9 @@ describe("DataTableFilters", () => {
         withContext(
           <DataTable fields={fields} rows={rows} filters={{}} dialogOpen />,
           "/applications",
-          {}
-        )
-      )
+          {},
+        ),
+      ),
     );
 
     const row = rows[0];
@@ -582,9 +582,9 @@ describe("DataTableFilters", () => {
             dialogOpen
           />,
           "/applications" + search,
-          {}
-        )
-      )
+          {},
+        ),
+      ),
     );
     const tableRows = document.querySelectorAll("tbody tr");
     expect(tableRows).toHaveLength(1);

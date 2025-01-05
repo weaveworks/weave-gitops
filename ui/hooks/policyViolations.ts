@@ -17,13 +17,13 @@ export function useListPolicyValidations(
   opts: ReactQueryOptions<ListPolicyValidationsResponse, RequestError> = {
     retry: false,
     refetchInterval: 5000,
-  }
+  },
 ) {
   const { api } = useContext(CoreClientContext);
   return useQuery<ListPolicyValidationsResponse, Error>(
     [LIST_POLICY_VIOLATION_QUERY_KEY, req],
     () => api.ListPolicyValidations(req),
-    opts
+    opts,
   );
 }
 
@@ -34,12 +34,12 @@ export function useGetPolicyValidationDetails(
   opts: ReactQueryOptions<GetPolicyValidationResponse, RequestError> = {
     retry: false,
     refetchInterval: 5000,
-  }
+  },
 ) {
   const { api } = useContext(CoreClientContext);
   return useQuery<GetPolicyValidationResponse, Error>(
     [GET_POLICY_VIOLATION_QUERY_KEY, req],
     () => api.GetPolicyValidation(req),
-    opts
+    opts,
   );
 }

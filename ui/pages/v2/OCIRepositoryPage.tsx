@@ -23,7 +23,7 @@ function OCIRepositoryPage({ className, name, namespace, clusterName }: Props) {
     name,
     namespace,
     Kind.OCIRepository,
-    clusterName
+    clusterName,
   );
 
   return (

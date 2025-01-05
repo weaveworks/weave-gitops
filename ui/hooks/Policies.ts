@@ -17,13 +17,13 @@ export function useListPolicies(
   opts: ReactQueryOptions<ListPoliciesResponse, RequestError> = {
     retry: false,
     refetchInterval: 5000,
-  }
+  },
 ) {
   const { api } = useContext(CoreClientContext);
   return useQuery<ListPoliciesResponse, Error>(
     [LIST_POLICIES_QUERY_KEY, req],
     () => api.ListPolicies(req),
-    opts
+    opts,
   );
 }
 const GET_POLICY_QUERY_KEY = "get-policy-details";
@@ -33,13 +33,13 @@ export function useGetPolicyDetails(
   opts: ReactQueryOptions<GetPolicyResponse, RequestError> = {
     retry: false,
     refetchInterval: 5000,
-  }
+  },
 ) {
   const { api } = useContext(CoreClientContext);
 
   return useQuery<GetPolicyResponse, Error>(
     [GET_POLICY_QUERY_KEY, req],
     () => api.GetPolicy(req),
-    opts
+    opts,
   );
 }

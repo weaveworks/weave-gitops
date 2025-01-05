@@ -109,7 +109,7 @@ describe("KubeStatusIndicator", () => {
     ];
 
     render(
-      withTheme(<KubeStatusIndicator conditions={conditions} suspended />)
+      withTheme(<KubeStatusIndicator conditions={conditions} suspended />),
     );
     const msg = screen.getByText("Suspended");
     expect(msg).toBeTruthy();
@@ -224,7 +224,7 @@ describe("KubeStatusIndicator", () => {
       ];
       const tree = renderer
         .create(
-          withTheme(<KubeStatusIndicator conditions={conditions} short />)
+          withTheme(<KubeStatusIndicator conditions={conditions} short />),
         )
         .toJSON();
       expect(tree).toMatchSnapshot();
@@ -241,7 +241,7 @@ describe("KubeStatusIndicator", () => {
       ];
       const tree = renderer
         .create(
-          withTheme(<KubeStatusIndicator conditions={conditions} noText />)
+          withTheme(<KubeStatusIndicator conditions={conditions} noText />),
         )
         .toJSON();
       expect(tree).toMatchSnapshot();

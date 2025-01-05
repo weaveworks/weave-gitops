@@ -64,9 +64,9 @@ describe("DataTable", () => {
           withContext(
             <DataTable fields={fields} rows={rows} />,
             "/applications",
-            {}
-          )
-        )
+            {},
+          ),
+        ),
       );
       const firstRow = screen.getAllByRole("row")[1];
       expect(firstRow.innerHTML).toMatch(/nginx/);
@@ -77,9 +77,9 @@ describe("DataTable", () => {
           withContext(
             <DataTable fields={fields} rows={rows} />,
             "/applications",
-            {}
-          )
-        )
+            {},
+          ),
+        ),
       );
 
       const nameButton = screen.getByText("Name");
@@ -93,9 +93,9 @@ describe("DataTable", () => {
           withContext(
             <DataTable fields={fields} rows={rows} />,
             "/applications",
-            {}
-          )
-        )
+            {},
+          ),
+        ),
       );
       const nameButton = screen.getByText("Name");
       fireEvent.click(nameButton);
@@ -110,9 +110,9 @@ describe("DataTable", () => {
           withContext(
             <DataTable fields={fields} rows={[]} />,
             "/applications",
-            {}
-          )
-        )
+            {},
+          ),
+        ),
       );
       const firstRow = screen.getAllByRole("row")[1];
       expect(firstRow.innerHTML).toMatch(/No/);
@@ -142,9 +142,9 @@ describe("DataTable", () => {
           withContext(
             <DataTable fields={fields} rows={rows} />,
             "/applications",
-            {}
-          )
-        )
+            {},
+          ),
+        ),
       );
 
       let firstRow = screen.getAllByRole("row")[1];
@@ -181,9 +181,9 @@ describe("DataTable", () => {
           withContext(
             <DataTable disableSort fields={fields} rows={rows} />,
             "/applications",
-            {}
-          )
-        )
+            {},
+          ),
+        ),
       );
 
       const nameButton = screen.getByText("Name");
@@ -202,9 +202,9 @@ describe("DataTable", () => {
             withContext(
               <DataTable fields={fields} rows={rows} />,
               "/applications",
-              {}
-            )
-          )
+              {},
+            ),
+          ),
         )
         .toJSON();
       expect(tree).toMatchSnapshot();

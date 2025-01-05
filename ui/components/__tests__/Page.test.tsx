@@ -23,9 +23,9 @@ describe("Page", () => {
                 <Page path={[{ label: "test" }]} />
               </CoreClientContext.Provider>,
               "/",
-              {}
-            )
-          )
+              {},
+            ),
+          ),
         )
         .toJSON();
       expect(tree).toMatchSnapshot();

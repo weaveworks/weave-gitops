@@ -23,7 +23,7 @@ import { ReactQueryOptions, RequestError } from "../lib/types";
 
 export function convertResponse(
   kind: Kind | string,
-  response?: ResponseObject
+  response?: ResponseObject,
 ) {
   switch (kind) {
     case Kind.HelmRepository:
@@ -66,7 +66,7 @@ export function useGetObject<T extends FluxObject>(
   opts: ReactQueryOptions<T, RequestError> = {
     retry: false,
     refetchInterval: 5000,
-  }
+  },
 ) {
   const { api } = useContext(CoreClientContext);
 
@@ -77,9 +77,9 @@ export function useGetObject<T extends FluxObject>(
         .GetObject({ name, namespace, kind, clusterName })
         .then(
           (result: GetObjectResponse) =>
-            convertResponse(kind, result.object) as T
+            convertResponse(kind, result.object) as T,
         ),
-    opts
+    opts,
   );
   if (response.error) {
     return { ...response, data: convertResponse(kind) as T };
@@ -97,7 +97,7 @@ export function useListObjects<T extends FluxObject>(
   opts: ReactQueryOptions<Res, RequestError> = {
     retry: false,
     refetchInterval: 5000,
-  }
+  },
 ) {
   const { api } = useContext(CoreClientContext);
 
@@ -116,6 +116,6 @@ export function useListObjects<T extends FluxObject>(
       else objects = [];
       return { objects: objects, errors: res.errors || [] };
     },
-    opts
+    opts,
   );
 }

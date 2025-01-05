@@ -21,7 +21,7 @@ describe("createCanaryCondition", () => {
         falseCanary,
         trueCanary,
         unknownCanary,
-      ] as FluxObject[]).status
+      ] as FluxObject[]).status,
     ).toEqual(ReadyStatusValue.False);
   });
   it("creates an unknown condition if no canaries are failing and one or more are unknown", () => {
@@ -30,7 +30,7 @@ describe("createCanaryCondition", () => {
         trueCanary,
         trueCanary,
         unknownCanary,
-      ] as FluxObject[]).status
+      ] as FluxObject[]).status,
     ).toEqual(ReadyStatusValue.Unknown);
   });
   it("creates a true condition if all canaries succeeded", () => {
@@ -39,7 +39,7 @@ describe("createCanaryCondition", () => {
         trueCanary,
         trueCanary,
         trueCanary,
-      ] as FluxObject[]).status
+      ] as FluxObject[]).status,
     ).toEqual(ReadyStatusValue.True);
   });
   it("creates a special condition if there are no canaries", () => {

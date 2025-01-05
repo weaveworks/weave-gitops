@@ -50,7 +50,7 @@ function ReconciliationGraph({
     name,
     clusterName,
     namespace,
-    true
+    true,
   );
 
   return (

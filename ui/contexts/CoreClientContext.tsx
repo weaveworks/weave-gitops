@@ -32,7 +32,7 @@ function FeatureFlags(api) {
     {
       staleTime: Infinity,
       cacheTime: Infinity,
-    }
+    },
   );
   return data?.flags;
 }

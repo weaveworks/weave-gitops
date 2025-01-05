@@ -21,7 +21,7 @@ function SourceLink({ className, sourceRef, clusterName, short }: Props) {
         sourceRef.kind,
         sourceRef.name,
         sourceRef.namespace,
-        clusterName
+        clusterName,
       )}
     >
       {!short && sourceRef.kind + "/"}

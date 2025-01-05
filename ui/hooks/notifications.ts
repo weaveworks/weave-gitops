@@ -15,7 +15,7 @@ export function useListProviders(
   opts: ReactQueryOptions<Res, RequestError> = {
     retry: false,
     refetchInterval: 5000,
-  }
+  },
 ) {
   const { api } = useContext(CoreClientContext);
   return useQuery<Res, RequestError>(
@@ -23,12 +23,12 @@ export function useListProviders(
     () => {
       return api.ListObjects({ namespace, kind: Kind.Provider }).then((res) => {
         const providers = res.objects?.map(
-          (obj) => convertResponse(Kind.Provider, obj) as Provider
+          (obj) => convertResponse(Kind.Provider, obj) as Provider,
         );
         return { objects: providers, errors: res.errors };
       });
     },
-    opts
+    opts,
   );
 }
 
@@ -38,7 +38,7 @@ export function useListAlerts(
   opts: ReactQueryOptions<AlertsRes, RequestError> = {
     retry: false,
     refetchInterval: 5000,
-  }
+  },
 ) {
   const { api } = useContext(CoreClientContext);
   return useQuery<AlertsRes, RequestError>(
@@ -46,12 +46,12 @@ export function useListAlerts(
     () => {
       return api.ListObjects({ namespace, kind: Kind.Alert }).then((res) => {
         const alerts = res.objects?.map(
-          (obj) => convertResponse(Kind.Alert, obj) as Alert
+          (obj) => convertResponse(Kind.Alert, obj) as Alert,
         );
         const matches = alerts.filter((alert) => alert.providerRef === name);
         return { objects: matches, errors: res.errors };
       });
     },
-    opts
+    opts,
   );
 }

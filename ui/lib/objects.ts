@@ -109,7 +109,7 @@ export class FluxObject {
   get interval(): Interval {
     const match =
       /((?<hours>[0-9]+)h)?((?<minutes>[0-9]+)m)?((?<seconds>[0-9]+)s)?/.exec(
-        this.obj.spec?.interval
+        this.obj.spec?.interval,
       );
     const interval = match?.groups || {};
     return {
@@ -129,7 +129,7 @@ export class FluxObject {
       const containers = _.get(this.obj, path, []);
       // _.map returns an empty list if containers is not iterable
       return _.map(containers, (container: unknown) =>
-        _.get(container, "image")
+        _.get(container, "image"),
       );
     });
 
@@ -249,8 +249,8 @@ export class Kustomization extends FluxObject {
           const kind = parts[parts.length - 1];
           const group = parts[parts.length - 2];
           return { group, version: entry.v, kind };
-        })
-      )
+        }),
+      ),
     );
   }
 }

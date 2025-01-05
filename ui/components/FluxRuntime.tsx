@@ -76,7 +76,7 @@ function FluxRuntime({ className, deployments, crds }: Props) {
                 >
                   {subRoute.component()}
                 </RouterTab>
-              )
+              ),
           )}
         </SubRouterTabs>
       </>

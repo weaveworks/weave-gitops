@@ -24,14 +24,14 @@ export function useListFluxRuntimeObjects(
   opts: ReactQueryOptions<ListFluxRuntimeObjectsResponse, RequestError> = {
     retry: false,
     refetchInterval: 5000,
-  }
+  },
 ) {
   const { api } = useContext(CoreClientContext);
 
   return useQuery<ListFluxRuntimeObjectsResponse, RequestError>(
     "flux_runtime_objects",
     () => api.ListFluxRuntimeObjects({ namespace, clusterName }),
-    opts
+    opts,
   );
 }
 
@@ -41,7 +41,7 @@ export function useListFluxCrds(clusterName = DefaultCluster) {
   return useQuery<ListFluxCrdsResponse, RequestError>(
     "flux_crds",
     () => api.ListFluxCrds({ clusterName }),
-    { retry: false, refetchInterval: 5000 }
+    { retry: false, refetchInterval: 5000 },
   );
 }
 
@@ -51,14 +51,14 @@ export function useListRuntimeObjects(
   opts: ReactQueryOptions<ListRuntimeObjectsResponse, RequestError> = {
     retry: false,
     refetchInterval: 5000,
-  }
+  },
 ) {
   const { api } = useContext(CoreClientContext);
 
   return useQuery<ListRuntimeObjectsResponse, RequestError>(
     "runtime_objects",
     () => api.ListRuntimeObjects({ namespace, clusterName }),
-    opts
+    opts,
   );
 }
 
@@ -68,13 +68,13 @@ export function useListRuntimeCrds(clusterName = DefaultCluster) {
   return useQuery<ListFluxCrdsResponse, RequestError>(
     "runtime_crds",
     () => api.ListRuntimeCrds({ clusterName }),
-    { retry: false, refetchInterval: 5000 }
+    { retry: false, refetchInterval: 5000 },
   );
 }
 
 export function flattenChildren(children: FluxObject[]) {
   return children.flatMap((child) =>
-    [child].concat(flattenChildren(child.children))
+    [child].concat(flattenChildren(child.children)),
   );
 }
 
@@ -87,7 +87,7 @@ export function useGetReconciledObjects(
   opts: ReactQueryOptions<FluxObject[], RequestError> = {
     retry: false,
     refetchInterval: 5000,
-  }
+  },
 ) {
   const result = useGetReconciledTree(
     name,
@@ -95,7 +95,7 @@ export function useGetReconciledObjects(
     type,
     kinds,
     clusterName,
-    opts
+    opts,
   );
   if (result.data) {
     result.data = flattenChildren(result.data);
@@ -112,20 +112,20 @@ export function useGetReconciledTree(
   opts: ReactQueryOptions<FluxObject[], RequestError> = {
     retry: false,
     refetchInterval: 5000,
-  }
+  },
 ) {
   const { api } = useContext(CoreClientContext);
 
   return useQuery<FluxObject[], RequestError>(
     ["reconciled_objects", { name, namespace, type, kinds }],
     () => getChildren(api, name, namespace, type, kinds, clusterName),
-    opts
+    opts,
   );
 }
 
 export function useToggleSuspend(
   req: ToggleSuspendResourceRequest,
-  type: string
+  type: string,
 ) {
   const { api } = useContext(CoreClientContext);
   const queryClient = useQueryClient();
@@ -140,7 +140,7 @@ export function useToggleSuspend(
       onError: (error) => {
         notifyError(error.message);
       },
-    }
+    },
   );
   return mutation;
 }

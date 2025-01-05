@@ -35,7 +35,7 @@ export function computeReady(conditions: Condition[]): ReadyType {
   if (!conditions?.length) return undefined;
   const readyCondition = _.find(
     conditions,
-    (c) => c.type === "Ready" || c.type === "Available"
+    (c) => c.type === "Ready" || c.type === "Available",
   );
 
   if (readyCondition) {
@@ -68,7 +68,7 @@ export function computeMessage(conditions: Condition[]) {
 
   const readyCondition = _.find(
     conditions,
-    (c) => c.type === "Ready" || c.type === "Available"
+    (c) => c.type === "Ready" || c.type === "Available",
   );
 
   if (readyCondition) {
@@ -77,7 +77,7 @@ export function computeMessage(conditions: Condition[]) {
 
   const falseCondition = _.find(
     conditions,
-    (c) => c.status === ReadyStatusValue.False
+    (c) => c.status === ReadyStatusValue.False,
   );
 
   if (falseCondition) {
@@ -95,7 +95,7 @@ type IndicatorInfo = {
 
 export const getIndicatorInfo = (
   suspended: boolean,
-  conditions: Condition[]
+  conditions: Condition[],
 ): IndicatorInfo => {
   if (suspended)
     return {
@@ -171,7 +171,7 @@ export function createSyntheticCondition(
   kind: SpecialObject,
   // This will eventually be a union type when we add another special object.
   // Example: DaemonSetStatus | CoolObjectStatus | ...
-  status: DaemonSetStatus
+  status: DaemonSetStatus,
 ): Condition {
   switch (kind) {
     case "DaemonSet":

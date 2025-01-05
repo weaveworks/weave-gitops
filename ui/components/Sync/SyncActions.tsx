@@ -57,7 +57,7 @@ const SyncActions = ({
       suspend: true,
       comment: suspendMessage,
     },
-    "object"
+    "object",
   );
 
   const resume = useToggleSuspend(
@@ -66,7 +66,7 @@ const SyncActions = ({
       suspend: false,
       comment: "",
     },
-    "object"
+    "object",
   );
 
   return (

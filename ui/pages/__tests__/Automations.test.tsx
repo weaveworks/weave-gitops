@@ -47,7 +47,7 @@ describe("Automations", () => {
       GetVersion: getVersionMock,
     });
     render(
-      withTheme(withContext(<Automations />, "/automations", { api: client }))
+      withTheme(withContext(<Automations />, "/automations", { api: client })),
     );
     await waitFor(() => {
       expect(screen.getAllByText("Kustomization").length).toBeTruthy();
@@ -62,7 +62,7 @@ describe("Automations", () => {
       GetVersion: getVersionMock,
     });
     render(
-      withTheme(withContext(<Automations />, "/automations", { api: client2 }))
+      withTheme(withContext(<Automations />, "/automations", { api: client2 })),
     );
     await waitFor(() => expect(screen.getByText("No data")).toBeTruthy());
   });

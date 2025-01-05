@@ -17,14 +17,14 @@ describe("YamlView", () => {
                 header={createYamlCommand(
                   Kind.Kustomization,
                   "podinfo",
-                  "flux-system"
+                  "flux-system",
                 )}
                 yaml="yaml\nyaml\nyaml\n"
               />,
               "",
-              {}
-            )
-          )
+              {},
+            ),
+          ),
         )
         .toJSON();
       expect(tree).toMatchSnapshot();

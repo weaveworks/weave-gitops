@@ -21,7 +21,7 @@ const graphNodesPlaceholder = [] as FluxObjectNode[];
 
 function DependenciesView({ className, automation }: DependenciesViewProps) {
   const [graphNodes, setGraphNodes] = React.useState<FluxObjectNode[] | null>(
-    null
+    null,
   );
 
   const automationKind = Kind[automation?.type];

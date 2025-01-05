@@ -33,29 +33,29 @@ describe("utils lib", () => {
       expect(isHTTP("http://172.31.0.2/")).toEqual(true);
       expect(
         isHTTP(
-          "http://localhost:8080/applications/argocd/fsa-installation?view=tree"
-        )
+          "http://localhost:8080/applications/argocd/fsa-installation?view=tree",
+        ),
       ).toEqual(true);
       expect(
         isHTTP(
-          "https://localhost:8080/applications/argocd/fsa-installation?view=tree"
-        )
+          "https://localhost:8080/applications/argocd/fsa-installation?view=tree",
+        ),
       ).toEqual(true);
       expect(
-        isHTTP("http://github.com/weaveworks/weave-gitops-clusters")
+        isHTTP("http://github.com/weaveworks/weave-gitops-clusters"),
       ).toEqual(true);
       expect(
-        isHTTP("http://github.com/weaveworks/weave-gitops-clusters/")
+        isHTTP("http://github.com/weaveworks/weave-gitops-clusters/"),
       ).toEqual(true);
     });
     it("detects HTTPS", () => {
       expect(isHTTP("https://www.google.com")).toEqual(true);
       expect(isHTTP("https://www.google.com/")).toEqual(true);
       expect(
-        isHTTP("https://github.com/weaveworks/weave-gitops-clusters")
+        isHTTP("https://github.com/weaveworks/weave-gitops-clusters"),
       ).toEqual(true);
       expect(
-        isHTTP("https://github.com/weaveworks/weave-gitops-clusters/")
+        isHTTP("https://github.com/weaveworks/weave-gitops-clusters/"),
       ).toEqual(true);
     });
     it("detects non-HTTP string", () => {
@@ -68,10 +68,10 @@ describe("utils lib", () => {
       expect(isHTTP("http:// this is a random http sentence")).toEqual(false);
       expect(isHTTP("https:// this is a random https sentence")).toEqual(false);
       expect(
-        isHTTP("ssh://git@github.com/weaveworks/weave-gitops-clusters")
+        isHTTP("ssh://git@github.com/weaveworks/weave-gitops-clusters"),
       ).toEqual(false);
       expect(isHTTP("github.com/weaveworks/weave-gitops-clusters")).toEqual(
-        false
+        false,
       );
       expect(isHTTP("foo/file.html")).toEqual(false);
       expect(isHTTP("//.com")).toEqual(false);
@@ -81,13 +81,13 @@ describe("utils lib", () => {
     it("allows http", () => {
       expect(isAllowedLink("http://www.google.com")).toEqual(true);
       expect(isAllowedLink("http:// this is a random http sentence")).toEqual(
-        true
+        true,
       );
     });
     it("allows https", () => {
       expect(isAllowedLink("https://www.google.com")).toEqual(true);
       expect(isAllowedLink("https:// this is a random https sentence")).toEqual(
-        true
+        true,
       );
     });
     it("allows relative links", () => {
@@ -96,7 +96,7 @@ describe("utils lib", () => {
       expect(isAllowedLink("/hello")).toEqual(true);
       expect(isAllowedLink("test string")).toEqual(true);
       expect(
-        isAllowedLink("github.com/weaveworks/weave-gitops-clusters")
+        isAllowedLink("github.com/weaveworks/weave-gitops-clusters"),
       ).toEqual(true);
       expect(isAllowedLink("foo/file.html")).toEqual(true);
       expect(isAllowedLink("//.com")).toEqual(true);
@@ -107,7 +107,7 @@ describe("utils lib", () => {
       expect(isAllowedLink("smtp://http/")).toEqual(false);
       expect(isAllowedLink("smtp://https/")).toEqual(false);
       expect(
-        isAllowedLink("ssh://git@github.com/weaveworks/weave-gitops-clusters")
+        isAllowedLink("ssh://git@github.com/weaveworks/weave-gitops-clusters"),
       ).toEqual(false);
     });
   });
@@ -115,8 +115,8 @@ describe("utils lib", () => {
     it("converts valid Git URL", () => {
       expect(
         convertGitURLToGitProvider(
-          "ssh://git@github.com/weaveworks/weave-gitops-clusters"
-        )
+          "ssh://git@github.com/weaveworks/weave-gitops-clusters",
+        ),
       ).toEqual("https://github.com/weaveworks/weave-gitops-clusters");
     });
     it("returns nothing on invalid Git URL", () => {
@@ -127,8 +127,8 @@ describe("utils lib", () => {
     it("returns the original HTTP URL", () => {
       expect(
         convertGitURLToGitProvider(
-          "https://github.com/weaveworks/weave-gitops-clusters"
-        )
+          "https://github.com/weaveworks/weave-gitops-clusters",
+        ),
       ).toEqual("https://github.com/weaveworks/weave-gitops-clusters");
     });
   });
@@ -138,7 +138,7 @@ describe("utils lib", () => {
 
     it("returns correct page title with app name", () => {
       expect(pageTitleWithAppName(pageTitle, appName)).toEqual(
-        `${pageTitle} for ${appName}`
+        `${pageTitle} for ${appName}`,
       );
     });
     it("returns correct page title without app name", () => {
@@ -160,7 +160,7 @@ describe("utils lib", () => {
               type: "Ready",
             },
           ],
-        })
+        }),
       ).toEqual(2);
     });
     it("computes ready status", () => {
@@ -184,7 +184,7 @@ describe("utils lib", () => {
               timestamp: "2022-03-03 16:55:29 +0000 UTC",
             },
           ],
-        })
+        }),
       ).toEqual(4);
     });
     it("computes reconciling status", () => {
@@ -200,7 +200,7 @@ describe("utils lib", () => {
               timestamp: "2022-03-03 16:55:29 +0000 UTC",
             },
           ],
-        })
+        }),
       ).toEqual(3);
     });
     it("computes default status", () => {
@@ -216,7 +216,7 @@ describe("utils lib", () => {
               timestamp: "2022-03-03 16:55:29 +0000 UTC",
             },
           ],
-        })
+        }),
       ).toEqual(1);
     });
   });
@@ -232,7 +232,7 @@ describe("utils lib", () => {
     });
     it("concatenates strings if both strings are not empty", () => {
       expect(makeImageString(["image string 1", "image string 2"])).toEqual(
-        "image string 1\nimage string 2"
+        "image string 1\nimage string 2",
       );
     });
   });
@@ -247,49 +247,49 @@ describe("utils lib", () => {
   describe("convertImage", () => {
     it("should handle Docker namespaced repositories", () => {
       expect(convertImage("weaveworks/eksctl")).toEqual(
-        "https://hub.docker.com/r/weaveworks/eksctl"
+        "https://hub.docker.com/r/weaveworks/eksctl",
       );
       expect(convertImage("docker.io/weaveworks/eksctl")).toEqual(
-        "https://hub.docker.com/r/weaveworks/eksctl"
+        "https://hub.docker.com/r/weaveworks/eksctl",
       );
     });
     it("should handle Docker global repositories", () => {
       expect(convertImage("nginx")).toEqual("https://hub.docker.com/r/_/nginx");
       expect(convertImage("docker.io/nginx")).toEqual(
-        "https://hub.docker.com/r/_/nginx"
+        "https://hub.docker.com/r/_/nginx",
       );
     });
     it("should handle Docker library alias", () => {
       expect(convertImage("library/nginx")).toEqual(
-        "https://hub.docker.com/r/_/nginx"
+        "https://hub.docker.com/r/_/nginx",
       );
       expect(convertImage("docker.io/library/nginx")).toEqual(
-        "https://hub.docker.com/r/_/nginx"
+        "https://hub.docker.com/r/_/nginx",
       );
     });
     it("should handle Quay.io repositories", () => {
       expect(convertImage("quay.io/jitesoft/nginx")).toEqual(
-        "https://quay.io/repository/jitesoft/nginx"
+        "https://quay.io/repository/jitesoft/nginx",
       );
     });
     it("should handle Github and Google GHCR/GCR", () => {
       expect(convertImage("ghcr.io/weaveworks/charts/weave-gitops")).toEqual(
-        "https://ghcr.io/weaveworks/charts/weave-gitops"
+        "https://ghcr.io/weaveworks/charts/weave-gitops",
       );
       expect(convertImage("gcr.io/cloud-builders/gcloud")).toEqual(
-        "https://gcr.io/cloud-builders/gcloud"
+        "https://gcr.io/cloud-builders/gcloud",
       );
     });
     it("should remove tags", () => {
       expect(
-        convertImage("ghcr.io/weaveworks/charts/weave-gitops:10.4.5.2335224")
+        convertImage("ghcr.io/weaveworks/charts/weave-gitops:10.4.5.2335224"),
       ).toEqual("https://ghcr.io/weaveworks/charts/weave-gitops");
     });
     it("should not link to unsupported images", () => {
       expect(
         convertImage(
-          "fakeimage.itisfake.donotdoit.io/fake/fake/fake.com.net.org"
-        )
+          "fakeimage.itisfake.donotdoit.io/fake/fake/fake.com.net.org",
+        ),
       ).toEqual(false);
     });
   });
@@ -307,7 +307,7 @@ describe("utils lib", () => {
       const kustomization = new Kustomization(response);
 
       expect(getSourceRefForAutomation(kustomization)).toEqual(
-        kustomization.sourceRef
+        kustomization.sourceRef,
       );
     });
     it("should return sourceRef for helmrelease", () => {
@@ -322,7 +322,7 @@ describe("utils lib", () => {
       const helmRelease = new HelmRelease(object);
 
       expect(getSourceRefForAutomation(helmRelease)).toEqual(
-        helmRelease.helmChart.sourceRef
+        helmRelease.helmChart.sourceRef,
       );
     });
     it("should return undefined if automation is undefined", () => {
@@ -347,12 +347,12 @@ describe("utils lib", () => {
         fullResponse,
         defaultVersion,
         true,
-        defaultVersionPrefix
+        defaultVersionPrefix,
       );
 
       expect(appVersion.versionText).toEqual(`vdefault version`);
       expect(appVersion.versionHref).toEqual(
-        "https://github.com/weaveworks/weave-gitops/releases/tag/vdefault version"
+        "https://github.com/weaveworks/weave-gitops/releases/tag/vdefault version",
       );
     });
     it("should return api version for full response if not loading data", () => {
@@ -360,12 +360,12 @@ describe("utils lib", () => {
         fullResponse,
         defaultVersion,
         false,
-        defaultVersionPrefix
+        defaultVersionPrefix,
       );
 
       expect(appVersion.versionText).toEqual("branch-commit");
       expect(appVersion.versionHref).toEqual(
-        "https://github.com/weaveworks/weave-gitops/commit/commit"
+        "https://github.com/weaveworks/weave-gitops/commit/commit",
       );
     });
     it("should return default version without prefix for full response if loading data", () => {
@@ -373,7 +373,7 @@ describe("utils lib", () => {
 
       expect(appVersion.versionText).toEqual(`default version`);
       expect(appVersion.versionHref).toEqual(
-        "https://github.com/weaveworks/weave-gitops/releases/tag/vdefault version"
+        "https://github.com/weaveworks/weave-gitops/releases/tag/vdefault version",
       );
     });
     it("should return api version without prefix for full response", () => {
@@ -381,23 +381,23 @@ describe("utils lib", () => {
 
       expect(appVersion.versionText).toEqual("branch-commit");
       expect(appVersion.versionHref).toEqual(
-        "https://github.com/weaveworks/weave-gitops/commit/commit"
+        "https://github.com/weaveworks/weave-gitops/commit/commit",
       );
     });
   });
   describe("formatLogTimestamp", () => {
     it("should format non-empty timestamp", () => {
       expect(formatLogTimestamp("2023-01-31T13:27:56-05:00", "UTC+1")).toEqual(
-        "2023-01-31 19:27:56 UTC+1"
+        "2023-01-31 19:27:56 UTC+1",
       );
       expect(formatLogTimestamp("2023-02-03T13:27:56-01:00", "UTC-10")).toEqual(
-        "2023-02-03 04:27:56 UTC-10"
+        "2023-02-03 04:27:56 UTC-10",
       );
       expect(formatLogTimestamp("2023-02-03T13:27:56-01:00", "UTC")).toEqual(
-        "2023-02-03 14:27:56 UTC"
+        "2023-02-03 14:27:56 UTC",
       );
       expect(formatLogTimestamp("2023-02-04T18:36:01+01:00", "UTC+3")).toEqual(
-        "2023-02-04 20:36:01 UTC+3"
+        "2023-02-04 20:36:01 UTC+3",
       );
     });
     it("should return a hyphen for undefined timestamp", () => {
@@ -412,22 +412,22 @@ describe("utils lib", () => {
 describe("createYamlCommand", () => {
   it("creates kubectl get yaml string for objects with namespaces", () => {
     expect(
-      createYamlCommand(Kind.Kustomization, "test", "flux-system")
+      createYamlCommand(Kind.Kustomization, "test", "flux-system"),
     ).toEqual(`kubectl get kustomization test -n flux-system -o yaml`);
   });
   it("creates kubectl get yaml string for objects without namespaces", () => {
     expect(createYamlCommand(Kind.Kustomization, "test", undefined)).toEqual(
-      `kubectl get kustomization test -o yaml`
+      `kubectl get kustomization test -o yaml`,
     );
   });
   it("returns null if name or kind are false values", () => {
     expect(createYamlCommand(undefined, undefined, "flux-system")).toEqual(
-      null
+      null,
     );
   });
   it("uses the path prop if it is defined", () => {
     expect(createYamlCommand(undefined, undefined, undefined, "http")).toEqual(
-      "http"
+      "http",
     );
   });
 
@@ -437,7 +437,7 @@ describe("createYamlCommand", () => {
       beforeEach(() => {
         dom = new JSDOM(
           "<!DOCTYPE html><html><head></head><body></body></html>",
-          { url: "https://example.org/" }
+          { url: "https://example.org/" },
         );
       });
 
@@ -455,7 +455,7 @@ describe("createYamlCommand", () => {
       beforeEach(() => {
         dom = new JSDOM(
           "<!DOCTYPE html><html><head><base href='/base/'></head><body></body></html>",
-          { url: "https://example.org/" }
+          { url: "https://example.org/" },
         );
       });
 
