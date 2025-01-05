@@ -189,7 +189,7 @@ jobs:
   ci-publish-js-lib:
     name: Publish js library
     runs-on: ubuntu-latest
-    if: ${{ !github.event.pull_request.head.repo.fork }}
+    if: "${{ github.repository_owner == 'weaveworks' && github.ref_name == 'main'}}"
     needs: [ci-js]
     permissions:
       packages: write
