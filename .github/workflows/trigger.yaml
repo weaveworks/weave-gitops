@@ -14,7 +14,7 @@ permissions:
 jobs:
   trigger-enterprise-workflow:
     runs-on: ubuntu-latest
-   # if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
+    if: "${{ github.repository_owner == 'weaveworks' && github.ref_name == 'main'}}"
     steps:
       - name: Trigger Workflow
         uses: peter-evans/repository-dispatch@ff45666b9427631e3450c54a1bcbee4d9ff4d7c0 # v3.0.0
