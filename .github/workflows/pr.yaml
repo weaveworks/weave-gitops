@@ -115,6 +115,7 @@ jobs:
         with:
           name: ${{ matrix.docker-image }}
           path: /tmp/${{ matrix.docker-image }}.tar
+          retention-days: 1
 
   ci-upload-images:
     name: CI Upload Images - Disabled
