@@ -49,8 +49,7 @@
     "yarn-audit-fix": "^10.1.1"
   },
   "resolutions": {
-    "ua-parser-js": "^0.7.33",
-    "yaml": "^2.2.2",
+    "yaml@npm:^1.7.2": "^2.7.0",
     "path-to-regexp@npm:0.1.10": "^0.1.12"
   },
   "engines": {
