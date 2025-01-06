@@ -4,20 +4,19 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	"io"
 	"strings"
 	"testing"
 	"time"
 
-	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
-
-	. "github.com/onsi/gomega"
-
+	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	"github.com/minio/minio-go/v7"
+	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	pb "github.com/weaveworks/weave-gitops/pkg/api/core"
 )
 
 type mockGet struct {
@@ -98,8 +97,7 @@ func TestGetBucketConnectionInfo(t *testing.T) {
 	}
 }
 
-type mockS3Reader struct {
-}
+type mockS3Reader struct{}
 
 var _ = s3Reader(&mockS3Reader{})
 
@@ -136,10 +134,7 @@ func (m *mockS3Reader) GetObject(ctx context.Context, bucketName, objectName str
 			Level:     "info",
 			Source:    "gitops-run-client",
 		}
-		b, err := json.Marshal(o)
-		if err != nil {
-			return nil, err
-		}
+		b, _ := json.Marshal(o)
 		return io.NopCloser(strings.NewReader(string(b))), nil
 	case "error":
 		return nil, fmt.Errorf("error")
