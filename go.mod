@@ -30,7 +30,7 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.25.1
 	github.com/grpc-ecosystem/protoc-gen-grpc-gateway-ts v1.1.2
 	github.com/hashicorp/go-multierror v1.1.1
-	github.com/johannesboyne/gofakes3 v0.0.0-20220627085814-c3ac35da23b2
+	github.com/johannesboyne/gofakes3 v0.0.0-20250106100439-5c39aecd6999
 	github.com/manifoldco/promptui v0.9.0
 	github.com/mattn/go-tty v0.0.7
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.11.2
@@ -111,7 +111,6 @@ require (
 	github.com/sagikazarmark/locafero v0.6.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
 	github.com/santhosh-tekuri/jsonschema/v5 v5.3.1 // indirect
-	github.com/shabbyrobe/gocovmerge v0.0.0-20230507112040-c3350d9342df // indirect
 	github.com/shopspring/decimal v1.4.0 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/skeema/knownhosts v1.3.0 // indirect
@@ -120,6 +119,7 @@ require (
 	github.com/x448/float16 v0.8.4 // indirect
 	go.opentelemetry.io/otel v1.33.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.33.0 // indirect
+	go.shabbyrobe.org/gocovmerge v0.0.0-20230507111327-fa4f82cfbf4d // indirect
 	golang.org/x/exp v0.0.0-20241217172543-b2144cdd0a67 // indirect
 	golang.org/x/sync v0.10.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20241223144023-3abc09e42ca8 // indirect
@@ -224,6 +224,3 @@ require (
 
 // To avoid issues with the new vanity URL: dario.cat/mergo
 replace github.com/imdario/mergo => github.com/imdario/mergo v0.3.16
-
-// Use patched version that fixed recursive gets, and force delete for buckets
-replace github.com/johannesboyne/gofakes3 => github.com/chanwit/gofakes3 v0.0.0-20220715114300-3f51f1961f7b
