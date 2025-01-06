@@ -1,5 +1,4 @@
 import styled from "styled-components";
-// eslint-disable-next-line
 import { spacing } from "../typedefs/styled";
 
 type Spacing = keyof typeof spacing;

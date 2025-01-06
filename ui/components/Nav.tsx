@@ -6,7 +6,6 @@ import styled from "styled-components";
 import { formatURL } from "../lib/nav";
 import { PageRoute, V2Routes } from "../lib/types";
 import { Fade } from "../lib/utils";
-// eslint-disable-next-line
 import { colors } from "../typedefs/styled";
 
 import Flex from "./Flex";

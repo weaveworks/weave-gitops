@@ -1,4 +1,3 @@
-// eslint-disable-next-line
 import { CircularProgress } from "@mui/material";
 import MaterialButton, { type ButtonProps } from "@mui/material/Button";
 import * as React from "react";

@@ -37,7 +37,6 @@ import WarningIcon from "@mui/icons-material/Warning";
 import * as React from "react";
 import styled from "styled-components";
 import images from "../lib/images";
-// eslint-disable-next-line
 import { colors, fontSizes, spacing } from "../typedefs/styled";
 import Flex from "./Flex";
 import ApplicationsIcon from "./NavIcons/ApplicationsIcon";
