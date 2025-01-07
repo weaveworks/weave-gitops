@@ -1,0 +1,11 @@
+url_path,views_total,views_unique
+/weaveworks/weave-gitops/pulls,816,17
+/weaveworks/weave-gitops,561,260
+/weaveworks/weave-gitops/actions,78,4
+/weaveworks/weave-gitops/actions/workflows/dependabot/dependabot-updates,47,1
+/weaveworks/weave-gitops/issues,46,24
+/weaveworks/weave-gitops/pull/4282,46,3
+/weaveworks/weave-gitops/pull/4289,45,2
+/weaveworks/weave-gitops/pull/4334,44,3
+/weaveworks/weave-gitops/pull/4296,43,2
+/weaveworks/weave-gitops/tree/main/charts/gitops-server,39,13
