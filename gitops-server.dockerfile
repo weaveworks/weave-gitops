@@ -1,5 +1,5 @@
 # UI build
-FROM node:22-bookworm@sha256:0e910f435308c36ea60b4cfd7b80208044d77a074d16b768a81901ce938a62dc AS ui
+FROM node:22-bookworm@sha256:1f097426a7ddd1c5d0eacfe0402fdf91e38e4ecc37d23780428f6b87145ad2aa AS ui
 RUN apt-get update -y && apt-get install -y build-essential
 RUN mkdir -p /home/app && chown -R node:node /home/app
 WORKDIR /home/app
