@@ -111,7 +111,7 @@
     "jest-fail-on-console": "^3.3.1",
     "jest-styled-components": "^7.2.0",
     "jest-worker": "^29.7.0",
-    "jsdom": "^16.6.0",
+    "jsdom": "^25.0.1",
     "parcel": "^2.13.3",
     "prettier": "^3.4.2",
     "process": "^0.11.10",
