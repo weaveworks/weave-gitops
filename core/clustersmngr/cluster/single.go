@@ -3,9 +3,8 @@ package cluster
 import (
 	"fmt"
 	"net"
-	"sigs.k8s.io/controller-runtime/pkg/log"
-	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
+	//nolint:gci
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	apiruntime "k8s.io/apimachinery/pkg/runtime"
@@ -13,6 +12,9 @@ import (
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
+	"sigs.k8s.io/controller-runtime/pkg/log"
+	//nolint:gci
+	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 )
 
 type singleCluster struct {
