@@ -14,6 +14,8 @@ import Spacer from "./Spacer";
 // https://github.com/parcel-bundler/parcel/issues/8792
 // https://github.com/weaveworks/weave-gitops/issues/3672
 // Theory: this is tricking parcel into correctly importing d3. :shrug:
+// TODO: Investigate if this can be removed safely via a component upgrade path
+// eslint-disable-next-line @typescript-eslint/no-unused-expressions
 d3;
 
 interface Props {
