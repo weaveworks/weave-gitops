@@ -14,6 +14,7 @@ jobs:
   j1:
     name: repostats-for-weave-gitops
     runs-on: ubuntu-latest
+    if: "${{ github.repository_owner == 'weaveworks' && github.ref_name == 'main'}}"
     strategy:
       matrix:
         statsRepo:
