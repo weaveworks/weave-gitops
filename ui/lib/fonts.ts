@@ -1,6 +1,5 @@
 import { createGlobalStyle } from "styled-components";
 // Typescript will handle type-checking/linting for this file
-/* eslint-disable */
 // @ts-ignore
 import ProximaNovaBold from "url:../fonts/ProximaNovaBold.otf";
 // @ts-ignore

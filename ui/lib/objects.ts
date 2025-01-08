@@ -262,7 +262,7 @@ export class HelmRelease extends FluxObject {
     super(response);
     try {
       this.inventory = response.inventory || [];
-    } catch (error) {
+    } catch {
       this.inventory = [];
     }
   }
