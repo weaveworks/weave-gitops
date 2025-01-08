@@ -21,6 +21,8 @@ import (
 	"github.com/weaveworks/weave-gitops/core/nsaccess"
 	"github.com/weaveworks/weave-gitops/pkg/featureflags"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
+	_ "sigs.k8s.io/controller-runtime/pkg/log"
+	_ "sigs.k8s.io/controller-runtime/pkg/log/zap"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate

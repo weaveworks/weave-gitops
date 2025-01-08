@@ -3,15 +3,16 @@ package cluster
 import (
 	"fmt"
 	"net"
+	"sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
+	"github.com/weaveworks/weave-gitops/pkg/kube"
+	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	apiruntime "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
-
-	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 )
 
 type singleCluster struct {
@@ -56,6 +57,7 @@ func (c *singleCluster) GetHost() string {
 }
 
 func getClientFromConfig(config *rest.Config, scheme *apiruntime.Scheme) (client.Client, error) {
+	log.SetLogger(zap.New(zap.UseDevMode(true)))
 	httpClient, err := rest.HTTPClientFor(config)
 	if err != nil {
 		return nil, fmt.Errorf("could not create HTTP client from config: %w", err)
