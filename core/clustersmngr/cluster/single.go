@@ -9,6 +9,8 @@ import (
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
+	"sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
@@ -56,6 +58,7 @@ func (c *singleCluster) GetHost() string {
 }
 
 func getClientFromConfig(config *rest.Config, scheme *apiruntime.Scheme) (client.Client, error) {
+	log.SetLogger(zap.New(zap.UseDevMode(true)))
 	httpClient, err := rest.HTTPClientFor(config)
 	if err != nil {
 		return nil, fmt.Errorf("could not create HTTP client from config: %w", err)
