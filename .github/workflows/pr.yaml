@@ -10,10 +10,6 @@ on:
 permissions:
   contents: read # for actions/checkout to fetch code
 
-env:
-  CI_CONTAINER_REGISTRY: europe-west1-docker.pkg.dev
-  CI_CONTAINER_REPOSITORY: europe-west1-docker.pkg.dev/weave-gitops-clusters/weave-gitops
-
 name: PR CI Workflow
 jobs:
   ci-js:
@@ -73,89 +69,10 @@ jobs:
       - name: Check that make fakes has been run
         run: git diff --no-ext-diff --exit-code
 
-  ci-generate-tag:
-    name: CI Generate Image Tag
-    runs-on: ubuntu-latest
-    outputs:
-      tag: ${{ steps.generate-tag.outputs.tag }}
-    steps:
-      - id: generate-tag
-        run: echo "tag=$(date -u +%s)-${{ github.sha }}" >> $GITHUB_OUTPUT
-
-  ci-build-gitops-image:
-    name: CI Build Gitops Docker Image
-    runs-on: ubuntu-latest
-    needs: [ci-generate-tag]
-    strategy:
-      matrix:
-        docker-image:
-          - gitops
-          - gitops-server
-    steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - uses: docker/setup-buildx-action@6524bf65af31da8d45b59e8c27de4bd072b392f5 # v3.8.0
-      - name: Set build-time flags
-        run: |
-          echo "LDFLAGS=$(make echo-ldflags)" >> $GITHUB_ENV
-          echo "FLUX_VERSION=$(make echo-flux-version)" >> $GITHUB_ENV
-      - name: Build and export
-        uses: docker/build-push-action@b32b51a8eda65d6793cd0494a773d4f6bcef32dc # v6.11.0
-        with:
-          tags: "${{ env.CI_CONTAINER_REPOSITORY }}/${{ matrix.docker-image }}:${{ needs.ci-generate-tag.outputs.tag }}"
-          outputs: type=docker,dest=/tmp/${{ matrix.docker-image }}.tar
-          file: ${{ matrix.docker-image }}.dockerfile
-          build-args: |
-            FLUX_VERSION=${{ env.FLUX_VERSION }}
-            LDFLAGS=${{ env.LDFLAGS }}
-            GIT_COMMIT=${{ github.sha }}
-      - name: Load docker image
-        run: docker load --input /tmp/${{ matrix.docker-image }}.tar
-      - name: Cache docker image
-        uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b # v4.5.0
-        with:
-          name: ${{ matrix.docker-image }}
-          path: /tmp/${{ matrix.docker-image }}.tar
-          retention-days: 1
-
-  ci-upload-images:
-    name: CI Upload Images - Disabled
-    runs-on: ubuntu-latest
-    # Make sure we only upload images if tests etc have passed
-    needs: [ci-go, ci-static, ci-js, ci-build-gitops-image, ci-generate-tag]
-    permissions:
-      contents: 'read'
-      id-token: 'write'
-    if: github.event_name == 'push'
-    strategy:
-      matrix:
-        docker-image:
-          - gitops
-          - gitops-server
-    steps:
-      - uses: docker/setup-buildx-action@6524bf65af31da8d45b59e8c27de4bd072b392f5 # v3.8.0
-      - uses: google-github-actions/setup-gcloud@6189d56e4096ee891640bb02ac264be376592d6a # v2.1.2
-      - name: Download cached docker image
-        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
-        with:
-          name: ${{ matrix.docker-image }}
-          path: /tmp
-#      - name: Authenticate to Google Cloud
-#        id: gcloud-auth
-#        uses: google-github-actions/auth@6fc4af4b145ae7821d527454aa9bd537d1f2dc5f # v2.1.7
-#        with:
-#          service_account: ${{ secrets.service_account }}
-#          workload_identity_provider: ${{ secrets.workload_identity_provider }}
-#      - name: Login to gcloud for docker
-#        run: gcloud --quiet auth configure-docker ${{ env.CI_CONTAINER_REGISTRY }}
-#      - name: Push images to gcloud
-#        run: |
-#          docker load --input /tmp/${{ matrix.docker-image }}.tar
-#          docker push "${{ env.CI_CONTAINER_REPOSITORY }}/${{ matrix.docker-image }}:${{ needs.ci-generate-tag.outputs.tag }}"
-
   ci-upload-binary:
     name: Upload Binary - Disabled
     runs-on: ${{matrix.os}}
-    needs: [ci-go, ci-static, ci-js, ci-build-gitops-image]
+    needs: [ci-go, ci-static, ci-js]
     strategy:
       matrix:
         os: [ubuntu-latest, macOS-latest]
@@ -224,30 +141,6 @@ jobs:
       - run: cd dist && npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  # We only push images on merge so create a passing check if everything finished
-  finish-ci-pr:
-    name: PR CI Pipeline
-    runs-on: ubuntu-latest
-    needs:
-      - ci-go
-      - ci-static
-      - ci-js
-      - ci-build-gitops-image
-    if: github.event_name != 'push'
-    steps:
-      - run: echo "All done"
-
-  finish-ci-merge:
-    # must match https://github.com/weaveworks/corp/blob/master/github-repo-weave-gitops.tf
-    name: PR CI Pipeline
-    runs-on: ubuntu-latest
-    needs:
-      - ci-upload-images
-      - ci-upload-binary
-      - ci-publish-js-lib
-    steps:
-      - run: echo "All done"
 
   #  release step updates 'release' status check for non releases branches. See ../../doc/incidents/issues-3907 for full context.
   release:
