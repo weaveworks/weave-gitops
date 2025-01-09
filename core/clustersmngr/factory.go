@@ -16,14 +16,13 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/discovery"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	//nolint:gci
+	_ "sigs.k8s.io/controller-runtime/pkg/log"
+	_ "sigs.k8s.io/controller-runtime/pkg/log/zap"
+
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"github.com/weaveworks/weave-gitops/core/nsaccess"
 	"github.com/weaveworks/weave-gitops/pkg/featureflags"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
-	//nolint:gci
-	_ "sigs.k8s.io/controller-runtime/pkg/log"
-	_ "sigs.k8s.io/controller-runtime/pkg/log/zap"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
