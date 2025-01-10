@@ -109,11 +109,13 @@ fmt: ## Run go fmt against code
 vet: ## Run go vet against code
 	go vet ./...
 
-lint: ## Run linters against code
-	@go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.62.2
-	golangci-lint run --out-format=colored-line-number --timeout 600s
-	@go install github.com/yoheimuta/protolint/cmd/protolint@latest
-	protolint lint -config_path=.protolint.yaml ./api
+lint: golangci-lint protolint ## Run linters against code
+	$(GOLANGCI_LINT) run
+	$(PROTOLINT) lint -config_path=.protolint.yaml ./api
+
+lint-fix: golangci-lint protolint ## Fix auto-fixable lint issues in code
+	$(GOLANGCI_LINT) run --fix
+	$(PROTOLINT) lint -fix -config_path=.protolint.yaml ./api
 
 check-format:FORMAT_LIST=$(shell which gofmt > /dev/null && gofmt -l .)
 check-format: ## Check go format
@@ -232,3 +234,22 @@ ifeq ($(OS),Windows_NT)
 else
 				@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n make \033[36m<target>\033[0m\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-40s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 endif
+
+## Tool Binaries
+
+GOLANGCI_LINT_VERSION ?= v1.63.4
+PROTOLINT_VERSION ?= v0.52.0
+
+LOCALBIN ?= $(shell pwd)/bin
+$(LOCALBIN):
+	mkdir -p $(LOCALBIN)
+
+GOLANGCI_LINT = $(LOCALBIN)/golangci-lint
+golangci-lint: $(GOLANGCI_LINT) ## Download golangci-lint locally if necessary.
+$(GOLANGCI_LINT):
+	GOBIN=$(LOCALBIN) go install github.com/golangci/golangci-lint/cmd/golangci-lint@${GOLANGCI_LINT_VERSION}
+
+PROTOLINT = $(LOCALBIN)/protolint
+protolint: $(PROTOLINT) ## Download protolint locally if necessary.
+$(PROTOLINT):
+	GOBIN=$(LOCALBIN) go install github.com/yoheimuta/protolint/cmd/protolint@${PROTOLINT_VERSION}

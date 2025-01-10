@@ -1,5 +1,5 @@
 run:
-  timeout: 5m
+  timeout: 10m
 
 linters:
   disable-all: true
@@ -22,6 +22,7 @@ linters:
     - govet
     - ineffassign
     #- lll
+    - loggercheck
     #- misspell
     - nolintlint
     #- prealloc
@@ -100,3 +101,8 @@ issues:
     - source: "flags.Parse|response.WriteError"
       linters:
         - errcheck
+
+output:
+  formats:
+    - format: colored-line-number
+      path: stdout

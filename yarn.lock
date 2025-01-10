@@ -1350,7 +1350,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/preset-env@npm:^7.22.14":
+"@babel/preset-env@npm:^7.26.0":
   version: 7.26.0
   resolution: "@babel/preset-env@npm:7.26.0"
   dependencies:
@@ -2749,18 +2749,6 @@ __metadata:
   dependencies:
     semver: "npm:^7.3.5"
   checksum: 10c0/c90935d5ce670c87b6b14fab04a965a3b8137e585f8b2a6257263bd7f97756dd736cb165bb470e5156a9e718ecd99413dccc54b1138c1a46d6ec7cf325982fe5
-  languageName: node
-  linkType: hard
-
-"@parcel/babel-preset-env@npm:^2.13.3":
-  version: 2.13.3
-  resolution: "@parcel/babel-preset-env@npm:2.13.3"
-  dependencies:
-    "@babel/preset-env": "npm:^7.22.14"
-    semver: "npm:^7.5.2"
-  peerDependencies:
-    "@babel/core": ^7.22.11
-  checksum: 10c0/bd3779b6001fe874376b59645a6fb49887f6fddd2172dcc46880f3ef5e0bbcb8c736e97b841c330d259ec2ff0ae993257a062a976903b643a4ae98ce08dd26aa
   languageName: node
   linkType: hard
 
@@ -4470,6 +4458,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/babel__preset-env@npm:^7":
+  version: 7.9.7
+  resolution: "@types/babel__preset-env@npm:7.9.7"
+  checksum: 10c0/e1da078fee75841af512c7084e66f8a2b9136d72185d72c85c6fb41697358d330d195896d7d22834fca92fad1f16a8c0fb6269e890f9e6842c9a9972313b7baa
+  languageName: node
+  linkType: hard
+
 "@types/babel__template@npm:*":
   version: 7.4.1
   resolution: "@types/babel__template@npm:7.4.1"
@@ -4963,13 +4958,13 @@ __metadata:
   resolution: "@weaveworks/weave-gitops@workspace:."
   dependencies:
     "@babel/core": "npm:^7.26.0"
+    "@babel/preset-env": "npm:^7.26.0"
     "@emotion/react": "npm:^11.14.0"
     "@emotion/styled": "npm:^11.14.0"
     "@eslint/js": "npm:9.17.0"
     "@mui/icons-material": "npm:^6.3.1"
     "@mui/lab": "npm:^6.0.0-beta.21"
     "@mui/material": "npm:^6.3.1"
-    "@parcel/babel-preset-env": "npm:^2.13.3"
     "@parcel/config-default": "npm:^2.8.3"
     "@parcel/core": "npm:^2.13.3"
     "@parcel/optimizer-data-url": "npm:^2.8.3"
@@ -4979,6 +4974,7 @@ __metadata:
     "@testing-library/jest-dom": "npm:^6.6.3"
     "@testing-library/react": "npm:^16.1.0"
     "@testing-library/react-hooks": "npm:^7.0.0"
+    "@types/babel__preset-env": "npm:^7"
     "@types/jest": "npm:^29.5.14"
     "@types/lodash": "npm:^4.17.14"
     "@types/luxon": "npm:^3.4.2"

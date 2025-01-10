@@ -84,8 +84,8 @@
   },
   "devDependencies": {
     "@babel/core": "^7.26.0",
+    "@babel/preset-env": "^7.26.0",
     "@eslint/js": "9.17.0",
-    "@parcel/babel-preset-env": "^2.13.3",
     "@parcel/config-default": "^2.8.3",
     "@parcel/core": "^2.13.3",
     "@parcel/optimizer-data-url": "^2.8.3",
@@ -95,6 +95,7 @@
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.1.0",
     "@testing-library/react-hooks": "^7.0.0",
+    "@types/babel__preset-env": "^7",
     "@types/jest": "^29.5.14",
     "@types/lodash": "^4.17.14",
     "@types/luxon": "^3.4.2",

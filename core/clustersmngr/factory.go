@@ -16,6 +16,8 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/discovery"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	_ "sigs.k8s.io/controller-runtime/pkg/log"
+	_ "sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"github.com/weaveworks/weave-gitops/core/nsaccess"
