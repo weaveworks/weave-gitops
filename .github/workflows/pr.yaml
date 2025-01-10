@@ -91,37 +91,34 @@ jobs:
 
   ci-upload-binary:
     name: Upload Binary - Disabled
-    runs-on: ${{matrix.os}}
+    runs-on: ${{ matrix.os }}
     needs: [ci-go, ci-static, ci-js]
     strategy:
       matrix:
         os: [ubuntu-latest, macOS-latest]
-    if: github.event_name == 'push'
+    if: ${{ github.event_name != 'pull_request' && github.repository == 'weaveworks/weave-gitops' }}
     steps:
-    - name: Checkout code
-      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-    - name: Setup Go
-      uses: actions/setup-go@3041bf56c941b39c61721a86cd11f3bb1338122a # v5.2.0
-      with:
-        go-version-file: go.mod
-    - name: Clean
-      run: make clean
-    - id: gitsha
-      run: |
-        gitsha=$(git rev-parse --short ${{ github.sha }})
-        echo "sha=$gitsha" >> $GITHUB_OUTPUT
-    - name: build
-      run: |
-        make gitops
-#    - name: publish to s3
-#      uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
-#      with:
-#        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-#        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-#        aws-region: us-east-2
-#    - run: |
-#        aws s3 cp bin/gitops s3://weave-gitops/gitops-${{matrix.os}}-${{steps.gitsha.outputs.sha}}
-#        aws s3 cp s3://weave-gitops/gitops-${{matrix.os}}-${{steps.gitsha.outputs.sha}} s3://weave-gitops/gitops-${{matrix.os}}
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Setup Go
+        uses: actions/setup-go@3041bf56c941b39c61721a86cd11f3bb1338122a # v5.2.0
+        with:
+          go-version-file: go.mod
+      - name: Clean
+        run: make clean
+      - id: gitsha
+        run: |
+          gitsha=$(git rev-parse --short ${{ github.sha }})
+          echo "sha=$gitsha" >> $GITHUB_OUTPUT
+      - name: build
+        run: |
+          make gitops
+      - name: Upload binary
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
+        with:
+          name: gitops-${{ matrix.os }}-${{ steps.gitsha.outputs.sha }}
+          path: bin/gitops
+          overwrite: true
 
   ci-publish-js-lib:
     name: Publish js library
