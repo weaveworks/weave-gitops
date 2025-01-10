@@ -19,11 +19,8 @@ export default tseslint.config([
             importPlugin.flatConfigs.typescript,
         ],
         rules: {
-            "import/default": 0,
-            "import/no-named-as-default-member": 0,
             "import/named": 2,
-            "import/order": [
-                2,
+            "import/order": [2,
                 {
                     alphabetize: {
                         order: "asc",
@@ -31,19 +28,18 @@ export default tseslint.config([
                     },
                 }
             ],
-            "@typescript-eslint/explicit-module-boundary-types": 0,
             "@typescript-eslint/no-explicit-any": 0,
             "@typescript-eslint/ban-ts-comment": 0,
             "import/no-named-as-default": 0,
-            "@typescript-eslint/switch-exhaustiveness-check": ["error",
+            "@typescript-eslint/switch-exhaustiveness-check": [2,
                 {
                     "considerDefaultExhaustiveForUnions": true
                 }],
             "import/no-unresolved": 0,
         },
         languageOptions: {
-            ecmaVersion: 5,
-            sourceType: "script",
+            ecmaVersion: 2018,
+            sourceType: "commonjs",
             parserOptions: {
                 project: "./tsconfig.json",
             },
