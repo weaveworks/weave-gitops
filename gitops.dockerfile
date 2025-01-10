@@ -15,8 +15,11 @@ RUN ssh-keyscan gitlab.com >> ~/.ssh/known_hosts
 COPY Makefile /app/
 COPY tools /app/tools
 WORKDIR /app
+RUN go env -w GOCACHE=/go-cache
+RUN go env -w GOMODCACHE=/gomod-cache
 COPY go.* /app/
-RUN go mod download
+RUN --mount=type=cache,target=/gomod-cache \
+    go mod download
 COPY . /app
 
 # These are ARGS are defined here to minimise cache misses
@@ -25,7 +28,8 @@ COPY . /app
 ARG LDFLAGS="-X localbuild=true"
 ARG GIT_COMMIT="_unset_"
 
-RUN LDFLAGS=$LDFLAGS GIT_COMMIT=$GIT_COMMIT make gitops
+RUN --mount=type=cache,target=/gomod-cache --mount=type=cache,target=/go-cache \
+    LDFLAGS=$LDFLAGS GIT_COMMIT=$GIT_COMMIT make gitops
 
 # Distroless
 FROM gcr.io/distroless/base@sha256:e9d0321de8927f69ce20e39bfc061343cce395996dfc1f0db6540e5145bc63a5 AS runtime
