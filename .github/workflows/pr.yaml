@@ -120,11 +120,11 @@ jobs:
         if: ${{ github.event_name != 'pull_request' && github.repository == 'weaveworks/weave-gitops' }}
         run: |
           echo ${{ steps.build.outputs.digest }}
-          cosign sign --yes --rekor-url "https://rekor.sigstore.dev/" ${{ steps.digest.outputs.digest }}
+          cosign sign --yes ${{ steps.build.outputs.digest }}
       - name: Verify the image signing
         if: ${{ github.event_name != 'pull_request' && github.repository == 'weaveworks/weave-gitops' }}
         run: |
-          cosign verify --rekor-url "https://rekor.sigstore.dev/" ${{ steps.digest.outputs.digest }}
+          cosign verify ${{ steps.build.outputs.digest }}
             --certificate-identity "https://github.com/${{ github.workflow_ref }}"
             --certificate-oidc-issuer "https://token.actions.githubusercontent.com" | jq .
 
