@@ -26,6 +26,9 @@ RUN ssh-keyscan gitlab.com >> ~/.ssh/known_hosts
 
 COPY Makefile /app/
 WORKDIR /app
+RUN go env -w GOCACHE=/go-cache
+RUN --mount=type=cache,target=/gomod-cache \
+    go env -w GOMODCACHE=/gomod-cache
 COPY go.* /app/
 RUN go mod download
 COPY core /app/core
@@ -39,7 +42,8 @@ COPY api /app/api
 ARG GIT_COMMIT="_unset_"
 ARG LDFLAGS="-X localbuild=true"
 
-RUN --mount=type=cache,target=/root/.cache/go-build LDFLAGS=${LDFLAGS##-X localbuild=true} GIT_COMMIT=$GIT_COMMIT make gitops-server
+RUN --mount=type=cache,target=/gomod-cache --mount=type=cache,target=/go-cache \
+    LDFLAGS=${LDFLAGS##-X localbuild=true} GIT_COMMIT=$GIT_COMMIT make gitops-server
 
 #  Distroless
 FROM gcr.io/distroless/base@sha256:e9d0321de8927f69ce20e39bfc061343cce395996dfc1f0db6540e5145bc63a5 AS runtime
