@@ -25,6 +25,6 @@ Change release ordering to ensure that we only publish the GitHub release after 
 Weave Gitops users that upgrades after a GitHub release has been publishes will not fail the upgrade. It also, in case 
 of issues in building container image, there won't be need to delete or patch releases as it won't be yet released.
 
-There is a consideration/limitation to consider: the helm chart is published in [a workflow](../../.github/workflows/chart.yaml) that only 
+There is a consideration/limitation to consider: the helm chart is published in [a workflow](../../.github/workflows/helm.yaml) that only 
 is triggered once the PR is merged. Therefore, there is still a gap between when the GitHub Release is published  and all the artifacts are available. 
 This gap  in terms of time is small to compare the one that this ADR addresses, but it also needs to be addressed.
