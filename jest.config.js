@@ -1,3 +1,23 @@
+const transformIgnorePatterns = [
+  '@emotion\/.*',
+  '@mui\/.*',
+  'd3',
+  'd3-dag',
+  'history',
+  'http-proxy-middleware',
+  'install',
+  'jest-canvas-mock',
+  'js-sha3',
+  'lodash',
+  'luxon',
+  'mnemonic-browser',
+  'postcss',
+  'react',
+  'react-.*',
+  'remark-gfm',
+  'styled-components',
+].join('|');
+
 /** @type {import('jest').Config} */
 const config = {
   preset: "ts-jest",
@@ -15,7 +35,7 @@ const config = {
       },
     ],
   },
-  transformIgnorePatterns: ["/node_modules/(?!(yaml|@asamuzakjp\/css-color))"],
+  transformIgnorePatterns: [`/node_modules/(?:${transformIgnorePatterns})/`],
   setupFilesAfterEnv: ["<rootDir>/setup-jest.ts"],
   modulePathIgnorePatterns: ["<rootDir>/dist/"],
   testEnvironment: "jsdom",
