@@ -4366,7 +4366,7 @@ __metadata:
     babel-plugin-styled-components: "npm:^2.1.4"
     buffer: "npm:^6.0.3"
     d3: "npm:^7.9.0"
-    d3-dag: "npm:^0.11.5"
+    d3-dag: "npm:^1.1.0"
     eslint: "npm:9.17.0"
     eslint-plugin-import: "npm:^2.31.0"
     history: "npm:^5.3.0"
@@ -5551,12 +5551,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"d3-array@npm:2 - 3, d3-array@npm:2.10.0 - 3, d3-array@npm:2.5.0 - 3, d3-array@npm:3, d3-array@npm:^3.1.6, d3-array@npm:^3.2.0":
+"d3-array@npm:2 - 3, d3-array@npm:2.10.0 - 3, d3-array@npm:2.5.0 - 3, d3-array@npm:3, d3-array@npm:^3.2.0":
   version: 3.2.0
   resolution: "d3-array@npm:3.2.0"
   dependencies:
     internmap: "npm:1 - 2"
   checksum: 10c0/5e3d831b2b4ae3ba1cf50dbdf4f16f794f8aa3013ee327c50970f3206a87849eba612667255f0451685abe599c437fcff65d72fbff3e38ecfb433372f5c27c73
+  languageName: node
+  linkType: hard
+
+"d3-array@npm:^3.2.4":
+  version: 3.2.4
+  resolution: "d3-array@npm:3.2.4"
+  dependencies:
+    internmap: "npm:1 - 2"
+  checksum: 10c0/08b95e91130f98c1375db0e0af718f4371ccacef7d5d257727fe74f79a24383e79aba280b9ffae655483ffbbad4fd1dec4ade0119d88c4749f388641c8bf8c50
   languageName: node
   linkType: hard
 
@@ -5605,15 +5614,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"d3-dag@npm:^0.11.5":
-  version: 0.11.5
-  resolution: "d3-dag@npm:0.11.5"
+"d3-dag@npm:^1.1.0":
+  version: 1.1.0
+  resolution: "d3-dag@npm:1.1.0"
   dependencies:
-    d3-array: "npm:^3.1.6"
-    fastpriorityqueue: "npm:0.7.2"
+    d3-array: "npm:^3.2.4"
     javascript-lp-solver: "npm:0.4.24"
     quadprog: "npm:^1.6.1"
-  checksum: 10c0/bdcfd673a56830e297f228919bc38f44aefd104c13f3ee1962bb0c3fa084ab3881844bdfaa9e5024fabf679b536d33052c5a9f05fdf1d28882035767e22b7538
+    stringify-object: "npm:^5.0.0"
+  checksum: 10c0/e4590fe88fc3bb34cf7c9629059b1378da501bfce244e1d3012e123ddf9c413bc7dd9cb77a6737e78d853e1c53a7d3961dbd2d130552a32001bae54da8190f48
   languageName: node
   linkType: hard
 
@@ -6825,13 +6834,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fastpriorityqueue@npm:0.7.2":
-  version: 0.7.2
-  resolution: "fastpriorityqueue@npm:0.7.2"
-  checksum: 10c0/21ce7c0c25a27f8d266de044aa7a2a755640e7db1419dbd49a744ecd7e949e3074540321008dfc91832f0b16b6db21ed103d5aeab40add28f087b4ebe8526ade
-  languageName: node
-  linkType: hard
-
 "fastq@npm:^1.6.0":
   version: 1.13.0
   resolution: "fastq@npm:1.13.0"
@@ -7087,6 +7089,13 @@ __metadata:
     hasown: "npm:^2.0.2"
     math-intrinsics: "npm:^1.1.0"
   checksum: 10c0/b475dec9f8bff6f7422f51ff4b7b8d0b68e6776ee83a753c1d627e3008c3442090992788038b37eff72e93e43dceed8c1acbdf2d6751672687ec22127933080d
+  languageName: node
+  linkType: hard
+
+"get-own-enumerable-keys@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "get-own-enumerable-keys@npm:1.0.0"
+  checksum: 10c0/3e14fbcf7cbb27a09f4335b3fe28ec4ac73254cd5007c141ff8e248c854fb1f4b44271fcc707c9aec1de7ae889eb28ffbd5b8a82f6abd9adb91df926fb7cec44
   languageName: node
   linkType: hard
 
@@ -7909,6 +7918,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"is-obj@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "is-obj@npm:3.0.0"
+  checksum: 10c0/48d678fa15c56fd38353634ae2106a538827af9050211b18df13540dba0b38aa25c5cb498648a01311bf493a99ac3ce416576649b8cace10bcce7344611fa56a
+  languageName: node
+  linkType: hard
+
 "is-plain-obj@npm:^4.0.0":
   version: 4.1.0
   resolution: "is-plain-obj@npm:4.1.0"
@@ -7939,6 +7955,13 @@ __metadata:
     has-tostringtag: "npm:^1.0.2"
     hasown: "npm:^2.0.2"
   checksum: 10c0/1d3715d2b7889932349241680032e85d0b492cfcb045acb75ffc2c3085e8d561184f1f7e84b6f8321935b4aea39bc9c6ba74ed595b57ce4881a51dfdbc214e04
+  languageName: node
+  linkType: hard
+
+"is-regexp@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "is-regexp@npm:3.1.0"
+  checksum: 10c0/99dbaea41bddee2205db468c0946f5fee25cc4ae486333cb4d2b8095ab4b0a500e74ba61afd9e6e4f63ececcd55b4df5ae2a555b1c3e26308e516ff53c9533cd
   languageName: node
   linkType: hard
 
@@ -11845,6 +11868,17 @@ __metadata:
     define-properties: "npm:^1.2.1"
     es-object-atoms: "npm:^1.0.0"
   checksum: 10c0/d53af1899959e53c83b64a5fd120be93e067da740e7e75acb433849aa640782fb6c7d4cd5b84c954c84413745a3764df135a8afeb22908b86a835290788d8366
+  languageName: node
+  linkType: hard
+
+"stringify-object@npm:^5.0.0":
+  version: 5.0.0
+  resolution: "stringify-object@npm:5.0.0"
+  dependencies:
+    get-own-enumerable-keys: "npm:^1.0.0"
+    is-obj: "npm:^3.0.0"
+    is-regexp: "npm:^3.1.0"
+  checksum: 10c0/f955bb0b41edb0a200bf5ba24d516a2d409c749a01224e14a088ecf07fec3d930ec90da3a681f6798b9d6a1b187cb3bb57f0d17525190006ef3bd609d0300bb9
   languageName: node
   linkType: hard
 
