@@ -15,7 +15,7 @@ const config = {
       },
     ],
   },
-  transformIgnorePatterns: ["/node_modules/(?!(yaml)/)"],
+  transformIgnorePatterns: ["/node_modules/(?!(yaml|@asamuzakjp\/css-color))"],
   setupFilesAfterEnv: ["<rootDir>/setup-jest.ts"],
   modulePathIgnorePatterns: ["<rootDir>/dist/"],
   testEnvironment: "jsdom",
