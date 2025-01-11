@@ -72,6 +72,8 @@ jobs:
   build-push-image:
     name: CI Build Image
     runs-on: ubuntu-latest
+    env:
+      IMAGE_NAME: ghcr.io/${{ github.repository }}/${{ matrix.docker-image }}
     permissions:
       packages: write # for docker/build-push-action to push images
       id-token: write # for Cosign to be able to sign images with GHA token
@@ -89,7 +91,7 @@ jobs:
       - uses: docker/metadata-action@369eb591f429131d6889c46b94e711f089e6ca96 # v5.6.1
         id: meta
         with:
-          images: ghcr.io/${{ github.repository }}/${{ matrix.docker-image }}
+          images: ${{ env.IMAGE_NAME }}
           tags: |
             type=ref,event=branch
             type=ref,event=pr
@@ -119,12 +121,13 @@ jobs:
       - name: Keyless signing of image
         if: ${{ github.event_name != 'pull_request' && github.repository == 'weaveworks/weave-gitops' }}
         run: |
+          echo ${{ steps.build.outputs.imageid }}
           echo ${{ steps.build.outputs.digest }}
-          cosign sign --yes ${{ steps.build.outputs.digest }}
+          cosign sign --yes ${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
       - name: Verify the image signing
         if: ${{ github.event_name != 'pull_request' && github.repository == 'weaveworks/weave-gitops' }}
         run: |
-          cosign verify ${{ steps.build.outputs.digest }}
+          cosign verify ${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
             --certificate-identity "https://github.com/${{ github.workflow_ref }}"
             --certificate-oidc-issuer "https://token.actions.githubusercontent.com" | jq .
 
