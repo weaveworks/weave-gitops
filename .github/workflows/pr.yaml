@@ -74,6 +74,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       packages: write # for docker/build-push-action to push images
+      id-token: write # for Cosign to be able to sign images with GHA token
     strategy:
       matrix:
         docker-image:
@@ -99,6 +100,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - uses: docker/build-push-action@b32b51a8eda65d6793cd0494a773d4f6bcef32dc # v6.11.0
+        id: build
         with:
           context: .
           file: ${{ matrix.docker-image }}.dockerfile
@@ -111,6 +113,20 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      - name: Install cosign
+        if: ${{ github.event_name != 'pull_request' && github.repository == 'weaveworks/weave-gitops' }}
+        uses: sigstore/cosign-installer@dc72c7d5c4d10cd6bcb8cf6e3fd625a9e5e537da # v3.7.0
+      - name: Keyless signing of image
+        if: ${{ github.event_name != 'pull_request' && github.repository == 'weaveworks/weave-gitops' }}
+        run: |
+          echo ${{ steps.build.outputs.digest }}
+          cosign sign --yes ${{ steps.build.outputs.digest }}
+      - name: Verify the image signing
+        if: ${{ github.event_name != 'pull_request' && github.repository == 'weaveworks/weave-gitops' }}
+        run: |
+          cosign verify ${{ steps.build.outputs.digest }}
+            --certificate-identity "https://github.com/${{ github.workflow_ref }}"
+            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" | jq .
 
   ci-upload-binary:
     name: Upload Binary - Disabled
