@@ -78,7 +78,7 @@
     "react-router-dom": "^5.2.0",
     "react-syntax-highlighter": "^15.6.1",
     "react-toastify": "^11.0.2",
-    "remark-gfm": "^3.0.1",
+    "remark-gfm": "^4.0.0",
     "styled-components": "^6.1.14",
     "yaml": "^2.7.0"
   },
