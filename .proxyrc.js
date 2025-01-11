@@ -8,20 +8,14 @@ const proxyHost = process.env.PROXY_HOST || DEFAULT_PROXY_HOST;
 const secure = process.env.PROXY_SECURE === "true";
 
 module.exports = function (app) {
-  app.use(
-    "/v1",
-    createProxyMiddleware({
-      target: proxyHost,
-      secure,
-      changeOrigin: true,
-    })
-  );
-  app.use(
-    "/oauth2",
-    createProxyMiddleware({
-      target: proxyHost,
-      secure,
-      changeOrigin: true,
-    })
-  );
+  app.use("/v1", createProxyMiddleware({
+    target: proxyHost + "/v1",
+    secure,
+    changeOrigin: true,
+   }));
+  app.use("/oauth2", createProxyMiddleware({
+    target: proxyHost + "/oauth2",
+    secure,
+    changeOrigin: true,
+  }));
 };
