@@ -7,7 +7,7 @@ import Flex from "../components/Flex";
 import { computeReady, ReadyType } from "../components/KubeStatusIndicator";
 import { AppVersion, repoUrl } from "../components/Version";
 import { AuthRoutes } from "../contexts/AuthContext";
-import { GetVersionResponse } from "../lib/api/core/core.pb";
+import { GetVersionResponse } from "./api/core/core.pb";
 import { Condition, Kind, ObjectRef } from "./api/core/types.pb";
 import { Automation, HelmRelease, Kustomization } from "./objects";
 
@@ -19,7 +19,7 @@ export function notifyError(message: string) {
   toast["error"](`Error: ${message}`);
 }
 
-export function poller(cb, interval): any {
+export function poller(cb: () => void, interval: number | undefined): any {
   if (process.env.NODE_ENV === "test") {
     // Stay synchronous in tests
     return cb();
@@ -124,7 +124,7 @@ export function statusSortHelper({
 }
 
 export function automationLastUpdated(a: Kustomization | HelmRelease): string {
-  return _.get(_.find(a?.conditions, { type: "Ready" }), "timestamp");
+  return _.get(_.find(a?.conditions, { type: "Ready" }), "timestamp") ?? "";
 }
 
 export function makeImageString(images: string[]): string {
@@ -179,7 +179,7 @@ export const convertImage = (image: string) => {
     return "https://hub.docker.com/r/_/" + prefix;
   }
   //any other url
-  if (prefix.includes(".")) return false;
+  if (prefix?.includes(".")) return false;
   //one slash docker images w/o docker.io
   return `https://hub.docker.com/r/${prefix}/${noTag}`;
 };
@@ -254,7 +254,7 @@ export const createYamlCommand = (
     const namespaceString = namespace ? ` -n ${namespace}` : "";
     return `kubectl get ${kind.toLowerCase()} ${name}${namespaceString} -o yaml`;
   }
-  return null;
+  return "";
 };
 
 export const Fade = styled<any>(Flex)<{

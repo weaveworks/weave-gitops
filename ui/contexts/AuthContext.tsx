@@ -1,6 +1,6 @@
 import qs from "query-string";
 import * as React from "react";
-import { Redirect, useHistory, useLocation } from "react-router-dom";
+import { Navigate, useLocation, useNavigate } from "react-router";
 import { reloadBrowserSignIn } from "../lib/utils";
 import { AppContext } from "./AppContext";
 
@@ -17,7 +17,8 @@ interface AuthCheckProps {
 }
 
 export const AuthCheck = ({ children, Loader }: AuthCheckProps) => {
-  const { userInfo } = React.useContext(Auth);
+  const { userInfo } = React.useContext(Auth) as AuthContext;
+  const location = useLocation();
   // Wait until userInfo is loaded before showing signin or app content
   if (!userInfo) {
     return Loader ? Loader : null;
@@ -26,10 +27,9 @@ export const AuthCheck = ({ children, Loader }: AuthCheckProps) => {
   if (userInfo?.id) {
     return children;
   }
-  const location = useLocation();
   // User appears not be logged in, off to signin
   return (
-    <Redirect
+    <Navigate
       to={{
         pathname: AuthRoutes.AUTH_PATH_SIGNIN,
         search: qs.stringify({ redirect: location.pathname + location.search }),
@@ -53,36 +53,22 @@ export type AuthContext = {
 
 export const Auth = React.createContext<AuthContext | null>({} as AuthContext);
 
-export default function AuthContextProvider({ children }) {
+export default function AuthContextProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const { request } = React.useContext(AppContext);
 
   const [userInfo, setUserInfo] = React.useState<{
     email: string;
     groups: string[];
     id: string;
-  }>(null);
+  } | null>(null);
   const [loading, setLoading] = React.useState<boolean>(true);
-  const [error, setError] = React.useState(null);
-  const history = useHistory();
-
-  const signIn = React.useCallback((data) => {
-    setLoading(true);
-    request(AuthRoutes.SIGN_IN, {
-      method: "POST",
-      body: JSON.stringify(data),
-    })
-      .then((response) => {
-        if (response.status !== 200) {
-          setError(response);
-          return;
-        }
-        getUserInfo().then(() => {
-          setError(null);
-          history.push(qs.parse(location.search).redirect || "/");
-        });
-      })
-      .finally(() => setLoading(false));
-  }, []);
+  const [error, setError] = React.useState<Response | null>(null);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const getUserInfo = React.useCallback(() => {
     setLoading(true);
@@ -99,7 +85,29 @@ export default function AuthContextProvider({ children }) {
       )
       .catch((err) => console.log(err))
       .finally(() => setLoading(false));
-  }, []);
+  }, [request]);
+
+  const signIn = React.useCallback(
+    (data: any) => {
+      setLoading(true);
+      request(AuthRoutes.SIGN_IN, {
+        method: "POST",
+        body: JSON.stringify(data),
+      })
+        .then((response) => {
+          if (response.status !== 200) {
+            setError(response);
+            return;
+          }
+          getUserInfo().then(() => {
+            setError(null);
+            navigate(qs.parse(location.search).redirect?.toString() || "/");
+          });
+        })
+        .finally(() => setLoading(false));
+    },
+    [getUserInfo, location, navigate, request],
+  );
 
   const logOut = React.useCallback(() => {
     setLoading(true);
@@ -114,12 +122,15 @@ export default function AuthContextProvider({ children }) {
         reloadBrowserSignIn();
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [request]);
 
   React.useEffect(() => {
-    getUserInfo();
-    return history.listen(getUserInfo);
-  }, [getUserInfo, history]);
+    return () => {
+      if (getUserInfo) {
+        getUserInfo();
+      }
+    };
+  }, [getUserInfo, location]);
 
   return (
     <>

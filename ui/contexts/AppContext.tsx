@@ -1,13 +1,13 @@
 import * as React from "react";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { DetailViewProps } from "../components/DetailModal";
 import { formatURL } from "../lib/nav";
 import { PageRoute, V2Routes } from "../lib/types";
 import { notifySuccess, withBasePath } from "../lib/utils";
 
 type AppState = {
-  error: null | { fatal: boolean; message: string; detail?: string };
-  detailModal: DetailViewProps;
+  error: null | { fatal?: boolean; message: string; detail?: string };
+  detailModal: DetailViewProps | null;
 };
 
 export enum ThemeTypes {
@@ -37,7 +37,7 @@ export type AppContextType = {
 };
 
 export const AppContext = React.createContext<AppContextType>(
-  null as AppContextType,
+  {} as AppContextType,
 );
 
 export interface AppProps {
@@ -47,13 +47,12 @@ export interface AppProps {
 }
 
 export default function AppContextProvider({ ...props }: AppProps) {
-  const history = useHistory();
-  const [appState, setAppState] = React.useState({
-    error: null,
-    detailModal: null,
-  });
+  const navigate = useNavigate();
+
+  const [appState, setAppState] = React.useState<AppState>({} as AppState);
+
   const [appSettings, setAppSettings] = React.useState<AppSettings>({
-    footer: props.footer,
+    footer: props.footer as JSX.Element,
     theme:
       window.matchMedia("(prefers-color-scheme: dark)").matches ||
       localStorage.getItem("mode") === ThemeTypes.Dark
@@ -61,17 +60,17 @@ export default function AppContextProvider({ ...props }: AppProps) {
         : ThemeTypes.Light,
   });
 
-  const clearAsyncError = () => {
-    setAppState({
-      ...appState,
+  const clearAsyncError = React.useCallback(() => {
+    setAppState((prevState) => ({
+      ...prevState,
       error: null,
-    });
-  };
+    }));
+  }, []);
 
   React.useEffect(() => {
     // clear the error state on navigation
     clearAsyncError();
-  }, [window.location]);
+  }, [clearAsyncError]);
 
   const doAsyncError = (message: string, detail: string) => {
     console.error(message);
@@ -106,12 +105,13 @@ export default function AppContextProvider({ ...props }: AppProps) {
     appState,
     notifySuccess: props.notifySuccess || notifySuccess,
     settings: appSettings,
-    navigate: {
-      internal: (page: PageRoute, query?: any) => {
-        const u = formatURL(page, query);
 
-        history.push(u);
+    navigate: {
+      internal: (page: PageRoute | V2Routes, query?: any) => {
+        const u = formatURL(page, query);
+        navigate(u);
       },
+
       external: (url) => {
         if (process.env.NODE_ENV === "test") {
           return;
@@ -119,6 +119,7 @@ export default function AppContextProvider({ ...props }: AppProps) {
         window.location.href = url;
       },
     },
+
     request: (
       input: RequestInfo | URL,
       init?: RequestInit,

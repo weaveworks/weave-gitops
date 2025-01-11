@@ -1,7 +1,7 @@
 import { render } from "@testing-library/react";
 import "jest-styled-components";
 import React from "react";
-import { BrowserRouter } from "react-router-dom";
+import { BrowserRouter } from "react-router";
 import { withTheme } from "../../lib/test-utils";
 import { V2Routes } from "../../lib/types";
 import Breadcrumbs, { Breadcrumb } from "../Breadcrumbs";

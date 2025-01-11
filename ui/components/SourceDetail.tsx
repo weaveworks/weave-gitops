@@ -1,6 +1,5 @@
 import _ from "lodash";
 import * as React from "react";
-import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
 import { useListAutomations } from "../hooks/automations";
 import { Kind } from "../lib/api/core/types.pb";
@@ -45,7 +44,6 @@ function SourceDetail({ className, source, info, type, customActions }: Props) {
 
   const { data: automations, isLoading: automationsLoading } =
     useListAutomations();
-  const { path } = useRouteMatch();
 
   if (automationsLoading) {
     return <LoadingPage />;
@@ -91,8 +89,8 @@ function SourceDetail({ className, source, info, type, customActions }: Props) {
         />
       </Flex>
 
-      <SubRouterTabs rootPath={`${path}/details`}>
-        <RouterTab name="Details" path={`${path}/details`}>
+      <SubRouterTabs rootPath="details">
+        <RouterTab name="Details" path="details">
           <>
             <InfoList items={info} />
             <Metadata
@@ -106,7 +104,7 @@ function SourceDetail({ className, source, info, type, customActions }: Props) {
             <AutomationsTable automations={relevantAutomations} hideSource />
           </>
         </RouterTab>
-        <RouterTab name="Events" path={`${path}/events`}>
+        <RouterTab name="Events" path="events">
           <EventsTable
             namespace={namespace}
             involvedObject={{
@@ -117,7 +115,7 @@ function SourceDetail({ className, source, info, type, customActions }: Props) {
             }}
           />
         </RouterTab>
-        <RouterTab name="yaml" path={`${path}/yaml`}>
+        <RouterTab name="yaml" path="yaml">
           <YamlView
             yaml={yaml}
             header={createYamlCommand(type, name, namespace)}

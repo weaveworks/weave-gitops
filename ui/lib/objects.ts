@@ -11,6 +11,7 @@ import {
   ObjectRef,
   Object as ResponseObject,
 } from "./api/core/types.pb";
+
 export type Automation = HelmRelease | Kustomization;
 export type Source =
   | HelmRepository
@@ -37,9 +38,10 @@ export class FluxObject {
   info: string;
   children: FluxObject[];
   health: HealthStatus;
-  constructor(response: ResponseObject) {
+  isCurrentNode?: boolean;
+  constructor(response: ResponseObject | undefined) {
     try {
-      this.obj = JSON.parse(response.payload);
+      this.obj = JSON.parse(response?.payload as string);
     } catch {
       this.obj = {};
     }
@@ -134,7 +136,7 @@ export class FluxObject {
     });
 
     // filter out undefined, null, and other strange objects that might be there
-    return images.filter((image) => _.isString(image));
+    return images.filter((image) => _.isString(image)) as unknown as string[];
   }
 }
 
@@ -243,7 +245,7 @@ export class Kustomization extends FluxObject {
     const entries = this.obj.status?.inventory?.entries || [];
     return Array.from(
       new Set(
-        entries.map((entry) => {
+        entries.map((entry: { id: string; v: any }) => {
           // entry is namespace_name_group_kind, but name can contain '_' itself
           const parts = entry.id.split("_");
           const kind = parts[parts.length - 1];
@@ -414,9 +416,9 @@ export class Pod extends FluxObject {
     return this.obj.spec?.containers || [];
   }
   get volumes(): { name: string; type: string }[] {
-    const volumeObjs = [];
+    const volumeObjs: { name: any; type: string }[] = [];
     const volumes = this.obj.spec?.volumes || [];
-    volumes.forEach((volume) => {
+    volumes.forEach((volume: { name?: any }) => {
       const name = volume.name || "-";
       let type = "-";
       Object.keys(volume).forEach((key) => {

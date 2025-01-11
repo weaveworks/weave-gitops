@@ -23,7 +23,7 @@ export class TokenRefreshWrapper {
 
   private static getOrInitiateRefresh(): Promise<void> {
     if (!this.refreshPromise) {
-      this.refreshPromise = this.refreshTokenFn().finally(() => {
+      this.refreshPromise = this.refreshTokenFn()?.finally(() => {
         // Set the promise back to null once the refresh operation is completed
         this.refreshPromise = null;
       });
@@ -42,7 +42,7 @@ export class TokenRefreshWrapper {
       return await fn();
     } catch (error) {
       // Check for a 401 status code on the HTTPError
-      if (error.code === 401) {
+      if ((error as any).code === 401) {
         await this.getOrInitiateRefresh();
         // Try the request again
         return this.makeRequest(fn);

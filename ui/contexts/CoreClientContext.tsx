@@ -25,7 +25,7 @@ export type CoreClientContextType = {
 export const CoreClientContext =
   React.createContext<CoreClientContextType | null>(null);
 
-function FeatureFlags(api) {
+function FeatureFlags(api: typeof Core) {
   const { data } = useQuery<GetFeatureFlagsResponse, RequestError>(
     "feature_flags",
     () => api.GetFeatureFlags({}),
@@ -74,7 +74,7 @@ export default function CoreClientContextProvider({ api, children }: Props) {
 
   return (
     <CoreClientContext.Provider
-      value={{ api: wrapped, featureFlags: FeatureFlags(wrapped) }}
+      value={{ api: wrapped, featureFlags: FeatureFlags(wrapped) || {} }}
     >
       {children}
     </CoreClientContext.Provider>

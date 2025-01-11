@@ -6,7 +6,7 @@ import { createMemoryHistory } from "history";
 import _ from "lodash";
 import * as React from "react";
 import { QueryClient, QueryClientProvider } from "react-query";
-import { Router } from "react-router-dom";
+import { Router } from "react-router";
 import { ThemeProvider } from "styled-components";
 import AppContextProvider, {
   AppProps,
@@ -91,7 +91,7 @@ export function withContext(
   //@ts-ignore
   window.matchMedia.mockReturnValue({ matches: false });
   return (
-    <Router history={history}>
+    <Router location={url} navigator={history}>
       <AppContextProvider footer={<></>} {...appProps}>
         <QueryClientProvider client={queryClient}>
           <CoreClientContext.Provider

@@ -22,7 +22,6 @@ const ImageAutomationDetails = ({
   className,
   data,
   kind,
-  rootPath,
   infoFields,
   children,
 }: Props) => {
@@ -42,14 +41,14 @@ const ImageAutomationDetails = ({
         />
       )}
 
-      <SubRouterTabs rootPath={`${rootPath}/details`}>
-        <RouterTab name="Details" path={`${rootPath}/details`}>
+      <SubRouterTabs rootPath="details">
+        <RouterTab name="Details" path="details">
           <Flex column gap="4">
             <HeaderRows items={infoFields} />
             {children}
           </Flex>
         </RouterTab>
-        <RouterTab name="Events" path={`${rootPath}/events`}>
+        <RouterTab name="Events" path="events">
           <EventsTable
             namespace={namespace}
             involvedObject={{
@@ -60,7 +59,7 @@ const ImageAutomationDetails = ({
             }}
           />
         </RouterTab>
-        <RouterTab name="yaml" path={`${rootPath}/yaml`}>
+        <RouterTab name="yaml" path="yaml">
           <YamlView
             yaml={yaml}
             header={createYamlCommand(kind, name, namespace)}
