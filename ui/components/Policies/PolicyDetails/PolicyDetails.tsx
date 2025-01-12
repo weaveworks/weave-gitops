@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useRouteMatch } from "react-router-dom";
+import { useResolvedPath } from "react-router-dom";
 import remarkGfm from "remark-gfm";
 import styled from "styled-components";
 import { useFeatureFlags } from "../../../hooks/featureflags";
@@ -38,7 +38,7 @@ const PolicyDetails = ({ policy }: Props) => {
     howToSolve,
     parameters,
   } = policy;
-  const { path } = useRouteMatch();
+  const path = useResolvedPath("").pathname;
 
   const { isFlagEnabled } = useFeatureFlags();
   const items: RowItem[] = [

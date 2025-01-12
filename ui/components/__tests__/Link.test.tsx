@@ -54,7 +54,7 @@ describe("Link", () => {
     );
     const a = link.querySelector("a");
     expect(a).not.toBe(null);
-    expect(a.href).toBe("http://localhost/http://google.com");
+    expect(a.href).toBe("http://google.com/");
     expect(link.textContent).toBe("Text");
   });
   it("makes to links relative when specifying an oic link", () => {
@@ -67,7 +67,7 @@ describe("Link", () => {
     );
     const a = link.querySelector("a");
     expect(a).not.toBe(null);
-    expect(a.href).toBe("http://localhost/oci://ghcr.io/some/chart");
+    expect(a.href).toBe("oci://ghcr.io/some/chart");
     expect(link.textContent).toBe("Text");
   });
 });

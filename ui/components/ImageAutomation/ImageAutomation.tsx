@@ -1,5 +1,5 @@
 import React from "react";
-import { useRouteMatch } from "react-router-dom";
+import { useResolvedPath } from "react-router-dom";
 import ImageRepositoriesTable from "../../components/ImageAutomation/repositories/ImageRepositoriesTable";
 import ImageAutomationUpdatesTable from "../../components/ImageAutomation/updates/ImageAutomationUpdatesTable";
 import { routeTab } from "../../components/KustomizationDetail";
@@ -8,7 +8,7 @@ import Flex from "../Flex";
 import ImagePoliciesTable from "./policies/ImagePoliciesTable";
 
 const ImageAutomation = () => {
-  const { path } = useRouteMatch();
+  const path = useResolvedPath("").pathname;
 
   const tabs: Array<routeTab> = [
     {

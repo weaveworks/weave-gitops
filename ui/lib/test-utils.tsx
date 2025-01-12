@@ -91,7 +91,7 @@ export function withContext(
   //@ts-ignore
   window.matchMedia.mockReturnValue({ matches: false });
   return (
-    <Router history={history}>
+    <Router location={url} navigator={history}>
       <AppContextProvider footer={<></>} {...appProps}>
         <QueryClientProvider client={queryClient}>
           <CoreClientContext.Provider

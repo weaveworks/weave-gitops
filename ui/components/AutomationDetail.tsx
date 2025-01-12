@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useRouteMatch } from "react-router-dom";
+import { useResolvedPath } from "react-router-dom";
 import styled from "styled-components";
 import { createCanaryCondition, useGetInventory } from "../hooks/inventory";
 import { Condition, Kind, ObjectRef } from "../lib/api/core/types.pb";
@@ -72,7 +72,7 @@ function AutomationDetail({
     conditions,
     source: sourceRef,
   };
-  const { path } = useRouteMatch();
+  const path = useResolvedPath("").pathname;
   const { data, isLoading, error } = useGetInventory(
     type,
     name,

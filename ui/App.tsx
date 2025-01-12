@@ -6,10 +6,11 @@ import qs from "query-string";
 import * as React from "react";
 import { QueryClient, QueryClientProvider } from "react-query";
 import {
-  Redirect,
+  Routes,
   Route,
-  BrowserRouter as Router,
-  Switch,
+  BrowserRouter,
+  useLocation,
+  Navigate,
 } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -31,10 +32,11 @@ import AppContextProvider, {
 } from "./contexts/AppContext";
 import AuthContextProvider, { AuthCheck } from "./contexts/AuthContext";
 import CoreClientContextProvider from "./contexts/CoreClientContext";
+import { LinkResolverProvider, useLinkResolver } from "./contexts/LinkResolverContext";
 import { useFeatureFlags } from "./hooks/featureflags";
 import useNavigation from "./hooks/navigation";
 import { useInDarkMode } from "./hooks/theme";
-import { Core } from "./lib/api/core/core.pb";
+import { Core as coreClient } from "./lib/api/core/core.pb";
 import Fonts from "./lib/fonts";
 import { getParentNavRouteValue } from "./lib/nav";
 import theme, { GlobalStyle, muiTheme } from "./lib/theme";
@@ -62,13 +64,18 @@ import UserInfo from "./pages/v2/UserInfo";
 
 const queryClient = new QueryClient();
 
-function withSearchParams(Cmp) {
-  return ({ location: { search }, ...rest }) => {
-    const params = qs.parse(search);
+const WithSearchParams = ({
+  component: Component,
+  ...props
+}: {
+  component: React.FunctionComponent<any>;
+}) => {
+  const location = useLocation();
+  const params = qs.parse(location.search);
 
-    return <Cmp {...rest} {...params} />;
-  };
+  return <Component {...props} {...params} />
 }
+
 
 function getRuntimeNavItem(isNewRuntimeEnabled: boolean): NavItem {
   if (isNewRuntimeEnabled) {
@@ -144,79 +151,90 @@ const App = () => {
       <PendoContainer />
 
       <ErrorBoundary>
-        <Switch>
-          <Route exact path={V2Routes.Automations} component={Automations} />
+        <Routes>
+          <Route path={V2Routes.Automations} Component={Automations} />
           <Route
+            element={(<WithSearchParams component={KustomizationPage} />)}
             path={V2Routes.Kustomization}
-            component={withSearchParams(KustomizationPage)}
           />
-          <Route path={V2Routes.Sources} component={Sources} />
+
+          <Route path={V2Routes.Sources} Component={Sources} />
           <Route
             path={V2Routes.ImageAutomation}
-            component={ImageAutomationPage}
+            Component={ImageAutomationPage}
           />
           <Route
+            element={(<WithSearchParams component={ImageAutomationPage} />)}
+            path={V2Routes.ImageAutomation}
+          />
+
+          <Route
+            element={(<WithSearchParams component={ImageAutomationUpdatesDetails} />)}
             path={V2Routes.ImageAutomationUpdatesDetails}
-            component={withSearchParams(ImageAutomationUpdatesDetails)}
           />
+
           <Route
+            element = {(<WithSearchParams component={ImageAutomationRepoDetails} />)}
             path={V2Routes.ImageAutomationRepositoryDetails}
-            component={withSearchParams(ImageAutomationRepoDetails)}
           />
+
           <Route
+            element = {(<WithSearchParams component={ImagePolicyDetails} />)}
             path={V2Routes.ImagePolicyDetails}
-            component={withSearchParams(ImagePolicyDetails)}
           />
+
+          {/* Ideally we want to flatten this to a single runtime */}
           {isNewRuntimeEnabled ? (
-            <Route path={V2Routes.Runtime} component={Runtime} />
+            <Route path={V2Routes.Runtime} Component={Runtime} />
           ) : (
-            <Route path={V2Routes.FluxRuntime} component={FluxRuntime} />
+            <Route path={V2Routes.FluxRuntime} Component={FluxRuntime} />
           )}
+
           <Route
+            element = {(<WithSearchParams component={GitRepositoryDetail} />)}
             path={V2Routes.GitRepo}
-            component={withSearchParams(GitRepositoryDetail)}
           />
           <Route
+            element = {(<WithSearchParams component={HelmRepositoryDetail} />)}
             path={V2Routes.HelmRepo}
-            component={withSearchParams(HelmRepositoryDetail)}
           />
           <Route
+            element={(<WithSearchParams component={BucketDetail} />)}
             path={V2Routes.Bucket}
-            component={withSearchParams(BucketDetail)}
           />
           <Route
+            element={(<WithSearchParams component={HelmReleasePage} />)}
             path={V2Routes.HelmRelease}
-            component={withSearchParams(HelmReleasePage)}
           />
           <Route
             path={V2Routes.HelmChart}
-            component={withSearchParams(HelmChartDetail)}
+            element = {(<WithSearchParams component={HelmChartDetail} />)}
           />
           <Route
+            element = {(<WithSearchParams component={OCIRepositoryPage} />)}
             path={V2Routes.OCIRepository}
-            component={withSearchParams(OCIRepositoryPage)}
           />
           <Route
+            element = {(<WithSearchParams component={Notifications} />)}
             path={V2Routes.Notifications}
-            component={withSearchParams(Notifications)}
           />
           <Route
+            element = {(<WithSearchParams component={ProviderPage} />)}
             path={V2Routes.Provider}
-            component={withSearchParams(ProviderPage)}
           />
           <Route
+            element = {(<WithSearchParams component={PolicyViolationPage} />)}
             path={V2Routes.PolicyViolationDetails}
-            component={withSearchParams(PolicyViolationPage)}
           />
-          <Route path={V2Routes.UserInfo} component={UserInfo} />
-          <Route path={V2Routes.Policies} component={PoliciesList} />
+          <Route path={V2Routes.UserInfo} Component={UserInfo} />
+          <Route path={V2Routes.Policies} Component={PoliciesList} />
           <Route
+            element = {(<WithSearchParams component={PolicyDetailsPage} />)}
             path={V2Routes.PolicyDetailsPage}
-            component={withSearchParams(PolicyDetailsPage)}
           />
-          <Redirect exact from="/" to={V2Routes.Automations} />
-          <Route exact path="*" component={Error} />
-        </Switch>
+          <Route path="/" element={<Navigate to={V2Routes.Automations} replace />} />
+          <Route path="*" Component={Error} />
+        </Routes>
       </ErrorBoundary>
       <ToastContainer
         position="top-center"
@@ -245,31 +263,39 @@ const StylesProvider = ({ children }) => {
   );
 };
 
+const resolver = useLinkResolver();
 export default function AppContainer() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <Router basename={getBasePath()}>
-        <AppContextProvider footer={<Footer />}>
-          <StylesProvider>
-            <AuthContextProvider>
-              <CoreClientContextProvider api={Core}>
-                <Switch>
-                  {/* <Signin> does not use the base page <Layout> so pull it up here */}
-                  <Route exact path="/sign_in">
-                    <SignIn />
-                  </Route>
-                  <Route path="*">
-                    {/* Check we've got a logged in user otherwise redirect back to signin */}
-                    <AuthCheck>
-                      <App />
-                    </AuthCheck>
-                  </Route>
-                </Switch>
-              </CoreClientContextProvider>
-            </AuthContextProvider>
-          </StylesProvider>
-        </AppContextProvider>
-      </Router>
-    </QueryClientProvider>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter basename={getBasePath()}>
+          <AppContextProvider footer={<Footer />}>
+            <StylesProvider>
+              <AuthContextProvider>
+                  <CoreClientContextProvider api={coreClient}>
+                    <LinkResolverProvider resolver={resolver}>
+                        <Routes>
+                          <Route
+                            Component={() => <SignIn />}
+                            path="/sign_in"
+                          />
+                          {/* Check we've got a logged in user otherwise redirect back to signin */}
+                          <Route path="*" element={
+                            <AuthCheck>
+                              <App />
+                            </AuthCheck>
+                            }/>
+                        </Routes>
+                        <ToastContainer
+                          position="top-center"
+                          autoClose={5000}
+                          newestOnTop={false}
+                        />
+                    </LinkResolverProvider>
+                  </CoreClientContextProvider>
+              </AuthContextProvider>
+            </StylesProvider>
+          </AppContextProvider>
+        </BrowserRouter>
+      </QueryClientProvider>
   );
 }

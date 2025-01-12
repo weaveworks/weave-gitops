@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useRouteMatch } from "react-router-dom";
+import { useResolvedPath } from "react-router-dom";
 import styled from "styled-components";
 import Flex from "../components/Flex";
 import { Crd, Deployment } from "../lib/api/core/types.pb";
@@ -19,7 +19,7 @@ const partOfLabel = "app.kubernetes.io/part-of";
 const fluxLabel = "flux";
 
 function FluxRuntime({ className, deployments, crds }: Props) {
-  const { path } = useRouteMatch();
+  const path = useResolvedPath("").pathname;
   const tabs: Array<routeTab> = [
     {
       name: "Controllers",

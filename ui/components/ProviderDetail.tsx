@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useRouteMatch } from "react-router-dom";
+import { useResolvedPath } from "react-router-dom";
 import styled from "styled-components";
 import { useListAlerts } from "../hooks/notifications";
 import { Kind } from "../lib/api/core/types.pb";
@@ -17,7 +17,7 @@ type Props = {
 };
 
 function ProviderDetail({ className, provider }: Props) {
-  const { path } = useRouteMatch();
+  const path = useResolvedPath("").pathname;
   const { data, error } = useListAlerts(provider.provider, provider.namespace);
   return (
     <Flex column tall wide className={className}>

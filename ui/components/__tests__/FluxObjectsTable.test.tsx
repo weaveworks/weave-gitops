@@ -3,7 +3,6 @@ import { fireEvent, render } from "@testing-library/react";
 import "jest-styled-components";
 import _ from "lodash";
 import React from "react";
-import { MemoryRouter } from "react-router-dom";
 import { LinkResolverProvider } from "../../contexts/LinkResolverContext";
 import { convertResponse } from "../../hooks/objects";
 import { objects } from "../../lib/fixtures/objects_table";
@@ -23,9 +22,7 @@ describe("FluxObjectsTable", () => {
     render(
       withTheme(
         withContext(
-          <MemoryRouter>
-            <FluxObjectsTable objects={objs} />
-          </MemoryRouter>,
+          <FluxObjectsTable objects={objs} />,
           "/",
           {},
         ),
@@ -44,17 +41,15 @@ describe("FluxObjectsTable", () => {
     render(
       withTheme(
         withContext(
-          <MemoryRouter>
-            <LinkResolverProvider
-              resolver={(type: string) => {
-                if (type === "Deployment") {
-                  return "/some-cool-url";
-                }
-              }}
-            >
-              <FluxObjectsTable objects={objs} />
-            </LinkResolverProvider>
-          </MemoryRouter>,
+          <LinkResolverProvider
+            resolver={(type: string) => {
+              if (type === "Deployment") {
+                 return "/some-cool-url";
+              }
+            }}
+          >
+            <FluxObjectsTable objects={objs} />
+          </LinkResolverProvider>,
           "/",
           {},
         ),
@@ -80,9 +75,7 @@ describe("FluxObjectsTable", () => {
     render(
       withTheme(
         withContext(
-          <MemoryRouter>
-            <FluxObjectsTable onClick={onClick} objects={objs} />
-          </MemoryRouter>,
+          <FluxObjectsTable onClick={onClick} objects={objs} />,
           "/",
           {},
         ),
@@ -110,12 +103,10 @@ describe("FluxObjectsTable", () => {
     render(
       withTheme(
         withContext(
-          <MemoryRouter>
-            <FluxObjectsTable
-              onClick={onClick}
-              objects={[...objs, secretObj]}
-            />
-          </MemoryRouter>,
+          <FluxObjectsTable
+            onClick={onClick}
+            objects={[...objs, secretObj]}
+          />,
           "/",
           {},
         ),

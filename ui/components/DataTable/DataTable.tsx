@@ -1,7 +1,7 @@
 import _ from "lodash";
 import qs from "query-string";
 import * as React from "react";
-import { useHistory, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import { ThemeTypes } from "../../contexts/AppContext";
 import { SearchedNamespaces } from "../../lib/types";
@@ -68,7 +68,7 @@ function UnstyledDataTable({
   disableSort,
   searchedNamespaces,
 }: Props) {
-  const history = useHistory();
+  const navigate = useNavigate()
   const location = useLocation();
   const search = location.search;
   const state = parseFilterStateFromURL(search);
@@ -95,7 +95,7 @@ function UnstyledDataTable({
 
   const handleFilterChange = (sel: FilterSelections) => {
     const filterQuery = filterSelectionsToQueryString(sel);
-    history.replace({ ...location, search: filterQuery });
+    navigate({ ...location, search: filterQuery }, { replace: true })
   };
 
   let filtered = filterRows(rows, filterState.filters);
@@ -142,7 +142,7 @@ function UnstyledDataTable({
 
     if (textFilters.length) query["search"] = textFilters.join("_") + "_";
     else if (query["search"]) query = _.omit(query, "search");
-    history.replace({ ...location, search: qs.stringify(query) });
+    navigate({ ...location, search: qs.stringify(query) }, { replace: true })
 
     doChange(next.formState);
     setFilterState({ formState: next.formState, filters, textFilters });
@@ -153,7 +153,7 @@ function UnstyledDataTable({
     const query = qs.parse(search);
     if (!query["search"]) query["search"] = `${val}_`;
     if (!query["search"].includes(val)) query["search"] += `${val}_`;
-    history.replace({ ...location, search: qs.stringify(query) });
+    navigate({ ...location, search: qs.stringify(query) }, { replace: true })
     setFilterState({
       ...filterState,
       textFilters: _.uniq([...filterState.textFilters, val]),
@@ -170,7 +170,7 @@ function UnstyledDataTable({
     const url = qs.parse(location.search);
     //keeps things like clusterName and namespace for details pages
     const cleared = _.omit(url, ["filters", "search"]);
-    history.replace({ ...location, search: qs.stringify(cleared) });
+    navigate({ ...location, search: qs.stringify(cleared) }, { replace: true });
   };
 
   const handleFilterSelect = (filters, formState) => {

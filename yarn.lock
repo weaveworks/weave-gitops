@@ -4401,7 +4401,7 @@ __metadata:
     react-lottie-player: "npm:^2.1.0"
     react-markdown: "npm:^8.0.7"
     react-query: "npm:^3.39.3"
-    react-router-dom: "npm:^7.1.1"
+    react-router: "npm:^7.1.1"
     react-syntax-highlighter: "npm:^15.6.1"
     react-test-renderer: "npm:^18.0.0"
     react-toastify: "npm:^11.0.2"
@@ -10962,19 +10962,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-router-dom@npm:^7.1.1":
-  version: 7.1.1
-  resolution: "react-router-dom@npm:7.1.1"
-  dependencies:
-    react-router: "npm:7.1.1"
-  peerDependencies:
-    react: ">=18"
-    react-dom: ">=18"
-  checksum: 10c0/2dc5b231dd21aab21378c615b1e373149007d173e90db984e6f708b5ee4b28923b3cf88ce7d6f727be927829b37ba37c01436f9f7abeb84ba3d1bfc9ecd4bc72
-  languageName: node
-  linkType: hard
-
-"react-router@npm:7.1.1":
+"react-router@npm:^7.1.1":
   version: 7.1.1
   resolution: "react-router@npm:7.1.1"
   dependencies:

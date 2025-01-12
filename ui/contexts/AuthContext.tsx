@@ -1,6 +1,6 @@
 import qs from "query-string";
 import * as React from "react";
-import { Redirect, useHistory, useLocation } from "react-router-dom";
+import { Navigate, useNavigate, useLocation } from "react-router-dom";
 import { reloadBrowserSignIn } from "../lib/utils";
 import { AppContext } from "./AppContext";
 
@@ -29,7 +29,7 @@ export const AuthCheck = ({ children, Loader }: AuthCheckProps) => {
   const location = useLocation();
   // User appears not be logged in, off to signin
   return (
-    <Redirect
+    <Navigate
       to={{
         pathname: AuthRoutes.AUTH_PATH_SIGNIN,
         search: qs.stringify({ redirect: location.pathname + location.search }),
@@ -63,7 +63,8 @@ export default function AuthContextProvider({ children }) {
   }>(null);
   const [loading, setLoading] = React.useState<boolean>(true);
   const [error, setError] = React.useState(null);
-  const history = useHistory();
+  const navigate = useNavigate();
+  const location = useLocation()
 
   const signIn = React.useCallback((data) => {
     setLoading(true);
@@ -78,7 +79,7 @@ export default function AuthContextProvider({ children }) {
         }
         getUserInfo().then(() => {
           setError(null);
-          history.push(qs.parse(location.search).redirect || "/");
+          navigate(qs.parse(location.search).redirect?.toString() || "/");
         });
       })
       .finally(() => setLoading(false));
@@ -117,9 +118,12 @@ export default function AuthContextProvider({ children }) {
   }, []);
 
   React.useEffect(() => {
-    getUserInfo();
-    return history.listen(getUserInfo);
-  }, [getUserInfo, history]);
+    return () => {
+      if (getUserInfo) {
+        getUserInfo();
+      }
+    };
+  }, [getUserInfo, location]);
 
   return (
     <>

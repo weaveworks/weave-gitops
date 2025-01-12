@@ -1,6 +1,6 @@
 import _ from "lodash";
 import * as React from "react";
-import { useRouteMatch } from "react-router-dom";
+import { useResolvedPath } from "react-router-dom";
 import styled from "styled-components";
 import { useListAutomations } from "../hooks/automations";
 import { Kind } from "../lib/api/core/types.pb";
@@ -45,7 +45,7 @@ function SourceDetail({ className, source, info, type, customActions }: Props) {
 
   const { data: automations, isLoading: automationsLoading } =
     useListAutomations();
-  const { path } = useRouteMatch();
+  const path = useResolvedPath("").pathname;
 
   if (automationsLoading) {
     return <LoadingPage />;
