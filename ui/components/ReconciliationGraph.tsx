@@ -137,7 +137,6 @@ export const Graph = ({
   const handleMouseUp = () => {
     setIsPanning(false);
   };
-  console.log('ReconciliationGraph');
   return (
     <Flex className={className} wide tall>
       <GraphDiv
