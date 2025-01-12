@@ -24,12 +24,12 @@ import (
 const (
 	LoginOIDC                  string = "oidc"
 	LoginUsername              string = "username"
-	ClusterUserAuthSecretName  string = "cluster-user-auth"
-	DefaultOIDCAuthSecretName  string = "oidc-auth"
+	ClusterUserAuthSecretName  string = "cluster-user-auth" // #nosec G101
+	DefaultOIDCAuthSecretName  string = "oidc-auth"         // #nosec G101
 	FeatureFlagClusterUser     string = "CLUSTER_USER_AUTH"
 	FeatureFlagAnonymousAuth   string = "ANONYMOUS_AUTH"
 	FeatureFlagOIDCAuth        string = "OIDC_AUTH"
-	FeatureFlagOIDCPassthrough string = "WEAVE_GITOPS_FEATURE_OIDC_AUTH_PASSTHROUGH"
+	FeatureFlagOIDCPassthrough string = "WEAVE_GITOPS_FEATURE_OIDC_AUTH_PASSTHROUGH" // #nosec G101
 
 	// ClaimUsername is the default claim for getting the user from OIDC for
 	// auth

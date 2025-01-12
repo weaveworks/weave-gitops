@@ -2,10 +2,10 @@ package config
 
 import (
 	"fmt"
+	"math/rand/v2"
 	"os"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/spf13/cobra"
 
@@ -77,9 +77,7 @@ func setConfigCommandRunE(opts *cfg.Options) func(*cobra.Command, []string) erro
 		gitopsConfig.Analytics = analyticsValue
 
 		if gitopsConfig.UserID == "" {
-			seed := time.Now().UnixNano()
-
-			gitopsConfig.UserID = config.GenerateUserID(10, seed)
+			gitopsConfig.UserID = config.GenerateUserID(10, rand.Uint64()) // #nosec G404
 		}
 
 		log.Actionf("Saving GitOps CLI config ...")

@@ -25,6 +25,6 @@ var _ = Describe("GenerateUserID", func() {
 	It("generates user ID", func() {
 		userID := GenerateUserID(10, 1024)
 
-		Expect(userID).To(Equal("2Q2MsgBDSV"))
+		Expect(userID).To(Equal("ULhi8C5Ti1"))
 	})
 })
