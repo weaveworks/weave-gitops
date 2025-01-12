@@ -31,9 +31,13 @@ updates:
         exclude-patterns:
           - react-lottie-player
           - react-markdown
-          - react-router-dom
           - react-syntax-highlighter
           - react-toastify
+    ignore:
+      # ignore all updates to react-router-dom as
+      # it goes away with react router 7.
+      # will be removed entirely when update completed
+      - dependency-name: react-router-dom
   # Maintain dependencies for backend
   - package-ecosystem: "gomod"
     directory: "/"
