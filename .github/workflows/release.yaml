@@ -8,10 +8,6 @@ on:
 permissions:
   contents: read # for actions/checkout to fetch code
 
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: weaveworks/wego-app
-
 jobs:
   tag-release:
     if: github.event.review.state == 'approved' && startsWith(github.event.pull_request.head.ref, 'releases/')
@@ -67,7 +63,7 @@ jobs:
       file: gitops-server.dockerfile
       flavor: |
         latest=true
-      image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+      image: ghcr.io/weaveworks/wego-app
       platforms: linux/amd64,linux/arm64
       push: true
       ref: ${{ github.event.pull_request.head.sha }}
