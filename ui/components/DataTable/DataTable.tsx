@@ -68,7 +68,7 @@ function UnstyledDataTable({
   disableSort,
   searchedNamespaces,
 }: Props) {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const location = useLocation();
   const search = location.search;
   const state = parseFilterStateFromURL(search);
@@ -95,7 +95,7 @@ function UnstyledDataTable({
 
   const handleFilterChange = (sel: FilterSelections) => {
     const filterQuery = filterSelectionsToQueryString(sel);
-    navigate({ ...location, search: filterQuery }, { replace: true })
+    navigate({ ...location, search: filterQuery }, { replace: true });
   };
 
   let filtered = filterRows(rows, filterState.filters);
@@ -142,7 +142,7 @@ function UnstyledDataTable({
 
     if (textFilters.length) query["search"] = textFilters.join("_") + "_";
     else if (query["search"]) query = _.omit(query, "search");
-    navigate({ ...location, search: qs.stringify(query) }, { replace: true })
+    navigate({ ...location, search: qs.stringify(query) }, { replace: true });
 
     doChange(next.formState);
     setFilterState({ formState: next.formState, filters, textFilters });
@@ -153,7 +153,7 @@ function UnstyledDataTable({
     const query = qs.parse(search);
     if (!query["search"]) query["search"] = `${val}_`;
     if (!query["search"].includes(val)) query["search"] += `${val}_`;
-    navigate({ ...location, search: qs.stringify(query) }, { replace: true })
+    navigate({ ...location, search: qs.stringify(query) }, { replace: true });
     setFilterState({
       ...filterState,
       textFilters: _.uniq([...filterState.textFilters, val]),

@@ -47,7 +47,7 @@ export interface AppProps {
 }
 
 export default function AppContextProvider({ ...props }: AppProps) {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const [appState, setAppState] = React.useState({
     error: null,
     detailModal: null,

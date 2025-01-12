@@ -32,7 +32,10 @@ import AppContextProvider, {
 } from "./contexts/AppContext";
 import AuthContextProvider, { AuthCheck } from "./contexts/AuthContext";
 import CoreClientContextProvider from "./contexts/CoreClientContext";
-import { LinkResolverProvider, useLinkResolver } from "./contexts/LinkResolverContext";
+import {
+  LinkResolverProvider,
+  useLinkResolver,
+} from "./contexts/LinkResolverContext";
 import { useFeatureFlags } from "./hooks/featureflags";
 import useNavigation from "./hooks/navigation";
 import { useInDarkMode } from "./hooks/theme";
@@ -73,9 +76,8 @@ const WithSearchParams = ({
   const location = useLocation();
   const params = qs.parse(location.search);
 
-  return <Component {...props} {...params} />
-}
-
+  return <Component {...props} {...params} />;
+};
 
 function getRuntimeNavItem(isNewRuntimeEnabled: boolean): NavItem {
   if (isNewRuntimeEnabled) {
@@ -154,7 +156,7 @@ const App = () => {
         <Routes>
           <Route path={V2Routes.Automations} Component={Automations} />
           <Route
-            element={(<WithSearchParams component={KustomizationPage} />)}
+            element={<WithSearchParams component={KustomizationPage} />}
             path={V2Routes.Kustomization}
           />
 
@@ -164,22 +166,26 @@ const App = () => {
             Component={ImageAutomationPage}
           />
           <Route
-            element={(<WithSearchParams component={ImageAutomationPage} />)}
+            element={<WithSearchParams component={ImageAutomationPage} />}
             path={V2Routes.ImageAutomation}
           />
 
           <Route
-            element={(<WithSearchParams component={ImageAutomationUpdatesDetails} />)}
+            element={
+              <WithSearchParams component={ImageAutomationUpdatesDetails} />
+            }
             path={V2Routes.ImageAutomationUpdatesDetails}
           />
 
           <Route
-            element = {(<WithSearchParams component={ImageAutomationRepoDetails} />)}
+            element={
+              <WithSearchParams component={ImageAutomationRepoDetails} />
+            }
             path={V2Routes.ImageAutomationRepositoryDetails}
           />
 
           <Route
-            element = {(<WithSearchParams component={ImagePolicyDetails} />)}
+            element={<WithSearchParams component={ImagePolicyDetails} />}
             path={V2Routes.ImagePolicyDetails}
           />
 
@@ -191,48 +197,51 @@ const App = () => {
           )}
 
           <Route
-            element = {(<WithSearchParams component={GitRepositoryDetail} />)}
+            element={<WithSearchParams component={GitRepositoryDetail} />}
             path={V2Routes.GitRepo}
           />
           <Route
-            element = {(<WithSearchParams component={HelmRepositoryDetail} />)}
+            element={<WithSearchParams component={HelmRepositoryDetail} />}
             path={V2Routes.HelmRepo}
           />
           <Route
-            element={(<WithSearchParams component={BucketDetail} />)}
+            element={<WithSearchParams component={BucketDetail} />}
             path={V2Routes.Bucket}
           />
           <Route
-            element={(<WithSearchParams component={HelmReleasePage} />)}
+            element={<WithSearchParams component={HelmReleasePage} />}
             path={V2Routes.HelmRelease}
           />
           <Route
             path={V2Routes.HelmChart}
-            element = {(<WithSearchParams component={HelmChartDetail} />)}
+            element={<WithSearchParams component={HelmChartDetail} />}
           />
           <Route
-            element = {(<WithSearchParams component={OCIRepositoryPage} />)}
+            element={<WithSearchParams component={OCIRepositoryPage} />}
             path={V2Routes.OCIRepository}
           />
           <Route
-            element = {(<WithSearchParams component={Notifications} />)}
+            element={<WithSearchParams component={Notifications} />}
             path={V2Routes.Notifications}
           />
           <Route
-            element = {(<WithSearchParams component={ProviderPage} />)}
+            element={<WithSearchParams component={ProviderPage} />}
             path={V2Routes.Provider}
           />
           <Route
-            element = {(<WithSearchParams component={PolicyViolationPage} />)}
+            element={<WithSearchParams component={PolicyViolationPage} />}
             path={V2Routes.PolicyViolationDetails}
           />
           <Route path={V2Routes.UserInfo} Component={UserInfo} />
           <Route path={V2Routes.Policies} Component={PoliciesList} />
           <Route
-            element = {(<WithSearchParams component={PolicyDetailsPage} />)}
+            element={<WithSearchParams component={PolicyDetailsPage} />}
             path={V2Routes.PolicyDetailsPage}
           />
-          <Route path="/" element={<Navigate to={V2Routes.Automations} replace />} />
+          <Route
+            path="/"
+            element={<Navigate to={V2Routes.Automations} replace />}
+          />
           <Route path="*" Component={Error} />
         </Routes>
       </ErrorBoundary>
@@ -266,36 +275,36 @@ const StylesProvider = ({ children }) => {
 const resolver = useLinkResolver();
 export default function AppContainer() {
   return (
-      <QueryClientProvider client={queryClient}>
-        <BrowserRouter basename={getBasePath()}>
-          <AppContextProvider footer={<Footer />}>
-            <StylesProvider>
-              <AuthContextProvider>
-                  <CoreClientContextProvider api={coreClient}>
-                    <LinkResolverProvider resolver={resolver}>
-                        <Routes>
-                          <Route
-                            Component={() => <SignIn />}
-                            path="/sign_in"
-                          />
-                          {/* Check we've got a logged in user otherwise redirect back to signin */}
-                          <Route path="*" element={
-                            <AuthCheck>
-                              <App />
-                            </AuthCheck>
-                            }/>
-                        </Routes>
-                        <ToastContainer
-                          position="top-center"
-                          autoClose={5000}
-                          newestOnTop={false}
-                        />
-                    </LinkResolverProvider>
-                  </CoreClientContextProvider>
-              </AuthContextProvider>
-            </StylesProvider>
-          </AppContextProvider>
-        </BrowserRouter>
-      </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter basename={getBasePath()}>
+        <AppContextProvider footer={<Footer />}>
+          <StylesProvider>
+            <AuthContextProvider>
+              <CoreClientContextProvider api={coreClient}>
+                <LinkResolverProvider resolver={resolver}>
+                  <Routes>
+                    <Route Component={() => <SignIn />} path="/sign_in" />
+                    {/* Check we've got a logged in user otherwise redirect back to signin */}
+                    <Route
+                      path="*"
+                      element={
+                        <AuthCheck>
+                          <App />
+                        </AuthCheck>
+                      }
+                    />
+                  </Routes>
+                  <ToastContainer
+                    position="top-center"
+                    autoClose={5000}
+                    newestOnTop={false}
+                  />
+                </LinkResolverProvider>
+              </CoreClientContextProvider>
+            </AuthContextProvider>
+          </StylesProvider>
+        </AppContextProvider>
+      </BrowserRouter>
+    </QueryClientProvider>
   );
 }

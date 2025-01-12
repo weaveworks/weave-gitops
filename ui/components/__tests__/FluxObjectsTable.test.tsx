@@ -20,13 +20,7 @@ describe("FluxObjectsTable", () => {
   });
   it("renders", async () => {
     render(
-      withTheme(
-        withContext(
-          <FluxObjectsTable objects={objs} />,
-          "/",
-          {},
-        ),
-      ),
+      withTheme(withContext(<FluxObjectsTable objects={objs} />, "/", {})),
     );
 
     const rows = document.querySelectorAll("tbody tr");
@@ -44,7 +38,7 @@ describe("FluxObjectsTable", () => {
           <LinkResolverProvider
             resolver={(type: string) => {
               if (type === "Deployment") {
-                 return "/some-cool-url";
+                return "/some-cool-url";
               }
             }}
           >
@@ -103,10 +97,7 @@ describe("FluxObjectsTable", () => {
     render(
       withTheme(
         withContext(
-          <FluxObjectsTable
-            onClick={onClick}
-            objects={[...objs, secretObj]}
-          />,
+          <FluxObjectsTable onClick={onClick} objects={[...objs, secretObj]} />,
           "/",
           {},
         ),

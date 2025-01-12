@@ -2,7 +2,7 @@ import { Tabs } from "@mui/material";
 import _ from "lodash";
 import qs from "query-string";
 import * as React from "react";
-import { Navigate, Route, Routes } from "react-router"
+import { Navigate, Route, Routes } from "react-router";
 import styled from "styled-components";
 import { formatURL } from "../lib/nav";
 import Flex from "./Flex";
@@ -51,9 +51,7 @@ function routesToIndex(routes: PathConfig[], pathname) {
 }
 
 export function RouterTab({ children }: TabProps) {
-  return <Route path={children.props.path + "/*"}>
-      {children as any}
-    </Route>
+  return <Route path={children.props.path + "/*"}>{children as any}</Route>;
 }
 
 function SubRouterTabs({ className, children, rootPath, clearQuery }: Props) {
@@ -91,10 +89,20 @@ function SubRouterTabs({ className, children, rootPath, clearQuery }: Props) {
       <Routes>
         {_.map(childs, (route: any, i: number) => {
           return (
-            <Route key={i} path={route.props.path} element={route.props.children} />
+            <Route
+              key={i}
+              path={route.props.path}
+              element={route.props.children}
+            />
           );
-        })};
-        <Route path="*" element={<Navigate to={formatURL(rootPath, clearQuery ? "" : query)} />} />
+        })}
+        ;
+        <Route
+          path="*"
+          element={
+            <Navigate to={formatURL(rootPath, clearQuery ? "" : query)} />
+          }
+        />
       </Routes>
     </Flex>
   );

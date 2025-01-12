@@ -64,7 +64,7 @@ export default function AuthContextProvider({ children }) {
   const [loading, setLoading] = React.useState<boolean>(true);
   const [error, setError] = React.useState(null);
   const navigate = useNavigate();
-  const location = useLocation()
+  const location = useLocation();
 
   const signIn = React.useCallback((data) => {
     setLoading(true);

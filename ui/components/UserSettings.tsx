@@ -52,7 +52,7 @@ type Props = {
 };
 
 function UserSettings({ className, darkModeEnabled = true }: Props) {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = React.useState(null);
   const { userInfo, logOut } = React.useContext(Auth);
 
