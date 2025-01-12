@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useResolvedPath } from "react-router-dom";
+import { useResolvedPath } from "react-router";
 import styled from "styled-components";
 import Flex from "../components/Flex";
 import { Crd, Deployment } from "../lib/api/core/types.pb";

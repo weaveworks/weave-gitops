@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useResolvedPath } from "react-router-dom";
+import { useResolvedPath } from "react-router";
 import styled from "styled-components";
 import { useListAlerts } from "../hooks/notifications";
 import { Kind } from "../lib/api/core/types.pb";

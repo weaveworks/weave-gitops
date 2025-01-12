@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useResolvedPath } from "react-router-dom";
+import { useResolvedPath } from "react-router";
 import remarkGfm from "remark-gfm";
 import styled from "styled-components";
 import { useFeatureFlags } from "../../../hooks/featureflags";

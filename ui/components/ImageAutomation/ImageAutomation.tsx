@@ -1,5 +1,5 @@
 import React from "react";
-import { useResolvedPath } from "react-router-dom";
+import { useResolvedPath } from "react-router";
 import ImageRepositoriesTable from "../../components/ImageAutomation/repositories/ImageRepositoriesTable";
 import ImageAutomationUpdatesTable from "../../components/ImageAutomation/updates/ImageAutomationUpdatesTable";
 import { routeTab } from "../../components/KustomizationDetail";

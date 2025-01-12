@@ -1,6 +1,6 @@
 import _ from "lodash";
 import { useContext } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation } from "react-router";
 import { AppContext, AppContextType } from "../contexts/AppContext";
 
 export const normalizePath = (pathname) => {

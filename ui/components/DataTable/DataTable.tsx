@@ -1,7 +1,7 @@
 import _ from "lodash";
 import qs from "query-string";
 import * as React from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router";
 import styled from "styled-components";
 import { ThemeTypes } from "../../contexts/AppContext";
 import { SearchedNamespaces } from "../../lib/types";

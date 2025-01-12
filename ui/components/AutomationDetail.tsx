@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useResolvedPath } from "react-router-dom";
+import { useResolvedPath } from "react-router";
 import styled from "styled-components";
 import { createCanaryCondition, useGetInventory } from "../hooks/inventory";
 import { Condition, Kind, ObjectRef } from "../lib/api/core/types.pb";

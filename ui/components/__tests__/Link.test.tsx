@@ -1,6 +1,6 @@
 import { render } from "@testing-library/react";
 import React from "react";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter } from "react-router";
 import { withTheme } from "../../lib/test-utils";
 import Link from "../Link";
 

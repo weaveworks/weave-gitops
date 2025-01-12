@@ -1,6 +1,6 @@
 import qs from "query-string";
 import * as React from "react";
-import { Navigate, useNavigate, useLocation } from "react-router-dom";
+import { Navigate, useNavigate, useLocation } from "react-router";
 import { reloadBrowserSignIn } from "../lib/utils";
 import { AppContext } from "./AppContext";
 

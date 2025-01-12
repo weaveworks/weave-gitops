@@ -2,7 +2,7 @@ import { Tabs } from "@mui/material";
 import _ from "lodash";
 import qs from "query-string";
 import * as React from "react";
-import { Navigate, Route, Routes } from "react-router-dom"
+import { Navigate, Route, Routes } from "react-router"
 import styled from "styled-components";
 import { formatURL } from "../lib/nav";
 import Flex from "./Flex";
