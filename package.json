@@ -123,9 +123,6 @@
     "typescript-eslint": "^8.19.1",
     "yarn-audit-fix": "^10.1.1"
   },
-  "alias": {
-    "yaml": "yaml/browser/dist/index.js"
-  },
   "resolutions": {
     "cross-spawn": "^7.0.6",
     "commander": "^13.0.0"
@@ -133,5 +130,8 @@
   "engines": {
     "node": ">=22.0"
   },
-  "packageManager": "yarn@4.5.3"
+  "packageManager": "yarn@4.5.3",
+  "@parcel/resolver-default": {
+    "packageExports": true
+  }
 }
