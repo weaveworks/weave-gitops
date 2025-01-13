@@ -4074,12 +4074,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:^19.0.5":
-  version: 19.0.5
-  resolution: "@types/react@npm:19.0.5"
+"@types/react@npm:^19.0.6":
+  version: 19.0.6
+  resolution: "@types/react@npm:19.0.6"
   dependencies:
     csstype: "npm:^3.0.2"
-  checksum: 10c0/6f3a25c826e8b274cf26b25ef7bd4a97aaa4d7b30a0ea529bf252c6f0387d74f44940dea55cfcac75829bee53cd4c82fdb41653b978954a08036d2812a0ae6d6
+  checksum: 10c0/4ddb0ad2a92940c0323996c2efbae9712e562e1d60d1015ba5088ca8e8db32f1804516a2971e6fa7a95bda9aa9c1896c86c32739213ef12527924c021b0145bf
   languageName: node
   linkType: hard
 
@@ -13438,7 +13438,7 @@ __metadata:
     "@fortawesome/free-solid-svg-icons": "npm:^6.7.2"
     "@fortawesome/react-fontawesome": "npm:^0.2.2"
     "@mdx-js/react": "npm:^3.1.0"
-    "@types/react": "npm:^19.0.5"
+    "@types/react": "npm:^19.0.6"
     file-loader: "npm:^6.2.0"
     raw-loader: "npm:^4.0.2"
     react: "npm:^19.0.0"
