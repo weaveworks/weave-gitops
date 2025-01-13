@@ -76,7 +76,7 @@ Successful promotion events are triggered by Flux's [notification controller](ht
 
 ```yaml
 ---
-apiVersion: notification.toolkit.fluxcd.io/v1beta1
+apiVersion: notification.toolkit.fluxcd.io/v1beta3
 kind: Provider
 metadata:
   name: promotion-my-app
@@ -113,7 +113,7 @@ An example Alert might look like this:
 
 ```yaml
 ---
-apiVersion: notification.toolkit.fluxcd.io/v1beta1
+apiVersion: notification.toolkit.fluxcd.io/v1beta3
 kind: Alert
 spec:
   eventSeverity: info
@@ -419,7 +419,7 @@ The discovery of the version field is done using deterministic markers in a YAML
 
 ```yaml {7}
 ---
-apiVersion: helm.toolkit.fluxcd.io/v2beta1
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 spec:
   chart:
@@ -538,7 +538,7 @@ patches:
 You can now create Provider/Alert resources on the management cluster to forward notifications to external systems. For example, the Provider resource shown below is used to invoke a GitHub Actions workflow on a repository:
 ```yaml
 ---
-apiVersion: notification.toolkit.fluxcd.io/v1beta1
+apiVersion: notification.toolkit.fluxcd.io/v1beta3
 kind: Provider
 metadata:
   name: promotion-my-app-via-github-actions
@@ -553,7 +553,7 @@ To use this Provider, add an Alert that uses the pipeline resource defined on th
 
 ```yaml
 ---
-apiVersion: notification.toolkit.fluxcd.io/v1beta1
+apiVersion: notification.toolkit.fluxcd.io/v1beta3
 kind: Alert
 metadata:
   name: promotion-my-app-via-github-actions

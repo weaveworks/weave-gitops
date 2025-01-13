@@ -291,7 +291,7 @@ func simulateReconcile(ctx context.Context, k client.Client, name types.Namespac
 
 		return k.Status().Update(ctx, obj)
 
-	case *sourcev1b2.HelmChart:
+	case *sourcev1.HelmChart:
 		if err := k.Get(ctx, name, obj); err != nil {
 			return err
 		}
@@ -300,7 +300,7 @@ func simulateReconcile(ctx context.Context, k client.Client, name types.Namespac
 
 		return k.Status().Update(ctx, obj)
 
-	case *sourcev1b2.HelmRepository:
+	case *sourcev1.HelmRepository:
 		if err := k.Get(ctx, name, obj); err != nil {
 			return err
 		}
@@ -382,21 +382,21 @@ func makeKustomization(name string, ns corev1.Namespace, source *sourcev1.GitRep
 	return k
 }
 
-func makeHelmChart(name string, ns corev1.Namespace) *sourcev1b2.HelmChart {
-	return &sourcev1b2.HelmChart{
+func makeHelmChart(name string, ns corev1.Namespace) *sourcev1.HelmChart {
+	return &sourcev1.HelmChart{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: ns.Name,
 		},
-		Spec: sourcev1b2.HelmChartSpec{
+		Spec: sourcev1.HelmChartSpec{
 			Chart:   "somechart",
 			Version: "v0.0.1",
-			SourceRef: sourcev1b2.LocalHelmChartSourceReference{
-				Kind: sourcev1b2.HelmRepositoryKind,
+			SourceRef: sourcev1.LocalHelmChartSourceReference{
+				Kind: sourcev1.HelmRepositoryKind,
 				Name: name,
 			},
 		},
-		Status: sourcev1b2.HelmChartStatus{
+		Status: sourcev1.HelmChartStatus{
 			ReconcileRequestStatus: meta.ReconcileRequestStatus{
 				LastHandledReconcileAt: time.Now().Format(time.RFC3339Nano),
 			},
@@ -419,16 +419,16 @@ func makeBucket(name string, ns corev1.Namespace) *sourcev1.Bucket {
 	}
 }
 
-func makeHelmRepo(name string, ns corev1.Namespace) *sourcev1b2.HelmRepository {
-	return &sourcev1b2.HelmRepository{
+func makeHelmRepo(name string, ns corev1.Namespace) *sourcev1.HelmRepository {
+	return &sourcev1.HelmRepository{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: ns.Name,
 		},
-		Spec: sourcev1b2.HelmRepositorySpec{
+		Spec: sourcev1.HelmRepositorySpec{
 			URL: "http://example.com",
 		},
-		Status: sourcev1b2.HelmRepositoryStatus{
+		Status: sourcev1.HelmRepositoryStatus{
 			ReconcileRequestStatus: meta.ReconcileRequestStatus{
 				LastHandledReconcileAt: time.Now().Format(time.RFC3339Nano),
 			},
@@ -436,7 +436,7 @@ func makeHelmRepo(name string, ns corev1.Namespace) *sourcev1b2.HelmRepository {
 	}
 }
 
-func makeHelmRelease(name string, ns corev1.Namespace, repo *sourcev1b2.HelmRepository, chart *sourcev1b2.HelmChart) *helmv2.HelmRelease {
+func makeHelmRelease(name string, ns corev1.Namespace, repo *sourcev1.HelmRepository, chart *sourcev1.HelmChart) *helmv2.HelmRelease {
 	return &helmv2.HelmRelease{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -450,7 +450,7 @@ func makeHelmRelease(name string, ns corev1.Namespace, repo *sourcev1b2.HelmRepo
 					SourceRef: helmv2.CrossNamespaceObjectReference{
 						Name:      repo.GetName(),
 						Namespace: repo.GetNamespace(),
-						Kind:      sourcev1b2.HelmRepositoryKind,
+						Kind:      sourcev1.HelmRepositoryKind,
 					},
 				},
 			},

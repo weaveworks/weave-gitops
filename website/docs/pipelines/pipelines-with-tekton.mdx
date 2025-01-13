@@ -280,7 +280,7 @@ cluster, exposing the service may be required through an ingress or a service me
 
 ```yaml
 ---
-apiVersion: notification.toolkit.fluxcd.io/v1beta1
+apiVersion: notification.toolkit.fluxcd.io/v1beta3
 kind: Provider
 metadata:
   name: tekton-promotion
@@ -296,7 +296,7 @@ We can configure an Alert to use the `tekton-promotion` provider. For example,
 an Alert for the `podinfo-pipeline` in the `flux-system` namespace:
 ```yaml
 ---
-apiVersion: notification.toolkit.fluxcd.io/v1beta1
+apiVersion: notification.toolkit.fluxcd.io/v1beta3
 kind: Alert
 metadata:
   name: tekton-promotion-podinfo

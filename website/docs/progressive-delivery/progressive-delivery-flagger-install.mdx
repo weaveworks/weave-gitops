@@ -114,7 +114,7 @@ one year from the certificate creation.
 
 ```yaml title="linkerd/releases.yaml" {35}
 ---
-apiVersion: helm.toolkit.fluxcd.io/v2beta1
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: linkerd
@@ -150,7 +150,7 @@ spec:
       issuer:
         crtExpiry: "2023-07-18T20:00:00Z" # Change this to match generated certificate expiry date
 ---
-apiVersion: helm.toolkit.fluxcd.io/v2beta1
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: linkerd-viz
@@ -291,7 +291,7 @@ spec:
 
 ```yaml title="flagger/releases.yaml"
 ---
-apiVersion: helm.toolkit.fluxcd.io/v2beta1
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: flagger
@@ -313,7 +313,7 @@ spec:
     metricsServer: http://prometheus.linkerd-viz:9090
     meshProvider: linkerd
 ---
-apiVersion: helm.toolkit.fluxcd.io/v2beta1
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: loadtester

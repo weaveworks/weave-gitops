@@ -836,12 +836,12 @@ spec:
           ...
     - path: ./clusters/${CLUSTER_NAME}/workloads/helmreleases.yaml
       content:
-        - apiVersion: helm.toolkit.fluxcd.io/v2beta1
+        - apiVersion: helm.toolkit.fluxcd.io/v2
           kind: HelmRelease
           metadata:
             name: ${CLUSTER_NAME}-nginx
           ...
-        - apiVersion: helm.toolkit.fluxcd.io/v2beta1
+        - apiVersion: helm.toolkit.fluxcd.io/v2
           kind: HelmRelease
           metadata:
             name: ${CLUSTER_NAME}-cert-manager

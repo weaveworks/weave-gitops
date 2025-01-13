@@ -97,7 +97,7 @@ spec:
           namespace: ${RESOURCE_NAMESPACE}
         spec:
           appRef:
-            apiVersion: helm.toolkit.fluxcd.io/v2beta1
+            apiVersion: helm.toolkit.fluxcd.io/v2
             kind: HelmRelease
             name: ${APPLICATION_NAME}
           environments:
@@ -178,7 +178,7 @@ spec:
           namespace: ${RESOURCE_NAMESPACE}
         spec:
           appRef:
-            apiVersion: helm.toolkit.fluxcd.io/v2beta1
+            apiVersion: helm.toolkit.fluxcd.io/v2
             kind: HelmRelease
             name: ${APPLICATION_NAME}
           environments:
@@ -262,7 +262,7 @@ spec:
       description: Environment the cluster is a part of within a pipeline.
   resourcetemplates:
     - content:
-      - apiVersion: notification.toolkit.fluxcd.io/v1beta1
+      - apiVersion: notification.toolkit.fluxcd.io/v1beta3
         kind: Provider
         metadata:
           name: ${RESOURCE_NAME}
@@ -271,7 +271,7 @@ spec:
           address: http://${PROMOTION_HOST}/promotion/${APP_NAME}/${ENV_NAME}
           type: generic-hmac
           secretRef: ${SECRET_REF}
-      - apiVersion: notification.toolkit.fluxcd.io/v1beta1
+      - apiVersion: notification.toolkit.fluxcd.io/v1beta3
         kind: Alert
         metadata:
           name: ${RESOURCE_NAME}

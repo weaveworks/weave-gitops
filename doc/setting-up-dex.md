@@ -32,7 +32,7 @@ kind: Namespace
 metadata:
   name: cert-manager
 ---
-apiVersion: source.toolkit.fluxcd.io/v1beta1
+apiVersion: source.toolkit.fluxcd.io/v1
 kind: HelmRepository
 metadata:
   name: cert-manager
@@ -41,7 +41,7 @@ spec:
   interval: 1h
   url: https://charts.jetstack.io
 ---
-apiVersion: helm.toolkit.fluxcd.io/v2beta1
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: cert-manager
@@ -120,7 +120,7 @@ As we did before, we can use `HelmRepository` and `HelmRelease` objects to let
 Flux deploy everything.
 ```yaml
 ---
-apiVersion: source.toolkit.fluxcd.io/v1beta1
+apiVersion: source.toolkit.fluxcd.io/v1
 kind: HelmRepository
 metadata:
   name: dex
@@ -129,7 +129,7 @@ spec:
   interval: 1m
   url: https://charts.dexidp.io
 ---
-apiVersion: helm.toolkit.fluxcd.io/v2beta1
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: dex
