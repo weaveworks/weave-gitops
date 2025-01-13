@@ -81,8 +81,7 @@ jobs:
       - name: Keyless signing of image
         if: ${{ inputs.push }}
         run: |
-          echo ${{ steps.build.outputs.imageid }}
-          echo ${{ steps.build.outputs.digest }}
+          echo ${{ steps.build.outputs.metadata }} | jq .
           cosign sign --yes ${{ inputs.image }}@${{ steps.build.outputs.digest }}
       - name: Verify the image signing
         if: ${{ inputs.push }}
