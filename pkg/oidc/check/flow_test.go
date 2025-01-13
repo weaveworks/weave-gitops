@@ -3,8 +3,8 @@ package check_test
 import (
 	"context"
 	"fmt"
-	"net"
 	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
@@ -21,7 +21,7 @@ import (
 )
 
 type TestProvider struct {
-	srv             *http.Server
+	srv             *httptest.Server
 	URL             string
 	RequestedScopes []string
 	GenClaims       func() jwt.Claims
@@ -38,17 +38,7 @@ func (tp TestProvider) genToken() string {
 }
 
 func (tp *TestProvider) Start() error {
-	listener, err := net.Listen("tcp", "127.0.0.1:8765")
-	if err != nil {
-		return fmt.Errorf("failed starting listener: %w", err)
-	}
-
-	tp.URL = fmt.Sprintf("http://%s", listener.Addr().String())
-	mux := http.ServeMux{}
-	tp.srv = &http.Server{
-		Handler:           &mux,
-		ReadHeaderTimeout: 5 * time.Second,
-	}
+	mux := &http.ServeMux{}
 
 	mux.HandleFunc("/.well-known/openid-configuration", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("content-type", "application/json")
@@ -72,13 +62,14 @@ func (tp *TestProvider) Start() error {
 }`, tp.genToken())
 	})
 
-	go tp.srv.Serve(listener)
+	tp.srv = httptest.NewServer(mux)
+	tp.URL = tp.srv.URL
 
 	return nil
 }
 
 func (tp TestProvider) Shutdown() {
-	tp.srv.Shutdown(context.Background())
+	tp.srv.Close()
 }
 
 func (tp TestProvider) IssuerURL() string {
