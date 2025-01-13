@@ -26,7 +26,7 @@ The chart can use either [subcharts](https://helm.sh/docs/chart_template_guide/s
 
 Alternatively, you can annotate a Flux `HelmRepository`
 ```yaml
-apiVersion: source.toolkit.fluxcd.io/v1beta2
+apiVersion: source.toolkit.fluxcd.io/v1
 kind: HelmRepository
 metadata:
   name: podinfo
@@ -91,7 +91,7 @@ You can add your Profiles to a remote repository that can be referenced using a 
 
 In this example, a public repo and branch is referenced directly where the Helm releases are:
 ```yaml title="HelmRepository.yaml"
-apiVersion: source.toolkit.fluxcd.io/v1beta1
+apiVersion: source.toolkit.fluxcd.io/v1
 kind: HelmRepository
 metadata:
   name: weaveworks-charts
@@ -119,7 +119,7 @@ spec:
 
 Once the SecretSync and Secret are available, the secret can be directly referenced in the HelmRepository object:
 ```yaml title="PrivateHelmRepository.yaml"
-apiVersion: source.toolkit.fluxcd.io/v1beta2
+apiVersion: source.toolkit.fluxcd.io/v1
 kind: HelmRepository
 metadata:
   name: weaveworks-charts

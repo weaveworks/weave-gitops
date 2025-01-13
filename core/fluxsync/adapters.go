@@ -94,7 +94,7 @@ func (obj BucketAdapter) DeepCopyClientObject() client.Object {
 }
 
 type HelmChartAdapter struct {
-	*sourcev1b2.HelmChart
+	*sourcev1.HelmChart
 }
 
 func (obj HelmChartAdapter) GetLastHandledReconcileRequest() string {
@@ -119,7 +119,7 @@ func (obj HelmChartAdapter) DeepCopyClientObject() client.Object {
 }
 
 type HelmRepositoryAdapter struct {
-	*sourcev1b2.HelmRepository
+	*sourcev1.HelmRepository
 }
 
 func (obj HelmRepositoryAdapter) GetLastHandledReconcileRequest() string {
@@ -376,10 +376,10 @@ func ToReconcileable(gvk schema.GroupVersionKind) Reconcilable {
 		return GitRepositoryAdapter{GitRepository: &sourcev1.GitRepository{}}
 	case sourcev1.BucketKind:
 		return BucketAdapter{Bucket: &sourcev1.Bucket{}}
-	case sourcev1b2.HelmRepositoryKind:
-		return HelmRepositoryAdapter{HelmRepository: &sourcev1b2.HelmRepository{}}
-	case sourcev1b2.HelmChartKind:
-		return HelmChartAdapter{HelmChart: &sourcev1b2.HelmChart{}}
+	case sourcev1.HelmRepositoryKind:
+		return HelmRepositoryAdapter{HelmRepository: &sourcev1.HelmRepository{}}
+	case sourcev1.HelmChartKind:
+		return HelmChartAdapter{HelmChart: &sourcev1.HelmChart{}}
 	case sourcev1b2.OCIRepositoryKind:
 		return OCIRepositoryAdapter{OCIRepository: &sourcev1b2.OCIRepository{}}
 	case reflectorv1.ImageRepositoryKind:

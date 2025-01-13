@@ -70,7 +70,7 @@ spec:
   templates:
     - content:
         kind: Kustomization
-        apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+        apiVersion: kustomize.toolkit.fluxcd.io/v1
         metadata:
           name: "{{ .Element.env }}-demo"
           labels:
@@ -263,7 +263,7 @@ spec:
   templates:
     - content:
         kind: Kustomization
-        apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+        apiVersion: kustomize.toolkit.fluxcd.io/v1
         metadata:
           name: "{{ .Element.env }}-demo"
           labels:
@@ -316,7 +316,7 @@ spec:
   templates:
     - content:
         kind: Kustomization
-        apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+        apiVersion: kustomize.toolkit.fluxcd.io/v1
         metadata:
           name: "{{ .Element.Base }}-demo"
           labels:
@@ -387,7 +387,7 @@ spec:
   templates:
     - content:
         kind: Kustomization
-        apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+        apiVersion: kustomize.toolkit.fluxcd.io/v1
         metadata:
           name: "{{ .Element.env }}-demo"
           labels:
@@ -437,7 +437,7 @@ spec:
           ref:
             branch: "{{ .Element.Branch }}"
     - content:
-        apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+        apiVersion: kustomize.toolkit.fluxcd.io/v1
         kind: Kustomization
         metadata:
           name: "pr-{{ .Element.Number }}-demo"
@@ -566,7 +566,7 @@ spec:
   templates:
     - content:
         kind: Kustomization
-        apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+        apiVersion: kustomize.toolkit.fluxcd.io/v1
         metadata:
           name: "{{ .Element.env }}-demo"
           labels:
@@ -616,7 +616,7 @@ spec:
   templates:
     - content:
         kind: Kustomization
-        apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+        apiVersion: kustomize.toolkit.fluxcd.io/v1
         metadata:
           name: "{{ .Element.gen1.env }}-demo"
           labels:
@@ -823,7 +823,7 @@ spec:
           ref:
             branch: "{{ .Element.head.ref }}"
     - content:
-        apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+        apiVersion: kustomize.toolkit.fluxcd.io/v1
         kind: Kustomization
         metadata:
           name: "pr-{{ .Element.id | toJson }}-demo"
@@ -1027,7 +1027,7 @@ spec:
   templates:
     - content:
         kind: Kustomization
-        apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+        apiVersion: kustomize.toolkit.fluxcd.io/v1
         metadata:
           name: "{{ .Element.ClusterName }}-demo"
           labels:
@@ -1379,7 +1379,7 @@ spec:
   templates:
     - content:
         kind: Kustomization
-        apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+        apiVersion: kustomize.toolkit.fluxcd.io/v1
         metadata:
           name: "{{ .Element.env }}-demo"
           labels:

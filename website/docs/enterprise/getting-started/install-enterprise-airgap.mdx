@@ -85,7 +85,7 @@ Remember to also install helm plugin
 
 ```yaml
 ---
-apiVersion: source.toolkit.fluxcd.io/v1beta2
+apiVersion: source.toolkit.fluxcd.io/v1
 kind: HelmRepository
 metadata:
   name: chartmuseum
@@ -94,7 +94,7 @@ spec:
   interval: 10m
   url: https://chartmuseum.github.io/charts
 ---
-apiVersion: helm.toolkit.fluxcd.io/v2beta1
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: chartmuseum
@@ -243,7 +243,7 @@ Apply the following example manifest to deploy the Terraform Controller:
 <summary>Expand to see file contents</summary>
 
 ```yaml
-apiVersion: source.toolkit.fluxcd.io/v1beta2
+apiVersion: source.toolkit.fluxcd.io/v1
 kind: HelmRepository
 metadata:
   name: tf-controller
@@ -252,7 +252,7 @@ spec:
   interval: 10m
   url: https://weaveworks.github.io/tf-controller/
 ---
-apiVersion: helm.toolkit.fluxcd.io/v2beta1
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: tf-controller
@@ -314,7 +314,7 @@ metadata:
   namespace: flux-system
 type: Opaque
 ---
-apiVersion: source.toolkit.fluxcd.io/v1beta2
+apiVersion: source.toolkit.fluxcd.io/v1
 kind: HelmRepository
 metadata:
   name: weave-gitops-enterprise-charts
@@ -325,7 +325,7 @@ spec:
     name: weave-gitops-enterprise-credentials
   url: https://charts.dev.wkp.weave.works/releases/charts-v3
 ---
-apiVersion: helm.toolkit.fluxcd.io/v2beta1
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: weave-gitops-enterprise
@@ -503,7 +503,7 @@ An example of how it would look for Weave GitOps Enterprise is shown below.
 
 ```yaml title="weave-gitops-enterprise.yaml" {21-24,32}
 ---
-apiVersion: source.toolkit.fluxcd.io/v1beta2
+apiVersion: source.toolkit.fluxcd.io/v1
 kind: HelmRepository
 metadata:
   name: weave-gitops-enterprise-charts
@@ -512,7 +512,7 @@ spec:
   interval: 1m
   url: http://helm-repo-chartmuseum:8080
 ---
-apiVersion: helm.toolkit.fluxcd.io/v2beta1
+apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: weave-gitops-enterprise
