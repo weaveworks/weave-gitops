@@ -32,7 +32,7 @@ RUN --mount=type=cache,target=/gomod-cache --mount=type=cache,target=/go-cache \
     LDFLAGS=$LDFLAGS GIT_COMMIT=$GIT_COMMIT make gitops
 
 # Distroless
-FROM gcr.io/distroless/base@sha256:e9d0321de8927f69ce20e39bfc061343cce395996dfc1f0db6540e5145bc63a5 AS runtime
+FROM gcr.io/distroless/base@sha256:74ddbf52d93fafbdd21b399271b0b4aac1babf8fa98cab59e5692e01169a1348 AS runtime
 COPY --from=flux /usr/local/bin/flux /usr/local/bin/flux
 COPY --from=go-build /app/bin/gitops /gitops
 COPY --from=go-build /root/.ssh/known_hosts /root/.ssh/known_hosts
