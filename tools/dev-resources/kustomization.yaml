@@ -1,0 +1,4 @@
+resources:
+- podinfo
+- image-policy
+- monitoring

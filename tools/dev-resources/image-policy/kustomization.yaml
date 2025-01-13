@@ -1,0 +1,4 @@
+resources:
+- podinfo-image-policy.yaml
+- podinfo-image-update-automation.yaml
+- podinfo-image-repository.yaml
