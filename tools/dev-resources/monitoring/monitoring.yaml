@@ -47,7 +47,7 @@ spec:
   interval: 1m0s
   sourceRef:
     kind: GitRepository
-    name: monitoring
+    name: flux-monitoring
   path: ./monitoring/configs
   dependsOn:
     - name: kube-prometheus-stack
