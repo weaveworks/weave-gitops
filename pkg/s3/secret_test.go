@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"io"
 	"math/big"
-	"math/rand"
+	"math/rand/v2"
 	"testing"
 
 	. "github.com/onsi/gomega"
 )
 
-func deterministicRandInt(seed int64, err error) RandIntFunc {
+func deterministicRandInt(seed uint64, err error) RandIntFunc {
 	var srand *rand.Rand
 
 	return func(_ io.Reader, max *big.Int) (*big.Int, error) {
@@ -19,10 +19,10 @@ func deterministicRandInt(seed int64, err error) RandIntFunc {
 		}
 
 		if srand == nil {
-			srand = rand.New(rand.NewSource(seed))
+			srand = rand.New(rand.NewPCG(seed, 0)) // #nosec G404
 		}
 
-		return big.NewInt(int64(srand.Intn(int(max.Int64())))), nil
+		return big.NewInt(srand.Int64N(max.Int64())), nil // #nosec G404
 	}
 }
 
@@ -38,7 +38,7 @@ func TestGenerators(t *testing.T) {
 			name:        "GenerateAccessKey generates a deterministic access key",
 			generator:   GenerateAccessKey,
 			randIntFunc: deterministicRandInt(100, nil),
-			expected:    "AKIA5UQA4UZJM3",
+			expected:    "AKIATBK3988IAG",
 			expectedErr: false,
 		},
 		{
@@ -52,7 +52,7 @@ func TestGenerators(t *testing.T) {
 			name:        "GenerateSecretKey generates a deterministic secret key",
 			generator:   GenerateSecretKey,
 			randIntFunc: deterministicRandInt(512, nil),
-			expected:    "Fg5n9W6CwTfnMu4FzEk8xuTomwk2OpFe0yLcLMAL",
+			expected:    "0aEEdyKByGEXsQUh1af86o6HON4Ig468I6DhJH1C",
 			expectedErr: false,
 		},
 		{

@@ -3,9 +3,9 @@ package root
 import (
 	"fmt"
 	"log"
+	"math/rand/v2"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
@@ -121,10 +121,8 @@ func RootCmd() *cobra.Command {
 					enableAnalytics = true
 				}
 
-				seed := time.Now().UnixNano()
-
 				gitopsConfig = &config.GitopsCLIConfig{
-					UserID:    config.GenerateUserID(10, seed),
+					UserID:    config.GenerateUserID(10, rand.Uint64()), // #nosec G404
 					Analytics: enableAnalytics,
 				}
 

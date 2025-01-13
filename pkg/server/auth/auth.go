@@ -2,8 +2,8 @@ package auth
 
 import (
 	"context"
-	"crypto/md5"
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
@@ -106,7 +106,7 @@ func (p *UserPrincipal) String() string {
 
 // Hash returns a unique string using user id,token and groups.
 func (p *UserPrincipal) Hash() string {
-	hash := md5.Sum([]byte(fmt.Sprintf("%s/%s/%v", p.ID, p.Token(), p.Groups)))
+	hash := sha256.Sum224([]byte(fmt.Sprintf("%s/%s/%v", p.ID, p.Token(), p.Groups)))
 	return hex.EncodeToString(hash[:])
 }
 

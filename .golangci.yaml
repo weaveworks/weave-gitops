@@ -17,7 +17,7 @@ linters:
     #- gocyclo
     #- godot
     - gofumpt
-    #- gosec
+    - gosec
     - gosimple
     - govet
     - ineffassign
@@ -85,6 +85,12 @@ linters-settings:
       - style
   gofumpt:
     extra-rules: true
+  gosec:
+    excludes:
+      - G110
+      - G115
+      - G204
+      - G306
   lll:
     line-length: 150
 

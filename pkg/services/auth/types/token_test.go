@@ -13,10 +13,10 @@ var _ = Describe("TokenResponseState", func() {
 	var token *TokenResponseState
 	var tokenResponse internal.GitlabTokenResponse
 
-	accessToken := "kEq6PWZ8x37CNNmk"
+	accessToken := "kEq6PWZ8x37CNNmk" // #nosec G101
 	tokenType := "test-token-type"
 	var seconds int64 = 600
-	refreshToken := "H2q4xABSMT"
+	refreshToken := "H2q4xABSMT" // #nosec G101
 	var createdAt int64 = 32425434
 
 	_ = BeforeEach(func() {

@@ -26,7 +26,7 @@ const (
 	app              = "cli"
 	analyticsType    = "track"
 	trackEventURL    = "https://app.pendo.io/data/track"
-	trackEventSecret = "bf6ab33e-cd70-46e7-4b77-279f54cac447"
+	trackEventSecret = "bf6ab33e-cd70-46e7-4b77-279f54cac447" // #nosec G101
 )
 
 type analyticsRequestBody struct {

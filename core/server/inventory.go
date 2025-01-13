@@ -479,7 +479,7 @@ func parseInventoryFromUnstructured(obj *unstructured.Unstructured) ([]*unstruct
 	return objects, nil
 }
 
-const helmSecretNameFmt = "sh.helm.release.v1.%s.v%v"
+const helmSecretNameFmt = "sh.helm.release.v1.%s.v%v" // #nosec G101
 
 func secretNameFromHelmRelease(helmRelease *helmv2.HelmRelease) *client.ObjectKey {
 	if latest := helmRelease.Status.History.Latest(); latest != nil {

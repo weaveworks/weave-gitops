@@ -38,7 +38,7 @@ func (tp TestProvider) genToken() string {
 }
 
 func (tp *TestProvider) Start() error {
-	listener, err := net.Listen("tcp", ":8765")
+	listener, err := net.Listen("tcp", "127.0.0.1:8765")
 	if err != nil {
 		return fmt.Errorf("failed starting listener: %w", err)
 	}
@@ -46,7 +46,8 @@ func (tp *TestProvider) Start() error {
 	tp.URL = fmt.Sprintf("http://%s", listener.Addr().String())
 	mux := http.ServeMux{}
 	tp.srv = &http.Server{
-		Handler: &mux,
+		Handler:           &mux,
+		ReadHeaderTimeout: 5 * time.Second,
 	}
 
 	mux.HandleFunc("/.well-known/openid-configuration", func(w http.ResponseWriter, r *http.Request) {
@@ -160,7 +161,7 @@ func TestGetClaimsWithSecret(t *testing.T) {
 				SecretName:      "test-oidc",
 				SecretNamespace: "flux-system",
 				OpenURL: func(u string) error {
-					http.Get(u)
+					http.Get(u) // #nosec: G107
 					return nil
 				},
 				InsecureSkipSignatureCheck: true,
@@ -311,7 +312,7 @@ func TestGetClaimsWithoutSecret(t *testing.T) {
 
 			if tt.opts.OpenURL == nil {
 				tt.opts.OpenURL = func(u string) error {
-					http.Get(u)
+					http.Get(u) // #nosec: G107
 					return nil
 				}
 			}

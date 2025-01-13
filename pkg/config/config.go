@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
-	"math/rand"
+	"math/rand/v2"
 	"os"
 	"path/filepath"
 )
@@ -188,12 +188,12 @@ func parseConfig(data []byte, config *GitopsCLIConfig) error {
 }
 
 // GenerateUserID generates a string of specified length made of random characters and encodes it in base64 format
-func GenerateUserID(numChars int, seed int64) string {
-	srand := rand.New(rand.NewSource(seed))
+func GenerateUserID(numChars int, seed uint64) string {
+	srand := rand.New(rand.NewPCG(seed, 0)) // #nosec G404
 
 	b := make([]byte, numChars)
 	for i := range b {
-		b[i] = letters[srand.Intn(len(letters))]
+		b[i] = letters[srand.IntN(len(letters))]
 	}
 
 	return string(b)

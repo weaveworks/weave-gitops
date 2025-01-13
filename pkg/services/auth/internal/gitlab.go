@@ -12,7 +12,7 @@ const (
 	gitlabHost   = "gitlab.com"
 	// Default values that can be used for OAuth with the `wego-dev` GitLab Application
 	gitlabClientID       = "451df5d954a3ebb371bba5e6b7d1468ead1a0ee6d88b0791b001566b7bbc10cd"
-	gitlabClientSecret   = "b402c7601b71904fffec85d3cc8aa7e953405680aa9b1fc4fb8603e9bb7e208a"
+	gitlabClientSecret   = "b402c7601b71904fffec85d3cc8aa7e953405680aa9b1fc4fb8603e9bb7e208a" // #nosec G101
 	GitlabVerifierMin    = 43
 	GitlabVerifierMax    = 128
 	GitlabRedirectURICLI = "http://127.0.0.1:9999/oauth/gitlab/callback"

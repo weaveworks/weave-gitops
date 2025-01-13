@@ -118,7 +118,7 @@ var (
 )
 
 const (
-	accessTokenURL          = "https://github.com/login/oauth/access_token?%s"
+	accessTokenURL          = "https://github.com/login/oauth/access_token?%s" // #nosec G101
 	githubRequiredGrantType = "urn:ietf:params:oauth:grant-type:device_code"
 )
 
