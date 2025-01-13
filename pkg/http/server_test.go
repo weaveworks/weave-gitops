@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"math/rand"
+	"math/rand/v2"
 	"net/http"
 	"os"
 	"testing"
@@ -43,11 +43,11 @@ func TestMultiServerWithoutTLSConfigFailsToStart(t *testing.T) {
 func TestMultiServerServesOverBothProtocols(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	httpPort := rand.Intn(49151-1024) + 1024
-	httpsPort := rand.Intn(49151-1024) + 1024
+	httpPort := rand.N(49151-1024) + 1024  // #nosec G404
+	httpsPort := rand.N(49151-1024) + 1024 // #nosec G404
 
 	for httpPort == httpsPort {
-		httpsPort = rand.Intn(49151-1024) + 1024
+		httpsPort = rand.N(49151-1024) + 1024 // #nosec G404
 	}
 
 	srv := wegohttp.MultiServer{
@@ -93,7 +93,8 @@ func TestMultiServerServesOverBothProtocols(t *testing.T) {
 
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{
-			RootCAs: rootCAs,
+			RootCAs:    rootCAs,
+			MinVersion: tls.VersionTLS12,
 		},
 	}
 	c := http.Client{

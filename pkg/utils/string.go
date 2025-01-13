@@ -4,8 +4,7 @@ import (
 	"crypto/rand"
 	"fmt"
 	"math/big"
-	mrand "math/rand"
-	"time"
+	mrand "math/rand/v2"
 )
 
 const (
@@ -16,8 +15,6 @@ const (
 // The length can also vary by using the min and max parameters. To have a consistent length
 // such as 11, you would pass (11, 12) for the min and max respectively
 func GenerateRandomString(minLen, maxLen int) (string, error) {
-	mrand.New(mrand.NewSource(time.Now().UnixNano()))
-
 	length := randInt(minLen, maxLen)
 	value := make([]byte, length)
 
@@ -34,5 +31,5 @@ func GenerateRandomString(minLen, maxLen int) (string, error) {
 }
 
 func randInt(minVal, maxVal int) int {
-	return minVal + mrand.Intn(maxVal-minVal)
+	return minVal + mrand.N(maxVal-minVal) // #nosec G404
 }

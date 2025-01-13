@@ -1,9 +1,7 @@
 package kube_test
 
 import (
-	"math/rand"
 	"testing"
-	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -39,7 +37,3 @@ var _ = BeforeSuite(func() {
 var _ = AfterSuite(func() {
 	cleanupK8s()
 })
-
-func init() {
-	rand.New(rand.NewSource(time.Now().UnixNano()))
-}

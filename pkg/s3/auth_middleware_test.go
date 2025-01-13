@@ -4,11 +4,10 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"math/rand"
+	"math/rand/v2"
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	"github.com/minio/minio-go/v7/pkg/signer"
 	. "github.com/onsi/gomega"
@@ -19,11 +18,9 @@ func generateRandomBody(method string) io.Reader {
 		return nil
 	}
 
-	srand := rand.New(rand.NewSource(time.Now().UnixNano()))
-
-	size := srand.Intn(2000) + 2000
+	size := rand.N(2000) + 2000 // #nosec G404
 	buf := make([]byte, size)
-	srand.Read(buf)
+	_, _ = rand.NewChaCha8([32]byte{}).Read(buf)
 
 	return bytes.NewReader(buf)
 }

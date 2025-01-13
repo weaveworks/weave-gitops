@@ -1,7 +1,7 @@
 package names
 
 import (
-	"crypto/md5"
+	"crypto/sha256"
 	"fmt"
 	"strings"
 
@@ -43,7 +43,7 @@ func hashNameIfTooLong(name string) string {
 		return name
 	}
 
-	return fmt.Sprintf("wego-%x", md5.Sum([]byte(name)))
+	return fmt.Sprintf("wego-%x", sha256.Sum224([]byte(name)))
 }
 
 func ApplicationNameTooLong(name string) bool {

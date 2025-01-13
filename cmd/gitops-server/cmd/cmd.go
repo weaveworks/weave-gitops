@@ -293,8 +293,9 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	addr := net.JoinHostPort(options.Host, options.Port)
 	srv := &http.Server{
-		Addr:    addr,
-		Handler: handler,
+		Addr:              addr,
+		Handler:           handler,
+		ReadHeaderTimeout: 5 * time.Second,
 	}
 
 	go func() {
@@ -318,8 +319,9 @@ func runCmd(cmd *cobra.Command, args []string) error {
 		metricsMux.Handle("/metrics", promhttp.HandlerFor(gatherers, promhttp.HandlerOpts{}))
 
 		metricsServer = &http.Server{
-			Addr:    options.MetricsAddress,
-			Handler: metricsMux,
+			Addr:              options.MetricsAddress,
+			Handler:           metricsMux,
+			ReadHeaderTimeout: 5 * time.Second,
 		}
 
 		go func() {
@@ -375,6 +377,7 @@ func listenAndServe(log logr.Logger, srv *http.Server, options Options) error {
 		srv.TLSConfig = &tls.Config{
 			ClientCAs:  caCertPool,
 			ClientAuth: tls.RequireAndVerifyClientCert,
+			MinVersion: tls.VersionTLS12,
 		}
 	} else {
 		log.Info("Using TLS", "cert_file", options.TLSCertFile, "key_file", options.TLSKeyFile)

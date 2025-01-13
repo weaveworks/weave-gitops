@@ -27,7 +27,8 @@ var errorHTML string
 func retrieveIDToken(log logger.Logger, oauth2Config oauth2.Config, verifier *oidc.IDTokenVerifier) (*oidc.IDToken, error) {
 	mux := http.ServeMux{}
 	srv := http.Server{
-		Handler: &mux,
+		Handler:           &mux,
+		ReadHeaderTimeout: 5 * time.Second,
 	}
 	var idToken *oidc.IDToken
 	var handleErr error
@@ -70,7 +71,7 @@ func retrieveIDToken(log logger.Logger, oauth2Config oauth2.Config, verifier *oi
 		fmt.Fprint(w, successHTML)
 	})
 
-	listener, err := net.Listen("tcp", ":9876")
+	listener, err := net.Listen("tcp", ":9876") // #nosec G102
 	if err != nil {
 		return nil, fmt.Errorf("failed starting listener: %w", err)
 	}
