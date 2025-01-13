@@ -68,3 +68,9 @@ builds:
       - darwin
     goarch:
       - arm64
+signs:
+  - id: cosign-keyless
+    cmd: cosign
+    certificate: "${artifact}.crt"
+    args: ["sign-blob", "--output-signature", "${signature}", "--output-certificate", "${certificate}", "${artifact}", "--yes"]
+    artifacts: all
