@@ -31,12 +31,12 @@ Then we bring up tilt.
 
 Tilt will tell you the url, or hit the space bar and it'll automagically open a browser for you which will show your local cluster and the resources running. You should see 3 things, Tiltfile, dev-weave-gitops, uncategorised.
 
-Goto login with username: dev, password:dev at http://localhost:9001/sign_in
+Goto login with username: dev, password:dev at <http://localhost:9001/sign_in>
 
 When you make changes in the code with this setup, you have to wait for k8s to redeploy the updated pod, it isn't lightening instant fast but **it works** to get you going.
 
-Woop! It's working. It'll be empty cos you haven't created any flux objects. You can jump to [
-quickly add a sample workload to UI](#quickly-add-a-sample-workload-to-ui).
+Woop! It's working. It'll be empty cos you haven't created any flux objects.
+You can jump to [quickly add a sample workload to UI](#quickly-add-a-sample-workload-to-ui).
 
 ## Frontend optimised development setup
 
@@ -58,7 +58,7 @@ Create a kind cluster. We'll do this so we can have a local cluster on our machi
 
 Then we install flux on it.
 
-`$ flux install`
+`$ flux install --components-extra="image-reflector-controller,image-automation-controller"`
 
 Then we bring up tilt, without auto-restart enabled (see [the FAQ
 entry below](#the-server-keeps-restarting-and-its-annoying)).
@@ -73,7 +73,7 @@ Then we fire up our frontend server.
 
 `$ yarn start`
 
-Goto login with username: dev, password:dev at http://localhost:4567/sign_in
+Goto login with username: dev, password:dev at <http://localhost:4567/sign_in>
 
 Running this setup is what enables JavaScript hot reloading, it does websocket pushing of your code, so you don't even need to refresh!
 
@@ -83,23 +83,7 @@ Woop! It's working. It'll be empty cos you haven't created any flux objects. You
 
 To help see some objects in the UI lets create some sample sources, run the following:
 
-```
-$ flux create source git podinfo \
---url=https://github.com/stefanprodan/podinfo \
---branch=master \
---interval=30m
-```
-
-and then this one:
-
-```
-$ flux create kustomization podinfo \
---target-namespace=flux-system \
---source=podinfo \
---path="./kustomize" \
---prune=true \
---interval=5m
-```
+`$ k apply -k ./tools/dev-resources`
 
 Boom! You'll see our newly created flux objects in the UI.
 
@@ -107,7 +91,7 @@ We use create rather than a flux bootstrap to create because we don't want our t
 
 ## Other Frontend focussed commands
 
-Lint frontend code with `make ui-lint` - using Prettier (https://prettier.io/) will get you on the right track!
+Lint frontend code with `make ui-lint` - using Prettier (<https://prettier.io/>) will get you on the right track!
 
 Run frontend tests with `make ui-test`
 
@@ -157,7 +141,7 @@ Then we bring up tilt, passing it the flag `FAST_AND_FURIOUSER`. This tells our 
 
 `$ FAST_AND_FURIOUSER=true tilt up`
 
-Goto login with username: dev, password:dev at http://localhost:9001/sign_in
+Goto login with username: dev, password:dev at <http://localhost:9001/sign_in>
 
 Woop! It's working? Probably. Maybe. Or you may need to faff around with resolving build steps when you did `make all`.
 Good luck!

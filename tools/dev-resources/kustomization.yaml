@@ -1,0 +1,5 @@
+resources:
+- image-policy
+- monitoring
+- namespace.yaml
+- podinfo
