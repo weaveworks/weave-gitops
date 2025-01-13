@@ -1,13 +1,14 @@
 apiVersion: image.toolkit.fluxcd.io/v1beta2
 kind: ImageUpdateAutomation
 metadata:
-  name: flux-system
-  namespace: flux-system
+  name: podinfo
+  namespace: default
 spec:
   interval: 30m
   sourceRef:
     kind: GitRepository
     name: flux-system
+    namespace: flux-system
   git:
     checkout:
       ref:
@@ -22,5 +23,3 @@ spec:
   update:
     path: ./clusters/management
     strategy: Setters
-
-

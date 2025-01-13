@@ -1,24 +1,20 @@
+---
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: GitRepository
 metadata:
   name: flux-monitoring
-  namespace: flux-system
+  namespace: monitoring
 spec:
   interval: 10m0s
   ref:
     branch: main
   url: https://github.com/fluxcd/flux2-monitoring-example
 ---
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: monitoring
----
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: kube-prometheus-stack
-  namespace: flux-system
+  namespace: monitoring
 spec:
   interval: 10m0s
   sourceRef:
@@ -26,14 +22,13 @@ spec:
     name: flux-monitoring
   path: ./monitoring/controllers/kube-prometheus-stack
   prune: true
-  targetNamespace: monitoring
   wait: true
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: loki-stack
-  namespace: flux-system
+  namespace: monitoring
 spec:
   interval: 10m0s
   sourceRef:
@@ -41,21 +36,19 @@ spec:
     name: flux-monitoring
   path: ./monitoring/controllers/loki-stack
   prune: true
-  targetNamespace: monitoring
   wait: true
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   name: monitoring-config
-  namespace: flux-system
+  namespace: monitoring
 spec:
   interval: 1m0s
   sourceRef:
     kind: GitRepository
-    name: flux-monitoring
+    name: monitoring
   path: ./monitoring/configs
   dependsOn:
     - name: kube-prometheus-stack
   prune: true
-  targetNamespace: monitoring

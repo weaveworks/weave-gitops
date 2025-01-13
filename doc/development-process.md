@@ -83,7 +83,7 @@ Woop! It's working. It'll be empty cos you haven't created any flux objects. You
 
 To help see some objects in the UI lets create some sample sources, run the following:
 
-`$ k apply -f ./tools/dev-resources`
+`$ k apply -k ./tools/dev-resources`
 
 Boom! You'll see our newly created flux objects in the UI.
 
