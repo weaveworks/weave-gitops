@@ -77,6 +77,9 @@ jobs:
 
   goreleaser:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read # for actions/checkout to fetch code
+      id-token: write # for Cosign to be able to sign release artifacts with GHA token
     needs:
       - publish_npm_package
       - build-and-push-image
@@ -118,6 +121,8 @@ jobs:
           cat > ${{ runner.temp }}/changelog.md <<'END_OF_CHANGELOG'
           ${{ github.event.pull_request.body }}
           END_OF_CHANGELOG
+      - name: Install cosign
+        uses: sigstore/cosign-installer@dc72c7d5c4d10cd6bcb8cf6e3fd625a9e5e537da # v3.7.0
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@9ed2f89a662bf1735a48bc8557fd212fa902bebf # v6.1.0
         with:
