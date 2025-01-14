@@ -48,6 +48,9 @@ updates:
       golang-x:
         patterns:
           - "golang.org/x/*"
+      kustomize:
+        patterns:
+          - "sigs.k8s.io/kustomize/*"
   # Maintain dependencies for website
   - package-ecosystem: "npm"
     directory: "/website"
