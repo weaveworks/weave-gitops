@@ -1,0 +1,30 @@
+apiVersion: templates.weave.works/v1alpha1
+kind: GitOpsSet
+metadata:
+  labels:
+    kustomize.toolkit.fluxcd.io/name: flux-system
+    kustomize.toolkit.fluxcd.io/namespace: flux-system
+  name: gitopsset-configmaps
+  namespace: default
+spec:
+  generators:
+    - list:
+        elements:
+          - env: dev
+            team: dev-team
+          - env: production
+            team: ops-team
+          - env: staging
+            team: ops-team
+  templates:
+    - content:
+        apiVersion: v1
+        kind: ConfigMap
+        metadata:
+          name: "{{ .Element.env }}-info-configmap"
+          namespace: default
+        spec:
+          data:
+            description: This is a configmap for the {{ .Element.env }} environment
+            env: "{{ .Element.env }}"
+            team: "{{ .Element.team }}"

@@ -1,0 +1,1773 @@
+apiVersion: pac.weave.works/v2beta1
+kind: Policy
+metadata:
+  name: weave.policies.container-block-sysctl.cve-2022-0811
+spec:
+  id: weave.policies.container-block-sysctl.cve-2022-0811
+  name: Container Block Sysctls CVE-2022-0811
+  enabled: true
+  description: "Setting sysctls can allow containers unauthorized escalated privileges to a Kubernetes node. \n"
+  how_to_solve: "You should not set `securityContext.sysctls.value` to include `+` or `=` characters. \n```\n...\n  spec:\n    securityContext:\n      sysctls: \n        - name: name\n          value \"1+2=3\"\n```\n```\nhttps://kubernetes.io/docs/tasks/configure-pod-container/security-context/\nhttps://www.crowdstrike.com/blog/cr8escape-new-vulnerability-discovered-in-cri-o-container-engine-cve-2022-0811/\n"
+  category: weave.categories.pod-security
+  severity: high
+  targets: {kinds: [Deployment, Job, ReplicationController, ReplicaSet, DaemonSet, StatefulSet, CronJob]}
+  standards:
+    - id: weave.standards.pci-dss
+      controls:
+        - weave.controls.pci-dss.2.2.4
+        - weave.controls.pci-dss.2.2.5
+    - id: weave.standards.cis-benchmark
+      controls:
+        - weave.controls.cis-benchmark.5.2.6
+    - id: weave.standards.mitre-attack
+      controls:
+        - weave.controls.mitre-attack.4.1
+    - id: weave.standards.nist-800-190
+      controls:
+        - weave.controls.nist-800-190.3.3.1
+    - id: weave.standards.gdpr
+      controls:
+        - weave.controls.gdpr.24
+        - weave.controls.gdpr.25
+        - weave.controls.gdpr.32
+  tags: [pci-dss, cis-benchmark, mitre-attack, nist800-190, gdpr, default]
+  parameters:
+    - name: exclude_namespace
+      type: string
+      required: false
+      value: kube-system
+    - name: exclude_label_key
+      type: string
+      required: false
+      value:
+    - name: exclude_label_value
+      type: string
+      required: false
+      value:
+  code: |
+    package weave.advisor.podSecurity.block_sysctls.CVE_2022_0811
+
+    exclude_namespace := input.parameters.exclude_namespace
+    exclude_label_key := input.parameters.exclude_label_key
+    exclude_label_value := input.parameters.exclude_label_value
+
+    # Container security context
+    violation[result] {
+    	not exclude_namespace == controller_input.metadata.namespace
+    	not exclude_label_value == controller_input.metadata.labels[exclude_label_key]
+
+        checkSysctls(controller_spec.securityContext.sysctls[_])
+    	
+    	result = {
+    		"issue detected": true,
+    		"msg": "Please check spec.template.spec.securityContext.sysctls for violating value. Reference: CVE-2022-0811",
+    		"violating_key": "spec.template.spec.securityContext.sysctls"
+    	}
+    }
+
+
+    ###### Functions
+    isArrayContains(array, str) {
+    	array[_] = str
+    }
+
+    checkSysctls(sysctls) {
+        contains(sysctls.value, "+")
+        contains(sysctls.value, "=")
+    }
+
+    # Initial Setup
+    controller_input = input.review.object
+
+    controller_spec = controller_input.spec.template.spec {
+    	isArrayContains({"StatefulSet", "DaemonSet", "Deployment", "Job", "ReplicaSet"}, controller_input.kind)
+    } else = controller_input.spec {
+    	controller_input.kind == "Pod"
+    } else = controller_input.spec.jobTemplate.spec.template.spec {
+    	controller_input.kind == "CronJob"
+    }
+---
+apiVersion: pac.weave.works/v2beta1
+kind: Policy
+metadata:
+  name: weave.policies.container-block-sysctl
+spec:
+  id: weave.policies.container-block-sysctl
+  name: Container Block Sysctls
+  enabled: true
+  description: "Setting sysctls can allow containers unauthorized escalated privileges to a Kubernetes node. \n"
+  how_to_solve: "You should not set  `securityContext.sysctls` \n```\n...\n  spec:\n    securityContext:\n      sysctls\n```\nhttps://kubernetes.io/docs/tasks/configure-pod-container/security-context/\n"
+  category: weave.categories.pod-security
+  severity: high
+  targets: {kinds: [Deployment, Job, ReplicationController, ReplicaSet, DaemonSet, StatefulSet, CronJob]}
+  standards:
+    - id: weave.standards.pci-dss
+      controls:
+        - weave.controls.pci-dss.2.2.4
+        - weave.controls.pci-dss.2.2.5
+    - id: weave.standards.cis-benchmark
+      controls:
+        - weave.controls.cis-benchmark.5.2.6
+    - id: weave.standards.mitre-attack
+      controls:
+        - weave.controls.mitre-attack.4.1
+    - id: weave.standards.nist-800-190
+      controls:
+        - weave.controls.nist-800-190.3.3.1
+    - id: weave.standards.gdpr
+      controls:
+        - weave.controls.gdpr.24
+        - weave.controls.gdpr.25
+        - weave.controls.gdpr.32
+  tags: [pci-dss, cis-benchmark, mitre-attack, nist800-190, gdpr, default]
+  parameters:
+    - name: exclude_namespace
+      type: string
+      required: false
+      value: kube-system
+    - name: exclude_label_key
+      type: string
+      required: false
+      value:
+    - name: exclude_label_value
+      type: string
+      required: false
+      value:
+  code: |
+    package weave.advisor.podSecurity.block_sysctls
+
+    exclude_namespace := input.parameters.exclude_namespace
+    exclude_label_key := input.parameters.exclude_label_key
+    exclude_label_value := input.parameters.exclude_label_value
+
+    violation[result] {
+    	not exclude_namespace == controller_input.metadata.namespace
+    	not exclude_label_value == controller_input.metadata.labels[exclude_label_key]
+
+        controller_spec.securityContext.sysctls
+    	
+    	result = {
+    		"issue detected": true,
+    		"msg": "Adding sysctls could lead to unauthorized escalated privileges to the underlying node",
+    		"violating_key": "spec.template.spec.securityContext.sysctls"
+    	}
+    }
+
+    ###### Functions
+    isArrayContains(array, str) {
+    	array[_] = str
+    }
+
+    # Initial Setup
+    controller_input = input.review.object
+
+    controller_spec = controller_input.spec.template.spec {
+    	isArrayContains({"StatefulSet", "DaemonSet", "Deployment", "Job", "ReplicaSet"}, controller_input.kind)
+    } else = controller_input.spec {
+    	controller_input.kind == "Pod"
+    } else = controller_input.spec.jobTemplate.spec.template.spec {
+    	controller_input.kind == "CronJob"
+    }
+---
+apiVersion: pac.weave.works/v2beta1
+kind: Policy
+metadata:
+  name: weave.policies.containers-running-with-unapproved-linux-capabilities
+spec:
+  id: weave.policies.containers-running-with-unapproved-linux-capabilities
+  name: Containers Running With Unapproved Linux Capabilities
+  enabled: true
+  description: "Linux capabilities provide a finer-grained breakdown of the privileges traditionally associated with the superuser. Not specifying those capabilities gives the container access to all OS capabilities which may result in exploiting the VM at which the container is running. The issue is reported when a container has `SYS_ADMIN`, `NET_RAW`, `NET_ADMIN`, or `ALL` capabilities. For this Policy, you can also exclude a namespace, such as `kube-system`. \n\nWith Linux capabilities, you can grant certain privileges to a process without granting all the privileges of the root user. To add or remove Linux capabilities for a Container, include the capabilities field in the securityContext section of the Container manifest.\n"
+  how_to_solve: |
+    You should set the specific Linux capabilities that your container needs. Or you could simply remove from `capabilities` the values of `SYS_ADMIN`, `NET_ADMIN`, and `ALL`.
+    ```
+    ...
+      spec:
+        containers:
+        - securityContext:
+            capabilities:
+              add: ["SYS_ADMIN, "ALL", "NET_ADMIN"]
+    ```
+    https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+  category: weave.categories.pod-security
+  severity: high
+  targets: {kinds: [Deployment, Job, ReplicationController, ReplicaSet, DaemonSet, StatefulSet, CronJob]}
+  standards:
+    - id: weave.standards.pci-dss
+      controls:
+        - weave.controls.pci-dss.2.2.4
+        - weave.controls.pci-dss.2.2.5
+    - id: weave.standards.cis-benchmark
+      controls:
+        - weave.controls.cis-benchmark.5.2.7
+        - weave.controls.cis-benchmark.5.2.8
+        - weave.controls.cis-benchmark.5.2.9
+    - id: weave.standards.mitre-attack
+      controls:
+        - weave.controls.mitre-attack.4.1
+    - id: weave.standards.nist-800-190
+      controls:
+        - weave.controls.nist-800-190.3.3.1
+    - id: weave.standards.gdpr
+      controls:
+        - weave.controls.gdpr.25
+        - weave.controls.gdpr.32
+        - weave.controls.gdpr.24
+    - id: weave.standards.soc2-type-i
+      controls:
+        - weave.controls.soc2-type-i.1.6.1
+  tags: [pci-dss, cis-benchmark, mitre-attack, nist800-190, gdpr, soc2-type1, default]
+  parameters:
+    - name: exclude_namespace
+      type: string
+      required: false
+      value:
+  code: "package weave.advisor.podSecurity.capabilities\n\nexclude_namespace := input.parameters.exclude_namespace\nexclude_label_key := input.parameters.exclude_label_key\nexclude_label_value := input.parameters.exclude_label_value\n\nviolation[result] {\n  isExcludedNamespace == false\n  not exclude_namespace == controller_input.metadata.namespace\n  not exclude_label_value == controller_input.metadata.labels[exclude_label_key]\n  isViolatingTheCapabilities\n  result = {\n    \"issue detected\": true,\n    \"msg\": \"Running unapproved capabilities\",\n    \"violating_key\": \"spec.template.spec.containers.securityContext.capabilities\"  \n  }\n}\n\nisExcludedNamespace  = true {\n\tinput.review.object.metadata.namespace == exclude_namespace\n}else = false {true}\n\n\nis_array_contains(array,str) {\n  array[_] = str\n}\n\ndangerousCap := {\"SYS_ADMIN\",\"NEW_RAW\",\"NET_ADMIN\",\"ALL\"}\n\nisViolatingTheCapabilities = true {\n\tcontainer := controller_spec.containers[_]\n    cap := container.securityContext.capabilities.add[_]\n    is_array_contains(dangerousCap,cap)\n\n}else = true{\n    cap := controller_spec.securityContext.capabilities.add[_]\n    is_array_contains(dangerousCap,cap)\n    container := controller_spec.containers[_]\n    not  container.securityContext.capabilities\n\n\n}else = true{\n    cap := controller_spec.securityContext.capabilities.add[_]\n    is_array_contains(dangerousCap,cap)\n    container := controller_spec.containers[_]\n    not  count(container.securityContext.capabilities.add) >=0\n}\n\n# Controller input\ncontroller_input = input.review.object\n\n# controller_container acts as an iterator to get containers from the template\ncontroller_spec = controller_input.spec.template.spec {\n  contains_kind(controller_input.kind, {\"StatefulSet\" , \"DaemonSet\", \"Deployment\", \"Job\"})\n} else = controller_input.spec {\n  controller_input.kind == \"Pod\"\n} else = controller_input.spec.jobTemplate.spec.template.spec {\n  controller_input.kind == \"CronJob\"\n}\n\ncontains_kind(kind, kinds) {\n  kinds[_] = kind\n}\n"
+---
+apiVersion: pac.weave.works/v2beta1
+kind: Policy
+metadata:
+  name: weave.policies.container-running-as-root
+spec:
+  id: weave.policies.container-running-as-root
+  name: Container Running As Root
+  enabled: true
+  description: "Running as root gives the container full access to all resources in the VM it is running on. Containers should not run with such access rights unless required by design. This Policy enforces that the `securityContext.runAsNonRoot` attribute is set to `true`. \n"
+  how_to_solve: "You should set `securityContext.runAsNonRoot` to `true`. Not setting it will default to giving the container root user rights on the VM that it is running on. \n```\n...\n  spec:\n    securityContext:\n      runAsNonRoot: true\n```\nhttps://kubernetes.io/docs/tasks/configure-pod-container/security-context/\n"
+  category: weave.categories.pod-security
+  severity: high
+  targets: {kinds: [Deployment, Job, ReplicationController, ReplicaSet, DaemonSet, StatefulSet, CronJob]}
+  standards:
+    - id: weave.standards.pci-dss
+      controls:
+        - weave.controls.pci-dss.2.2.4
+        - weave.controls.pci-dss.2.2.5
+    - id: weave.standards.cis-benchmark
+      controls:
+        - weave.controls.cis-benchmark.5.2.6
+    - id: weave.standards.mitre-attack
+      controls:
+        - weave.controls.mitre-attack.4.1
+    - id: weave.standards.nist-800-190
+      controls:
+        - weave.controls.nist-800-190.3.3.1
+    - id: weave.standards.gdpr
+      controls:
+        - weave.controls.gdpr.24
+        - weave.controls.gdpr.25
+        - weave.controls.gdpr.32
+  tags: [pci-dss, cis-benchmark, mitre-attack, nist800-190, gdpr, default]
+  parameters:
+    - name: exclude_namespace
+      type: string
+      required: false
+      value: kube-system
+    - name: exclude_label_key
+      type: string
+      required: false
+      value:
+    - name: exclude_label_value
+      type: string
+      required: false
+      value:
+  code: |-
+    package weave.advisor.podSecurity.runningAsRoot
+
+    exclude_namespace := input.parameters.exclude_namespace
+    exclude_label_key := input.parameters.exclude_label_key
+    exclude_label_value := input.parameters.exclude_label_value
+
+    # Check for missing securityContext.runAsNonRoot (missing in both, pod and container)
+    violation[result] {
+    	not exclude_namespace == controller_input.metadata.namespace
+    	not exclude_label_value == controller_input.metadata.labels[exclude_label_key]
+
+    	controller_spec.securityContext
+    	not controller_spec.securityContext.runAsNonRoot
+    	not controller_spec.securityContext.runAsNonRoot == false
+
+    	some i
+    	containers := controller_spec.containers[i]
+    	containers.securityContext
+    	not containers.securityContext.runAsNonRoot
+    	not containers.securityContext.runAsNonRoot == false
+
+    	result = {
+    		"issue detected": true,
+    		"msg": sprintf("Container missing spec.template.spec.containers[%v].securityContext.runAsNonRoot while Pod spec.template.spec.securityContext.runAsNonRoot is not defined as well.", [i]),
+    		"violating_key": sprintf("spec.template.spec.containers[%v].securityContext", [i]),
+    	}
+    }
+
+    # Container security context
+    # Check if containers.securityContext.runAsNonRoot exists and = false
+    violation[result] {
+    	not exclude_namespace == controller_input.metadata.namespace
+    	not exclude_label_value == controller_input.metadata.labels[exclude_label_key]
+
+    	some i
+    	containers := controller_spec.containers[i]
+    	containers.securityContext
+    	containers.securityContext.runAsNonRoot == false
+
+    	result = {
+    		"issue detected": true,
+    		"msg": sprintf("Container spec.template.spec.containers[%v].securityContext.runAsNonRoot should be set to true ", [i]),
+    		"violating_key": sprintf("spec.template.spec.containers[%v].securityContext.runAsNonRoot", [i]),
+    		"recommended_value": true,
+    	}
+    }
+
+    # Pod security context
+    # Check if spec.securityContext.runAsNonRoot exists and = false
+    violation[result] {
+    	not exclude_namespace == controller_input.metadata.namespace
+    	not exclude_label_value == controller_input.metadata.labels[exclude_label_key]
+
+    	controller_spec.securityContext
+    	controller_spec.securityContext.runAsNonRoot == false
+
+    	result = {
+    		"issue detected": true,
+    		"msg": "Pod spec.template.spec.securityContext.runAsNonRoot should be set to true",
+    		"violating_key": "spec.template.spec.securityContext.runAsNonRoot",
+    		"recommended_value": true,
+    	}
+    }
+
+    controller_input = input.review.object
+
+    controller_spec = controller_input.spec.template.spec {
+    	contains(controller_input.kind, {"StatefulSet", "DaemonSet", "Deployment", "Job", "ReplicaSet"})
+    } else = controller_input.spec {
+    	controller_input.kind == "Pod"
+    } else = controller_input.spec.jobTemplate.spec.template.spec {
+    	controller_input.kind == "CronJob"
+    }
+
+    contains(kind, kinds) {
+    	kinds[_] = kind
+    }
+---
+apiVersion: pac.weave.works/v2beta1
+kind: Policy
+metadata:
+  name: weave.policies.container-running-as-user
+spec:
+  id: weave.policies.container-running-as-user
+  name: Container Running As User
+  enabled: true
+  description: "Containers has a feature in which you specify the ID of the user which all processes in the container will run with. This Policy enforces that the `securityContext.runAsUser` attribute is set to a uid greater than root uid. Running as root user gives the container full access to all resources in the VM it is running on. Containers should not run with such access rights unless required by design. \n"
+  how_to_solve: "You should set `securityContext.runAsUser` uid to something greater than root uid. Not setting it will default to giving the container root user rights on the VM that it is running on. \n```\n...\n  spec:\n    securityContext:\n      runAsUser: <uid>\n```\nhttps://kubernetes.io/docs/tasks/configure-pod-container/security-context/\n"
+  category: weave.categories.pod-security
+  severity: high
+  targets: {kinds: [Deployment, Job, ReplicationController, ReplicaSet, DaemonSet, StatefulSet, CronJob]}
+  standards:
+    - id: weave.standards.pci-dss
+      controls:
+        - weave.controls.pci-dss.2.2.4
+        - weave.controls.pci-dss.2.2.5
+    - id: weave.standards.cis-benchmark
+      controls:
+        - weave.controls.cis-benchmark.5.2.6
+    - id: weave.standards.mitre-attack
+      controls:
+        - weave.controls.mitre-attack.4.1
+    - id: weave.standards.nist-800-190
+      controls:
+        - weave.controls.nist-800-190.3.3.1
+    - id: weave.standards.gdpr
+      controls:
+        - weave.controls.gdpr.24
+        - weave.controls.gdpr.25
+        - weave.controls.gdpr.32
+  tags: [pci-dss, cis-benchmark, mitre-attack, nist800-190, gdpr, default]
+  parameters:
+    - name: uid
+      type: integer
+      required: true
+      value: 0
+    - name: exclude_namespace
+      type: string
+      required: false
+      value: kube-system
+    - name: exclude_label_key
+      type: string
+      required: false
+      value:
+    - name: exclude_label_value
+      type: string
+      required: false
+      value:
+  code: |-
+    package weave.advisor.podSecurity.runningAsUser
+
+    exclude_namespace := input.parameters.exclude_namespace
+    exclude_label_key := input.parameters.exclude_label_key
+    exclude_label_value := input.parameters.exclude_label_value
+    uid := input.parameters.uid
+
+    # Check for missing securityContext.runAsUser (missing in both, pod and container)
+    violation[result] {
+    	not exclude_namespace == controller_input.metadata.namespace
+    	not exclude_label_value == controller_input.metadata.labels[exclude_label_key]
+
+    	controller_spec.securityContext
+    	not controller_spec.securityContext.runAsUser
+
+    	some i
+    	containers := controller_spec.containers[i]
+    	containers.securityContext
+    	not containers.securityContext.runAsUser
+
+    	result = {
+    		"issue detected": true,
+    		"msg": sprintf("Missing spec.template.spec.containers[%v].securityContext.runAsUser and spec.template.spec.securityContext.runAsUser is not defined as well.", [i]),
+    		"violating_key": sprintf("spec.template.spec.containers[%v].securityContext", [i]),
+    	}
+    }
+
+    # Container security context
+    # Check if containers.securityContext.runAsUser exists and <= uid
+    violation[result] {
+    	not exclude_namespace == controller_input.metadata.namespace
+    	not exclude_label_value == controller_input.metadata.labels[exclude_label_key]
+
+    	some i
+    	containers := controller_spec.containers[i]
+    	containers.securityContext
+    	containers.securityContext.runAsUser
+    	containers.securityContext.runAsUser <= uid
+    	
+    	result = {
+    		"issue detected": true,
+    		"msg": sprintf("Container is potentially running as root. Please check spec.template.spec.containers[%v].securityContext.runAsUser to see if the UID is correct.", [i]),
+    		"violating_key": sprintf("spec.template.spec.containers[%v].securityContext", [i]),
+    	}
+    }
+
+    # Pod security context
+    # Check if spec.securityContext.runAsUser exist and <= uid
+    violation[result] {
+    	not exclude_namespace == controller_input.metadata.namespace
+    	not exclude_label_value == controller_input.metadata.labels[exclude_label_key]
+
+    	controller_spec.securityContext
+    	controller_spec.securityContext.runAsUser
+    	controller_spec.securityContext.runAsUser <= uid
+
+    	result = {
+    		"issue detected": true,
+    		"msg": "A container is potentially running as root. Please check spec.template.spec.securityContext.runAsUser to see if the UID is correct.",
+    		"violating_key": "spec.template.spec.securityContext",
+    	}
+    }
+
+    controller_input = input.review.object
+
+    controller_spec = controller_input.spec.template.spec {
+    	contains(controller_input.kind, {"StatefulSet", "DaemonSet", "Deployment", "Job", "ReplicaSet"})
+    } else = controller_input.spec {
+    	controller_input.kind == "Pod"
+    } else = controller_input.spec.jobTemplate.spec.template.spec {
+    	controller_input.kind == "CronJob"
+    }
+
+    contains(kind, kinds) {
+    	kinds[_] = kind
+    }
+---
+apiVersion: pac.weave.works/v2beta1
+kind: Policy
+metadata:
+  name: weave.policies.containers-running-in-privileged-mode
+spec:
+  id: weave.policies.containers-running-in-privileged-mode
+  name: Containers Running In Privileged Mode
+  enabled: true
+  description: |
+    This Policy reports if containers are running in privileged mode. A privileged container is given access to all devices on the host. This allows the container nearly all the same access as processes running on the host.
+
+    By default a container is not allowed to access any devices on the host, but a "privileged" container is given access to all devices on the host. This allows the container nearly all the same access as processes running on the host. This is useful for containers that want to use linux capabilities like manipulating the network stack and accessing devices.
+  how_to_solve: "Look at the following path to see what the settings are. \n```\n...\n  spec:\n    containers:\n    - securityContext:\n        privileged: <privilege>\n```\nhttps://kubernetes.io/docs/tasks/configure-pod-container/security-context/\n"
+  category: weave.categories.pod-security
+  severity: high
+  targets: {kinds: [Deployment, Job, ReplicationController, ReplicaSet, DaemonSet, StatefulSet, CronJob]}
+  standards:
+    - id: weave.standards.pci-dss
+      controls:
+        - weave.controls.pci-dss.2.2.4
+        - weave.controls.pci-dss.2.2.5
+    - id: weave.standards.cis-benchmark
+      controls:
+        - weave.controls.cis-benchmark.5.2.1
+    - id: weave.standards.mitre-attack
+      controls:
+        - weave.controls.mitre-attack.4.1
+    - id: weave.standards.nist-800-190
+      controls:
+        - weave.controls.nist-800-190.3.3.1
+    - id: weave.standards.gdpr
+      controls:
+        - weave.controls.gdpr.25
+        - weave.controls.gdpr.32
+        - weave.controls.gdpr.24
+    - id: weave.standards.soc2-type-i
+      controls:
+        - weave.controls.soc2-type-i.1.6.1
+  tags: [pci-dss, cis-benchmark, mitre-attack, nist800-190, gdpr, soc2-type1, default]
+  parameters:
+    - name: privilege
+      type: boolean
+      required: true
+      value: false
+    - name: exclude_namespace
+      type: string
+      required: false
+      value:
+    - name: exclude_label_key
+      type: string
+      required: false
+      value:
+    - name: exclude_label_value
+      type: string
+      required: false
+      value:
+  code: |
+    package weave.advisor.podSecurity.privileged
+
+
+    exclude_namespace := input.parameters.exclude_namespace
+    privilege := input.parameters.privilege
+    exclude_label_key := input.parameters.exclude_label_key
+    exclude_label_value := input.parameters.exclude_label_value
+
+    violation[result] {
+      some i
+      isExcludedNamespace == false
+      not exclude_namespace == controller_input.metadata.namespace
+      not exclude_label_value == controller_input.metadata.labels[exclude_label_key]
+      container := controller_spec.containers[i]
+      security_context_priv := container.securityContext.privileged
+      not security_context_priv == privilege
+      result = {
+        "issue detected": true,
+        "msg": sprintf("Container should set privileged to '%v'; detected '%v'", [privilege, security_context_priv]),
+        "violating_key": sprintf("spec.template.spec.containers[%v].securityContext.privileged", [i]),
+        "recommended_value": privilege
+      }
+    }
+
+    isExcludedNamespace  = true {
+      input.review.object.metadata.namespace == exclude_namespace
+    }else = false {true}
+
+
+    is_array_contains(array,str) {
+      array[_] = str
+    }
+
+    # Controller input
+    controller_input = input.review.object
+
+    # controller_container acts as an iterator to get containers from the template
+    controller_spec = controller_input.spec.template.spec {
+      contains_kind(controller_input.kind, {"StatefulSet" , "DaemonSet", "Deployment", "Job"})
+    } else = controller_input.spec {
+      controller_input.kind == "Pod"
+    } else = controller_input.spec.jobTemplate.spec.template.spec {
+      controller_input.kind == "CronJob"
+    }
+
+    contains_kind(kind, kinds) {
+      kinds[_] = kind
+    }
+---
+apiVersion: pac.weave.works/v2beta1
+kind: Policy
+metadata:
+  name: weave.policies.controller-serviceaccount-tokens-automount
+spec:
+  id: weave.policies.controller-serviceaccount-tokens-automount
+  name: Controller ServiceAccount Tokens Automount
+  enabled: true
+  description: "This Policy allows for the option of enabling or disabling Service Accounts that are created for a Pod. The recommended practice is to set the `automount_token` to `false.  \n\nWhen a pod is created without specifying a service account, it is automatically assigned the default service account in the same namespace. This is a security concern because a compromised container can access the API using automatically mounted service account credentials. The API permissions of the service account depend on the authorization plugin and policy in use, but could possibly create and delete pods. \n\nWe recommend setting the `automount_token` to `false`. \n\nIn version 1.6+, you can opt out of automounting API credentials for a particular pod.\n"
+  how_to_solve: "Ensure the setting in the Policy matches the Service Account declaration in the controller. \n```\n...\n  spec:\n    automountServiceAccountToken: false\n```\n\nhttps://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#use-the-default-service-account-to-access-the-api-server\n"
+  category: weave.categories.access-control
+  severity: high
+  targets: {kinds: [Deployment, Job, ReplicationController, ReplicaSet, DaemonSet, StatefulSet, CronJob]}
+  standards:
+    - id: weave.standards.pci-dss
+      controls:
+        - weave.controls.pci-dss.7.2.1
+    - id: weave.standards.cis-benchmark
+      controls:
+        - weave.controls.cis-benchmark.5.1.5
+    - id: weave.standards.mitre-attack
+      controls:
+        - weave.controls.mitre-attack.1.4
+    - id: weave.standards.hipaa
+      controls:
+        - weave.controls.hipaa.164.312.a.2.i
+    - id: weave.standards.gdpr
+      controls:
+        - weave.controls.gdpr.25
+        - weave.controls.gdpr.32
+        - weave.controls.gdpr.24
+    - id: weave.standards.soc2-type-i
+      controls:
+        - weave.controls.soc2-type-i.1.6.3
+  tags: [pci-dss, cis-benchmark, mitre-attack, hipaa, gdpr, default, soc2-type1]
+  parameters:
+    - name: automount_token
+      type: boolean
+      required: true
+      value: false
+    - name: exclude_namespace
+      type: string
+      required: false
+      value:
+    - name: exclude_label_key
+      type: string
+      required: false
+      value:
+    - name: exclude_label_value
+      type: string
+      required: false
+      value:
+  code: |
+    package weave.advisor.pods.service_account_token_automount
+
+    automount_token := input.parameters.automount_token
+    exclude_namespace := input.parameters.exclude_namespace
+    exclude_label_key := input.parameters.exclude_label_key
+    exclude_label_value := input.parameters.exclude_label_value
+
+    violation[result] {
+      not exclude_namespace == controller_input.metadata.namespace
+      not exclude_label_value == controller_input.metadata.labels[exclude_label_key]
+      automount := controller_spec
+      not has_key(automount, "automountServiceAccountToken")
+      result = {
+        "issue detected": true,
+        "msg": sprintf("'automountServiceAccountToken' must be set; found '%v'",[automount]),
+        "violating_key": "spec.template.spec"
+      }
+    }
+
+    violation[result] {
+      not exclude_namespace == controller_input.metadata.namespace
+      not exclude_label_value == controller_input.metadata.labels[exclude_label_key]
+      automount := controller_spec.automountServiceAccountToken
+      not automount == automount_token
+      result = {
+        "issue detected": true,
+        "msg": sprintf("automountServiceAccountToken must be '%v'; found '%v'",[automount_token, automount]),
+        "violating_key": "spec.template.spec.automountServiceAccountToken",
+        "recommended_value": automount_token
+      }
+    }
+
+    has_key(x, k) {
+      type_name(x[k])
+    }
+
+    # Controller input
+    controller_input = input.review.object
+
+    # controller_container acts as an iterator to get containers from the template
+    controller_spec = controller_input.spec.template.spec {
+      contains_kind(controller_input.kind, {"StatefulSet" , "DaemonSet", "Deployment", "Job"})
+    } else = controller_input.spec {
+      controller_input.kind == "Pod"
+    } else = controller_input.spec.jobTemplate.spec.template.spec {
+      controller_input.kind == "CronJob"
+    }
+
+    contains_kind(kind, kinds) {
+      kinds[_] = kind
+    }
+---
+apiVersion: pac.weave.works/v2beta1
+kind: Policy
+metadata:
+  name: weave.policies.container-prohibit-image-tag
+spec:
+  id: weave.policies.container-prohibit-image-tag
+  name: Container Prohibit Image Tag
+  enabled: true
+  description: "Prohibit certain image tags by specifying them in the Policy. The Policy will also violate if the a tag is not set, or is set to `latest`. \n\nNote: You should avoid using the :latest tag when deploying containers in production as it is harder to track which version of the image is running and more difficult to roll back properly.\n"
+  how_to_solve: "Configure an image tag that is not in the Policy. \n```\n...\n  spec:\n    containers:\n    - image: registry/image_name:<tag>\n```\nhttps://kubernetes.io/docs/concepts/configuration/overview/#container-images\n"
+  category: weave.categories.software-supply-chain
+  severity: high
+  targets: {kinds: [Deployment, Job, ReplicationController, ReplicaSet, DaemonSet, StatefulSet, CronJob]}
+  standards:
+    - id: weave.standards.cis-benchmark
+      controls:
+        - weave.controls.cis-benchmark.5.5.1
+    - id: weave.standards.mitre-attack
+      controls:
+        - weave.controls.mitre-attack.1.2
+    - id: weave.standards.gdpr
+      controls:
+        - weave.controls.gdpr.25
+        - weave.controls.gdpr.32
+        - weave.controls.gdpr.24
+    - id: weave.standards.soc2-type-i
+      controls:
+        - weave.controls.soc2-type-i.1.6.8
+  tags: [cis-benchmark, mitre-attack, gdpr, soc2-type1, default]
+  parameters:
+    - name: image_tag
+      type: string
+      required: true
+      value: latest
+    - name: exclude_namespace
+      type: string
+      required: false
+      value:
+    - name: exclude_label_key
+      type: string
+      required: false
+      value:
+    - name: exclude_label_value
+      type: string
+      required: false
+      value:
+  code: |-
+    package weave.advisor.images.image_tag_enforce
+
+    image_tag := input.parameters.image_tag
+    exclude_namespace := input.parameters.exclude_namespace
+    exclude_label_key := input.parameters.exclude_label_key
+    exclude_label_value := input.parameters.exclude_label_value
+
+    violation[result] {
+      not exclude_namespace == controller_input.metadata.namespace
+      not exclude_label_value == controller_input.metadata.labels[exclude_label_key]
+      some i
+      containers = controller_spec.containers[i]
+      splittedUrl = split(containers.image, "/")
+      image = splittedUrl[count(splittedUrl)-1]
+      not contains(image, ":")
+      result = {
+        "issue detected": true,
+        "msg": "Image is not tagged",
+        "violating_key": sprintf("spec.template.spec.containers[%v].image", [i])
+      }
+    }
+
+    violation[result] {
+      some i
+      containers = controller_spec.containers[i]
+      splittedUrl = split(containers.image, "/")
+      image = splittedUrl[count(splittedUrl)-1]
+      count(split(image, ":")) == 2
+      [image_name, tag] = split(image, ":")
+      tag == image_tag
+      result = {
+        "issue detected": true,
+        "msg": sprintf("Image contains unapproved tag '%v'", [image_tag]),
+        "image": image,
+        "violating_key": sprintf("spec.template.spec.containers[%v].image", [i])
+      }
+    }
+
+    violation[result] {
+      some i
+      containers = controller_spec.containers[i]
+      splittedUrl = split(containers.image, "/")
+      image = splittedUrl[count(splittedUrl)-1]
+      count(split(image, ":")) == 3
+      [image_name, port, tag] = split(image, ":")
+      tag == image_tag
+      result = {
+        "issue detected": true,
+        "msg": sprintf("Image contains unapproved tag:'%v'", [image_tag]),
+        "image": image,
+        "violating_key": sprintf("spec.template.spec.containers[%v].image", [i])
+      }
+    }
+
+    # Controller input
+    controller_input = input.review.object
+
+    # controller_container acts as an iterator to get containers from the template
+    controller_spec = controller_input.spec.template.spec {
+      contains_kind(controller_input.kind, {"StatefulSet" , "DaemonSet", "Deployment", "Job"})
+    } else = controller_input.spec {
+      controller_input.kind == "Pod"
+    } else = controller_input.spec.jobTemplate.spec.template.spec {
+      controller_input.kind == "CronJob"
+    }
+
+    contains_kind(kind, kinds) {
+      kinds[_] = kind
+    }
+---
+apiVersion: pac.weave.works/v2beta1
+kind: Policy
+metadata:
+  name: weave.policies.containers-missing-security-context
+spec:
+  id: weave.policies.containers-missing-security-context
+  name: Containers Missing Security Context
+  enabled: true
+  description: |
+    This Policy checks if the container is missing securityContext while there is no securityContext defined on the Pod level as well. The security settings that are specified on the Pod level apply to all containers in the Pod.
+  how_to_solve: |
+    Make sure you secure your containers by specifying a `securityContext` whether on each container or on the Pod level. The security settings that you specify on the Pod level apply to all containers in the Pod.
+    ```
+    ...
+      spec:
+        securityContext:
+          <securityContext attributes>
+    ```
+    https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+  category: weave.categories.pod-security
+  severity: high
+  targets: {kinds: [Deployment, Job, ReplicationController, ReplicaSet, DaemonSet, StatefulSet, CronJob]}
+  standards:
+    - id: weave.standards.pci-dss
+      controls:
+        - weave.controls.pci-dss.2.2.4
+        - weave.controls.pci-dss.2.2.5
+    - id: weave.standards.cis-benchmark
+      controls:
+        - weave.controls.cis-benchmark.5.2.6
+    - id: weave.standards.mitre-attack
+      controls:
+        - weave.controls.mitre-attack.4.1
+    - id: weave.standards.nist-800-190
+      controls:
+        - weave.controls.nist-800-190.3.3.1
+    - id: weave.standards.gdpr
+      controls:
+        - weave.controls.gdpr.24
+        - weave.controls.gdpr.25
+        - weave.controls.gdpr.32
+  tags: [pci-dss, cis-benchmark, mitre-attack, nist800-190, gdpr, default]
+  parameters:
+    - name: exclude_namespace
+      type: string
+      required: false
+      value: kube-system
+    - name: exclude_label_key
+      type: string
+      required: false
+      value:
+    - name: exclude_label_value
+      type: string
+      required: false
+      value:
+  code: |-
+    package weave.advisor.podSecurity.missing_security_context
+
+    violation[result] {
+    	not controller_spec.securityContext	# Pod securityContext missing
+    	some i
+    	containers := controller_spec.containers[i]
+    	not containers.securityContext	# Container securityContext missing
+    	result = {
+    		"issue detected": true,
+    		"msg": sprintf("Container missing spec.template.spec.containers[%v].securityContext while Pod spec.template.spec.securityContext is not defined as well.", [i]),
+    		"violating_key": "spec.template.spec.containers[%v]",
+    	}
+    }
+
+    controller_input = input.review.object
+
+    controller_spec = controller_input.spec.template.spec {
+    	contains(controller_input.kind, {"StatefulSet", "DaemonSet", "Deployment", "Job", "ReplicaSet"})
+    } else = controller_input.spec {
+    	controller_input.kind == "Pod"
+    } else = controller_input.spec.jobTemplate.spec.template.spec {
+    	controller_input.kind == "CronJob"
+    }
+
+    contains(kind, kinds) {
+    	kinds[_] = kind
+    }
+---
+apiVersion: pac.weave.works/v2beta1
+kind: Policy
+metadata:
+  name: weave.policies.containers-should-not-run-in-namespace
+spec:
+  id: weave.policies.containers-should-not-run-in-namespace
+  name: Containers Should Not Run In Namespace
+  enabled: true
+  description: "This Policy ensure workloads are not running in a specified namespace. \n"
+  how_to_solve: "Use a `namespace` that differs from the one specified in the Policy. \n```\nmetadata:\n  namespace: <custom_namespace>\n```\n\nhttps://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/\n"
+  category: weave.categories.organizational-standards
+  severity: low
+  targets: {kinds: [Deployment, Job, ReplicationController, ReplicaSet, DaemonSet, StatefulSet, CronJob]}
+  standards:
+    - id: weave.standards.cis-benchmark
+      controls:
+        - weave.controls.cis-benchmark.5.7.4
+    - id: weave.standards.soc2-type-i
+      controls:
+        - weave.controls.soc2-type-i.2.1.1
+  tags: [cis-benchmark, soc2-type1]
+  parameters:
+    - name: custom_namespace
+      type: string
+      required: true
+      value: default
+    - name: exclude_label_key
+      type: string
+      required: false
+      value:
+    - name: exclude_label_value
+      type: string
+      required: false
+      value:
+  code: |-
+    package weave.advisor.pods.not_namespace
+
+    custom_namespace := input.parameters.custom_namespace
+    exclude_label_key := input.parameters.exclude_label_key
+    exclude_label_value := input.parameters.exclude_label_value
+
+    violation[result] {
+      not exclude_label_value == controller_input.metadata.labels[exclude_label_key]
+      namespace := controller_input.metadata.namespace
+      namespace == custom_namespace
+      result = {
+        "issue detected": true,
+        "msg": sprintf("Workloads must not be running in the namespace '%v'; found '%v'", [custom_namespace, namespace]),
+        "violating_key": "metadata.namespace"
+      }
+    }
+
+    controller_input = input.review.object {
+    	contains_kind(input.review.object.kind, {"StatefulSet" , "DaemonSet", "Deployment", "Job", "Pod", "CronJob"})
+    }
+
+    contains_kind(kind, kinds) {
+      kinds[_] = kind
+    }
+---
+apiVersion: pac.weave.works/v2beta1
+kind: Policy
+metadata:
+  name: weave.policies.containers-not-using-runtime-default-seccomp-profile
+spec:
+  id: weave.policies.containers-not-using-runtime-default-seccomp-profile
+  name: Containers Not Using Runtime Default Seccomp Profile
+  enabled: true
+  description: "This Policy checks for runtime/default seccomp annotation. \n\nSeccomp stands for secure computing mode and has been a feature of the Linux kernel since version 2.6.12. It can be used to sandbox the privileges of a process, restricting the calls it is able to make from userspace into the kernel. Kubernetes lets you automatically apply seccomp profiles loaded onto a Node to your Pods and containers.\n"
+  how_to_solve: "Depending on the version of Kubernetes, you either need to set an annotation or a seccomp type in your `securityContext`. \n```\nmetadata:\n  annotations:\n    seccomp.security.alpha.kubernetes.io/pod: <seccomp_annotation>\n```\nAND\n```\n...\n  spec:\n    seccompProfile:\n      type: <seccomp_type>\n```\nhttps://kubernetes.io/docs/tutorials/clusters/seccomp/#create-pod-that-uses-the-container-runtime-default-seccomp-profile\n"
+  category: weave.categories.pod-security
+  severity: high
+  targets: {kinds: [Deployment, Job, ReplicationController, ReplicaSet, DaemonSet, StatefulSet, CronJob]}
+  standards:
+    - id: weave.standards.cis-benchmark
+      controls:
+        - weave.controls.cis-benchmark.5.7.2
+    - id: weave.standards.nist-800-190
+      controls:
+        - weave.controls.nist-800-190.4.4.3
+    - id: weave.standards.soc2-type-i
+      controls:
+        - weave.controls.soc2-type-i.1.6.1
+  tags: [cis-benchmark, nist800-190, soc2-type1]
+  parameters:
+    - name: seccomp_annotation
+      type: string
+      required: true
+      value: runtime/default
+    - name: seccomp_type
+      type: string
+      required: true
+      value: RuntimeDefault
+    - name: exclude_namespace
+      type: string
+      required: false
+      value:
+    - name: exclude_label_key
+      type: string
+      required: false
+      value:
+    - name: exclude_label_value
+      type: string
+      required: false
+      value:
+  code: "package weave.advisor.podSecurity.seccomp_runtime_default\n\nseccomp_annotation := input.parameters.seccomp_annotation\nseccomp_type := input.parameters.seccomp_type\nexclude_namespace := input.parameters.exclude_namespace\nexclude_label_key := input.parameters.exclude_label_key\nexclude_label_value := input.parameters.exclude_label_value\n\nviolation[result] {\n  not exclude_namespace == controller_input.metadata.namespace\n  not exclude_label_value == controller_input.metadata.labels[exclude_label_key]\n  annotation := input.review.object.metadata.annotations[\"seccomp.security.alpha.kubernetes.io/pod\"]\n  not annotation == seccomp_annotation\n  result = {\n    \"issue detected\": true,\n    \"msg\": sprintf(\"The value of the annotation must be '%v'; found '%v'\",[seccomp_annotation, annotation]),\n    \"violating_key\": \"spec.metadata.annotations\"  \n  }\n}\n\n# Pods\nviolation[result] {\n  not exclude_namespace == controller_input.metadata.namespace\n  not exclude_label_value == controller_input.metadata.labels[exclude_label_key]\n  type := controller_spec.securityContext.seccompProfile.type\n  not type == seccomp_type\n  result = {\n    \"issue detected\": true,\n    \"msg\": sprintf(\"The secompProfile type must be '%v'; found '%v'\",[seccomp_type, type]),\n    \"violating_key\": \"spec.template.spec.securityContext.seccompProfile.type\"  \n  }\n}\n\n# Non Pods - \"StatefulSet\" , \"DaemonSet\", \"Deployment\", \"Job\"\nviolation[result] {\n  not exclude_namespace == controller_input.metadata.namespace\n  not exclude_label_value == controller_input.metadata.labels[exclude_label_key]\n  type := controller_spec.template.spec.securityContext.seccompProfile.type\n  not type == seccomp_type\n  result = {\n    \"issue detected\": true,\n    \"msg\": sprintf(\"The secompProfile type must be '%v'; found '%v'\",[seccomp_type, type]),\n    \"violating_key\": \"spec.template.spec.securityContext.seccompProfile.type\"  \n  }\n}\n\n# CronJobs\nviolation[result] {\n  not exclude_namespace == controller_input.metadata.namespace\n  not exclude_label_value == controller_input.metadata.labels[exclude_label_key]\n  type := controller_input.spec.jobTemplate.spec.template.spec.securityContext.seccompProfile.type\n  not type == seccomp_type\n  result = {\n    \"issue detected\": true,\n    \"msg\": sprintf(\"The secompProfile type must be '%v'; found '%v'\",[seccomp_type, type]),\n    \"violating_key\": \"spec.jobTemplate.spec.template.spec.securityContext.seccompProfile.type\"  \n  }\n}\n\n# Controller input\ncontroller_input = input.review.object\n\n# controller_container acts as an iterator to get containers from the template\ncontroller_spec = controller_input.spec.template.spec {\n  contains_kind(controller_input.kind, {\"StatefulSet\" , \"DaemonSet\", \"Deployment\", \"Job\"})\n} else = controller_input.spec {\n  controller_input.kind == \"Pod\"\n} else = controller_input.spec.jobTemplate.spec.template.spec {\n  controller_input.kind == \"CronJob\"\n}\n\ncontains_kind(kind, kinds) {\n  kinds[_] = kind\n}\n"
+---
+apiVersion: pac.weave.works/v2beta1
+kind: Policy
+metadata:
+  name: weave.policies.containers-sharing-host-ipc
+spec:
+  id: weave.policies.containers-sharing-host-ipc
+  name: Containers Sharing Host IPC
+  enabled: true
+  description: |
+    This Policy allows check if sharing host IPC namespace with the container should be allowed or not. Resources that can be shared with the container include:
+
+    ### hostNetwork
+    Controls whether the pod may use the node network namespace. Doing so gives the pod access to the loopback device, services listening on localhost, and could be used to snoop on network activity of other pods on the same node.
+
+    ### hostPID
+    Controls whether the pod containers can share the host process ID namespace. Note that when paired with ptrace this can be used to escalate privileges outside of the container (ptrace is forbidden by default).
+
+    ### shareProcessNamespace
+    When process namespace sharing is enabled, processes in a container are visible to all other containers in that pod.
+
+    ### hostIPC
+    Controls whether the pod containers can share the host IPC namespace.
+  how_to_solve: "Match the shared resource with either true or false, as set in your constraint. \n```\n...\n  spec:\n    <shared_resource>: <resource_enabled>\n```\nhttps://kubernetes.io/docs/concepts/policy/pod-security-policy/#host-namespaces\n"
+  category: weave.categories.pod-security
+  severity: high
+  targets: {kinds: [Deployment, Job, ReplicationController, ReplicaSet, DaemonSet, StatefulSet, CronJob]}
+  standards:
+    - id: weave.standards.cis-benchmark
+      controls:
+        - weave.controls.cis-benchmark.5.2.4
+        - weave.controls.cis-benchmark.5.2.3
+    - id: weave.standards.nist-800-190
+      controls:
+        - weave.controls.nist-800-190.4.5.2
+    - id: weave.standards.gdpr
+      controls:
+        - weave.controls.gdpr.25
+        - weave.controls.gdpr.32
+        - weave.controls.gdpr.24
+  tags: [nist800-190, gdpr, default]
+  parameters:
+    - name: resource_enabled
+      type: boolean
+      required: true
+      value: false
+    - name: exclude_namespace
+      type: string
+      required: false
+      value:
+    - name: exclude_label_key
+      type: string
+      required: false
+      value:
+    - name: exclude_label_value
+      type: string
+      required: false
+      value:
+  code: |-
+    package weave.advisor.podSecurity.deny_shared_host_ipc
+
+    resource_enabled := input.parameters.resource_enabled
+    exclude_namespace := input.parameters.exclude_namespace
+    exclude_label_key := input.parameters.exclude_label_key
+    exclude_label_value := input.parameters.exclude_label_value
+
+    violation[result] {
+      not exclude_namespace == controller_input.metadata.namespace
+      not exclude_label_value == controller_input.metadata.labels[exclude_label_key]
+      shared_resource := "hostIPC"
+      resource := controller_spec[shared_resource]
+      not resource == resource_enabled
+      result = {
+        "issue detected": true,
+        "msg": sprintf("'%v' should be set to '%v'; found '%v'", [shared_resource, resource_enabled, resource]),
+        "violating_key": sprintf("spec.template.spec[%v]", [shared_resource]),
+        "recommended_value": resource_enabled
+      }
+    }
+
+    # Controller input
+    controller_input = input.review.object
+
+    # controller_container acts as an iterator to get containers from the template
+    controller_spec = controller_input.spec.template.spec {
+      contains_kind(controller_input.kind, {"StatefulSet" , "DaemonSet", "Deployment", "Job"})
+    } else = controller_input.spec {
+      controller_input.kind == "Pod"
+    } else = controller_input.spec.jobTemplate.spec.template.spec {
+      controller_input.kind == "CronJob"
+    }
+
+    contains_kind(kind, kinds) {
+      kinds[_] = kind
+    }
+---
+apiVersion: pac.weave.works/v2beta1
+kind: Policy
+metadata:
+  name: weave.policies.containers-sharing-host-network
+spec:
+  id: weave.policies.containers-sharing-host-network
+  name: Containers Sharing Host Network
+  enabled: true
+  description: |
+    This Policy allows check if sharing host network namespace with the container should be allowed or not. Resources that can be shared with the container include:
+
+    ### hostNetwork
+    Controls whether the pod may use the node network namespace. Doing so gives the pod access to the loopback device, services listening on localhost, and could be used to snoop on network activity of other pods on the same node.
+
+    ### hostPID
+    Controls whether the pod containers can share the host process ID namespace. Note that when paired with ptrace this can be used to escalate privileges outside of the container (ptrace is forbidden by default).
+
+    ### shareProcessNamespace
+    When process namespace sharing is enabled, processes in a container are visible to all other containers in that pod.
+
+    ### hostIPC
+    Controls whether the pod containers can share the host IPC namespace.
+  how_to_solve: "Match the shared resource with either true or false, as set in your constraint. \n```\n...\n  spec:\n    <shared_resource>: <resource_enabled>\n```\nhttps://kubernetes.io/docs/concepts/policy/pod-security-policy/#host-namespaces\n"
+  category: weave.categories.pod-security
+  severity: high
+  targets: {kinds: [Deployment, Job, ReplicationController, ReplicaSet, DaemonSet, StatefulSet, CronJob]}
+  standards:
+    - id: weave.standards.cis-benchmark
+      controls:
+        - weave.controls.cis-benchmark.5.2.4
+        - weave.controls.cis-benchmark.5.2.3
+    - id: weave.standards.nist-800-190
+      controls:
+        - weave.controls.nist-800-190.4.5.2
+    - id: weave.standards.gdpr
+      controls:
+        - weave.controls.gdpr.25
+        - weave.controls.gdpr.32
+        - weave.controls.gdpr.24
+  tags: [cis-benchmark, nist800-190, gdpr, default]
+  parameters:
+    - name: resource_enabled
+      type: boolean
+      required: true
+      value: false
+    - name: exclude_namespace
+      type: string
+      required: false
+      value:
+    - name: exclude_label_key
+      type: string
+      required: false
+      value:
+    - name: exclude_label_value
+      type: string
+      required: false
+      value:
+  code: |-
+    package weave.advisor.podSecurity.deny_shared_host_network
+
+    resource_enabled := input.parameters.resource_enabled
+    exclude_namespace := input.parameters.exclude_namespace
+    exclude_label_key := input.parameters.exclude_label_key
+    exclude_label_value := input.parameters.exclude_label_value
+
+    violation[result] {
+      not exclude_namespace == controller_input.metadata.namespace
+      not exclude_label_value == controller_input.metadata.labels[exclude_label_key]
+      shared_resource := "hostNetwork"
+      resource := controller_spec[shared_resource]
+      not resource == resource_enabled
+      result = {
+        "issue detected": true,
+        "msg": sprintf("'%v' should be set to '%v'; found '%v'", [shared_resource, resource_enabled, resource]),
+        "violating_key": sprintf("spec.template.spec[%v]", [shared_resource]),
+        "recommended_value": resource_enabled
+      }
+    }
+
+    # Controller input
+    controller_input = input.review.object
+
+    # controller_container acts as an iterator to get containers from the template
+    controller_spec = controller_input.spec.template.spec {
+      contains_kind(controller_input.kind, {"StatefulSet" , "DaemonSet", "Deployment", "Job"})
+    } else = controller_input.spec {
+      controller_input.kind == "Pod"
+    } else = controller_input.spec.jobTemplate.spec.template.spec {
+      controller_input.kind == "CronJob"
+    }
+
+    contains_kind(kind, kinds) {
+      kinds[_] = kind
+    }
+---
+apiVersion: pac.weave.works/v2beta1
+kind: Policy
+metadata:
+  name: weave.policies.containers-sharing-host-pid
+spec:
+  id: weave.policies.containers-sharing-host-pid
+  name: Containers Sharing Host PID
+  enabled: true
+  description: |
+    This Policy allows check if sharing host PID namespace with the container should be allowed or not. Resources that can be shared with the container include:
+
+    ### hostNetwork
+    Controls whether the pod may use the node network namespace. Doing so gives the pod access to the loopback device, services listening on localhost, and could be used to snoop on network activity of other pods on the same node.
+
+    ### hostPID
+    Controls whether the pod containers can share the host process ID namespace. Note that when paired with ptrace this can be used to escalate privileges outside of the container (ptrace is forbidden by default).
+
+    ### shareProcessNamespace
+    When process namespace sharing is enabled, processes in a container are visible to all other containers in that pod.
+
+    ### hostIPC
+    Controls whether the pod containers can share the host IPC namespace.
+  how_to_solve: "Match the shared resource with either true or false, as set in your constraint. \n```\n...\n  spec:\n    <shared_resource>: <resource_enabled>\n```\nhttps://kubernetes.io/docs/concepts/policy/pod-security-policy/#host-namespaces\n"
+  category: weave.categories.pod-security
+  severity: high
+  targets: {kinds: [Deployment, Job, ReplicationController, ReplicaSet, DaemonSet, StatefulSet, CronJob]}
+  standards:
+    - id: weave.standards.cis-benchmark
+      controls:
+        - weave.controls.cis-benchmark.5.2.4
+        - weave.controls.cis-benchmark.5.2.3
+    - id: weave.standards.nist-800-190
+      controls:
+        - weave.controls.nist-800-190.4.5.2
+    - id: weave.standards.gdpr
+      controls:
+        - weave.controls.gdpr.25
+        - weave.controls.gdpr.32
+        - weave.controls.gdpr.24
+  tags: [cis-benchmark, nist800-190, gdpr, default]
+  parameters:
+    - name: resource_enabled
+      type: boolean
+      required: true
+      value: false
+    - name: exclude_namespace
+      type: string
+      required: false
+      value:
+    - name: exclude_label_key
+      type: string
+      required: false
+      value:
+    - name: exclude_label_value
+      type: string
+      required: false
+      value:
+  code: |-
+    package weave.advisor.podSecurity.deny_shared_host_pid
+
+    resource_enabled := input.parameters.resource_enabled
+    exclude_namespace := input.parameters.exclude_namespace
+    exclude_label_key := input.parameters.exclude_label_key
+    exclude_label_value := input.parameters.exclude_label_value
+
+    violation[result] {
+      not exclude_namespace == controller_input.metadata.namespace
+      not exclude_label_value == controller_input.metadata.labels[exclude_label_key]
+      shared_resource := "hostPID"
+      resource := controller_spec[shared_resource]
+      not resource == resource_enabled
+      result = {
+        "issue detected": true,
+        "msg": sprintf("'%v' should be set to '%v'; found '%v'", [shared_resource, resource_enabled, resource]),
+        "violating_key": sprintf("spec.template.spec[%v]", [shared_resource]),
+        "recommended_value": resource_enabled
+      }
+    }
+
+    # Controller input
+    controller_input = input.review.object
+
+    # controller_container acts as an iterator to get containers from the template
+    controller_spec = controller_input.spec.template.spec {
+      contains_kind(controller_input.kind, {"StatefulSet" , "DaemonSet", "Deployment", "Job"})
+    } else = controller_input.spec {
+      controller_input.kind == "Pod"
+    } else = controller_input.spec.jobTemplate.spec.template.spec {
+      controller_input.kind == "CronJob"
+    }
+
+    contains_kind(kind, kinds) {
+      kinds[_] = kind
+    }
+---
+apiVersion: pac.weave.works/v2beta1
+kind: Policy
+metadata:
+  name: weave.policies.containers-sharing-process-namespace
+spec:
+  id: weave.policies.containers-sharing-process-namespace
+  name: Containers Sharing Process Namespace
+  enabled: true
+  description: |
+    This Policy allows check if sharing process namespace with other containers in the pod should be allowed or not. Resources that can be shared with the container include:
+
+    ### hostNetwork
+    Controls whether the pod may use the node network namespace. Doing so gives the pod access to the loopback device, services listening on localhost, and could be used to snoop on network activity of other pods on the same node.
+
+    ### hostPID
+    Controls whether the pod containers can share the host process ID namespace. Note that when paired with ptrace this can be used to escalate privileges outside of the container (ptrace is forbidden by default).
+
+    ### shareProcessNamespace
+    When process namespace sharing is enabled, processes in a container are visible to all other containers in that pod.
+
+    ### hostIPC
+    Controls whether the pod containers can share the host IPC namespace.
+  how_to_solve: "Match the shared resource with either true or false, as set in your constraint. \n```\n...\n  spec:\n    <shared_resource>: <resource_enabled>\n```\nhttps://kubernetes.io/docs/concepts/policy/pod-security-policy/#host-namespaces\n"
+  category: weave.categories.pod-security
+  severity: high
+  targets: {kinds: [Deployment, Job, ReplicationController, ReplicaSet, DaemonSet, StatefulSet, CronJob]}
+  standards:
+    - id: weave.standards.cis-benchmark
+      controls:
+        - weave.controls.cis-benchmark.5.2.4
+        - weave.controls.cis-benchmark.5.2.3
+    - id: weave.standards.nist-800-190
+      controls:
+        - weave.controls.nist-800-190.4.5.2
+    - id: weave.standards.gdpr
+      controls:
+        - weave.controls.gdpr.25
+        - weave.controls.gdpr.32
+        - weave.controls.gdpr.24
+  tags: [nist800-190, gdpr, default]
+  parameters:
+    - name: resource_enabled
+      type: boolean
+      required: true
+      value: false
+    - name: exclude_namespace
+      type: string
+      required: false
+      value:
+    - name: exclude_label_key
+      type: string
+      required: false
+      value:
+    - name: exclude_label_value
+      type: string
+      required: false
+      value:
+  code: |-
+    package weave.advisor.podSecurity.deny_shared_process_namespace
+
+    resource_enabled := input.parameters.resource_enabled
+    exclude_namespace := input.parameters.exclude_namespace
+    exclude_label_key := input.parameters.exclude_label_key
+    exclude_label_value := input.parameters.exclude_label_value
+
+    violation[result] {
+      not exclude_namespace == controller_input.metadata.namespace
+      not exclude_label_value == controller_input.metadata.labels[exclude_label_key]
+      shared_resource := "shareProcessNamespace"
+      resource := controller_spec[shared_resource]
+      not resource == resource_enabled
+      result = {
+        "issue detected": true,
+        "msg": sprintf("'%v' should be set to '%v'; found '%v'", [shared_resource, resource_enabled, resource]),
+        "violating_key": sprintf("spec.template.spec[%v]", [shared_resource]),
+        "recommended_value": resource_enabled
+      }
+    }
+
+    # Controller input
+    controller_input = input.review.object
+
+    # controller_container acts as an iterator to get containers from the template
+    controller_spec = controller_input.spec.template.spec {
+      contains_kind(controller_input.kind, {"StatefulSet" , "DaemonSet", "Deployment", "Job"})
+    } else = controller_input.spec {
+      controller_input.kind == "Pod"
+    } else = controller_input.spec.jobTemplate.spec.template.spec {
+      controller_input.kind == "CronJob"
+    }
+
+    contains_kind(kind, kinds) {
+      kinds[_] = kind
+    }
+---
+apiVersion: pac.weave.works/v2beta1
+kind: Policy
+metadata:
+  name: weave.policies.prohibit-naked-pods-from-being-scheduled
+spec:
+  id: weave.policies.prohibit-naked-pods-from-being-scheduled
+  name: Prohibit Naked Pods From Being Scheduled
+  enabled: true
+  description: "This Policy checks for a `kind` and can prohibit it from being schedule to your cluster. A common example is running \"naked\" pods. \n"
+  how_to_solve: |
+    Ensure you are not using a kind that is specified within the Policy.
+    ```
+    kind: <kind>
+    ```
+
+    https://kubernetes.io/docs/concepts/configuration/overview/#naked-pods-vs-replicasets-deployments-and-jobs
+  category: weave.categories.organizational-standards
+  severity: medium
+  targets: {kinds: [Pod]}
+  standards:
+    - id: weave.standards.cis-benchmark
+      controls:
+        - weave.controls.cis-benchmark.5.1.4
+  tags: [cis-benchmark]
+  code: |
+    package weave.advisor.k8s.prohibit_naked_pods
+
+    violation[result] {
+      kind := "Pod"
+    	lower_kind := lower(kind)
+    	specified_kind := input.review.object.kind
+    	lower_specified_kind := lower(specified_kind)
+      lower_kind == lower_specified_kind
+      result = {
+        "issue detected": true,
+        "msg": sprintf("Naked Pods are prohibited",[]),
+        "violating_key": "kind"
+      }
+    }
+---
+apiVersion: pac.weave.works/v2beta1
+kind: Policy
+metadata:
+  name: weave.policies.rbac-protect-cluster-admin-clusterrolebindings
+spec:
+  id: weave.policies.rbac-protect-cluster-admin-clusterrolebindings
+  name: Rbac Protect Cluster Admin Clusterrolebindings
+  enabled: true
+  description: "This Policy allows you to select which groups you can set for Cluster-admin. The default policy checks for the \n\n```\nsubjects:\n- kind: Group\n  name: system:masters\n```\n\n`cluster-admin` allows super-user access to perform any action on any resource. When used in a ClusterRoleBinding, it gives full control over every resource in the cluster and in all namespaces. When used in a RoleBinding, it gives full control over every resource in the role binding's namespace, including the namespace itself. Be selective when adding additional subjects. \n"
+  how_to_solve: "Remove any kinds and names that are not consistent with the constraint. \n```\nkind: ClusterRoleBinding\nmetadata:\n  name: cluster-admin\n...\nsubjects:\n- kind: Group\n  name: system:masters\n```  \nhttps://kubernetes.io/docs/reference/access-authn-authz/rbac/\n"
+  category: weave.categories.access-control
+  severity: high
+  targets: {kinds: [ClusterRoleBinding]}
+  standards:
+    - id: weave.standards.pci-dss
+      controls:
+        - weave.controls.pci-dss.7.1.1
+        - weave.controls.pci-dss.7.1.2
+    - id: weave.standards.cis-benchmark
+      controls:
+        - weave.controls.cis-benchmark.5.1.1
+    - id: weave.standards.mitre-attack
+      controls:
+        - weave.controls.mitre-attack.4.2
+    - id: weave.standards.gdpr
+      controls:
+        - weave.controls.gdpr.25
+        - weave.controls.gdpr.32
+        - weave.controls.gdpr.24
+    - id: weave.standards.hipaa
+      controls:
+        - weave.controls.hipaa.164.312.a.1
+    - id: weave.standards.soc2-type-i
+      controls:
+        - weave.controls.soc2-type-i.1.6.3
+  tags: [pci-dss, cis-benchmark, mitre-attack, gdpr, hipaa, soc2-type1]
+  parameters:
+    - name: subjects_name
+      type: string
+      required: true
+      value: system:masters
+    - name: subjects_kind
+      type: string
+      required: true
+      value: Group
+    - name: exclude_label_key
+      type: string
+      required: false
+      value:
+    - name: exclude_label_value
+      type: string
+      required: false
+      value:
+  code: "package weave.advisor.rbac.enforce_cluster_admin_default_group\n\nsubjects_kind := input.parameters.subjects_kind\nsubjects_name := input.parameters.subjects_name\nexclude_label_key := input.parameters.exclude_label_key\nexclude_label_value := input.parameters.exclude_label_value\n\nviolation[result] {\n  not exclude_label_value == crb_input.metadata.labels[exclude_label_key]\n  crb_input.metadata.name == \"cluster-admin\"\n  some i\n  subjects := crb_input.subjects[i]\n  not subjects.kind == subjects_kind\n  result = {\n  \t\"issue detected\": true,\n    \"msg\": sprintf(\"expected kind '%v'; found '%v'\",[subjects_kind, subjects.name]),\n    \"violating_key\": sprintf(\"subjects[%v]\", [i])\n  }\n}\n\nviolation[result] {  \n  not exclude_label_value == crb_input.metadata.labels[exclude_label_key]\n  crb_input.metadata.name == \"cluster-admin\"\n  some i\n  subjects := crb_input.subjects[i]\n  not subjects.name == subjects_name\n  result = {\n    \"issue detected\": true,\n    \"msg\": sprintf(\"expected name '%v'; found '%v'\",[subjects_name, subjects.name]),\n    \"violating_key\": sprintf(\"subjects[%v].name\", [i])\n  }\n}\n\ncrb_input = input.review.object {\n\tcontains_kind(input.review.object.kind, {\"ClusterRoleBinding\"})\n} \n\ncontains_kind(kind, kinds) {\n  kinds[_] = kind\n}\n"
+---
+apiVersion: pac.weave.works/v2beta1
+kind: Policy
+metadata:
+  name: weave.policies.disable-service-account-token-automount-in-specific-namespace
+spec:
+  id: weave.policies.disable-service-account-token-automount-in-specific-namespace
+  name: Disable ServiceAccount Token Automount In Specific Namespace
+  enabled: true
+  description: "This Policy allows you to enforce the enabling or disabling the automounting of service account tokens. \n\nWhen a pod is created without a service account defined, the default service account within the same namespace will be assigned automatically. \n\nThis is a security concern because a kubernetes client can load a container's service account token. With that token a compromoised contaienr can then access the Kubernetes API to perform actions such as creating and deleting pods.\n\nIn version 1.6+, you can opt out of automounting API credentials for a service account by setting automountServiceAccountToken: false on the service account.\n"
+  how_to_solve: "Add the key:value pair `automountServiceAccountToken: false` to your Service Account declaration. \n```\nkind: ServiceAccount\nautomountServiceAccountToken: false\n```\n\nhttps://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#use-the-default-service-account-to-access-the-api-server\n"
+  category: weave.categories.access-control
+  severity: high
+  targets: {kinds: [ServiceAccount]}
+  standards:
+    - id: weave.standards.pci-dss
+      controls:
+        - weave.controls.pci-dss.7.1.1
+    - id: weave.standards.cis-benchmark
+      controls:
+        - weave.controls.cis-benchmark.5.1.6
+    - id: weave.standards.mitre-attack
+      controls:
+        - weave.controls.mitre-attack.6.3
+    - id: weave.standards.hipaa
+      controls:
+        - weave.controls.hipaa.164.312.a.2.i
+        - weave.controls.hipaa.164.312.a.1
+    - id: weave.standards.gdpr
+      controls:
+        - weave.controls.gdpr.25
+        - weave.controls.gdpr.32
+        - weave.controls.gdpr.24
+    - id: weave.standards.soc2-type-i
+      controls:
+        - weave.controls.soc2-type-i.1.6.3
+  tags: [pci-dss, cis-benchmark, mitre-attack, hipaa, gdpr, default, soc2-type1]
+  parameters:
+    - name: automount
+      type: boolean
+      required: true
+      value: false
+    - name: namespace
+      type: string
+      required: true
+      value: default
+    - name: exclude_label_key
+      type: string
+      required: false
+      value:
+    - name: exclude_label_value
+      type: string
+      required: false
+      value:
+  code: "package weave.advisor.sa.disable_default_service_account_token_automount\n\nautomount_value = input.parameters.automount\nnamespace = input.parameters.namespace\nexclude_label_key := input.parameters.exclude_label_key\nexclude_label_value := input.parameters.exclude_label_value\n\nviolation[result] {\n  not exclude_label_value == sa_input.metadata.labels[exclude_label_key]\n  sa_input.metadata.name == \"default\"\n  namespace == sa_input.metadata.namespace\n  automount := sa_input\n  not has_key(automount, \"automountServiceAccountToken\")\n  result = {\n    \"issue detected\": true,\n    \"msg\": sprintf(\"'automountServiceAccountToken' must be set; found '%v'\",[automount]),\n    \"violating_key\": \"\"\n  }\n}\n\nviolation[result] {\n  not exclude_label_value == sa_input.metadata.labels[exclude_label_key]\n  sa_input.metadata.name == \"default\"\n  namespace == sa_input.metadata.namespace\n  automount := sa_input.automountServiceAccountToken\n  not automount_value = automount\n  result = {\n    \"issue detected\": true,\n    \"msg\": sprintf(\"automountServiceAccountToken must be set to '%v'; found '%v'\",[automount_value, automount]),\n    \"violating_key\":\"automountServiceAccountToken\",\n    \"recommended_value\": automount_value\n  }\n}\n\nhas_key(x, k) { \n  type_name(x[k])\n}\n\nsa_input = input.review.object {\n  contains_kind(input.review.object.kind, {\"ServiceAccount\"})\n}\n\ncontains_kind(kind, kinds) {\n  kinds[_] = kind\n}"
+---
+apiVersion: pac.weave.works/v2beta2
+kind: Policy
+metadata:
+  name: weave.policies.containers-read-only-root-filesystem
+spec:
+  id: weave.policies.containers-read-only-root-filesystem
+  name: Containers Read Only Root Filesystem
+  description: |
+    This Policy will cause a violation if the root file system is not mounted as specified. As a security practice, the root file system should be read-only or expose risk to your nodes if compromised.
+    This Policy requires containers must run with a read-only root filesystem (i.e. no writable layer).
+  how_to_solve: |
+    Set `readOnlyRootFilesystem` in your `securityContext` to the value specified in the Policy.
+    ```
+    ...
+      spec:
+        containers:
+          - securityContext:
+              readOnlyRootFilesystem: <read_only>
+    ```
+    https://kubernetes.io/docs/concepts/policy/pod-security-policy/#volumes-and-file-systems
+  category: weave.categories.pod-security
+  provider: kubernetes
+  severity: high
+  targets: {kinds: [Deployment, Job, ReplicationController, ReplicaSet, DaemonSet, StatefulSet, CronJob]}
+  tags: [mitre-attack, nist800-190]
+  parameters:
+    - name: read_only
+      type: boolean
+      required: true
+      value: true
+    - name: exclude_namespace
+      type: array
+      required: false
+      value: ["kube-system", "wego-system", "flux-system", "test-systems"]
+    - name: exclude_label_key
+      type: string
+      required: false
+      value:
+    - name: exclude_label_value
+      type: string
+      required: false
+      value:
+  code: |-
+    package weave.advisor.podSecurity.enforce_ro_fs
+    import future.keywords.in
+    read_only = input.parameters.read_only
+    excluded_namespaces := input.parameters.exclude_namespace
+    exclude_label_key := input.parameters.exclude_label_key
+    exclude_label_value := input.parameters.exclude_label_value
+    violation[result] {
+      not controller_input.metadata.namespace in excluded_namespaces
+      not exclude_label_value == controller_input.metadata.labels[exclude_label_key]
+      some i
+      containers := controller_spec.containers[i]
+      root_fs := containers.securityContext.readOnlyRootFilesystem
+      not root_fs == read_only
+      result = {
+        "issue detected": true,
+        "msg": sprintf("readOnlyRootFilesystem should equal '%v'; detected '%v'", [read_only, root_fs]),
+        "recommended_value": read_only,
+        "violating_key": sprintf("spec.template.spec.containers[%v].securityContext.readOnlyRootFilesystem", [i])
+      }
+    }
+    # Controller input
+    controller_input = input.review.object
+    # controller_container acts as an iterator to get containers from the template
+    controller_spec = controller_input.spec.template.spec {
+      contains_kind(controller_input.kind, {"StatefulSet" , "DaemonSet", "Deployment", "Job"})
+    } else = controller_input.spec {
+      controller_input.kind == "Pod"
+    } else = controller_input.spec.jobTemplate.spec.template.spec {
+      controller_input.kind == "CronJob"
+    }
+    contains_kind(kind, kinds) {
+      kinds[_] = kind
+    }
+---
+apiVersion: pac.weave.works/v2beta2
+kind: Policy
+metadata:
+  name: weave.policies.container-image-pull-policy
+spec:
+  id: weave.policies.container-image-pull-policy
+  name: Container Image Pull Policy
+  description: |
+    This Policy is to ensure you are setting a value for your `imagePullPolicy`.
+    The `imagePullPolicy` and the tag of the image affect when the kubelet attempts to pull the specified image.
+    `imagePullPolicy`: IfNotPresent: the image is pulled only if it is not already present locally.
+    `imagePullPolicy`: Always: every time the kubelet launches a container, the kubelet queries the container image registry to resolve the name to an image digest. If the kubelet has a container image with that exact digest cached locally, the kubelet uses its cached image; otherwise, the kubelet downloads (pulls) the image with the resolved digest, and uses that image to launch the container.
+    `imagePullPolicy` is omitted and either the image tag is :latest or it is omitted: `imagePullPolicy` is automatically set to Always. Note that this will not be updated to IfNotPresent if the tag changes value.
+    `imagePullPolicy` is omitted and the image tag is present but not :latest: `imagePullPolicy` is automatically set to IfNotPresent. Note that this will not be updated to Always if the tag is later removed or changed to :latest.
+    `imagePullPolicy`: Never: the image is assumed to exist locally. No attempt is made to pull the image.
+  how_to_solve: |
+    Ensure you have an imagePullPolicy set that matches your policy.
+    ```
+    ...
+      spec:
+        containers:
+        - imagePullPolicy: <policy>
+    ```
+    https://kubernetes.io/docs/concepts/configuration/overview/#container-images
+  category: weave.categories.software-supply-chain
+  provider: kubernetes
+  severity: medium
+  targets: {kinds: [Deployment, Job, ReplicationController, ReplicaSet, DaemonSet,
+      StatefulSet, CronJob]}
+  parameters:
+  - name: policy
+    type: string
+    required: true
+    value: IfNotPresent
+  - name: exclude_namespace
+    type: array
+    required: true
+    value: ["kube-system", "wego-system", "flux-system", "test-systems"]
+  - name: exclude_label_key
+    type: string
+    required: false
+    value:
+  - name: exclude_label_value
+    type: string
+    required: false
+    value:
+  code: |-
+    package weave.advisor.images.image_pull_enforce
+    import future.keywords.in
+    policy := input.parameters.policy
+    excluded_namespaces := input.parameters.exclude_namespace
+    exclude_label_key := input.parameters.exclude_label_key
+    exclude_label_value := input.parameters.exclude_label_value
+    violation[result] {
+      not controller_input.metadata.namespace in excluded_namespaces
+      not exclude_label_value == controller_input.metadata.labels[exclude_label_key]
+      some i
+      containers := controller_spec.containers[i]
+      image_policy := containers.imagePullPolicy
+      not containers.imagePullPolicy == policy
+        result = {
+          "issue detected": true,
+          "msg": sprintf("imagePolicyPolicy must be '%v'; found '%v'",[policy, image_policy]),
+          "violating_key": sprintf("spec.template.spec.containers[%v].imagePullPolicy", [i]),
+          "recommended_value": policy
+        }
+    }
+    # Controller input
+    controller_input = input.review.object
+    # controller_container acts as an iterator to get containers from the template
+    controller_spec = controller_input.spec.template.spec {
+      contains_kind(controller_input.kind, {"StatefulSet" , "DaemonSet", "Deployment", "Job"})
+    } else = controller_input.spec {
+      controller_input.kind == "Pod"
+    } else = controller_input.spec.jobTemplate.spec.template.spec {
+      controller_input.kind == "CronJob"
+    }
+    contains_kind(kind, kinds) {
+      kinds[_] = kind
+    }
+---
+apiVersion: pac.weave.works/v2beta2
+kind: Policy
+metadata:
+  name: weave.policies.containers-minimum-replica-count
+spec:
+  id: weave.policies.containers-minimum-replica-count
+  name: Containers Minimum Replica Count
+  enabled: false
+  description: "Use this Policy to to check the replica count of your workloads. The value set in the Policy is greater than or equal to the amount desired, so if the replica count is lower than what is specified, the Policy will be in violation. \n"
+  how_to_solve: |
+    The replica count should be a value equal or greater than what is set in the Policy.
+    ```
+    spec:
+      replicas: <replica_count>
+    ```
+    https://kubernetes.io/docs/concepts/workloads/controllers/deployment/#scaling-a-deployment
+  category: weave.categories.reliability
+  severity: medium
+  targets:
+    kinds:
+      - Deployment
+      - StatefulSet
+      - ReplicaSet
+      - ReplicationController
+      - HorizontalPodAutoscaler
+  standards:
+    - id: weave.standards.soc2-type-i
+      controls:
+        - weave.controls.soc2-type-i.2.1.1
+  tags: [soc2-type1, tenancy]
+  parameters:
+    - name: replica_count
+      type: integer
+      required: true
+      value: 1
+    - name: exclude_namespaces
+      type: array
+      required: false
+      value:
+    - name: exclude_label_key
+      type: string
+      required: false
+      value:
+    - name: exclude_label_value
+      type: string
+      required: false
+      value:
+  code: |-
+    package weave.advisor.pods.replica_count
+
+    import future.keywords.in
+
+    min_replica_count := input.parameters.replica_count
+    exclude_namespaces := input.parameters.exclude_namespaces
+    exclude_label_key := input.parameters.exclude_label_key
+    exclude_label_value := input.parameters.exclude_label_value
+
+    controller_input := input.review.object
+
+    violation[result] {
+        isExcludedNamespace == false
+        not exclude_label_value == controller_input.metadata.labels[exclude_label_key]
+        not replicas >= min_replica_count
+        result = {
+                "issue detected": true,
+                "msg": sprintf("Replica count must be greater than or equal to '%v'; found '%v'.", [min_replica_count, replicas]),
+                "violating_key": violating_key,
+                "recommended_value": min_replica_count,
+        }
+    }
+
+    replicas := controller_input.spec.replicas {
+        controller_input.kind in {"Deployment", "StatefulSet", "ReplicaSet", "ReplicationController"}
+    } else := controller_input.spec.minReplicas {
+        controller_input.kind == "HorizontalPodAutoscaler"
+    }
+
+    violating_key := "spec.replicas" {
+        controller_input.kind in {"Deployment", "StatefulSet", "ReplicaSet", "ReplicationController"}
+    } else := "spec.minReplicas" {
+        controller_input.kind == "HorizontalPodAutoscaler"
+    }
+
+    isExcludedNamespace = true {
+        controller_input.metadata.namespace
+        controller_input.metadata.namespace in exclude_namespaces
+    } else = false

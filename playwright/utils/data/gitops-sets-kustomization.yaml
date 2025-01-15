@@ -1,0 +1,15 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: gitopsset-configmaps
+  namespace: default
+spec:
+  interval: 10m
+  targetNamespace: default
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  path: ./gitops-sets
+  prune: true
+  timeout: 1m

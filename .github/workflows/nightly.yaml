@@ -1,0 +1,209 @@
+name: Playwright Tests
+
+on:
+  push:
+    branches: "**"
+  schedule:
+    - cron: "30 22 * * *"
+  workflow_dispatch:
+    inputs:
+      chart_version:
+        description: 'weave gitops enterprise chart version'
+        required: true
+        type: string
+
+env:
+  MANAGEMENT_CLUSTER_TYPE: "kind"
+  CLUSTER_NAME: run-playwright-tests-${{ github.run_id }}
+  USER_NAME: wego-admin
+  PASSWORD: ${{ secrets.CLUSTERS_CONFIG_PASSWORD }}
+  WEAVE_GITOPS_DEV_SOPS_KEY: ${{ secrets.WEAVE_GITOPS_DEV_SOPS_KEY }}
+  CLUSTER_ADMIN_PASSWORD_HASH: ${{ secrets.CLUSTERS_CONFIG_PASSWORD }}
+  WEAVEWORKS_BOT_TOKEN: ${{ secrets.WEAVEWORKS_BOT_TOKEN }}
+  ENTERPRISE_CHART_VERSION:  ${{ inputs.chart_version }}
+  DEFAULT_ENTERPRISE_CHART_VERSION: "0.31.0-9-gdae6755"
+
+jobs:
+  build_and_run_tests:
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+    - uses: actions/checkout@v3
+    - name : Set URL environment Variable
+      run: |
+        echo "URL=http://localhost:8000" >> $GITHUB_ENV
+
+    - name: Check if the URL variable is available
+      run: |
+        echo ${{ env.URL }}
+
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.10"
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 pytest
+        pip install pytest_dotenv
+        pip install pytest-reporter-html1
+
+    - name: Install pre-commit
+      run: |
+        pip install pre-commit
+
+    - name: Install flux
+      run: |
+        curl -s https://fluxcd.io/install.sh | sudo bash
+        flux version --client
+
+    - name: Install kubectl
+      run: |
+        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+        chmod +x kubectl
+        sudo mv ./kubectl /usr/local/bin/kubectl
+        kubectl version --client
+
+    - name: Install kind
+      run: |
+        curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.20.0/kind-linux-amd64
+        chmod +x ./kind
+        sudo mv ./kind /usr/local/bin/kind
+        which kind
+        kind version
+
+    - name: Install playwright
+      run: |
+        pip install pytest-playwright
+
+    - name: Install chromium
+      run: |
+        playwright install chromium
+
+    - name: Lint with flake8
+      run: |
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+    - name: Setup management cluster
+      run: |
+        ./utils/scripts/mgmt-cluster-setup.sh ${{ env.MANAGEMENT_CLUSTER_TYPE }} $(pwd) ${{ env.CLUSTER_NAME }}
+
+    - name: Extract branch name
+      run: |
+        echo "branch_name=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+      id: extract_branch
+
+    - name: Setup wego enterprise
+      run: |
+        kubectl create namespace flux-system
+        flux install
+        kubectl create secret generic git-provider-credentials -n flux-system --from-literal=username="weave-gitops-bot" --from-literal=password="${WEAVEWORKS_BOT_TOKEN}"
+        sed -i 's/BRANCH_NAME/${{ steps.extract_branch.outputs.branch_name }}/' ./utils/scripts/resources/flux-system-gitrepo.yaml
+        ./utils/scripts/wego-enterprise.sh setup ./utils/scripts
+
+    - name: Install violating-app
+      run: |
+        kubectl apply -f  ./utils/data/violating-podinfo-kustomization.yaml
+
+    - name: Install policies
+      run: |
+        kubectl apply -f  ./utils/data/policies.yaml 
+
+    - name: Flux reconcile violating app
+      run: |
+        flux reconcile kustomization violating-podinfo -n default --with-source || true
+        kubectl get pods -A
+
+    - name: Install gitopsset-configmaps
+      run: |
+        kubectl apply -f  ./utils/data/gitops-sets-kustomization.yaml
+
+    - name: run tests
+      if: success()
+      run: |
+        pytest -s -v --video=retain-on-failure --screenshot=only-on-failure --template=html1/index.html --report=test-results/test-run-report.html -o junit_family=xunit2 --junit-xml=test-results/junit_test_report.xml
+
+    - name: Generate tests report
+      if: always()
+      uses: pmeier/pytest-results-action@main
+      with:
+        path: test-results/junit_test_report.xml
+        summary: true
+        display-options: fEX
+        fail-on-empty: true
+
+    - name: Upload test report
+      uses: actions/upload-artifact@v3
+      if: success() || failure()
+      with:
+          name: playwright-tests-report
+          path: test-results/
+          retention-days: 3
+
+    - name: Download test artifacts
+      uses: actions/download-artifact@v3.0.1
+      if: success() || failure()
+      with:
+        name: playwright-tests-report
+        path: test-results/
+
+    - name: Display structure of downloaded files
+      if: always()
+      run: ls -R
+      working-directory: test-results
+
+    - name: Publish test report
+      id: test_summary
+      uses: mikepenz/action-junit-report@v3.7.6
+      if: success() || failure()
+      with:
+        report_paths: test-results/junit_test_report.xml
+
+    - name: Notify Slack
+      id: slack
+      uses: slackapi/slack-github-action@v1.24.0
+      with:
+        channel-id: C058RPVS5DZ
+        payload: |
+          {
+          	"blocks": [
+          		{
+          			"type": "section",
+          			"text": {
+          				"type": "mrkdwn",
+          				"text": "*Tests result:*"
+          			}
+          		},
+          		{
+          			"type": "section",
+          			"text": {
+          				"type": "mrkdwn",
+          				"text": "Tests :test_tube:\t\t\tPassed :check:\t\t\tSkipped :arrow_right_hook:\t\t\tFailed :x:\n>executed:*${{steps.test_summary.outputs.total}}*\t\t\tpassed:*${{steps.test_summary.outputs.passed}}*\t\t\tskipped:*${{steps.test_summary.outputs.skipped}}*\t\t\tfailed:*${{steps.test_summary.outputs.failed}}*"
+          			}
+          		},
+          		{
+          			"type": "section",
+          			"text": {
+          				"type": "mrkdwn",
+          				"text": "*View result on Github:* ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          			}
+          		}
+          	]
+          }
+      if: always()
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+    - name : Delete test cluster
+      if: success() || failure()
+      run: |
+        kind delete clusters --all
