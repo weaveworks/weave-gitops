@@ -83,19 +83,17 @@ function DagGraph({ className, nodes }: Props) {
   const linkStrokeWidth = 5;
 
   //use d3 to create DAG structure
-  const builder = d3d.graphStratify();
-  const graph = builder(nodes);
+  const stratify = d3d.dagStratify();
+  const root = stratify(nodes);
   const makeDag = d3d
     .sugiyama()
     .nodeSize(() => [
       nodeSize.width + nodeSize.horizontalSeparation,
       nodeSize.height + nodeSize.verticalSeparation,
     ]);
-  const { width } = makeDag(graph);
-  const root = [...graph.roots()][0];
-
-  const descendants = root ? [...root.descendants()] : [];
-  const links = [...graph.links()];
+  const { width } = makeDag(root);
+  const descendants = root.descendants();
+  const links = root.links();
 
   const graphOffsetX = zoomBox / 2 - width / 2;
   const verticalSeparationHalf = nodeSize.verticalSeparation / 2;
