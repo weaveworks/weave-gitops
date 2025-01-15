@@ -1,0 +1,8 @@
+apiVersion: v1
+data:
+  username: d2Vnby1hZG1pbg==
+  password: JDJhJDEwJGU4UHlDbVcvUVI2L05XdFNkbjV0YU9KeUp2TnVlSTBac2VCQUR2OVprYmIyTTNDZkcwN2d1 
+kind: Secret
+metadata:
+  name: cluster-user-auth
+  namespace: flux-system

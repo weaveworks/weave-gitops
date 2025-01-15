@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/issuer: selfsigned-issuer
+    kubernetes.io/ingress.class: "nginx" 
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+  name: clusters-service
+  namespace: flux-system
+spec:
+  rules:
+  - host: "{{HOST_NAME}}"
+    http:
+      paths:
+      - pathType: ImplementationSpecific
+        path: /?(.*)
+        backend:
+          service:
+            name: clusters-service
+            port:
+              number: 8000
+  tls:
+  - hosts:
+    - "{{HOST_NAME}}"
+    secretName: weave-gitops-tls

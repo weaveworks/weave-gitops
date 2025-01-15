@@ -1,0 +1,13 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: flux-system
+  namespace: flux-system
+spec:
+  interval: 1m0s
+  ref:
+    branch: BRANCH_NAME
+  secretRef:
+    name: git-provider-credentials
+  url: https://github.com/weaveworks/playwright-tests.git

@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    templates.weave.works/name: gitopsset-configmaps
+    templates.weave.works/namespace: default
+  name: dev-info-configmap
+  namespace: default
