@@ -7,8 +7,8 @@ spec:
   interval: 30m
   sourceRef:
     kind: GitRepository
-    name: flux-system
-    namespace: flux-system
+    name: podinfo
+    namespace: default
   git:
     checkout:
       ref:
