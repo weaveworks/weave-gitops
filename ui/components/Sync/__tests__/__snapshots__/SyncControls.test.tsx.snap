@@ -167,8 +167,9 @@ exports[`SyncControls snapshots allButtonsDisabled 1`] = `
   className="c0 c1"
 >
   <button
-    className="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textPrimary MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorPrimary MuiButton-disableElevation Mui-disabled MuiButton-root MuiButton-text MuiButton-textPrimary MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorPrimary MuiButton-disableElevation c2 sync-icon-button css-1o1fn1r-MuiButtonBase-root-MuiButton-root"
+    className="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textPrimary MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorPrimary MuiButton-disableElevation Mui-disabled MuiButton-root MuiButton-text MuiButton-textPrimary MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorPrimary MuiButton-disableElevation c2 sync-icon-button css-157ho6v-MuiButtonBase-root-MuiButton-root"
     disabled={true}
+    id=":r8:"
     onBlur={[Function]}
     onContextMenu={[Function]}
     onDragLeave={[Function]}
@@ -185,7 +186,7 @@ exports[`SyncControls snapshots allButtonsDisabled 1`] = `
     type="button"
   >
     <span
-      className="MuiButton-icon MuiButton-startIcon MuiButton-iconSizeMedium css-dm569u-MuiButton-startIcon"
+      className="MuiButton-icon MuiButton-startIcon MuiButton-iconSizeMedium css-1v1j2p3-MuiButton-startIcon"
     >
       <div
         className="c3 c4"
@@ -366,9 +367,10 @@ exports[`SyncControls snapshots allButtonsDisabled 1`] = `
     onTouchStart={[Function]}
   >
     <button
-      className="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation Mui-disabled MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c2 c7 css-pr9cf-MuiButtonBase-root-MuiButton-root"
+      className="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation Mui-disabled MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c2 c7 css-1fh7grq-MuiButtonBase-root-MuiButton-root"
       data-testid="sync-button"
       disabled={true}
+      id=":rb:"
       onBlur={[Function]}
       onClick={[Function]}
       onContextMenu={[Function]}
@@ -418,9 +420,10 @@ exports[`SyncControls snapshots allButtonsDisabled 1`] = `
     onTouchStart={[Function]}
   >
     <button
-      className="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation Mui-disabled MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c2 c7 css-pr9cf-MuiButtonBase-root-MuiButton-root"
+      className="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation Mui-disabled MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c2 c7 css-1fh7grq-MuiButtonBase-root-MuiButton-root"
       data-testid="suspend-button"
       disabled={true}
+      id=":rd:"
       onBlur={[Function]}
       onContextMenu={[Function]}
       onDragLeave={[Function]}
@@ -469,9 +472,10 @@ exports[`SyncControls snapshots allButtonsDisabled 1`] = `
     onTouchStart={[Function]}
   >
     <button
-      className="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation Mui-disabled MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c2 c7 css-pr9cf-MuiButtonBase-root-MuiButton-root"
+      className="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation Mui-disabled MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c2 c7 css-1fh7grq-MuiButtonBase-root-MuiButton-root"
       data-testid="resume-button"
       disabled={true}
+      id=":rf:"
       onBlur={[Function]}
       onContextMenu={[Function]}
       onDragLeave={[Function]}
@@ -673,8 +677,9 @@ exports[`SyncControls snapshots hasTooltipSuffix 1`] = `
   className="c0 c1"
 >
   <button
-    className="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textPrimary MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-text MuiButton-textPrimary MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorPrimary MuiButton-disableElevation c2 sync-icon-button css-1o1fn1r-MuiButtonBase-root-MuiButton-root"
-    disabled={false}
+    className="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textPrimary MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-text MuiButton-textPrimary MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorPrimary MuiButton-disableElevation c2 sync-icon-button css-157ho6v-MuiButtonBase-root-MuiButton-root"
+    disabled={null}
+    id=":rr:"
     onBlur={[Function]}
     onContextMenu={[Function]}
     onDragLeave={[Function]}
@@ -691,7 +696,7 @@ exports[`SyncControls snapshots hasTooltipSuffix 1`] = `
     type="button"
   >
     <span
-      className="MuiButton-icon MuiButton-startIcon MuiButton-iconSizeMedium css-dm569u-MuiButton-startIcon"
+      className="MuiButton-icon MuiButton-startIcon MuiButton-iconSizeMedium css-1v1j2p3-MuiButton-startIcon"
     >
       <div
         className="c3 c4"
@@ -870,9 +875,10 @@ exports[`SyncControls snapshots hasTooltipSuffix 1`] = `
     onTouchStart={[Function]}
   >
     <button
-      className="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c2 c7 css-pr9cf-MuiButtonBase-root-MuiButton-root"
+      className="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c2 c7 css-1fh7grq-MuiButtonBase-root-MuiButton-root"
       data-testid="sync-button"
-      disabled={false}
+      disabled={null}
+      id=":ru:"
       onBlur={[Function]}
       onClick={[Function]}
       onContextMenu={[Function]}
@@ -922,9 +928,10 @@ exports[`SyncControls snapshots hasTooltipSuffix 1`] = `
     onTouchStart={[Function]}
   >
     <button
-      className="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c2 c7 css-pr9cf-MuiButtonBase-root-MuiButton-root"
+      className="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c2 c7 css-1fh7grq-MuiButtonBase-root-MuiButton-root"
       data-testid="suspend-button"
-      disabled={false}
+      disabled={null}
+      id=":r10:"
       onBlur={[Function]}
       onContextMenu={[Function]}
       onDragLeave={[Function]}
@@ -973,9 +980,10 @@ exports[`SyncControls snapshots hasTooltipSuffix 1`] = `
     onTouchStart={[Function]}
   >
     <button
-      className="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c2 c7 css-pr9cf-MuiButtonBase-root-MuiButton-root"
+      className="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c2 c7 css-1fh7grq-MuiButtonBase-root-MuiButton-root"
       data-testid="resume-button"
-      disabled={false}
+      disabled={null}
+      id=":r12:"
       onBlur={[Function]}
       onContextMenu={[Function]}
       onDragLeave={[Function]}
@@ -1134,8 +1142,9 @@ exports[`SyncControls snapshots hideSuspend 1`] = `
   className="c0 c1"
 >
   <button
-    className="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textPrimary MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-text MuiButton-textPrimary MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorPrimary MuiButton-disableElevation c2 sync-icon-button css-1o1fn1r-MuiButtonBase-root-MuiButton-root"
-    disabled={false}
+    className="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textPrimary MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-text MuiButton-textPrimary MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorPrimary MuiButton-disableElevation c2 sync-icon-button css-157ho6v-MuiButtonBase-root-MuiButton-root"
+    disabled={null}
+    id=":rn:"
     onBlur={[Function]}
     onContextMenu={[Function]}
     onDragLeave={[Function]}
@@ -1152,7 +1161,7 @@ exports[`SyncControls snapshots hideSuspend 1`] = `
     type="button"
   >
     <span
-      className="MuiButton-icon MuiButton-startIcon MuiButton-iconSizeMedium css-dm569u-MuiButton-startIcon"
+      className="MuiButton-icon MuiButton-startIcon MuiButton-iconSizeMedium css-1v1j2p3-MuiButton-startIcon"
     >
       <div
         className="c3 c4"
@@ -1331,9 +1340,10 @@ exports[`SyncControls snapshots hideSuspend 1`] = `
     onTouchStart={[Function]}
   >
     <button
-      className="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c2 c7 css-pr9cf-MuiButtonBase-root-MuiButton-root"
+      className="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c2 c7 css-1fh7grq-MuiButtonBase-root-MuiButton-root"
       data-testid="sync-button"
-      disabled={false}
+      disabled={null}
+      id=":rq:"
       onBlur={[Function]}
       onClick={[Function]}
       onContextMenu={[Function]}
@@ -1520,8 +1530,9 @@ exports[`SyncControls snapshots hideSyncOptions 1`] = `
   className="c0 c1"
 >
   <button
-    className="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textPrimary MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-text MuiButton-textPrimary MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorPrimary MuiButton-disableElevation c2 sync-icon-button css-1o1fn1r-MuiButtonBase-root-MuiButton-root"
-    disabled={false}
+    className="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textPrimary MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-text MuiButton-textPrimary MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorPrimary MuiButton-disableElevation c2 sync-icon-button css-157ho6v-MuiButtonBase-root-MuiButton-root"
+    disabled={null}
+    id=":rg:"
     onBlur={[Function]}
     onContextMenu={[Function]}
     onDragLeave={[Function]}
@@ -1538,7 +1549,7 @@ exports[`SyncControls snapshots hideSyncOptions 1`] = `
     type="button"
   >
     <span
-      className="MuiButton-icon MuiButton-startIcon MuiButton-iconSizeMedium css-dm569u-MuiButton-startIcon"
+      className="MuiButton-icon MuiButton-startIcon MuiButton-iconSizeMedium css-1v1j2p3-MuiButton-startIcon"
     >
       <div
         className="c3 c4"
@@ -1574,9 +1585,10 @@ exports[`SyncControls snapshots hideSyncOptions 1`] = `
     onTouchStart={[Function]}
   >
     <button
-      className="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c2 c6 css-pr9cf-MuiButtonBase-root-MuiButton-root"
+      className="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c2 c6 css-1fh7grq-MuiButtonBase-root-MuiButton-root"
       data-testid="sync-button"
-      disabled={false}
+      disabled={null}
+      id=":ri:"
       onBlur={[Function]}
       onClick={[Function]}
       onContextMenu={[Function]}
@@ -1626,9 +1638,10 @@ exports[`SyncControls snapshots hideSyncOptions 1`] = `
     onTouchStart={[Function]}
   >
     <button
-      className="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c2 c6 css-pr9cf-MuiButtonBase-root-MuiButton-root"
+      className="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c2 c6 css-1fh7grq-MuiButtonBase-root-MuiButton-root"
       data-testid="suspend-button"
-      disabled={false}
+      disabled={null}
+      id=":rk:"
       onBlur={[Function]}
       onContextMenu={[Function]}
       onDragLeave={[Function]}
@@ -1677,9 +1690,10 @@ exports[`SyncControls snapshots hideSyncOptions 1`] = `
     onTouchStart={[Function]}
   >
     <button
-      className="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c2 c6 css-pr9cf-MuiButtonBase-root-MuiButton-root"
+      className="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c2 c6 css-1fh7grq-MuiButtonBase-root-MuiButton-root"
       data-testid="resume-button"
-      disabled={false}
+      disabled={null}
+      id=":rm:"
       onBlur={[Function]}
       onContextMenu={[Function]}
       onDragLeave={[Function]}
@@ -1881,8 +1895,9 @@ exports[`SyncControls snapshots non-suspended 1`] = `
   className="c0 c1"
 >
   <button
-    className="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textPrimary MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-text MuiButton-textPrimary MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorPrimary MuiButton-disableElevation c2 sync-icon-button css-1o1fn1r-MuiButtonBase-root-MuiButton-root"
-    disabled={false}
+    className="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textPrimary MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-text MuiButton-textPrimary MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorPrimary MuiButton-disableElevation c2 sync-icon-button css-157ho6v-MuiButtonBase-root-MuiButton-root"
+    disabled={null}
+    id=":r0:"
     onBlur={[Function]}
     onContextMenu={[Function]}
     onDragLeave={[Function]}
@@ -1899,7 +1914,7 @@ exports[`SyncControls snapshots non-suspended 1`] = `
     type="button"
   >
     <span
-      className="MuiButton-icon MuiButton-startIcon MuiButton-iconSizeMedium css-dm569u-MuiButton-startIcon"
+      className="MuiButton-icon MuiButton-startIcon MuiButton-iconSizeMedium css-1v1j2p3-MuiButton-startIcon"
     >
       <div
         className="c3 c4"
@@ -2078,9 +2093,10 @@ exports[`SyncControls snapshots non-suspended 1`] = `
     onTouchStart={[Function]}
   >
     <button
-      className="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c2 c7 css-pr9cf-MuiButtonBase-root-MuiButton-root"
+      className="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c2 c7 css-1fh7grq-MuiButtonBase-root-MuiButton-root"
       data-testid="sync-button"
-      disabled={false}
+      disabled={null}
+      id=":r3:"
       onBlur={[Function]}
       onClick={[Function]}
       onContextMenu={[Function]}
@@ -2130,9 +2146,10 @@ exports[`SyncControls snapshots non-suspended 1`] = `
     onTouchStart={[Function]}
   >
     <button
-      className="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c2 c7 css-pr9cf-MuiButtonBase-root-MuiButton-root"
+      className="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c2 c7 css-1fh7grq-MuiButtonBase-root-MuiButton-root"
       data-testid="suspend-button"
-      disabled={false}
+      disabled={null}
+      id=":r5:"
       onBlur={[Function]}
       onContextMenu={[Function]}
       onDragLeave={[Function]}
@@ -2181,9 +2198,10 @@ exports[`SyncControls snapshots non-suspended 1`] = `
     onTouchStart={[Function]}
   >
     <button
-      className="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c2 c7 css-pr9cf-MuiButtonBase-root-MuiButton-root"
+      className="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c2 c7 css-1fh7grq-MuiButtonBase-root-MuiButton-root"
       data-testid="resume-button"
-      disabled={false}
+      disabled={null}
+      id=":r7:"
       onBlur={[Function]}
       onContextMenu={[Function]}
       onDragLeave={[Function]}

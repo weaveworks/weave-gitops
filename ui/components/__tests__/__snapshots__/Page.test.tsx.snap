@@ -246,9 +246,10 @@ exports[`Page snapshots default 1`] = `
       <a
         aria-label="Docs"
         aria-labelledby={null}
-        className="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeMedium c10 c11 Link css-aixiz9-MuiButtonBase-root-MuiIconButton-root"
+        className="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeMedium c10 c11 Link css-53g0n7-MuiButtonBase-root-MuiIconButton-root"
         data-mui-internal-clone-element={true}
         href="https://docs.gitops.weaveworks.org/"
+        id=":r2:"
         onBlur={[Function]}
         onContextMenu={[Function]}
         onDragLeave={[Function]}
@@ -266,6 +267,9 @@ exports[`Page snapshots default 1`] = `
         tabIndex={0}
         target="_blank"
       >
+        <span
+          className="MuiIconButton-loadingIndicator css-165vu30-MuiIconButton-loadingIndicator"
+        />
         <div
           className="c4 c12"
         >
@@ -286,9 +290,10 @@ exports[`Page snapshots default 1`] = `
         aria-haspopup="true"
         aria-label="Account settings"
         aria-labelledby={null}
-        className="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeMedium c10 css-aixiz9-MuiButtonBase-root-MuiIconButton-root"
+        className="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeMedium c10 css-53g0n7-MuiButtonBase-root-MuiIconButton-root"
         data-mui-internal-clone-element={true}
         disabled={false}
+        id=":r4:"
         onBlur={[Function]}
         onClick={[Function]}
         onContextMenu={[Function]}
@@ -307,6 +312,9 @@ exports[`Page snapshots default 1`] = `
         tabIndex={0}
         type="button"
       >
+        <span
+          className="MuiIconButton-loadingIndicator css-165vu30-MuiIconButton-loadingIndicator"
+        />
         <div
           className="c4 c12"
         >
