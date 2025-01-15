@@ -22,7 +22,7 @@
     }
   },
   "scripts": {
-    "build": "parcel build --target default",
+    "build": "parcel build --target default --no-scope-hoist",
     "build:lib": "parcel build --target lib",
     "typedefs": "tsc --declaration --skipLibCheck --emitDeclarationOnly --outDir dist -p .",
     "start": "parcel serve --port 4567 ui/index.html",
