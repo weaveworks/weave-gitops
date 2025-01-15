@@ -162,7 +162,7 @@ jobs:
 
     - name: Publish test report
       id: test_summary
-      uses: mikepenz/action-junit-report@v3.7.6
+      uses: mikepenz/action-junit-report@v5.2.0
       if: success() || failure()
       with:
         report_paths: test-results/junit_test_report.xml
