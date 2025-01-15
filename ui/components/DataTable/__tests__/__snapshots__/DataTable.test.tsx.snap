@@ -266,8 +266,9 @@ exports[`DataTable snapshots renders 1`] = `
                 className="c5"
               >
                 <button
-                  className="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit c6 css-1j6t5ub-MuiButtonBase-root-MuiButton-root"
-                  disabled={false}
+                  className="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit c6 css-9wcwzo-MuiButtonBase-root-MuiButton-root"
+                  disabled={null}
+                  id=":r0:"
                   onBlur={[Function]}
                   onClick={[Function]}
                   onContextMenu={[Function]}
@@ -316,8 +317,9 @@ exports[`DataTable snapshots renders 1`] = `
                 className="c5"
               >
                 <button
-                  className="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit c6 css-1j6t5ub-MuiButtonBase-root-MuiButton-root"
-                  disabled={false}
+                  className="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit c6 css-9wcwzo-MuiButtonBase-root-MuiButton-root"
+                  disabled={null}
+                  id=":r1:"
                   onBlur={[Function]}
                   onClick={[Function]}
                   onContextMenu={[Function]}
@@ -358,8 +360,9 @@ exports[`DataTable snapshots renders 1`] = `
                 className="c5"
               >
                 <button
-                  className="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit c6 css-1j6t5ub-MuiButtonBase-root-MuiButton-root"
-                  disabled={false}
+                  className="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit c6 css-9wcwzo-MuiButtonBase-root-MuiButton-root"
+                  disabled={null}
+                  id=":r2:"
                   onBlur={[Function]}
                   onClick={[Function]}
                   onContextMenu={[Function]}
@@ -400,8 +403,9 @@ exports[`DataTable snapshots renders 1`] = `
                 className="c5"
               >
                 <button
-                  className="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit c6 css-1j6t5ub-MuiButtonBase-root-MuiButton-root"
-                  disabled={false}
+                  className="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit c6 css-9wcwzo-MuiButtonBase-root-MuiButton-root"
+                  disabled={null}
+                  id=":r3:"
                   onBlur={[Function]}
                   onClick={[Function]}
                   onContextMenu={[Function]}
