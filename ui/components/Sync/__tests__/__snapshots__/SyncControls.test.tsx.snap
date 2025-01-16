@@ -141,16 +141,24 @@ exports[`SyncControls snapshots allButtonsDisabled 1`] = `
   padding: 0;
 }
 
-.c7.MuiButton-root :disabled svg {
+.c7.MuiButton-root.Mui-disabled svg {
   fill: #d8d8d8;
 }
 
-.c7.MuiButton-root :hover {
+.c7.MuiButton-root:hover {
   background-color: rgba(0, 179, 236, 0.1);
 }
 
 .c7.MuiButton-text {
   padding: 0;
+}
+
+.c7.MuiButton-text.Mui-disabled {
+  color: #d8d8d8;
+}
+
+.c7.MuiButton-text.Mui-disabled svg {
+  fill: #d8d8d8;
 }
 
 .c1 .sync-icon-button {
@@ -651,16 +659,24 @@ exports[`SyncControls snapshots hasTooltipSuffix 1`] = `
   padding: 0;
 }
 
-.c7.MuiButton-root :disabled svg {
+.c7.MuiButton-root.Mui-disabled svg {
   fill: #d8d8d8;
 }
 
-.c7.MuiButton-root :hover {
+.c7.MuiButton-root:hover {
   background-color: rgba(0, 179, 236, 0.1);
 }
 
 .c7.MuiButton-text {
   padding: 0;
+}
+
+.c7.MuiButton-text.Mui-disabled {
+  color: #d8d8d8;
+}
+
+.c7.MuiButton-text.Mui-disabled svg {
+  fill: #d8d8d8;
 }
 
 .c1 .sync-icon-button {
@@ -1116,16 +1132,24 @@ exports[`SyncControls snapshots hideSuspend 1`] = `
   padding: 0;
 }
 
-.c7.MuiButton-root :disabled svg {
+.c7.MuiButton-root.Mui-disabled svg {
   fill: #d8d8d8;
 }
 
-.c7.MuiButton-root :hover {
+.c7.MuiButton-root:hover {
   background-color: rgba(0, 179, 236, 0.1);
 }
 
 .c7.MuiButton-text {
   padding: 0;
+}
+
+.c7.MuiButton-text.Mui-disabled {
+  color: #d8d8d8;
+}
+
+.c7.MuiButton-text.Mui-disabled svg {
+  fill: #d8d8d8;
 }
 
 .c1 .sync-icon-button {
@@ -1504,16 +1528,24 @@ exports[`SyncControls snapshots hideSyncOptions 1`] = `
   padding: 0;
 }
 
-.c6.MuiButton-root :disabled svg {
+.c6.MuiButton-root.Mui-disabled svg {
   fill: #d8d8d8;
 }
 
-.c6.MuiButton-root :hover {
+.c6.MuiButton-root:hover {
   background-color: rgba(0, 179, 236, 0.1);
 }
 
 .c6.MuiButton-text {
   padding: 0;
+}
+
+.c6.MuiButton-text.Mui-disabled {
+  color: #d8d8d8;
+}
+
+.c6.MuiButton-text.Mui-disabled svg {
+  fill: #d8d8d8;
 }
 
 .c1 .sync-icon-button {
@@ -1869,16 +1901,24 @@ exports[`SyncControls snapshots non-suspended 1`] = `
   padding: 0;
 }
 
-.c7.MuiButton-root :disabled svg {
+.c7.MuiButton-root.Mui-disabled svg {
   fill: #d8d8d8;
 }
 
-.c7.MuiButton-root :hover {
+.c7.MuiButton-root:hover {
   background-color: rgba(0, 179, 236, 0.1);
 }
 
 .c7.MuiButton-text {
   padding: 0;
+}
+
+.c7.MuiButton-text.Mui-disabled {
+  color: #d8d8d8;
+}
+
+.c7.MuiButton-text.Mui-disabled svg {
+  fill: #d8d8d8;
 }
 
 .c1 .sync-icon-button {
