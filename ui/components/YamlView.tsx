@@ -36,7 +36,7 @@ function UnstyledYamlView({
   const styleProps = {
     customStyle: {
       margin: 0,
-      ...(!dark && { backgroundColor: "transparent" }),
+      backgroundColor: "transparent",
     },
 
     codeTagProps: {
