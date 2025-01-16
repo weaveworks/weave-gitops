@@ -43,7 +43,7 @@ const GraphDiv = styled.div`
 
 function DagGraph({ className, nodes }: Props) {
   //zoom
-  const defaultZoomPercent = 85;
+  const defaultZoomPercent = 75;
   const [zoomPercent, setZoomPercent] = React.useState(defaultZoomPercent);
 
   //pan
@@ -192,7 +192,7 @@ export default styled(DagGraph).attrs({ className: DagGraph.name })`
     width: 6px;
   }
   .MuiSlider-vertical .MuiSlider-thumb {
-    margin-left: -9px;
+    margin-left: 0px;
   }
   .MuiSlider-thumb {
     width: 24px;
