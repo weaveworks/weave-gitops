@@ -72,7 +72,7 @@ export const IconButton = styled(Button)`
     height: 32px;
     padding: 0;
 
-    :disabled {
+    &.Mui-disabled {
       svg {
         fill: ${(props) =>
           props.theme.mode === ThemeTypes.Dark
@@ -81,7 +81,7 @@ export const IconButton = styled(Button)`
       }
     }
 
-    :hover {
+    &:hover {
       background-color: ${(props) =>
         props.theme.mode === ThemeTypes.Dark
           ? alpha(props.theme.colors.primary10, 0.2)
@@ -90,6 +90,19 @@ export const IconButton = styled(Button)`
   }
   &.MuiButton-text {
     padding: 0;
+
+    &.Mui-disabled {
+      color: ${(props) =>
+        props.theme.mode === ThemeTypes.Dark
+          ? props.theme.colors.primary30
+          : props.theme.colors.neutral20};
+      svg {
+        fill: ${(props) =>
+          props.theme.mode === ThemeTypes.Dark
+            ? props.theme.colors.primary30
+            : props.theme.colors.neutral20};
+      }
+    }
   }
 `;
 
@@ -230,7 +243,6 @@ export default styled(SyncControls)`
 
   .rotate-icon {
     color: ${(props) => props.theme.colors.primary10};
-
     animation: 1s linear infinite ${rotateAnimation};
   }
 `;
