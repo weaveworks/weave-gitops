@@ -51,6 +51,13 @@ updates:
       kustomize:
         patterns:
           - "sigs.k8s.io/kustomize/*"
+      k8s-sigs:
+        patterns:
+          - "sigs.k8s.io/api/*"
+          - "sigs.k8s.io/apimachinery/*"
+          - "sigs.k8s.io/apiextensions-apiserver/*"
+          - "sigs.k8s.io/kubectl/*"
+          - "sigs.k8s.io/controller-runtime/*"
   # Maintain dependencies for website
   - package-ecosystem: "npm"
     directory: "/website"
