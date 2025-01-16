@@ -349,7 +349,7 @@ exports[`SyncActions snapshots hideSyncOptions 1`] = `
       >
         <svg
           height="24"
-          viewBox="0 0 24 24"
+          viewBox="-2 0 24 24"
           width="24"
           xmlns="http://www.w3.org/2000/svg"
         >
@@ -872,7 +872,7 @@ exports[`SyncActions snapshots non-suspended 1`] = `
       >
         <svg
           height="24"
-          viewBox="0 0 24 24"
+          viewBox="-2 0 24 24"
           width="24"
           xmlns="http://www.w3.org/2000/svg"
         >
@@ -1397,7 +1397,7 @@ exports[`SyncActions snapshots suspended 1`] = `
       >
         <svg
           height="24"
-          viewBox="0 0 24 24"
+          viewBox="-2 0 24 24"
           width="24"
           xmlns="http://www.w3.org/2000/svg"
         >

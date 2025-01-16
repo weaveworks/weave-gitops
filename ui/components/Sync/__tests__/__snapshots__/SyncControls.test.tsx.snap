@@ -504,7 +504,7 @@ exports[`SyncControls snapshots allButtonsDisabled 1`] = `
       >
         <svg
           height="24"
-          viewBox="0 0 24 24"
+          viewBox="-2 0 24 24"
           width="24"
           xmlns="http://www.w3.org/2000/svg"
         >
@@ -1020,7 +1020,7 @@ exports[`SyncControls snapshots hasTooltipSuffix 1`] = `
       >
         <svg
           height="24"
-          viewBox="0 0 24 24"
+          viewBox="-2 0 24 24"
           width="24"
           xmlns="http://www.w3.org/2000/svg"
         >
@@ -1746,7 +1746,7 @@ exports[`SyncControls snapshots hideSyncOptions 1`] = `
       >
         <svg
           height="24"
-          viewBox="0 0 24 24"
+          viewBox="-2 0 24 24"
           width="24"
           xmlns="http://www.w3.org/2000/svg"
         >
@@ -2262,7 +2262,7 @@ exports[`SyncControls snapshots non-suspended 1`] = `
       >
         <svg
           height="24"
-          viewBox="0 0 24 24"
+          viewBox="-2 0 24 24"
           width="24"
           xmlns="http://www.w3.org/2000/svg"
         >
