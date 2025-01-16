@@ -94,7 +94,7 @@ function UserSettings({ className, darkModeEnabled = true }: Props) {
         open={open}
         onClose={handleClose}
         onClick={handleClose}
-        transformOrigin={{ horizontal: 150, vertical: -80 }}
+        transformOrigin={{ horizontal: 90, vertical: -10 }}
       >
         <MenuItem onClick={() => navigate(V2Routes.UserInfo)}>
           Hello, {userInfo?.id}
