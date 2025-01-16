@@ -121,7 +121,7 @@ export const Graph = ({
   const links = tree.links();
 
   //zoom
-  const defaultZoomPercent = 85;
+  const defaultZoomPercent = 75;
   const [zoomPercent, setZoomPercent] = React.useState(defaultZoomPercent);
 
   //pan
