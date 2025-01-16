@@ -179,7 +179,7 @@ export default styled(ReconciliationGraph)`
     width: 6px;
   }
   .MuiSlider-vertical .MuiSlider-thumb {
-    margin-left: -9px;
+    margin-left: 0px;
   }
   .MuiSlider-thumb {
     width: 24px;
