@@ -1,5 +1,4 @@
-import { Alert } from "@mui/lab";
-import { Box, Collapse } from "@mui/material";
+import { Alert, Box, Collapse } from "@mui/material";
 import { sortBy, uniqBy } from "lodash";
 import * as React from "react";
 import styled from "styled-components";

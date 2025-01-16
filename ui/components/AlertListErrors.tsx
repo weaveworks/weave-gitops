@@ -1,5 +1,5 @@
-import Alert from "@mui/lab/Alert";
 import { Box, Button, Collapse } from "@mui/material";
+import Alert from "@mui/material/Alert";
 import { sortBy, uniqBy } from "lodash";
 import React, { FC, useEffect, useState } from "react";
 import styled from "styled-components";
@@ -31,7 +31,8 @@ const BoxWrapper = styled(Box)`
   }
   .MuiAlert-icon {
     .MuiSvgIcon-root {
-      display: none;
+      display: inline-flex;
+      color: ${(props) => props.theme.colors.alertMedium};
     }
   }
   .MuiAlert-message {
@@ -43,6 +44,7 @@ const BoxWrapper = styled(Box)`
 `;
 const ErrorText = styled(Text)`
   margin-left: 8px;
+  color: ${(props) => props.theme.colors.alertMedium};
 `;
 const NavButton = styled(Button)`
   padding: 0;
@@ -86,9 +88,9 @@ export const AlertListErrors: FC<{
         {!!filteredErrors[index] && (
           <Alert severity="error" onClose={() => setShow(false)}>
             <Flex align center>
-              <Icon type={IconType.ErrorIcon} size="medium" color="alertDark" />
-              <ErrorText data-testid="error-message" color="black">
-                {filteredErrors[index].clusterName}:&nbsp;
+              <ErrorText data-testid="error-message">
+                {filteredErrors[index].clusterName &&
+                  filteredErrors[index].clusterName + ":&nbsp;"}
                 {filteredErrors[index].message}
               </ErrorText>
             </Flex>
