@@ -33,7 +33,7 @@ jobs:
       contents: read
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name : Set URL environment Variable
       run: |
         echo "URL=http://localhost:8000" >> $GITHUB_ENV
