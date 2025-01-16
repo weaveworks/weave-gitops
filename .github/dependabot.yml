@@ -51,6 +51,9 @@ updates:
       kustomize:
         patterns:
           - "sigs.k8s.io/kustomize/*"
+      k8s:
+        patterns:
+          - "k8s.io/*"
   # Maintain dependencies for website
   - package-ecosystem: "npm"
     directory: "/website"
