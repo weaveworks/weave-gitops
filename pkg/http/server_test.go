@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"math/rand/v2"
+	"net"
 	"net/http"
 	"os"
 	"testing"
@@ -16,6 +17,15 @@ import (
 
 	wegohttp "github.com/weaveworks/weave-gitops/pkg/http"
 )
+
+func portInUse(port int) bool {
+	conn, err := net.Dial("tcp", fmt.Sprintf("localhost:%d", port))
+	if err != nil {
+		return false
+	}
+	conn.Close()
+	return true
+}
 
 func TestMultiServerStartReturnsImmediatelyWithClosedContext(t *testing.T) {
 	g := NewGomegaWithT(t)
@@ -46,7 +56,8 @@ func TestMultiServerServesOverBothProtocols(t *testing.T) {
 	httpPort := rand.N(49151-1024) + 1024  // #nosec G404
 	httpsPort := rand.N(49151-1024) + 1024 // #nosec G404
 
-	for httpPort == httpsPort {
+	for httpPort == httpsPort || portInUse(httpPort) || portInUse(httpsPort) {
+		httpPort = rand.N(49151-1024) + 1024  // #nosec G404
 		httpsPort = rand.N(49151-1024) + 1024 // #nosec G404
 	}
 
