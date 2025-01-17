@@ -122,7 +122,7 @@ function SignIn({ darkModeEnabled = true }: Props) {
         width: "100vw",
       }}
     >
-      {authError && authError.status != 0 && (
+      {authError && (
         <AlertWrapper
           severity="error"
           title="Error signing in"
@@ -180,7 +180,7 @@ function SignIn({ darkModeEnabled = true }: Props) {
         ) : null}
         {isFlagEnabled("CLUSTER_USER_AUTH") ? (
           <form
-            ref={formRef as React.RefObject<HTMLFormElement>}
+            ref={formRef}
             onSubmit={(e) => {
               e.preventDefault();
               handleUserPassSubmit();

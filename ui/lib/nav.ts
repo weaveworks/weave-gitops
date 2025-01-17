@@ -154,7 +154,7 @@ export const formatSourceURL = (
   namespace: string = NoNamespace,
   clusterName: string,
 ) => {
-  return formatURL(objectTypeToRoute(Kind[kind as keyof typeof Kind]), {
+  return formatURL(objectTypeToRoute(Kind[kind]), {
     name,
     namespace,
     clusterName,

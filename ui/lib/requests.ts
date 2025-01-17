@@ -42,7 +42,7 @@ export class TokenRefreshWrapper {
       return await fn();
     } catch (error) {
       // Check for a 401 status code on the HTTPError
-      if ((error as any).code === 401) {
+      if (error.code === 401) {
         await this.getOrInitiateRefresh();
         // Try the request again
         return this.makeRequest(fn);

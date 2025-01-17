@@ -154,7 +154,7 @@ const App = () => {
 
       <ErrorBoundary>
         <Routes>
-          <Route path={V2Routes.Automations} Component={Automations} />
+          <Route path={V2Routes.Automations} element={<Automations />} />
           <Route path={V2Routes.Kustomization}>
             <Route
               element={<WithSearchParams component={KustomizationPage} />}
@@ -281,8 +281,8 @@ const App = () => {
             />
           </Route>
 
-          <Route path={V2Routes.UserInfo} Component={UserInfo} />
-          <Route path={V2Routes.Policies} Component={PoliciesList} />
+          <Route path={V2Routes.UserInfo} element={<UserInfo />} />
+          <Route path={V2Routes.Policies} element={<PoliciesList />} />
           <Route
             element={<WithSearchParams component={PolicyDetailsPage} />}
             path={V2Routes.PolicyDetailsPage}
@@ -291,7 +291,7 @@ const App = () => {
             element={<Navigate to={V2Routes.Automations} replace />}
             path="/"
           />
-          <Route path="*" Component={Error} />
+          <Route path="*" element={Error} />
         </Routes>
       </ErrorBoundary>
       <ToastContainer

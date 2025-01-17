@@ -125,11 +125,7 @@ export default function AuthContextProvider({
   }, [request]);
 
   React.useEffect(() => {
-    return () => {
-      if (getUserInfo) {
-        getUserInfo();
-      }
-    };
+    getUserInfo();
   }, [getUserInfo, location]);
 
   return (

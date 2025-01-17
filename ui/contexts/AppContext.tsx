@@ -6,8 +6,8 @@ import { PageRoute, V2Routes } from "../lib/types";
 import { notifySuccess, withBasePath } from "../lib/utils";
 
 type AppState = {
-  error: null | { fatal?: boolean; message: string; detail?: string };
-  detailModal: DetailViewProps | null;
+  error: null | { fatal: boolean; message: string; detail?: string };
+  detailModal: DetailViewProps;
 };
 
 export enum ThemeTypes {
@@ -37,7 +37,7 @@ export type AppContextType = {
 };
 
 export const AppContext = React.createContext<AppContextType>(
-  {} as AppContextType,
+  null as AppContextType,
 );
 
 export interface AppProps {
@@ -48,11 +48,12 @@ export interface AppProps {
 
 export default function AppContextProvider({ ...props }: AppProps) {
   const navigate = useNavigate();
-
-  const [appState, setAppState] = React.useState<AppState>({} as AppState);
-
+  const [appState, setAppState] = React.useState({
+    error: null,
+    detailModal: null,
+  });
   const [appSettings, setAppSettings] = React.useState<AppSettings>({
-    footer: props.footer as JSX.Element,
+    footer: props.footer,
     theme:
       window.matchMedia("(prefers-color-scheme: dark)").matches ||
       localStorage.getItem("mode") === ThemeTypes.Dark
@@ -60,17 +61,17 @@ export default function AppContextProvider({ ...props }: AppProps) {
         : ThemeTypes.Light,
   });
 
-  const clearAsyncError = React.useCallback(() => {
-    setAppState((prevState) => ({
-      ...prevState,
+  const clearAsyncError = () => {
+    setAppState({
+      ...appState,
       error: null,
-    }));
-  }, []);
+    });
+  };
 
   React.useEffect(() => {
     // clear the error state on navigation
     clearAsyncError();
-  }, [clearAsyncError]);
+  }, [window.location]);
 
   const doAsyncError = (message: string, detail: string) => {
     console.error(message);
@@ -105,13 +106,11 @@ export default function AppContextProvider({ ...props }: AppProps) {
     appState,
     notifySuccess: props.notifySuccess || notifySuccess,
     settings: appSettings,
-
     navigate: {
-      internal: (page: PageRoute | V2Routes, query?: any) => {
+      internal: (page: PageRoute, query?: any) => {
         const u = formatURL(page, query);
         navigate(u);
       },
-
       external: (url) => {
         if (process.env.NODE_ENV === "test") {
           return;
@@ -119,7 +118,6 @@ export default function AppContextProvider({ ...props }: AppProps) {
         window.location.href = url;
       },
     },
-
     request: (
       input: RequestInfo | URL,
       init?: RequestInit,

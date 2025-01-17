@@ -2,13 +2,7 @@ import { Tabs } from "@mui/material";
 import _ from "lodash";
 import qs from "query-string";
 import * as React from "react";
-import {
-  Navigate,
-  Route,
-  Routes,
-  useLocation,
-  useResolvedPath,
-} from "react-router";
+import { Navigate, Route, Routes, useLocation } from "react-router";
 import styled from "styled-components";
 import { formatURL } from "../lib/nav";
 import Flex from "./Flex";
@@ -30,11 +24,9 @@ type TabProps = {
 
 type PathConfig = { name: string; path: string };
 
-const ForwardedLink = React.forwardRef(function ForwardedLink(props, ref) {
-  return <Link {...props} innerRef={ref} />;
-});
-
-ForwardedLink.displayName = "ForwardedLink";
+const ForwardedLink = React.forwardRef((props, ref) => (
+  <Link {...props} innerRef={ref} />
+));
 
 function findChildren(childrenProp: any[]) {
   if (_.isArray(childrenProp)) {
@@ -59,11 +51,7 @@ function routesToIndex(routes: PathConfig[], pathname: string | string[]) {
 }
 
 export function RouterTab({ children }: TabProps) {
-  return (
-    <Route path={children.props.path}>
-      {children.props.children as React.ReactElement}
-    </Route>
-  );
+  return children;
 }
 
 function SubRouterTabs({ className, children, rootPath, clearQuery }: Props) {
@@ -80,7 +68,6 @@ function SubRouterTabs({ className, children, rootPath, clearQuery }: Props) {
     name: c?.props?.name,
   }));
 
-  const path = useResolvedPath("..").pathname;
   return (
     <Flex wide tall column start className={className} gap="12">
       <Tabs
@@ -93,7 +80,7 @@ function SubRouterTabs({ className, children, rootPath, clearQuery }: Props) {
             <MuiTab
               component={ForwardedLink as typeof Link}
               key={i}
-              to={formatURL(`${path}/${route.path}`, query)}
+              to={formatURL(`../${route.path}`, query)}
               active={location.pathname.includes(route.path)}
               text={route.name}
             />
@@ -105,14 +92,8 @@ function SubRouterTabs({ className, children, rootPath, clearQuery }: Props) {
           path="/"
           element={<Navigate to={formatURL(rootPath, query)} replace />}
         />
-        {_.map(childs, (route: any, i: number) => {
-          return (
-            <Route
-              key={i}
-              path={route.props.path}
-              element={route.props.children}
-            />
-          );
+        {_.map(childs, (child, i) => {
+          return <Route key={i} path={child.props.path} element={child} />;
         })}
         ;
       </Routes>
