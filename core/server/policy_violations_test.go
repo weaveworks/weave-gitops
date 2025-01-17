@@ -114,10 +114,22 @@ func TestListApplicationValidations(t *testing.T) {
 			e.Annotations["policy_id"] = "weave.policies.missing-app-label"
 			e.Labels["pac.weave.works/id"] = "56701548-12c1-4f79-a09a-a12979904"
 		})).
-		WithIndex(&corev1.Event{}, "type", client.IndexerFunc(func(o client.Object) []string {
+		WithIndex(&corev1.Event{}, "type", func(o client.Object) []string {
 			event := o.(*corev1.Event)
 			return []string{event.Type}
-		})).
+		}).
+		WithIndex(&corev1.Event{}, "involvedObject.kind", func(o client.Object) []string {
+			event := o.(*corev1.Event)
+			return []string{event.InvolvedObject.Kind}
+		}).
+		WithIndex(&corev1.Event{}, "involvedObject.namespace", func(o client.Object) []string {
+			event := o.(*corev1.Event)
+			return []string{event.InvolvedObject.Namespace}
+		}).
+		WithIndex(&corev1.Event{}, "involvedObject.name", func(o client.Object) []string {
+			event := o.(*corev1.Event)
+			return []string{event.InvolvedObject.Name}
+		}).
 		Build()
 
 	cfg := makeServerConfig(client, t, "")
