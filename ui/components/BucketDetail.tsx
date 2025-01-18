@@ -24,7 +24,15 @@ function BucketDetail({ className, bucket, customActions }: Props) {
       : [];
 
   const clusterInfo: InfoField[] = isFlagEnabled("WEAVE_GITOPS_FEATURE_CLUSTER")
-    ? [["Cluster", <ClusterDashboardLink clusterName={bucket?.clusterName} />]]
+    ? [
+        [
+          "Cluster",
+          <ClusterDashboardLink
+            key={bucket.uid}
+            clusterName={bucket?.clusterName}
+          />,
+        ],
+      ]
     : [];
 
   return (
@@ -37,8 +45,11 @@ function BucketDetail({ className, bucket, customActions }: Props) {
         ["Kind", Kind.Bucket],
         ["Endpoint", bucket.endpoint],
         ["Bucket Name", bucket.name],
-        ["Last Updated", <Timestamp time={bucket.lastUpdatedAt} />],
-        ["Interval", <Interval interval={bucket.interval} />],
+        [
+          "Last Updated",
+          <Timestamp key={bucket.uid} time={bucket.lastUpdatedAt} />,
+        ],
+        ["Interval", <Interval key={bucket.uid} interval={bucket.interval} />],
         ...clusterInfo,
         ["Namespace", bucket.namespace],
         ...tenancyInfo,

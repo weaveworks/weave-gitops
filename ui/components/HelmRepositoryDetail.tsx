@@ -31,7 +31,10 @@ function HelmRepositoryDetail({
     ? [
         [
           "Cluster",
-          <ClusterDashboardLink clusterName={helmRepository?.clusterName} />,
+          <ClusterDashboardLink
+            key={helmRepository.uid}
+            clusterName={helmRepository?.clusterName}
+          />,
         ],
       ]
     : [];
@@ -45,7 +48,12 @@ function HelmRepositoryDetail({
       info={[
         ["Kind", Kind.HelmRepository],
         ["Repository Type", helmRepository.repositoryType.toLowerCase()],
-        ["URL", <Link href={helmRepository.url}>{helmRepository.url}</Link>],
+        [
+          "URL",
+          <Link key={helmRepository.uid} href={helmRepository.url}>
+            {helmRepository.url}
+          </Link>,
+        ],
         [
           "Last Updated",
           helmRepository.lastUpdatedAt ? (
@@ -54,7 +62,13 @@ function HelmRepositoryDetail({
             "-"
           ),
         ],
-        ["Interval", <Interval interval={helmRepository.interval} />],
+        [
+          "Interval",
+          <Interval
+            key={helmRepository.uid}
+            interval={helmRepository.interval}
+          />,
+        ],
         ...clusterInfo,
         ["Namespace", helmRepository.namespace],
         ...tenancyInfo,

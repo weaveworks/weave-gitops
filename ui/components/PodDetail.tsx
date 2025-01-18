@@ -67,7 +67,14 @@ const Detail = ({ pod }) => {
         items={[
           ["Namespace", pod.namespace],
           ["Pod IP", pod.podIP],
-          ["Pod IPs", <ArrayToList array={pod.podIPs} display={(p) => p.ip} />],
+          [
+            "Pod IPs",
+            <ArrayToList
+              key={pod.id}
+              array={pod.podIPs}
+              display={(p) => p.ip}
+            />,
+          ],
           ["Priority Class", pod.priorityClass],
           ["QoS Class", pod.qosClass],
         ]}
@@ -100,6 +107,7 @@ const Detail = ({ pod }) => {
                 [
                   "Ports",
                   <ArrayToList
+                    key={container.name}
                     array={container.ports}
                     display={(port) =>
                       `${port.name}:${port.containerPort}/${port.protocol}`
@@ -108,11 +116,19 @@ const Detail = ({ pod }) => {
                 ],
                 [
                   "Env Vars",
-                  <ArrayToList array={container.enVar} display={(v) => v} />,
+                  <ArrayToList
+                    key={container.name}
+                    array={container.enVar}
+                    display={(v) => v}
+                  />,
                 ],
                 [
                   "Arguments",
-                  <ArrayToList array={container.args} display={(arg) => arg} />,
+                  <ArrayToList
+                    key={container.name}
+                    array={container.args}
+                    display={(arg) => arg}
+                  />,
                 ],
               ]}
             />
