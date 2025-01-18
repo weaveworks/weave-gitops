@@ -3987,6 +3987,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/js-yaml@npm:^4":
+  version: 4.0.9
+  resolution: "@types/js-yaml@npm:4.0.9"
+  checksum: 10c0/24de857aa8d61526bbfbbaa383aa538283ad17363fcd5bb5148e2c7f604547db36646440e739d78241ed008702a8920665d1add5618687b6743858fae00da211
+  languageName: node
+  linkType: hard
+
 "@types/jsdom@npm:^20.0.0":
   version: 20.0.1
   resolution: "@types/jsdom@npm:20.0.1"
@@ -4395,6 +4402,7 @@ __metadata:
     "@testing-library/react-hooks": "npm:^7.0.0"
     "@types/babel__preset-env": "npm:^7"
     "@types/jest": "npm:^29.5.14"
+    "@types/js-yaml": "npm:^4"
     "@types/lodash": "npm:^4.17.14"
     "@types/luxon": "npm:^3.4.2"
     "@types/react": "npm:^18.0.0"
@@ -4419,6 +4427,7 @@ __metadata:
     jest-styled-components: "npm:^7.2.0"
     jest-worker: "npm:^29.7.0"
     js-sha3: "npm:0.9.3"
+    js-yaml: "npm:^4.1.0"
     jsdom: "npm:^26.0.0"
     lodash: "npm:^4.17.21"
     luxon: "npm:^3.5.0"
@@ -4444,7 +4453,6 @@ __metadata:
     ts-jest: "npm:^29.2.5"
     typescript: "npm:^5.7.3"
     typescript-eslint: "npm:^8.20.0"
-    yaml: "npm:^2.7.0"
     yarn-audit-fix: "npm:^10.1.1"
   peerDependencies:
     lodash: ^4.17.21
@@ -13067,15 +13075,6 @@ __metadata:
   version: 1.10.2
   resolution: "yaml@npm:1.10.2"
   checksum: 10c0/5c28b9eb7adc46544f28d9a8d20c5b3cb1215a886609a2fd41f51628d8aaa5878ccd628b755dbcd29f6bb4921bd04ffbc6dcc370689bb96e594e2f9813d2605f
-  languageName: node
-  linkType: hard
-
-"yaml@npm:^2.7.0":
-  version: 2.7.0
-  resolution: "yaml@npm:2.7.0"
-  bin:
-    yaml: bin.mjs
-  checksum: 10c0/886a7d2abbd70704b79f1d2d05fe9fb0aa63aefb86e1cb9991837dced65193d300f5554747a872b4b10ae9a12bc5d5327e4d04205f70336e863e35e89d8f4ea9
   languageName: node
   linkType: hard
 

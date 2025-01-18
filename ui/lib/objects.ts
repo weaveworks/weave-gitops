@@ -1,5 +1,5 @@
+import { dump } from "js-yaml";
 import _ from "lodash";
-import { stringify } from "yaml";
 import {
   Condition,
   GitRepositoryRef,
@@ -54,7 +54,7 @@ export class FluxObject {
   }
 
   get yaml(): string {
-    return stringify(this.obj);
+    return dump(this.obj);
   }
 
   get name(): string {
