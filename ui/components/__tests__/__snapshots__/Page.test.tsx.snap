@@ -181,104 +181,67 @@ exports[`Page snapshots default 1`] = `
 }
 
 <div
-  className="c0 c1"
+  class="c0 c1"
 >
   <div
-    className="c2 c3"
+    class="c2 c3"
   >
     <div
-      className="c4"
+      class="c4"
     >
       <div
-        className="c4"
+        class="c4"
       >
         <span
           aria-label="test"
-          aria-labelledby={null}
-          className="c5 c6 c7 ellipsis"
-          data-mui-internal-clone-element={true}
+          class="c5 c6 c7 ellipsis"
+          data-mui-internal-clone-element="true"
           data-testid="text-test"
-          onBlur={[Function]}
-          onFocus={[Function]}
-          onMouseLeave={[Function]}
-          onMouseOver={[Function]}
-          onTouchEnd={[Function]}
-          onTouchStart={[Function]}
         >
           test
         </span>
       </div>
     </div>
     <div
-      className="c8 "
+      class="c8 "
     >
       <span
-        className="MuiSwitch-root MuiSwitch-sizeMedium c9 DarkModeSwitch css-rehya9-MuiSwitch-root"
+        class="MuiSwitch-root MuiSwitch-sizeMedium c9 DarkModeSwitch css-rehya9-MuiSwitch-root"
       >
         <span
-          className="MuiButtonBase-root MuiSwitch-switchBase MuiSwitch-colorPrimary PrivateSwitchBase-root MuiSwitch-switchBase MuiSwitch-colorPrimary css-n2qy4p-MuiButtonBase-root-MuiSwitch-switchBase"
-          onBlur={[Function]}
-          onContextMenu={[Function]}
-          onDragLeave={[Function]}
-          onFocus={[Function]}
-          onKeyDown={[Function]}
-          onKeyUp={[Function]}
-          onMouseDown={[Function]}
-          onMouseLeave={[Function]}
-          onMouseUp={[Function]}
-          onTouchEnd={[Function]}
-          onTouchMove={[Function]}
-          onTouchStart={[Function]}
-          tabIndex={null}
+          class="MuiButtonBase-root MuiSwitch-switchBase MuiSwitch-colorPrimary PrivateSwitchBase-root MuiSwitch-switchBase MuiSwitch-colorPrimary css-n2qy4p-MuiButtonBase-root-MuiSwitch-switchBase"
         >
           <input
-            checked={false}
-            className="PrivateSwitchBase-input MuiSwitch-input css-j8yymo"
-            onChange={[Function]}
-            required={false}
+            class="PrivateSwitchBase-input MuiSwitch-input css-j8yymo"
             type="checkbox"
           />
           <span
-            className="MuiSwitch-thumb css-17jyosd-MuiSwitch-thumb"
+            class="MuiSwitch-thumb css-17jyosd-MuiSwitch-thumb"
           />
         </span>
         <span
-          className="MuiSwitch-track css-tj8d99-MuiSwitch-track"
+          class="MuiSwitch-track css-tj8d99-MuiSwitch-track"
         />
       </span>
       <a
         aria-label="Docs"
-        aria-labelledby={null}
-        className="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeMedium c10 c11 Link css-53g0n7-MuiButtonBase-root-MuiIconButton-root"
-        data-mui-internal-clone-element={true}
+        class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeMedium c10 c11 Link css-53g0n7-MuiButtonBase-root-MuiIconButton-root"
+        data-mui-internal-clone-element="true"
         href="https://docs.gitops.weaveworks.org/"
         id=":r2:"
-        onBlur={[Function]}
-        onContextMenu={[Function]}
-        onDragLeave={[Function]}
-        onFocus={[Function]}
-        onKeyDown={[Function]}
-        onKeyUp={[Function]}
-        onMouseDown={[Function]}
-        onMouseLeave={[Function]}
-        onMouseOver={[Function]}
-        onMouseUp={[Function]}
-        onTouchEnd={[Function]}
-        onTouchMove={[Function]}
-        onTouchStart={[Function]}
         rel="noreferrer"
-        tabIndex={0}
+        tabindex="0"
         target="_blank"
       >
         <span
-          className="MuiIconButton-loadingIndicator css-165vu30-MuiIconButton-loadingIndicator"
+          class="MuiIconButton-loadingIndicator css-165vu30-MuiIconButton-loadingIndicator"
         />
         <div
-          className="c4 c12"
+          class="c4 c12"
         >
           <svg
-            aria-hidden={true}
-            className="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
+            aria-hidden="true"
+            class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
             data-testid="FindInPageIcon"
             focusable="false"
             viewBox="0 0 24 24"
@@ -292,38 +255,21 @@ exports[`Page snapshots default 1`] = `
       <button
         aria-haspopup="true"
         aria-label="Account settings"
-        aria-labelledby={null}
-        className="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeMedium c10 css-53g0n7-MuiButtonBase-root-MuiIconButton-root"
-        data-mui-internal-clone-element={true}
-        disabled={false}
+        class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeMedium c10 css-53g0n7-MuiButtonBase-root-MuiIconButton-root"
+        data-mui-internal-clone-element="true"
         id=":r4:"
-        onBlur={[Function]}
-        onClick={[Function]}
-        onContextMenu={[Function]}
-        onDragLeave={[Function]}
-        onFocus={[Function]}
-        onKeyDown={[Function]}
-        onKeyUp={[Function]}
-        onMouseDown={[Function]}
-        onMouseLeave={[Function]}
-        onMouseOver={[Function]}
-        onMouseUp={[Function]}
-        onTouchEnd={[Function]}
-        onTouchMove={[Function]}
-        onTouchStart={[Function]}
-        open={false}
-        tabIndex={0}
+        tabindex="0"
         type="button"
       >
         <span
-          className="MuiIconButton-loadingIndicator css-165vu30-MuiIconButton-loadingIndicator"
+          class="MuiIconButton-loadingIndicator css-165vu30-MuiIconButton-loadingIndicator"
         />
         <div
-          className="c4 c12"
+          class="c4 c12"
         >
           <svg
-            aria-hidden={true}
-            className="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
+            aria-hidden="true"
+            class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
             data-testid="PersonIcon"
             focusable="false"
             viewBox="0 0 24 24"
@@ -337,13 +283,13 @@ exports[`Page snapshots default 1`] = `
     </div>
   </div>
   <div
-    className="c13"
+    class="c13"
   >
     <div
-      className="c14 c15 c16"
+      class="c14 c15 c16"
     >
       <div
-        className="c17 c18"
+        class="c17 c18"
       />
     </div>
   </div>

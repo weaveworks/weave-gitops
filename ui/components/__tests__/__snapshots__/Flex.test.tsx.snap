@@ -8,7 +8,7 @@ exports[`Flex snapshots align 1`] = `
 }
 
 <div
-  className="c0"
+  class="c0"
 >
   My Text
 </div>
@@ -23,7 +23,7 @@ exports[`Flex snapshots center 1`] = `
 }
 
 <div
-  className="c0"
+  class="c0"
 >
   My Text
 </div>
@@ -38,7 +38,7 @@ exports[`Flex snapshots wide 1`] = `
 }
 
 <div
-  className="c0"
+  class="c0"
 >
   My Text
 </div>
@@ -54,7 +54,7 @@ exports[`Flex snapshots wide center align 1`] = `
 }
 
 <div
-  className="c0"
+  class="c0"
 >
   My Text
 </div>

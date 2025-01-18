@@ -1,6 +1,6 @@
 import "jest-styled-components";
+import { render } from "@testing-library/react";
 import React from "react";
-import renderer from "react-test-renderer";
 import { CoreClientContext } from "../../../contexts/CoreClientContext";
 import {
   createCoreMockClient,
@@ -14,51 +14,45 @@ describe("SyncActions", () => {
     const mockContext = { api: createCoreMockClient({}), featureFlags: {} };
 
     it("non-suspended", () => {
-      const tree = renderer
-        .create(
-          withTheme(
-            withContext(
-              <CoreClientContext.Provider value={mockContext}>
-                <SyncActions />
-              </CoreClientContext.Provider>,
-              "/",
-              {},
-            ),
+      const tree = render(
+        withTheme(
+          withContext(
+            <CoreClientContext.Provider value={mockContext}>
+              <SyncActions />
+            </CoreClientContext.Provider>,
+            "/",
+            {},
           ),
-        )
-        .toJSON();
+        ),
+      ).asFragment().firstChild;
       expect(tree).toMatchSnapshot();
     });
     it("suspended", () => {
-      const tree = renderer
-        .create(
-          withTheme(
-            withContext(
-              <CoreClientContext.Provider value={mockContext}>
-                <SyncActions suspended />
-              </CoreClientContext.Provider>,
-              "/",
-              {},
-            ),
+      const tree = render(
+        withTheme(
+          withContext(
+            <CoreClientContext.Provider value={mockContext}>
+              <SyncActions suspended />
+            </CoreClientContext.Provider>,
+            "/",
+            {},
           ),
-        )
-        .toJSON();
+        ),
+      ).asFragment().firstChild;
       expect(tree).toMatchSnapshot();
     });
     it("hideSyncOptions", () => {
-      const tree = renderer
-        .create(
-          withTheme(
-            withContext(
-              <CoreClientContext.Provider value={mockContext}>
-                <SyncActions hideSyncOptions />
-              </CoreClientContext.Provider>,
-              "/",
-              {},
-            ),
+      const tree = render(
+        withTheme(
+          withContext(
+            <CoreClientContext.Provider value={mockContext}>
+              <SyncActions hideSyncOptions />
+            </CoreClientContext.Provider>,
+            "/",
+            {},
           ),
-        )
-        .toJSON();
+        ),
+      ).asFragment().firstChild;
       expect(tree).toMatchSnapshot();
     });
   });

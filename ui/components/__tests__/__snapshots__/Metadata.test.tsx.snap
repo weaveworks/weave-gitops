@@ -14,7 +14,7 @@ exports[`Metadata snapshots renders nothing without data 1`] = `
 }
 
 <div
-  className="c0 c1 Metadata"
+  class="c0 c1 Metadata"
 />
 `;
 
@@ -121,120 +121,114 @@ exports[`Metadata snapshots renders with data 1`] = `
 }
 
 <div
-  className="c0 c1 Metadata"
+  class="c0 c1 Metadata"
 >
   <div
-    className="c2"
+    class="c2"
   >
     <span
-      className="c3"
+      class="c3"
     >
       Metadata
     </span>
     <div
-      className="c4"
+      class="c4"
     >
       <div
-        className="c5"
+        class="c5"
         data-testid="Created By"
       >
         <span
-          className="c6"
+          class="c6"
         >
-          Created By
-          :
+          Created By:
         </span>
         <span
-          className="c7"
+          class="c7"
         >
           Value 2
         </span>
       </div>
       <div
-        className="c5"
+        class="c5"
         data-testid="CreatedBy"
       >
         <span
-          className="c6"
+          class="c6"
         >
-          CreatedBy
-          :
+          CreatedBy:
         </span>
         <span
-          className="c7"
+          class="c7"
         >
           Value 3
         </span>
       </div>
       <div
-        className="c5"
+        class="c5"
         data-testid="CreatedBy"
       >
         <span
-          className="c6"
+          class="c6"
         >
-          CreatedBy
-          :
+          CreatedBy:
         </span>
         <span
-          className="c7"
+          class="c7"
         >
           Value 4
         </span>
       </div>
       <div
-        className="c5"
+        class="c5"
         data-testid="Description"
       >
         <span
-          className="c6"
+          class="c6"
         >
-          Description
-          :
+          Description:
         </span>
         <span
-          className="c7"
+          class="c7"
         >
           Value 1
         </span>
       </div>
       <div
-        className="c5"
+        class="c5"
         data-testid="Html"
       >
         <span
-          className="c6"
+          class="c6"
         >
-          Html
-          :
+          Html:
         </span>
         <span
-          className="c7"
+          class="c7"
         >
           &lt;p&gt;&lt;b&gt;html&lt;/b&gt;&lt;/p&gt;
         </span>
       </div>
       <div
-        className="c5"
+        class="c5"
         data-testid="Link To Google"
       >
         <span
-          className="c6"
+          class="c6"
         >
-          Link To Google
-          :
+          Link To Google:
         </span>
         <span
-          className="c7"
+          class="c7"
         >
           <a
-            className="c8 Link"
+            class="c8 Link"
             href="https://google.com"
             rel="noreferrer"
             target="_blank"
           >
             <span
-              className="c9"
+              class="c9"
             >
               https://google.com
             </span>
@@ -242,17 +236,16 @@ exports[`Metadata snapshots renders with data 1`] = `
         </span>
       </div>
       <div
-        className="c5"
+        class="c5"
         data-testid="Multi Lines"
       >
         <span
-          className="c6"
+          class="c6"
         >
-          Multi Lines
-          :
+          Multi Lines:
         </span>
         <span
-          className="c7"
+          class="c7"
         >
           This is first line
 This is second line
@@ -260,17 +253,16 @@ This is second line
         </span>
       </div>
       <div
-        className="c5"
+        class="c5"
         data-testid="Version"
       >
         <span
-          className="c6"
+          class="c6"
         >
-          Version
-          :
+          Version:
         </span>
         <span
-          className="c7"
+          class="c7"
         >
           some version
         </span>
@@ -278,69 +270,66 @@ This is second line
     </div>
   </div>
   <div
-    className="c2"
+    class="c2"
   >
     <span
-      className="c3"
+      class="c3"
     >
       Artifact Metadata
     </span>
     <div
-      className="c4"
+      class="c4"
     >
       <div
-        className="c5"
+        class="c5"
         data-testid="Description"
       >
         <span
-          className="c6"
+          class="c6"
         >
-          Description
-          :
+          Description:
         </span>
         <span
-          className="c7"
+          class="c7"
         >
           Value 1
         </span>
       </div>
       <div
-        className="c5"
+        class="c5"
         data-testid="Html"
       >
         <span
-          className="c6"
+          class="c6"
         >
-          Html
-          :
+          Html:
         </span>
         <span
-          className="c7"
+          class="c7"
         >
           &lt;p&gt;&lt;b&gt;html&lt;/b&gt;&lt;/p&gt;
         </span>
       </div>
       <div
-        className="c5"
+        class="c5"
         data-testid="Link To Google"
       >
         <span
-          className="c6"
+          class="c6"
         >
-          Link To Google
-          :
+          Link To Google:
         </span>
         <span
-          className="c7"
+          class="c7"
         >
           <a
-            className="c8 Link"
+            class="c8 Link"
             href="https://google.com"
             rel="noreferrer"
             target="_blank"
           >
             <span
-              className="c9"
+              class="c9"
             >
               https://google.com
             </span>
@@ -350,29 +339,25 @@ This is second line
     </div>
   </div>
   <div
-    className="c2"
+    class="c2"
   >
     <span
-      className="c3"
+      class="c3"
     >
       Labels
     </span>
     <div
-      className="c10"
+      class="c10"
     >
       <span
-        className="c11 c12"
+        class="c11 c12"
       >
-        label
-        : 
-        label
+        label: label
       </span>
       <span
-        className="c11 c12"
+        class="c11 c12"
       >
-        goose
-        : 
-        goose
+        goose: goose
       </span>
     </div>
   </div>

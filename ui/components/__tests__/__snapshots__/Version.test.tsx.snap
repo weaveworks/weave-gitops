@@ -29,19 +29,18 @@ exports[`Version snapshots renders a dash as plain text without version text and
 }
 
 <div
-  className="c0 Version"
+  class="c0 Version"
 >
   <span
-    className="c1"
+    class="c1"
   >
-    product name
-    :
+    product name:
   </span>
   <div
-    className="c2"
+    class="c2"
   />
   <span
-    className="c3"
+    class="c3"
   >
     -
   </span>
@@ -77,19 +76,18 @@ exports[`Version snapshots renders a dash without version text and without versi
 }
 
 <div
-  className="c0 Version"
+  class="c0 Version"
 >
   <span
-    className="c1"
+    class="c1"
   >
-    product name
-    :
+    product name:
   </span>
   <div
-    className="c2"
+    class="c2"
   />
   <span
-    className="c3"
+    class="c3"
   >
     -
   </span>
@@ -138,28 +136,27 @@ exports[`Version snapshots renders a link with version text and version href 1`]
 }
 
 <div
-  className="c0 Version"
+  class="c0 Version"
 >
   <span
-    className="c1"
+    class="c1"
   >
-    product name
-    :
+    product name:
   </span>
   <div
-    className="c2"
+    class="c2"
   />
   <a
-    className="c3 Link"
+    class="c3 Link"
     href="https://github.com/weaveworks/weave-gitops"
     rel="noreferrer"
     target="_blank"
   >
     <span
-      className="c4"
+      class="c4"
     >
       <span
-        className="c5"
+        class="c5"
       >
         version text
       </span>
@@ -197,19 +194,18 @@ exports[`Version snapshots renders plain text with version text and without vers
 }
 
 <div
-  className="c0 Version"
+  class="c0 Version"
 >
   <span
-    className="c1"
+    class="c1"
   >
-    product name
-    :
+    product name:
   </span>
   <div
-    className="c2"
+    class="c2"
   />
   <span
-    className="c3"
+    class="c3"
   >
     version text
   </span>

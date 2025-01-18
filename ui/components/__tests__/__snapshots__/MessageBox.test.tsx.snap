@@ -18,7 +18,7 @@ exports[`MessageBox snapshots renders 1`] = `
 }
 
 <div
-  className="c0 c1"
+  class="c0 c1"
 >
   Column and items centered.
 </div>

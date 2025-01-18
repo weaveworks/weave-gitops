@@ -113,10 +113,6 @@ exports[`SyncControls snapshots allButtonsDisabled 1`] = `
   font-weight: 600;
 }
 
-.c2.MuiButton-root:hover {
-  background-color: rgba(0, 179, 236, 0.1);
-}
-
 .c2.MuiButton-outlined {
   padding: 8px 12px;
 }
@@ -131,7 +127,7 @@ exports[`SyncControls snapshots allButtonsDisabled 1`] = `
 }
 
 .c6 .MuiFormControlLabel-label.Mui-disabled {
-  color: #BDBDBD;
+  color: #d8d8d8;
 }
 
 .c6 .MuiTypography-root {
@@ -145,24 +141,16 @@ exports[`SyncControls snapshots allButtonsDisabled 1`] = `
   padding: 0;
 }
 
-.c7.MuiButton-root.Mui-disabled svg {
-  fill: #BDBDBD;
+.c7.MuiButton-root :disabled svg {
+  fill: #d8d8d8;
 }
 
-.c7.MuiButton-root:hover {
+.c7.MuiButton-root :hover {
   background-color: rgba(0, 179, 236, 0.1);
 }
 
 .c7.MuiButton-text {
   padding: 0;
-}
-
-.c7.MuiButton-text.Mui-disabled {
-  color: #BDBDBD;
-}
-
-.c7.MuiButton-text.Mui-disabled svg {
-  fill: #BDBDBD;
 }
 
 .c1 .sync-icon-button {
@@ -179,7 +167,7 @@ exports[`SyncControls snapshots allButtonsDisabled 1`] = `
   className="c0 c1"
 >
   <button
-    className="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textPrimary MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorPrimary MuiButton-disableElevation Mui-disabled MuiButton-root MuiButton-text MuiButton-textPrimary MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorPrimary MuiButton-disableElevation c2 sync-icon-button css-9buukw-MuiButtonBase-root-MuiButton-root"
+    className="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textPrimary MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorPrimary MuiButton-disableElevation Mui-disabled MuiButton-root MuiButton-text MuiButton-textPrimary MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorPrimary MuiButton-disableElevation c2 sync-icon-button css-157ho6v-MuiButtonBase-root-MuiButton-root"
     disabled={true}
     id=":r8:"
     onBlur={[Function]}
@@ -235,7 +223,7 @@ exports[`SyncControls snapshots allButtonsDisabled 1`] = `
       >
         <span
           aria-disabled={true}
-          className="MuiButtonBase-root MuiRadio-root MuiRadio-colorPrimary Mui-disabled PrivateSwitchBase-root MuiRadio-root MuiRadio-colorPrimary Mui-checked Mui-disabled MuiRadio-root MuiRadio-colorPrimary css-1a0qp0h-MuiButtonBase-root-MuiRadio-root"
+          className="MuiButtonBase-root MuiRadio-root MuiRadio-colorPrimary Mui-disabled PrivateSwitchBase-root MuiRadio-root MuiRadio-colorPrimary Mui-checked Mui-disabled MuiRadio-root MuiRadio-colorPrimary css-1mux80u-MuiButtonBase-root-MuiRadio-root"
           onBlur={[Function]}
           onContextMenu={[Function]}
           onDragLeave={[Function]}
@@ -302,7 +290,7 @@ exports[`SyncControls snapshots allButtonsDisabled 1`] = `
       >
         <span
           aria-disabled={true}
-          className="MuiButtonBase-root MuiRadio-root MuiRadio-colorPrimary Mui-disabled PrivateSwitchBase-root MuiRadio-root MuiRadio-colorPrimary Mui-disabled MuiRadio-root MuiRadio-colorPrimary css-1a0qp0h-MuiButtonBase-root-MuiRadio-root"
+          className="MuiButtonBase-root MuiRadio-root MuiRadio-colorPrimary Mui-disabled PrivateSwitchBase-root MuiRadio-root MuiRadio-colorPrimary Mui-disabled MuiRadio-root MuiRadio-colorPrimary css-1mux80u-MuiButtonBase-root-MuiRadio-root"
           onBlur={[Function]}
           onContextMenu={[Function]}
           onDragLeave={[Function]}
@@ -379,7 +367,7 @@ exports[`SyncControls snapshots allButtonsDisabled 1`] = `
     onTouchStart={[Function]}
   >
     <button
-      className="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation Mui-disabled MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c2 c7 css-624mb0-MuiButtonBase-root-MuiButton-root"
+      className="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation Mui-disabled MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c2 c7 css-1fh7grq-MuiButtonBase-root-MuiButton-root"
       data-testid="sync-button"
       disabled={true}
       id=":rb:"
@@ -432,7 +420,7 @@ exports[`SyncControls snapshots allButtonsDisabled 1`] = `
     onTouchStart={[Function]}
   >
     <button
-      className="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation Mui-disabled MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c2 c7 css-624mb0-MuiButtonBase-root-MuiButton-root"
+      className="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation Mui-disabled MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c2 c7 css-1fh7grq-MuiButtonBase-root-MuiButton-root"
       data-testid="suspend-button"
       disabled={true}
       id=":rd:"
@@ -484,7 +472,7 @@ exports[`SyncControls snapshots allButtonsDisabled 1`] = `
     onTouchStart={[Function]}
   >
     <button
-      className="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation Mui-disabled MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c2 c7 css-624mb0-MuiButtonBase-root-MuiButton-root"
+      className="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation Mui-disabled MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c2 c7 css-1fh7grq-MuiButtonBase-root-MuiButton-root"
       data-testid="resume-button"
       disabled={true}
       id=":rf:"
@@ -508,7 +496,7 @@ exports[`SyncControls snapshots allButtonsDisabled 1`] = `
       >
         <svg
           height="24"
-          viewBox="-2 0 24 24"
+          viewBox="0 0 24 24"
           width="24"
           xmlns="http://www.w3.org/2000/svg"
         >
@@ -635,10 +623,6 @@ exports[`SyncControls snapshots hasTooltipSuffix 1`] = `
   font-weight: 600;
 }
 
-.c2.MuiButton-root:hover {
-  background-color: rgba(0, 179, 236, 0.1);
-}
-
 .c2.MuiButton-outlined {
   padding: 8px 12px;
 }
@@ -653,7 +637,7 @@ exports[`SyncControls snapshots hasTooltipSuffix 1`] = `
 }
 
 .c6 .MuiFormControlLabel-label.Mui-disabled {
-  color: #BDBDBD;
+  color: #d8d8d8;
 }
 
 .c6 .MuiTypography-root {
@@ -667,24 +651,16 @@ exports[`SyncControls snapshots hasTooltipSuffix 1`] = `
   padding: 0;
 }
 
-.c7.MuiButton-root.Mui-disabled svg {
-  fill: #BDBDBD;
+.c7.MuiButton-root :disabled svg {
+  fill: #d8d8d8;
 }
 
-.c7.MuiButton-root:hover {
+.c7.MuiButton-root :hover {
   background-color: rgba(0, 179, 236, 0.1);
 }
 
 .c7.MuiButton-text {
   padding: 0;
-}
-
-.c7.MuiButton-text.Mui-disabled {
-  color: #BDBDBD;
-}
-
-.c7.MuiButton-text.Mui-disabled svg {
-  fill: #BDBDBD;
 }
 
 .c1 .sync-icon-button {
@@ -701,7 +677,7 @@ exports[`SyncControls snapshots hasTooltipSuffix 1`] = `
   className="c0 c1"
 >
   <button
-    className="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textPrimary MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-text MuiButton-textPrimary MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorPrimary MuiButton-disableElevation c2 sync-icon-button css-9buukw-MuiButtonBase-root-MuiButton-root"
+    className="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textPrimary MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-text MuiButton-textPrimary MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorPrimary MuiButton-disableElevation c2 sync-icon-button css-157ho6v-MuiButtonBase-root-MuiButton-root"
     disabled={null}
     id=":rr:"
     onBlur={[Function]}
@@ -756,7 +732,7 @@ exports[`SyncControls snapshots hasTooltipSuffix 1`] = `
         className="MuiFormControlLabel-root MuiFormControlLabel-labelPlacementEnd c6 css-12f4qvw-MuiFormControlLabel-root"
       >
         <span
-          className="MuiButtonBase-root MuiRadio-root MuiRadio-colorPrimary PrivateSwitchBase-root MuiRadio-root MuiRadio-colorPrimary Mui-checked MuiRadio-root MuiRadio-colorPrimary css-1avr0ra-MuiButtonBase-root-MuiRadio-root"
+          className="MuiButtonBase-root MuiRadio-root MuiRadio-colorPrimary PrivateSwitchBase-root MuiRadio-root MuiRadio-colorPrimary Mui-checked MuiRadio-root MuiRadio-colorPrimary css-yavd16-MuiButtonBase-root-MuiRadio-root"
           onBlur={[Function]}
           onContextMenu={[Function]}
           onDragLeave={[Function]}
@@ -822,7 +798,7 @@ exports[`SyncControls snapshots hasTooltipSuffix 1`] = `
         className="MuiFormControlLabel-root MuiFormControlLabel-labelPlacementEnd c6 css-12f4qvw-MuiFormControlLabel-root"
       >
         <span
-          className="MuiButtonBase-root MuiRadio-root MuiRadio-colorPrimary PrivateSwitchBase-root MuiRadio-root MuiRadio-colorPrimary MuiRadio-root MuiRadio-colorPrimary css-1avr0ra-MuiButtonBase-root-MuiRadio-root"
+          className="MuiButtonBase-root MuiRadio-root MuiRadio-colorPrimary PrivateSwitchBase-root MuiRadio-root MuiRadio-colorPrimary MuiRadio-root MuiRadio-colorPrimary css-yavd16-MuiButtonBase-root-MuiRadio-root"
           onBlur={[Function]}
           onContextMenu={[Function]}
           onDragLeave={[Function]}
@@ -899,7 +875,7 @@ exports[`SyncControls snapshots hasTooltipSuffix 1`] = `
     onTouchStart={[Function]}
   >
     <button
-      className="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c2 c7 css-624mb0-MuiButtonBase-root-MuiButton-root"
+      className="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c2 c7 css-1fh7grq-MuiButtonBase-root-MuiButton-root"
       data-testid="sync-button"
       disabled={null}
       id=":ru:"
@@ -952,7 +928,7 @@ exports[`SyncControls snapshots hasTooltipSuffix 1`] = `
     onTouchStart={[Function]}
   >
     <button
-      className="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c2 c7 css-624mb0-MuiButtonBase-root-MuiButton-root"
+      className="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c2 c7 css-1fh7grq-MuiButtonBase-root-MuiButton-root"
       data-testid="suspend-button"
       disabled={null}
       id=":r10:"
@@ -1004,7 +980,7 @@ exports[`SyncControls snapshots hasTooltipSuffix 1`] = `
     onTouchStart={[Function]}
   >
     <button
-      className="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c2 c7 css-624mb0-MuiButtonBase-root-MuiButton-root"
+      className="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c2 c7 css-1fh7grq-MuiButtonBase-root-MuiButton-root"
       data-testid="resume-button"
       disabled={null}
       id=":r12:"
@@ -1028,7 +1004,7 @@ exports[`SyncControls snapshots hasTooltipSuffix 1`] = `
       >
         <svg
           height="24"
-          viewBox="-2 0 24 24"
+          viewBox="0 0 24 24"
           width="24"
           xmlns="http://www.w3.org/2000/svg"
         >
@@ -1112,10 +1088,6 @@ exports[`SyncControls snapshots hideSuspend 1`] = `
   font-weight: 600;
 }
 
-.c2.MuiButton-root:hover {
-  background-color: rgba(0, 179, 236, 0.1);
-}
-
 .c2.MuiButton-outlined {
   padding: 8px 12px;
 }
@@ -1130,7 +1102,7 @@ exports[`SyncControls snapshots hideSuspend 1`] = `
 }
 
 .c6 .MuiFormControlLabel-label.Mui-disabled {
-  color: #BDBDBD;
+  color: #d8d8d8;
 }
 
 .c6 .MuiTypography-root {
@@ -1144,24 +1116,16 @@ exports[`SyncControls snapshots hideSuspend 1`] = `
   padding: 0;
 }
 
-.c7.MuiButton-root.Mui-disabled svg {
-  fill: #BDBDBD;
+.c7.MuiButton-root :disabled svg {
+  fill: #d8d8d8;
 }
 
-.c7.MuiButton-root:hover {
+.c7.MuiButton-root :hover {
   background-color: rgba(0, 179, 236, 0.1);
 }
 
 .c7.MuiButton-text {
   padding: 0;
-}
-
-.c7.MuiButton-text.Mui-disabled {
-  color: #BDBDBD;
-}
-
-.c7.MuiButton-text.Mui-disabled svg {
-  fill: #BDBDBD;
 }
 
 .c1 .sync-icon-button {
@@ -1178,7 +1142,7 @@ exports[`SyncControls snapshots hideSuspend 1`] = `
   className="c0 c1"
 >
   <button
-    className="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textPrimary MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-text MuiButton-textPrimary MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorPrimary MuiButton-disableElevation c2 sync-icon-button css-9buukw-MuiButtonBase-root-MuiButton-root"
+    className="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textPrimary MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-text MuiButton-textPrimary MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorPrimary MuiButton-disableElevation c2 sync-icon-button css-157ho6v-MuiButtonBase-root-MuiButton-root"
     disabled={null}
     id=":rn:"
     onBlur={[Function]}
@@ -1233,7 +1197,7 @@ exports[`SyncControls snapshots hideSuspend 1`] = `
         className="MuiFormControlLabel-root MuiFormControlLabel-labelPlacementEnd c6 css-12f4qvw-MuiFormControlLabel-root"
       >
         <span
-          className="MuiButtonBase-root MuiRadio-root MuiRadio-colorPrimary PrivateSwitchBase-root MuiRadio-root MuiRadio-colorPrimary Mui-checked MuiRadio-root MuiRadio-colorPrimary css-1avr0ra-MuiButtonBase-root-MuiRadio-root"
+          className="MuiButtonBase-root MuiRadio-root MuiRadio-colorPrimary PrivateSwitchBase-root MuiRadio-root MuiRadio-colorPrimary Mui-checked MuiRadio-root MuiRadio-colorPrimary css-yavd16-MuiButtonBase-root-MuiRadio-root"
           onBlur={[Function]}
           onContextMenu={[Function]}
           onDragLeave={[Function]}
@@ -1299,7 +1263,7 @@ exports[`SyncControls snapshots hideSuspend 1`] = `
         className="MuiFormControlLabel-root MuiFormControlLabel-labelPlacementEnd c6 css-12f4qvw-MuiFormControlLabel-root"
       >
         <span
-          className="MuiButtonBase-root MuiRadio-root MuiRadio-colorPrimary PrivateSwitchBase-root MuiRadio-root MuiRadio-colorPrimary MuiRadio-root MuiRadio-colorPrimary css-1avr0ra-MuiButtonBase-root-MuiRadio-root"
+          className="MuiButtonBase-root MuiRadio-root MuiRadio-colorPrimary PrivateSwitchBase-root MuiRadio-root MuiRadio-colorPrimary MuiRadio-root MuiRadio-colorPrimary css-yavd16-MuiButtonBase-root-MuiRadio-root"
           onBlur={[Function]}
           onContextMenu={[Function]}
           onDragLeave={[Function]}
@@ -1376,7 +1340,7 @@ exports[`SyncControls snapshots hideSuspend 1`] = `
     onTouchStart={[Function]}
   >
     <button
-      className="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c2 c7 css-624mb0-MuiButtonBase-root-MuiButton-root"
+      className="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c2 c7 css-1fh7grq-MuiButtonBase-root-MuiButton-root"
       data-testid="sync-button"
       disabled={null}
       id=":rq:"
@@ -1529,10 +1493,6 @@ exports[`SyncControls snapshots hideSyncOptions 1`] = `
   font-weight: 600;
 }
 
-.c2.MuiButton-root:hover {
-  background-color: rgba(0, 179, 236, 0.1);
-}
-
 .c2.MuiButton-outlined {
   padding: 8px 12px;
 }
@@ -1544,24 +1504,16 @@ exports[`SyncControls snapshots hideSyncOptions 1`] = `
   padding: 0;
 }
 
-.c6.MuiButton-root.Mui-disabled svg {
-  fill: #BDBDBD;
+.c6.MuiButton-root :disabled svg {
+  fill: #d8d8d8;
 }
 
-.c6.MuiButton-root:hover {
+.c6.MuiButton-root :hover {
   background-color: rgba(0, 179, 236, 0.1);
 }
 
 .c6.MuiButton-text {
   padding: 0;
-}
-
-.c6.MuiButton-text.Mui-disabled {
-  color: #BDBDBD;
-}
-
-.c6.MuiButton-text.Mui-disabled svg {
-  fill: #BDBDBD;
 }
 
 .c1 .sync-icon-button {
@@ -1578,7 +1530,7 @@ exports[`SyncControls snapshots hideSyncOptions 1`] = `
   className="c0 c1"
 >
   <button
-    className="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textPrimary MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-text MuiButton-textPrimary MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorPrimary MuiButton-disableElevation c2 sync-icon-button css-9buukw-MuiButtonBase-root-MuiButton-root"
+    className="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textPrimary MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-text MuiButton-textPrimary MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorPrimary MuiButton-disableElevation c2 sync-icon-button css-157ho6v-MuiButtonBase-root-MuiButton-root"
     disabled={null}
     id=":rg:"
     onBlur={[Function]}
@@ -1633,7 +1585,7 @@ exports[`SyncControls snapshots hideSyncOptions 1`] = `
     onTouchStart={[Function]}
   >
     <button
-      className="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c2 c6 css-624mb0-MuiButtonBase-root-MuiButton-root"
+      className="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c2 c6 css-1fh7grq-MuiButtonBase-root-MuiButton-root"
       data-testid="sync-button"
       disabled={null}
       id=":ri:"
@@ -1686,7 +1638,7 @@ exports[`SyncControls snapshots hideSyncOptions 1`] = `
     onTouchStart={[Function]}
   >
     <button
-      className="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c2 c6 css-624mb0-MuiButtonBase-root-MuiButton-root"
+      className="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c2 c6 css-1fh7grq-MuiButtonBase-root-MuiButton-root"
       data-testid="suspend-button"
       disabled={null}
       id=":rk:"
@@ -1738,7 +1690,7 @@ exports[`SyncControls snapshots hideSyncOptions 1`] = `
     onTouchStart={[Function]}
   >
     <button
-      className="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c2 c6 css-624mb0-MuiButtonBase-root-MuiButton-root"
+      className="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c2 c6 css-1fh7grq-MuiButtonBase-root-MuiButton-root"
       data-testid="resume-button"
       disabled={null}
       id=":rm:"
@@ -1762,7 +1714,7 @@ exports[`SyncControls snapshots hideSyncOptions 1`] = `
       >
         <svg
           height="24"
-          viewBox="-2 0 24 24"
+          viewBox="0 0 24 24"
           width="24"
           xmlns="http://www.w3.org/2000/svg"
         >
@@ -1889,10 +1841,6 @@ exports[`SyncControls snapshots non-suspended 1`] = `
   font-weight: 600;
 }
 
-.c2.MuiButton-root:hover {
-  background-color: rgba(0, 179, 236, 0.1);
-}
-
 .c2.MuiButton-outlined {
   padding: 8px 12px;
 }
@@ -1907,7 +1855,7 @@ exports[`SyncControls snapshots non-suspended 1`] = `
 }
 
 .c6 .MuiFormControlLabel-label.Mui-disabled {
-  color: #BDBDBD;
+  color: #d8d8d8;
 }
 
 .c6 .MuiTypography-root {
@@ -1921,24 +1869,16 @@ exports[`SyncControls snapshots non-suspended 1`] = `
   padding: 0;
 }
 
-.c7.MuiButton-root.Mui-disabled svg {
-  fill: #BDBDBD;
+.c7.MuiButton-root :disabled svg {
+  fill: #d8d8d8;
 }
 
-.c7.MuiButton-root:hover {
+.c7.MuiButton-root :hover {
   background-color: rgba(0, 179, 236, 0.1);
 }
 
 .c7.MuiButton-text {
   padding: 0;
-}
-
-.c7.MuiButton-text.Mui-disabled {
-  color: #BDBDBD;
-}
-
-.c7.MuiButton-text.Mui-disabled svg {
-  fill: #BDBDBD;
 }
 
 .c1 .sync-icon-button {
@@ -1955,7 +1895,7 @@ exports[`SyncControls snapshots non-suspended 1`] = `
   className="c0 c1"
 >
   <button
-    className="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textPrimary MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-text MuiButton-textPrimary MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorPrimary MuiButton-disableElevation c2 sync-icon-button css-9buukw-MuiButtonBase-root-MuiButton-root"
+    className="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textPrimary MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-text MuiButton-textPrimary MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorPrimary MuiButton-disableElevation c2 sync-icon-button css-157ho6v-MuiButtonBase-root-MuiButton-root"
     disabled={null}
     id=":r0:"
     onBlur={[Function]}
@@ -2010,7 +1950,7 @@ exports[`SyncControls snapshots non-suspended 1`] = `
         className="MuiFormControlLabel-root MuiFormControlLabel-labelPlacementEnd c6 css-12f4qvw-MuiFormControlLabel-root"
       >
         <span
-          className="MuiButtonBase-root MuiRadio-root MuiRadio-colorPrimary PrivateSwitchBase-root MuiRadio-root MuiRadio-colorPrimary Mui-checked MuiRadio-root MuiRadio-colorPrimary css-1avr0ra-MuiButtonBase-root-MuiRadio-root"
+          className="MuiButtonBase-root MuiRadio-root MuiRadio-colorPrimary PrivateSwitchBase-root MuiRadio-root MuiRadio-colorPrimary Mui-checked MuiRadio-root MuiRadio-colorPrimary css-yavd16-MuiButtonBase-root-MuiRadio-root"
           onBlur={[Function]}
           onContextMenu={[Function]}
           onDragLeave={[Function]}
@@ -2076,7 +2016,7 @@ exports[`SyncControls snapshots non-suspended 1`] = `
         className="MuiFormControlLabel-root MuiFormControlLabel-labelPlacementEnd c6 css-12f4qvw-MuiFormControlLabel-root"
       >
         <span
-          className="MuiButtonBase-root MuiRadio-root MuiRadio-colorPrimary PrivateSwitchBase-root MuiRadio-root MuiRadio-colorPrimary MuiRadio-root MuiRadio-colorPrimary css-1avr0ra-MuiButtonBase-root-MuiRadio-root"
+          className="MuiButtonBase-root MuiRadio-root MuiRadio-colorPrimary PrivateSwitchBase-root MuiRadio-root MuiRadio-colorPrimary MuiRadio-root MuiRadio-colorPrimary css-yavd16-MuiButtonBase-root-MuiRadio-root"
           onBlur={[Function]}
           onContextMenu={[Function]}
           onDragLeave={[Function]}
@@ -2153,7 +2093,7 @@ exports[`SyncControls snapshots non-suspended 1`] = `
     onTouchStart={[Function]}
   >
     <button
-      className="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c2 c7 css-624mb0-MuiButtonBase-root-MuiButton-root"
+      className="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c2 c7 css-1fh7grq-MuiButtonBase-root-MuiButton-root"
       data-testid="sync-button"
       disabled={null}
       id=":r3:"
@@ -2206,7 +2146,7 @@ exports[`SyncControls snapshots non-suspended 1`] = `
     onTouchStart={[Function]}
   >
     <button
-      className="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c2 c7 css-624mb0-MuiButtonBase-root-MuiButton-root"
+      className="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c2 c7 css-1fh7grq-MuiButtonBase-root-MuiButton-root"
       data-testid="suspend-button"
       disabled={null}
       id=":r5:"
@@ -2258,7 +2198,7 @@ exports[`SyncControls snapshots non-suspended 1`] = `
     onTouchStart={[Function]}
   >
     <button
-      className="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c2 c7 css-624mb0-MuiButtonBase-root-MuiButton-root"
+      className="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c2 c7 css-1fh7grq-MuiButtonBase-root-MuiButton-root"
       data-testid="resume-button"
       disabled={null}
       id=":r7:"
@@ -2282,7 +2222,7 @@ exports[`SyncControls snapshots non-suspended 1`] = `
       >
         <svg
           height="24"
-          viewBox="-2 0 24 24"
+          viewBox="0 0 24 24"
           width="24"
           xmlns="http://www.w3.org/2000/svg"
         >

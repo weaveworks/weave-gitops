@@ -77,14 +77,14 @@ exports[`KubeStatusIndicator snapshots renders error 1`] = `
 }
 
 <div
-  className="c0 c1 KubeStatusIndicator"
+  class="c0 c1 KubeStatusIndicator"
 >
   <div
-    className="c2 c3 c4"
+    class="c2 c3 c4"
   >
     <svg
-      aria-hidden={true}
-      className="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
+      aria-hidden="true"
+      class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
       data-testid="ErrorIcon"
       focusable="false"
       viewBox="0 0 24 24"
@@ -94,7 +94,7 @@ exports[`KubeStatusIndicator snapshots renders error 1`] = `
       />
     </svg>
     <span
-      className="c5 c6"
+      class="c5 c6"
     >
       Not Ready
     </span>
@@ -179,14 +179,14 @@ exports[`KubeStatusIndicator snapshots renders success 1`] = `
 }
 
 <div
-  className="c0 c1 KubeStatusIndicator"
+  class="c0 c1 KubeStatusIndicator"
 >
   <div
-    className="c2 c3 c4"
+    class="c2 c3 c4"
   >
     <svg
-      aria-hidden={true}
-      className="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
+      aria-hidden="true"
+      class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
       data-testid="CheckCircleIcon"
       focusable="false"
       viewBox="0 0 24 24"
@@ -196,7 +196,7 @@ exports[`KubeStatusIndicator snapshots renders success 1`] = `
       />
     </svg>
     <span
-      className="c5 c6"
+      class="c5 c6"
     >
       Applied revision: main/a3a54ef4a87f8963b14915639f032aa6ec1b8161
     </span>
@@ -262,14 +262,14 @@ exports[`KubeStatusIndicator snapshots renders with noText prop 1`] = `
 }
 
 <div
-  className="c0 KubeStatusIndicator"
+  class="c0 KubeStatusIndicator"
 >
   <div
-    className="c1 c2"
+    class="c1 c2"
   >
     <svg
-      aria-hidden={true}
-      className="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
+      aria-hidden="true"
+      class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
       data-testid="ErrorIcon"
       focusable="false"
       viewBox="0 0 24 24"
