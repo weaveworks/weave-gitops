@@ -1,6 +1,6 @@
 module github.com/weaveworks/weave-gitops
 
-go 1.23.2
+go 1.23.4
 
 require (
 	github.com/Masterminds/semver/v3 v3.3.1
@@ -8,7 +8,7 @@ require (
 	github.com/alexedwards/scs/v2 v2.8.0
 	github.com/cheshir/ttlcache v1.0.1-0.20220504185148-8ceeff21b789
 	github.com/coreos/go-oidc/v3 v3.12.0
-	github.com/flux-iac/tofu-controller/tfctl v0.0.0-20241117120425-42fef1dde8a2
+	github.com/flux-iac/tofu-controller/tfctl v0.0.0-20250116084730-01bbcd1540eb
 	github.com/fluxcd/cli-utils v0.36.0-flux.11
 	github.com/fluxcd/go-git-providers v0.22.0
 	github.com/fluxcd/helm-controller/api v1.1.0
@@ -96,7 +96,7 @@ require (
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/iancoleman/strcase v0.3.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.9 // indirect
-	github.com/mattn/go-colorable v0.1.13 // indirect
+	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/minio/md5-simd v1.1.2 // indirect
 	github.com/mmcloughlin/avo v0.6.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
@@ -108,7 +108,7 @@ require (
 	github.com/rogpeppe/go-internal v1.13.1 // indirect
 	github.com/rs/xid v1.6.0 // indirect
 	github.com/ryszard/goskiplist v0.0.0-20150312221310-2dfbae5fcf46 // indirect
-	github.com/sagikazarmark/locafero v0.6.0 // indirect
+	github.com/sagikazarmark/locafero v0.7.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
 	github.com/santhosh-tekuri/jsonschema/v5 v5.3.1 // indirect
 	github.com/shopspring/decimal v1.4.0 // indirect
@@ -193,7 +193,7 @@ require (
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3 // indirect
 	github.com/sethvargo/go-limiter v1.0.0
-	github.com/spf13/afero v1.11.0 // indirect
+	github.com/spf13/afero v1.12.0 // indirect
 	github.com/spf13/cast v1.7.1 // indirect
 	github.com/spf13/pflag v1.0.5
 	github.com/subosito/gotenv v1.6.0 // indirect
