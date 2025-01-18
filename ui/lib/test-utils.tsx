@@ -2,10 +2,10 @@ import {
   ThemeProvider as MuiThemeProvider,
   StyledEngineProvider,
 } from "@mui/material";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createMemoryHistory } from "history";
 import _ from "lodash";
 import * as React from "react";
-import { QueryClient, QueryClientProvider } from "react-query";
 import { Router } from "react-router";
 import { ThemeProvider } from "styled-components";
 import AppContextProvider, {

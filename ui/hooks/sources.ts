@@ -1,5 +1,5 @@
+import { useQuery } from "@tanstack/react-query";
 import { useContext } from "react";
-import { useQuery } from "react-query";
 import { CoreClientContext } from "../contexts/CoreClientContext";
 import { ListObjectsResponse } from "../lib/api/core/core.pb";
 import { Kind } from "../lib/api/core/types.pb";
@@ -29,9 +29,9 @@ export function useListSources(
 ) {
   const { api } = useContext(CoreClientContext);
 
-  return useQuery<Res, RequestError>(
-    ["sources", namespace],
-    () => {
+  return useQuery<Res, RequestError>({
+    queryKey: ["sources", namespace],
+    queryFn: () => {
       const p = [
         Kind.GitRepository,
         Kind.HelmRepository,
@@ -65,6 +65,6 @@ export function useListSources(
         return final;
       });
     },
-    opts,
-  );
+    ...opts,
+  });
 }

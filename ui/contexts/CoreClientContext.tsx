@@ -1,5 +1,5 @@
+import { useQuery } from "@tanstack/react-query";
 import * as React from "react";
-import { useQuery } from "react-query";
 import { Core, GetFeatureFlagsResponse } from "../lib/api/core/core.pb";
 import { TokenRefreshWrapper } from "../lib/requests";
 import { RequestError } from "../lib/types";
@@ -26,14 +26,12 @@ export const CoreClientContext =
   React.createContext<CoreClientContextType | null>(null);
 
 function FeatureFlags(api) {
-  const { data } = useQuery<GetFeatureFlagsResponse, RequestError>(
-    "feature_flags",
-    () => api.GetFeatureFlags({}),
-    {
-      staleTime: Infinity,
-      cacheTime: Infinity,
-    },
-  );
+  const { data } = useQuery<GetFeatureFlagsResponse, RequestError>({
+    queryKey: ["feature_flags"],
+    queryFn: () => api.GetFeatureFlags({}),
+    staleTime: Infinity,
+    gcTime: Infinity,
+  });
   return data?.flags;
 }
 

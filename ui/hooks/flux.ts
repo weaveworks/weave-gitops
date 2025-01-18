@@ -1,5 +1,5 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useContext } from "react";
-import { useMutation, useQuery, useQueryClient } from "react-query";
 import { CoreClientContext } from "../contexts/CoreClientContext";
 import {
   ListFluxCrdsResponse,
@@ -28,21 +28,22 @@ export function useListFluxRuntimeObjects(
 ) {
   const { api } = useContext(CoreClientContext);
 
-  return useQuery<ListFluxRuntimeObjectsResponse, RequestError>(
-    "flux_runtime_objects",
-    () => api.ListFluxRuntimeObjects({ namespace, clusterName }),
-    opts,
-  );
+  return useQuery<ListFluxRuntimeObjectsResponse, RequestError>({
+    queryKey: ["flux_runtime_objects"],
+    queryFn: () => api.ListFluxRuntimeObjects({ namespace, clusterName }),
+    ...opts,
+  });
 }
 
 export function useListFluxCrds(clusterName = DefaultCluster) {
   const { api } = useContext(CoreClientContext);
 
-  return useQuery<ListFluxCrdsResponse, RequestError>(
-    "flux_crds",
-    () => api.ListFluxCrds({ clusterName }),
-    { retry: false, refetchInterval: 5000 },
-  );
+  return useQuery<ListFluxCrdsResponse, RequestError>({
+    queryKey: ["flux_crds"],
+    queryFn: () => api.ListFluxCrds({ clusterName }),
+    retry: false,
+    refetchInterval: 5000,
+  });
 }
 
 export function useListRuntimeObjects(
@@ -55,21 +56,22 @@ export function useListRuntimeObjects(
 ) {
   const { api } = useContext(CoreClientContext);
 
-  return useQuery<ListRuntimeObjectsResponse, RequestError>(
-    "runtime_objects",
-    () => api.ListRuntimeObjects({ namespace, clusterName }),
-    opts,
-  );
+  return useQuery<ListRuntimeObjectsResponse, RequestError>({
+    queryKey: ["runtime_objects"],
+    queryFn: () => api.ListRuntimeObjects({ namespace, clusterName }),
+    ...opts,
+  });
 }
 
 export function useListRuntimeCrds(clusterName = DefaultCluster) {
   const { api } = useContext(CoreClientContext);
 
-  return useQuery<ListFluxCrdsResponse, RequestError>(
-    "runtime_crds",
-    () => api.ListRuntimeCrds({ clusterName }),
-    { retry: false, refetchInterval: 5000 },
-  );
+  return useQuery<ListFluxCrdsResponse, RequestError>({
+    queryKey: ["runtime_crds"],
+    queryFn: () => api.ListRuntimeCrds({ clusterName }),
+    retry: false,
+    refetchInterval: 5000,
+  });
 }
 
 export function flattenChildren(children: FluxObject[]) {
@@ -116,11 +118,11 @@ export function useGetReconciledTree(
 ) {
   const { api } = useContext(CoreClientContext);
 
-  return useQuery<FluxObject[], RequestError>(
-    ["reconciled_objects", { name, namespace, type, kinds }],
-    () => getChildren(api, name, namespace, type, kinds, clusterName),
-    opts,
-  );
+  return useQuery<FluxObject[], RequestError>({
+    queryKey: ["reconciled_objects", { name, namespace, type, kinds }],
+    queryFn: () => getChildren(api, name, namespace, type, kinds, clusterName),
+    ...opts,
+  });
 }
 
 export function useToggleSuspend(
@@ -129,18 +131,16 @@ export function useToggleSuspend(
 ) {
   const { api } = useContext(CoreClientContext);
   const queryClient = useQueryClient();
-  const mutation = useMutation<ToggleSuspendResourceResponse, RequestError>(
-    () => api.ToggleSuspendResource(req),
-    {
-      onSuccess: () => {
-        const suspend = req.suspend ? "Suspend" : "Resume";
-        notifySuccess(`${suspend} request successful!`);
-        return queryClient.invalidateQueries(type);
-      },
-      onError: (error) => {
-        notifyError(error.message);
-      },
+  const mutation = useMutation<ToggleSuspendResourceResponse, RequestError>({
+    mutationFn: () => api.ToggleSuspendResource(req),
+    onSuccess: () => {
+      const suspend = req.suspend ? "Suspend" : "Resume";
+      notifySuccess(`${suspend} request successful!`);
+      return queryClient.invalidateQueries({ queryKey: [type] });
     },
-  );
+    onError: (error) => {
+      notifyError(error.message);
+    },
+  });
   return mutation;
 }

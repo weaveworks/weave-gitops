@@ -1,5 +1,5 @@
+import { useQuery } from "@tanstack/react-query";
 import { useContext } from "react";
-import { useQuery } from "react-query";
 import { CoreClientContext } from "../contexts/CoreClientContext";
 import { ListEventsResponse } from "../lib/api/core/core.pb";
 import { ObjectRef } from "../lib/api/core/types.pb";
@@ -15,12 +15,12 @@ export function useListEvents(
 ) {
   const { api } = useContext(CoreClientContext);
 
-  return useQuery<ListEventsResponse, RequestError>(
-    ["events", obj],
-    () =>
+  return useQuery<ListEventsResponse, RequestError>({
+    queryKey: ["events", obj],
+    queryFn: () =>
       api.ListEvents({
         involvedObject: obj,
       }),
-    opts,
-  );
+    ...opts,
+  });
 }

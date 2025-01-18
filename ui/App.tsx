@@ -2,9 +2,9 @@ import {
   ThemeProvider as MuiThemeProvider,
   StyledEngineProvider,
 } from "@mui/material";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import qs from "query-string";
 import * as React from "react";
-import { QueryClient, QueryClientProvider } from "react-query";
 import {
   Routes,
   Route,
