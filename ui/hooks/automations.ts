@@ -1,5 +1,5 @@
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useContext } from "react";
-import { useMutation, useQuery } from "react-query";
 import { CoreClientContext } from "../contexts/CoreClientContext";
 import {
   ListObjectsResponse,
@@ -33,9 +33,9 @@ export function useListAutomations(
 ) {
   const { api } = useContext(CoreClientContext);
 
-  return useQuery<Res, RequestError>(
-    ["automations", namespace],
-    () => {
+  return useQuery<Res, RequestError>({
+    queryKey: ["automations", namespace],
+    queryFn: () => {
       const p = [Kind.HelmRelease, Kind.Kustomization].map((kind) =>
         api
           .ListObjects({ namespace, kind })
@@ -67,8 +67,8 @@ export function useListAutomations(
         return final;
       });
     },
-    opts,
-  );
+    ...opts,
+  });
 }
 
 export function useSyncFluxObject(objs: ObjectRef[]) {
@@ -77,7 +77,9 @@ export function useSyncFluxObject(objs: ObjectRef[]) {
     SyncFluxObjectResponse,
     RequestError,
     SyncFluxObjectRequest
-  >(({ withSource }) => api.SyncFluxObject({ objects: objs, withSource }), {
+  >({
+    mutationFn: ({ withSource }) =>
+      api.SyncFluxObject({ objects: objs, withSource }),
     onSuccess: () => notifySuccess("Sync request successful!"),
     onError: (error) => notifyError(error.message),
   });

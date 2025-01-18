@@ -1,4 +1,4 @@
-import { screen } from "@testing-library/dom";
+import { screen, waitFor } from "@testing-library/dom";
 import { render } from "@testing-library/react";
 import "jest-canvas-mock";
 import "jest-styled-components";
@@ -40,6 +40,7 @@ describe("Footer", () => {
         );
       });
 
+      await waitFor(() => expect(screen.getByText("Weave GitOps:")));
       const footer = screen.getByRole("footer");
       expect(footer).toMatchSnapshot();
     });
@@ -57,6 +58,7 @@ describe("Footer", () => {
         );
       });
 
+      await waitFor(() => expect(screen.getByText("Weave GitOps:")));
       const footer = screen.getByRole("footer");
       expect(footer).toMatchSnapshot();
     });

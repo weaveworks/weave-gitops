@@ -1,4 +1,4 @@
-import { UseQueryOptions } from "react-query";
+import { UseQueryOptions } from "@tanstack/react-query";
 import { ClusterNamespaceList, ListError } from "./api/core/core.pb";
 import { Condition, Interval, Kind } from "./api/core/types.pb";
 

@@ -1,5 +1,5 @@
+import { useQuery } from "@tanstack/react-query";
 import { useContext } from "react";
-import { useQuery } from "react-query";
 import { CoreClientContext } from "../contexts/CoreClientContext";
 import { GetObjectResponse, ListError } from "../lib/api/core/core.pb";
 import { Kind, Object as ResponseObject } from "../lib/api/core/types.pb";
@@ -70,17 +70,17 @@ export function useGetObject<T extends FluxObject>(
 ) {
   const { api } = useContext(CoreClientContext);
 
-  const response = useQuery<T, RequestError>(
-    ["object", clusterName, kind, namespace, name],
-    () =>
+  const response = useQuery<T, RequestError>({
+    queryKey: ["object", clusterName, kind, namespace, name],
+    queryFn: () =>
       api
         .GetObject({ name, namespace, kind, clusterName })
         .then(
           (result: GetObjectResponse) =>
             convertResponse(kind, result.object) as T,
         ),
-    opts,
-  );
+    ...opts,
+  });
   if (response.error) {
     return { ...response, data: convertResponse(kind) as T };
   }
@@ -101,9 +101,9 @@ export function useListObjects<T extends FluxObject>(
 ) {
   const { api } = useContext(CoreClientContext);
 
-  return useQuery<Res, RequestError>(
-    ["objects", clusterName, kind, namespace],
-    async () => {
+  return useQuery<Res, RequestError>({
+    queryKey: ["objects", clusterName, kind, namespace],
+    queryFn: async () => {
       const res = await api.ListObjects({
         namespace,
         kind,
@@ -116,6 +116,6 @@ export function useListObjects<T extends FluxObject>(
       else objects = [];
       return { objects: objects, errors: res.errors || [] };
     },
-    opts,
-  );
+    ...opts,
+  });
 }

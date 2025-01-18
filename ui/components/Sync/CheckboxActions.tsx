@@ -83,7 +83,7 @@ function CheckboxActions({ className, checked = [], rows = [] }: Props) {
       <SyncControls
         className={className}
         hideSyncOptions={noSource[location.pathname]}
-        syncLoading={sync.isLoading}
+        syncLoading={sync.isPending}
         syncDisabled={disableButtons}
         suspendDisabled={disableButtons}
         resumeDisabled={disableButtons}

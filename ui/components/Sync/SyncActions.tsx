@@ -74,10 +74,10 @@ const SyncActions = ({
       <SyncControls
         className={className}
         hideSyncOptions={hideSyncOptions}
-        syncLoading={sync.isLoading}
+        syncLoading={sync.isPending}
         syncDisabled={suspended}
-        suspendDisabled={suspend.isLoading || suspended}
-        resumeDisabled={resume.isLoading || !suspended}
+        suspendDisabled={suspend.isPending || suspended}
+        resumeDisabled={resume.isPending || !suspended}
         customActions={customActions}
         onSyncClick={syncHandler}
         onSuspendClick={() =>

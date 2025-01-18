@@ -1,5 +1,5 @@
+import { useQuery } from "@tanstack/react-query";
 import { useContext } from "react";
-import { useQuery } from "react-query";
 
 import { CoreClientContext } from "../contexts/CoreClientContext";
 import {
@@ -20,11 +20,11 @@ export function useListPolicies(
   },
 ) {
   const { api } = useContext(CoreClientContext);
-  return useQuery<ListPoliciesResponse, Error>(
-    [LIST_POLICIES_QUERY_KEY, req],
-    () => api.ListPolicies(req),
-    opts,
-  );
+  return useQuery<ListPoliciesResponse, Error>({
+    queryKey: [LIST_POLICIES_QUERY_KEY, req],
+    queryFn: () => api.ListPolicies(req),
+    ...opts,
+  });
 }
 const GET_POLICY_QUERY_KEY = "get-policy-details";
 
@@ -37,9 +37,9 @@ export function useGetPolicyDetails(
 ) {
   const { api } = useContext(CoreClientContext);
 
-  return useQuery<GetPolicyResponse, Error>(
-    [GET_POLICY_QUERY_KEY, req],
-    () => api.GetPolicy(req),
-    opts,
-  );
+  return useQuery<GetPolicyResponse, Error>({
+    queryKey: [GET_POLICY_QUERY_KEY, req],
+    queryFn: () => api.GetPolicy(req),
+    ...opts,
+  });
 }

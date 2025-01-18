@@ -1,5 +1,5 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import * as React from "react";
-import { QueryClient, QueryClientProvider } from "react-query";
 import renderer from "react-test-renderer";
 import { Core } from "../../lib/api/core/core.pb";
 import CoreClientContextProvider, {
