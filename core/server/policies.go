@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/golang/protobuf/ptypes/any"
 	"github.com/hashicorp/go-multierror"
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
@@ -32,7 +31,7 @@ func getPolicyParamValue(param pacv2beta2.PolicyParameters, policyID string) (*a
 	if param.Value == nil {
 		return nil, nil
 	}
-	var anyValue *any.Any
+	var anyValue *anypb.Any
 	var err error
 	switch param.Type {
 	case "string":

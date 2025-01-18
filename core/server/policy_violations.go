@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/golang/protobuf/ptypes/any"
 	"github.com/hashicorp/go-multierror"
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
@@ -272,7 +271,7 @@ func getPolicyValidationParam(raw []byte) ([]*pb.PolicyValidationParam, error) {
 	return parameters, nil
 }
 
-func getParamValue(param interface{}) (*any.Any, error) {
+func getParamValue(param interface{}) (*anypb.Any, error) {
 	if param == nil {
 		return nil, nil
 	}
