@@ -16,10 +16,10 @@ import (
 
 	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
+	"github.com/go-jose/go-jose/v4"
+	"github.com/go-jose/go-jose/v4/jwt"
 	"github.com/go-logr/logr"
 	"github.com/onsi/gomega"
-	"gopkg.in/go-jose/go-jose.v2"
-	"gopkg.in/go-jose/go-jose.v2/jwt"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -209,7 +209,7 @@ func MakeJWToken(t *testing.T, key *rsa.PrivateKey, email string, opts ...func(m
 		opt(extraClaims)
 	}
 
-	signed, err := jwt.Signed(signer).Claims(claims).Claims(extraClaims).CompactSerialize()
+	signed, err := jwt.Signed(signer).Claims(claims).Claims(extraClaims).Serialize()
 	if err != nil {
 		t.Fatal(err)
 	}
