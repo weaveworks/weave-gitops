@@ -8,6 +8,7 @@ const transformIgnorePatterns = [
   'install',
   'jest-canvas-mock',
   'js-sha3',
+  'js-yaml',
   'lodash',
   'luxon',
   'mnemonic-browser',
