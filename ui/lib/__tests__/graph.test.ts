@@ -151,7 +151,6 @@ describe("graph lib", () => {
       };
 
       const objects2 = await getChildren(
-        // @ts-ignore
         newClient,
         app.name,
         app.namespace,
@@ -198,7 +197,6 @@ describe("graph lib", () => {
       };
 
       const objects2 = await getChildren(
-        // @ts-ignore
         newClient,
         app.name,
         app.namespace,

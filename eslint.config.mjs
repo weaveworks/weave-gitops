@@ -36,7 +36,6 @@ export default tseslint.config([
                 }
             ],
             "@typescript-eslint/no-explicit-any": 0,
-            "@typescript-eslint/ban-ts-comment": 0,
             "import/no-named-as-default": 0,
             "@typescript-eslint/switch-exhaustiveness-check": [2,
                 {
