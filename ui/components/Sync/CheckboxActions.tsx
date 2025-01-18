@@ -1,6 +1,6 @@
 import _ from "lodash";
 import * as React from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation } from "react-router";
 import styled from "styled-components";
 import { useSyncFluxObject } from "../../hooks/automations";
 import { useToggleSuspend } from "../../hooks/flux";

@@ -1,7 +1,7 @@
 import * as React from "react";
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink } from "react-router";
 import styled from "styled-components";
-import { isAllowedLink } from "../lib/utils";
+import { isAllowedLink, isHTTP } from "../lib/utils";
 import Spacer from "./Spacer";
 import Text, { TextProps } from "./Text";
 
@@ -70,6 +70,10 @@ function Link({
     );
   }
 
+  if (isHTTP(to) || !isAllowedLink(to)) {
+    to = new URL("", window.origin + window.location.pathname + to).toString();
+  }
+
   return (
     <RouterLink
       onClick={onClick}
@@ -77,6 +81,7 @@ function Link({
       to={to}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
+      relative="path"
       {...props}
     >
       {icon && <SpacedIcon icon={icon} />}

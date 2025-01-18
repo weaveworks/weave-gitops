@@ -2,7 +2,7 @@ import { Tabs } from "@mui/material";
 import _ from "lodash";
 import qs from "query-string";
 import * as React from "react";
-import { Redirect, Route, Switch } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router";
 import styled from "styled-components";
 import { formatURL } from "../lib/nav";
 import Flex from "./Flex";
@@ -28,9 +28,9 @@ const ForwardedLink = React.forwardRef((props, ref) => (
   <Link {...props} innerRef={ref} />
 ));
 
-function findChildren(childrenProp) {
+function findChildren(childrenProp: any[]) {
   if (_.isArray(childrenProp)) {
-    const childs = [];
+    const childs: any[] = [];
     childrenProp.forEach((child) => {
       if (_.isArray(child)) {
         child.forEach((ch) => {
@@ -42,24 +42,21 @@ function findChildren(childrenProp) {
     });
     return childs;
   }
-  return [childrenProp];
+  return childrenProp;
 }
 
-function routesToIndex(routes: PathConfig[], pathname) {
+function routesToIndex(routes: PathConfig[], pathname: string | string[]) {
   const index = _.findIndex(routes, (r) => pathname.includes(r.path));
   return index === -1 ? 0 : index;
 }
 
 export function RouterTab({ children }: TabProps) {
-  return (
-    <Route exact path={children.props.path}>
-      {children as any}
-    </Route>
-  );
+  return children;
 }
 
 function SubRouterTabs({ className, children, rootPath, clearQuery }: Props) {
-  const query = qs.parse(window.location.search);
+  const location = useLocation();
+  const query = clearQuery ? "" : qs.parse(location.search);
   const childs = findChildren(children);
 
   if (!_.get(childs, [0, "props", "path"])) {
@@ -75,7 +72,7 @@ function SubRouterTabs({ className, children, rootPath, clearQuery }: Props) {
     <Flex wide tall column start className={className} gap="12">
       <Tabs
         indicatorColor="primary"
-        value={routesToIndex(routes, window.location.pathname)}
+        value={routesToIndex(routes, location.pathname)}
         className="horizontal-tabs"
       >
         {_.map(routes, (route, i) => {
@@ -83,17 +80,23 @@ function SubRouterTabs({ className, children, rootPath, clearQuery }: Props) {
             <MuiTab
               component={ForwardedLink as typeof Link}
               key={i}
-              to={formatURL(`${route.path}`, clearQuery ? "" : query)}
-              active={window.location.pathname.includes(route.path)}
+              to={formatURL(`../${route.path}`, query)}
+              active={location.pathname.includes(route.path)}
               text={route.name}
             />
           );
         })}
       </Tabs>
-      <Switch>
-        {children}
-        <Redirect from="*" to={formatURL(rootPath, clearQuery ? "" : query)} />
-      </Switch>
+      <Routes>
+        <Route
+          path="/"
+          element={<Navigate to={formatURL(rootPath, query)} replace />}
+        />
+        {_.map(childs, (child, i) => {
+          return <Route key={i} path={child.props.path} element={child} />;
+        })}
+        ;
+      </Routes>
     </Flex>
   );
 }

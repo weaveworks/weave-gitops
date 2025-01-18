@@ -1,5 +1,4 @@
 import * as React from "react";
-import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
 import Flex from "../components/Flex";
 import { Crd, Deployment } from "../lib/api/core/types.pb";
@@ -14,30 +13,12 @@ type Props = {
   deployments?: Deployment[];
   crds?: Crd[];
 };
+
 const fluxVersionLabel = "app.kubernetes.io/version";
 const partOfLabel = "app.kubernetes.io/part-of";
 const fluxLabel = "flux";
 
 function FluxRuntime({ className, deployments, crds }: Props) {
-  const { path } = useRouteMatch();
-  const tabs: Array<routeTab> = [
-    {
-      name: "Controllers",
-      path: `${path}/controllers`,
-      component: () => {
-        return <ControllersTable controllers={deployments} />;
-      },
-      visible: true,
-    },
-    {
-      name: "CRDs",
-      path: `${path}/crds`,
-      component: () => {
-        return <CrdsTable crds={crds} />;
-      },
-      visible: true,
-    },
-  ];
   const fluxVersions: { [key: string]: FluxVersion } = {};
   deployments
     .filter((d) => d.labels[partOfLabel] == fluxLabel)
@@ -53,14 +34,32 @@ function FluxRuntime({ className, deployments, crds }: Props) {
       }
     });
 
-  tabs.unshift({
-    name: "Flux Versions",
-    path: `${path}/flux`,
-    component: () => {
-      return <FluxVersionsTable versions={Object.values(fluxVersions)} />;
+  const tabs: Array<routeTab> = [
+    {
+      name: "Flux Versions",
+      path: "flux",
+      component: () => {
+        return <FluxVersionsTable versions={Object.values(fluxVersions)} />;
+      },
+      visible: true,
     },
-    visible: true,
-  });
+    {
+      name: "Controllers",
+      path: "controllers",
+      component: () => {
+        return <ControllersTable controllers={deployments} />;
+      },
+      visible: true,
+    },
+    {
+      name: "CRDs",
+      path: "crds",
+      component: () => {
+        return <CrdsTable crds={crds} />;
+      },
+      visible: true,
+    },
+  ];
 
   return (
     <Flex wide tall column className={className}>

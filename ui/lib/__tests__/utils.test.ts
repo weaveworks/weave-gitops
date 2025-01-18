@@ -420,10 +420,8 @@ describe("createYamlCommand", () => {
       `kubectl get kustomization test -o yaml`,
     );
   });
-  it("returns null if name or kind are false values", () => {
-    expect(createYamlCommand(undefined, undefined, "flux-system")).toEqual(
-      null,
-    );
+  it("returns empty string if name or kind are false values", () => {
+    expect(createYamlCommand(undefined, undefined, "flux-system")).toEqual("");
   });
   it("uses the path prop if it is defined", () => {
     expect(createYamlCommand(undefined, undefined, undefined, "http")).toEqual(

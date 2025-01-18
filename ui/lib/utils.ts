@@ -7,7 +7,7 @@ import Flex from "../components/Flex";
 import { computeReady, ReadyType } from "../components/KubeStatusIndicator";
 import { AppVersion, repoUrl } from "../components/Version";
 import { AuthRoutes } from "../contexts/AuthContext";
-import { GetVersionResponse } from "../lib/api/core/core.pb";
+import { GetVersionResponse } from "./api/core/core.pb";
 import { Condition, Kind, ObjectRef } from "./api/core/types.pb";
 import { Automation, HelmRelease, Kustomization } from "./objects";
 
@@ -254,7 +254,7 @@ export const createYamlCommand = (
     const namespaceString = namespace ? ` -n ${namespace}` : "";
     return `kubectl get ${kind.toLowerCase()} ${name}${namespaceString} -o yaml`;
   }
-  return null;
+  return "";
 };
 
 export const Fade = styled<any>(Flex)<{

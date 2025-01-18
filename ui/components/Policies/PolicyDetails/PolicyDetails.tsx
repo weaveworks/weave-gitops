@@ -1,5 +1,4 @@
 import * as React from "react";
-import { useRouteMatch } from "react-router-dom";
 import remarkGfm from "remark-gfm";
 import styled from "styled-components";
 import { useFeatureFlags } from "../../../hooks/featureflags";
@@ -38,7 +37,6 @@ const PolicyDetails = ({ policy }: Props) => {
     howToSolve,
     parameters,
   } = policy;
-  const { path } = useRouteMatch();
 
   const { isFlagEnabled } = useFeatureFlags();
   const items: RowItem[] = [
@@ -100,8 +98,8 @@ const PolicyDetails = ({ policy }: Props) => {
     },
   ];
   return (
-    <SubRouterTabs rootPath={`${path}/details`}>
-      <RouterTab name="Details" path={`${path}/details`}>
+    <SubRouterTabs rootPath={`details`}>
+      <RouterTab name="Details" path="details">
         <Flex wide tall column gap="32">
           <HeaderRows items={items} />
           <SectionWrapper title="Description:">
@@ -121,7 +119,7 @@ const PolicyDetails = ({ policy }: Props) => {
           </SectionWrapper>
         </Flex>
       </RouterTab>
-      <RouterTab name="Violations" path={`${path}/violations`}>
+      <RouterTab name="Violations" path="violations">
         <PolicyViolationsList
           req={{
             policyId: id,

@@ -6,7 +6,7 @@ import {
   Tooltip,
 } from "@mui/material";
 import * as React from "react";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router";
 import styled from "styled-components";
 import { Auth } from "../contexts/AuthContext";
 import { V2Routes } from "../lib/types";
@@ -52,7 +52,7 @@ type Props = {
 };
 
 function UserSettings({ className, darkModeEnabled = true }: Props) {
-  const history = useHistory();
+  const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = React.useState(null);
   const { userInfo, logOut } = React.useContext(Auth);
 
@@ -96,7 +96,7 @@ function UserSettings({ className, darkModeEnabled = true }: Props) {
         onClick={handleClose}
         transformOrigin={{ horizontal: 150, vertical: -80 }}
       >
-        <MenuItem onClick={() => history.push(V2Routes.UserInfo)}>
+        <MenuItem onClick={() => navigate(V2Routes.UserInfo)}>
           Hello, {userInfo?.id}
         </MenuItem>
         <MenuItem className="logout" onClick={() => logOut()}>

@@ -11,6 +11,7 @@ import {
   ObjectRef,
   Object as ResponseObject,
 } from "./api/core/types.pb";
+
 export type Automation = HelmRelease | Kustomization;
 export type Source =
   | HelmRepository
@@ -37,9 +38,10 @@ export class FluxObject {
   info: string;
   children: FluxObject[];
   health: HealthStatus;
-  constructor(response: ResponseObject) {
+  isCurrentNode?: boolean;
+  constructor(response: ResponseObject | undefined) {
     try {
-      this.obj = JSON.parse(response.payload);
+      this.obj = JSON.parse(response?.payload);
     } catch {
       this.obj = {};
     }

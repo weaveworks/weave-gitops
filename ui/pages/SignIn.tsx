@@ -8,7 +8,7 @@ import Button from "../components/Button";
 import DarkModeSwitch from "../components/DarkModeSwitch";
 import Flex from "../components/Flex";
 import LoadingPage from "../components/LoadingPage";
-import { Auth } from "../contexts/AuthContext";
+import { Auth, AuthContext } from "../contexts/AuthContext";
 import { useFeatureFlags } from "../hooks/featureflags";
 import { useInDarkMode } from "../hooks/theme";
 import images from "../lib/images";
@@ -87,14 +87,13 @@ function SignIn({ darkModeEnabled = true }: Props) {
     signIn,
     error: authError,
     loading: authLoading,
-  } = React.useContext(Auth);
+  } = React.useContext(Auth) as AuthContext;
   const [password, setPassword] = React.useState<string>("");
   const [username, setUsername] = React.useState<string>("");
   const [showPassword, setShowPassword] = React.useState<boolean>(false);
 
   const handleOIDCSubmit = () => {
-    const redirect =
-      (qs.parse(window.location.search).redirect as string) || "";
+    const redirect = qs.parse(window.location.search).redirect || "";
 
     // Head to the BE to start the OIDC flow so we do not use any of
     // react-router or other client-side routing
@@ -103,7 +102,7 @@ function SignIn({ darkModeEnabled = true }: Props) {
       qs.stringify({
         // BE handles the redirect to return_url after authentication
         // so add the base path
-        return_url: window.origin + withBasePath(redirect),
+        return_url: window.origin + withBasePath(redirect.toString()),
       }));
   };
 
@@ -126,7 +125,7 @@ function SignIn({ darkModeEnabled = true }: Props) {
       {authError && (
         <AlertWrapper
           severity="error"
-          title="Error signin in"
+          title="Error signing in"
           message={`${
             authError.status === 401
               ? `Incorrect username or password.`
@@ -151,11 +150,13 @@ function SignIn({ darkModeEnabled = true }: Props) {
             src={dark ? images.logoDark : images.logoLight}
             height="60px"
             width="auto"
+            alt=""
           />
           <img
             src={dark ? images.logotypeLight : images.logotype}
             height="32px"
             width="auto"
+            alt=""
           />
         </Logo>
         {isFlagEnabled("OIDC_AUTH") ? (
@@ -234,7 +235,10 @@ function SignIn({ darkModeEnabled = true }: Props) {
           </a>
         </DocsWrapper>
         <Footer>
-          <img src={dark ? images.signInWheelDark : images.signInWheel} />
+          <img
+            src={dark ? images.signInWheelDark : images.signInWheel}
+            alt=""
+          />
         </Footer>
       </FormWrapper>
     </Flex>

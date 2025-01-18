@@ -23,7 +23,7 @@ export class TokenRefreshWrapper {
 
   private static getOrInitiateRefresh(): Promise<void> {
     if (!this.refreshPromise) {
-      this.refreshPromise = this.refreshTokenFn().finally(() => {
+      this.refreshPromise = this.refreshTokenFn()?.finally(() => {
         // Set the promise back to null once the refresh operation is completed
         this.refreshPromise = null;
       });

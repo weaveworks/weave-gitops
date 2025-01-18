@@ -1,5 +1,4 @@
 import * as React from "react";
-import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
 import { createCanaryCondition, useGetInventory } from "../hooks/inventory";
 import { Condition, Kind, ObjectRef } from "../lib/api/core/types.pb";
@@ -63,6 +62,7 @@ function AutomationDetail({
     conditions,
     sourceRef,
   } = automation;
+
   const reconciledObjectsAutomation: ReconciledObjectsAutomation = {
     name,
     namespace,
@@ -72,7 +72,7 @@ function AutomationDetail({
     conditions,
     source: sourceRef,
   };
-  const { path } = useRouteMatch();
+
   const { data, isLoading, error } = useGetInventory(
     type,
     name,
@@ -91,7 +91,7 @@ function AutomationDetail({
   const defaultTabs: Array<routeTab> = [
     {
       name: "Details",
-      path: `${path}/details`,
+      path: "details",
       component: () => {
         return (
           <RequestStateHandler loading={isLoading} error={error}>
@@ -110,7 +110,7 @@ function AutomationDetail({
     },
     {
       name: "Events",
-      path: `${path}/events`,
+      path: "events",
       component: () => {
         return (
           <EventsTable
@@ -128,7 +128,7 @@ function AutomationDetail({
     },
     {
       name: "Graph",
-      path: `${path}/graph`,
+      path: "graph",
       component: () => {
         return (
           <ReconciliationGraph
@@ -141,13 +141,13 @@ function AutomationDetail({
     },
     {
       name: "Dependencies",
-      path: `${path}/dependencies`,
+      path: "dependencies",
       component: () => <DependenciesView automation={automation} />,
       visible: true,
     },
     {
       name: "Yaml",
-      path: `${path}/yaml`,
+      path: "yaml",
       component: () => {
         return (
           <YamlView
@@ -164,7 +164,7 @@ function AutomationDetail({
     },
     {
       name: "Violations",
-      path: `${path}/violations`,
+      path: `violations`,
       component: () => {
         return (
           <PolicyViolationsList
@@ -238,7 +238,7 @@ function AutomationDetail({
         </div>
       </Collapsible>
 
-      <SubRouterTabs rootPath={`${path}/details`}>
+      <SubRouterTabs rootPath="details">
         {defaultTabs
           .filter((r) => r.visible)
           .map((subRoute, index) => (

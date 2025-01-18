@@ -6,11 +6,12 @@ import qs from "query-string";
 import * as React from "react";
 import { QueryClient, QueryClientProvider } from "react-query";
 import {
-  Redirect,
+  Routes,
   Route,
-  BrowserRouter as Router,
-  Switch,
-} from "react-router-dom";
+  BrowserRouter,
+  useLocation,
+  Navigate,
+} from "react-router";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { ThemeProvider } from "styled-components";
@@ -31,6 +32,10 @@ import AppContextProvider, {
 } from "./contexts/AppContext";
 import AuthContextProvider, { AuthCheck } from "./contexts/AuthContext";
 import CoreClientContextProvider from "./contexts/CoreClientContext";
+import {
+  LinkResolverProvider,
+  useLinkResolver,
+} from "./contexts/LinkResolverContext";
 import { useFeatureFlags } from "./hooks/featureflags";
 import useNavigation from "./hooks/navigation";
 import { useInDarkMode } from "./hooks/theme";
@@ -62,13 +67,17 @@ import UserInfo from "./pages/v2/UserInfo";
 
 const queryClient = new QueryClient();
 
-function withSearchParams(Cmp) {
-  return ({ location: { search }, ...rest }) => {
-    const params = qs.parse(search);
+const WithSearchParams = ({
+  component: Component,
+  ...props
+}: {
+  component: React.FunctionComponent<any>;
+}) => {
+  const location = useLocation();
+  const params = qs.parse(location.search);
 
-    return <Cmp {...rest} {...params} />;
-  };
-}
+  return <Component {...props} {...params} />;
+};
 
 function getRuntimeNavItem(isNewRuntimeEnabled: boolean): NavItem {
   if (isNewRuntimeEnabled) {
@@ -144,79 +153,146 @@ const App = () => {
       <PendoContainer />
 
       <ErrorBoundary>
-        <Switch>
-          <Route exact path={V2Routes.Automations} component={Automations} />
-          <Route
-            path={V2Routes.Kustomization}
-            component={withSearchParams(KustomizationPage)}
-          />
-          <Route path={V2Routes.Sources} component={Sources} />
-          <Route
-            path={V2Routes.ImageAutomation}
-            component={ImageAutomationPage}
-          />
-          <Route
-            path={V2Routes.ImageAutomationUpdatesDetails}
-            component={withSearchParams(ImageAutomationUpdatesDetails)}
-          />
-          <Route
-            path={V2Routes.ImageAutomationRepositoryDetails}
-            component={withSearchParams(ImageAutomationRepoDetails)}
-          />
-          <Route
-            path={V2Routes.ImagePolicyDetails}
-            component={withSearchParams(ImagePolicyDetails)}
-          />
+        <Routes>
+          <Route path={V2Routes.Automations} element={<Automations />} />
+          <Route path={V2Routes.Kustomization}>
+            <Route
+              element={<WithSearchParams component={KustomizationPage} />}
+              index
+              path="*"
+            />
+          </Route>
+
+          <Route path={V2Routes.Sources}>
+            <Route
+              element={<WithSearchParams component={Sources} />}
+              index
+              path="*"
+            />
+          </Route>
+
+          <Route path={V2Routes.ImageAutomation}>
+            <Route
+              element={<WithSearchParams component={ImageAutomationPage} />}
+              index
+              path="*"
+            />
+          </Route>
+
+          <Route path={V2Routes.ImageAutomationUpdatesDetails}>
+            <Route
+              element={
+                <WithSearchParams component={ImageAutomationUpdatesDetails} />
+              }
+              index
+              path="*"
+            />
+          </Route>
+
+          <Route path={V2Routes.ImageAutomationRepositoryDetails}>
+            <Route
+              element={
+                <WithSearchParams component={ImageAutomationRepoDetails} />
+              }
+              index
+              path="*"
+            />
+          </Route>
+
+          <Route path={V2Routes.ImagePolicyDetails}>
+            <Route
+              element={<WithSearchParams component={ImagePolicyDetails} />}
+              index
+              path="*"
+            />
+          </Route>
+
           {isNewRuntimeEnabled ? (
-            <Route path={V2Routes.Runtime} component={Runtime} />
+            <Route path={V2Routes.Runtime}>
+              <Route index path="*" element={<Runtime />} />
+            </Route>
           ) : (
-            <Route path={V2Routes.FluxRuntime} component={FluxRuntime} />
+            <Route path={V2Routes.FluxRuntime}>
+              <Route index path="*" element={<FluxRuntime />} />
+            </Route>
           )}
+
+          <Route path={V2Routes.GitRepo}>
+            <Route
+              element={<WithSearchParams component={GitRepositoryDetail} />}
+              index
+              path="*"
+            />
+          </Route>
+          <Route path={V2Routes.HelmRepo}>
+            <Route
+              element={<WithSearchParams component={HelmRepositoryDetail} />}
+              index
+              path="*"
+            />
+          </Route>
+          <Route path={V2Routes.Bucket}>
+            <Route
+              element={<WithSearchParams component={BucketDetail} />}
+              index
+              path="*"
+            />
+          </Route>
+          <Route path={V2Routes.HelmRelease}>
+            <Route
+              element={<WithSearchParams component={HelmReleasePage} />}
+              index
+              path="*"
+            />
+          </Route>
+          <Route path={V2Routes.HelmChart}>
+            <Route
+              element={<WithSearchParams component={HelmChartDetail} />}
+              index
+              path="*"
+            />
+          </Route>
+          <Route path={V2Routes.OCIRepository}>
+            <Route
+              element={<WithSearchParams component={OCIRepositoryPage} />}
+              index
+              path="*"
+            />
+          </Route>
+          <Route path={V2Routes.Notifications}>
+            <Route
+              element={<WithSearchParams component={Notifications} />}
+              index
+              path="*"
+            />
+          </Route>
+          <Route path={V2Routes.Provider}>
+            <Route
+              element={<WithSearchParams component={ProviderPage} />}
+              index
+              path="*"
+            />
+          </Route>
+          <Route path={V2Routes.PolicyViolationDetails}>
+            <Route
+              element={<WithSearchParams component={PolicyViolationPage} />}
+              index
+              path="*"
+            />
+          </Route>
+
+          <Route path={V2Routes.UserInfo} element={<UserInfo />} />
+          <Route path={V2Routes.Policies} element={<PoliciesList />} />
           <Route
-            path={V2Routes.GitRepo}
-            component={withSearchParams(GitRepositoryDetail)}
-          />
-          <Route
-            path={V2Routes.HelmRepo}
-            component={withSearchParams(HelmRepositoryDetail)}
-          />
-          <Route
-            path={V2Routes.Bucket}
-            component={withSearchParams(BucketDetail)}
-          />
-          <Route
-            path={V2Routes.HelmRelease}
-            component={withSearchParams(HelmReleasePage)}
-          />
-          <Route
-            path={V2Routes.HelmChart}
-            component={withSearchParams(HelmChartDetail)}
-          />
-          <Route
-            path={V2Routes.OCIRepository}
-            component={withSearchParams(OCIRepositoryPage)}
-          />
-          <Route
-            path={V2Routes.Notifications}
-            component={withSearchParams(Notifications)}
-          />
-          <Route
-            path={V2Routes.Provider}
-            component={withSearchParams(ProviderPage)}
-          />
-          <Route
-            path={V2Routes.PolicyViolationDetails}
-            component={withSearchParams(PolicyViolationPage)}
-          />
-          <Route path={V2Routes.UserInfo} component={UserInfo} />
-          <Route path={V2Routes.Policies} component={PoliciesList} />
-          <Route
+            element={<WithSearchParams component={PolicyDetailsPage} />}
             path={V2Routes.PolicyDetailsPage}
-            component={withSearchParams(PolicyDetailsPage)}
           />
-          <Redirect exact from="/" to={V2Routes.Automations} />
-          <Route exact path="*" component={Error} />
-        </Switch>
+          <Route
+            element={<Navigate to={V2Routes.Automations} replace />}
+            path="/"
+          />
+          <Route path="*" element={Error} />
+        </Routes>
       </ErrorBoundary>
       <ToastContainer
         position="top-center"
@@ -246,30 +322,38 @@ const StylesProvider = ({ children }) => {
 };
 
 export default function AppContainer() {
+  const resolver = useLinkResolver();
   return (
     <QueryClientProvider client={queryClient}>
-      <Router basename={getBasePath()}>
+      <BrowserRouter basename={getBasePath()}>
         <AppContextProvider footer={<Footer />}>
           <StylesProvider>
             <AuthContextProvider>
               <CoreClientContextProvider api={Core}>
-                <Switch>
-                  {/* <Signin> does not use the base page <Layout> so pull it up here */}
-                  <Route exact path="/sign_in">
-                    <SignIn />
-                  </Route>
-                  <Route path="*">
+                <LinkResolverProvider resolver={resolver}>
+                  <Routes>
+                    <Route element={<SignIn />} path="/sign_in" />
                     {/* Check we've got a logged in user otherwise redirect back to signin */}
-                    <AuthCheck>
-                      <App />
-                    </AuthCheck>
-                  </Route>
-                </Switch>
+                    <Route
+                      path="*"
+                      element={
+                        <AuthCheck>
+                          <App />
+                        </AuthCheck>
+                      }
+                    />
+                  </Routes>
+                  <ToastContainer
+                    position="top-center"
+                    autoClose={5000}
+                    newestOnTop={false}
+                  />
+                </LinkResolverProvider>
               </CoreClientContextProvider>
             </AuthContextProvider>
           </StylesProvider>
         </AppContextProvider>
-      </Router>
+      </BrowserRouter>
     </QueryClientProvider>
   );
 }
