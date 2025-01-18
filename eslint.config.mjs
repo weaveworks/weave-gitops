@@ -1,6 +1,8 @@
 import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import importPlugin from 'eslint-plugin-import';
+import reactPlugin from 'eslint-plugin-react';
+import reactHooksPlugin from 'eslint-plugin-react-hooks';
 
 export default tseslint.config([
     {
@@ -17,7 +19,12 @@ export default tseslint.config([
             importPlugin.flatConfigs.warnings,
             tseslint.configs.recommended,
             importPlugin.flatConfigs.typescript,
+            reactPlugin.configs.flat['jsx-runtime'],
+            reactHooksPlugin.configs['recommended-latest'],
         ],
+        ...reactPlugin.configs.flat.recommended,
+    },
+    {
         rules: {
             "import/named": 2,
             "import/order": [2,
@@ -36,6 +43,20 @@ export default tseslint.config([
                     "considerDefaultExhaustiveForUnions": true
                 }],
             "import/no-unresolved": 0,
+
+            "react/display-name": 0,
+            "react/jsx-key": 0,
+            "react/no-children-prop": 0,
+            "react/no-unescaped-entities": 0,
+            "react/no-unknown-property": 0,
+            "react/prop-types": 0,
+            "react-hooks/exhaustive-deps": 0,
+            "react-hooks/rules-of-hooks": 0,
+        },
+        settings: {
+            react: {
+                version: "detect",
+            },
         },
         languageOptions: {
             ecmaVersion: 2018,
