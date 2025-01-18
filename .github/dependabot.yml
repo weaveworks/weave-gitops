@@ -72,7 +72,7 @@ updates:
         exclude-patterns:
           - react-lottie-player
           - react-markdown
-          - react-router-dom
+          - react-router
           - react-syntax-highlighter
           - react-toastify
   # maintain dependencies for github actions
