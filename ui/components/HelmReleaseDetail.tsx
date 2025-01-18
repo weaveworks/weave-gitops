@@ -65,7 +65,10 @@ function HelmReleaseDetail({
     ? [
         [
           "Cluster",
-          <ClusterDashboardLink clusterName={helmRelease?.clusterName} />,
+          <ClusterDashboardLink
+            key={helmRelease.uid}
+            clusterName={helmRelease?.clusterName}
+          />,
         ],
       ]
     : [];
@@ -84,7 +87,10 @@ function HelmReleaseDetail({
         ["Last Attempted Revision", helmRelease.lastAttemptedRevision],
         ...clusterInfo,
         ...tenancyInfo,
-        ["Interval", <Interval interval={helmRelease?.interval} />],
+        [
+          "Interval",
+          <Interval key={helmRelease.uid} interval={helmRelease?.interval} />,
+        ],
         ["Namespace", helmRelease?.namespace],
       ]}
     />
