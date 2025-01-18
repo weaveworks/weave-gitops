@@ -88,7 +88,7 @@ export function withContext(
   });
   const isElement = React.isValidElement(TestComponent);
   window.matchMedia = jest.fn();
-  //@ts-ignore
+  //@ts-expect-error TODO
   window.matchMedia.mockReturnValue({ matches: false });
   return (
     <Router location={url} navigator={history}>
