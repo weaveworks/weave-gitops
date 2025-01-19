@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"maps"
 	"regexp"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -346,12 +348,7 @@ func getPodLogs(ctx context.Context, nextToken string, minioClient s3Reader, buc
 		lastToken = obj.Key
 	}
 
-	var logSources []string
-	for k := range tmpLogSources {
-		logSources = append(logSources, k)
-	}
-	sort.Strings(logSources)
-
+	logSources := slices.Sorted(maps.Keys(tmpLogSources))
 	return logs, lastToken, logSources, nil
 }
 

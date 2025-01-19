@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/go-git/go-git/v5/plumbing/format/gitignore"
@@ -31,9 +32,10 @@ type IgnoreFilter func(p string, fi os.FileInfo) bool
 // VCSPatterns returns a gitignore.Pattern slice with ExcludeVCS
 // patterns.
 func VCSPatterns(domain []string) []gitignore.Pattern {
-	var ps []gitignore.Pattern
-	for _, p := range strings.Split(ExcludeVCS, ",") {
-		ps = append(ps, gitignore.ParsePattern(p, domain))
+	all := strings.Split(ExcludeVCS, ",")
+	ps := make([]gitignore.Pattern, len(all))
+	for i, p := range all {
+		ps[i] = gitignore.ParsePattern(p, domain)
 	}
 	return ps
 }
@@ -41,10 +43,13 @@ func VCSPatterns(domain []string) []gitignore.Pattern {
 // DefaultPatterns returns a gitignore.Pattern slice with the default
 // ExcludeCI, ExcludeExtra patterns.
 func DefaultPatterns(domain []string) []gitignore.Pattern {
-	all := strings.Join([]string{ExcludeCI, ExcludeExtra}, ",")
-	var ps []gitignore.Pattern
-	for _, p := range strings.Split(all, ",") {
-		ps = append(ps, gitignore.ParsePattern(p, domain))
+	all := slices.Concat(
+		strings.Split(ExcludeCI, ","),
+		strings.Split(ExcludeExtra, ","),
+	)
+	ps := make([]gitignore.Pattern, len(all))
+	for i, p := range all {
+		ps[i] = gitignore.ParsePattern(p, domain)
 	}
 	return ps
 }

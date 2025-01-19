@@ -103,15 +103,15 @@ func policyToPolicyRespone(policyCRD pacv2beta2.Policy, clusterName string) (*pb
 		HowToSolve:  policySpec.HowToSolve,
 	}
 
-	var policyLabels []*pb.PolicyTargetLabel
+	policyLabels := make([]*pb.PolicyTargetLabel, len(policySpec.Targets.Labels))
 	for i := range policySpec.Targets.Labels {
-		policyLabels = append(policyLabels, &pb.PolicyTargetLabel{
+		policyLabels[i] = &pb.PolicyTargetLabel{
 			Values: policySpec.Targets.Labels[i],
-		})
+		}
 	}
 
-	var policyParams []*pb.PolicyParam
-	for _, param := range policySpec.Parameters {
+	policyParams := make([]*pb.PolicyParam, len(policySpec.Parameters))
+	for i, param := range policySpec.Parameters {
 		policyParam := &pb.PolicyParam{
 			Name:     param.Name,
 			Required: param.Required,
@@ -122,14 +122,14 @@ func policyToPolicyRespone(policyCRD pacv2beta2.Policy, clusterName string) (*pb
 			return nil, err
 		}
 		policyParam.Value = value
-		policyParams = append(policyParams, policyParam)
+		policyParams[i] = policyParam
 	}
-	var policyStandards []*pb.PolicyStandard
-	for _, standard := range policySpec.Standards {
-		policyStandards = append(policyStandards, &pb.PolicyStandard{
+	policyStandards := make([]*pb.PolicyStandard, len(policySpec.Standards))
+	for i, standard := range policySpec.Standards {
+		policyStandards[i] = &pb.PolicyStandard{
 			Id:       standard.ID,
 			Controls: standard.Controls,
-		})
+		}
 	}
 
 	policy.Targets = &pb.PolicyTargets{
