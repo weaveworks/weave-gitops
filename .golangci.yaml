@@ -25,7 +25,7 @@ linters:
     - loggercheck
     - misspell
     - nolintlint
-    #- prealloc
+    - prealloc
     - staticcheck
     - stylecheck
     - tenv

@@ -80,9 +80,9 @@ func (cle *ClusteredListError) Add(err ListError) {
 }
 
 func (cle ClusteredListError) Error() string {
-	var errs []string
-	for _, e := range cle.Errors {
-		errs = append(errs, e.Error())
+	errs := make([]string, len(cle.Errors))
+	for i, e := range cle.Errors {
+		errs[i] = e.Error()
 	}
 
 	return strings.Join(errs, "; ")

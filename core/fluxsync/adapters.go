@@ -307,13 +307,13 @@ func (obj UnstructuredAdapter) GetConditions() []metav1.Condition {
 		return nil
 	}
 
-	var conditions []metav1.Condition
-	for _, c := range conditionsSlice {
+	conditions := make([]metav1.Condition, len(conditionsSlice))
+	for i, c := range conditionsSlice {
 		var condition metav1.Condition
 		if err := runtime.DefaultUnstructuredConverter.FromUnstructured(c.(map[string]interface{}), &condition); err != nil {
 			continue
 		}
-		conditions = append(conditions, condition)
+		conditions[i] = condition
 	}
 
 	return conditions

@@ -249,7 +249,7 @@ func getPolicyValidationParam(raw []byte) ([]*pb.PolicyValidationParam, error) {
 		return nil, fmt.Errorf("failed to unmarshal policy validation parameter, error: %v", err)
 	}
 
-	var parameters []*pb.PolicyValidationParam
+	parameters := make([]*pb.PolicyValidationParam, len(paramsArr))
 	for i := range paramsArr {
 		param := pb.PolicyValidationParam{
 			Name:     paramsArr[i]["name"].(string),
@@ -266,7 +266,7 @@ func getPolicyValidationParam(raw []byte) ([]*pb.PolicyValidationParam, error) {
 			return nil, err
 		}
 		param.Value = val
-		parameters = append(parameters, &param)
+		parameters[i] = &param
 	}
 	return parameters, nil
 }
