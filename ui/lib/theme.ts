@@ -118,11 +118,11 @@ export const theme = (mode: ThemeTypes = ThemeTypes.Light): DefaultTheme => {
         alertMedium: "#D58572",
         alertOriginal: "#BC3B1D",
         alertDark: "#9F3119",
-        neutralGray: "#F6F7F9",
+        neutralGray: "#C2C9D7",
         pipelineGray: "#dde1e9",
-        neutral00: "#ffffff",
+        neutral00: "#EEEEEE",
         neutral10: "#f5f5f5",
-        neutral20: "#d8d8d8",
+        neutral20: "#BDBDBD",
         neutral30: "#737373",
         neutral40: "#1a1a1a",
         whiteToPrimary: "#fff",
@@ -171,7 +171,7 @@ export const GlobalStyle = createGlobalStyle`
     background-image: ${(props) =>
       props.theme.mode === ThemeTypes.Dark
         ? `url(${images.bgDark})`
-        : `url(${images.bg}), linear-gradient(to bottom, rgba(85, 105, 145, .1) 5%, rgba(85, 105, 145, .1), rgba(85, 105, 145, .25) 35%)`};
+        : `url(${images.bg}), linear-gradient(to bottom, rgba(85, 105, 145, .35) 5%, rgba(85, 105, 145, .30), rgba(85, 105, 145, .25) 35%)`};
     background-color: ${(props) =>
       props.theme.mode === ThemeTypes.Dark
         ? props.theme.colors.neutralGray
