@@ -60,7 +60,7 @@ func (i *Installer) Ensure(ctx context.Context, sources ...src.Source) (string, 
 		}
 	}
 
-	return "", fmt.Errorf("unable to find, or install from %d sources: %s", len(sources), errs.ErrorOrNil())
+	return "", fmt.Errorf("unable to find, or install from %d sources: %w", len(sources), errs.ErrorOrNil())
 }
 
 func (i *Installer) Install(ctx context.Context, sources ...src.Installable) (string, error) {
@@ -86,7 +86,7 @@ func (i *Installer) Install(ctx context.Context, sources ...src.Installable) (st
 		return execPath, nil
 	}
 
-	return "", fmt.Errorf("unable install from %d sources: %s", len(sources), errs.ErrorOrNil())
+	return "", fmt.Errorf("unable install from %d sources: %w", len(sources), errs.ErrorOrNil())
 }
 
 func (i *Installer) Remove(ctx context.Context) error {

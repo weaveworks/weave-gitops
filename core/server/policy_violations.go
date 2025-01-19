@@ -41,9 +41,11 @@ func (cs *coreServer) ListPolicyValidations(ctx context.Context, m *pb.ListPolic
 	}
 
 	if err != nil {
-		if merr, ok := err.(*multierror.Error); ok {
+		var merr *multierror.Error
+		if errors.As(err, &merr) {
 			for _, err := range merr.Errors {
-				if cerr, ok := err.(*clustersmngr.ClientError); ok {
+				var cerr *clustersmngr.ClientError
+				if errors.As(err, &cerr) {
 					respErrors = append(respErrors, &pb.ListError{ClusterName: cerr.ClusterName, Message: cerr.Error()})
 				}
 			}
@@ -62,7 +64,7 @@ func (cs *coreServer) ListPolicyValidations(ctx context.Context, m *pb.ListPolic
 		"pac.weave.works/type": validationType,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("error building selector for events query: %v", err)
+		return nil, fmt.Errorf("error building selector for events query: %w", err)
 	}
 
 	fieldSelectorSet := map[string]string{
@@ -97,7 +99,7 @@ func (cs *coreServer) ListPolicyValidations(ctx context.Context, m *pb.ListPolic
 
 	validationsList, err := cs.listValidationsFromEvents(ctx, clustersClient, m.ClusterName, false, opts)
 	if err != nil {
-		return nil, fmt.Errorf("error getting events: %v", err)
+		return nil, fmt.Errorf("error getting events: %w", err)
 	}
 	respErrors = append(respErrors, validationsList.Errors...)
 	policyviolationlist := pb.ListPolicyValidationsResponse{
@@ -136,7 +138,7 @@ func (cs *coreServer) GetPolicyValidation(ctx context.Context, m *pb.GetPolicyVa
 		"pac.weave.works/id":   m.ValidationId,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("error building selector for events query: %v", err)
+		return nil, fmt.Errorf("error building selector for events query: %w", err)
 	}
 	opts := []sigsClient.ListOption{}
 
@@ -149,7 +151,7 @@ func (cs *coreServer) GetPolicyValidation(ctx context.Context, m *pb.GetPolicyVa
 
 	validationsList, err := cs.listValidationsFromEvents(ctx, clusterClient, m.ClusterName, true, opts)
 	if err != nil {
-		return nil, fmt.Errorf("error getting events: %v", err)
+		return nil, fmt.Errorf("error getting events: %w", err)
 	}
 	if len(validationsList.Errors) > 0 {
 		return nil, fmt.Errorf("error getting events: %s", validationsList.Errors[0].Message)
@@ -246,7 +248,7 @@ func getPolicyValidationParam(raw []byte) ([]*pb.PolicyValidationParam, error) {
 	var paramsArr []map[string]interface{}
 	err := json.Unmarshal(raw, &paramsArr)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal policy validation parameter, error: %v", err)
+		return nil, fmt.Errorf("failed to unmarshal policy validation parameter, error: %w", err)
 	}
 
 	parameters := make([]*pb.PolicyValidationParam, len(paramsArr))

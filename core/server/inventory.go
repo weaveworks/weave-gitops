@@ -354,7 +354,7 @@ func getChildren(ctx context.Context, k8sClient client.Client, parentObj unstruc
 	}
 
 	if err := k8sClient.List(ctx, &listResult, client.InNamespace(parentObj.GetNamespace())); err != nil {
-		return nil, fmt.Errorf("could not get unstructured object: %s", err)
+		return nil, fmt.Errorf("could not get unstructured object: %w", err)
 	}
 
 	unstructuredChildren := []unstructured.Unstructured{}

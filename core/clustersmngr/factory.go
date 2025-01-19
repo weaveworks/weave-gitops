@@ -314,7 +314,8 @@ func (cf *clustersManager) watchNamespaces(ctx context.Context) {
 
 	if err := wait.PollUntilContextCancel(ctx, watchNamespaceFrequency, true, func(ctx context.Context) (bool, error) {
 		if err := cf.UpdateNamespaces(ctx); err != nil {
-			if merr, ok := err.(*multierror.Error); ok {
+			var merr *multierror.Error
+			if errors.As(err, &merr) {
 				for _, cerr := range merr.Errors {
 					cf.log.Error(cerr, "failed to update namespaces")
 				}
@@ -349,9 +350,11 @@ func (cf *clustersManager) updateNamespacesWithClient(ctx context.Context, creat
 
 	clientset, err := createClient()
 	if err != nil {
-		if merr, ok := err.(*multierror.Error); ok {
+		var merr *multierror.Error
+		if errors.As(err, &merr) {
 			for _, err := range merr.Errors {
-				if cerr, ok := err.(*ClientError); ok {
+				var cerr *ClientError
+				if errors.As(err, &cerr) {
 					result = multierror.Append(result, fmt.Errorf("%w, cluster: %v", cerr, cerr.ClusterName))
 				}
 			}

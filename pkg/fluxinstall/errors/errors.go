@@ -1,5 +1,7 @@
 package errors
 
+import "errors"
+
 type skippableErr struct {
 	Err error
 }
@@ -13,6 +15,6 @@ func SkippableErr(err error) skippableErr {
 }
 
 func IsErrorSkippable(err error) bool {
-	_, ok := err.(skippableErr)
-	return ok
+	var skippableErr skippableErr
+	return errors.As(err, &skippableErr)
 }

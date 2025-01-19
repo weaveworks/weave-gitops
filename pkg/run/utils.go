@@ -104,7 +104,7 @@ func GetPodFromResourceDescription(ctx context.Context, kubeClient client.Client
 	case "service":
 		svc := &corev1.Service{}
 		if err := kubeClient.Get(ctx, namespacedName, svc); err != nil {
-			return nil, fmt.Errorf("error getting service: %s, namespaced Name: %v", err, namespacedName)
+			return nil, fmt.Errorf("error getting service: %w, namespaced Name: %v", err, namespacedName)
 		}
 
 		// list pods of the service "svc" by selector in a specific namespace using the controller-runtime client
@@ -132,7 +132,7 @@ func GetPodFromResourceDescription(ctx context.Context, kubeClient client.Client
 	case "deployment":
 		deployment := &appsv1.Deployment{}
 		if err := kubeClient.Get(ctx, namespacedName, deployment); err != nil {
-			return nil, fmt.Errorf("error getting deployment: %s, namespaced Name: %v", err, namespacedName)
+			return nil, fmt.Errorf("error getting deployment: %w, namespaced Name: %v", err, namespacedName)
 		}
 
 		// list pods of the deployment "deployment" by selector in a specific namespace using the controller-runtime client

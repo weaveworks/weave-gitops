@@ -2,14 +2,15 @@ package fluxexec
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os/exec"
 	"strings"
 )
 
 func (flux *Flux) wrapExitError(ctx context.Context, err error, stderr string) error {
-	exitErr, ok := err.(*exec.ExitError)
-	if !ok {
+	var exitErr *exec.ExitError
+	if !errors.As(err, &exitErr) {
 		// not an exit error, short circuit, nothing to wrap
 		return err
 	}

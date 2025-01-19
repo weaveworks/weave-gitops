@@ -82,9 +82,11 @@ func (cs *coreServer) ListRuntimeObjects(ctx context.Context, msg *pb.ListRuntim
 func listRuntimeObjectsByLabels(ctx context.Context, cs *coreServer, respErrors []*pb.ListError, labels []string) ([]*pb.ListError, []*pb.Deployment) {
 	clustersClient, err := cs.clustersManager.GetImpersonatedClient(ctx, auth.Principal(ctx))
 	if err != nil {
-		if merr, ok := err.(*multierror.Error); ok {
+		var merr *multierror.Error
+		if errors.As(err, &merr) {
 			for _, err := range merr.Errors {
-				if cerr, ok := err.(*clustersmngr.ClientError); ok {
+				var cerr *clustersmngr.ClientError
+				if errors.As(err, &cerr) {
 					respErrors = append(respErrors, &pb.ListError{ClusterName: cerr.ClusterName, Message: cerr.Error()})
 				}
 			}
@@ -392,7 +394,7 @@ func (cs *coreServer) GetChildObjects(ctx context.Context, msg *pb.GetChildObjec
 	})
 
 	if err := clustersClient.List(ctx, msg.ClusterName, &listResult, opts); err != nil {
-		return nil, fmt.Errorf("could not get unstructured object: %s", err)
+		return nil, fmt.Errorf("could not get unstructured object: %w", err)
 	}
 
 	respErrors := multierror.Error{}
@@ -433,13 +435,13 @@ ItemsLoop:
 func sanitizeSecret(obj *unstructured.Unstructured) (client.Object, error) {
 	bytes, err := obj.MarshalJSON()
 	if err != nil {
-		return nil, fmt.Errorf("marshaling secret: %v", err)
+		return nil, fmt.Errorf("marshaling secret: %w", err)
 	}
 
 	s := &v1.Secret{}
 
 	if err := json.Unmarshal(bytes, s); err != nil {
-		return nil, fmt.Errorf("unmarshaling secret: %v", err)
+		return nil, fmt.Errorf("unmarshaling secret: %w", err)
 	}
 
 	s.Data = map[string][]byte{"redacted": []byte(nil)}

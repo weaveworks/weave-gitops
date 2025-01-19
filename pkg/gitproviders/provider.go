@@ -85,7 +85,7 @@ func deployKeyExists(ctx context.Context, repo gitprovider.UserRepository) (bool
 		if errors.Is(err, gitprovider.ErrNotFound) {
 			return false, nil
 		} else {
-			return false, fmt.Errorf("error getting deploy key %s: %s", DeployKeyName, err)
+			return false, fmt.Errorf("error getting deploy key %s: %w", DeployKeyName, err)
 		}
 	} else {
 		return true, nil
@@ -99,14 +99,14 @@ func uploadDeployKey(ctx context.Context, repo gitprovider.UserRepository, deplo
 			return ErrRepositoryNoPermissionsOrDoesNotExist
 		}
 
-		return fmt.Errorf("error uploading deploy key %s", err)
+		return fmt.Errorf("error uploading deploy key %w", err)
 	}
 
 	if err = utils.WaitUntil(os.Stdout, time.Second, defaultTimeout, func() error {
 		_, err = repo.DeployKeys().Get(ctx, DeployKeyName)
 		return err
 	}); err != nil {
-		return fmt.Errorf("error verifying deploy key %s: %s", DeployKeyName, err)
+		return fmt.Errorf("error verifying deploy key %s: %w", DeployKeyName, err)
 	}
 
 	return nil
@@ -163,7 +163,7 @@ func getCommits(ctx context.Context, repo gitprovider.UserRepository, targetBran
 			return []gitprovider.Commit{}, nil
 		}
 
-		return nil, fmt.Errorf("error getting commits: %s", err)
+		return nil, fmt.Errorf("error getting commits: %w", err)
 	}
 
 	return commits, nil
@@ -183,7 +183,7 @@ func GetAccountType(provider gitprovider.Client, domain, owner string) (Provider
 			return AccountTypeUser, nil
 		}
 
-		return "", fmt.Errorf("could not get account type %s", err)
+		return "", fmt.Errorf("could not get account type %w", err)
 	}
 
 	return AccountTypeOrg, nil

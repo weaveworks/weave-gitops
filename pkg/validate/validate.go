@@ -4,6 +4,7 @@ import (
 	"archive/tar"
 	"compress/gzip"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -151,11 +152,11 @@ func Validate(log logger.Logger, targetDir, rootDir, kubernetesVersion, fluxVers
 
 	var (
 		resourcesChan          <-chan resource.Resource
-		errors                 <-chan error
+		errorsChan             <-chan error
 		ignoreFilenamePatterns []string
 	)
 
-	resourcesChan, errors = resource.FromFiles(ctx, files, ignoreFilenamePatterns)
+	resourcesChan, errorsChan = resource.FromFiles(ctx, files, ignoreFilenamePatterns)
 
 	// Process discovered resources across multiple workers
 	const numberOfWorkers = 4
@@ -177,15 +178,16 @@ func Validate(log logger.Logger, targetDir, rootDir, kubernetesVersion, fluxVers
 
 	go func() {
 		// Process errors while discovering resources
-		for err := range errors {
+		for err := range errorsChan {
 			if err == nil {
 				continue
 			}
 
-			if err, ok := err.(resource.DiscoveryError); ok {
+			var derr resource.DiscoveryError
+			if errors.As(err, &derr) {
 				validationResults <- validator.Result{
-					Resource: resource.Resource{Path: err.Path},
-					Err:      err.Err,
+					Resource: resource.Resource{Path: derr.Path},
+					Err:      derr.Err,
 					Status:   validator.Error,
 				}
 			} else {

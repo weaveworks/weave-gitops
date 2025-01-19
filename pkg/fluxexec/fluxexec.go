@@ -23,7 +23,7 @@ func NewFlux(workingDir, execPath string) (*Flux, error) {
 	}
 
 	if _, err := os.Stat(workingDir); err != nil {
-		return nil, fmt.Errorf("error initialising Flux with workdir %s: %s", workingDir, err)
+		return nil, fmt.Errorf("error initialising Flux with workdir %s: %w", workingDir, err)
 	}
 
 	if execPath == "" {

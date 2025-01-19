@@ -112,7 +112,7 @@ func StartK8sTestEnvironment(crdPaths []string) (*K8sTestEnv, error) {
 	dc, err := discovery.NewDiscoveryClientForConfig(cfg)
 	if err != nil {
 		ctrlCancel()
-		return nil, fmt.Errorf("failed to initialize discovery client: %s", err)
+		return nil, fmt.Errorf("failed to initialize discovery client: %w", err)
 	}
 
 	mapper := restmapper.NewDeferredDiscoveryRESTMapper(memory.NewMemCacheClient(dc))
@@ -120,7 +120,7 @@ func StartK8sTestEnvironment(crdPaths []string) (*K8sTestEnv, error) {
 	dyn, err := dynamic.NewForConfig(cfg)
 	if err != nil {
 		ctrlCancel()
-		return nil, fmt.Errorf("failed to initialize dynamic client: %s", err)
+		return nil, fmt.Errorf("failed to initialize dynamic client: %w", err)
 	}
 
 	k8sEnv = &K8sTestEnv{

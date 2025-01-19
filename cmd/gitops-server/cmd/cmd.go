@@ -368,7 +368,7 @@ func listenAndServe(log logr.Logger, srv *http.Server, options Options) error {
 	if options.MTLS {
 		caCert, err := os.ReadFile(options.TLSCertFile)
 		if err != nil {
-			return fmt.Errorf("failed reading cert file %s. %s", options.TLSCertFile, err)
+			return fmt.Errorf("failed reading cert file %s. %w", options.TLSCertFile, err)
 		}
 
 		caCertPool := x509.NewCertPool()
