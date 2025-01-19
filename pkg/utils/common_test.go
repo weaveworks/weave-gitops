@@ -127,7 +127,7 @@ error occurred some error, retrying in 1s
 			path := filepath.Join(dir, "config.yaml")
 			Expect(os.WriteFile(path, partialConfigFile, 0o666)).To(Succeed())
 
-			Expect(FindCoreConfig(dir)).To(Equal(WalkResult{Status: Embedded, Path: path}))
+			Expect(FindCoreConfig(dir)).To(Equal(WalkResult{Status: Partial, Path: path}))
 		})
 
 		It("finds core configuration nested in dir containing one (regardless of name)", func() {
