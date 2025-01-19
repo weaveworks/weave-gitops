@@ -44,7 +44,6 @@ func TestGetBucketConnectionInfo(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	type args struct {
-		ctx         context.Context
 		clusterName string
 		ns          string
 		cli         client.Client
@@ -59,7 +58,6 @@ func TestGetBucketConnectionInfo(t *testing.T) {
 		{
 			name: "default",
 			args: args{
-				ctx:         context.TODO(),
 				clusterName: "Default",
 				ns:          "default",
 				cli:         &mockGet{},
@@ -75,7 +73,6 @@ func TestGetBucketConnectionInfo(t *testing.T) {
 		{
 			name: "test",
 			args: args{
-				ctx:         context.TODO(),
 				clusterName: "my-session/run-session",
 				ns:          "default",
 				cli:         &mockGet{},
@@ -91,7 +88,7 @@ func TestGetBucketConnectionInfo(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		info, err := getBucketConnectionInfo(tt.args.ctx, tt.args.clusterName, tt.args.ns, tt.args.cli)
+		info, err := getBucketConnectionInfo(context.TODO(), tt.args.clusterName, tt.args.ns, tt.args.cli)
 		g.Expect(err != nil).To(Equal(tt.wantErr))
 		g.Expect(info).To(Equal(tt.want))
 	}
@@ -147,7 +144,6 @@ func TestGitOpsRunLogs(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	type args struct {
-		ctx        context.Context
 		sessionID  string
 		nextToken  string
 		minio      s3Reader
@@ -164,7 +160,6 @@ func TestGitOpsRunLogs(t *testing.T) {
 		{
 			name: "test",
 			args: args{
-				ctx:        context.TODO(),
 				sessionID:  "test",
 				nextToken:  "test",
 				minio:      &mockS3Reader{},
@@ -182,7 +177,6 @@ func TestGitOpsRunLogs(t *testing.T) {
 		{
 			name: "error",
 			args: args{
-				ctx:        context.TODO(),
 				sessionID:  "error",
 				nextToken:  "error",
 				minio:      &mockS3Reader{},
@@ -196,7 +190,7 @@ func TestGitOpsRunLogs(t *testing.T) {
 
 	for _, tt := range tests {
 		got, token, err := getGitOpsRunLogs(
-			tt.args.ctx,
+			context.TODO(),
 			tt.args.sessionID,
 			tt.args.nextToken,
 			tt.args.minio,
