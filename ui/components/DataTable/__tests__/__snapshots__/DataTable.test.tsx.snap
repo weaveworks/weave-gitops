@@ -136,7 +136,7 @@ exports[`DataTable snapshots renders 1`] = `
   background: rbga(255, 255, 255, 0.75);
   height: 100%;
   width: 100%;
-  border-left: 2px solid #d8d8d8;
+  border-left: 2px solid #BDBDBD;
   padding: 24px;
   padding-left: 32px;
 }
@@ -202,7 +202,7 @@ exports[`DataTable snapshots renders 1`] = `
 }
 
 .c1 .MuiTableCell-root {
-  border-color: #d8d8d8;
+  border-color: #BDBDBD;
 }
 
 .c1 table {
@@ -211,7 +211,7 @@ exports[`DataTable snapshots renders 1`] = `
 
 .c1 th {
   padding: 0;
-  background: #F6F7F9;
+  background: #C2C9D7;
 }
 
 .c1 th .MuiCheckbox-root {
@@ -234,69 +234,51 @@ exports[`DataTable snapshots renders 1`] = `
 }
 
 <div
-  className="c0 c1"
+  class="c0 c1"
 >
   <div
-    className="c2 c3"
+    class="c2 c3"
   />
   <div
-    className="c4"
+    class="c4"
   >
     <div
-      className="MuiTableContainer-root css-70zvr5-MuiTableContainer-root"
+      class="MuiTableContainer-root css-70zvr5-MuiTableContainer-root"
     >
       <table
-        className="MuiTable-root css-wzk8yp-MuiTable-root"
-        role={null}
+        class="MuiTable-root css-wzk8yp-MuiTable-root"
       >
         <thead
-          className="MuiTableHead-root css-1a7iywq-MuiTableHead-root"
-          role={null}
+          class="MuiTableHead-root css-1a7iywq-MuiTableHead-root"
         >
           <tr
-            className="MuiTableRow-root MuiTableRow-head css-h5ctz1-MuiTableRow-root"
-            role={null}
+            class="MuiTableRow-root MuiTableRow-head css-h5ctz1-MuiTableRow-root"
           >
             <th
-              aria-sort={null}
-              className="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeMedium css-bf3zdk-MuiTableCell-root"
+              class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeMedium css-bf3zdk-MuiTableCell-root"
               scope="col"
             >
               <div
-                className="c5"
+                class="c5"
               >
                 <button
-                  className="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit c6 css-9wcwzo-MuiButtonBase-root-MuiButton-root"
-                  disabled={null}
-                  id=":r0:"
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onContextMenu={[Function]}
-                  onDragLeave={[Function]}
-                  onFocus={[Function]}
-                  onKeyDown={[Function]}
-                  onKeyUp={[Function]}
-                  onMouseDown={[Function]}
-                  onMouseLeave={[Function]}
-                  onMouseUp={[Function]}
-                  onTouchEnd={[Function]}
-                  onTouchMove={[Function]}
-                  onTouchStart={[Function]}
-                  tabIndex={0}
+                  class="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit c6 css-1swlott-MuiButtonBase-root-MuiButton-root"
+                  id=":ri:"
+                  tabindex="0"
                   type="button"
                 >
                   <h2
-                    className="selected"
+                    class="selected"
                   >
                     Name
                   </h2>
                 </button>
                 <div
-                  className="c7 c8 downward"
+                  class="c7 c8 downward"
                 >
                   <svg
-                    aria-hidden={true}
-                    className="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
+                    aria-hidden="true"
+                    class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
                     data-testid="ArrowUpwardIcon"
                     focusable="false"
                     viewBox="0 0 24 24"
@@ -309,150 +291,90 @@ exports[`DataTable snapshots renders 1`] = `
               </div>
             </th>
             <th
-              aria-sort={null}
-              className="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeMedium css-bf3zdk-MuiTableCell-root"
+              class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeMedium css-bf3zdk-MuiTableCell-root"
               scope="col"
             >
               <div
-                className="c5"
+                class="c5"
               >
                 <button
-                  className="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit c6 css-9wcwzo-MuiButtonBase-root-MuiButton-root"
-                  disabled={null}
-                  id=":r1:"
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onContextMenu={[Function]}
-                  onDragLeave={[Function]}
-                  onFocus={[Function]}
-                  onKeyDown={[Function]}
-                  onKeyUp={[Function]}
-                  onMouseDown={[Function]}
-                  onMouseLeave={[Function]}
-                  onMouseUp={[Function]}
-                  onTouchEnd={[Function]}
-                  onTouchMove={[Function]}
-                  onTouchStart={[Function]}
-                  tabIndex={0}
+                  class="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit c6 css-1swlott-MuiButtonBase-root-MuiButton-root"
+                  id=":rj:"
+                  tabindex="0"
                   type="button"
                 >
                   <h2
-                    className=""
+                    class=""
                   >
                     Status
                   </h2>
                 </button>
                 <div
-                  style={
-                    {
-                      "width": "16px",
-                    }
-                  }
+                  style="width: 16px;"
                 />
               </div>
             </th>
             <th
-              aria-sort={null}
-              className="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeMedium css-bf3zdk-MuiTableCell-root"
+              class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeMedium css-bf3zdk-MuiTableCell-root"
               scope="col"
             >
               <div
-                className="c5"
+                class="c5"
               >
                 <button
-                  className="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit c6 css-9wcwzo-MuiButtonBase-root-MuiButton-root"
-                  disabled={null}
-                  id=":r2:"
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onContextMenu={[Function]}
-                  onDragLeave={[Function]}
-                  onFocus={[Function]}
-                  onKeyDown={[Function]}
-                  onKeyUp={[Function]}
-                  onMouseDown={[Function]}
-                  onMouseLeave={[Function]}
-                  onMouseUp={[Function]}
-                  onTouchEnd={[Function]}
-                  onTouchMove={[Function]}
-                  onTouchStart={[Function]}
-                  tabIndex={0}
+                  class="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit c6 css-1swlott-MuiButtonBase-root-MuiButton-root"
+                  id=":rk:"
+                  tabindex="0"
                   type="button"
                 >
                   <h2
-                    className=""
+                    class=""
                   >
                     Last Updated
                   </h2>
                 </button>
                 <div
-                  style={
-                    {
-                      "width": "16px",
-                    }
-                  }
+                  style="width: 16px;"
                 />
               </div>
             </th>
             <th
-              aria-sort={null}
-              className="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeMedium css-bf3zdk-MuiTableCell-root"
+              class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeMedium css-bf3zdk-MuiTableCell-root"
               scope="col"
             >
               <div
-                className="c5"
+                class="c5"
               >
                 <button
-                  className="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit c6 css-9wcwzo-MuiButtonBase-root-MuiButton-root"
-                  disabled={null}
-                  id=":r3:"
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onContextMenu={[Function]}
-                  onDragLeave={[Function]}
-                  onFocus={[Function]}
-                  onKeyDown={[Function]}
-                  onKeyUp={[Function]}
-                  onMouseDown={[Function]}
-                  onMouseLeave={[Function]}
-                  onMouseUp={[Function]}
-                  onTouchEnd={[Function]}
-                  onTouchMove={[Function]}
-                  onTouchStart={[Function]}
-                  tabIndex={0}
+                  class="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit c6 css-1swlott-MuiButtonBase-root-MuiButton-root"
+                  id=":rl:"
+                  tabindex="0"
                   type="button"
                 >
                   <h2
-                    className=""
+                    class=""
                   >
                     Last Synced At
                   </h2>
                 </button>
                 <div
-                  style={
-                    {
-                      "width": "16px",
-                    }
-                  }
+                  style="width: 16px;"
                 />
               </div>
             </th>
           </tr>
         </thead>
         <tbody
-          className="MuiTableBody-root css-gmh7jj-MuiTableBody-root"
-          role={null}
+          class="MuiTableBody-root css-gmh7jj-MuiTableBody-root"
         >
           <tr
-            className="MuiTableRow-root css-h5ctz1-MuiTableRow-root"
-            role={null}
+            class="MuiTableRow-root css-h5ctz1-MuiTableRow-root"
           >
             <td
-              aria-sort={null}
-              className="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-119gvwi-MuiTableCell-root"
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-119gvwi-MuiTableCell-root"
             >
               <span
-                className="c9 c10"
+                class="c9 c10"
               >
                 <a
                   href="/some_url"
@@ -462,46 +384,41 @@ exports[`DataTable snapshots renders 1`] = `
               </span>
             </td>
             <td
-              aria-sort={null}
-              className="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-119gvwi-MuiTableCell-root"
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-119gvwi-MuiTableCell-root"
             >
               <span
-                className="c9 c10"
+                class="c9 c10"
               >
                 Ready
               </span>
             </td>
             <td
-              aria-sort={null}
-              className="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-119gvwi-MuiTableCell-root"
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-119gvwi-MuiTableCell-root"
             >
               <span
-                className="c9 c10"
+                class="c9 c10"
               >
                 2004-01-02T15:04:05-0700
               </span>
             </td>
             <td
-              aria-sort={null}
-              className="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-119gvwi-MuiTableCell-root"
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-119gvwi-MuiTableCell-root"
             >
               <span
-                className="c9 c10"
+                class="c9 c10"
               >
                 3000
               </span>
             </td>
           </tr>
           <tr
-            className="MuiTableRow-root css-h5ctz1-MuiTableRow-root"
-            role={null}
+            class="MuiTableRow-root css-h5ctz1-MuiTableRow-root"
           >
             <td
-              aria-sort={null}
-              className="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-119gvwi-MuiTableCell-root"
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-119gvwi-MuiTableCell-root"
             >
               <span
-                className="c9 c10"
+                class="c9 c10"
               >
                 <a
                   href="/some_url"
@@ -511,46 +428,41 @@ exports[`DataTable snapshots renders 1`] = `
               </span>
             </td>
             <td
-              aria-sort={null}
-              className="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-119gvwi-MuiTableCell-root"
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-119gvwi-MuiTableCell-root"
             >
               <span
-                className="c9 c10"
+                class="c9 c10"
               >
                 -
               </span>
             </td>
             <td
-              aria-sort={null}
-              className="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-119gvwi-MuiTableCell-root"
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-119gvwi-MuiTableCell-root"
             >
               <span
-                className="c9 c10"
+                class="c9 c10"
               >
                 2006-01-02T15:04:05-0700
               </span>
             </td>
             <td
-              aria-sort={null}
-              className="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-119gvwi-MuiTableCell-root"
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-119gvwi-MuiTableCell-root"
             >
               <span
-                className="c9 c10"
+                class="c9 c10"
               >
                 2000
               </span>
             </td>
           </tr>
           <tr
-            className="MuiTableRow-root css-h5ctz1-MuiTableRow-root"
-            role={null}
+            class="MuiTableRow-root css-h5ctz1-MuiTableRow-root"
           >
             <td
-              aria-sort={null}
-              className="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-119gvwi-MuiTableCell-root"
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-119gvwi-MuiTableCell-root"
             >
               <span
-                className="c9 c10"
+                class="c9 c10"
               >
                 <a
                   href="/some_url"
@@ -560,29 +472,26 @@ exports[`DataTable snapshots renders 1`] = `
               </span>
             </td>
             <td
-              aria-sort={null}
-              className="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-119gvwi-MuiTableCell-root"
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-119gvwi-MuiTableCell-root"
             >
               <span
-                className="c9 c10"
+                class="c9 c10"
               />
             </td>
             <td
-              aria-sort={null}
-              className="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-119gvwi-MuiTableCell-root"
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-119gvwi-MuiTableCell-root"
             >
               <span
-                className="c9 c10"
+                class="c9 c10"
               >
                 2005-01-02T15:04:05-0700
               </span>
             </td>
             <td
-              aria-sort={null}
-              className="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-119gvwi-MuiTableCell-root"
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-119gvwi-MuiTableCell-root"
             >
               <span
-                className="c9 c10"
+                class="c9 c10"
               >
                 1000
               </span>
@@ -592,30 +501,29 @@ exports[`DataTable snapshots renders 1`] = `
       </table>
     </div>
     <div
-      className="c11"
+      class="c11"
       data-testid="container"
     >
       <div
-        className="c12"
+        class="c12"
       >
         <div
-          className="c13 c14"
+          class="c13 c14"
         >
           <div
-            className="c15"
+            class="c15"
           >
             <span
-              className="c9 c16"
+              class="c9 c16"
             >
               Filters
             </span>
           </div>
           <form
-            className="ControlledForm"
-            onSubmit={[Function]}
+            class="ControlledForm"
           >
             <ul
-              className="MuiList-root MuiList-padding css-b7dj7n-MuiList-root"
+              class="MuiList-root MuiList-padding css-b7dj7n-MuiList-root"
             />
           </form>
         </div>

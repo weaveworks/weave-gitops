@@ -120,7 +120,7 @@ exports[`Page snapshots default 1`] = `
 
 .c9 .MuiSwitch-thumb {
   color: #fff;
-  background-image: url();
+  background-image: url(data:image/svg+xml;base64,W29iamVjdCBPYmplY3Rd);
 }
 
 .c9 .MuiSwitch-track {

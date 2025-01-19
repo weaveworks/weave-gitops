@@ -6,6 +6,7 @@ import styled from "styled-components";
 import Flex from "../components/Flex";
 import { computeReady, ReadyType } from "../components/KubeStatusIndicator";
 import { AppVersion, repoUrl } from "../components/Version";
+import { ThemeTypes } from "../contexts/AppContext";
 import { AuthRoutes } from "../contexts/AuthContext";
 import { GetVersionResponse } from "./api/core/core.pb";
 import { Condition, Kind, ObjectRef } from "./api/core/types.pb";
@@ -298,4 +299,10 @@ export function stripBasePath(pathname: string) {
   }
 
   return pathname;
+}
+
+export function svgToB64Image(mode, light, dark) {
+  const img = mode === ThemeTypes.Dark ? dark : light;
+  const str = decodeURIComponent(img.toString().replace(/data:image.*,/, ""));
+  return "data:image/svg+xml;base64," + Buffer.from(str).toString("base64");
 }

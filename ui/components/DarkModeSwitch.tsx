@@ -3,6 +3,7 @@ import * as React from "react";
 import styled from "styled-components";
 import { AppContext, ThemeTypes } from "../contexts/AppContext";
 import images from "../lib/images";
+import { svgToB64Image } from "../lib/utils";
 
 type Props = {
   className?: string;
@@ -33,9 +34,11 @@ export default styled(DarkModeSwitch).attrs({
   .MuiSwitch-thumb {
     color: #fff;
     background-image: url(${(props) =>
-      props.theme.mode === ThemeTypes.Dark
-        ? images.darkModeIcon
-        : images.lightModeIcon});
+      svgToB64Image(
+        props.theme.mode,
+        images.lightModeIcon,
+        images.darkModeIcon,
+      )});
   }
   .MuiSwitch-track {
     background-color: ${(props) => props.theme.colors.primary};

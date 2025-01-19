@@ -25,8 +25,8 @@ describe("Page", () => {
             {},
           ),
         ),
-      ).asFragment().firstChild;
-      expect(tree).toMatchSnapshot();
+      );
+      expect(tree.container.firstChild).toMatchSnapshot();
     });
   });
 });
