@@ -124,8 +124,8 @@ func TestGetInventoryKustomization(t *testing.T) {
 	g.Expect(err).To(BeNil())
 
 	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(&ns, &anotherNs, kust, deployment, rs).Build()
-	cfg := makeServerConfig(client, t, "")
-	c := makeServer(ctx, cfg, t)
+	cfg := makeServerConfig(t, client, "")
+	c := makeServer(ctx, t, cfg)
 
 	res, err := c.GetInventory(ctx, &pb.GetInventoryRequest{
 		Namespace:    ns.Name,
@@ -195,8 +195,8 @@ func TestGetBlankInventoryKustomization(t *testing.T) {
 	g.Expect(err).To(BeNil())
 
 	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(kust, deployment).Build()
-	cfg := makeServerConfig(client, t, "")
-	c := makeServer(ctx, cfg, t)
+	cfg := makeServerConfig(t, client, "")
+	c := makeServer(ctx, t, cfg)
 
 	res, err := c.GetInventory(ctx, &pb.GetInventoryRequest{
 		Namespace:    ns,
@@ -274,8 +274,8 @@ func TestGetInventoryHelmRelease(t *testing.T) {
 	}
 
 	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ns, helm1, secret, cm).Build()
-	cfg := makeServerConfig(client, t, "")
-	c := makeServer(ctx, cfg, t)
+	cfg := makeServerConfig(t, client, "")
+	c := makeServer(ctx, t, cfg)
 
 	res, err := c.GetInventory(ctx, &pb.GetInventoryRequest{
 		Namespace:    ns.Name,
@@ -363,8 +363,8 @@ func TestGetInventoryHelmReleaseNoNSResources(t *testing.T) {
 	client := fake.NewClientBuilder().WithScheme(scheme).
 		WithRESTMapper(testrestmapper.TestOnlyStaticRESTMapper(scheme)).
 		WithRuntimeObjects(ns, helm1, secret, cm).Build()
-	cfg := makeServerConfig(client, t, "")
-	c := makeServer(ctx, cfg, t)
+	cfg := makeServerConfig(t, client, "")
+	c := makeServer(ctx, t, cfg)
 
 	res, err := c.GetInventory(ctx, &pb.GetInventoryRequest{
 		Namespace:    ns.Name,
@@ -413,8 +413,8 @@ func TestGetInventoryHelmReleaseWithKubeconfig(t *testing.T) {
 	}
 
 	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ns, helm1).Build()
-	cfg := makeServerConfig(client, t, "")
-	c := makeServer(ctx, cfg, t)
+	cfg := makeServerConfig(t, client, "")
+	c := makeServer(ctx, t, cfg)
 
 	res, err := c.GetInventory(ctx, &pb.GetInventoryRequest{
 		Namespace:    ns.Name,

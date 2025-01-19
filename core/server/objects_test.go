@@ -53,8 +53,8 @@ func TestGetObject(t *testing.T) {
 
 	fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ns, kust).Build()
 
-	cfg := makeServerConfig(fakeClient, t, "")
-	c := makeServer(ctx, cfg, t)
+	cfg := makeServerConfig(t, fakeClient, "")
+	c := makeServer(ctx, t, cfg)
 
 	res, err := c.GetObject(ctx, &pb.GetObjectRequest{
 		Name:        appName,
@@ -117,9 +117,9 @@ func TestGetObjectOtherKinds(t *testing.T) {
 	g.Expect(err).To(BeNil())
 
 	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(&ns, dep).Build()
-	cfg := makeServerConfig(client, t, "")
+	cfg := makeServerConfig(t, client, "")
 
-	c := makeServer(ctx, cfg, t)
+	c := makeServer(ctx, t, cfg)
 
 	_, err = c.GetObject(ctx, &pb.GetObjectRequest{
 		Name:        appName,
@@ -136,7 +136,7 @@ func TestGetObjectOtherKinds(t *testing.T) {
 	})
 	g.Expect(err).NotTo(HaveOccurred())
 
-	c = makeServer(ctx, cfg, t)
+	c = makeServer(ctx, t, cfg)
 
 	res, err := c.GetObject(ctx, &pb.GetObjectRequest{
 		Name:        appName,
@@ -195,8 +195,8 @@ func TestGetObject_HelmReleaseWithInventory(t *testing.T) {
 	}
 
 	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ns, helm1, secret).Build()
-	cfg := makeServerConfig(client, t, "")
-	c := makeServer(ctx, cfg, t)
+	cfg := makeServerConfig(t, client, "")
+	c := makeServer(ctx, t, cfg)
 
 	res, err := c.GetObject(ctx, &pb.GetObjectRequest{
 		Name:        helm1.Name,
@@ -284,8 +284,8 @@ func TestGetObject_HelmReleaseWithCompressedInventory(t *testing.T) {
 	}
 
 	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ns, helm1, secret).Build()
-	cfg := makeServerConfig(client, t, "")
-	c := makeServer(ctx, cfg, t)
+	cfg := makeServerConfig(t, client, "")
+	c := makeServer(ctx, t, cfg)
 
 	res, err := c.GetObject(ctx, &pb.GetObjectRequest{
 		Name:        helm1.Name,
@@ -335,8 +335,8 @@ func TestGetObject_HelmReleaseCantGetSecret(t *testing.T) {
 	}
 
 	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ns, helm1, secret).Build()
-	cfg := makeServerConfig(client, t, "")
-	c := makeServer(ctx, cfg, t)
+	cfg := makeServerConfig(t, client, "")
+	c := makeServer(ctx, t, cfg)
 
 	res, err := c.GetObject(ctx, &pb.GetObjectRequest{
 		Name:        helm1.Name,
@@ -372,8 +372,8 @@ func TestGetObjectSecret(t *testing.T) {
 
 	fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ns, secret).Build()
 
-	cfg := makeServerConfig(fakeClient, t, "")
-	c := makeServer(ctx, cfg, t)
+	cfg := makeServerConfig(t, fakeClient, "")
+	c := makeServer(ctx, t, cfg)
 
 	res, err := c.GetObject(ctx, &pb.GetObjectRequest{
 		Name:        secret.Name,
@@ -418,8 +418,8 @@ func TestListObjectSingle(t *testing.T) {
 	}
 
 	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ns, kust).Build()
-	cfg := makeServerConfig(client, t, "")
-	c := makeServer(ctx, cfg, t)
+	cfg := makeServerConfig(t, client, "")
+	c := makeServer(ctx, t, cfg)
 
 	res, err := c.ListObjects(ctx, &pb.ListObjectsRequest{
 		Namespace: ns.Name,
@@ -470,8 +470,8 @@ func TestListObjectMultiple(t *testing.T) {
 	}
 
 	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ns, kust, helm1, helm2).Build()
-	cfg := makeServerConfig(client, t, "")
-	c := makeServer(ctx, cfg, t)
+	cfg := makeServerConfig(t, client, "")
+	c := makeServer(ctx, t, cfg)
 
 	res, err := c.ListObjects(ctx, &pb.ListObjectsRequest{
 		Namespace: ns.Name,
@@ -511,8 +511,8 @@ func TestListObjectSingleWithClusterName(t *testing.T) {
 	}
 
 	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ns, kust).Build()
-	cfg := makeServerConfig(client, t, "")
-	c := makeServer(ctx, cfg, t)
+	cfg := makeServerConfig(t, client, "")
+	c := makeServer(ctx, t, cfg)
 
 	res, err := c.ListObjects(ctx, &pb.ListObjectsRequest{
 		Namespace:   ns.Name,
@@ -564,8 +564,8 @@ func TestListObjectMultipleWithClusterName(t *testing.T) {
 	}
 
 	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ns, kust, helm1, helm2).Build()
-	cfg := makeServerConfig(client, t, "")
-	c := makeServer(ctx, cfg, t)
+	cfg := makeServerConfig(t, client, "")
+	c := makeServer(ctx, t, cfg)
 
 	res, err := c.ListObjects(ctx, &pb.ListObjectsRequest{
 		Namespace:   ns.Name,
@@ -626,8 +626,8 @@ func TestListObject_HelmReleaseWithInventory(t *testing.T) {
 	}
 
 	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ns, helm1, secret).Build()
-	cfg := makeServerConfig(client, t, "")
-	c := makeServer(ctx, cfg, t)
+	cfg := makeServerConfig(t, client, "")
+	c := makeServer(ctx, t, cfg)
 
 	res, err := c.ListObjects(ctx, &pb.ListObjectsRequest{
 		Namespace: ns.Name,
@@ -688,8 +688,8 @@ func TestListObject_HelmReleaseWithInventoryHistory(t *testing.T) {
 	}
 
 	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ns, helm1, secret).Build()
-	cfg := makeServerConfig(client, t, "")
-	c := makeServer(ctx, cfg, t)
+	cfg := makeServerConfig(t, client, "")
+	c := makeServer(ctx, t, cfg)
 
 	res, err := c.ListObjects(ctx, &pb.ListObjectsRequest{
 		Namespace: ns.Name,
@@ -738,8 +738,8 @@ func TestListObject_HelmReleaseCantGetSecret(t *testing.T) {
 	}
 
 	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ns, helm1, secret).Build()
-	cfg := makeServerConfig(client, t, "")
-	c := makeServer(ctx, cfg, t)
+	cfg := makeServerConfig(t, client, "")
+	c := makeServer(ctx, t, cfg)
 
 	res, err := c.ListObjects(ctx, &pb.ListObjectsRequest{
 		Namespace: ns.Name,
@@ -774,8 +774,8 @@ func TestListObjectsSecret(t *testing.T) {
 
 	fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ns, secret).Build()
 
-	cfg := makeServerConfig(fakeClient, t, "")
-	c := makeServer(ctx, cfg, t)
+	cfg := makeServerConfig(t, fakeClient, "")
+	c := makeServer(ctx, t, cfg)
 
 	res, err := c.ListObjects(ctx, &pb.ListObjectsRequest{
 		Kind:        "Secret",
@@ -827,8 +827,8 @@ func TestListObjectsLabels(t *testing.T) {
 
 	fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ns, deployment1, deployment2).Build()
 
-	cfg := makeServerConfig(fakeClient, t, "")
-	c := makeServer(ctx, cfg, t)
+	cfg := makeServerConfig(t, fakeClient, "")
+	c := makeServer(ctx, t, cfg)
 
 	res, err := c.ListObjects(ctx, &pb.ListObjectsRequest{
 		Kind:        "Deployment",
@@ -896,8 +896,8 @@ func TestListObjectsGitOpsRunSessions(t *testing.T) {
 	}
 
 	fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ns, session1, session2).Build()
-	cfg := makeServerConfig(fakeClient, t, testCluster)
-	c := makeServer(ctx, cfg, t)
+	cfg := makeServerConfig(t, fakeClient, testCluster)
+	c := makeServer(ctx, t, cfg)
 
 	res, err := c.ListObjects(ctx, &pb.ListObjectsRequest{
 		Namespace:   testNS,
@@ -957,8 +957,8 @@ func TestGetObjectSessionObjects(t *testing.T) {
 	}
 
 	fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(ns, kust, helm, bucket).Build()
-	cfg := makeServerConfig(fakeClient, t, testCluster)
-	c := makeServer(ctx, cfg, t)
+	cfg := makeServerConfig(t, fakeClient, testCluster)
+	c := makeServer(ctx, t, cfg)
 
 	res, err := c.GetObject(ctx, &pb.GetObjectRequest{
 		Name:        constants.RunDevKsName,

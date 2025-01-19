@@ -19,7 +19,7 @@ func TestGetVersion(t *testing.T) {
 
 	ctx := context.Background()
 
-	c := makeGRPCServer(ctx, k8sEnv.Rest, t)
+	c := makeGRPCServer(ctx, t, k8sEnv.Rest)
 	logf.SetLogger(logr.Discard())
 
 	scheme, err := kube.CreateScheme()

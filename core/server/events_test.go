@@ -23,7 +23,7 @@ func TestListEvents(t *testing.T) {
 
 	ctx := context.Background()
 
-	c := makeGRPCServer(ctx, k8sEnv.Rest, t)
+	c := makeGRPCServer(ctx, t, k8sEnv.Rest)
 
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())

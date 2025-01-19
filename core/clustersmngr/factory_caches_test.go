@@ -129,6 +129,7 @@ func TestClusterSet_Set(t *testing.T) {
 }
 
 func newTestCluster(t *testing.T, name, server string) cluster.Cluster {
+	t.Helper()
 	c, err := cluster.NewSingleCluster(name, &rest.Config{Host: server}, nil, kube.UserPrefixes{})
 	if err != nil {
 		t.Error("Expected error to be nil, got", err)
