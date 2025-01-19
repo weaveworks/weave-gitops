@@ -50,8 +50,8 @@ func TestGetViolation(t *testing.T) {
 		})).
 		Build()
 
-	cfg := makeServerConfig(client, t, "")
-	c := makeServer(ctx, cfg, t)
+	cfg := makeServerConfig(t, client, "")
+	c := makeServer(ctx, t, cfg)
 
 	// existing validation
 	res, err := c.GetPolicyValidation(ctx, &pb.GetPolicyValidationRequest{
@@ -132,8 +132,8 @@ func TestListApplicationValidations(t *testing.T) {
 		}).
 		Build()
 
-	cfg := makeServerConfig(client, t, "")
-	c := makeServer(ctx, cfg, t)
+	cfg := makeServerConfig(t, client, "")
+	c := makeServer(ctx, t, cfg)
 	res, err := c.ListPolicyValidations(ctx, &pb.ListPolicyValidationsRequest{
 		Application: "app1",
 		Kind:        "HelmRelease",
@@ -192,8 +192,8 @@ func TestListPolicyValidations(t *testing.T) {
 		})).
 		Build()
 
-	cfg := makeServerConfig(client, t, "")
-	c := makeServer(ctx, cfg, t)
+	cfg := makeServerConfig(t, client, "")
+	c := makeServer(ctx, t, cfg)
 	res, err := c.ListPolicyValidations(ctx, &pb.ListPolicyValidationsRequest{})
 	g.Expect(err).NotTo(HaveOccurred())
 	g.Expect(err).To(BeNil())

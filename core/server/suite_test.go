@@ -55,7 +55,8 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func makeGRPCServer(ctx context.Context, cfg *rest.Config, t *testing.T) pb.CoreClient {
+func makeGRPCServer(ctx context.Context, t *testing.T, cfg *rest.Config) pb.CoreClient {
+	t.Helper()
 	log := logr.Discard()
 	nsChecker = nsaccessfakes.FakeChecker{}
 	nsChecker.FilterAccessibleNamespacesStub = func(ctx context.Context, t typedauth.AuthorizationV1Interface, n []v1.Namespace) ([]v1.Namespace, error) {
@@ -103,9 +104,10 @@ func makeGRPCServer(ctx context.Context, cfg *rest.Config, t *testing.T) pb.Core
 		return lis.Dial()
 	}
 
-	go func(tt *testing.T) {
+	go func(t *testing.T) {
+		t.Helper()
 		if err := s.Serve(lis); err != nil {
-			tt.Errorf("Failed to serve: %v", err)
+			t.Errorf("Failed to serve: %v", err)
 		}
 	}(t)
 
@@ -163,7 +165,8 @@ func withClientsPoolInterceptor(clustersManager clustersmngr.ClustersManager) gr
 	})
 }
 
-func makeServerConfig(fakeClient client.Client, t *testing.T, clusterName string) server.CoreServerConfig {
+func makeServerConfig(t *testing.T, fakeClient client.Client, clusterName string) server.CoreServerConfig {
+	t.Helper()
 	log := logr.Discard()
 	nsChecker = nsaccessfakes.FakeChecker{}
 	nsChecker.FilterAccessibleNamespacesStub = func(ctx context.Context, t typedauth.AuthorizationV1Interface, n []v1.Namespace) ([]v1.Namespace, error) {
@@ -201,7 +204,8 @@ func makeServerConfig(fakeClient client.Client, t *testing.T, clusterName string
 	return coreCfg
 }
 
-func makeServer(ctx context.Context, cfg server.CoreServerConfig, t *testing.T) pb.CoreClient {
+func makeServer(ctx context.Context, t *testing.T, cfg server.CoreServerConfig) pb.CoreClient {
+	t.Helper()
 	core, err := server.NewCoreServer(ctx, cfg)
 	if err != nil {
 		t.Fatalf("Failed to create CoreServer: %v", err)
@@ -215,9 +219,10 @@ func makeServer(ctx context.Context, cfg server.CoreServerConfig, t *testing.T) 
 
 	pb.RegisterCoreServer(s, core)
 
-	go func(tt *testing.T) {
+	go func(t *testing.T) {
+		t.Helper()
 		if err := s.Serve(lis); err != nil {
-			tt.Errorf("Failed to serve: %v", err)
+			t.Errorf("Failed to serve: %v", err)
 		}
 	}(t)
 
@@ -232,6 +237,7 @@ func makeServer(ctx context.Context, cfg server.CoreServerConfig, t *testing.T) 
 }
 
 func dialBufnet(t *testing.T, lis *bufconn.Listener) *grpc.ClientConn {
+	t.Helper()
 	dialer := func(context.Context, string) (net.Conn, error) {
 		return lis.Dial()
 	}

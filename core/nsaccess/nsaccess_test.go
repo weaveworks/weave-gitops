@@ -419,6 +419,7 @@ func makeRole(ns *corev1.Namespace) types.NamespacedName {
 }
 
 func createRole(t *testing.T, cl client.Client, key types.NamespacedName, rules []rbacv1.PolicyRule) {
+	t.Helper()
 	role := &rbacv1.Role{
 		ObjectMeta: metav1.ObjectMeta{Name: "test-role", Namespace: key.Namespace},
 		Rules:      rules,

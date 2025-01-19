@@ -552,6 +552,7 @@ func TestUserInfoAdminFlowBadCookie(t *testing.T) {
 }
 
 func getVerifyTokens(t *testing.T, m *mockoidc.MockOIDC) map[string]interface{} {
+	t.Helper()
 	const (
 		state = "abcdef"
 		nonce = "ghijkl"

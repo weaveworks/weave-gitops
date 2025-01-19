@@ -32,7 +32,7 @@ func TestGetReconciledObjects(t *testing.T) {
 
 	ctx := context.Background()
 
-	c := makeGRPCServer(ctx, k8sEnv.Rest, t)
+	c := makeGRPCServer(ctx, t, k8sEnv.Rest)
 
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
@@ -198,7 +198,7 @@ func TestGetReconciledObjectsWithSecret(t *testing.T) {
 
 	ctx := context.Background()
 
-	c := makeGRPCServer(ctx, k8sEnv.Rest, t)
+	c := makeGRPCServer(ctx, t, k8sEnv.Rest)
 
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
@@ -308,8 +308,8 @@ func TestGetChildObjects(t *testing.T) {
 	g.Expect(err).To(BeNil())
 
 	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(&ns, deployment, rs).Build()
-	cfg := makeServerConfig(client, t, "")
-	c := makeServer(ctx, cfg, t)
+	cfg := makeServerConfig(t, client, "")
+	c := makeServer(ctx, t, cfg)
 
 	res, err := c.GetChildObjects(ctx, &pb.GetChildObjectsRequest{
 		ParentUid: string(deployment.UID),
@@ -384,8 +384,8 @@ func TestListFluxRuntimeObjects(t *testing.T) {
 			scheme, err := kube.CreateScheme()
 			g.Expect(err).To(BeNil())
 			client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(tt.objects...).Build()
-			cfg := makeServerConfig(client, t, "")
-			c := makeServer(ctx, cfg, t)
+			cfg := makeServerConfig(t, client, "")
+			c := makeServer(ctx, t, cfg)
 			res, err := c.ListFluxRuntimeObjects(ctx, &pb.ListFluxRuntimeObjectsRequest{})
 			g.Expect(err).NotTo(HaveOccurred())
 
@@ -453,8 +453,8 @@ func TestListRuntimeObjects(t *testing.T) {
 			scheme, err := kube.CreateScheme()
 			g.Expect(err).To(BeNil())
 			client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(tt.objects...).Build()
-			cfg := makeServerConfig(client, t, "")
-			c := makeServer(ctx, cfg, t)
+			cfg := makeServerConfig(t, client, "")
+			c := makeServer(ctx, t, cfg)
 
 			res, err := c.ListRuntimeObjects(ctx, &pb.ListRuntimeObjectsRequest{})
 
@@ -520,8 +520,8 @@ func TestListFluxCrds(t *testing.T) {
 	g.Expect(err).To(BeNil())
 
 	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(crd1, crd2).Build()
-	cfg := makeServerConfig(client, t, "")
-	c := makeServer(ctx, cfg, t)
+	cfg := makeServerConfig(t, client, "")
+	c := makeServer(ctx, t, cfg)
 
 	res, err := c.ListFluxCrds(ctx, &pb.ListFluxCrdsRequest{})
 
@@ -578,8 +578,8 @@ func TestListRuntimeCrds(t *testing.T) {
 			scheme, err := kube.CreateScheme()
 			g.Expect(err).To(BeNil())
 			client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(tt.objects...).Build()
-			cfg := makeServerConfig(client, t, "")
-			c := makeServer(ctx, cfg, t)
+			cfg := makeServerConfig(t, client, "")
+			c := makeServer(ctx, t, cfg)
 
 			res, err := c.ListRuntimeCrds(ctx, &pb.ListRuntimeCrdsRequest{})
 			g.Expect(err).NotTo(HaveOccurred())

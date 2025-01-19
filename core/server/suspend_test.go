@@ -32,7 +32,7 @@ func TestSuspend_Suspend(t *testing.T) {
 	})
 	g.Expect(err).NotTo(HaveOccurred())
 
-	c := makeGRPCServer(ctx, k8sEnv.Rest, t)
+	c := makeGRPCServer(ctx, t, k8sEnv.Rest)
 
 	ns := newNamespace(ctx, k, g)
 
@@ -163,6 +163,7 @@ func TestSuspend_Suspend(t *testing.T) {
 }
 
 func getUnstructuredObj(t *testing.T, k client.Client, name types.NamespacedName, kind, apiVersion string) *unstructured.Unstructured {
+	t.Helper()
 	unstructuredObj := &unstructured.Unstructured{}
 	unstructuredObj.SetKind(kind)
 	unstructuredObj.SetAPIVersion(apiVersion)
@@ -177,6 +178,7 @@ func getUnstructuredObj(t *testing.T, k client.Client, name types.NamespacedName
 // passes if suspended and annotations exist, or not suspended and annotations don't exist
 // if annotations exist, the principal is checked in the annotation for suspended-by
 func checkSuspendAnnotations(t *testing.T, principalID string, annotations map[string]string, name types.NamespacedName, suspend bool) {
+	t.Helper()
 	if suspend {
 		// suspended and annotations exist check
 		if suspendedBy, ok := annotations["metadata.weave.works/suspended-by"]; ok {

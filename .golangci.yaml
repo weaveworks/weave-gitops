@@ -29,7 +29,7 @@ linters:
     - staticcheck
     - stylecheck
     - tenv
-    #- thelper
+    - thelper
     #- tparallel
     - typecheck
     - unconvert
