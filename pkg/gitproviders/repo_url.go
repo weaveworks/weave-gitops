@@ -139,7 +139,7 @@ func detectGitProviderFromURL(raw string, gitHostTypes map[string]string) (GitPr
 // the `:` delimiter between host and path throws off the std. url parser
 func parseGitURL(raw string) (*url.URL, error) {
 	if strings.HasPrefix(raw, "git@") {
-		// The first occurance of `:` should be the host:path delimiter.
+		// The first occurrence of `:` should be the host:path delimiter.
 		raw = strings.Replace(raw, ":", "/", 1)
 		raw = "ssh://" + raw
 	}

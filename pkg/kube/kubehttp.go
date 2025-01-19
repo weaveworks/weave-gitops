@@ -69,7 +69,7 @@ const (
 var ErrWegoConfigNotFound = errors.New("wego config not found")
 
 // InClusterConfig defines a function for checking if this code is executing in kubernetes.
-// This can be overriden if needed.
+// This can be overridden if needed.
 var InClusterConfig func() (*rest.Config, error) = rest.InClusterConfig
 
 var ErrNamespaceNotFound = errors.New("namespace not found")

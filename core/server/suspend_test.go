@@ -174,7 +174,7 @@ func getUnstructuredObj(t *testing.T, k client.Client, name types.NamespacedName
 	return unstructuredObj
 }
 
-// checkSuspendAnnotations checks for the existance of suspend annotations
+// checkSuspendAnnotations checks for the existence of suspend annotations
 // passes if suspended and annotations exist, or not suspended and annotations don't exist
 // if annotations exist, the principal is checked in the annotation for suspended-by
 func checkSuspendAnnotations(t *testing.T, principalID string, annotations map[string]string, name types.NamespacedName, suspend bool) {
