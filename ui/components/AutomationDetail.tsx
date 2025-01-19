@@ -1,4 +1,5 @@
 import * as React from "react";
+import type { JSX } from "react";
 import styled from "styled-components";
 import { createCanaryCondition, useGetInventory } from "../hooks/inventory";
 import { Condition, Kind, ObjectRef } from "../lib/api/core/types.pb";

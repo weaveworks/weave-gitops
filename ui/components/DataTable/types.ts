@@ -1,3 +1,4 @@
+import type { JSX } from "react";
 import { FilterConfig, FilterSelections } from "../FilterDialog";
 
 export type Field = {

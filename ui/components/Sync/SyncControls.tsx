@@ -6,7 +6,7 @@ import {
   Tooltip,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
-import React from "react";
+import React, { type JSX } from "react";
 import styled, { keyframes } from "styled-components";
 import { ThemeTypes } from "../../contexts/AppContext";
 import Button from "../Button";

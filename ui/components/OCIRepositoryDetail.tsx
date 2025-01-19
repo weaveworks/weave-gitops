@@ -1,4 +1,5 @@
 import * as React from "react";
+import type { JSX } from "react";
 import styled from "styled-components";
 import { useFeatureFlags } from "../hooks/featureflags";
 import { Kind } from "../lib/api/core/types.pb";

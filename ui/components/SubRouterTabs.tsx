@@ -19,7 +19,7 @@ type Props = {
 type TabProps = {
   name: string;
   path: string;
-  children: React.ReactElement;
+  children: React.ReactElement<any>;
 };
 
 type PathConfig = { name: string; path: string };
