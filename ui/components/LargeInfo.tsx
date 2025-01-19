@@ -1,5 +1,6 @@
 import { Tooltip } from "@mui/material";
 import * as React from "react";
+import type { JSX } from "react";
 import styled from "styled-components";
 import Flex from "./Flex";
 import Text from "./Text";

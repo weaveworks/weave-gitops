@@ -1,4 +1,5 @@
 import * as React from "react";
+import type { JSX } from "react";
 import { Link as RouterLink } from "react-router";
 import styled from "styled-components";
 import { isAllowedLink, isHTTP } from "../lib/utils";

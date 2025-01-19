@@ -1,4 +1,4 @@
-import React from "react";
+import React, { type JSX } from "react";
 import styled from "styled-components";
 import { useSyncFluxObject } from "../../hooks/automations";
 import { useToggleSuspend } from "../../hooks/flux";

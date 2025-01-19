@@ -1,5 +1,6 @@
 import { AlertTitle, Alert as MaterialAlert } from "@mui/material";
 import * as React from "react";
+import type { JSX } from "react";
 import styled from "styled-components";
 import { ThemeTypes } from "../contexts/AppContext";
 import Flex from "./Flex";

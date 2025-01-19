@@ -1,5 +1,5 @@
 import { Drawer } from "@mui/material";
-import React, { useContext } from "react";
+import React, { useContext, type JSX } from "react";
 import styled from "styled-components";
 import { AppContext } from "../contexts/AppContext";
 import DetailModal from "./DetailModal";

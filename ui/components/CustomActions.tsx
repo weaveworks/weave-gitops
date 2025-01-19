@@ -1,5 +1,7 @@
 import * as React from "react";
 
+import type { JSX } from "react";
+
 function CustomActions({ actions }: { actions: JSX.Element[] }) {
   return actions?.length > 0 ? (
     <>

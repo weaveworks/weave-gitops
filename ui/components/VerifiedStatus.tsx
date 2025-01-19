@@ -1,5 +1,5 @@
 import { Tooltip } from "@mui/material";
-import React from "react";
+import React, { type JSX } from "react";
 import { useListSources } from "../hooks/sources";
 import { Condition, ObjectRef } from "../lib/api/core/types.pb";
 import { GitRepository, OCIRepository } from "../lib/objects";

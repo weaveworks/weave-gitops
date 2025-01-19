@@ -1,4 +1,5 @@
 import * as React from "react";
+import type { JSX } from "react";
 import styled from "styled-components";
 import { formatMetadataKey, isHTTP } from "../lib/utils";
 import Flex from "./Flex";

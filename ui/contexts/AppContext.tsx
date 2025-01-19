@@ -1,4 +1,5 @@
 import * as React from "react";
+import type { JSX } from "react";
 import { useNavigate } from "react-router";
 import { DetailViewProps } from "../components/DetailModal";
 import { formatURL } from "../lib/nav";

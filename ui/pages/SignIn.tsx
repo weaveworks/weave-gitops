@@ -82,7 +82,7 @@ type Props = {
 function SignIn({ darkModeEnabled = true }: Props) {
   const { isFlagEnabled, flags } = useFeatureFlags();
 
-  const formRef = React.useRef<HTMLFormElement>();
+  const formRef = React.useRef<HTMLFormElement>(undefined);
   const {
     signIn,
     error: authError,
