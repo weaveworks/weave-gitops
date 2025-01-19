@@ -1,7 +1,8 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Text snapshots bold 1`] = `
-.c0 {
+<DocumentFragment>
+  .c0 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 800;
@@ -10,14 +11,16 @@ exports[`Text snapshots bold 1`] = `
 }
 
 <span
-  className="c0"
->
-  some text
-</span>
+    class="c0"
+  >
+    some text
+  </span>
+</DocumentFragment>
 `;
 
 exports[`Text snapshots normal 1`] = `
-.c0 {
+<DocumentFragment>
+  .c0 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 400;
@@ -26,14 +29,16 @@ exports[`Text snapshots normal 1`] = `
 }
 
 <span
-  className="c0"
->
-  some text
-</span>
+    class="c0"
+  >
+    some text
+  </span>
+</DocumentFragment>
 `;
 
 exports[`Text snapshots with color 1`] = `
-.c0 {
+<DocumentFragment>
+  .c0 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 400;
@@ -43,8 +48,9 @@ exports[`Text snapshots with color 1`] = `
 }
 
 <span
-  className="c0"
->
-  some text
-</span>
+    class="c0"
+  >
+    some text
+  </span>
+</DocumentFragment>
 `;

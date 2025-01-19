@@ -1,7 +1,8 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`KubeStatusIndicator snapshots renders error 1`] = `
-.c0 {
+<DocumentFragment>
+  .c0 {
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -77,33 +78,35 @@ exports[`KubeStatusIndicator snapshots renders error 1`] = `
 }
 
 <div
-  className="c0 c1 KubeStatusIndicator"
->
-  <div
-    className="c2 c3 c4"
+    class="c0 c1 KubeStatusIndicator"
   >
-    <svg
-      aria-hidden={true}
-      className="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
-      data-testid="ErrorIcon"
-      focusable="false"
-      viewBox="0 0 24 24"
+    <div
+      class="c2 c3 c4"
     >
-      <path
-        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m1 15h-2v-2h2zm0-4h-2V7h2z"
-      />
-    </svg>
-    <span
-      className="c5 c6"
-    >
-      Not Ready
-    </span>
+      <svg
+        aria-hidden="true"
+        class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
+        data-testid="ErrorIcon"
+        focusable="false"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m1 15h-2v-2h2zm0-4h-2V7h2z"
+        />
+      </svg>
+      <span
+        class="c5 c6"
+      >
+        Not Ready
+      </span>
+    </div>
   </div>
-</div>
+</DocumentFragment>
 `;
 
 exports[`KubeStatusIndicator snapshots renders success 1`] = `
-.c0 {
+<DocumentFragment>
+  .c0 {
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -179,33 +182,35 @@ exports[`KubeStatusIndicator snapshots renders success 1`] = `
 }
 
 <div
-  className="c0 c1 KubeStatusIndicator"
->
-  <div
-    className="c2 c3 c4"
+    class="c0 c1 KubeStatusIndicator"
   >
-    <svg
-      aria-hidden={true}
-      className="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
-      data-testid="CheckCircleIcon"
-      focusable="false"
-      viewBox="0 0 24 24"
+    <div
+      class="c2 c3 c4"
     >
-      <path
-        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8z"
-      />
-    </svg>
-    <span
-      className="c5 c6"
-    >
-      Applied revision: main/a3a54ef4a87f8963b14915639f032aa6ec1b8161
-    </span>
+      <svg
+        aria-hidden="true"
+        class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
+        data-testid="CheckCircleIcon"
+        focusable="false"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8z"
+        />
+      </svg>
+      <span
+        class="c5 c6"
+      >
+        Applied revision: main/a3a54ef4a87f8963b14915639f032aa6ec1b8161
+      </span>
+    </div>
   </div>
-</div>
+</DocumentFragment>
 `;
 
 exports[`KubeStatusIndicator snapshots renders with noText prop 1`] = `
-.c0 {
+<DocumentFragment>
+  .c0 {
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -262,22 +267,23 @@ exports[`KubeStatusIndicator snapshots renders with noText prop 1`] = `
 }
 
 <div
-  className="c0 KubeStatusIndicator"
->
-  <div
-    className="c1 c2"
+    class="c0 KubeStatusIndicator"
   >
-    <svg
-      aria-hidden={true}
-      className="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
-      data-testid="ErrorIcon"
-      focusable="false"
-      viewBox="0 0 24 24"
+    <div
+      class="c1 c2"
     >
-      <path
-        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m1 15h-2v-2h2zm0-4h-2V7h2z"
-      />
-    </svg>
+      <svg
+        aria-hidden="true"
+        class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
+        data-testid="ErrorIcon"
+        focusable="false"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m1 15h-2v-2h2zm0-4h-2V7h2z"
+        />
+      </svg>
+    </div>
   </div>
-</div>
+</DocumentFragment>
 `;

@@ -1,7 +1,8 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`YamlView snapshots renders 1`] = `
-.c1 {
+<DocumentFragment>
+  .c1 {
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -135,57 +136,21 @@ exports[`YamlView snapshots renders 1`] = `
 }
 
 <div
-  className="c0 UnstyledYamlView"
->
-  <div
-    className="c1 c2"
-  >
-    kubectl get kustomization podinfo -n flux-system -o yaml
-    <div
-      onClick={[Function]}
-      style={
-        {
-          "cursor": "pointer",
-        }
-      }
-    >
-      <div
-        className="c3 c4"
-      >
-        <svg
-          aria-hidden={true}
-          className="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
-          data-testid="FileCopyOutlinedIcon"
-          focusable="false"
-          viewBox="0 0 24 24"
-        >
-          <path
-            d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12zm-1 4H8c-1.1 0-1.99.9-1.99 2L6 21c0 1.1.89 2 1.99 2H19c1.1 0 2-.9 2-2V11zM8 21V7h6v5h5v9z"
-          />
-        </svg>
-      </div>
-    </div>
-  </div>
-  <div
-    className="code-wrapper"
+    class="c0 UnstyledYamlView"
   >
     <div
-      className="copy-wrapper"
+      class="c1 c2"
     >
+      kubectl get kustomization podinfo -n flux-system -o yaml
       <div
-        onClick={[Function]}
-        style={
-          {
-            "cursor": "pointer",
-          }
-        }
+        style="cursor: pointer;"
       >
         <div
-          className="c3 c5"
+          class="c3 c4"
         >
           <svg
-            aria-hidden={true}
-            className="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
+            aria-hidden="true"
+            class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
             data-testid="FileCopyOutlinedIcon"
             focusable="false"
             viewBox="0 0 24 24"
@@ -197,72 +162,54 @@ exports[`YamlView snapshots renders 1`] = `
         </div>
       </div>
     </div>
-    <pre
-      style={
-        {
-          "MozHyphens": "none",
-          "MozTabSize": "4",
-          "OTabSize": "4",
-          "WebkitHyphens": "none",
-          "background": "#f5f2f0",
-          "backgroundColor": "transparent",
-          "color": "black",
-          "fontFamily": "Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace",
-          "fontSize": "1em",
-          "hyphens": "none",
-          "lineHeight": "1.5",
-          "margin": 0,
-          "msHyphens": "none",
-          "overflow": "auto",
-          "padding": "1em",
-          "tabSize": "4",
-          "textAlign": "left",
-          "textShadow": "0 1px white",
-          "whiteSpace": "pre",
-          "wordBreak": "normal",
-          "wordSpacing": "normal",
-          "wordWrap": "normal",
-        }
-      }
+    <div
+      class="code-wrapper"
     >
-      <code
-        style={
-          {
-            "whiteSpace": "pre",
-            "wordBreak": "break-word",
-          }
-        }
+      <div
+        class="copy-wrapper"
       >
-        <span
-          style={
-            {
-              "textWrap": "wrap",
-            }
-          }
+        <div
+          style="cursor: pointer;"
+        >
+          <div
+            class="c3 c5"
+          >
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
+              data-testid="FileCopyOutlinedIcon"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12zm-1 4H8c-1.1 0-1.99.9-1.99 2L6 21c0 1.1.89 2 1.99 2H19c1.1 0 2-.9 2-2V11zM8 21V7h6v5h5v9z"
+              />
+            </svg>
+          </div>
+        </div>
+      </div>
+      <pre
+        style="color: black; background: rgb(245, 242, 240); text-shadow: 0 1px white; font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace; font-size: 1em; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; word-wrap: normal; line-height: 1.5; tab-size: 4; hyphens: none; padding: 1em; margin: 0px; overflow: auto; background-color: transparent;"
+      >
+        <code
+          style="white-space: pre; word-break: break-word;"
         >
           <span
-            className="linenumber react-syntax-highlighter-line-number"
-            style={
-              {
-                "color": "slategray",
-                "display": "inline-block",
-                "minWidth": "1.25em",
-                "paddingRight": "1em",
-                "textAlign": "right",
-                "userSelect": "none",
-              }
-            }
+            style="text-wrap: wrap;"
           >
-            1
+            <span
+              class="linenumber react-syntax-highlighter-line-number"
+              style="display: inline-block; min-width: 1.25em; padding-right: 1em; text-align: right; user-select: none; color: slategray;"
+            >
+              1
+            </span>
+            <span>
+              yaml\\nyaml\\nyaml\\n
+            </span>
           </span>
-          <span
-            style={{}}
-          >
-            yaml\\nyaml\\nyaml\\n
-          </span>
-        </span>
-      </code>
-    </pre>
+        </code>
+      </pre>
+    </div>
   </div>
-</div>
+</DocumentFragment>
 `;

@@ -1,7 +1,8 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Version snapshots renders a dash as plain text without version text and with version href 1`] = `
-.c0 {
+<DocumentFragment>
+  .c0 {
   display: flex;
   flex-direction: row;
   align-items: start;
@@ -29,27 +30,28 @@ exports[`Version snapshots renders a dash as plain text without version text and
 }
 
 <div
-  className="c0 Version"
->
-  <span
-    className="c1"
+    class="c0 Version"
   >
-    product name
-    :
-  </span>
-  <div
-    className="c2"
-  />
-  <span
-    className="c3"
-  >
-    -
-  </span>
-</div>
+    <span
+      class="c1"
+    >
+      product name:
+    </span>
+    <div
+      class="c2"
+    />
+    <span
+      class="c3"
+    >
+      -
+    </span>
+  </div>
+</DocumentFragment>
 `;
 
 exports[`Version snapshots renders a dash without version text and without version href 1`] = `
-.c0 {
+<DocumentFragment>
+  .c0 {
   display: flex;
   flex-direction: row;
   align-items: start;
@@ -77,27 +79,28 @@ exports[`Version snapshots renders a dash without version text and without versi
 }
 
 <div
-  className="c0 Version"
->
-  <span
-    className="c1"
+    class="c0 Version"
   >
-    product name
-    :
-  </span>
-  <div
-    className="c2"
-  />
-  <span
-    className="c3"
-  >
-    -
-  </span>
-</div>
+    <span
+      class="c1"
+    >
+      product name:
+    </span>
+    <div
+      class="c2"
+    />
+    <span
+      class="c3"
+    >
+      -
+    </span>
+  </div>
+</DocumentFragment>
 `;
 
 exports[`Version snapshots renders a link with version text and version href 1`] = `
-.c0 {
+<DocumentFragment>
+  .c0 {
   display: flex;
   flex-direction: row;
   align-items: start;
@@ -138,38 +141,39 @@ exports[`Version snapshots renders a link with version text and version href 1`]
 }
 
 <div
-  className="c0 Version"
->
-  <span
-    className="c1"
-  >
-    product name
-    :
-  </span>
-  <div
-    className="c2"
-  />
-  <a
-    className="c3 Link"
-    href="https://github.com/weaveworks/weave-gitops"
-    rel="noreferrer"
-    target="_blank"
+    class="c0 Version"
   >
     <span
-      className="c4"
+      class="c1"
+    >
+      product name:
+    </span>
+    <div
+      class="c2"
+    />
+    <a
+      class="c3 Link"
+      href="https://github.com/weaveworks/weave-gitops"
+      rel="noreferrer"
+      target="_blank"
     >
       <span
-        className="c5"
+        class="c4"
       >
-        version text
+        <span
+          class="c5"
+        >
+          version text
+        </span>
       </span>
-    </span>
-  </a>
-</div>
+    </a>
+  </div>
+</DocumentFragment>
 `;
 
 exports[`Version snapshots renders plain text with version text and without version href 1`] = `
-.c0 {
+<DocumentFragment>
+  .c0 {
   display: flex;
   flex-direction: row;
   align-items: start;
@@ -197,21 +201,21 @@ exports[`Version snapshots renders plain text with version text and without vers
 }
 
 <div
-  className="c0 Version"
->
-  <span
-    className="c1"
+    class="c0 Version"
   >
-    product name
-    :
-  </span>
-  <div
-    className="c2"
-  />
-  <span
-    className="c3"
-  >
-    version text
-  </span>
-</div>
+    <span
+      class="c1"
+    >
+      product name:
+    </span>
+    <div
+      class="c2"
+    />
+    <span
+      class="c3"
+    >
+      version text
+    </span>
+  </div>
+</DocumentFragment>
 `;

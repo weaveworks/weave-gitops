@@ -1,7 +1,8 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Logo snapshots renders collapsed view 1`] = `
-.c0 {
+<DocumentFragment>
+  .c0 {
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -41,35 +42,35 @@ exports[`Logo snapshots renders collapsed view 1`] = `
 }
 
 <div
-  className="c0 c1"
->
-  <a
-    data-discover="true"
-    href="/applications"
-    onClick={[Function]}
-  >
-    <img
-      src=""
-    />
-  </a>
-  <div
-    className="c2 c3"
+    class="c0 c1"
   >
     <a
       data-discover="true"
       href="/applications"
-      onClick={[Function]}
     >
       <img
-        src=""
+        src="[object Object]"
       />
     </a>
+    <div
+      class="c2 c3"
+    >
+      <a
+        data-discover="true"
+        href="/applications"
+      >
+        <img
+          src="[object Object]"
+        />
+      </a>
+    </div>
   </div>
-</div>
+</DocumentFragment>
 `;
 
 exports[`Logo snapshots renders open view 1`] = `
-.c0 {
+<DocumentFragment>
+  .c0 {
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -108,29 +109,28 @@ exports[`Logo snapshots renders open view 1`] = `
 }
 
 <div
-  className="c0 c1"
->
-  <a
-    data-discover="true"
-    href="/applications"
-    onClick={[Function]}
-  >
-    <img
-      src=""
-    />
-  </a>
-  <div
-    className="c2 c3"
+    class="c0 c1"
   >
     <a
       data-discover="true"
       href="/applications"
-      onClick={[Function]}
     >
       <img
-        src=""
+        src="[object Object]"
       />
     </a>
+    <div
+      class="c2 c3"
+    >
+      <a
+        data-discover="true"
+        href="/applications"
+      >
+        <img
+          src="[object Object]"
+        />
+      </a>
+    </div>
   </div>
-</div>
+</DocumentFragment>
 `;

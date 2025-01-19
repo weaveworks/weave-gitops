@@ -1,30 +1,28 @@
 import "jest-styled-components";
+import { render } from "@testing-library/react";
 import React from "react";
-import renderer from "react-test-renderer";
 import Flex from "../Flex";
 
 describe("Flex", () => {
   describe("snapshots", () => {
     it("wide", () => {
-      const tree = renderer.create(<Flex wide>My Text</Flex>).toJSON();
+      const tree = render(<Flex wide>My Text</Flex>).asFragment();
       expect(tree).toMatchSnapshot();
     });
     it("center", () => {
-      const tree = renderer.create(<Flex center>My Text</Flex>).toJSON();
+      const tree = render(<Flex center>My Text</Flex>).asFragment();
       expect(tree).toMatchSnapshot();
     });
     it("align", () => {
-      const tree = renderer.create(<Flex align>My Text</Flex>).toJSON();
+      const tree = render(<Flex align>My Text</Flex>).asFragment();
       expect(tree).toMatchSnapshot();
     });
     it("wide center align", () => {
-      const tree = renderer
-        .create(
-          <Flex wide center align>
-            My Text
-          </Flex>,
-        )
-        .toJSON();
+      const tree = render(
+        <Flex wide center align>
+          My Text
+        </Flex>,
+      ).asFragment();
       expect(tree).toMatchSnapshot();
     });
   });

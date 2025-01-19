@@ -1,6 +1,6 @@
 import "jest-styled-components";
+import { render } from "@testing-library/react";
 import React from "react";
-import renderer from "react-test-renderer";
 import { CoreClientContext } from "../../../contexts/CoreClientContext";
 import {
   createCoreMockClient,
@@ -14,91 +14,81 @@ describe("SyncControls", () => {
     const mockContext = { api: createCoreMockClient({}), featureFlags: {} };
 
     it("non-suspended", () => {
-      const tree = renderer
-        .create(
-          withTheme(
-            withContext(
-              <CoreClientContext.Provider value={mockContext}>
-                <SyncControls onSyncClick={() => {}} />
-              </CoreClientContext.Provider>,
-              "/",
-              {},
-            ),
+      const tree = render(
+        withTheme(
+          withContext(
+            <CoreClientContext.Provider value={mockContext}>
+              <SyncControls onSyncClick={() => {}} />
+            </CoreClientContext.Provider>,
+            "/",
+            {},
           ),
-        )
-        .toJSON();
+        ),
+      ).asFragment();
       expect(tree).toMatchSnapshot();
     });
     it("allButtonsDisabled", () => {
-      const tree = renderer
-        .create(
-          withTheme(
-            withContext(
-              <CoreClientContext.Provider value={mockContext}>
-                <SyncControls
-                  syncDisabled
-                  suspendDisabled
-                  resumeDisabled
-                  onSyncClick={() => {}}
-                />
-              </CoreClientContext.Provider>,
-              "/",
-              {},
-            ),
+      const tree = render(
+        withTheme(
+          withContext(
+            <CoreClientContext.Provider value={mockContext}>
+              <SyncControls
+                syncDisabled
+                suspendDisabled
+                resumeDisabled
+                onSyncClick={() => {}}
+              />
+            </CoreClientContext.Provider>,
+            "/",
+            {},
           ),
-        )
-        .toJSON();
+        ),
+      ).asFragment();
       expect(tree).toMatchSnapshot();
     });
     it("hideSyncOptions", () => {
-      const tree = renderer
-        .create(
-          withTheme(
-            withContext(
-              <CoreClientContext.Provider value={mockContext}>
-                <SyncControls hideSyncOptions onSyncClick={() => {}} />
-              </CoreClientContext.Provider>,
-              "/",
-              {},
-            ),
+      const tree = render(
+        withTheme(
+          withContext(
+            <CoreClientContext.Provider value={mockContext}>
+              <SyncControls hideSyncOptions onSyncClick={() => {}} />
+            </CoreClientContext.Provider>,
+            "/",
+            {},
           ),
-        )
-        .toJSON();
+        ),
+      ).asFragment();
       expect(tree).toMatchSnapshot();
     });
     it("hideSuspend", () => {
-      const tree = renderer
-        .create(
-          withTheme(
-            withContext(
-              <CoreClientContext.Provider value={mockContext}>
-                <SyncControls hideSuspend onSyncClick={() => {}} />
-              </CoreClientContext.Provider>,
-              "/",
-              {},
-            ),
+      const tree = render(
+        withTheme(
+          withContext(
+            <CoreClientContext.Provider value={mockContext}>
+              <SyncControls hideSuspend onSyncClick={() => {}} />
+            </CoreClientContext.Provider>,
+            "/",
+            {},
           ),
-        )
-        .toJSON();
+        ),
+      ).asFragment();
       expect(tree).toMatchSnapshot();
     });
     it("hasTooltipSuffix", () => {
-      const tree = renderer
-        .create(
-          withTheme(
-            withContext(
-              <CoreClientContext.Provider value={mockContext}>
-                <SyncControls
-                  tooltipSuffix="test suffix"
-                  onSyncClick={() => {}}
-                />
-              </CoreClientContext.Provider>,
-              "/",
-              {},
-            ),
+      const tree = render(
+        withTheme(
+          withContext(
+            <CoreClientContext.Provider value={mockContext}>
+              <SyncControls
+                tooltipSuffix="test suffix"
+                onSyncClick={() => {}}
+              />
+            </CoreClientContext.Provider>,
+            "/",
+            {},
           ),
-        )
-        .toJSON();
+        ),
+      ).asFragment();
       expect(tree).toMatchSnapshot();
     });
   });

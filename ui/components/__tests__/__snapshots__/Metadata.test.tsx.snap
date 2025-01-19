@@ -1,7 +1,8 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Metadata snapshots renders nothing without data 1`] = `
-.c0 {
+<DocumentFragment>
+  .c0 {
   display: flex;
   flex-direction: column;
   align-items: start;
@@ -14,12 +15,14 @@ exports[`Metadata snapshots renders nothing without data 1`] = `
 }
 
 <div
-  className="c0 c1 Metadata"
-/>
+    class="c0 c1 Metadata"
+  />
+</DocumentFragment>
 `;
 
 exports[`Metadata snapshots renders with data 1`] = `
-.c0 {
+<DocumentFragment>
+  .c0 {
   display: flex;
   flex-direction: column;
   align-items: start;
@@ -121,260 +124,246 @@ exports[`Metadata snapshots renders with data 1`] = `
 }
 
 <div
-  className="c0 c1 Metadata"
->
-  <div
-    className="c2"
+    class="c0 c1 Metadata"
   >
-    <span
-      className="c3"
-    >
-      Metadata
-    </span>
     <div
-      className="c4"
+      class="c2"
     >
-      <div
-        className="c5"
-        data-testid="Created By"
+      <span
+        class="c3"
       >
-        <span
-          className="c6"
-        >
-          Created By
-          :
-        </span>
-        <span
-          className="c7"
-        >
-          Value 2
-        </span>
-      </div>
+        Metadata
+      </span>
       <div
-        className="c5"
-        data-testid="CreatedBy"
+        class="c4"
       >
-        <span
-          className="c6"
+        <div
+          class="c5"
+          data-testid="Created By"
         >
-          CreatedBy
-          :
-        </span>
-        <span
-          className="c7"
-        >
-          Value 3
-        </span>
-      </div>
-      <div
-        className="c5"
-        data-testid="CreatedBy"
-      >
-        <span
-          className="c6"
-        >
-          CreatedBy
-          :
-        </span>
-        <span
-          className="c7"
-        >
-          Value 4
-        </span>
-      </div>
-      <div
-        className="c5"
-        data-testid="Description"
-      >
-        <span
-          className="c6"
-        >
-          Description
-          :
-        </span>
-        <span
-          className="c7"
-        >
-          Value 1
-        </span>
-      </div>
-      <div
-        className="c5"
-        data-testid="Html"
-      >
-        <span
-          className="c6"
-        >
-          Html
-          :
-        </span>
-        <span
-          className="c7"
-        >
-          &lt;p&gt;&lt;b&gt;html&lt;/b&gt;&lt;/p&gt;
-        </span>
-      </div>
-      <div
-        className="c5"
-        data-testid="Link To Google"
-      >
-        <span
-          className="c6"
-        >
-          Link To Google
-          :
-        </span>
-        <span
-          className="c7"
-        >
-          <a
-            className="c8 Link"
-            href="https://google.com"
-            rel="noreferrer"
-            target="_blank"
+          <span
+            class="c6"
           >
-            <span
-              className="c9"
+            Created By:
+          </span>
+          <span
+            class="c7"
+          >
+            Value 2
+          </span>
+        </div>
+        <div
+          class="c5"
+          data-testid="CreatedBy"
+        >
+          <span
+            class="c6"
+          >
+            CreatedBy:
+          </span>
+          <span
+            class="c7"
+          >
+            Value 3
+          </span>
+        </div>
+        <div
+          class="c5"
+          data-testid="CreatedBy"
+        >
+          <span
+            class="c6"
+          >
+            CreatedBy:
+          </span>
+          <span
+            class="c7"
+          >
+            Value 4
+          </span>
+        </div>
+        <div
+          class="c5"
+          data-testid="Description"
+        >
+          <span
+            class="c6"
+          >
+            Description:
+          </span>
+          <span
+            class="c7"
+          >
+            Value 1
+          </span>
+        </div>
+        <div
+          class="c5"
+          data-testid="Html"
+        >
+          <span
+            class="c6"
+          >
+            Html:
+          </span>
+          <span
+            class="c7"
+          >
+            &lt;p&gt;&lt;b&gt;html&lt;/b&gt;&lt;/p&gt;
+          </span>
+        </div>
+        <div
+          class="c5"
+          data-testid="Link To Google"
+        >
+          <span
+            class="c6"
+          >
+            Link To Google:
+          </span>
+          <span
+            class="c7"
+          >
+            <a
+              class="c8 Link"
+              href="https://google.com"
+              rel="noreferrer"
+              target="_blank"
             >
-              https://google.com
-            </span>
-          </a>
-        </span>
-      </div>
-      <div
-        className="c5"
-        data-testid="Multi Lines"
-      >
-        <span
-          className="c6"
+              <span
+                class="c9"
+              >
+                https://google.com
+              </span>
+            </a>
+          </span>
+        </div>
+        <div
+          class="c5"
+          data-testid="Multi Lines"
         >
-          Multi Lines
-          :
-        </span>
-        <span
-          className="c7"
-        >
-          This is first line
+          <span
+            class="c6"
+          >
+            Multi Lines:
+          </span>
+          <span
+            class="c7"
+          >
+            This is first line
 This is second line
 
-        </span>
-      </div>
-      <div
-        className="c5"
-        data-testid="Version"
-      >
-        <span
-          className="c6"
+          </span>
+        </div>
+        <div
+          class="c5"
+          data-testid="Version"
         >
-          Version
-          :
-        </span>
-        <span
-          className="c7"
-        >
-          some version
-        </span>
-      </div>
-    </div>
-  </div>
-  <div
-    className="c2"
-  >
-    <span
-      className="c3"
-    >
-      Artifact Metadata
-    </span>
-    <div
-      className="c4"
-    >
-      <div
-        className="c5"
-        data-testid="Description"
-      >
-        <span
-          className="c6"
-        >
-          Description
-          :
-        </span>
-        <span
-          className="c7"
-        >
-          Value 1
-        </span>
-      </div>
-      <div
-        className="c5"
-        data-testid="Html"
-      >
-        <span
-          className="c6"
-        >
-          Html
-          :
-        </span>
-        <span
-          className="c7"
-        >
-          &lt;p&gt;&lt;b&gt;html&lt;/b&gt;&lt;/p&gt;
-        </span>
-      </div>
-      <div
-        className="c5"
-        data-testid="Link To Google"
-      >
-        <span
-          className="c6"
-        >
-          Link To Google
-          :
-        </span>
-        <span
-          className="c7"
-        >
-          <a
-            className="c8 Link"
-            href="https://google.com"
-            rel="noreferrer"
-            target="_blank"
+          <span
+            class="c6"
           >
-            <span
-              className="c9"
+            Version:
+          </span>
+          <span
+            class="c7"
+          >
+            some version
+          </span>
+        </div>
+      </div>
+    </div>
+    <div
+      class="c2"
+    >
+      <span
+        class="c3"
+      >
+        Artifact Metadata
+      </span>
+      <div
+        class="c4"
+      >
+        <div
+          class="c5"
+          data-testid="Description"
+        >
+          <span
+            class="c6"
+          >
+            Description:
+          </span>
+          <span
+            class="c7"
+          >
+            Value 1
+          </span>
+        </div>
+        <div
+          class="c5"
+          data-testid="Html"
+        >
+          <span
+            class="c6"
+          >
+            Html:
+          </span>
+          <span
+            class="c7"
+          >
+            &lt;p&gt;&lt;b&gt;html&lt;/b&gt;&lt;/p&gt;
+          </span>
+        </div>
+        <div
+          class="c5"
+          data-testid="Link To Google"
+        >
+          <span
+            class="c6"
+          >
+            Link To Google:
+          </span>
+          <span
+            class="c7"
+          >
+            <a
+              class="c8 Link"
+              href="https://google.com"
+              rel="noreferrer"
+              target="_blank"
             >
-              https://google.com
-            </span>
-          </a>
+              <span
+                class="c9"
+              >
+                https://google.com
+              </span>
+            </a>
+          </span>
+        </div>
+      </div>
+    </div>
+    <div
+      class="c2"
+    >
+      <span
+        class="c3"
+      >
+        Labels
+      </span>
+      <div
+        class="c10"
+      >
+        <span
+          class="c11 c12"
+        >
+          label: label
+        </span>
+        <span
+          class="c11 c12"
+        >
+          goose: goose
         </span>
       </div>
     </div>
   </div>
-  <div
-    className="c2"
-  >
-    <span
-      className="c3"
-    >
-      Labels
-    </span>
-    <div
-      className="c10"
-    >
-      <span
-        className="c11 c12"
-      >
-        label
-        : 
-        label
-      </span>
-      <span
-        className="c11 c12"
-      >
-        goose
-        : 
-        goose
-      </span>
-    </div>
-  </div>
-</div>
+</DocumentFragment>
 `;

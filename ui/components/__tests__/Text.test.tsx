@@ -1,25 +1,23 @@
 import "jest-styled-components";
+import { render } from "@testing-library/react";
 import React from "react";
-import renderer from "react-test-renderer";
 import { withTheme } from "../../lib/test-utils";
 import Text from "../Text";
 
 describe("Text", () => {
   describe("snapshots", () => {
     it("normal", () => {
-      const tree = renderer.create(withTheme(<Text>some text</Text>)).toJSON();
+      const tree = render(withTheme(<Text>some text</Text>)).asFragment();
       expect(tree).toMatchSnapshot();
     });
     it("bold", () => {
-      const tree = renderer
-        .create(withTheme(<Text bold>some text</Text>))
-        .toJSON();
+      const tree = render(withTheme(<Text bold>some text</Text>)).asFragment();
       expect(tree).toMatchSnapshot();
     });
     it("with color", () => {
-      const tree = renderer
-        .create(withTheme(<Text color="successOriginal">some text</Text>))
-        .toJSON();
+      const tree = render(
+        withTheme(<Text color="successOriginal">some text</Text>),
+      ).asFragment();
       expect(tree).toMatchSnapshot();
     });
   });

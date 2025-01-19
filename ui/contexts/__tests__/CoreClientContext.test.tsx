@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { render } from "@testing-library/react";
 import * as React from "react";
-import renderer from "react-test-renderer";
 import { Core } from "../../lib/api/core/core.pb";
 import CoreClientContextProvider, {
   CoreClientContext,
@@ -19,7 +19,7 @@ describe("CoreContextProvider", () => {
 
     const queryClient = new QueryClient();
 
-    renderer.create(
+    render(
       <QueryClientProvider client={queryClient}>
         <CoreClientContextProvider api={Core}>
           <TestComponent />
