@@ -85,6 +85,16 @@ const NavContent = styled.div<{ collapsed: boolean }>`
       background-color: ${(props) => props.theme.colors.blueWithOpacity};
     }
   }
+
+  .link-flex:hover,
+  .horizontal-tabs:hover {
+    background-color: ${(props) => props.theme.colors.blueWithOpacity};
+  }
+
+  .link-flex span:hover {
+    background-color: transparent;
+  }
+
   .header {
     opacity: ${(props) => (props.collapsed ? 0 : 1)};
     letter-spacing: 1px;
