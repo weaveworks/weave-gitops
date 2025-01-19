@@ -34,7 +34,7 @@ func (p orgGitProvider) RepositoryExists(ctx context.Context, repoURL RepoURL) (
 func (p orgGitProvider) DeployKeyExists(ctx context.Context, repoURL RepoURL) (bool, error) {
 	orgRepo, err := p.getOrgRepo(repoURL)
 	if err != nil {
-		return false, fmt.Errorf("error getting org repo reference for owner %s, repo %s, %s", repoURL.Owner(), repoURL.RepositoryName(), err)
+		return false, fmt.Errorf("error getting org repo reference for owner %s, repo %s, %w", repoURL.Owner(), repoURL.RepositoryName(), err)
 	}
 
 	return deployKeyExists(ctx, orgRepo)

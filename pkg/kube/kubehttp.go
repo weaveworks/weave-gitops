@@ -109,7 +109,7 @@ func NewKubeHTTPClient() (*KubeHTTP, error) {
 func RestConfig() (*rest.Config, string, error) {
 	config, err := InClusterConfig()
 	if err != nil {
-		if err == rest.ErrNotInCluster {
+		if errors.Is(err, rest.ErrNotInCluster) {
 			return outOfClusterConfig()
 		}
 		// Handle other errors

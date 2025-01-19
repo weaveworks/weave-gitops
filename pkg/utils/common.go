@@ -2,6 +2,7 @@ package utils
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -122,7 +123,7 @@ func FindCoreConfig(dir string) WalkResult {
 
 			for {
 				var entry map[string]interface{}
-				if err := decoder.Decode(&entry); err == io.EOF {
+				if err := decoder.Decode(&entry); errors.Is(err, io.EOF) {
 					break
 				}
 
@@ -159,7 +160,8 @@ func FindCoreConfig(dir string) WalkResult {
 			return WalkResult{Status: Valid, Path: path}
 		})
 
-	if val, ok := err.(WalkResult); ok {
+	var val WalkResult
+	if errors.As(err, &val) {
 		return val
 	}
 

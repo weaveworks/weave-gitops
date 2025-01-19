@@ -3,6 +3,7 @@ package http
 import (
 	"context"
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"log"
 	"net"
@@ -77,14 +78,14 @@ func startServer(ctx context.Context, hndlr http.Handler, listener net.Listener,
 	logger.Printf("https://%s", srv.Addr)
 
 	go func() {
-		if err := srv.Serve(listener); err != http.ErrServerClosed {
+		if err := srv.Serve(listener); !errors.Is(err, http.ErrServerClosed) {
 			logger.Fatalf("server quit unexpectedly: %s", err)
 		}
 	}()
 	<-ctx.Done()
 	logger.Printf("shutting down %s", listener.Addr())
 
-	if err := srv.Shutdown(ctx); err != nil && err != context.Canceled {
+	if err := srv.Shutdown(ctx); err != nil && !errors.Is(err, context.Canceled) {
 		logger.Printf("error shutting down %s: %s", listener.Addr(), err)
 	}
 }

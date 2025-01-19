@@ -88,7 +88,7 @@ func retrieveIDToken(log logger.Logger, oauth2Config oauth2.Config, verifier *oi
 	}()
 
 	if err := srv.Serve(listener); err != nil {
-		if err != http.ErrServerClosed {
+		if !errors.Is(err, http.ErrServerClosed) {
 			return nil, fmt.Errorf("failed starting server: %w", err)
 		}
 	}

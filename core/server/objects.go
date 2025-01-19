@@ -58,9 +58,11 @@ func (cs *coreServer) ListObjects(ctx context.Context, msg *pb.ListObjectsReques
 	}
 
 	if err != nil {
-		if merr, ok := err.(*multierror.Error); ok {
+		var merr *multierror.Error
+		if errors.As(err, &merr) {
 			for _, err := range merr.Errors {
-				if cerr, ok := err.(*clustersmngr.ClientError); ok {
+				var cerr *clustersmngr.ClientError
+				if errors.As(err, &cerr) {
 					respErrors = append(respErrors, &pb.ListError{ClusterName: cerr.ClusterName, Message: cerr.Error()})
 				}
 			}
