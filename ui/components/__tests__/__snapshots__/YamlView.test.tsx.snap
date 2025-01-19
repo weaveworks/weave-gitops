@@ -100,9 +100,9 @@ exports[`YamlView snapshots renders 1`] = `
 }
 
 .c2 {
-  background: #F6F7F9;
+  background: #C2C9D7;
   padding: 12px;
-  border-bottom: 1px solid #d8d8d8;
+  border-bottom: 1px solid #BDBDBD;
   font-family: monospace;
   color: #009CCC;
   text-overflow: ellipsis;
@@ -112,7 +112,7 @@ exports[`YamlView snapshots renders 1`] = `
   margin-bottom: 12px;
   width: 100%;
   font-size: 12px;
-  border: 1px solid #d8d8d8;
+  border: 1px solid #BDBDBD;
   border-radius: 8px;
   overflow: hidden;
 }
@@ -125,7 +125,7 @@ exports[`YamlView snapshots renders 1`] = `
   position: absolute;
   right: 4px;
   top: 8px;
-  background: #F6F7F9;
+  background: #C2C9D7;
   padding: 4px 8px;
   border-radius: 2px;
 }

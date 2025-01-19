@@ -136,7 +136,7 @@ exports[`DataTable snapshots renders 1`] = `
   background: rbga(255, 255, 255, 0.75);
   height: 100%;
   width: 100%;
-  border-left: 2px solid #d8d8d8;
+  border-left: 2px solid #BDBDBD;
   padding: 24px;
   padding-left: 32px;
 }
@@ -202,7 +202,7 @@ exports[`DataTable snapshots renders 1`] = `
 }
 
 .c1 .MuiTableCell-root {
-  border-color: #d8d8d8;
+  border-color: #BDBDBD;
 }
 
 .c1 table {
@@ -211,7 +211,7 @@ exports[`DataTable snapshots renders 1`] = `
 
 .c1 th {
   padding: 0;
-  background: #F6F7F9;
+  background: #C2C9D7;
 }
 
 .c1 th .MuiCheckbox-root {
@@ -266,7 +266,7 @@ exports[`DataTable snapshots renders 1`] = `
                 className="c5"
               >
                 <button
-                  className="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit c6 css-9wcwzo-MuiButtonBase-root-MuiButton-root"
+                  className="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit c6 css-1swlott-MuiButtonBase-root-MuiButton-root"
                   disabled={null}
                   id=":r0:"
                   onBlur={[Function]}
@@ -317,7 +317,7 @@ exports[`DataTable snapshots renders 1`] = `
                 className="c5"
               >
                 <button
-                  className="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit c6 css-9wcwzo-MuiButtonBase-root-MuiButton-root"
+                  className="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit c6 css-1swlott-MuiButtonBase-root-MuiButton-root"
                   disabled={null}
                   id=":r1:"
                   onBlur={[Function]}
@@ -360,7 +360,7 @@ exports[`DataTable snapshots renders 1`] = `
                 className="c5"
               >
                 <button
-                  className="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit c6 css-9wcwzo-MuiButtonBase-root-MuiButton-root"
+                  className="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit c6 css-1swlott-MuiButtonBase-root-MuiButton-root"
                   disabled={null}
                   id=":r2:"
                   onBlur={[Function]}
@@ -403,7 +403,7 @@ exports[`DataTable snapshots renders 1`] = `
                 className="c5"
               >
                 <button
-                  className="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit c6 css-9wcwzo-MuiButtonBase-root-MuiButton-root"
+                  className="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit c6 css-1swlott-MuiButtonBase-root-MuiButton-root"
                   disabled={null}
                   id=":r3:"
                   onBlur={[Function]}
