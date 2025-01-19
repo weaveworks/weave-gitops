@@ -108,6 +108,7 @@ export default styled(SubRouterTabs).attrs({ className: SubRouterTabs.name })`
     width: 100%;
     .MuiTabs-flexContainer {
       border-bottom: 3px solid ${(props) => props.theme.colors.neutral20};
+
       .MuiTab-root {
         line-height: 1;
         letter-spacing: 1px;
@@ -118,6 +119,14 @@ export default styled(SubRouterTabs).attrs({ className: SubRouterTabs.name })`
         }
         @media (min-width: 1440px) {
           min-width: 132px;
+        }
+        &:hover {
+          background-color: ${(props) => props.theme.colors.blueWithOpacity};
+          color: ${(props) => props.theme.colors.primary10};
+          font-weight: 600;
+          span {
+            color: ${(props) => props.theme.colors.primary};
+          }
         }
       }
     }
