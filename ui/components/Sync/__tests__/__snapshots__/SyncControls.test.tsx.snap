@@ -113,6 +113,10 @@ exports[`SyncControls snapshots allButtonsDisabled 1`] = `
   font-weight: 600;
 }
 
+.c2.MuiButton-root:hover {
+  background-color: rgba(0, 179, 236, 0.1);
+}
+
 .c2.MuiButton-outlined {
   padding: 8px 12px;
 }
@@ -631,6 +635,10 @@ exports[`SyncControls snapshots hasTooltipSuffix 1`] = `
   font-weight: 600;
 }
 
+.c2.MuiButton-root:hover {
+  background-color: rgba(0, 179, 236, 0.1);
+}
+
 .c2.MuiButton-outlined {
   padding: 8px 12px;
 }
@@ -1104,6 +1112,10 @@ exports[`SyncControls snapshots hideSuspend 1`] = `
   font-weight: 600;
 }
 
+.c2.MuiButton-root:hover {
+  background-color: rgba(0, 179, 236, 0.1);
+}
+
 .c2.MuiButton-outlined {
   padding: 8px 12px;
 }
@@ -1517,6 +1529,10 @@ exports[`SyncControls snapshots hideSyncOptions 1`] = `
   font-weight: 600;
 }
 
+.c2.MuiButton-root:hover {
+  background-color: rgba(0, 179, 236, 0.1);
+}
+
 .c2.MuiButton-outlined {
   padding: 8px 12px;
 }
@@ -1871,6 +1887,10 @@ exports[`SyncControls snapshots non-suspended 1`] = `
   line-height: 1;
   border-radius: 2px;
   font-weight: 600;
+}
+
+.c2.MuiButton-root:hover {
+  background-color: rgba(0, 179, 236, 0.1);
 }
 
 .c2.MuiButton-outlined {

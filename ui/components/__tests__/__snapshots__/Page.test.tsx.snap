@@ -114,6 +114,10 @@ exports[`Page snapshots default 1`] = `
   text-overflow: ellipsis;
 }
 
+.c9 .MuiSwitch-switchBase:hover {
+  background-color: rgba(0, 179, 236, 0.1);
+}
+
 .c9 .MuiSwitch-thumb {
   color: #fff;
   background-image: url();
@@ -129,9 +133,8 @@ exports[`Page snapshots default 1`] = `
   color: #737373;
 }
 
-.c10.MuiIconButton-root :hover {
-  background-color: #EEEEEE;
-  color: #009CCC;
+.c10.MuiIconButton-root:hover {
+  background-color: rgba(0, 179, 236, 0.1);
 }
 
 .c13 {

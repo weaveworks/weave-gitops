@@ -39,9 +39,8 @@ const PersonButton = styled(IconButton)<{ open?: boolean }>`
     padding: ${(props) => props.theme.spacing.xs};
     background-color: ${(props) => props.theme.colors.neutralGray};
     color: ${(props) => props.theme.colors.neutral30};
-    :hover {
-      background-color: ${(props) => props.theme.colors.neutral00};
-      color: ${(props) => props.theme.colors.primary10};
+    &:hover {
+      background-color: ${(props) => props.theme.colors.blueWithOpacity};
     }
   }
 `;
