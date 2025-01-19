@@ -46,6 +46,9 @@ const Button = styled(UnstyledButton)`
     line-height: 1;
     border-radius: ${(props) => props.theme.borderRadius.soft};
     font-weight: 600;
+    &:hover {
+      background-color: ${(props) => props.theme.colors.blueWithOpacity};
+    }
   }
   &.MuiButton-outlined {
     padding: 8px 12px;
@@ -58,6 +61,9 @@ export const IconButton = styled(UnstyledButton)`
     min-width: 38px;
     height: 38px;
     padding: 0;
+    &:hover {
+      background-color: ${(props) => props.theme.colors.blueWithOpacity};
+    }
   }
   &.MuiButton-text {
     padding: 0;

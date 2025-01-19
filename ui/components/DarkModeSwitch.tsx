@@ -25,7 +25,12 @@ function DarkModeSwitch({ className, darkModeEnabled }: Props) {
 export default styled(DarkModeSwitch).attrs({
   className: DarkModeSwitch.name,
 })`
-.MuiSwitch-thumb {
+  .MuiSwitch-switchBase {
+    &:hover {
+      background-color: ${(props) => props.theme.colors.blueWithOpacity};
+    }
+  }
+  .MuiSwitch-thumb {
     color: #fff;
     background-image: url(${(props) =>
       props.theme.mode === ThemeTypes.Dark
@@ -34,4 +39,5 @@ export default styled(DarkModeSwitch).attrs({
   }
   .MuiSwitch-track {
     background-color: ${(props) => props.theme.colors.primary};
+  }
 `;

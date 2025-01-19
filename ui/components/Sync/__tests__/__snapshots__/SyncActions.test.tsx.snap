@@ -113,6 +113,10 @@ exports[`SyncActions snapshots hideSyncOptions 1`] = `
   font-weight: 600;
 }
 
+.c3.MuiButton-root:hover {
+  background-color: rgba(0, 179, 236, 0.1);
+}
+
 .c3.MuiButton-outlined {
   padding: 8px 12px;
 }
@@ -474,6 +478,10 @@ exports[`SyncActions snapshots non-suspended 1`] = `
   line-height: 1;
   border-radius: 2px;
   font-weight: 600;
+}
+
+.c3.MuiButton-root:hover {
+  background-color: rgba(0, 179, 236, 0.1);
 }
 
 .c3.MuiButton-outlined {
@@ -997,6 +1005,10 @@ exports[`SyncActions snapshots suspended 1`] = `
   line-height: 1;
   border-radius: 2px;
   font-weight: 600;
+}
+
+.c3.MuiButton-root:hover {
+  background-color: rgba(0, 179, 236, 0.1);
 }
 
 .c3.MuiButton-outlined {
