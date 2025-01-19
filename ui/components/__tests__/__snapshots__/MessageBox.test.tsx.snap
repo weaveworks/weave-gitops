@@ -1,7 +1,8 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`MessageBox snapshots renders 1`] = `
-.c0 {
+<DocumentFragment>
+  .c0 {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -18,8 +19,9 @@ exports[`MessageBox snapshots renders 1`] = `
 }
 
 <div
-  class="c0 c1"
->
-  Column and items centered.
-</div>
+    class="c0 c1"
+  >
+    Column and items centered.
+  </div>
+</DocumentFragment>
 `;

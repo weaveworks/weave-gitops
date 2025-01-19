@@ -31,11 +31,11 @@ describe("Metadata", () => {
             ]}
           />,
         ),
-      ).asFragment().firstChild;
+      ).asFragment();
       expect(tree).toMatchSnapshot();
     });
     it("renders nothing without data", () => {
-      const tree = render(withTheme(<Metadata />)).asFragment().firstChild;
+      const tree = render(withTheme(<Metadata />)).asFragment();
       expect(tree).toMatchSnapshot();
     });
   });

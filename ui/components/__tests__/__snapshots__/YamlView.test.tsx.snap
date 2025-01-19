@@ -1,7 +1,8 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`YamlView snapshots renders 1`] = `
-.c1 {
+<DocumentFragment>
+  .c1 {
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -135,43 +136,17 @@ exports[`YamlView snapshots renders 1`] = `
 }
 
 <div
-  class="c0 UnstyledYamlView"
->
-  <div
-    class="c1 c2"
-  >
-    kubectl get kustomization podinfo -n flux-system -o yaml
-    <div
-      style="cursor: pointer;"
-    >
-      <div
-        class="c3 c4"
-      >
-        <svg
-          aria-hidden="true"
-          class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
-          data-testid="FileCopyOutlinedIcon"
-          focusable="false"
-          viewBox="0 0 24 24"
-        >
-          <path
-            d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12zm-1 4H8c-1.1 0-1.99.9-1.99 2L6 21c0 1.1.89 2 1.99 2H19c1.1 0 2-.9 2-2V11zM8 21V7h6v5h5v9z"
-          />
-        </svg>
-      </div>
-    </div>
-  </div>
-  <div
-    class="code-wrapper"
+    class="c0 UnstyledYamlView"
   >
     <div
-      class="copy-wrapper"
+      class="c1 c2"
     >
+      kubectl get kustomization podinfo -n flux-system -o yaml
       <div
         style="cursor: pointer;"
       >
         <div
-          class="c3 c5"
+          class="c3 c4"
         >
           <svg
             aria-hidden="true"
@@ -187,27 +162,54 @@ exports[`YamlView snapshots renders 1`] = `
         </div>
       </div>
     </div>
-    <pre
-      style="color: black; background: rgb(245, 242, 240); text-shadow: 0 1px white; font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace; font-size: 1em; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; word-wrap: normal; line-height: 1.5; tab-size: 4; hyphens: none; padding: 1em; margin: 0px; overflow: auto; background-color: transparent;"
+    <div
+      class="code-wrapper"
     >
-      <code
-        style="white-space: pre; word-break: break-word;"
+      <div
+        class="copy-wrapper"
       >
-        <span
-          style="text-wrap: wrap;"
+        <div
+          style="cursor: pointer;"
+        >
+          <div
+            class="c3 c5"
+          >
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
+              data-testid="FileCopyOutlinedIcon"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12zm-1 4H8c-1.1 0-1.99.9-1.99 2L6 21c0 1.1.89 2 1.99 2H19c1.1 0 2-.9 2-2V11zM8 21V7h6v5h5v9z"
+              />
+            </svg>
+          </div>
+        </div>
+      </div>
+      <pre
+        style="color: black; background: rgb(245, 242, 240); text-shadow: 0 1px white; font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace; font-size: 1em; text-align: left; white-space: pre; word-spacing: normal; word-break: normal; word-wrap: normal; line-height: 1.5; tab-size: 4; hyphens: none; padding: 1em; margin: 0px; overflow: auto; background-color: transparent;"
+      >
+        <code
+          style="white-space: pre; word-break: break-word;"
         >
           <span
-            class="linenumber react-syntax-highlighter-line-number"
-            style="display: inline-block; min-width: 1.25em; padding-right: 1em; text-align: right; user-select: none; color: slategray;"
+            style="text-wrap: wrap;"
           >
-            1
+            <span
+              class="linenumber react-syntax-highlighter-line-number"
+              style="display: inline-block; min-width: 1.25em; padding-right: 1em; text-align: right; user-select: none; color: slategray;"
+            >
+              1
+            </span>
+            <span>
+              yaml\\nyaml\\nyaml\\n
+            </span>
           </span>
-          <span>
-            yaml\\nyaml\\nyaml\\n
-          </span>
-        </span>
-      </code>
-    </pre>
+        </code>
+      </pre>
+    </div>
   </div>
-</div>
+</DocumentFragment>
 `;

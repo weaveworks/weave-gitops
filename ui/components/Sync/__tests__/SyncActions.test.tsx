@@ -24,7 +24,7 @@ describe("SyncActions", () => {
             {},
           ),
         ),
-      ).asFragment().firstChild;
+      ).asFragment();
       expect(tree).toMatchSnapshot();
     });
     it("suspended", () => {
@@ -38,7 +38,7 @@ describe("SyncActions", () => {
             {},
           ),
         ),
-      ).asFragment().firstChild;
+      ).asFragment();
       expect(tree).toMatchSnapshot();
     });
     it("hideSyncOptions", () => {
@@ -52,7 +52,7 @@ describe("SyncActions", () => {
             {},
           ),
         ),
-      ).asFragment().firstChild;
+      ).asFragment();
       expect(tree).toMatchSnapshot();
     });
   });

@@ -9,13 +9,13 @@ describe("Logo", () => {
     it("renders open view", () => {
       const tree = render(
         withTheme(withContext(<Logo collapsed={false} />, "", {})),
-      ).asFragment().firstChild;
+      ).asFragment();
       expect(tree).toMatchSnapshot();
     });
     it("renders collapsed view", () => {
       const tree = render(
         withTheme(withContext(<Logo collapsed={true} />, "", {})),
-      ).asFragment().firstChild;
+      ).asFragment();
       expect(tree).toMatchSnapshot();
     });
   });

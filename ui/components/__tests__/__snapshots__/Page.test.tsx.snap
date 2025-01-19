@@ -180,117 +180,119 @@ exports[`Page snapshots default 1`] = `
   width: 100%;
 }
 
-<div
-  class="c0 c1"
->
+<div>
   <div
-    class="c2 c3"
+    class="c0 c1"
   >
     <div
-      class="c4"
+      class="c2 c3"
     >
       <div
         class="c4"
       >
-        <span
-          aria-label="test"
-          class="c5 c6 c7 ellipsis"
-          data-mui-internal-clone-element="true"
-          data-testid="text-test"
+        <div
+          class="c4"
         >
-          test
+          <span
+            aria-label="test"
+            class="c5 c6 c7 ellipsis"
+            data-mui-internal-clone-element="true"
+            data-testid="text-test"
+          >
+            test
+          </span>
+        </div>
+      </div>
+      <div
+        class="c8 "
+      >
+        <span
+          class="MuiSwitch-root MuiSwitch-sizeMedium c9 DarkModeSwitch css-rehya9-MuiSwitch-root"
+        >
+          <span
+            class="MuiButtonBase-root MuiSwitch-switchBase MuiSwitch-colorPrimary PrivateSwitchBase-root MuiSwitch-switchBase MuiSwitch-colorPrimary css-n2qy4p-MuiButtonBase-root-MuiSwitch-switchBase"
+          >
+            <input
+              class="PrivateSwitchBase-input MuiSwitch-input css-j8yymo"
+              type="checkbox"
+            />
+            <span
+              class="MuiSwitch-thumb css-17jyosd-MuiSwitch-thumb"
+            />
+          </span>
+          <span
+            class="MuiSwitch-track css-tj8d99-MuiSwitch-track"
+          />
         </span>
+        <a
+          aria-label="Docs"
+          class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeMedium c10 c11 Link css-53g0n7-MuiButtonBase-root-MuiIconButton-root"
+          data-mui-internal-clone-element="true"
+          href="https://docs.gitops.weaveworks.org/"
+          id=":r2:"
+          rel="noreferrer"
+          tabindex="0"
+          target="_blank"
+        >
+          <span
+            class="MuiIconButton-loadingIndicator css-165vu30-MuiIconButton-loadingIndicator"
+          />
+          <div
+            class="c4 c12"
+          >
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
+              data-testid="FindInPageIcon"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M20 19.59V8l-6-6H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c.45 0 .85-.15 1.19-.4l-4.43-4.43c-.8.52-1.74.83-2.76.83-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5c0 1.02-.31 1.96-.83 2.75zM9 13c0 1.66 1.34 3 3 3s3-1.34 3-3-1.34-3-3-3-3 1.34-3 3"
+              />
+            </svg>
+          </div>
+        </a>
+        <button
+          aria-haspopup="true"
+          aria-label="Account settings"
+          class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeMedium c10 css-53g0n7-MuiButtonBase-root-MuiIconButton-root"
+          data-mui-internal-clone-element="true"
+          id=":r4:"
+          tabindex="0"
+          type="button"
+        >
+          <span
+            class="MuiIconButton-loadingIndicator css-165vu30-MuiIconButton-loadingIndicator"
+          />
+          <div
+            class="c4 c12"
+          >
+            <svg
+              aria-hidden="true"
+              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
+              data-testid="PersonIcon"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4m0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4"
+              />
+            </svg>
+          </div>
+        </button>
       </div>
     </div>
     <div
-      class="c8 "
-    >
-      <span
-        class="MuiSwitch-root MuiSwitch-sizeMedium c9 DarkModeSwitch css-rehya9-MuiSwitch-root"
-      >
-        <span
-          class="MuiButtonBase-root MuiSwitch-switchBase MuiSwitch-colorPrimary PrivateSwitchBase-root MuiSwitch-switchBase MuiSwitch-colorPrimary css-n2qy4p-MuiButtonBase-root-MuiSwitch-switchBase"
-        >
-          <input
-            class="PrivateSwitchBase-input MuiSwitch-input css-j8yymo"
-            type="checkbox"
-          />
-          <span
-            class="MuiSwitch-thumb css-17jyosd-MuiSwitch-thumb"
-          />
-        </span>
-        <span
-          class="MuiSwitch-track css-tj8d99-MuiSwitch-track"
-        />
-      </span>
-      <a
-        aria-label="Docs"
-        class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeMedium c10 c11 Link css-53g0n7-MuiButtonBase-root-MuiIconButton-root"
-        data-mui-internal-clone-element="true"
-        href="https://docs.gitops.weaveworks.org/"
-        id=":r2:"
-        rel="noreferrer"
-        tabindex="0"
-        target="_blank"
-      >
-        <span
-          class="MuiIconButton-loadingIndicator css-165vu30-MuiIconButton-loadingIndicator"
-        />
-        <div
-          class="c4 c12"
-        >
-          <svg
-            aria-hidden="true"
-            class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
-            data-testid="FindInPageIcon"
-            focusable="false"
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M20 19.59V8l-6-6H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c.45 0 .85-.15 1.19-.4l-4.43-4.43c-.8.52-1.74.83-2.76.83-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5c0 1.02-.31 1.96-.83 2.75zM9 13c0 1.66 1.34 3 3 3s3-1.34 3-3-1.34-3-3-3-3 1.34-3 3"
-            />
-          </svg>
-        </div>
-      </a>
-      <button
-        aria-haspopup="true"
-        aria-label="Account settings"
-        class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeMedium c10 css-53g0n7-MuiButtonBase-root-MuiIconButton-root"
-        data-mui-internal-clone-element="true"
-        id=":r4:"
-        tabindex="0"
-        type="button"
-      >
-        <span
-          class="MuiIconButton-loadingIndicator css-165vu30-MuiIconButton-loadingIndicator"
-        />
-        <div
-          class="c4 c12"
-        >
-          <svg
-            aria-hidden="true"
-            class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
-            data-testid="PersonIcon"
-            focusable="false"
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4m0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4"
-            />
-          </svg>
-        </div>
-      </button>
-    </div>
-  </div>
-  <div
-    class="c13"
-  >
-    <div
-      class="c14 c15 c16"
+      class="c13"
     >
       <div
-        class="c17 c18"
-      />
+        class="c14 c15 c16"
+      >
+        <div
+          class="c17 c18"
+        />
+      </div>
     </div>
   </div>
 </div>

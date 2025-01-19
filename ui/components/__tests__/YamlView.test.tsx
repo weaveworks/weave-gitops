@@ -24,7 +24,7 @@ describe("YamlView", () => {
             {},
           ),
         ),
-      ).asFragment().firstChild;
+      ).asFragment();
       expect(tree).toMatchSnapshot();
     });
   });

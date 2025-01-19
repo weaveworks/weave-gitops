@@ -26,7 +26,7 @@ describe("Page", () => {
           ),
         ),
       );
-      expect(tree.container.firstChild).toMatchSnapshot();
+      expect(tree.container).toMatchSnapshot();
     });
   });
 });

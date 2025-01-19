@@ -24,7 +24,7 @@ describe("SyncControls", () => {
             {},
           ),
         ),
-      ).asFragment().firstChild;
+      ).asFragment();
       expect(tree).toMatchSnapshot();
     });
     it("allButtonsDisabled", () => {
@@ -43,7 +43,7 @@ describe("SyncControls", () => {
             {},
           ),
         ),
-      ).asFragment().firstChild;
+      ).asFragment();
       expect(tree).toMatchSnapshot();
     });
     it("hideSyncOptions", () => {
@@ -57,7 +57,7 @@ describe("SyncControls", () => {
             {},
           ),
         ),
-      ).asFragment().firstChild;
+      ).asFragment();
       expect(tree).toMatchSnapshot();
     });
     it("hideSuspend", () => {
@@ -71,7 +71,7 @@ describe("SyncControls", () => {
             {},
           ),
         ),
-      ).asFragment().firstChild;
+      ).asFragment();
       expect(tree).toMatchSnapshot();
     });
     it("hasTooltipSuffix", () => {
@@ -88,7 +88,7 @@ describe("SyncControls", () => {
             {},
           ),
         ),
-      ).asFragment().firstChild;
+      ).asFragment();
       expect(tree).toMatchSnapshot();
     });
   });

@@ -15,7 +15,7 @@ describe("Version", () => {
         withTheme(
           <Version productName={productName} appVersion={{ versionText }} />,
         ),
-      ).asFragment().firstChild;
+      ).asFragment();
       expect(tree).toMatchSnapshot();
     });
     it("renders a link with version text and version href", () => {
@@ -26,7 +26,7 @@ describe("Version", () => {
             appVersion={{ versionText, versionHref }}
           />,
         ),
-      ).asFragment().firstChild;
+      ).asFragment();
       expect(tree).toMatchSnapshot();
     });
     it("renders a dash without version text and without version href", () => {
@@ -37,7 +37,7 @@ describe("Version", () => {
             appVersion={{ versionText: "" }}
           />,
         ),
-      ).asFragment().firstChild;
+      ).asFragment();
       expect(tree).toMatchSnapshot();
     });
     it("renders a dash as plain text without version text and with version href", () => {
@@ -48,7 +48,7 @@ describe("Version", () => {
             appVersion={{ versionText: "", versionHref }}
           />,
         ),
-      ).asFragment().firstChild;
+      ).asFragment();
       expect(tree).toMatchSnapshot();
     });
   });

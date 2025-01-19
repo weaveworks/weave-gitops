@@ -208,7 +208,7 @@ describe("KubeStatusIndicator", () => {
       ];
       const tree = render(
         withTheme(<KubeStatusIndicator conditions={conditions} />),
-      ).asFragment().firstChild;
+      ).asFragment();
       expect(tree).toMatchSnapshot();
     });
     it("renders error", () => {
@@ -223,7 +223,7 @@ describe("KubeStatusIndicator", () => {
       ];
       const tree = render(
         withTheme(<KubeStatusIndicator conditions={conditions} short />),
-      ).asFragment().firstChild;
+      ).asFragment();
       expect(tree).toMatchSnapshot();
     });
     it("renders with noText prop", () => {
@@ -238,7 +238,7 @@ describe("KubeStatusIndicator", () => {
       ];
       const tree = render(
         withTheme(<KubeStatusIndicator conditions={conditions} noText />),
-      ).asFragment().firstChild;
+      ).asFragment();
       expect(tree).toMatchSnapshot();
     });
   });

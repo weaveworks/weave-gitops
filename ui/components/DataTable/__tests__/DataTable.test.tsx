@@ -203,7 +203,7 @@ describe("DataTable", () => {
             {},
           ),
         ),
-      ).asFragment().firstChild;
+      ).asFragment();
       expect(tree).toMatchSnapshot();
     });
   });

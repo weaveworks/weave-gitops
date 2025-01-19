@@ -1,7 +1,8 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`DataTable snapshots renders 1`] = `
-.c0 {
+<DocumentFragment>
+  .c0 {
   display: flex;
   flex-direction: column;
   align-items: start;
@@ -234,301 +235,302 @@ exports[`DataTable snapshots renders 1`] = `
 }
 
 <div
-  class="c0 c1"
->
-  <div
-    class="c2 c3"
-  />
-  <div
-    class="c4"
+    class="c0 c1"
   >
     <div
-      class="MuiTableContainer-root css-70zvr5-MuiTableContainer-root"
-    >
-      <table
-        class="MuiTable-root css-wzk8yp-MuiTable-root"
-      >
-        <thead
-          class="MuiTableHead-root css-1a7iywq-MuiTableHead-root"
-        >
-          <tr
-            class="MuiTableRow-root MuiTableRow-head css-h5ctz1-MuiTableRow-root"
-          >
-            <th
-              class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeMedium css-bf3zdk-MuiTableCell-root"
-              scope="col"
-            >
-              <div
-                class="c5"
-              >
-                <button
-                  class="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit c6 css-1swlott-MuiButtonBase-root-MuiButton-root"
-                  id=":ri:"
-                  tabindex="0"
-                  type="button"
-                >
-                  <h2
-                    class="selected"
-                  >
-                    Name
-                  </h2>
-                </button>
-                <div
-                  class="c7 c8 downward"
-                >
-                  <svg
-                    aria-hidden="true"
-                    class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
-                    data-testid="ArrowUpwardIcon"
-                    focusable="false"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      d="m4 12 1.41 1.41L11 7.83V20h2V7.83l5.58 5.59L20 12l-8-8z"
-                    />
-                  </svg>
-                </div>
-              </div>
-            </th>
-            <th
-              class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeMedium css-bf3zdk-MuiTableCell-root"
-              scope="col"
-            >
-              <div
-                class="c5"
-              >
-                <button
-                  class="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit c6 css-1swlott-MuiButtonBase-root-MuiButton-root"
-                  id=":rj:"
-                  tabindex="0"
-                  type="button"
-                >
-                  <h2
-                    class=""
-                  >
-                    Status
-                  </h2>
-                </button>
-                <div
-                  style="width: 16px;"
-                />
-              </div>
-            </th>
-            <th
-              class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeMedium css-bf3zdk-MuiTableCell-root"
-              scope="col"
-            >
-              <div
-                class="c5"
-              >
-                <button
-                  class="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit c6 css-1swlott-MuiButtonBase-root-MuiButton-root"
-                  id=":rk:"
-                  tabindex="0"
-                  type="button"
-                >
-                  <h2
-                    class=""
-                  >
-                    Last Updated
-                  </h2>
-                </button>
-                <div
-                  style="width: 16px;"
-                />
-              </div>
-            </th>
-            <th
-              class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeMedium css-bf3zdk-MuiTableCell-root"
-              scope="col"
-            >
-              <div
-                class="c5"
-              >
-                <button
-                  class="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit c6 css-1swlott-MuiButtonBase-root-MuiButton-root"
-                  id=":rl:"
-                  tabindex="0"
-                  type="button"
-                >
-                  <h2
-                    class=""
-                  >
-                    Last Synced At
-                  </h2>
-                </button>
-                <div
-                  style="width: 16px;"
-                />
-              </div>
-            </th>
-          </tr>
-        </thead>
-        <tbody
-          class="MuiTableBody-root css-gmh7jj-MuiTableBody-root"
-        >
-          <tr
-            class="MuiTableRow-root css-h5ctz1-MuiTableRow-root"
-          >
-            <td
-              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-119gvwi-MuiTableCell-root"
-            >
-              <span
-                class="c9 c10"
-              >
-                <a
-                  href="/some_url"
-                >
-                  nginx
-                </a>
-              </span>
-            </td>
-            <td
-              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-119gvwi-MuiTableCell-root"
-            >
-              <span
-                class="c9 c10"
-              >
-                Ready
-              </span>
-            </td>
-            <td
-              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-119gvwi-MuiTableCell-root"
-            >
-              <span
-                class="c9 c10"
-              >
-                2004-01-02T15:04:05-0700
-              </span>
-            </td>
-            <td
-              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-119gvwi-MuiTableCell-root"
-            >
-              <span
-                class="c9 c10"
-              >
-                3000
-              </span>
-            </td>
-          </tr>
-          <tr
-            class="MuiTableRow-root css-h5ctz1-MuiTableRow-root"
-          >
-            <td
-              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-119gvwi-MuiTableCell-root"
-            >
-              <span
-                class="c9 c10"
-              >
-                <a
-                  href="/some_url"
-                >
-                  podinfo
-                </a>
-              </span>
-            </td>
-            <td
-              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-119gvwi-MuiTableCell-root"
-            >
-              <span
-                class="c9 c10"
-              >
-                -
-              </span>
-            </td>
-            <td
-              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-119gvwi-MuiTableCell-root"
-            >
-              <span
-                class="c9 c10"
-              >
-                2006-01-02T15:04:05-0700
-              </span>
-            </td>
-            <td
-              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-119gvwi-MuiTableCell-root"
-            >
-              <span
-                class="c9 c10"
-              >
-                2000
-              </span>
-            </td>
-          </tr>
-          <tr
-            class="MuiTableRow-root css-h5ctz1-MuiTableRow-root"
-          >
-            <td
-              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-119gvwi-MuiTableCell-root"
-            >
-              <span
-                class="c9 c10"
-              >
-                <a
-                  href="/some_url"
-                >
-                  the-cool-app
-                </a>
-              </span>
-            </td>
-            <td
-              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-119gvwi-MuiTableCell-root"
-            >
-              <span
-                class="c9 c10"
-              />
-            </td>
-            <td
-              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-119gvwi-MuiTableCell-root"
-            >
-              <span
-                class="c9 c10"
-              >
-                2005-01-02T15:04:05-0700
-              </span>
-            </td>
-            <td
-              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-119gvwi-MuiTableCell-root"
-            >
-              <span
-                class="c9 c10"
-              >
-                1000
-              </span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+      class="c2 c3"
+    />
     <div
-      class="c11"
-      data-testid="container"
+      class="c4"
     >
       <div
-        class="c12"
+        class="MuiTableContainer-root css-70zvr5-MuiTableContainer-root"
+      >
+        <table
+          class="MuiTable-root css-wzk8yp-MuiTable-root"
+        >
+          <thead
+            class="MuiTableHead-root css-1a7iywq-MuiTableHead-root"
+          >
+            <tr
+              class="MuiTableRow-root MuiTableRow-head css-h5ctz1-MuiTableRow-root"
+            >
+              <th
+                class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeMedium css-bf3zdk-MuiTableCell-root"
+                scope="col"
+              >
+                <div
+                  class="c5"
+                >
+                  <button
+                    class="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit c6 css-1swlott-MuiButtonBase-root-MuiButton-root"
+                    id=":ri:"
+                    tabindex="0"
+                    type="button"
+                  >
+                    <h2
+                      class="selected"
+                    >
+                      Name
+                    </h2>
+                  </button>
+                  <div
+                    class="c7 c8 downward"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
+                      data-testid="ArrowUpwardIcon"
+                      focusable="false"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        d="m4 12 1.41 1.41L11 7.83V20h2V7.83l5.58 5.59L20 12l-8-8z"
+                      />
+                    </svg>
+                  </div>
+                </div>
+              </th>
+              <th
+                class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeMedium css-bf3zdk-MuiTableCell-root"
+                scope="col"
+              >
+                <div
+                  class="c5"
+                >
+                  <button
+                    class="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit c6 css-1swlott-MuiButtonBase-root-MuiButton-root"
+                    id=":rj:"
+                    tabindex="0"
+                    type="button"
+                  >
+                    <h2
+                      class=""
+                    >
+                      Status
+                    </h2>
+                  </button>
+                  <div
+                    style="width: 16px;"
+                  />
+                </div>
+              </th>
+              <th
+                class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeMedium css-bf3zdk-MuiTableCell-root"
+                scope="col"
+              >
+                <div
+                  class="c5"
+                >
+                  <button
+                    class="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit c6 css-1swlott-MuiButtonBase-root-MuiButton-root"
+                    id=":rk:"
+                    tabindex="0"
+                    type="button"
+                  >
+                    <h2
+                      class=""
+                    >
+                      Last Updated
+                    </h2>
+                  </button>
+                  <div
+                    style="width: 16px;"
+                  />
+                </div>
+              </th>
+              <th
+                class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeMedium css-bf3zdk-MuiTableCell-root"
+                scope="col"
+              >
+                <div
+                  class="c5"
+                >
+                  <button
+                    class="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit c6 css-1swlott-MuiButtonBase-root-MuiButton-root"
+                    id=":rl:"
+                    tabindex="0"
+                    type="button"
+                  >
+                    <h2
+                      class=""
+                    >
+                      Last Synced At
+                    </h2>
+                  </button>
+                  <div
+                    style="width: 16px;"
+                  />
+                </div>
+              </th>
+            </tr>
+          </thead>
+          <tbody
+            class="MuiTableBody-root css-gmh7jj-MuiTableBody-root"
+          >
+            <tr
+              class="MuiTableRow-root css-h5ctz1-MuiTableRow-root"
+            >
+              <td
+                class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-119gvwi-MuiTableCell-root"
+              >
+                <span
+                  class="c9 c10"
+                >
+                  <a
+                    href="/some_url"
+                  >
+                    nginx
+                  </a>
+                </span>
+              </td>
+              <td
+                class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-119gvwi-MuiTableCell-root"
+              >
+                <span
+                  class="c9 c10"
+                >
+                  Ready
+                </span>
+              </td>
+              <td
+                class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-119gvwi-MuiTableCell-root"
+              >
+                <span
+                  class="c9 c10"
+                >
+                  2004-01-02T15:04:05-0700
+                </span>
+              </td>
+              <td
+                class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-119gvwi-MuiTableCell-root"
+              >
+                <span
+                  class="c9 c10"
+                >
+                  3000
+                </span>
+              </td>
+            </tr>
+            <tr
+              class="MuiTableRow-root css-h5ctz1-MuiTableRow-root"
+            >
+              <td
+                class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-119gvwi-MuiTableCell-root"
+              >
+                <span
+                  class="c9 c10"
+                >
+                  <a
+                    href="/some_url"
+                  >
+                    podinfo
+                  </a>
+                </span>
+              </td>
+              <td
+                class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-119gvwi-MuiTableCell-root"
+              >
+                <span
+                  class="c9 c10"
+                >
+                  -
+                </span>
+              </td>
+              <td
+                class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-119gvwi-MuiTableCell-root"
+              >
+                <span
+                  class="c9 c10"
+                >
+                  2006-01-02T15:04:05-0700
+                </span>
+              </td>
+              <td
+                class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-119gvwi-MuiTableCell-root"
+              >
+                <span
+                  class="c9 c10"
+                >
+                  2000
+                </span>
+              </td>
+            </tr>
+            <tr
+              class="MuiTableRow-root css-h5ctz1-MuiTableRow-root"
+            >
+              <td
+                class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-119gvwi-MuiTableCell-root"
+              >
+                <span
+                  class="c9 c10"
+                >
+                  <a
+                    href="/some_url"
+                  >
+                    the-cool-app
+                  </a>
+                </span>
+              </td>
+              <td
+                class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-119gvwi-MuiTableCell-root"
+              >
+                <span
+                  class="c9 c10"
+                />
+              </td>
+              <td
+                class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-119gvwi-MuiTableCell-root"
+              >
+                <span
+                  class="c9 c10"
+                >
+                  2005-01-02T15:04:05-0700
+                </span>
+              </td>
+              <td
+                class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeMedium css-119gvwi-MuiTableCell-root"
+              >
+                <span
+                  class="c9 c10"
+                >
+                  1000
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div
+        class="c11"
+        data-testid="container"
       >
         <div
-          class="c13 c14"
+          class="c12"
         >
           <div
-            class="c15"
+            class="c13 c14"
           >
-            <span
-              class="c9 c16"
+            <div
+              class="c15"
             >
-              Filters
-            </span>
+              <span
+                class="c9 c16"
+              >
+                Filters
+              </span>
+            </div>
+            <form
+              class="ControlledForm"
+            >
+              <ul
+                class="MuiList-root MuiList-padding css-b7dj7n-MuiList-root"
+              />
+            </form>
           </div>
-          <form
-            class="ControlledForm"
-          >
-            <ul
-              class="MuiList-root MuiList-padding css-b7dj7n-MuiList-root"
-            />
-          </form>
         </div>
       </div>
     </div>
   </div>
-</div>
+</DocumentFragment>
 `;

@@ -9,7 +9,7 @@ describe("MessageBox", () => {
     it("renders", () => {
       const tree = render(
         withTheme(<MessageBox align>Column and items centered.</MessageBox>),
-      ).asFragment().firstChild;
+      ).asFragment();
       expect(tree).toMatchSnapshot();
     });
   });
