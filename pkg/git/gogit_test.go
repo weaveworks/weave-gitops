@@ -155,7 +155,7 @@ var _ = Describe("Read", func() {
 		Expect(content).To(Equal(fileContent))
 	})
 
-	It("Reads a file from a repo even if not commited", func() {
+	It("Reads a file from a repo even if not committed", func() {
 		_, err = gitClient.Init(dir, "https://github.com/github/gitignore", "master")
 		filePath := "/test.txt"
 		content := []byte("testing")
