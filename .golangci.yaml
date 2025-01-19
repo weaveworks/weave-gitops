@@ -4,7 +4,7 @@ run:
 linters:
   disable-all: true
   enable:
-    #- containedctx
+    - containedctx
     #- contextcheck
     - depguard
     - errcheck
