@@ -71,9 +71,10 @@ function SuspendMessageModal({
       onClose={onClose}
       title="Suspend Reason"
       description="Add reason for suspending"
-      children={content}
       className={className}
-    />
+    >
+      {content}
+    </Modal>
   );
 }
 
