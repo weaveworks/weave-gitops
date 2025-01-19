@@ -26,5 +26,9 @@ export default function GithubAuthContextProvider({ children }: Props) {
       setDialogState({ ...dialogState, open, repoName }),
     setSuccess: () => setDialogState({ ...dialogState, success: true }),
   };
-  return <GithubAuthContext.Provider value={value} children={children} />;
+  return (
+    <GithubAuthContext.Provider value={value}>
+      {children}
+    </GithubAuthContext.Provider>
+  );
 }
