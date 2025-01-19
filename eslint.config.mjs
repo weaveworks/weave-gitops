@@ -45,7 +45,6 @@ export default tseslint.config([
 
             "react/display-name": 0,
             "react/no-children-prop": 0,
-            "react/no-unknown-property": 0,
             "react/prop-types": 0,
             "react-hooks/exhaustive-deps": 0,
             "react-hooks/rules-of-hooks": 0,
