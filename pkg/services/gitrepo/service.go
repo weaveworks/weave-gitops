@@ -15,7 +15,7 @@ func CommitAndPush(ctx context.Context, client git.Git, commitMsg string, logger
 	logger.Actionf("Committing and pushing gitops updates for application")
 
 	_, err := client.Commit(git.Commit{
-		Author:  git.Author{Name: "Weave Gitops", Email: "weave-gitops@weave.works"},
+		Author:  git.Author{Name: "Weave Gitops", Email: "weave-gitops@weaveworks.org"},
 		Message: commitMsg,
 	}, filters...)
 	if err != nil && !errors.Is(err, git.ErrNoStagedFiles) {

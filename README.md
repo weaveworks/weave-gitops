@@ -126,7 +126,7 @@ For more information please see the [docs](https://docs.gitops.weaveworks.org/do
 
 ## FAQ
 
-Please see our Weave GitOps OSS [FAQ](https://www.weave.works/faqs-for-weave-gitops)
+Please see our Weave GitOps OSS [FAQ](https://www.weaveworks.org/faqs-for-weave-gitops)
 
 ## Contribution
 
