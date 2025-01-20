@@ -45,9 +45,9 @@ jobs:
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@67ccf781d68cd99b580ae25a5c18a1cc84ffff1f # v7.0.6
         with:
-          author: weave-gitops-bot <weave-gitops-bot@weave.works>
+          author: weave-gitops-bot <weave-gitops-bot@weaveworks.org>
           signoff: true
-          committer: weave-gitops-bot <weave-gitops-bot@weave.works>
+          committer: weave-gitops-bot <weave-gitops-bot@weaveworks.org>
           branch: upgrade-flux
           base: main
           title: "Upgrade flux to ${{ needs.has-new-flux.outputs.version }}"

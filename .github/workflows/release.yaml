@@ -31,7 +31,7 @@ jobs:
       - name: Set tag
         run: |
           git config user.name weave-gitops-bot
-          git config user.email weave-gitops-bot@weave.works
+          git config user.email weave-gitops-bot@weaveworks.org
           git tag -a ${{ steps.release-version.outputs.version }} -m ${{ steps.release-version.outputs.version }}
           git push origin tag ${{ steps.release-version.outputs.version }}
 
