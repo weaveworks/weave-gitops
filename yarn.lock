@@ -4463,7 +4463,7 @@ __metadata:
     react-is: "npm:^19.0.0"
     react-lottie-player: "npm:^2.1.0"
     react-markdown: "npm:^9.0.3"
-    react-router: "npm:^7.1.1"
+    react-router: "npm:^7.1.3"
     react-syntax-highlighter: "npm:^15.6.1"
     react-test-renderer: "npm:^19.0.0"
     react-toastify: "npm:^11.0.3"
@@ -11219,9 +11219,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-router@npm:^7.1.1":
-  version: 7.1.1
-  resolution: "react-router@npm:7.1.1"
+"react-router@npm:^7.1.3":
+  version: 7.1.3
+  resolution: "react-router@npm:7.1.3"
   dependencies:
     "@types/cookie": "npm:^0.6.0"
     cookie: "npm:^1.0.1"
@@ -11233,7 +11233,7 @@ __metadata:
   peerDependenciesMeta:
     react-dom:
       optional: true
-  checksum: 10c0/39f4859670f286eb2eac29e5830c1f730405701fca0808e5db853ec05e54e55a848c764e10ffd14a7b9b3b2154a0d6449656d7f208b9b3e4b2af780e07bf57a8
+  checksum: 10c0/f42f7b245533d1adaa00779a0287993a836d5b56039d97a6643a8b3a721ffb92ff47c97cfb36409fec8794ac3c8a884339f588cf21fcd7f6dccdfc834520c76f
   languageName: node
   linkType: hard
 
