@@ -55,7 +55,6 @@ import NotificationsTable from "./components/NotificationsTable";
 import OCIRepositoryDetail from "./components/OCIRepositoryDetail";
 import Page from "./components/Page";
 import PageStatus from "./components/PageStatus";
-import Pendo from "./components/Pendo";
 import PolicyDetails from "./components/Policies/PolicyDetails/PolicyDetails";
 import { PolicyTable } from "./components/Policies/PolicyList/PolicyTable";
 import { ViolationDetails } from "./components/Policies/PolicyViolations/PolicyViolationDetails";
@@ -225,7 +224,6 @@ export {
   PARENT_CHILD_LOOKUP,
   Page,
   PageStatus,
-  Pendo,
   PolicyDetails,
   PolicyTable,
   PolicyViolationsList,

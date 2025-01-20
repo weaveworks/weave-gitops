@@ -24,7 +24,6 @@ import ImageAutomationUpdatesDetails from "./components/ImageAutomation/updates/
 import Layout from "./components/Layout";
 import Logo from "./components/Logo";
 import Nav, { NavItem } from "./components/Nav";
-import PendoContainer from "./components/PendoContainer";
 import PolicyViolationPage from "./components/Policies/PolicyViolations/PolicyViolationPage";
 import AppContextProvider, {
   AppContext,
@@ -150,8 +149,6 @@ const App = () => {
 
   return (
     <Layout logo={logo} nav={nav}>
-      <PendoContainer />
-
       <ErrorBoundary>
         <Routes>
           <Route path={V2Routes.Automations} element={<Automations />} />
