@@ -4436,7 +4436,7 @@ __metadata:
     eslint: "npm:9.18.0"
     eslint-plugin-import: "npm:^2.31.0"
     eslint-plugin-react: "npm:^7.37.4"
-    eslint-plugin-react-hooks: "npm:5.2.0-canary-d46b04a2-20250117"
+    eslint-plugin-react-hooks: "npm:5.2.0-canary-42687267-20250108"
     history: "npm:^5.3.0"
     http-proxy-middleware: "npm:^3.0.3"
     install: "npm:^0.13.0"
@@ -6742,12 +6742,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-react-hooks@npm:5.2.0-canary-d46b04a2-20250117":
-  version: 5.2.0-canary-d46b04a2-20250117
-  resolution: "eslint-plugin-react-hooks@npm:5.2.0-canary-d46b04a2-20250117"
+"eslint-plugin-react-hooks@npm:5.2.0-canary-42687267-20250108":
+  version: 5.2.0-canary-42687267-20250108
+  resolution: "eslint-plugin-react-hooks@npm:5.2.0-canary-42687267-20250108"
   peerDependencies:
     eslint: ^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0-0 || ^9.0.0
-  checksum: 10c0/30eb37b6875b9cae0d4d4e68abe55db36bff6b45fa6ec77bb6afcda74d8b93e04741776e4c2b4ee52d9e583f8719633c13aee34b738dece486521b1870df5b85
+  checksum: 10c0/9bb744971e9c937b61bab23c868e106d095cd352292f2057cc61e1dceab21911c8725674952f4bf2f683ed6e03aa1e6821ac798ebf31ad4d676e5ac9ebc67a62
   languageName: node
   linkType: hard
 
