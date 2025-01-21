@@ -34,7 +34,7 @@ const config = {
     "\\.jsx?$": [
       "babel-jest",
       {
-        configFile: "./babel.config.json",
+        configFile: "./babel.config.testing.json",
       },
     ],
   },
