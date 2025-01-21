@@ -1,5 +1,5 @@
 import { AlertListErrors } from "./components/AlertListErrors";
-import { ReconciledObjectsAutomation } from "./components/AutomationDetail";
+import type { ReconciledObjectsAutomation } from "./components/AutomationDetail";
 import AutomationsTable from "./components/AutomationsTable";
 import BucketDetail from "./components/BucketDetail";
 import Button from "./components/Button";
@@ -33,8 +33,8 @@ import ImageAutomationRepoDetails from "./components/ImageAutomation/repositorie
 import ImageRepositoriesTable from "./components/ImageAutomation/repositories/ImageRepositoriesTable";
 import ImageAutomationUpdatesDetails from "./components/ImageAutomation/updates/ImageAutomationUpdatesDetails";
 import ImageAutomationUpdatesTable from "./components/ImageAutomation/updates/ImageAutomationUpdatesTable";
-import InfoList, { InfoField } from "./components/InfoList";
-import Input, { InputProps } from "./components/Input";
+import InfoList, { type InfoField } from "./components/InfoList";
+import Input, { type InputProps } from "./components/Input";
 import Interval from "./components/Interval";
 import KubeStatusIndicator, {
   computeReady,
@@ -48,7 +48,7 @@ import Logo from "./components/Logo";
 import MessageBox from "./components/MessageBox";
 import Metadata from "./components/Metadata";
 import Modal from "./components/Modal";
-import Nav, { NavItem } from "./components/Nav";
+import Nav, { type NavItem } from "./components/Nav";
 import ImageAutomationIcon from "./components/NavIcons/ImageAutomationIcon";
 import SourcesIcon from "./components/NavIcons/SourcesIcon";
 import NotificationsTable from "./components/NotificationsTable";
@@ -112,7 +112,7 @@ import { PARENT_CHILD_LOOKUP } from "./lib/graph";
 import { formatURL, getParentNavRouteValue } from "./lib/nav";
 import {
   Alert,
-  Automation,
+  type Automation,
   Bucket,
   FluxObject,
   GitRepository,
