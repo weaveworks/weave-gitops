@@ -46,6 +46,10 @@ updates:
     schedule:
       interval: "daily"
     groups:
+      golang-grpc:
+        patterns:
+          - google.golang.org/grpc
+          - google.golang.org/protobuf
       golang-x:
         patterns:
           - "golang.org/x/*"
