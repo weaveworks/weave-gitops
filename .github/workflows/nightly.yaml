@@ -43,7 +43,7 @@ jobs:
         echo ${{ env.URL }}
 
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
       with:
         python-version: "3.12"
         cache: "pip"
@@ -121,7 +121,7 @@ jobs:
 
     - name: Generate tests report
       if: always()
-      uses: pmeier/pytest-results-action@main
+      uses: pmeier/pytest-results-action@fc6576eced1f411ea48ab10e917d9cfce2960e29 # v0.7.1
       with:
         path: test-results/junit_test_report.xml
         summary: true
@@ -137,7 +137,7 @@ jobs:
           retention-days: 3
 
     - name: Download test artifacts
-      uses: actions/download-artifact@v4.1.8
+      uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
       if: success() || failure()
       with:
         name: playwright-tests-report
@@ -150,14 +150,14 @@ jobs:
 
     - name: Publish test report
       id: test_summary
-      uses: mikepenz/action-junit-report@v5.2.0
+      uses: mikepenz/action-junit-report@62516aa379bff6370c95fd5894d5a27fb6619d9b # v5.2.0
       if: success() || failure()
       with:
         report_paths: test-results/junit_test_report.xml
 
     - name: Notify Slack
       id: slack
-      uses: slackapi/slack-github-action@v2.0.0
+      uses: slackapi/slack-github-action@485a9d42d3a73031f12ec201c457e2162c45d02d # v2.0.0
       with:
         channel-id: C058RPVS5DZ
         payload: |
