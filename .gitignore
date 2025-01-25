@@ -41,3 +41,5 @@ gitops-server.dockerfile
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+__pycache__

@@ -87,7 +87,7 @@ function setup_gke {
 
   export CLUSTER_NAME=${args[2]}
   export CLUSTER_REGION=${args[3]}
-  export CLUSTER_VERSION=1.23.13
+  export CLUSTER_VERSION=1.31.0
 
   export CLUSTER_EXISTS=$(gcloud container clusters list | grep -i $CLUSTER_NAME)
   if [ -z $CLUSTER_EXISTS ]; then
@@ -129,7 +129,7 @@ function setup_kind {
 
   export CLUSTER_NAME=${args[2]}
 
-  kind create cluster --name $CLUSTER_NAME --image=kindest/node:v1.23.4 --config ${args[1]}/utils/data/kind/local-kind-config.yaml
+  kind create cluster --name $CLUSTER_NAME --image=kindest/node:v1.31.0 --config ${args[1]}/playwright/utils/data/kind/local-kind-config.yaml
   kubectl wait --for=condition=Ready --timeout=120s -n kube-system pods --all
   kubectl get pods -A
   exit 0
