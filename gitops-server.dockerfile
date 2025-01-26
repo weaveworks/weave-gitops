@@ -14,7 +14,7 @@ COPY --chown=node:node .yarn /home/app/.yarn
 COPY --chown=node:node .yarnrc.yml /home/app/
 RUN make node_modules
 COPY --chown=node:node ui /home/app/ui
-RUN --mount=type=cache,target=/home/app/ui/.parcel-cache make ui
+RUN make ui
 
 # Go build
 FROM golang:1.23.5@sha256:8c10f21bec412f08f73aa7b97ca5ac5f28a39d8a88030ad8a339fd0a781d72b4 AS go-build
