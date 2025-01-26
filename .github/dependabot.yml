@@ -1,9 +1,7 @@
 version: 2
 updates:
   - package-ecosystem: "npm"
-    directories:
-      - "/"
-      - "/website"
+    directory: "/"
     schedule:
       interval: "daily"
     # Raised limit temporarily to get all potential upgrades
@@ -14,9 +12,6 @@ updates:
           - "@babel/core"
           - "@babel/preset-env"
           - "@types/babel__preset-env"
-      docusaurus:
-        patterns:
-          - "@docusaurus/*"
       emotion:
         patterns:
           - "@emotion/*"
@@ -62,6 +57,14 @@ updates:
       k8s:
         patterns:
           - "k8s.io/*"
+  - package-ecosystem: "npm"
+    directory: "/website"
+    schedule:
+      interval: weekly
+    groups:
+      npm-packages:
+        patterns:
+          - "*"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
