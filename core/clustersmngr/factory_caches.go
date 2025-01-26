@@ -2,6 +2,7 @@ package clustersmngr
 
 import (
 	"fmt"
+	"maps"
 	"sort"
 	"strings"
 	"sync"
@@ -114,6 +115,16 @@ func (cn *ClustersNamespaces) Get(cluster string) []v1.Namespace {
 	defer cn.Unlock()
 
 	return cn.namespaces[cluster]
+}
+
+func (cn *ClustersNamespaces) GetAll() map[string][]v1.Namespace {
+	cn.Lock()
+	defer cn.Unlock()
+
+	m := make(map[string][]v1.Namespace, len(cn.namespaces))
+	maps.Copy(m, cn.namespaces)
+
+	return m
 }
 
 type UsersNamespaces struct {
