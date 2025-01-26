@@ -342,25 +342,16 @@ func TestRateLimit(t *testing.T) {
 		s.Close()
 	})
 
-	res1, err := http.Post(s.URL+"/oauth2/sign_in", "application/json", bytes.NewReader([]byte(`{"password":"my-secret-password"}`)))
+	resp, err := http.Post(s.URL+"/oauth2/sign_in", "application/json", bytes.NewReader([]byte(`{"password":"bad-password"}`)))
 	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(res1).To(HaveHTTPStatus(http.StatusOK))
+	g.Expect(resp).To(HaveHTTPStatus(http.StatusUnauthorized))
 
-	g.Eventually(func() (*http.Response, error) {
+	goodSignIn := func() (*http.Response, error) {
 		return http.Post(s.URL+"/oauth2/sign_in", "application/json", bytes.NewReader([]byte(`{"password":"my-secret-password"}`)))
-	}).Should(HaveHTTPStatus(http.StatusTooManyRequests))
-
+	}
+	g.Eventually(goodSignIn).Should(HaveHTTPStatus(http.StatusTooManyRequests))
 	time.Sleep(time.Second)
-
-	res3, err := http.Post(s.URL+"/oauth2/sign_in", "application/json", bytes.NewReader([]byte(`{"password":"my-secret-password"}`)))
-	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(res3).To(HaveHTTPStatus(http.StatusOK))
-
-	time.Sleep(time.Second)
-
-	res4, err := http.Post(s.URL+"/oauth2/sign_in", "application/json", bytes.NewReader([]byte(`{"password":"bad-password"}`)))
-	g.Expect(err).NotTo(HaveOccurred())
-	g.Expect(res4).To(HaveHTTPStatus(http.StatusUnauthorized))
+	g.Expect(goodSignIn()).To(HaveHTTPStatus(http.StatusOK))
 }
 
 func TestUserPrincipalValid(t *testing.T) {
