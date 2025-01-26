@@ -391,7 +391,7 @@ func (cf *clustersManager) updateNamespacesWithClient(ctx context.Context, creat
 }
 
 func (cf *clustersManager) GetClustersNamespaces() map[string][]v1.Namespace {
-	return cf.clustersNamespaces.namespaces
+	return cf.clustersNamespaces.GetAll()
 }
 
 func (cf *clustersManager) syncCaches() {
@@ -544,7 +544,7 @@ func (cf *clustersManager) GetServerClient(ctx context.Context) (Client, error) 
 		result = multierror.Append(result, err)
 	}
 
-	return NewClient(pool, cf.clustersNamespaces.namespaces, cf.log), result.ErrorOrNil()
+	return NewClient(pool, cf.clustersNamespaces.GetAll(), cf.log), result.ErrorOrNil()
 }
 
 func (cf *clustersManager) UpdateUserNamespaces(ctx context.Context, user *auth.UserPrincipal) {
