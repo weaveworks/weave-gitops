@@ -1,8 +1,9 @@
 version: 2
 updates:
-  # Maintain dependencies for frontend
   - package-ecosystem: "npm"
-    directory: "/"
+    directories:
+      - "/"
+      - "/website"
     schedule:
       interval: "daily"
     # Raised limit temporarily to get all potential upgrades
@@ -13,6 +14,9 @@ updates:
           - "@babel/core"
           - "@babel/preset-env"
           - "@types/babel__preset-env"
+      docusaurus:
+        patterns:
+          - "@docusaurus/*"
       emotion:
         patterns:
           - "@emotion/*"
@@ -40,7 +44,6 @@ updates:
           - react-router
           - react-syntax-highlighter
           - react-toastify
-  # Maintain dependencies for backend
   - package-ecosystem: "gomod"
     directory: "/"
     schedule:
@@ -59,33 +62,10 @@ updates:
       k8s:
         patterns:
           - "k8s.io/*"
-  # Maintain dependencies for website
-  - package-ecosystem: "npm"
-    directory: "/website"
-    schedule:
-      interval: "daily"
-    groups:
-      docusaurus:
-        patterns:
-          - "@docusaurus/*"
-      react-docs:
-        patterns:
-          - react
-          - "react-*"
-          - "@types/react"
-          - "@types/react-*"
-        exclude-patterns:
-          - react-lottie-player
-          - react-markdown
-          - react-router
-          - react-syntax-highlighter
-          - react-toastify
-  # maintain dependencies for github actions
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "daily"
-  # maintain dependencies for Dockerfiles
   - package-ecosystem: "docker"
     directory: "/"
     schedule:
