@@ -44,14 +44,13 @@ func TestMain(m *testing.M) {
 		"../../tools/testcrds",
 	})
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to start test environment: %v\n", err)
-		os.Exit(1)
+		panic(err)
 	}
 
 	code := m.Run()
-	if k8sEnv != nil {
-		k8sEnv.Stop() // No return value to handle here
-	}
+
+	k8sEnv.Stop()
+
 	os.Exit(code)
 }
 
