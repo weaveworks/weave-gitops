@@ -9,20 +9,13 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
-	"os"
-	"strings"
 	"testing"
 	"time"
 
-	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	"github.com/go-jose/go-jose/v4"
 	"github.com/go-jose/go-jose/v4/jwt"
-	"github.com/go-logr/logr"
 	"github.com/onsi/gomega"
-	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/discovery"
@@ -31,15 +24,11 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/restmapper"
-	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"github.com/weaveworks/weave-gitops/pkg/vendorfakes/fakelogr"
 )
-
-const BaseURI = "https://weave.works/api"
 
 var k8sEnv *K8sTestEnv
 
@@ -80,38 +69,8 @@ func StartK8sTestEnvironment(crdPaths []string) (*K8sTestEnv, error) {
 		return nil, fmt.Errorf("could not create scheme: %w", err)
 	}
 
-	k8sManager, err := ctrl.NewManager(cfg, ctrl.Options{
-		Client: client.Options{
-			Cache: &client.CacheOptions{
-				DisableFor: []client.Object{
-					&corev1.Namespace{},
-					&corev1.Secret{},
-					&appsv1.Deployment{},
-					&corev1.ConfigMap{},
-					&kustomizev2.Kustomization{},
-					&sourcev1.GitRepository{},
-					&v1.CustomResourceDefinition{},
-				},
-			},
-			Scheme: scheme,
-		},
-	})
-	if err != nil {
-		return nil, fmt.Errorf("could not create controller manager: %w", err)
-	}
-
-	ctrlCtx, ctrlCancel := context.WithCancel(context.Background())
-
-	go func() {
-		err := k8sManager.Start(ctrlCtx)
-		if err != nil {
-			log.Fatal(err.Error())
-		}
-	}()
-
 	dc, err := discovery.NewDiscoveryClientForConfig(cfg)
 	if err != nil {
-		ctrlCancel()
 		return nil, fmt.Errorf("failed to initialize discovery client: %w", err)
 	}
 
@@ -119,18 +78,21 @@ func StartK8sTestEnvironment(crdPaths []string) (*K8sTestEnv, error) {
 
 	dyn, err := dynamic.NewForConfig(cfg)
 	if err != nil {
-		ctrlCancel()
 		return nil, fmt.Errorf("failed to initialize dynamic client: %w", err)
+	}
+
+	k8sClient, err := client.New(cfg, client.Options{Scheme: scheme})
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize client: %w", err)
 	}
 
 	k8sEnv = &K8sTestEnv{
 		Env:        testEnv,
-		Client:     k8sManager.GetClient(),
+		Client:     k8sClient,
 		DynClient:  dyn,
 		RestMapper: mapper,
 		Rest:       cfg,
 		Stop: func() {
-			ctrlCancel()
 			err := testEnv.Stop()
 			if err != nil {
 				log.Fatal(err.Error())
@@ -139,33 +101,6 @@ func StartK8sTestEnvironment(crdPaths []string) (*K8sTestEnv, error) {
 	}
 
 	return k8sEnv, nil
-}
-
-// MakeFakeLogr returns an API compliant logr object that can be used for unit testing.
-func MakeFakeLogr() (logr.Logger, *fakelogr.LogSink) {
-	sink := &fakelogr.LogSink{}
-	sink.WithValuesStub = func(i ...interface{}) logr.LogSink {
-		return sink
-	}
-	sink.EnabledStub = func(i int) bool {
-		return true
-	}
-
-	return logr.New(sink), sink
-}
-
-func Setenv(k, v string) func() {
-	prev := os.Environ()
-	os.Setenv(k, v)
-
-	return func() {
-		os.Unsetenv(k)
-
-		for _, kv := range prev {
-			parts := strings.SplitN(kv, "=", 2)
-			os.Setenv(parts[0], parts[1])
-		}
-	}
 }
 
 // MakeRSAPrivateKey generates and returns an RSA Private Key.
