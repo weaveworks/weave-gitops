@@ -23,6 +23,9 @@ env:
   ENTERPRISE_CHART_VERSION:  ${{ inputs.chart_version }}
   DEFAULT_ENTERPRISE_CHART_VERSION: "0.31.0-9-gdae6755"
 
+permissions:
+  contents: read
+
 jobs:
   build_and_run_tests:
 
