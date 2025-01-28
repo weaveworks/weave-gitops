@@ -234,9 +234,6 @@ exports[`Page snapshots default 1`] = `
           tabindex="0"
           target="_blank"
         >
-          <span
-            class="MuiIconButton-loadingIndicator css-165vu30-MuiIconButton-loadingIndicator"
-          />
           <div
             class="c4 c12"
           >
@@ -262,9 +259,6 @@ exports[`Page snapshots default 1`] = `
           tabindex="0"
           type="button"
         >
-          <span
-            class="MuiIconButton-loadingIndicator css-165vu30-MuiIconButton-loadingIndicator"
-          />
           <div
             class="c4 c12"
           >
