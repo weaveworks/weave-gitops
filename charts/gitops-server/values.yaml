@@ -63,6 +63,9 @@ rbac:
   impersonationResourceNames: []
   # -- Limit the type of principal that can be impersonated
   impersonationResources: ["users", "groups"]
+  # -- Specifies whether the service account should have cluster-wide view access to secrets.
+  # If enabled, the secrets permitted to read can be limited by name with `viewSecretsResourceNames`.
+  viewSecretsEnabled: true
   # -- If non-empty, this limits the secrets that can be accessed by
   # the service account to the specified ones, e.g. `['weave-gitops-enterprise-credentials']`
   viewSecretsResourceNames: ["cluster-user-auth", "oidc-auth"]
