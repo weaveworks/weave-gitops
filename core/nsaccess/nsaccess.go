@@ -18,8 +18,13 @@ import (
 var DefautltWegoAppRules = []rbacv1.PolicyRule{
 	{
 		APIGroups: []string{""},
-		Resources: []string{"secrets", "pods", "events"},
+		Resources: []string{"pods", "secrets"},
 		Verbs:     []string{"get", "list"},
+	},
+	{
+		APIGroups: []string{""},
+		Resources: []string{"events"},
+		Verbs:     []string{"get", "list", "watch"},
 	},
 	{
 		APIGroups: []string{"apps"},
@@ -38,13 +43,8 @@ var DefautltWegoAppRules = []rbacv1.PolicyRule{
 	},
 	{
 		APIGroups: []string{"source.toolkit.fluxcd.io"},
-		Resources: []string{"buckets", "helmcharts", "gitrepositories", "helmrepositories"},
+		Resources: []string{"buckets", "helmcharts", "helmrepositories", "gitrepositories", "ocirepositories"},
 		Verbs:     []string{"get", "list"},
-	},
-	{
-		APIGroups: []string{""},
-		Resources: []string{"events"},
-		Verbs:     []string{"get", "list", "watch"},
 	},
 }
 
