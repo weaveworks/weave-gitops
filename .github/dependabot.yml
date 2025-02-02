@@ -1,11 +1,9 @@
 version: 2
 updates:
-  - package-ecosystem: "npm"
+  - package-ecosystem: npm
     directory: "/"
     schedule:
-      interval: "daily"
-    # Raised limit temporarily to get all potential upgrades
-    open-pull-requests-limit: 15
+      interval: weekly
     groups:
       babel:
         patterns:
@@ -39,10 +37,10 @@ updates:
           - react-router
           - react-syntax-highlighter
           - react-toastify
-  - package-ecosystem: "gomod"
+  - package-ecosystem: gomod
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: weekly
     groups:
       golang-grpc:
         patterns:
@@ -57,7 +55,7 @@ updates:
       k8s:
         patterns:
           - "k8s.io/*"
-  - package-ecosystem: "npm"
+  - package-ecosystem: npm
     directory: "/website"
     schedule:
       interval: weekly
@@ -65,19 +63,18 @@ updates:
       npm-packages:
         patterns:
           - "*"
-  - package-ecosystem: "github-actions"
+  - package-ecosystem: github-actions
     directory: "/"
     schedule:
-      interval: "daily"
-  - package-ecosystem: "docker"
+      interval: weekly
+  - package-ecosystem: docker
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: weekly
   - package-ecosystem: pip
     directory: "/"
     schedule:
       interval: weekly
-      day: thursday
     groups:
       python-packages:
         patterns:
