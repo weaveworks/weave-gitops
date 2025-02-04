@@ -136,5 +136,8 @@
   "packageManager": "yarn@4.5.3",
   "@parcel/resolver-default": {
     "packageExports": true
+  },
+  "overrides": {
+    "@parcel/watcher": "2.2.0"
   }
 }
