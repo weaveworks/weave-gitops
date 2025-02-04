@@ -23,6 +23,7 @@ This reference was generated for the chart version 4.0.36 which installs weave g
 | envVars[0].value | string | `"true"` |  |
 | envVars[1].name | string | `"WEAVE_GITOPS_FEATURE_CLUSTER"` |  |
 | envVars[1].value | string | `"false"` |  |
+| envVars[2] | object | `{"name":"WEAVE_GITOPS_FEATURE_GITOPS_RUNTIME","value":"false"}` | Enable this feature flag if you want to expand Flux Runtime UI with other Weave GitOps components like Policy Agent or TF-Controller. Ensure that Weave GitOps Deployment and CRDs have the label 'app.kubernetes.io/part-of=weave-gitops'. See https://docs.gitops.weaveworks.org/docs/open-source/getting-started/install-OSS for more info. |
 | extraVolumeMounts | list | `[]` |  |
 | extraVolumes | list | `[]` |  |
 | fullnameOverride | string | `""` |  |
@@ -51,6 +52,7 @@ This reference was generated for the chart version 4.0.36 which installs weave g
 | rbac.create | bool | `true` | Specifies whether the clusterRole & binding to the service account should be created |
 | rbac.impersonationResourceNames | list | `[]` | If non-empty, this limits the resources that the service account can impersonate. This applies to both users and groups, e.g. `['user1@corporation.com', 'user2@corporation.com', 'operations']` |
 | rbac.impersonationResources | list | `["users","groups"]` | Limit the type of principal that can be impersonated |
+| rbac.viewSecretsEnabled | bool | `true` | Specifies whether the service account should have cluster-wide view access to secrets. If enabled, the secrets permitted to read can be limited by name with `viewSecretsResourceNames`. |
 | rbac.viewSecretsResourceNames | list | `["cluster-user-auth","oidc-auth"]` | If non-empty, this limits the secrets that can be accessed by the service account to the specified ones, e.g. `['weave-gitops-enterprise-credentials']` |
 | replicaCount | int | `1` |  |
 | resources | object | `{}` |  |
