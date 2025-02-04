@@ -1,3 +1,4 @@
+version: 2
 project_name: gitops
 env:
   - GO111MODULE=on
@@ -9,7 +10,7 @@ checksum:
 release:
   prerelease: auto
 archives:
-  - format: tar.gz
+  - formats: tar.gz
     name_template: >-
       gitops-
       {{- title .Os }}-

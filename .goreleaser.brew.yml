@@ -1,11 +1,12 @@
+version: 2
 brews:
-  - tap:
+  - repository:
       owner: weaveworks
       name: homebrew-tap
     commit_author:
       name: weave-gitops-bot
       email: weave-gitops-bot@weaveworks.org
-    folder: Formula
+    directory: Formula
     homepage: "https://docs.gitops.weaveworks.org/docs/getting-started"
     description: "GitOps support for Kubernetes"
     install: |
