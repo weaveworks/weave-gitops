@@ -15,7 +15,6 @@ archives:
       gitops-
       {{- title .Os }}-
       {{- if eq .Arch "amd64" }}x86_64
-      {{- if eq .Arch "arm64" }}arm64
       {{- else }}{{ .Arch }}{{ end }}
 builds:
   - <<: &build_defaults
