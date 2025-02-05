@@ -204,13 +204,14 @@ export function getAppVersion(
 ): AppVersion {
   const shouldDisplayApiVersion =
     !isLoading &&
-    (versionData?.semver || "").replace(/^v+/, "") !== defaultVersion &&
+    (versionData?.semver || "").replace(/^v+/, "") !==
+      defaultVersion.replace(/^v+/, "") &&
     versionData?.branch &&
     versionData?.commit;
 
   const versionText = shouldDisplayApiVersion
     ? `${versionData.branch}-${versionData.commit}`
-    : `${defaultVersionPrefix}${defaultVersion}`;
+    : `${defaultVersionPrefix}${defaultVersion.replace(/^v+/, "")}`;
   const versionHref = shouldDisplayApiVersion
     ? `${repoUrl}/commit/${versionData.commit}`
     : `${repoUrl}/releases/tag/v${defaultVersion}`;
