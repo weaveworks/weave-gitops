@@ -52,8 +52,8 @@
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
-    "@mui/icons-material": "^6.4.2",
-    "@mui/material": "^6.4.2",
+    "@mui/icons-material": "^6.4.3",
+    "@mui/material": "^6.4.3",
     "@tanstack/react-query": "^5.66.0",
     "@types/styled-components": "^5.1.34",
     "ansi-styles": "^6.2.1",
