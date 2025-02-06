@@ -18,11 +18,13 @@ interact with the project and how to get involved in development as smoothly as 
 
 These things will make a PR more likely to be accepted:
 
+- should address a single concern or task
+- avoid bundling unrelated changes
 - a well-described requirement
 - tests for new code
 - tests for old code!
 - new code and tests follow the conventions in old code and tests
-- a good commit message (see below)
+- a good PR title and description (see below)
 - all code must abide by [Go Code Review Comments](https://github.com/golang/go/wiki/CodeReviewComments)
 - names should abide by [What's in a name](https://talks.golang.org/2014/names.slide#1)
 - code must build on both Linux and Darwin, via plain `go build`
@@ -31,8 +33,19 @@ These things will make a PR more likely to be accepted:
 
 In general, we will merge a PR once at least one maintainer has endorsed it. For substantial changes, more people may become involved, and you might get asked to resubmit the PR or divide the changes into more than one PR.
 
-## Format of the Commit Message
+## Format of the pull request
 
-Limit the subject to 50 characters and write as the continuation of the sentence "If applied, this commit will ..."
-Explain what and why in the body, if more than a trivial change; wrap it at 72 characters.
-The [following article](https://cbea.ms/git-commit/#seven-rules) has some more helpful advice on documenting your work.
+This project enforces that your pull request title match the
+[Conventional Commits specification](https://conventionalcommits.org).
+When the PR is merged, the full PR changeset will be squashed into a single
+commit on the default branch using the PR title as the commit message.
+While this approach might surprise some, this is done to simplify the release
+process including generating (good) release notes.
+
+The commit message on the default branch will automatically include a reference
+back to the PR, so please explain what and why in the PR description.
+
+Each pull request should address a single concern or task.
+Avoid bundling unrelated changes into one PR, as it can make the review process
+more challenging and less efficient. Keeping PRs focused helps reviewers
+understand the purpose and context of the changes.
