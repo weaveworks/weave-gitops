@@ -244,7 +244,7 @@ func runCmd(cmd *cobra.Command, args []string) error {
 
 	fetcher := fetcher.NewSingleClusterFetcher(cl)
 
-	clustersManager := clustersmngr.NewClustersManager([]clustersmngr.ClusterFetcher{fetcher}, nsaccess.NewChecker(nsaccess.DefautltWegoAppRules), log)
+	clustersManager := clustersmngr.NewClustersManager([]clustersmngr.ClusterFetcher{fetcher}, nsaccess.NewChecker(nsaccess.MergeAppRules), log)
 	clustersManager.Start(ctx)
 
 	healthChecker := health.NewHealthChecker()
