@@ -19,10 +19,10 @@ jobs:
         id: lint_pr_title
         with:
           # Ensure the subject doesn't start with an uppercase character.
-          subjectPattern: ^(?![A-Z]).+$
+          subjectPattern: ^(?![a-z]).+$
           subjectPatternError: |
             Please ensure the subject in the pull request title ("{subject}")
-            doesn't start with an uppercase character.
+            doesn't start with an lowercase character.
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
