@@ -4,6 +4,7 @@ updates:
     directory: "/"
     schedule:
       interval: weekly
+      day: thursday
     groups:
       babel:
         patterns:
@@ -41,6 +42,7 @@ updates:
     directory: "/"
     schedule:
       interval: weekly
+      day: tuesday
     groups:
       golang-grpc:
         patterns:
@@ -71,6 +73,7 @@ updates:
     directory: "/"
     schedule:
       interval: weekly
+      day: friday
   - package-ecosystem: pip
     directory: "/"
     schedule:
