@@ -77,7 +77,7 @@ jobs:
           cache-to: type=gha,mode=max
       - name: Install cosign
         if: ${{ inputs.push }}
-        uses: sigstore/cosign-installer@c56c2d3e59e4281cc41dea2217323ba5694b171e # v3.8.0
+        uses: sigstore/cosign-installer@d7d6bc7722e3daa8354c50bcb52f4837da5e9b6a # v3.8.1
       - name: Keyless signing of image
         if: ${{ inputs.push }}
         run: |
