@@ -217,14 +217,9 @@ echo-flux-version:
 	@echo $(FLUX_VERSION)
 
 download-test-crds:
-	group_resources="source/helmrepositories source/buckets source/gitrepositories source/helmcharts source/ocirepositories"; \
-	for group_resource in $$group_resources; do \
-		group="$${group_resource%/*}"; resource="$${group_resource#*/}"; \
-		echo "Downloading $${group}.$${resource}"; \
-		curl -sL "https://raw.githubusercontent.com/fluxcd/source-controller/v1.4.1/config/crd/bases/$${group}.toolkit.fluxcd.io_$${resource}.yaml" -o "tools/testcrds/$${group}.toolkit.fluxcd.io_$${resource}.yaml"; \
-	done
-	curl -sL "https://raw.githubusercontent.com/fluxcd/kustomize-controller/v1.4.0/config/crd/bases/kustomize.toolkit.fluxcd.io_kustomizations.yaml" -o "tools/testcrds/kustomize.toolkit.fluxcd.io_kustomizations.yaml"
-	curl -sL "https://raw.githubusercontent.com/fluxcd/helm-controller/v1.1.0/config/crd/bases/helm.toolkit.fluxcd.io_helmreleases.yaml" -o "tools/testcrds/helm.toolkit.fluxcd.io_helmreleases.yaml"
+	curl -sSL https://github.com/fluxcd/flux2/releases/download/v$(FLUX_VERSION)/install.yaml \
+	| yq e '. | select(.kind == "CustomResourceDefinition")' \
+	> tools/testcrds/flux.yaml
 
 .PHONY: help
 # Thanks to https://www.thapaliya.com/en/writings/well-documented-makefiles/

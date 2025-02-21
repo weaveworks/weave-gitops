@@ -52,7 +52,7 @@ func StartK8sTestEnvironment(crdPaths []string) (*K8sTestEnv, error) {
 
 	testEnv := &envtest.Environment{
 		CRDDirectoryPaths:     crdPaths,
-		ErrorIfCRDPathMissing: false,
+		ErrorIfCRDPathMissing: true,
 		CRDInstallOptions: envtest.CRDInstallOptions{
 			CleanUpAfterUse: false,
 		},

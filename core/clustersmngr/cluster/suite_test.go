@@ -12,8 +12,7 @@ var k8sEnv *testutils.K8sTestEnv
 func TestMain(m *testing.M) {
 	var err error
 	k8sEnv, err = testutils.StartK8sTestEnvironment([]string{
-		"../../manifests/crds",
-		"../../tools/testcrds",
+		"../../../tools/testcrds",
 	})
 	if err != nil {
 		panic(err)

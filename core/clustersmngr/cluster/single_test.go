@@ -35,7 +35,6 @@ func TestClientConfigWithUser(t *testing.T) {
 	g := NewGomegaWithT(t)
 
 	k8sEnv, err := testutils.StartK8sTestEnvironment([]string{
-		"../../manifests/crds",
 		"../../tools/testcrds",
 	})
 	if err != nil {
