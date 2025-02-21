@@ -40,7 +40,7 @@ require (
 	github.com/onsi/gomega v1.36.2
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c
 	github.com/slok/go-http-metrics v0.13.0
-	github.com/spf13/cobra v1.8.1
+	github.com/spf13/cobra v1.9.1
 	github.com/spf13/viper v1.19.0
 	github.com/tomwright/dasel/v2 v2.8.1
 	github.com/weaveworks/policy-agent/api v1.0.5
