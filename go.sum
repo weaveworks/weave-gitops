@@ -102,8 +102,8 @@ github.com/fluxcd/go-git-providers v0.22.0 h1:THHUcCZkFQBWE5FlipRJMpUwA9v/Vj+tf9
 github.com/fluxcd/go-git-providers v0.22.0/go.mod h1:qkdWXdcA/9ILOkesIXB1rDtcvi3h1FgnmbCn84yYpTk=
 github.com/fluxcd/helm-controller/api v1.1.0 h1:NS5Wm3U6Kv4w7Cw2sDOV++vf2ecGfFV00x1+2Y3QcOY=
 github.com/fluxcd/helm-controller/api v1.1.0/go.mod h1:BgHMgMY6CWynzl4KIbHpd6Wpn3FN9BqgkwmvoKCp6iE=
-github.com/fluxcd/image-automation-controller/api v0.39.0 h1:Mjy9slElGc2D15F36EiMSVHgMiK11nktLkvX/TeV/1A=
-github.com/fluxcd/image-automation-controller/api v0.39.0/go.mod h1:4AFgeMTYkoj4rHdoGY+KhzuiY3MCRxoAuiH4V1Gl4P4=
+github.com/fluxcd/image-automation-controller/api v0.40.0 h1:AgObtp2/bnOraIkkzkAl5kJDmDsBMOx/wDPQd6Yv7Is=
+github.com/fluxcd/image-automation-controller/api v0.40.0/go.mod h1:jqFjp75nUHQBeZp2cj2GZYE08l6/4Fz20PBXo41XYyM=
 github.com/fluxcd/image-reflector-controller/api v0.34.0 h1:+0AGoaYzHYXzVDQO9xq2eGZKkPl81Bfz6xFI7rElBzs=
 github.com/fluxcd/image-reflector-controller/api v0.34.0/go.mod h1:C6742RYyZVt2KIyJv16lb4gYbsK+P1RGQeaQ8C8huec=
 github.com/fluxcd/kustomize-controller/api v1.4.0 h1:QReBAuNAlrAez4aLkbYjVlWDCIZABFsKPgRa9W05VCQ=
@@ -120,8 +120,8 @@ github.com/fluxcd/pkg/runtime v0.53.0 h1:IgDSLVQtgyXvZWIeDy1I+0EgzgUHNwEegSyI5UM
 github.com/fluxcd/pkg/runtime v0.53.0/go.mod h1:8vkIhS1AhkmjC98LRm5xM+CRG5KySFTXpJWk+ZdtT4I=
 github.com/fluxcd/pkg/ssa v0.45.1 h1:ISl84TJwRP/GuZXrKiR9Tf8JOnG5XFgtjcYoR4XQYf4=
 github.com/fluxcd/pkg/ssa v0.45.1/go.mod h1:8Anf7XVZ0zxOve7HXbDaW1s0gfmP95ksJBlKfDYinhQ=
-github.com/fluxcd/source-controller/api v1.4.1 h1:zV01D7xzHOXWbYXr36lXHWWYS7POARsjLt61Nbh3kVY=
-github.com/fluxcd/source-controller/api v1.4.1/go.mod h1:gSjg57T+IG66SsBR0aquv+DFrm4YyBNpKIJVDnu3Ya8=
+github.com/fluxcd/source-controller/api v1.5.0 h1:caSR+u/r2Vh0jq/0pNR0r1zLxyvgatWuGSV2mxgTB/I=
+github.com/fluxcd/source-controller/api v1.5.0/go.mod h1:OZPuHMlLH2E2mnj6Q5DLkWfUOmJ20zA1LIvUVfNsYl8=
 github.com/frankban/quicktest v1.14.6 h1:7Xjx+VpznH+oBnejlPUj8oUpdxnVs4f8XU8WnHkI4W8=
 github.com/frankban/quicktest v1.14.6/go.mod h1:4ptaffx2x8+WTWXmUCuVU6aPUX1/Mz7zb5vbUoiM6w0=
 github.com/fsnotify/fsnotify v1.8.0 h1:dAwr6QBTBZIkG8roQaJjGof0pp0EeF+tNV7YBP3F/8M=
