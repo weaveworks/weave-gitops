@@ -486,7 +486,9 @@ func makeImageRepository(name string, ns corev1.Namespace) *reflectorv1.ImageRep
 			Name:      name,
 			Namespace: ns.Name,
 		},
-		Spec: reflectorv1.ImageRepositorySpec{},
+		Spec: reflectorv1.ImageRepositorySpec{
+			Image: "ghcr.io/some/image",
+		},
 		Status: reflectorv1.ImageRepositoryStatus{
 			ReconcileRequestStatus: meta.ReconcileRequestStatus{
 				LastHandledReconcileAt: time.Now().Format(time.RFC3339Nano),
