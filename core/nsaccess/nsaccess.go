@@ -2,7 +2,10 @@ package nsaccess
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 
 	authorizationv1 "k8s.io/api/authorization/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -14,8 +17,9 @@ import (
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 
-// DefautltWegoAppRules is the minimun set of permissions a user will need to use the wego-app in a given namespace
-var DefautltWegoAppRules = []rbacv1.PolicyRule{
+// BaseWegoAppRules is the minimun set of permissions a user will need to use the wego-app in a given namespace.
+// was DefautltWegoAppRules
+var BaseWegoAppRules = []rbacv1.PolicyRule{
 	{
 		APIGroups: []string{""},
 		Resources: []string{"pods", "secrets"},
@@ -46,6 +50,55 @@ var DefautltWegoAppRules = []rbacv1.PolicyRule{
 		Resources: []string{"buckets", "helmcharts", "helmrepositories", "gitrepositories", "ocirepositories"},
 		Verbs:     []string{"get", "list"},
 	},
+}
+
+func getWegoAppRulesFromConfigMap() interface{} {
+
+	config, err := rest.InClusterConfig()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	configMap, err := clientset.CoreV1().ConfigMaps("flux-system").Get(context.TODO(), "wego-app-rules", metav1.GetOptions{})
+	if err != nil {
+		panic(err.Error())
+	}
+
+	var rules []rbacv1.PolicyRule
+	err = json.Unmarshal([]byte(configMap.Data["rules"]), &rules)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	return rules
+
+}
+
+// MergeAppRules merges the default rules with the rules from the configMap, overriding defaults with configMap rules
+func MergeAppRules(defaultRules, configMapRules []rbacv1.PolicyRule) []rbacv1.PolicyRule {
+	ruleMap := make(map[string]rbacv1.PolicyRule)
+
+	for _, rule := range defaultRules {
+		key := fmt.Sprintf("%s-%s", rule.APIGroups, rule.Resources)
+		ruleMap[key] = rule
+	}
+
+	for _, rule := range configMapRules {
+		key := fmt.Sprintf("%s-%s", rule.APIGroups, rule.Resources)
+		ruleMap[key] = rule
+	}
+
+	mergedRules := make([]rbacv1.PolicyRule, 0, len(ruleMap))
+	for _, rule := range ruleMap {
+		mergedRules = append(mergedRules, rule)
+	}
+
+	return mergedRules
 }
 
 // Checker contains methods for validing user access to Kubernetes namespaces, based on a set of PolicyRules
