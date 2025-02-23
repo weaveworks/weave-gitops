@@ -11,6 +11,7 @@ permissions:
 jobs:
   has-new-flux:
     runs-on: ubuntu-latest
+    if: "${{ github.repository_owner == 'weaveworks' && github.ref_name == 'main' }}"
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
