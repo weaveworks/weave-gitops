@@ -99,7 +99,7 @@ jobs:
           committer: weave-gitops-bot <weave-gitops-bot@weaveworks.org>
           branch: ${{ env.BRANCH }}
           base: main
-          title: "Updates for ${{ env.GITOPS_VERSION }}"
+          title: "chore(release): Updates for ${{ env.GITOPS_VERSION }}"
           body: |
            ## ⚠️ Breaking changes
            Describe any breaking changes here, or delete this block
