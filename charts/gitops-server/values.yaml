@@ -10,7 +10,7 @@ image:
   repository: ghcr.io/weaveworks/wego-app
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "v0.38.0"
+  tag: "v0.39.0"
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
@@ -28,7 +28,6 @@ envVars:
   # Ensure that Weave GitOps Deployment and CRDs have the label 'app.kubernetes.io/part-of=weave-gitops'. See https://docs.gitops.weaveworks.org/docs/open-source/getting-started/install-OSS for more info.
   - name: WEAVE_GITOPS_FEATURE_GITOPS_RUNTIME
     value: "false"
-
 # -- Annotations to add to the deployment
 annotations: {}
 # Should the 'oidc-auth' secret be created. For a detailed

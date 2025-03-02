@@ -1,0 +1,42 @@
+---
+title: Introduction
+hide_title: true
+---
+
+import TierLabel from "./../_components/TierLabel";
+import AlphaWarning from "../_components/_alpha_warning.mdx";
+
+# Explorer <TierLabel tiers="Enterprise" />
+
+<AlphaWarning/>
+
+As platform engineer or as developer, your applications and platform services will likely span multiple kubernetes clusters
+or infrastructure components.  In order to manage and operate them you require a platform capability that
+allows you to discover the resources from a single place.
+
+Explorer is that capability that allows any platform user to discover platform resources from a single place
+across all your kubernetes clusters.
+
+![explorer](imgs/explorer-ui.png)
+
+## FAQ
+
+### Which journeys would be able to use explorer for?
+
+Explorer is better suited for journeys matching the discovery of resources across the platform resources inventory.
+
+### Which journeys would be better using other weave gitops capabilities for?
+
+If you have a particular resources you want to manage, weave gitops offers single resource experience
+for almost every resource.
+
+### Which Kinds does explorer support?
+
+Explorer support all Flux Applications and Sources CRDs
+
+See [Supported Kinds](../configuration#kinds) for more details.
+
+## Next Steps
+
+Now that you know what Explorer is, follow [getting started](../getting-started) to quickly have a feeling
+of what Explorer can do for you.
