@@ -62,7 +62,7 @@ func NewCoreConfig(log logr.Logger, cfg *rest.Config, clusterName string, cluste
 		log:             log.WithName("core-server"),
 		RestCfg:         cfg,
 		clusterName:     clusterName,
-		NSAccess:        nsaccess.NewChecker(nsaccess.DefautltWegoAppRules),
+		NSAccess:        nsaccess.NewChecker(nsaccess.MergeAppRules),
 		ClustersManager: clustersManager,
 		PrimaryKinds:    kinds,
 		HealthChecker:   healthChecker,
