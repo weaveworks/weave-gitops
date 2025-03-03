@@ -4413,7 +4413,7 @@ __metadata:
     react-router: "npm:^7.2.0"
     react-syntax-highlighter: "npm:^15.6.1"
     react-test-renderer: "npm:^19.0.0"
-    react-toastify: "npm:^11.0.3"
+    react-toastify: "npm:^11.0.5"
     remark-gfm: "npm:^4.0.1"
     styled-components: "npm:^6.1.15"
     svgo: "npm:^3"
@@ -11201,15 +11201,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-toastify@npm:^11.0.3":
-  version: 11.0.3
-  resolution: "react-toastify@npm:11.0.3"
+"react-toastify@npm:^11.0.5":
+  version: 11.0.5
+  resolution: "react-toastify@npm:11.0.5"
   dependencies:
     clsx: "npm:^2.1.1"
   peerDependencies:
     react: ^18 || ^19
     react-dom: ^18 || ^19
-  checksum: 10c0/23b989c6080bc5bf0eb0c1f7ed17bd53d067d9beb33baf93c520119cd69cf75c9f2d1ee524dfe6c8a2a5d326029772b576de00e018b379d03a0e37630b83adea
+  checksum: 10c0/50f5b81323ebb1957b2efd0963fac24aa1407155d16ab756ffd6d0f42f8af17e796b3958a9fce13e9d1b945d6c3a5a9ebf13529478474d8a2af4bf1dd0db67d2
   languageName: node
   linkType: hard
 
