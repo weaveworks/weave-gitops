@@ -45,7 +45,7 @@ jobs:
         with:
           go-version-file: go.mod
       - name: Setup Flux CLI
-        uses: fluxcd/flux2/action@af67405ee43a6cd66e0b73f4b3802e8583f9d961 # v2.5.0
+        uses: fluxcd/flux2/action@8d5f40dca5aa5d3c0fc3414457dda15a0ac92fa4 # v2.5.1
       - run: make unit-tests
 
   ci-static:
