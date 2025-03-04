@@ -43,6 +43,7 @@ func request_Core_GetObject_0(ctx context.Context, marshaler runtime.Marshaler, 
 		metadata runtime.ServerMetadata
 		err      error
 	)
+	io.Copy(io.Discard, req.Body)
 	val, ok := pathParams["name"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
@@ -116,6 +117,7 @@ func request_Core_ListFluxRuntimeObjects_0(ctx context.Context, marshaler runtim
 		protoReq ListFluxRuntimeObjectsRequest
 		metadata runtime.ServerMetadata
 	)
+	io.Copy(io.Discard, req.Body)
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
@@ -148,6 +150,7 @@ func request_Core_ListFluxCrds_0(ctx context.Context, marshaler runtime.Marshale
 		protoReq ListFluxCrdsRequest
 		metadata runtime.ServerMetadata
 	)
+	io.Copy(io.Discard, req.Body)
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
@@ -180,6 +183,7 @@ func request_Core_ListRuntimeObjects_0(ctx context.Context, marshaler runtime.Ma
 		protoReq ListRuntimeObjectsRequest
 		metadata runtime.ServerMetadata
 	)
+	io.Copy(io.Discard, req.Body)
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
@@ -212,6 +216,7 @@ func request_Core_ListRuntimeCrds_0(ctx context.Context, marshaler runtime.Marsh
 		protoReq ListRuntimeCrdsRequest
 		metadata runtime.ServerMetadata
 	)
+	io.Copy(io.Discard, req.Body)
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
@@ -314,6 +319,7 @@ func request_Core_ListNamespaces_0(ctx context.Context, marshaler runtime.Marsha
 		protoReq ListNamespacesRequest
 		metadata runtime.ServerMetadata
 	)
+	io.Copy(io.Discard, req.Body)
 	msg, err := client.ListNamespaces(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 }
@@ -334,6 +340,7 @@ func request_Core_ListEvents_0(ctx context.Context, marshaler runtime.Marshaler,
 		protoReq ListEventsRequest
 		metadata runtime.ServerMetadata
 	)
+	io.Copy(io.Discard, req.Body)
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
@@ -388,6 +395,7 @@ func request_Core_GetVersion_0(ctx context.Context, marshaler runtime.Marshaler,
 		protoReq GetVersionRequest
 		metadata runtime.ServerMetadata
 	)
+	io.Copy(io.Discard, req.Body)
 	msg, err := client.GetVersion(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 }
@@ -406,6 +414,7 @@ func request_Core_GetFeatureFlags_0(ctx context.Context, marshaler runtime.Marsh
 		protoReq GetFeatureFlagsRequest
 		metadata runtime.ServerMetadata
 	)
+	io.Copy(io.Discard, req.Body)
 	msg, err := client.GetFeatureFlags(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 }
@@ -474,6 +483,7 @@ func request_Core_IsCRDAvailable_0(ctx context.Context, marshaler runtime.Marsha
 		protoReq IsCRDAvailableRequest
 		metadata runtime.ServerMetadata
 	)
+	io.Copy(io.Discard, req.Body)
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
@@ -506,6 +516,7 @@ func request_Core_GetInventory_0(ctx context.Context, marshaler runtime.Marshale
 		protoReq GetInventoryRequest
 		metadata runtime.ServerMetadata
 	)
+	io.Copy(io.Discard, req.Body)
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
@@ -538,6 +549,7 @@ func request_Core_ListPolicies_0(ctx context.Context, marshaler runtime.Marshale
 		protoReq ListPoliciesRequest
 		metadata runtime.ServerMetadata
 	)
+	io.Copy(io.Discard, req.Body)
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
@@ -571,6 +583,7 @@ func request_Core_GetPolicy_0(ctx context.Context, marshaler runtime.Marshaler, 
 		metadata runtime.ServerMetadata
 		err      error
 	)
+	io.Copy(io.Discard, req.Body)
 	val, ok := pathParams["policy_name"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "policy_name")
@@ -645,6 +658,7 @@ func request_Core_GetPolicyValidation_0(ctx context.Context, marshaler runtime.M
 		metadata runtime.ServerMetadata
 		err      error
 	)
+	io.Copy(io.Discard, req.Body)
 	val, ok := pathParams["validation_id"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "validation_id")
