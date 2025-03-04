@@ -49,7 +49,7 @@ require (
 	golang.org/x/crypto v0.35.0
 	golang.org/x/oauth2 v0.27.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20250303144028-a0af3efb3deb
-	google.golang.org/grpc v1.70.0
+	google.golang.org/grpc v1.71.0
 	google.golang.org/protobuf v1.36.5
 	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/api v0.32.2
@@ -112,8 +112,6 @@ require (
 	github.com/sourcegraph/conc v0.3.0 // indirect
 	github.com/theckman/yacspin v0.13.12 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
-	go.opentelemetry.io/otel/metric v1.34.0 // indirect
-	go.opentelemetry.io/otel/sdk v1.33.0 // indirect
 	go.shabbyrobe.org/gocovmerge v0.0.0-20230507111327-fa4f82cfbf4d // indirect
 	golang.org/x/exp v0.0.0-20250106191152-7588d65b2ba8 // indirect
 	golang.org/x/sync v0.11.0 // indirect
