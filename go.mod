@@ -34,7 +34,7 @@ require (
 	github.com/manifoldco/promptui v0.9.0
 	github.com/mattn/go-tty v0.0.7
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.11.2
-	github.com/minio/minio-go/v7 v7.0.87
+	github.com/minio/minio-go/v7 v7.0.88
 	github.com/oauth2-proxy/mockoidc v0.0.0-20240214162133-caebfff84d25
 	github.com/onsi/ginkgo/v2 v2.22.2
 	github.com/onsi/gomega v1.36.2
