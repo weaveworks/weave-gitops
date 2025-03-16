@@ -323,6 +323,7 @@ exports[`Footer snapshots no api version 1`] = `
       <div
         class="c4"
       />
+      <!-- x-release-please-start-version -->
       <a
         class="c5 Link"
         href="https://github.com/weaveworks/weave-gitops/releases/tag/v0.39.0-rc.2"
@@ -339,6 +340,7 @@ exports[`Footer snapshots no api version 1`] = `
           </span>
         </span>
       </a>
+      <!-- x-release-please-end -->
     </div>
     <div
       class="c4"

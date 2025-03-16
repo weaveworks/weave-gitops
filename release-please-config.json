@@ -7,6 +7,9 @@
       "bootstrap-sha": "76f25bbb1d20aa41a1f78920344f579af4f88e2d",
       "bump-minor-pre-major": true,
       "exclude-paths": ["charts","doc","website"],
+      "extra-files": [
+        "ui/components/__tests__/__snapshots__/Footer.test.tsx.snap"
+      ],
       "prerelease": true,
       "release-as": "0.39.0-rc.3",
       "release-type": "node"
