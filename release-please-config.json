@@ -8,15 +8,8 @@
       "exclude-paths": ["charts","doc","website"],
       "prerelease": true,
       "prerelease-type": "rc",
-      "release-type": "node",
-      "release-as": "0.39.0-rc.3"
-    },
-    "charts/gitops-server": {
-      "bootstrap-sha": "693dafd494f1027c4bc740be9ffef98e21cdcfb6",
-      "release-type": "helm",
-      "release-as": "4.1.0"
+      "release-type": "node"
     }
   },
   "plugins": ["sentence-case"],
-  "separate-pull-requests": true
 }
