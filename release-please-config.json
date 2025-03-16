@@ -11,5 +11,5 @@
       "release-type": "node"
     }
   },
-  "plugins": ["sentence-case"],
+  "plugins": ["sentence-case"]
 }
