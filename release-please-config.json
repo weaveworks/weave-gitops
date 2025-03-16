@@ -1,0 +1,18 @@
+{
+  "always-update": true,
+  "bump-minor-pre-major": true,
+  "draft": true,
+  "packages": {
+    ".": {
+      "exclude-paths": ["charts","doc","website"],
+      "release-type": "node"
+    },
+    "charts/gitops-server": {
+      "release-type": "helm"
+    }
+  },
+  "plugins": ["sentence-case"],
+  "prerelease": true,
+  "prerelease-type": "rc",
+  "separate-pull-requests": true
+}
