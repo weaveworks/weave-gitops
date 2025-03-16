@@ -1,6 +1,7 @@
 {
   "always-update": true,
   "draft": true,
+  "include-component-in-tag": false,
   "packages": {
     ".": {
       "bootstrap-sha": "76f25bbb1d20aa41a1f78920344f579af4f88e2d",
