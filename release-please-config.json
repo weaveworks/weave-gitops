@@ -1,18 +1,22 @@
 {
   "always-update": true,
-  "bump-minor-pre-major": true,
   "draft": true,
   "packages": {
     ".": {
+      "bootstrap-sha": "76f25bbb1d20aa41a1f78920344f579af4f88e2d",
+      "bump-minor-pre-major": true,
       "exclude-paths": ["charts","doc","website"],
-      "release-type": "node"
+      "prerelease": true,
+      "prerelease-type": "rc",
+      "release-type": "node",
+      "release-as": "0.39.0-rc.3"
     },
     "charts/gitops-server": {
-      "release-type": "helm"
+      "bootstrap-sha": "693dafd494f1027c4bc740be9ffef98e21cdcfb6",
+      "release-type": "helm",
+      "release-as": "4.1.0"
     }
   },
   "plugins": ["sentence-case"],
-  "prerelease": true,
-  "prerelease-type": "rc",
   "separate-pull-requests": true
 }
