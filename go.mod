@@ -7,7 +7,7 @@ require (
 	github.com/NYTimes/gziphandler v1.1.1
 	github.com/alexedwards/scs/v2 v2.8.0
 	github.com/cheshir/ttlcache v1.0.1-0.20220504185148-8ceeff21b789
-	github.com/coreos/go-oidc/v3 v3.12.0
+	github.com/coreos/go-oidc/v3 v3.13.0
 	github.com/flux-iac/tofu-controller/tfctl v0.0.0-20250116084730-01bbcd1540eb
 	github.com/fluxcd/cli-utils v0.36.0-flux.12
 	github.com/fluxcd/go-git-providers v0.22.0
