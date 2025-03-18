@@ -10,6 +10,14 @@ import {
 } from "../../lib/test-utils";
 import Footer from "../Footer";
 
+jest.mock(
+  "../../../package.json",
+  () => ({
+    version: "x.y.z",
+  }),
+  { virtual: true },
+);
+
 describe("Footer", () => {
   let container;
   beforeEach(() => {
