@@ -27,7 +27,7 @@ describe("SignIn", () => {
   });
 
   afterEach(() => {
-    window.location = location;
+    window.location.assign(location.toString());
   });
 
   it("should show no buttons or user/password fields with no flags set", async () => {
