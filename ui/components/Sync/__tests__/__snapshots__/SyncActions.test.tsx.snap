@@ -169,7 +169,6 @@ exports[`SyncActions snapshots hideSyncOptions 1`] = `
   >
     <button
       class="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textPrimary MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-text MuiButton-textPrimary MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorPrimary MuiButton-disableElevation c3 sync-icon-button css-9buukw-MuiButtonBase-root-MuiButton-root"
-      id=":rg:"
       tabindex="0"
       type="button"
     >
@@ -205,7 +204,6 @@ exports[`SyncActions snapshots hideSyncOptions 1`] = `
       <button
         class="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c3 c7 css-624mb0-MuiButtonBase-root-MuiButton-root"
         data-testid="sync-button"
-        id=":ri:"
         tabindex="0"
         type="button"
       >
@@ -237,7 +235,6 @@ exports[`SyncActions snapshots hideSyncOptions 1`] = `
       <button
         class="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c3 c7 css-624mb0-MuiButtonBase-root-MuiButton-root"
         data-testid="suspend-button"
-        id=":rk:"
         tabindex="0"
         type="button"
       >
@@ -270,7 +267,6 @@ exports[`SyncActions snapshots hideSyncOptions 1`] = `
         class="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation Mui-disabled MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c3 c7 css-624mb0-MuiButtonBase-root-MuiButton-root"
         data-testid="resume-button"
         disabled=""
-        id=":rm:"
         tabindex="-1"
         type="button"
       >
@@ -480,7 +476,6 @@ exports[`SyncActions snapshots non-suspended 1`] = `
   >
     <button
       class="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textPrimary MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-text MuiButton-textPrimary MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorPrimary MuiButton-disableElevation c3 sync-icon-button css-9buukw-MuiButtonBase-root-MuiButton-root"
-      id=":r0:"
       tabindex="0"
       type="button"
     >
@@ -624,7 +619,6 @@ exports[`SyncActions snapshots non-suspended 1`] = `
       <button
         class="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c3 c8 css-624mb0-MuiButtonBase-root-MuiButton-root"
         data-testid="sync-button"
-        id=":r3:"
         tabindex="0"
         type="button"
       >
@@ -656,7 +650,6 @@ exports[`SyncActions snapshots non-suspended 1`] = `
       <button
         class="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c3 c8 css-624mb0-MuiButtonBase-root-MuiButton-root"
         data-testid="suspend-button"
-        id=":r5:"
         tabindex="0"
         type="button"
       >
@@ -689,7 +682,6 @@ exports[`SyncActions snapshots non-suspended 1`] = `
         class="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation Mui-disabled MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c3 c8 css-624mb0-MuiButtonBase-root-MuiButton-root"
         data-testid="resume-button"
         disabled=""
-        id=":r7:"
         tabindex="-1"
         type="button"
       >
@@ -900,7 +892,6 @@ exports[`SyncActions snapshots suspended 1`] = `
     <button
       class="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textPrimary MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorPrimary MuiButton-disableElevation Mui-disabled MuiButton-root MuiButton-text MuiButton-textPrimary MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorPrimary MuiButton-disableElevation c3 sync-icon-button css-9buukw-MuiButtonBase-root-MuiButton-root"
       disabled=""
-      id=":r8:"
       tabindex="-1"
       type="button"
     >
@@ -1051,7 +1042,6 @@ exports[`SyncActions snapshots suspended 1`] = `
         class="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation Mui-disabled MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c3 c8 css-624mb0-MuiButtonBase-root-MuiButton-root"
         data-testid="sync-button"
         disabled=""
-        id=":rb:"
         tabindex="-1"
         type="button"
       >
@@ -1084,7 +1074,6 @@ exports[`SyncActions snapshots suspended 1`] = `
         class="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation Mui-disabled MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c3 c8 css-624mb0-MuiButtonBase-root-MuiButton-root"
         data-testid="suspend-button"
         disabled=""
-        id=":rd:"
         tabindex="-1"
         type="button"
       >
@@ -1116,7 +1105,6 @@ exports[`SyncActions snapshots suspended 1`] = `
       <button
         class="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeLarge MuiButton-outlinedSizeLarge MuiButton-colorPrimary MuiButton-disableElevation c3 c8 css-624mb0-MuiButtonBase-root-MuiButton-root"
         data-testid="resume-button"
-        id=":rf:"
         tabindex="0"
         type="button"
       >
