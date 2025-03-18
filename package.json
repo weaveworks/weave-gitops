@@ -54,7 +54,7 @@
     "@emotion/styled": "^11.14.0",
     "@mui/icons-material": "^6.4.3",
     "@mui/material": "^6.4.3",
-    "@tanstack/react-query": "^5.67.1",
+    "@tanstack/react-query": "^5.69.0",
     "@types/styled-components": "^5.1.34",
     "ansi-styles": "^6.2.1",
     "d3": "^7.9.0",
