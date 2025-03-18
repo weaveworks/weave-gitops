@@ -1,4 +1,3 @@
-/* eslint-disable */
 import "styled-components";
 import { ThemeTypes } from "../contexts/AppContext";
 export namespace colors {
