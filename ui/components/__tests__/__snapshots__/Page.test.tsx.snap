@@ -229,7 +229,6 @@ exports[`Page snapshots default 1`] = `
           class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeMedium c10 c11 Link css-53g0n7-MuiButtonBase-root-MuiIconButton-root"
           data-mui-internal-clone-element="true"
           href="https://docs.gitops.weaveworks.org/"
-          id=":r2:"
           rel="noreferrer"
           tabindex="0"
           target="_blank"
@@ -255,7 +254,6 @@ exports[`Page snapshots default 1`] = `
           aria-label="Account settings"
           class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeMedium c10 css-53g0n7-MuiButtonBase-root-MuiIconButton-root"
           data-mui-internal-clone-element="true"
-          id=":r4:"
           tabindex="0"
           type="button"
         >

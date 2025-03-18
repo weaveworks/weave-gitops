@@ -264,7 +264,6 @@ exports[`DataTable snapshots renders 1`] = `
                 >
                   <button
                     class="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit c6 css-1swlott-MuiButtonBase-root-MuiButton-root"
-                    id=":ri:"
                     tabindex="0"
                     type="button"
                   >
@@ -300,7 +299,6 @@ exports[`DataTable snapshots renders 1`] = `
                 >
                   <button
                     class="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit c6 css-1swlott-MuiButtonBase-root-MuiButton-root"
-                    id=":rj:"
                     tabindex="0"
                     type="button"
                   >
@@ -324,7 +322,6 @@ exports[`DataTable snapshots renders 1`] = `
                 >
                   <button
                     class="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit c6 css-1swlott-MuiButtonBase-root-MuiButton-root"
-                    id=":rk:"
                     tabindex="0"
                     type="button"
                   >
@@ -348,7 +345,6 @@ exports[`DataTable snapshots renders 1`] = `
                 >
                   <button
                     class="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit c6 css-1swlott-MuiButtonBase-root-MuiButton-root"
-                    id=":rl:"
                     tabindex="0"
                     type="button"
                   >
