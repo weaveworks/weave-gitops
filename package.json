@@ -98,7 +98,7 @@
     "@types/js-yaml": "^4",
     "@types/lodash": "^4.17.16",
     "@types/luxon": "^3.4.2",
-    "@types/react": "^19.0.11",
+    "@types/react": "^19.0.12",
     "@types/react-dom": "^19.0.4",
     "@types/react-is": "^19",
     "babel-jest": "^29.7.0",
