@@ -1,16 +1,29 @@
 {
   "always-update": true,
   "draft": true,
-  "include-component-in-tag": false,
   "packages": {
     ".": {
       "bootstrap-sha": "76f25bbb1d20aa41a1f78920344f579af4f88e2d",
       "bump-minor-pre-major": true,
-      "exclude-paths": ["charts","doc","website"],
+      "exclude-paths": [
+        "charts",
+        "doc",
+        "website"
+      ],
+      "include-component-in-tag": false,
       "prerelease": true,
       "release-as": "0.39.0-rc.3",
       "release-type": "node"
+    },
+    "charts/gitops-server": {
+      "bootstrap-sha": "693dafd494f1027c4bc740be9ffef98e21cdcfb6",
+      "release-as": "4.1.0",
+      "release-type": "helm"
     }
   },
-  "plugins": ["sentence-case"]
+  "plugins": [
+    "sentence-case"
+  ],
+  "separate-pull-requests": true,
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json"
 }
