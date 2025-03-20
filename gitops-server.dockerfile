@@ -1,5 +1,5 @@
 # UI build
-FROM node:22-bookworm@sha256:f6b9c31ace05502dd98ef777aaa20464362435dcc5e312b0e213121dcf7d8b95 AS ui
+FROM node:22-bookworm@sha256:615b1a42aa5c644b84cc9631c734aa1af1827d5c7096294f7d510a85277d87ae AS ui
 RUN apt-get update -y && apt-get install -y build-essential python3 g++
 RUN npm install -g node-gyp
 RUN mkdir -p /home/app && chown -R node:node /home/app
