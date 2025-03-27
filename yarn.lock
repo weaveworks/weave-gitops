@@ -4442,7 +4442,7 @@ __metadata:
     js-yaml: "npm:^4.1.0"
     jsdom: "npm:^26.0.0"
     lodash: "npm:^4.17.21"
-    luxon: "npm:^3.5.0"
+    luxon: "npm:^3.6.0"
     mnemonic-browser: "npm:^0.0.1"
     parcel: "npm:^2.14.2"
     postcss: "npm:^8.5.3"
@@ -9417,10 +9417,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"luxon@npm:^3.5.0":
-  version: 3.5.0
-  resolution: "luxon@npm:3.5.0"
-  checksum: 10c0/335789bba95077db831ef99894edadeb23023b3eb2137a1b56acd0d290082b691cf793143d69e30bc069ec95f0b49f36419f48e951c68014f19ffe12045e3494
+"luxon@npm:^3.6.0":
+  version: 3.6.0
+  resolution: "luxon@npm:3.6.0"
+  checksum: 10c0/60cc3fe8f7dce51f0e406529b80eec815b335a7202d5c41e210a8acc8e698d8be797f3c77ed60efe581af07f2a88defbe7a77e506121e2f460a667690e71c0d1
   languageName: node
   linkType: hard
 
