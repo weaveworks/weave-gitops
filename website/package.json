@@ -28,8 +28,8 @@
     "@types/react": "^19.0.12",
     "file-loader": "^6.2.0",
     "raw-loader": "^4.0.2",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
     "react-player": "^2.16.0",
     "webpack": "^5.98.0"
   },
