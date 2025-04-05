@@ -4089,10 +4089,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/luxon@npm:^3.4.2":
-  version: 3.4.2
-  resolution: "@types/luxon@npm:3.4.2"
-  checksum: 10c0/d835467de3daf7e17ba78b50bb5a14efd94272439ca067990d71332a54b311544459c69623eddd243b511b28d70194c9591a9ee8cf9c038962c965f991affd7e
+"@types/luxon@npm:^3.6.2":
+  version: 3.6.2
+  resolution: "@types/luxon@npm:3.6.2"
+  checksum: 10c0/7572ee52b3d3e9dd10464b90561a728b90f34b9a257751cc3ce23762693dd1d14fa98b7f103e2efe2c6f49033331f91de5681ffd65cca88618cefe555be326db
   languageName: node
   linkType: hard
 
@@ -4413,7 +4413,7 @@ __metadata:
     "@types/jest": "npm:^29.5.14"
     "@types/js-yaml": "npm:^4"
     "@types/lodash": "npm:^4.17.16"
-    "@types/luxon": "npm:^3.4.2"
+    "@types/luxon": "npm:^3.6.2"
     "@types/react": "npm:^19.0.12"
     "@types/react-dom": "npm:^19.0.4"
     "@types/react-is": "npm:^19"
@@ -4442,7 +4442,7 @@ __metadata:
     js-yaml: "npm:^4.1.0"
     jsdom: "npm:^26.0.0"
     lodash: "npm:^4.17.21"
-    luxon: "npm:^3.6.0"
+    luxon: "npm:^3.6.1"
     mnemonic-browser: "npm:^0.0.1"
     parcel: "npm:^2.14.4"
     postcss: "npm:^8.5.3"
@@ -9417,10 +9417,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"luxon@npm:^3.6.0":
-  version: 3.6.0
-  resolution: "luxon@npm:3.6.0"
-  checksum: 10c0/60cc3fe8f7dce51f0e406529b80eec815b335a7202d5c41e210a8acc8e698d8be797f3c77ed60efe581af07f2a88defbe7a77e506121e2f460a667690e71c0d1
+"luxon@npm:^3.6.1":
+  version: 3.6.1
+  resolution: "luxon@npm:3.6.1"
+  checksum: 10c0/906d57a9dc4d1de9383f2e9223e378c298607c1b4d17b6657b836a3cd120feb1c1de3b5d06d846a3417e1ca764de8476e8c23b3cd4083b5cdb870adcb06a99d5
   languageName: node
   linkType: hard
 
