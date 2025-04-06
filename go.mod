@@ -47,7 +47,7 @@ require (
 	github.com/yannh/kubeconform v0.6.7
 	go.uber.org/zap v1.27.0
 	golang.org/x/crypto v0.36.0
-	golang.org/x/oauth2 v0.28.0
+	golang.org/x/oauth2 v0.29.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20250303144028-a0af3efb3deb
 	google.golang.org/grpc v1.71.1
 	google.golang.org/protobuf v1.36.6
@@ -187,8 +187,8 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/mod v0.23.0 // indirect
 	golang.org/x/net v0.38.0
-	golang.org/x/sys v0.31.0 // indirect
-	golang.org/x/term v0.30.0
+	golang.org/x/sys v0.32.0 // indirect
+	golang.org/x/term v0.31.0
 	golang.org/x/text v0.23.0 // indirect
 	golang.org/x/time v0.10.0 // indirect
 	golang.org/x/tools v0.30.0 // indirect
