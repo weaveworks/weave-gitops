@@ -1,7 +1,6 @@
 module github.com/weaveworks/weave-gitops
 
-go 1.23.4
-toolchain go1.24.1
+go 1.24.0
 
 require (
 	github.com/Masterminds/semver/v3 v3.3.1
