@@ -1,6 +1,7 @@
 module github.com/weaveworks/weave-gitops
 
 go 1.23.4
+toolchain go1.24.1
 
 require (
 	github.com/Masterminds/semver/v3 v3.3.1
@@ -21,7 +22,7 @@ require (
 	github.com/fluxcd/pkg/ssa v0.45.1
 	github.com/fluxcd/source-controller/api v1.5.0
 	github.com/go-git/go-git/v5 v5.14.0
-	github.com/go-jose/go-jose/v4 v4.0.5
+	github.com/go-jose/go-jose/v4 v4.1.0
 	github.com/go-logr/logr v1.4.2
 	github.com/go-logr/zapr v1.3.0
 	github.com/go-resty/resty/v2 v2.16.5
