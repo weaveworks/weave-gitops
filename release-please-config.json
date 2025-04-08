@@ -1,6 +1,7 @@
 {
   "always-update": true,
   "draft": true,
+  "group-pull-request-title-pattern": "chore(${branch}): release ${component} ${version}",
   "packages": {
     ".": {
       "bootstrap-sha": "76f25bbb1d20aa41a1f78920344f579af4f88e2d",
@@ -10,6 +11,11 @@
         "doc",
         "website"
       ],
+      "extra-files": [
+        "charts/gitops-server/Chart.yaml",
+        "charts/gitops-server/values.yaml",
+        "README.md"
+      ],
       "include-component-in-tag": false,
       "prerelease": true,
       "release-as": "0.39.0-rc.3",
@@ -17,7 +23,7 @@
     },
     "charts/gitops-server": {
       "bootstrap-sha": "693dafd494f1027c4bc740be9ffef98e21cdcfb6",
-      "release-as": "4.1.0",
+      "release-as": "4.1.0-rc.1",
       "release-type": "helm"
     }
   },
