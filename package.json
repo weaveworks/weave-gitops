@@ -132,7 +132,7 @@
   "engines": {
     "node": ">=22.0"
   },
-  "packageManager": "yarn@4.5.3",
+  "packageManager": "yarn@4.9.1",
   "@parcel/resolver-default": {
     "packageExports": true
   },
