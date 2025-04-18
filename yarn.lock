@@ -3787,12 +3787,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:*, @types/react@npm:^19.0.12":
+"@types/react@npm:*":
   version: 19.1.1
   resolution: "@types/react@npm:19.1.1"
   dependencies:
     csstype: "npm:^3.0.2"
   checksum: 10c0/d22417857460ade4250806135a3d1e2558737a7ae76f120f88afbc6419ab04312977a5208a70d4f85059b9493c0f1f16c9ba1483aa8ea1dad581da666c95773e
+  languageName: node
+  linkType: hard
+
+"@types/react@npm:^19.1.2":
+  version: 19.1.2
+  resolution: "@types/react@npm:19.1.2"
+  dependencies:
+    csstype: "npm:^3.0.2"
+  checksum: 10c0/76ffe71395c713d4adc3c759465012d3c956db00af35ab7c6d0d91bd07b274b7ce69caa0478c0760311587bd1e38c78ffc9688ebc629f2b266682a19d8750947
   languageName: node
   linkType: hard
 
@@ -4016,7 +4025,7 @@ __metadata:
     "@types/js-yaml": "npm:^4"
     "@types/lodash": "npm:^4.17.16"
     "@types/luxon": "npm:^3.6.2"
-    "@types/react": "npm:^19.0.12"
+    "@types/react": "npm:^19.1.2"
     "@types/react-dom": "npm:^19.0.4"
     "@types/react-is": "npm:^19"
     "@types/styled-components": "npm:^5.1.34"
