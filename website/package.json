@@ -31,7 +31,7 @@
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-player": "^2.16.0",
-    "webpack": "^5.99.6"
+    "webpack": "^5.99.7"
   },
   "browserslist": {
     "production": [
