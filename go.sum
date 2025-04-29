@@ -117,8 +117,8 @@ github.com/fluxcd/pkg/apis/meta v1.11.0 h1:h8q95k6ZEK1HCfsLkt8Np3i6ktb6ZzcWJ6hg+
 github.com/fluxcd/pkg/apis/meta v1.11.0/go.mod h1:+son1Va60x2eiDcTwd7lcctbI6C+K3gM7R+ULmEq1SI=
 github.com/fluxcd/pkg/runtime v0.59.0 h1:3OrFkMJB39NcQ2vhhoxqls59sQVSn8U+thhyLbsQoA4=
 github.com/fluxcd/pkg/runtime v0.59.0/go.mod h1:MFbfyNyyoYRgPxpdwC9/dCOkzo7Yxhu/cQ9NKyhvqc0=
-github.com/fluxcd/pkg/ssa v0.45.1 h1:ISl84TJwRP/GuZXrKiR9Tf8JOnG5XFgtjcYoR4XQYf4=
-github.com/fluxcd/pkg/ssa v0.45.1/go.mod h1:8Anf7XVZ0zxOve7HXbDaW1s0gfmP95ksJBlKfDYinhQ=
+github.com/fluxcd/pkg/ssa v0.46.0 h1:TGomtbA6zTfZrHF0TDn3mIGKH+bbX45zdWSkdYrwS8g=
+github.com/fluxcd/pkg/ssa v0.46.0/go.mod h1:qCek0b8tKumh9iNZLmga1mjeXOlZPlZpc6xip/hLMJM=
 github.com/fluxcd/source-controller/api v1.5.0 h1:caSR+u/r2Vh0jq/0pNR0r1zLxyvgatWuGSV2mxgTB/I=
 github.com/fluxcd/source-controller/api v1.5.0/go.mod h1:OZPuHMlLH2E2mnj6Q5DLkWfUOmJ20zA1LIvUVfNsYl8=
 github.com/frankban/quicktest v1.14.6 h1:7Xjx+VpznH+oBnejlPUj8oUpdxnVs4f8XU8WnHkI4W8=
