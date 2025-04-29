@@ -95,8 +95,8 @@ github.com/flux-iac/tofu-controller/api v0.0.0-20241117120425-42fef1dde8a2 h1:dS
 github.com/flux-iac/tofu-controller/api v0.0.0-20241117120425-42fef1dde8a2/go.mod h1:9uAp7XEq+1UNh4pfBynz5zhtc6wr4Wvb6cSb6b+xXpM=
 github.com/flux-iac/tofu-controller/tfctl v0.0.0-20250116084730-01bbcd1540eb h1:zNqoZCG7guLvpTgs24EvN3iDiBSaxsZXk/trQTJieCo=
 github.com/flux-iac/tofu-controller/tfctl v0.0.0-20250116084730-01bbcd1540eb/go.mod h1:3/sYwl/67DvxtrGHBQwaIcFHAphzaNyTTVj98nV/59Q=
-github.com/fluxcd/cli-utils v0.36.0-flux.12 h1:8cD6SmaKa/lGo0KCu0XWiGrXJMLMBQwSsnoP0cG+Gjw=
-github.com/fluxcd/cli-utils v0.36.0-flux.12/go.mod h1:Nb/zMqsJAzjz4/HIsEc2LTqxC6eC0rV26t4hkJT/F9o=
+github.com/fluxcd/cli-utils v0.36.0-flux.13 h1:2X5yjz/rk9mg7+bMFBDZKGKzeZpAmY2s6iwbNZz7OzM=
+github.com/fluxcd/cli-utils v0.36.0-flux.13/go.mod h1:b2iSoIeDTtjfCB0IKtGgqlhhvWa1oux3e90CjOf81oA=
 github.com/fluxcd/go-git-providers v0.23.0 h1:7IkXIOzdMQZO98daCyFWORMMceA/eIDnq63qIXC04NM=
 github.com/fluxcd/go-git-providers v0.23.0/go.mod h1:XUDCVcBbCp0OgnKztOenSbiYXms/0yPquhuhVCNyqfU=
 github.com/fluxcd/helm-controller/api v1.2.0 h1:cjpHBpJQv+8WyYQNwoujoNMFOQx2llllv4peLIiWyxU=
@@ -568,8 +568,8 @@ golang.org/x/tools v0.0.0-20210106214847-113979e3529a/go.mod h1:emZCQorbCU4vsT4f
 golang.org/x/tools v0.1.12/go.mod h1:hNGJHUnrk76NpqgfD5Aqm5Crs+Hm0VOH/i9J2+nxYbc=
 golang.org/x/tools v0.6.0/go.mod h1:Xwgl3UAJ/d3gWutnCtw505GrjyAbvKui8lOU390QaIU=
 golang.org/x/tools v0.8.0/go.mod h1:JxBZ99ISMI5ViVkT1tr6tdNmXeTrcpVSD3vZ1RsRdN4=
-golang.org/x/tools v0.31.0 h1:0EedkvKDbh+qistFTd0Bcwe/YLh4vHwWEkiI0toFIBU=
-golang.org/x/tools v0.31.0/go.mod h1:naFTU+Cev749tSJRXJlna0T3WxKvb1kWEx15xA4SdmQ=
+golang.org/x/tools v0.32.0 h1:Q7N1vhpkQv7ybVzLFtTjvQya2ewbwNDZzUgfXGqtMWU=
+golang.org/x/tools v0.32.0/go.mod h1:ZxrU41P/wAbZD8EDa6dDCa6XfpkhJ7HFMjHJXfBDu8s=
 golang.org/x/xerrors v0.0.0-20190717185122-a985d3407aa7/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 golang.org/x/xerrors v0.0.0-20191011141410-1b5146add898/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=

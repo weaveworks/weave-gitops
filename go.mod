@@ -9,7 +9,7 @@ require (
 	github.com/cheshir/ttlcache v1.0.1-0.20220504185148-8ceeff21b789
 	github.com/coreos/go-oidc/v3 v3.14.1
 	github.com/flux-iac/tofu-controller/tfctl v0.0.0-20250116084730-01bbcd1540eb
-	github.com/fluxcd/cli-utils v0.36.0-flux.12
+	github.com/fluxcd/cli-utils v0.36.0-flux.13
 	github.com/fluxcd/go-git-providers v0.23.0
 	github.com/fluxcd/helm-controller/api v1.2.0
 	github.com/fluxcd/image-automation-controller/api v0.40.0
@@ -192,7 +192,7 @@ require (
 	golang.org/x/term v0.31.0
 	golang.org/x/text v0.24.0 // indirect
 	golang.org/x/time v0.11.0 // indirect
-	golang.org/x/tools v0.31.0 // indirect
+	golang.org/x/tools v0.32.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.4.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
