@@ -3394,21 +3394,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tanstack/query-core@npm:5.74.9":
-  version: 5.74.9
-  resolution: "@tanstack/query-core@npm:5.74.9"
-  checksum: 10c0/2794554b780c576229aaab35086f44656866ae484c04a8efb5b5dd3fac1605a8421098d53f54a9986ab0e2c447a4e38fd9d9ed590aaaed206552c457495fef1a
+"@tanstack/query-core@npm:5.75.0":
+  version: 5.75.0
+  resolution: "@tanstack/query-core@npm:5.75.0"
+  checksum: 10c0/1c90d5f463fe5b4dac4525279300cd950acaef670b8589ba406df833bee3bdb4dcb58fba78c9a5424e7d19a317590eecad838fb389f37a91edb781f9c90af358
   languageName: node
   linkType: hard
 
-"@tanstack/react-query@npm:^5.74.11":
-  version: 5.74.11
-  resolution: "@tanstack/react-query@npm:5.74.11"
+"@tanstack/react-query@npm:^5.75.0":
+  version: 5.75.0
+  resolution: "@tanstack/react-query@npm:5.75.0"
   dependencies:
-    "@tanstack/query-core": "npm:5.74.9"
+    "@tanstack/query-core": "npm:5.75.0"
   peerDependencies:
     react: ^18 || ^19
-  checksum: 10c0/fed029c10517656166041a2cc71eef8fb19e73e4cd0d363c7f26feb6f23d5d7cff3b32548870d84fb1197808a556d93f9a7c2d402d44ac214c4bc433f3c70951
+  checksum: 10c0/beebb9470337eb2c2ce0a1166cbdad6522e4386f9db1057f81fd0d642afee5fb7bd2857f0b2fa85fc61b12054a23c53b472b5d8241e8e7daf033721b38eb7a2d
   languageName: node
   linkType: hard
 
@@ -4007,7 +4007,7 @@ __metadata:
     "@parcel/optimizer-data-url": "npm:^2.14.4"
     "@parcel/transformer-inline-string": "npm:^2.14.4"
     "@parcel/transformer-typescript-tsc": "npm:^2.14.4"
-    "@tanstack/react-query": "npm:^5.74.11"
+    "@tanstack/react-query": "npm:^5.75.0"
     "@testing-library/dom": "npm:^10.4.0"
     "@testing-library/jest-dom": "npm:^6.6.3"
     "@testing-library/react": "npm:^16.3.0"
