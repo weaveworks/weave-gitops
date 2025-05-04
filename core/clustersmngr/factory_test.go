@@ -268,7 +268,7 @@ func TestUpdateUserNamespacesFailsToConnect(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	nsChecker := nsaccess.NewChecker(nil)
+	nsChecker := nsaccess.NewChecker()
 	clustersFetcher := new(clustersmngrfakes.FakeClusterFetcher)
 
 	clustersManager := clustersmngr.NewClustersManager([]clustersmngr.ClusterFetcher{clustersFetcher}, nsChecker, logger)
@@ -302,7 +302,7 @@ func TestGetClusters(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	nsChecker := nsaccess.NewChecker(nil)
+	nsChecker := nsaccess.NewChecker()
 	clustersFetcher := new(clustersmngrfakes.FakeClusterFetcher)
 
 	clustersManager := clustersmngr.NewClustersManager([]clustersmngr.ClusterFetcher{clustersFetcher}, nsChecker, logger)
