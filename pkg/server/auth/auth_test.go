@@ -55,7 +55,7 @@ func TestWithAPIAuthReturns401ForUnauthenticatedRequests(t *testing.T) {
 	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), oidcCfg, fakeKubernetesClient, tokenSignerVerifier, testNamespace, authMethods, "", sm)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	srv, err := auth.NewAuthServer(context.Background(), authCfg)
+	srv, err := auth.NewAuthServer(t.Context(), authCfg)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	g.Expect(auth.RegisterAuthServer(mux, "/oauth2", srv, 1)).To(Succeed())
@@ -92,7 +92,7 @@ func TestAnonymousAuth(t *testing.T) {
 	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), auth.OIDCConfig{}, nil, nil, testNamespace, authMethods, "test-user", nil)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	srv, err := auth.NewAuthServer(context.Background(), authCfg)
+	srv, err := auth.NewAuthServer(t.Context(), authCfg)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	res := httptest.NewRecorder()
@@ -149,7 +149,7 @@ func TestWithAPIAuthOnlyUsesValidMethods(t *testing.T) {
 	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), oidcCfg, fakeKubernetesClient, tokenSignerVerifier, testNamespace, authMethods, "", sm)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	srv, err := auth.NewAuthServer(context.Background(), authCfg)
+	srv, err := auth.NewAuthServer(t.Context(), authCfg)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	g.Expect(auth.RegisterAuthServer(mux, "/oauth2", srv, 1)).To(Succeed())
@@ -214,7 +214,7 @@ func TestOauth2FlowRedirectsToOIDCIssuerWithCustomScopes(t *testing.T) {
 	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), oidcCfg, fakeKubernetesClient, tokenSignerVerifier, testNamespace, authMethods, "", sm)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	srv, err := auth.NewAuthServer(context.Background(), authCfg)
+	srv, err := auth.NewAuthServer(t.Context(), authCfg)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	g.Expect(auth.RegisterAuthServer(mux, "/oauth2", srv, 1)).To(Succeed())
@@ -268,7 +268,7 @@ func TestOauth2FlowRedirectsToOIDCIssuerForUnauthenticatedRequests(t *testing.T)
 	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), oidcCfg, fakeKubernetesClient, tokenSignerVerifier, testNamespace, authMethods, "", sm)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	srv, err := auth.NewAuthServer(context.Background(), authCfg)
+	srv, err := auth.NewAuthServer(t.Context(), authCfg)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	g.Expect(auth.RegisterAuthServer(mux, "/oauth2", srv, 1)).To(Succeed())
@@ -331,7 +331,7 @@ func TestRateLimit(t *testing.T) {
 	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), oidcCfg, fakeKubernetesClient, tokenSignerVerifier, testNamespace, authMethods, "", sm)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	srv, err := auth.NewAuthServer(context.Background(), authCfg)
+	srv, err := auth.NewAuthServer(t.Context(), authCfg)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	g.Expect(auth.RegisterAuthServer(mux, "/oauth2", srv, 1)).To(Succeed())

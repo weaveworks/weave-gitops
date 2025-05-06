@@ -1,7 +1,6 @@
 package server_test
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -30,7 +29,7 @@ import (
 func TestGetReconciledObjects(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	c := makeGRPCServer(ctx, t, k8sEnv.Rest)
 
@@ -196,7 +195,7 @@ func TestGetReconciledObjects(t *testing.T) {
 func TestGetReconciledObjectsWithSecret(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	c := makeGRPCServer(ctx, t, k8sEnv.Rest)
 
@@ -247,7 +246,7 @@ func TestGetReconciledObjectsWithSecret(t *testing.T) {
 func TestGetChildObjects(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	automationName := "my-automation"
 
@@ -333,7 +332,7 @@ func TestGetChildObjects(t *testing.T) {
 func TestListFluxRuntimeObjects(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	tests := []struct {
 		description string
@@ -397,7 +396,7 @@ func TestListFluxRuntimeObjects(t *testing.T) {
 func TestListRuntimeObjects(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	tests := []struct {
 		description string
@@ -495,7 +494,7 @@ func newDeployment(name, ns string, labels map[string]string) *appsv1.Deployment
 func TestListFluxCrds(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	crd1 := &apiextensions.CustomResourceDefinition{ObjectMeta: metav1.ObjectMeta{
 		Name:   "crd1",
@@ -539,7 +538,7 @@ func TestListFluxCrds(t *testing.T) {
 
 func TestListRuntimeCrds(t *testing.T) {
 	g := NewGomegaWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 
 	tests := []struct {
 		description string

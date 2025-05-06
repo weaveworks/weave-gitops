@@ -1,7 +1,6 @@
 package server_test
 
 import (
-	"context"
 	"testing"
 
 	. "github.com/onsi/gomega"
@@ -17,7 +16,7 @@ import (
 func TestGetViolation(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
@@ -86,7 +85,7 @@ func TestGetViolation(t *testing.T) {
 func TestListApplicationValidations(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
@@ -159,7 +158,7 @@ func TestListApplicationValidations(t *testing.T) {
 func TestListPolicyValidations(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())

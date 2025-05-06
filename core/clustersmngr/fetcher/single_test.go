@@ -1,7 +1,6 @@
 package fetcher_test
 
 import (
-	"context"
 	"testing"
 
 	. "github.com/onsi/gomega"
@@ -25,7 +24,7 @@ func TestSingleFetcher(t *testing.T) {
 
 	fetcher := fetcher.NewSingleClusterFetcher(cluster)
 
-	clusters, err := fetcher.Fetch(context.TODO())
+	clusters, err := fetcher.Fetch(t.Context())
 	g.Expect(err).To(BeNil())
 
 	g.Expect(clusters[0].GetName()).To(Equal("Default"))

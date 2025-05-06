@@ -3,7 +3,6 @@ package server_test
 import (
 	"bytes"
 	"compress/gzip"
-	"context"
 	"encoding/base64"
 	"encoding/json"
 	"testing"
@@ -27,7 +26,7 @@ import (
 func TestGetObject(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
@@ -102,7 +101,7 @@ func TestGetObject(t *testing.T) {
 func TestGetObjectOtherKinds(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	ns := corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
@@ -155,7 +154,7 @@ func TestGetObject_HelmReleaseWithInventory(t *testing.T) {
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).NotTo(HaveOccurred())
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	ns := &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
@@ -238,7 +237,7 @@ func TestGetObject_HelmReleaseWithCompressedInventory(t *testing.T) {
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).NotTo(HaveOccurred())
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	ns := &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
@@ -304,7 +303,7 @@ func TestGetObject_HelmReleaseCantGetSecret(t *testing.T) {
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).NotTo(HaveOccurred())
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	ns := &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
@@ -365,7 +364,7 @@ func TestGetObjectSecret(t *testing.T) {
 			"key": []byte("value"),
 		},
 	}
-	ctx := context.Background()
+	ctx := t.Context()
 
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
@@ -395,7 +394,7 @@ func TestGetObjectSecret(t *testing.T) {
 func TestListObjectSingle(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
@@ -437,7 +436,7 @@ func TestListObjectSingle(t *testing.T) {
 func TestListObjectMultiple(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
@@ -488,7 +487,7 @@ func TestListObjectMultiple(t *testing.T) {
 func TestListObjectSingleWithClusterName(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
@@ -531,7 +530,7 @@ func TestListObjectSingleWithClusterName(t *testing.T) {
 func TestListObjectMultipleWithClusterName(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
@@ -586,7 +585,7 @@ func TestListObject_HelmReleaseWithInventory(t *testing.T) {
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).NotTo(HaveOccurred())
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	ns := &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
@@ -645,7 +644,7 @@ func TestListObject_HelmReleaseWithInventoryHistory(t *testing.T) {
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).NotTo(HaveOccurred())
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	ns := &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
@@ -707,7 +706,7 @@ func TestListObject_HelmReleaseCantGetSecret(t *testing.T) {
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).NotTo(HaveOccurred())
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	ns := &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
@@ -767,7 +766,7 @@ func TestListObjectsSecret(t *testing.T) {
 			"key": []byte("value"),
 		},
 	}
-	ctx := context.Background()
+	ctx := t.Context()
 
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
@@ -820,7 +819,7 @@ func TestListObjectsLabels(t *testing.T) {
 		},
 	}
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
@@ -854,7 +853,7 @@ func TestListObjectsGitOpsRunSessions(t *testing.T) {
 		testCluster = "test-cluster"
 	)
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
@@ -921,7 +920,7 @@ func TestGetObjectSessionObjects(t *testing.T) {
 		testCluster = "test-cluster"
 	)
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())

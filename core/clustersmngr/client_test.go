@@ -53,7 +53,7 @@ func TestClientGet(t *testing.T) {
 			},
 		},
 	}
-	ctx := context.Background()
+	ctx := t.Context()
 	g.Expect(k8sEnv.Client.Create(ctx, kust)).To(Succeed())
 
 	k := &kustomizev1.Kustomization{}
@@ -89,7 +89,7 @@ func TestClientClusteredList(t *testing.T) {
 			},
 		},
 	}
-	ctx := context.Background()
+	ctx := t.Context()
 	g.Expect(k8sEnv.Client.Create(ctx, kust)).To(Succeed())
 
 	cklist := clustersmngr.NewClusteredList(func() client.ObjectList {
@@ -131,7 +131,7 @@ func TestClientClusteredList(t *testing.T) {
 
 func TestClientClusteredListPagination(t *testing.T) {
 	g := NewGomegaWithT(t)
-	ctx := context.Background()
+	ctx := t.Context()
 	ns1 := createNamespace(g)
 	ns2 := createNamespace(g)
 	namespaced := true
@@ -150,7 +150,7 @@ func TestClientClusteredListPagination(t *testing.T) {
 				},
 			},
 		}
-		ctx := context.Background()
+		ctx := t.Context()
 		g.Expect(k8sEnv.Client.Create(ctx, kust)).To(Succeed())
 	}
 
@@ -240,7 +240,7 @@ func TestClientClusteredListClusterScoped(t *testing.T) {
 		},
 	}
 
-	ctx := context.Background()
+	ctx := t.Context()
 	g.Expect(k8sEnv.Client.Create(ctx, &clusterRole)).To(Succeed())
 
 	cklist := clustersmngr.NewClusteredList(func() client.ObjectList {
@@ -277,7 +277,7 @@ func TestClientCLusteredListErrors(t *testing.T) {
 		"foo": "@invalid",
 	}
 
-	cerr := clustersClient.ClusteredList(context.Background(), cklist, true, labels)
+	cerr := clustersClient.ClusteredList(t.Context(), cklist, true, labels)
 	g.Expect(cerr).ToNot(BeNil())
 
 	var errs clustersmngr.ClusteredListError
@@ -311,7 +311,7 @@ func TestClientList(t *testing.T) {
 			},
 		},
 	}
-	ctx := context.Background()
+	ctx := t.Context()
 	g.Expect(k8sEnv.Client.Create(ctx, kust)).To(Succeed())
 
 	list := &kustomizev1.KustomizationList{}
@@ -348,7 +348,7 @@ func TestClientCreate(t *testing.T) {
 			},
 		},
 	}
-	ctx := context.Background()
+	ctx := t.Context()
 
 	g.Expect(clustersClient.Create(ctx, clusterName, kust)).To(Succeed())
 
@@ -383,7 +383,7 @@ func TestClientDelete(t *testing.T) {
 			},
 		},
 	}
-	ctx := context.Background()
+	ctx := t.Context()
 
 	g.Expect(k8sEnv.Client.Create(ctx, kust)).To(Succeed())
 
@@ -417,7 +417,7 @@ func TestClientUpdate(t *testing.T) {
 			},
 		},
 	}
-	ctx := context.Background()
+	ctx := t.Context()
 	g.Expect(k8sEnv.Client.Create(ctx, kust)).To(Succeed())
 
 	kust.Spec.Path = "/bar"
@@ -460,7 +460,7 @@ func TestClientPatch(t *testing.T) {
 		},
 	}
 
-	ctx := context.Background()
+	ctx := t.Context()
 	opt := []client.PatchOption{
 		client.ForceOwnership,
 		client.FieldOwner("test"),

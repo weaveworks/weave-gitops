@@ -2,7 +2,6 @@ package auth_test
 
 import (
 	"bytes"
-	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -68,7 +67,7 @@ func TestCallbackErrorFromOIDC(t *testing.T) {
 	s, _ := makeAuthServer(t, nil, nil, []auth.AuthMethod{auth.OIDC}, sm)
 
 	req := httptest.NewRequest(http.MethodGet, "https://example.com/callback?error=invalid_request&error_description=Unsupported%20response_type%20value", nil).
-		WithContext(contextWithValues(context.Background(), map[string]any{}))
+		WithContext(contextWithValues(t.Context(), map[string]any{}))
 	w := httptest.NewRecorder()
 	s.Callback(w, req)
 
@@ -164,7 +163,7 @@ func TestCallbackCodeExchangeError(t *testing.T) {
 	encState := base64.StdEncoding.EncodeToString(state)
 
 	req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("https://example.com/callback?code=123&state=%s", encState), nil).
-		WithContext(contextWithValues(context.Background(), map[string]any{
+		WithContext(contextWithValues(t.Context(), map[string]any{
 			auth.StateCookieName: encState,
 		}))
 
@@ -417,7 +416,7 @@ func TestUserInfoAnonymous(t *testing.T) {
 	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), auth.OIDCConfig{}, nil, nil, testNamespace, authMethods, "test-user", nil)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	s, err := auth.NewAuthServer(context.Background(), authCfg)
+	s, err := auth.NewAuthServer(t.Context(), authCfg)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	req := httptest.NewRequest(http.MethodGet, "/foo", nil)
@@ -868,7 +867,7 @@ func TestLogoutSuccess(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	req := httptest.NewRequest(http.MethodPost, "https://example.com/logout", nil).WithContext(
-		contextWithValues(context.Background(), map[string]any{
+		contextWithValues(t.Context(), map[string]any{
 			"sessionid": "test-session",
 		}))
 
@@ -938,7 +937,7 @@ func makeAuthServer(t *testing.T, client ctrlclient.Client, tsv auth.TokenSigner
 	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), oidcCfg, client, tsv, testNamespace, authMethodsMap, "", sm)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	s, err := auth.NewAuthServer(context.Background(), authCfg)
+	s, err := auth.NewAuthServer(t.Context(), authCfg)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	return s, m
@@ -956,7 +955,7 @@ func TestAuthMethods(t *testing.T) {
 	authCfg, err := auth.NewAuthServerConfig(logr.Discard(), auth.OIDCConfig{}, ctrlclientfake.NewClientBuilder().Build(), nil, testNamespace, authMethods, "", scs.New())
 	g.Expect(err).NotTo(HaveOccurred())
 
-	_, err = auth.NewAuthServer(context.Background(), authCfg)
+	_, err = auth.NewAuthServer(t.Context(), authCfg)
 	g.Expect(err).To(MatchError(MatchRegexp("OIDC auth, local auth or anonymous mode must be enabled")))
 
 	g.Expect(featureflags.Get("OIDC_AUTH")).To(Equal(""))
@@ -978,7 +977,7 @@ func TestAuthMethods(t *testing.T) {
 
 	authCfg, err = auth.NewAuthServerConfig(logr.Discard(), auth.OIDCConfig{}, fakeKubernetesClient, nil, testNamespace, authMethods, "", scs.New())
 	g.Expect(err).NotTo(HaveOccurred())
-	_, err = auth.NewAuthServer(context.Background(), authCfg)
+	_, err = auth.NewAuthServer(t.Context(), authCfg)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	g.Expect(featureflags.Get("OIDC_AUTH")).To(Equal(""))
@@ -1001,7 +1000,7 @@ func TestAuthMethods(t *testing.T) {
 
 	authCfg, err = auth.NewAuthServerConfig(logr.Discard(), oidcCfg, ctrlclientfake.NewClientBuilder().Build(), nil, testNamespace, authMethods, "", scs.New())
 	g.Expect(err).NotTo(HaveOccurred())
-	_, err = auth.NewAuthServer(context.Background(), authCfg)
+	_, err = auth.NewAuthServer(t.Context(), authCfg)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	g.Expect(featureflags.Get("OIDC_AUTH")).To(Equal("true"))

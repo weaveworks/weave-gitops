@@ -1,7 +1,6 @@
 package server_test
 
 import (
-	"context"
 	"testing"
 
 	"github.com/go-logr/logr"
@@ -17,7 +16,7 @@ import (
 func TestGetVersion(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	c := makeGRPCServer(ctx, t, k8sEnv.Rest)
 	logf.SetLogger(logr.Discard())

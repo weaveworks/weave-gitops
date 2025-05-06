@@ -1,7 +1,6 @@
 package server_test
 
 import (
-	"context"
 	"testing"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
@@ -22,7 +21,7 @@ import (
 func TestSuspend_Suspend(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).To(BeNil())
@@ -167,7 +166,7 @@ func getUnstructuredObj(t *testing.T, k client.Client, name types.NamespacedName
 	unstructuredObj := &unstructured.Unstructured{}
 	unstructuredObj.SetKind(kind)
 	unstructuredObj.SetAPIVersion(apiVersion)
-	if err := k.Get(context.Background(), name, unstructuredObj); err != nil {
+	if err := k.Get(t.Context(), name, unstructuredObj); err != nil {
 		t.Error(err)
 	}
 

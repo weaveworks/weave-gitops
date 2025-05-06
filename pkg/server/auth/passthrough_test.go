@@ -1,7 +1,6 @@
 package auth_test
 
 import (
-	"context"
 	"net/http"
 	"testing"
 	"time"
@@ -30,7 +29,7 @@ func TestPassthroughPrincipalGetter(t *testing.T) {
 	}
 
 	srv := testutils.MakeKeysetServer(t, privKey)
-	keySet := oidc.NewRemoteKeySet(oidc.ClientContext(context.TODO(), srv.Client()), srv.URL)
+	keySet := oidc.NewRemoteKeySet(oidc.ClientContext(t.Context(), srv.Client()), srv.URL)
 	verifier := oidc.NewVerifier("http://127.0.0.1:5556/dex", keySet, &oidc.Config{ClientID: "test-service"})
 
 	for _, tt := range authTests {

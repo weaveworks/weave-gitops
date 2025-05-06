@@ -1,7 +1,6 @@
 package server
 
 import (
-	"context"
 	"log"
 	"net/http/httptest"
 	"os"
@@ -69,7 +68,7 @@ func TestGetSessionLogsIntegration(t *testing.T) {
 	)
 	g.Expect(err).ShouldNot(HaveOccurred())
 
-	logEntries, next, err := getGitOpsRunLogs(context.Background(),
+	logEntries, next, err := getGitOpsRunLogs(t.Context(),
 		"session-id",
 		"",
 		asS3Reader(minioClient),
@@ -103,7 +102,7 @@ func TestGetSessionLogsIntegration(t *testing.T) {
 	s3logger.Actionf("round 2 - test action")
 	s3logger.Failuref("round 2 - test failure")
 
-	logEntries, _, err = getGitOpsRunLogs(context.Background(),
+	logEntries, _, err = getGitOpsRunLogs(t.Context(),
 		"session-id",
 		next,
 		asS3Reader(minioClient),
@@ -140,7 +139,7 @@ func TestIsSecretCreatedSecretFound(t *testing.T) {
 
 	cli := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(secret).Build()
 
-	err = isSecretCreated(context.Background(), cli, constants.GitOpsRunNamespace, constants.RunDevBucketCredentials)
+	err = isSecretCreated(t.Context(), cli, constants.GitOpsRunNamespace, constants.RunDevBucketCredentials)
 
 	g.Expect(err).ShouldNot(HaveOccurred())
 }
@@ -163,7 +162,7 @@ func TestIsSecretCreatedSecretNotFound(t *testing.T) {
 
 	cli := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(secret).Build()
 
-	err = isSecretCreated(context.Background(), cli, constants.GitOpsRunNamespace, constants.RunDevBucketCredentials)
+	err = isSecretCreated(t.Context(), cli, constants.GitOpsRunNamespace, constants.RunDevBucketCredentials)
 
 	g.Expect(err).Should(HaveOccurred())
 }

@@ -28,7 +28,7 @@ import (
 func TestSync(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	c := makeGRPCServer(ctx, t, k8sEnv.Rest)
 

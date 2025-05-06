@@ -5,7 +5,6 @@ import (
 
 	"github.com/go-logr/logr"
 	. "github.com/onsi/gomega"
-	"golang.org/x/net/context"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
 
@@ -25,8 +24,7 @@ func TestGetImpersonatedClient(t *testing.T) {
 	g := NewGomegaWithT(t)
 	logger := logr.Discard()
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	ns1 := createNamespace(g)
 	ns2 := createNamespace(g)
@@ -74,8 +72,7 @@ func TestUseUserClientForNamespaces(t *testing.T) {
 	g := NewGomegaWithT(t)
 	logger := logr.Discard()
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	ns1 := createNamespace(g)
 	ns2 := createNamespace(g)
@@ -126,8 +123,7 @@ func TestGetImpersonatedDiscoveryClient(t *testing.T) {
 	g := NewGomegaWithT(t)
 	logger := logr.Discard()
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	ns1 := createNamespace(g)
 
@@ -157,8 +153,7 @@ func TestUpdateNamespaces(t *testing.T) {
 	g := NewGomegaWithT(t)
 	logger := logr.Discard()
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	nsChecker := &nsaccessfakes.FakeChecker{}
 	clustersFetcher := new(clustersmngrfakes.FakeClusterFetcher)
@@ -219,8 +214,7 @@ func TestUpdateUserNamespaces(t *testing.T) {
 	g := NewGomegaWithT(t)
 	logger := logr.Discard()
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	nsChecker := &nsaccessfakes.FakeChecker{}
 	clustersFetcher := new(clustersmngrfakes.FakeClusterFetcher)
@@ -265,8 +259,7 @@ func TestUpdateUserNamespacesFailsToConnect(t *testing.T) {
 	g := NewGomegaWithT(t)
 	logger := logr.Discard()
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	nsChecker := nsaccess.NewChecker(nil)
 	clustersFetcher := new(clustersmngrfakes.FakeClusterFetcher)
@@ -299,8 +292,7 @@ func TestGetClusters(t *testing.T) {
 	g := NewGomegaWithT(t)
 	logger := logr.Discard()
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	nsChecker := nsaccess.NewChecker(nil)
 	clustersFetcher := new(clustersmngrfakes.FakeClusterFetcher)
@@ -335,8 +327,7 @@ func TestUpdateClusters(t *testing.T) {
 	g := NewGomegaWithT(t)
 	logger := logr.Discard()
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	nsChecker := &nsaccessfakes.FakeChecker{}
 
@@ -451,8 +442,7 @@ func TestClientCaching(t *testing.T) {
 	g := NewGomegaWithT(t)
 	logger := logr.Discard()
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx := t.Context()
 
 	ns1 := createNamespace(g)
 

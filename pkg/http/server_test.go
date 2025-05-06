@@ -34,7 +34,7 @@ func TestMultiServerStartReturnsImmediatelyWithClosedContext(t *testing.T) {
 		KeyFile:  "testdata/localhost.key",
 		Logger:   log.Default(),
 	}
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(t.Context())
 	cancel()
 	g.Expect(srv.Start(ctx, nil)).To(Succeed())
 }
@@ -42,10 +42,8 @@ func TestMultiServerStartReturnsImmediatelyWithClosedContext(t *testing.T) {
 func TestMultiServerWithoutTLSConfigFailsToStart(t *testing.T) {
 	g := NewGomegaWithT(t)
 	srv := wegohttp.MultiServer{}
-	ctx, cancel := context.WithCancel(context.Background())
-	cancel()
 
-	err := srv.Start(ctx, nil)
+	err := srv.Start(t.Context(), nil)
 	g.Expect(err).To(HaveOccurred())
 	g.Expect(err.Error()).To(HavePrefix("failed to create TLS listener"))
 }
@@ -68,7 +66,7 @@ func TestMultiServerServesOverBothProtocols(t *testing.T) {
 		KeyFile:   "testdata/localhost.key",
 		Logger:    log.Default(),
 	}
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(t.Context())
 
 	exitChan := make(chan struct{})
 	go func(exitChan chan<- struct{}) {

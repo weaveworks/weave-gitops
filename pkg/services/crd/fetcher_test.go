@@ -1,7 +1,6 @@
 package crd_test
 
 import (
-	"context"
 	"testing"
 
 	"github.com/onsi/gomega"
@@ -14,9 +13,7 @@ import (
 func TestFetcher_IsAvailable(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
 
-	ctx, cancelFn := context.WithCancel(context.Background())
-
-	defer cancelFn()
+	ctx := t.Context()
 
 	service, err := newService(ctx, k8sEnv)
 	g.Expect(err).NotTo(gomega.HaveOccurred())
@@ -57,9 +54,7 @@ func TestFetcher_IsAvailable(t *testing.T) {
 func TestFetcher_IsAvailableOnClusters(t *testing.T) {
 	g := gomega.NewGomegaWithT(t)
 
-	ctx, cancelFn := context.WithCancel(context.Background())
-
-	defer cancelFn()
+	ctx := t.Context()
 
 	service, err := newService(ctx, k8sEnv)
 	g.Expect(err).NotTo(gomega.HaveOccurred())

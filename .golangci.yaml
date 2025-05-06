@@ -80,9 +80,6 @@ linters:
         - G306
     lll:
       line-length: 150
-    usetesting:
-      context-background: false
-      context-todo: false
   exclusions:
     presets:
       - common-false-positives
