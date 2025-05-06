@@ -69,7 +69,7 @@ func (cs *coreServer) ListEvents(ctx context.Context, msg *pb.ListEventsRequest)
 				events = append(events, &pb.Event{
 					Type:      e.Type,
 					Component: e.Source.Component,
-					Name:      e.ObjectMeta.Name,
+					Name:      e.Name,
 					Reason:    e.Reason,
 					Message:   e.Message,
 					Timestamp: e.LastTimestamp.Format(time.RFC3339),

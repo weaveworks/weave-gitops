@@ -56,7 +56,7 @@ func (i *internalJWTClient) GenerateJWT(expirationTime time.Duration, providerNa
 		// It is possible for the GitLab backend to specify an `expires_in` of 0.
 		// Edit the `Expire access tokens` setting to enable/disable expiring tokens.
 		// Gitlab defaults to 2 hour expiration, so replicate it here I guess?
-		claims.RegisteredClaims.ExpiresAt = jwt.NewNumericDate(time.Now().Add(2 * time.Hour))
+		claims.ExpiresAt = jwt.NewNumericDate(time.Now().Add(2 * time.Hour))
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS512, claims)

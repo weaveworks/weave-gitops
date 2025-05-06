@@ -60,11 +60,10 @@ func TestReadPatterns(t *testing.T) {
 }
 
 func TestReadIgnoreFile(t *testing.T) {
-	f, err := os.CreateTemp("", IgnoreFilename)
+	f, err := os.CreateTemp(t.TempDir(), IgnoreFilename)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.Remove(f.Name())
 	if _, err = f.Write([]byte(`# .sourceignore
 ignore-this.txt`)); err != nil {
 		t.Fatal(err)
