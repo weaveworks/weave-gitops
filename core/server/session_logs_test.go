@@ -88,7 +88,7 @@ func TestGetBucketConnectionInfo(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		info, err := getBucketConnectionInfo(context.TODO(), tt.args.clusterName, tt.args.ns, tt.args.cli)
+		info, err := getBucketConnectionInfo(t.Context(), tt.args.clusterName, tt.args.ns, tt.args.cli)
 		g.Expect(err != nil).To(Equal(tt.wantErr))
 		g.Expect(info).To(Equal(tt.want))
 	}
@@ -190,7 +190,7 @@ func TestGitOpsRunLogs(t *testing.T) {
 
 	for _, tt := range tests {
 		got, token, err := getGitOpsRunLogs(
-			context.TODO(),
+			t.Context(),
 			tt.args.sessionID,
 			tt.args.nextToken,
 			tt.args.minio,

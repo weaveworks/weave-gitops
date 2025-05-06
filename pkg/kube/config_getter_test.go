@@ -1,7 +1,6 @@
 package kube_test
 
 import (
-	"context"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -15,7 +14,7 @@ var _ kube.ConfigGetter = (*kube.ImpersonatingConfigGetter)(nil)
 
 func TestImpersonatingConfigGetterPrincipalInContext(t *testing.T) {
 	g := kube.NewImpersonatingConfigGetter(&rest.Config{}, false, kube.UserPrefixes{})
-	ctx := auth.WithPrincipal(context.TODO(), &auth.UserPrincipal{ID: "user@example.com"})
+	ctx := auth.WithPrincipal(t.Context(), &auth.UserPrincipal{ID: "user@example.com"})
 
 	cfg := g.Config(ctx)
 
@@ -31,7 +30,7 @@ func TestImpersonatingConfigGetterPrincipalInContext(t *testing.T) {
 
 func TestImpersonatingConfigGetterPrincipalInContextWithGroups(t *testing.T) {
 	g := kube.NewImpersonatingConfigGetter(&rest.Config{}, false, kube.UserPrefixes{})
-	ctx := auth.WithPrincipal(context.TODO(), &auth.UserPrincipal{ID: "user@example.com", Groups: []string{"test-group"}})
+	ctx := auth.WithPrincipal(t.Context(), &auth.UserPrincipal{ID: "user@example.com", Groups: []string{"test-group"}})
 
 	cfg := g.Config(ctx)
 
@@ -48,7 +47,7 @@ func TestImpersonatingConfigGetterPrincipalInContextWithGroups(t *testing.T) {
 
 func TestImpersonatingConfigGetterInsecureClient(t *testing.T) {
 	g := kube.NewImpersonatingConfigGetter(&rest.Config{}, true, kube.UserPrefixes{})
-	ctx := auth.WithPrincipal(context.TODO(), &auth.UserPrincipal{ID: "user@example.com"})
+	ctx := auth.WithPrincipal(t.Context(), &auth.UserPrincipal{ID: "user@example.com"})
 
 	cfg := g.Config(ctx)
 
@@ -68,7 +67,7 @@ func TestImpersonatingConfigGetterInsecureClient(t *testing.T) {
 func TestImpersonatingConfigGetterNoPrincipalInContext(t *testing.T) {
 	g := kube.NewImpersonatingConfigGetter(&rest.Config{}, true, kube.UserPrefixes{})
 
-	cfg := g.Config(context.TODO())
+	cfg := g.Config(t.Context())
 
 	want := &rest.Config{
 		TLSClientConfig: rest.TLSClientConfig{

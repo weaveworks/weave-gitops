@@ -1,7 +1,6 @@
 package check_test
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -148,7 +147,7 @@ func TestGetClaimsWithSecret(t *testing.T) {
 			var logBuf strings.Builder
 			log := logger.NewCLILogger(&logBuf)
 
-			_, err := check.GetPrincipal(context.Background(), check.Options{
+			_, err := check.GetPrincipal(t.Context(), check.Options{
 				SecretName:      "test-oidc",
 				SecretNamespace: "flux-system",
 				OpenURL: func(u string) error {
@@ -318,7 +317,7 @@ func TestGetClaimsWithoutSecret(t *testing.T) {
 			var logBuf strings.Builder
 			log := logger.NewCLILogger(&logBuf)
 
-			c, err := check.GetPrincipal(context.Background(), tt.opts, log, nil)
+			c, err := check.GetPrincipal(t.Context(), tt.opts, log, nil)
 
 			if tt.expectedErr != "" {
 				g.Expect(err).To(MatchError(ContainSubstring(tt.expectedErr)))

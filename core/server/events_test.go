@@ -21,7 +21,7 @@ import (
 func TestListEvents(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	c := makeGRPCServer(ctx, t, k8sEnv.Rest)
 
