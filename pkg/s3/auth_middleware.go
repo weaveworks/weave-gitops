@@ -151,8 +151,8 @@ func getCanonicalHeaders(req http.Request, signedHeaders string) string {
 		buf.WriteString(k)
 		buf.WriteByte(':')
 
-		switch {
-		case k == "host":
+		switch k {
+		case "host":
 			buf.WriteString(getHostAddr(&req))
 			buf.WriteByte('\n')
 		default:

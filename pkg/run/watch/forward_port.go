@@ -51,12 +51,13 @@ func ParsePortForwardSpec(spec string) (*PortForwardSpec, error) {
 			return nil, fmt.Errorf("invalid port forward spec: %s", spec)
 		}
 
-		if kv[0] == "port" {
+		switch kv[0] {
+		case "port":
 			// split into port and host port
 			portAndHostPort := strings.Split(kv[1], ":")
 			specMap.HostPort = portAndHostPort[0]
 			specMap.ContainerPort = portAndHostPort[1]
-		} else if kv[0] == "resource" {
+		case "resource":
 			// specMap["resource"] = kv[1]
 			// split kv[1] into kind and name
 			kindAndName := strings.Split(kv[1], "/")
@@ -65,9 +66,9 @@ func ParsePortForwardSpec(spec string) (*PortForwardSpec, error) {
 			}
 			specMap.Kind = generalizeKind(kindAndName[0])
 			specMap.Name = kindAndName[1]
-		} else if kv[0] == "namespace" {
+		case "namespace":
 			specMap.Namespace = kv[1]
-		} else {
+		default:
 			specMap.Map[kv[0]] = kv[1]
 		}
 	}

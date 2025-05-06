@@ -1,8 +1,8 @@
+version: "2"
 run:
   timeout: 10m
-
 linters:
-  disable-all: true
+  default: none
   enable:
     - containedctx
     #- contextcheck
@@ -12,14 +12,11 @@ linters:
     #- errname
     - errorlint
     #- gochecknoinits
-    - gci
     #- goconst
     - gocritic
     #- gocyclo
     #- godot
-    - gofumpt
     - gosec
-    - gosimple
     - govet
     - ineffassign
     #- lll
@@ -28,88 +25,86 @@ linters:
     - nolintlint
     - prealloc
     - staticcheck
-    - stylecheck
-    - tenv
     - thelper
     #- tparallel
-    - typecheck
     - unconvert
     - unparam
     - unused
+    - usetesting
     - whitespace
-
-linters-settings:
-  depguard:
+  settings:
+    depguard:
+      rules:
+        prevent_kubernetes_dependency:
+          list-mode: lax # allow unless explicitly denied
+          deny:
+            - pkg: k8s.io/kubernetes
+              desc: do not use k8s.io/kubernetes directly
+    errcheck:
+      exclude-functions:
+        - encoding/json.Marshal
+        - encoding/json.MarshalIndent
+    errchkjson:
+      check-error-free-encoding: true
+    gocritic:
+      disabled-checks:
+        - appendAssign
+        - appendCombine
+        - commentedOutCode
+        - equalFold
+        - exposedSyncMutex
+        - httpNoBody
+        - hugeParam
+        - ifElseChain
+        - importShadow
+        - methodExprCall
+        - nestingReduce
+        - preferStringWriter
+        - rangeValCopy
+        - singleCaseSwitch
+        - stringConcatSimplify
+        - unlabelStmt
+        - unnamedResult
+        - whyNoLint
+      enabled-tags:
+        - diagnostic
+        - experimental
+        - opinionated
+        - performance
+        - style
+    gosec:
+      excludes:
+        - G110
+        - G115
+        - G204
+        - G306
+    lll:
+      line-length: 150
+    usetesting:
+      context-background: false
+      context-todo: false
+  exclusions:
+    presets:
+      - common-false-positives
+      - legacy
+      - std-error-handling
     rules:
-      prevent_kubernetes_dependency:
-        list-mode: lax # allow unless explicitly denied
-        deny:
-          - pkg: k8s.io/kubernetes
-            desc: "do not use k8s.io/kubernetes directly"
-  errcheck:
-    exclude-functions:
-      - encoding/json.Marshal
-      - encoding/json.MarshalIndent
-  errchkjson:
-    check-error-free-encoding: true
-  gci:
-    sections:
-      - Standard
-      - Default
-      - Prefix(github.com/weaveworks)
-      - Prefix(github.com/weaveworks/weave-gitops)
-  gocritic:
-    disabled-checks:
-      - appendAssign
-      - appendCombine
-      - commentedOutCode
-      - equalFold
-      - exposedSyncMutex
-      - httpNoBody
-      - hugeParam
-      - ifElseChain
-      - importShadow
-      - methodExprCall
-      - nestingReduce
-      - preferStringWriter
-      - rangeValCopy
-      - singleCaseSwitch
-      - stringConcatSimplify
-      - unlabelStmt
-      - unnamedResult
-      - whyNoLint
-    enabled-tags:
-      - diagnostic
-      - experimental
-      - opinionated
-      - performance
-      - style
-  gofumpt:
-    extra-rules: true
-  gosec:
-    excludes:
-      - G110
-      - G115
-      - G204
-      - G306
-  lll:
-    line-length: 150
-
-issues:
-  exclude-dirs:
-    - tilt_modules
-  exclude-rules:
-    # ignore errcheck for code under a /test folder
-    - path: "test/*"
-      linters:
-        - errcheck
-    # ignore errcheck for flags.Parse (it is expected that we flag.ExitOnError)
-    # ignore response.WriteError as it always returns the err it was passed
-    - source: "flags.Parse|response.WriteError"
-      linters:
-        - errcheck
-
-output:
-  formats:
-    - format: colored-line-number
-      path: stdout
+      - linters:
+          - errcheck
+        path: test/*
+      - linters:
+          - errcheck
+        source: flags.Parse|response.WriteError
+formatters:
+  enable:
+    - gci
+    - gofumpt
+  settings:
+    gci:
+      sections:
+        - Standard
+        - Default
+        - Prefix(github.com/weaveworks)
+        - Prefix(github.com/weaveworks/weave-gitops)
+    gofumpt:
+      extra-rules: true
