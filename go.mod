@@ -44,7 +44,7 @@ require (
 	github.com/spf13/viper v1.20.1
 	github.com/tomwright/dasel/v2 v2.8.1
 	github.com/weaveworks/policy-agent/api v1.0.5
-	github.com/yannh/kubeconform v0.6.7
+	github.com/yannh/kubeconform v0.7.0
 	go.uber.org/zap v1.27.0
 	golang.org/x/crypto v0.38.0
 	golang.org/x/oauth2 v0.30.0
@@ -106,7 +106,7 @@ require (
 	github.com/rs/xid v1.6.0 // indirect
 	github.com/ryszard/goskiplist v0.0.0-20150312221310-2dfbae5fcf46 // indirect
 	github.com/sagikazarmark/locafero v0.7.0 // indirect
-	github.com/santhosh-tekuri/jsonschema/v5 v5.3.1 // indirect
+	github.com/santhosh-tekuri/jsonschema/v6 v6.0.1 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/skeema/knownhosts v1.3.1 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect
