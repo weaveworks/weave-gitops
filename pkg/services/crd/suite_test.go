@@ -67,7 +67,7 @@ func createClient(k8sEnv *testutils.K8sTestEnv) (clustersmngr.Client, clustersmn
 
 	clustersManager := clustersmngr.NewClustersManager(
 		[]clustersmngr.ClusterFetcher{fetcher},
-		nsaccess.NewChecker(nsaccess.DefautltWegoAppRules),
+		nsaccess.NewChecker(),
 		log,
 	)
 
