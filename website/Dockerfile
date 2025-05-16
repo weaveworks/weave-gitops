@@ -1,6 +1,6 @@
 ## Base ########################################################################
 # Use a larger node image to do the build for native deps (e.g., gcc, python)
-FROM node:lts@sha256:35a5dd72bcac4bce43266408b58a02be6ff0b6098ffa6f5435aeea980a8951d7 AS base
+FROM node:lts@sha256:e558507eb799e3a76fcdaaee5e48dce1a00aebc85892128a9fca59f63bd49511 AS base
 
 # Reduce npm log spam and colour during install within Docker
 ENV NPM_CONFIG_LOGLEVEL=warn
