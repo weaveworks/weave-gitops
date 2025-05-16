@@ -87,7 +87,9 @@ updates:
       all-github-actions:
         patterns: ["*"]
   - package-ecosystem: docker
-    directory: "/"
+    directories:
+      - "/"
+      - "/website"
     schedule:
       interval: weekly
       day: friday
