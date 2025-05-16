@@ -1,7 +1,6 @@
 package server_test
 
 import (
-	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -29,7 +28,7 @@ import (
 func TestGetInventoryKustomization(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	automationName := "my-automation"
 
@@ -145,7 +144,7 @@ func TestGetInventoryKustomization(t *testing.T) {
 func TestGetBlankInventoryKustomization(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	automationName := "my-automation"
 	ns := "test-namespace"
@@ -216,7 +215,7 @@ func TestGetInventoryHelmRelease(t *testing.T) {
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).NotTo(HaveOccurred())
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	ns := &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
@@ -295,7 +294,7 @@ func TestGetInventoryHelmReleaseNoNSResources(t *testing.T) {
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).NotTo(HaveOccurred())
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	ns := &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
@@ -384,7 +383,7 @@ func TestGetInventoryHelmReleaseWithKubeconfig(t *testing.T) {
 	scheme, err := kube.CreateScheme()
 	g.Expect(err).NotTo(HaveOccurred())
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	ns := &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{

@@ -1,7 +1,6 @@
 package auth_test
 
 import (
-	"context"
 	"testing"
 
 	"github.com/alexedwards/scs/v2"
@@ -129,7 +128,7 @@ func TestInitAuthServer(t *testing.T) {
 
 			fakeKubernetesClient := partialKubernetesClient.Build()
 
-			srv, err := auth.InitAuthServer(context.Background(), logr.Discard(), fakeKubernetesClient, auth.AuthParams{
+			srv, err := auth.InitAuthServer(t.Context(), logr.Discard(), fakeKubernetesClient, auth.AuthParams{
 				AuthMethodStrings: tt.authMethods,
 				OIDCConfig:        tt.cliOIDCConfig,
 				Namespace:         "test-namespace",

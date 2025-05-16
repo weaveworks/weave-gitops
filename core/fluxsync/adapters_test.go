@@ -1,7 +1,6 @@
 package fluxsync
 
 import (
-	"context"
 	"testing"
 
 	. "github.com/onsi/gomega"
@@ -105,7 +104,7 @@ func TestAsClientObjectCompatibilityWithTestClient(t *testing.T) {
 		},
 	}
 
-	err := cl.Create(context.TODO(), obj.AsClientObject())
+	err := cl.Create(t.Context(), obj.AsClientObject())
 	g.Expect(err).NotTo(HaveOccurred())
 
 	retrieved := &UnstructuredAdapter{
@@ -116,7 +115,7 @@ func TestAsClientObjectCompatibilityWithTestClient(t *testing.T) {
 			},
 		},
 	}
-	err = cl.Get(context.TODO(), client.ObjectKey{Namespace: "default", Name: "test-cm"}, retrieved.AsClientObject())
+	err = cl.Get(t.Context(), client.ObjectKey{Namespace: "default", Name: "test-cm"}, retrieved.AsClientObject())
 	g.Expect(err).NotTo(HaveOccurred())
 
 	// check the data key

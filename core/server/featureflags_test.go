@@ -1,7 +1,6 @@
 package server_test
 
 import (
-	"context"
 	"testing"
 
 	"github.com/go-logr/logr"
@@ -22,7 +21,7 @@ import (
 func TestGetFeatureFlags(t *testing.T) {
 	RegisterFailHandler(Fail)
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	featureflags.Set("this is a flag", "you won't find it anywhere else")
 
@@ -47,7 +46,7 @@ func TestGetFeatureFlags(t *testing.T) {
 	coreSrv, err := server.NewCoreServer(ctx, cfg)
 	Expect(err).NotTo(HaveOccurred())
 
-	resp, err := coreSrv.GetFeatureFlags(context.Background(), &pb.GetFeatureFlagsRequest{})
+	resp, err := coreSrv.GetFeatureFlags(t.Context(), &pb.GetFeatureFlagsRequest{})
 	Expect(err).NotTo(HaveOccurred())
 	Expect(resp.Flags).To(HaveKeyWithValue("this is a flag", "you won't find it anywhere else"))
 }

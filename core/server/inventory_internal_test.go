@@ -1,7 +1,6 @@
 package server
 
 import (
-	"context"
 	"testing"
 
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
@@ -17,7 +16,7 @@ import (
 func TestGetFluxLikeInventory(t *testing.T) {
 	g := NewGomegaWithT(t)
 
-	ctx := context.Background()
+	ctx := t.Context()
 
 	ks := &kustomizev1.Kustomization{
 		ObjectMeta: metav1.ObjectMeta{
