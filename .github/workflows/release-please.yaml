@@ -70,6 +70,7 @@ jobs:
     needs:
       - release-please
       - build-and-push-image # as we want to push chart when images are available
+    runs-on: ubuntu-latest
     permissions:
       contents: read # for actions/checkout to fetch code
       id-token: write # for Cosign to be able to sign chart with GHA token
