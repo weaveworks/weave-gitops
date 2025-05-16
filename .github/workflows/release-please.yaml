@@ -96,7 +96,7 @@ jobs:
           CHART_DIGEST=$(awk '/Digest: /{print $2}' helm-release/push-metadata.txt)
           echo "digest=$CHART_DIGEST" >> $GITHUB_OUTPUT
       - name: Install cosign
-        uses: sigstore/cosign-installer@d7d6bc7722e3daa8354c50bcb52f4837da5e9b6a # v3.8.1
+        uses: sigstore/cosign-installer@3454372f43399081ed03b604cb2d021dabca52bb # v3.8.2
       - name: Keyless signing of chart
         run: |
           cosign sign --yes ghcr.io/weaveworks/charts@${{ steps.publish-chart.outputs.digest }}
