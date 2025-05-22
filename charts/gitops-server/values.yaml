@@ -29,6 +29,30 @@ envVars:
   - name: WEAVE_GITOPS_FEATURE_GITOPS_RUNTIME
     value: "false"
 
+# This section is used to configure the app rules for the GitOps server.
+# The app rules are used to define the permissions that the GitOps server has
+# to access resources in the cluster. The rules are defined in a ConfigMap
+# that is mounted into the GitOps server pod.
+weaveGitOpsApprules:
+  - apiGroups: [""]
+    resources: ["pods", "secrets"]
+    verbs: ["get", "list"]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "replicasets"]
+    verbs: ["get", "list"]
+  - apiGroups: ["kustomize.toolkit.fluxcd.io"]
+    resources: ["kustomizations"]
+    verbs: ["get", "list"]
+  - apiGroups: ["helm.toolkit.fluxcd.io"]
+    resources: ["helmreleases"]
+    verbs: ["get", "list"]
+  - apiGroups: ["source.toolkit.fluxcd.io"]
+    resources: ["buckets", "helmcharts", "helmrepositories", "gitrepositories", "ocirepositories"]
+    verbs: ["get", "list"]
+
 # -- Annotations to add to the deployment
 annotations: {}
 # Should the 'oidc-auth' secret be created. For a detailed
