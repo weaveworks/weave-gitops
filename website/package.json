@@ -25,13 +25,13 @@
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
     "@fortawesome/react-fontawesome": "^0.2.2",
     "@mdx-js/react": "^3.1.0",
-    "@types/react": "^19.1.4",
+    "@types/react": "^19.1.5",
     "file-loader": "^6.2.0",
     "raw-loader": "^4.0.2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-player": "^2.16.0",
-    "webpack": "^5.99.8"
+    "webpack": "^5.99.9"
   },
   "browserslist": {
     "production": [
