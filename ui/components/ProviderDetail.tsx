@@ -16,7 +16,7 @@ type Props = {
 };
 
 function ProviderDetail({ className, provider }: Props) {
-  const { data, error } = useListAlerts(provider.provider, provider.namespace);
+  const { data, error } = useListAlerts(provider.name, provider.namespace);
   return (
     <Flex column tall wide className={className}>
       <SubRouterTabs rootPath="alerts">
