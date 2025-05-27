@@ -12,7 +12,9 @@ module.exports = {
   projectName: "weave-gitops", // Usually your repo name.
   trailingSlash: true,
   future: {
-    experimental_faster: true,
+    v4: {
+      removeLegacyPostBuildHeadAttribute: true,
+    },
   },
   plugins: [
     () => ({
