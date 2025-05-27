@@ -105,8 +105,8 @@ github.com/fluxcd/helm-controller/api v1.2.0 h1:cjpHBpJQv+8WyYQNwoujoNMFOQx2llll
 github.com/fluxcd/helm-controller/api v1.2.0/go.mod h1:3NZts/4n6PpD4sONSDJWXPQzfPpBk3YpknIFA6rLW3I=
 github.com/fluxcd/image-automation-controller/api v0.40.0 h1:AgObtp2/bnOraIkkzkAl5kJDmDsBMOx/wDPQd6Yv7Is=
 github.com/fluxcd/image-automation-controller/api v0.40.0/go.mod h1:jqFjp75nUHQBeZp2cj2GZYE08l6/4Fz20PBXo41XYyM=
-github.com/fluxcd/image-reflector-controller/api v0.34.0 h1:+0AGoaYzHYXzVDQO9xq2eGZKkPl81Bfz6xFI7rElBzs=
-github.com/fluxcd/image-reflector-controller/api v0.34.0/go.mod h1:C6742RYyZVt2KIyJv16lb4gYbsK+P1RGQeaQ8C8huec=
+github.com/fluxcd/image-reflector-controller/api v0.35.0 h1:PYPqDmo8BOu3B2vtNkp/KIdGotYAN1zwVJ0+7wumhaE=
+github.com/fluxcd/image-reflector-controller/api v0.35.0/go.mod h1:mjpokoQhFs2RxfFjY4rHpn3ZAUvee8TiELyROFN4wiA=
 github.com/fluxcd/kustomize-controller/api v1.5.1 h1:SLVMIk/3E/GkK610S85zDBfX/TQhpE2ym+516ONXtU4=
 github.com/fluxcd/kustomize-controller/api v1.5.1/go.mod h1:SnQ5blin2e25GOCvd9JqYezYhqcM7beyK1aLq9Iw0So=
 github.com/fluxcd/notification-controller/api v1.5.0 h1:UFrOuaOrnQYhOg/i/Ylvs7TKJV5ggwVIt0zsiZy+rVA=
@@ -127,8 +127,8 @@ github.com/frankban/quicktest v1.14.6 h1:7Xjx+VpznH+oBnejlPUj8oUpdxnVs4f8XU8WnHk
 github.com/frankban/quicktest v1.14.6/go.mod h1:4ptaffx2x8+WTWXmUCuVU6aPUX1/Mz7zb5vbUoiM6w0=
 github.com/fsnotify/fsnotify v1.9.0 h1:2Ml+OJNzbYCTzsxtv8vKSFD9PbJjmhYF14k/jKC7S9k=
 github.com/fsnotify/fsnotify v1.9.0/go.mod h1:8jBTzvmWwFyi3Pb8djgCCO5IBqzKJ/Jwo8TRcHyHii0=
-github.com/fxamacker/cbor/v2 v2.7.0 h1:iM5WgngdRBanHcxugY4JySA0nk1wZorNOpTgCMedv5E=
-github.com/fxamacker/cbor/v2 v2.7.0/go.mod h1:pxXPTn3joSm21Gbwsv0w9OSA2y1HFR9qXEeXQVeNoDQ=
+github.com/fxamacker/cbor/v2 v2.8.0 h1:fFtUGXUzXPHTIUdne5+zzMPTfffl3RD5qYnkY40vtxU=
+github.com/fxamacker/cbor/v2 v2.8.0/go.mod h1:vM4b+DJCtHn+zz7h3FFp/hDAI9WNWCsZj23V5ytsSxQ=
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
 github.com/gliderlabs/ssh v0.3.8 h1:a4YXD1V7xMF9g5nTkdfnja3Sxy1PVDCj1Zg4Wb8vY6c=
 github.com/gliderlabs/ssh v0.3.8/go.mod h1:xYoytBv1sV0aL3CavoDuJIQNURXkkfPA/wxQ1pL1fAU=
@@ -667,7 +667,7 @@ sigs.k8s.io/kustomize/kyaml v0.19.0/go.mod h1:FeKD5jEOH+FbZPpqUghBP8mrLjJ3+zD3/r
 sigs.k8s.io/randfill v0.0.0-20250304075658-069ef1bbf016/go.mod h1:XeLlZ/jmk4i1HRopwe7/aU3H5n1zNUcX6TM94b3QxOY=
 sigs.k8s.io/randfill v1.0.0 h1:JfjMILfT8A6RbawdsK2JXGBR5AQVfd+9TbzrlneTyrU=
 sigs.k8s.io/randfill v1.0.0/go.mod h1:XeLlZ/jmk4i1HRopwe7/aU3H5n1zNUcX6TM94b3QxOY=
-sigs.k8s.io/structured-merge-diff/v4 v4.6.0 h1:IUA9nvMmnKWcj5jl84xn+T5MnlZKThmUW1TdblaLVAc=
-sigs.k8s.io/structured-merge-diff/v4 v4.6.0/go.mod h1:dDy58f92j70zLsuZVuUX5Wp9vtxXpaZnkPGWeqDfCps=
+sigs.k8s.io/structured-merge-diff/v4 v4.7.0 h1:qPeWmscJcXP0snki5IYF79Z8xrl8ETFxgMd7wez1XkI=
+sigs.k8s.io/structured-merge-diff/v4 v4.7.0/go.mod h1:dDy58f92j70zLsuZVuUX5Wp9vtxXpaZnkPGWeqDfCps=
 sigs.k8s.io/yaml v1.4.0 h1:Mk1wCc2gy/F0THH0TAp1QYyJNzRm2KCLy3o5ASXVI5E=
 sigs.k8s.io/yaml v1.4.0/go.mod h1:Ejl7/uTz7PSA4eKMyQCUTnhZYNmLIl+5c2lQPGR2BPY=
