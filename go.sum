@@ -107,8 +107,8 @@ github.com/fluxcd/image-automation-controller/api v0.41.0 h1:wItzHTo0w50NKaJ4wV6
 github.com/fluxcd/image-automation-controller/api v0.41.0/go.mod h1:u1L/gztaeJgwRQrPEx2DqE4mlYoAfSeKTWx/JLUxRbA=
 github.com/fluxcd/image-reflector-controller/api v0.35.0 h1:PYPqDmo8BOu3B2vtNkp/KIdGotYAN1zwVJ0+7wumhaE=
 github.com/fluxcd/image-reflector-controller/api v0.35.0/go.mod h1:mjpokoQhFs2RxfFjY4rHpn3ZAUvee8TiELyROFN4wiA=
-github.com/fluxcd/kustomize-controller/api v1.5.1 h1:SLVMIk/3E/GkK610S85zDBfX/TQhpE2ym+516ONXtU4=
-github.com/fluxcd/kustomize-controller/api v1.5.1/go.mod h1:SnQ5blin2e25GOCvd9JqYezYhqcM7beyK1aLq9Iw0So=
+github.com/fluxcd/kustomize-controller/api v1.6.0 h1:8p230vpJy7giisoBNuI3CX99O+XKKVLLxXuJmv3sOHQ=
+github.com/fluxcd/kustomize-controller/api v1.6.0/go.mod h1:b0i/KVz28tV8iuqlNHx7MW6ZtTcIbBELGLoKdaK+X8M=
 github.com/fluxcd/notification-controller/api v1.6.0 h1:t0k662zxnUZlnDvFrk4DBDl6iivFmJxbwuRdyhH9Ot4=
 github.com/fluxcd/notification-controller/api v1.6.0/go.mod h1:b1gwfsygqnasQVdn/iMCFDI81LeOeY/ibLul+Z6W8U0=
 github.com/fluxcd/pkg/apis/acl v0.7.0 h1:dMhZJH+g6ZRPjs4zVOAN9vHBd1DcavFgcIFkg5ooOE0=
@@ -574,8 +574,8 @@ golang.org/x/tools v0.0.0-20210106214847-113979e3529a/go.mod h1:emZCQorbCU4vsT4f
 golang.org/x/tools v0.1.12/go.mod h1:hNGJHUnrk76NpqgfD5Aqm5Crs+Hm0VOH/i9J2+nxYbc=
 golang.org/x/tools v0.6.0/go.mod h1:Xwgl3UAJ/d3gWutnCtw505GrjyAbvKui8lOU390QaIU=
 golang.org/x/tools v0.8.0/go.mod h1:JxBZ99ISMI5ViVkT1tr6tdNmXeTrcpVSD3vZ1RsRdN4=
-golang.org/x/tools v0.32.0 h1:Q7N1vhpkQv7ybVzLFtTjvQya2ewbwNDZzUgfXGqtMWU=
-golang.org/x/tools v0.32.0/go.mod h1:ZxrU41P/wAbZD8EDa6dDCa6XfpkhJ7HFMjHJXfBDu8s=
+golang.org/x/tools v0.33.0 h1:4qz2S3zmRxbGIhDIAgjxvFutSvH5EfnsYrRBj0UI0bc=
+golang.org/x/tools v0.33.0/go.mod h1:CIJMaWEY88juyUfo7UbgPqbC8rU2OqfAV1h2Qp0oMYI=
 golang.org/x/xerrors v0.0.0-20190717185122-a985d3407aa7/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 golang.org/x/xerrors v0.0.0-20191011141410-1b5146add898/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
