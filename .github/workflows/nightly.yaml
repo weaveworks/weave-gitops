@@ -53,7 +53,7 @@ jobs:
     - run: pip install -r requirements.txt
 
     - name: Setup Flux CLI
-      uses: fluxcd/flux2/action@8d5f40dca5aa5d3c0fc3414457dda15a0ac92fa4 # v2.5.1
+      uses: fluxcd/flux2/action@4c66d375454b5841cc816e7728e8ae684cf70dc3 # v2.6.0
 
     - name: Install kubectl
       run: |
@@ -151,7 +151,7 @@ jobs:
 
     - name: Publish test report
       id: test_summary
-      uses: mikepenz/action-junit-report@cf701569b05ccdd861a76b8607a66d76f6fd4857 # v5.5.1
+      uses: mikepenz/action-junit-report@65fe03598d8d251738592a497a9e8547a5c48eaa # v5.6.0
       if: success() || failure()
       with:
         report_paths: test-results/junit_test_report.xml
