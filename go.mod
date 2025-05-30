@@ -14,7 +14,7 @@ require (
 	github.com/fluxcd/helm-controller/api v1.2.0
 	github.com/fluxcd/image-automation-controller/api v0.41.0
 	github.com/fluxcd/image-reflector-controller/api v0.35.0
-	github.com/fluxcd/kustomize-controller/api v1.5.1
+	github.com/fluxcd/kustomize-controller/api v1.6.0
 	github.com/fluxcd/notification-controller/api v1.6.0
 	github.com/fluxcd/pkg/apis/meta v1.12.0
 	github.com/fluxcd/pkg/runtime v0.60.0
@@ -194,7 +194,7 @@ require (
 	golang.org/x/term v0.32.0
 	golang.org/x/text v0.25.0 // indirect
 	golang.org/x/time v0.11.0 // indirect
-	golang.org/x/tools v0.32.0 // indirect
+	golang.org/x/tools v0.33.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.4.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
