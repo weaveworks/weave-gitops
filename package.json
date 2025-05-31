@@ -84,7 +84,7 @@
   "devDependencies": {
     "@babel/core": "^7.27.4",
     "@babel/preset-env": "^7.27.2",
-    "@eslint/js": "9.27.0",
+    "@eslint/js": "9.28.0",
     "@parcel/config-default": "^2.15.2",
     "@parcel/core": "^2.15.2",
     "@parcel/optimizer-data-url": "^2.15.2",
@@ -104,7 +104,7 @@
     "babel-jest": "^29.7.0",
     "babel-plugin-styled-components": "^2.1.4",
     "buffer": "^6.0.3",
-    "eslint": "9.27.0",
+    "eslint": "9.28.0",
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "5.2.0",
