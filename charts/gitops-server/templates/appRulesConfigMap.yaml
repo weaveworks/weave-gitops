@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: wego-app-rules
+data:
+  rules.yaml: |-
+    {{ toYaml .Values.weaveGitOpsApprules | indent 4 }}
