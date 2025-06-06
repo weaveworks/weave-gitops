@@ -277,6 +277,19 @@ export class HelmRelease extends FluxObject {
     return this.obj.status?.helmChart || "";
   }
 
+  get helmChartRef(): ObjectRef | undefined {
+    if (!this.obj.spec?.chartRef) {
+      return;
+    }
+    const chartRef = {
+      ...this.obj.spec.chartRef,
+    };
+    if (!chartRef.namespace) {
+      chartRef.namespace = this.namespace;
+    }
+    return chartRef;
+  }
+
   get helmChart(): HelmChart {
     // This isn't a "real" helmchart object - it has much fewer fields,
     // and requires some data mangling to work at all

@@ -106,9 +106,17 @@ function AutomationsTable({
           sourceNamespace = sourceRef?.namespace;
         } else {
           const hr = a as HelmRelease;
-          sourceKind = Kind.HelmChart;
-          sourceName = hr.helmChart?.name;
-          sourceNamespace = hr.helmChart?.namespace;
+          if (hr.helmChartRef) {
+            // handle the case when spec.chartRef is set
+            sourceKind = hr.helmChartRef.kind;
+            sourceName = hr.helmChartRef.name;
+            sourceNamespace = hr.helmChartRef.namespace;
+          } else {
+            // otherwise, spec.chart must be set
+            sourceKind = Kind.HelmChart;
+            sourceName = hr.helmChart?.name;
+            sourceNamespace = hr.helmChart?.namespace;
+          }
         }
 
         return (
