@@ -1,7 +1,5 @@
 {
   "always-update": true,
-  "draft": true,
-  "group-pull-request-title-pattern": "chore(${branch}): release ${component} ${version}",
   "packages": {
     ".": {
       "bootstrap-sha": "76f25bbb1d20aa41a1f78920344f579af4f88e2d",
@@ -18,11 +16,14 @@
       ],
       "include-component-in-tag": false,
       "prerelease": true,
+      "prerelease-type": "rc",
       "release-as": "0.39.0-rc.3",
       "release-type": "node"
     },
     "charts/gitops-server": {
       "bootstrap-sha": "693dafd494f1027c4bc740be9ffef98e21cdcfb6",
+      "prerelease": true,
+      "prerelease-type": "rc",
       "release-as": "4.1.0-rc.1",
       "release-type": "helm"
     }
@@ -30,5 +31,6 @@
   "plugins": [
     "sentence-case"
   ],
+  "separate-pull-requests": true,
   "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json"
 }
