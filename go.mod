@@ -20,7 +20,7 @@ require (
 	github.com/fluxcd/pkg/runtime v0.60.0
 	github.com/fluxcd/pkg/ssa v0.48.0
 	github.com/fluxcd/source-controller/api v1.6.0
-	github.com/go-git/go-git/v5 v5.16.0
+	github.com/go-git/go-git/v5 v5.16.2
 	github.com/go-jose/go-jose/v4 v4.1.0
 	github.com/go-logr/logr v1.4.3
 	github.com/go-logr/zapr v1.3.0
