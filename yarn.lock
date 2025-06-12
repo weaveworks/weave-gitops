@@ -4470,7 +4470,7 @@ __metadata:
     react-test-renderer: "npm:^19.0.0"
     react-toastify: "npm:^11.0.5"
     remark-gfm: "npm:^4.0.1"
-    styled-components: "npm:^6.1.18"
+    styled-components: "npm:^6.1.19"
     svgo: "npm:^3"
     ts-jest: "npm:^29.3.4"
     typescript: "npm:^5.8.3"
@@ -4481,7 +4481,7 @@ __metadata:
     react: ^19.0.0
     react-dom: ^19.0.0
     react-toastify: ^7.0.4
-    styled-components: ^6.1.18
+    styled-components: ^6.1.19
   languageName: unknown
   linkType: soft
 
@@ -11712,9 +11712,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"styled-components@npm:^6.1.18":
-  version: 6.1.18
-  resolution: "styled-components@npm:6.1.18"
+"styled-components@npm:^6.1.19":
+  version: 6.1.19
+  resolution: "styled-components@npm:6.1.19"
   dependencies:
     "@emotion/is-prop-valid": "npm:1.2.2"
     "@emotion/unitless": "npm:0.8.1"
@@ -11728,7 +11728,7 @@ __metadata:
   peerDependencies:
     react: ">= 16.8.0"
     react-dom: ">= 16.8.0"
-  checksum: 10c0/067778b8cf9aa24b23590d23210b0e7964c6469630e5ab821c68dac64af6e0c0270c972a836f60a8bbd9753770f0475f911fcd34eeba6bd003c233a79a391e6b
+  checksum: 10c0/8d20427a5debe54bfa3b55f79af2a3577551ed7f1d1cd34df986b73fd01ac519f9081b7737cc1f76e12fbc483fa50551e55be0bc984296e623cc6a2364697cd8
   languageName: node
   linkType: hard
 
