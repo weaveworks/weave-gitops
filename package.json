@@ -120,7 +120,7 @@
     "process": "^0.11.10",
     "react-test-renderer": "^19.0.0",
     "svgo": "^3",
-    "ts-jest": "^29.3.4",
+    "ts-jest": "^29.4.0",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.34.0",
     "yarn-audit-fix": "^10.1.1"
