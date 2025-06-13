@@ -24,6 +24,12 @@ updates:
           - eslint
           - "@eslint/*"
           - "@typescript-eslint/*"
+      jest:
+        patterns:
+          - babel-jest
+          - jest
+          - jest-environment-jsdom
+          - jest-worker
       mui:
         patterns:
           - "@mui/*"
