@@ -1,6 +1,6 @@
 {
   "name": "@weaveworks/weave-gitops",
-  "version": "0.39.0-rc.2",
+  "version": "0.39.0-rc.3",
   "description": "Weave GitOps core",
   "targets": {
     "default": {
