@@ -122,7 +122,7 @@ jobs:
 
     - name: Generate tests report
       if: always()
-      uses: pmeier/pytest-results-action@fc6576eced1f411ea48ab10e917d9cfce2960e29 # v0.7.1
+      uses: pmeier/pytest-results-action@20b595761ba9bf89e115e875f8bc863f913bc8ad # v0.7.2
       with:
         path: test-results/junit_test_report.xml
         summary: true
