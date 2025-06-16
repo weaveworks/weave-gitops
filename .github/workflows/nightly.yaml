@@ -53,7 +53,7 @@ jobs:
     - run: pip install -r requirements.txt
 
     - name: Setup Flux CLI
-      uses: fluxcd/flux2/action@b73c7f7191086ca7629840e680e71873349787f8 # v2.6.1
+      uses: fluxcd/flux2/action@a48f81a66c4ca9fbd993233ab99dd03a7cfbe09a # v2.6.2
 
     - name: Install kubectl
       run: |
@@ -122,7 +122,7 @@ jobs:
 
     - name: Generate tests report
       if: always()
-      uses: pmeier/pytest-results-action@fc6576eced1f411ea48ab10e917d9cfce2960e29 # v0.7.1
+      uses: pmeier/pytest-results-action@20b595761ba9bf89e115e875f8bc863f913bc8ad # v0.7.2
       with:
         path: test-results/junit_test_report.xml
         summary: true
@@ -151,7 +151,7 @@ jobs:
 
     - name: Publish test report
       id: test_summary
-      uses: mikepenz/action-junit-report@65fe03598d8d251738592a497a9e8547a5c48eaa # v5.6.0
+      uses: mikepenz/action-junit-report@a83fd2b5d58d4fc702e690c1ea688d702d28d281 # v5.6.1
       if: success() || failure()
       with:
         report_paths: test-results/junit_test_report.xml
