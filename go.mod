@@ -16,7 +16,7 @@ require (
 	github.com/fluxcd/image-reflector-controller/api v0.35.1
 	github.com/fluxcd/kustomize-controller/api v1.6.0
 	github.com/fluxcd/notification-controller/api v1.6.0
-	github.com/fluxcd/pkg/apis/meta v1.12.0
+	github.com/fluxcd/pkg/apis/meta v1.13.0
 	github.com/fluxcd/pkg/runtime v0.60.0
 	github.com/fluxcd/pkg/ssa v0.48.0
 	github.com/fluxcd/source-controller/api v1.6.1
