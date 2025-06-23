@@ -97,7 +97,7 @@ jobs:
           CHART_DIGEST=$(awk '/Digest: /{print $2}' helm-release/push-metadata.txt)
           echo "digest=$CHART_DIGEST" >> $GITHUB_OUTPUT
       - name: Install cosign
-        uses: sigstore/cosign-installer@3454372f43399081ed03b604cb2d021dabca52bb # v3.8.2
+        uses: sigstore/cosign-installer@398d4b0eeef1380460a10c8013a76f728fb906ac # v3.9.1
       - name: Keyless signing of chart
         run: |
           cosign sign --yes ghcr.io/weaveworks/charts@${{ steps.publish-chart.outputs.digest }}
@@ -127,7 +127,7 @@ jobs:
         run: cat .goreleaser.brew.yml >> .goreleaser.yml
         if: ${{ !contains(needs.release-please.outputs.version, '-') }}
       - name: Install cosign
-        uses: sigstore/cosign-installer@3454372f43399081ed03b604cb2d021dabca52bb # v3.8.2
+        uses: sigstore/cosign-installer@398d4b0eeef1380460a10c8013a76f728fb906ac # v3.9.1
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@9c156ee8a17a598857849441385a2041ef570552 # v6.3.0
         with:
