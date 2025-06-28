@@ -82,7 +82,7 @@
     "styled-components": "^6.1.19"
   },
   "devDependencies": {
-    "@babel/core": "^7.27.4",
+    "@babel/core": "^7.27.7",
     "@babel/preset-env": "^7.27.2",
     "@eslint/js": "9.28.0",
     "@parcel/config-default": "^2.15.2",
