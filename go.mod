@@ -59,8 +59,8 @@ require (
 	k8s.io/client-go v0.33.2
 	sigs.k8s.io/cli-utils v0.37.2
 	sigs.k8s.io/controller-runtime v0.21.0
-	sigs.k8s.io/kustomize/api v0.19.0
-	sigs.k8s.io/yaml v1.4.0
+	sigs.k8s.io/kustomize/api v0.20.0
+	sigs.k8s.io/yaml v1.5.0
 )
 
 require (
@@ -68,6 +68,7 @@ require (
 	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
 	github.com/aws/aws-sdk-go v1.55.5 // indirect
 	github.com/blang/semver/v4 v4.0.0 // indirect
+	github.com/carapace-sh/carapace-shlex v1.0.1 // indirect
 	github.com/chai2010/gettext-go v1.0.3 // indirect
 	github.com/chzyer/readline v1.5.1 // indirect
 	github.com/cloudflare/circl v1.6.1 // indirect
@@ -117,6 +118,8 @@ require (
 	gitlab.com/gitlab-org/api/client-go v0.128.0 // indirect
 	go.shabbyrobe.org/gocovmerge v0.0.0-20230507111327-fa4f82cfbf4d // indirect
 	go.uber.org/automaxprocs v1.6.0 // indirect
+	go.yaml.in/yaml/v2 v2.4.2 // indirect
+	go.yaml.in/yaml/v3 v3.0.3 // indirect
 	golang.org/x/sync v0.15.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250603155806-513f23925822 // indirect
 	gopkg.in/evanphx/json-patch.v4 v4.12.0 // indirect
@@ -148,7 +151,6 @@ require (
 	github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8 // indirect
 	github.com/google/btree v1.1.3 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
-	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2
 	github.com/hashicorp/go-retryablehttp v0.7.7 // indirect
@@ -204,7 +206,7 @@ require (
 	k8s.io/kubectl v0.33.2
 	k8s.io/utils v0.0.0-20250321185631-1f6e0b77f77e // indirect
 	sigs.k8s.io/json v0.0.0-20241014173422-cfa47c3a1cc8 // indirect
-	sigs.k8s.io/kustomize/kyaml v0.19.0
+	sigs.k8s.io/kustomize/kyaml v0.20.0
 	sigs.k8s.io/structured-merge-diff/v4 v4.7.0 // indirect
 )
 
