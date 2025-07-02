@@ -119,8 +119,8 @@ github.com/fluxcd/pkg/apis/kustomize v1.10.0 h1:47EeSzkQvlQZdH92vHMe2lK2iR8aOSEJ
 github.com/fluxcd/pkg/apis/kustomize v1.10.0/go.mod h1:UsqMV4sqNa1Yg0pmTsdkHRJr7bafBOENIJoAN+3ezaQ=
 github.com/fluxcd/pkg/apis/meta v1.13.0 h1:KKYdXFzEmSuM8CP1Zqpt68IF+jqQILeiDiTmXI7DMTM=
 github.com/fluxcd/pkg/apis/meta v1.13.0/go.mod h1:+son1Va60x2eiDcTwd7lcctbI6C+K3gM7R+ULmEq1SI=
-github.com/fluxcd/pkg/runtime v0.60.0 h1:d++EkV3FlycB+bzakB5NumwY4J8xts8i7lbvD6jBLeU=
-github.com/fluxcd/pkg/runtime v0.60.0/go.mod h1:UeU0/eZLErYC/1bTmgzBfNXhiHy9fuQzjfLK0HxRgxY=
+github.com/fluxcd/pkg/runtime v0.62.0 h1:7/ZW4WgT23HDySqx+MRzefoh/1XlW9D/7siAlE20SQw=
+github.com/fluxcd/pkg/runtime v0.62.0/go.mod h1:7pxGvaU0Yy1cDIUhiHAHhCx2yCLnkcVsplbYZG6j4JY=
 github.com/fluxcd/pkg/ssa v0.49.0 h1:3xBMxWQIpmKu+zUmyuKQ9M4f+ALhbMJIkiLXeGkhig4=
 github.com/fluxcd/pkg/ssa v0.49.0/go.mod h1:T50TO0U2obLodZnrFgOrxollfBEy4V673OkM2aTUF1c=
 github.com/fluxcd/source-controller/api v1.6.2 h1:UmodAeqLIeF29HdTqf2GiacZyO+hJydJlepDaYsMvhc=
