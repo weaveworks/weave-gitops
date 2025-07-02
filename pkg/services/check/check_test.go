@@ -49,7 +49,7 @@ func TestKubernetesVersion(t *testing.T) {
 		{
 			name:          "server version not semver compliant",
 			serverVersion: "1.x",
-			expectedErr:   `"1.x".*Invalid Semantic Version`,
+			expectedErr:   `"1.x".*invalid semantic version`,
 		},
 	}
 
