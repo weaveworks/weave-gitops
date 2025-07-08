@@ -5,7 +5,7 @@ go 1.24.0
 require (
 	github.com/Masterminds/semver/v3 v3.4.0
 	github.com/NYTimes/gziphandler v1.1.1
-	github.com/alexedwards/scs/v2 v2.8.0
+	github.com/alexedwards/scs/v2 v2.9.0
 	github.com/cheshir/ttlcache v1.0.1-0.20220504185148-8ceeff21b789
 	github.com/coreos/go-oidc/v3 v3.14.1
 	github.com/flux-iac/tofu-controller/tfctl v0.0.0-20250116084730-01bbcd1540eb
