@@ -66,7 +66,7 @@
     "js-sha3": "0.9.3",
     "js-yaml": "^4.1.0",
     "lodash": "^4.17.21",
-    "luxon": "^3.6.1",
+    "luxon": "^3.7.1",
     "mnemonic-browser": "^0.0.1",
     "postcss": "^8.5.6",
     "query-string": "^9.2.1",
