@@ -30,8 +30,8 @@
     "raw-loader": "^4.0.2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "react-player": "^2.16.0",
-    "webpack": "^5.99.9"
+    "react-player": "^3.2.0",
+    "webpack": "^5.100.1"
   },
   "browserslist": {
     "production": [
