@@ -21,17 +21,17 @@
     "@docusaurus/plugin-google-gtag": "^3.8.1",
     "@docusaurus/plugin-sitemap": "^3.8.1",
     "@docusaurus/preset-classic": "^3.8.1",
-    "@fortawesome/fontawesome-svg-core": "^6.7.2",
-    "@fortawesome/free-solid-svg-icons": "^6.7.2",
-    "@fortawesome/react-fontawesome": "^0.2.2",
+    "@fortawesome/fontawesome-svg-core": "^7.0.0",
+    "@fortawesome/free-solid-svg-icons": "^7.0.0",
+    "@fortawesome/react-fontawesome": "^0.2.3",
     "@mdx-js/react": "^3.1.0",
-    "@types/react": "^19.1.8",
+    "@types/react": "^19.1.9",
     "file-loader": "^6.2.0",
     "raw-loader": "^4.0.2",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "react-player": "^2.16.0",
-    "webpack": "^5.99.9"
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "react-player": "^3.3.1",
+    "webpack": "^5.101.0"
   },
   "browserslist": {
     "production": [
