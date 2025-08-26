@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - name: Unshallow
         run: |
           git fetch --prune --unshallow
@@ -83,7 +83,7 @@ jobs:
 
       - name: Build Changelog
         id: github_release
-        uses: mikepenz/release-changelog-builder-action@5fb6e51e44d4aea73f66549f425aa3ed5008109e # v5.3.1
+        uses: mikepenz/release-changelog-builder-action@c9dc8369bccbc41e0ac887f8fd674f5925d315f7 # v5.4.1
         with:
           configuration: "${{ github.workspace }}/.github/changelog/changelog_configuration.json"
           ignorePreReleases: true
