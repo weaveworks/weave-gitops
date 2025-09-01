@@ -23,7 +23,7 @@ localhost.pem
 
 # Ignore generated credentials from google-github-actions/auth
 gha-creds-*.json
-
+tasks/*.md
 # Ignore VIM's swap files
 *.swp
 

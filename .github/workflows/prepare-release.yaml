@@ -47,16 +47,16 @@ jobs:
           yarn test -u
           git commit -am "Update javascript library version to $GITOPS_VERSION"
 
-      - name: Update Chart
+      # NOTE: Chart updates are now handled automatically by release-please
+      # in the unified-release.yaml workflow. This manual step is no longer needed.
+      - name: Chart Update Notice
         run: |
-          # Increment the micro chart version
-          NEW_CHART_VERSION=$(yq e '.version' charts/gitops-server/Chart.yaml | awk -F. -v OFS=. '{ $3++; print }')
-          yq e '.appVersion = "${{ github.event.inputs.version }}"' -i charts/gitops-server/Chart.yaml
-          yq e '.version = "'$NEW_CHART_VERSION'"' -i charts/gitops-server/Chart.yaml
-          yq e '.image.tag = "${{ github.event.inputs.version }}"' -i charts/gitops-server/values.yaml
-
-          git commit -am "Update helm chart to $NEW_CHART_VERSION to use gitops $GITOPS_VERSION"
-        if: ${{ !contains(github.event.inputs.version, '-') }}
+          echo "Chart version updates are now handled automatically by release-please"
+          echo "The unified-release.yaml workflow will update:"
+          echo "   - Chart appVersion to match application version"
+          echo "   - Chart version to match application version (without 'v' prefix)"
+          echo "   - Image tag in values.yaml"
+          echo "No manual chart updates required"
       - name: Generate updated helm reference
         # Needs to run after chart update, before docs update
         run: |
@@ -101,13 +101,13 @@ jobs:
           base: main
           title: "chore(release): Updates for ${{ env.GITOPS_VERSION }}"
           body: |
-           ## ⚠️ Breaking changes
+           ## Breaking changes
            Describe any breaking changes here, or delete this block
 
-           ## ✍️ Action required
+           ## Action required
            Describe any user facing actions here, or delete this block.
 
-           ## 💸 Features and improvements
+           ## Features and improvements
            Describe any user facing changes here, or delete this block.
 
            Examples of user facing changes:

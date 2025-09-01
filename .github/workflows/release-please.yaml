@@ -1,5 +1,5 @@
 ---
-name: release-please
+name: Unified Release
 
 on:
   push:
@@ -20,6 +20,9 @@ jobs:
       release_created: ${{ steps.release-please.outputs.release_created }}
       tag_name: ${{ steps.release-please.outputs.tag_name }}
       version: ${{ steps.release-please.outputs.version }}
+      major: ${{ steps.release-please.outputs.major }}
+      minor: ${{ steps.release-please.outputs.minor }}
+      patch: ${{ steps.release-please.outputs.patch }}
     steps:
       - name: Release Please
         id: release-please
@@ -27,8 +30,49 @@ jobs:
         with:
           token: ${{ secrets.WEAVE_GITOPS_BOT_ACCESS_TOKEN }}
 
-  publish-npm-package:
+  validate-versions:
     needs: release-please
+    runs-on: ubuntu-latest
+    if: "${{ needs.release-please.outputs.release_created }}"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      
+      - name: Validate chart version synchronization
+        run: |
+          APP_VERSION="${{ needs.release-please.outputs.version }}"
+          CHART_APP_VERSION=$(yq e '.appVersion' charts/gitops-server/Chart.yaml)
+          CHART_VERSION=$(yq e '.version' charts/gitops-server/Chart.yaml)
+          IMAGE_TAG=$(yq e '.image.tag' charts/gitops-server/values.yaml)
+          
+          echo "Application Version: $APP_VERSION"
+          echo "Chart AppVersion: $CHART_APP_VERSION"
+          echo "Chart Version: $CHART_VERSION"
+          echo "Image Tag: $IMAGE_TAG"
+          
+          # Validate that chart appVersion matches application version
+          if [[ "$CHART_APP_VERSION" != "$APP_VERSION" ]]; then
+            echo "Error: Chart appVersion ($CHART_APP_VERSION) does not match application version ($APP_VERSION)"
+            exit 1
+          fi
+          
+          # Validate that image tag matches application version
+          if [[ "$IMAGE_TAG" != "$APP_VERSION" ]]; then
+            echo "Error: Image tag ($IMAGE_TAG) does not match application version ($APP_VERSION)"
+            exit 1
+          fi
+          
+          # Validate that chart version follows expected pattern (remove 'v' prefix from app version)
+          EXPECTED_CHART_VERSION=$(echo "$APP_VERSION" | sed 's/^v//')
+          if [[ "$CHART_VERSION" != "$EXPECTED_CHART_VERSION" ]]; then
+            echo "Error: Chart version ($CHART_VERSION) does not match expected version ($EXPECTED_CHART_VERSION)"
+            exit 1
+          fi
+          
+          echo "All versions are synchronized correctly"
+
+  publish-npm-package:
+    needs: [release-please, validate-versions]
     runs-on: ubuntu-latest
     permissions:
       packages: write # needed for GitHub Packages registry access
@@ -48,7 +92,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-and-push-image:
-    needs: release-please
+    needs: [release-please, validate-versions]
     uses: ./.github/workflows/build-push-image.yaml
     with:
       file: gitops-server.dockerfile
@@ -67,40 +111,73 @@ jobs:
     if: "${{ needs.release-please.outputs.release_created }}"
 
   build-and-push-chart:
-    needs:
-      - release-please
-      - build-and-push-image # as we want to push chart when images are available
+    needs: [release-please, validate-versions, build-and-push-image]
     runs-on: ubuntu-latest
     permissions:
       contents: read # for actions/checkout to fetch code
       id-token: write # for Cosign to be able to sign chart with GHA token
       packages: write # for helm to push OCI chart
-    if: "${{ needs.release-please.outputs['charts/gitops-server--release_created'] }}"
+    if: "${{ needs.release-please.outputs.release_created }}"
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      
+      - name: Validate chart before packaging
+        run: |
+          APP_VERSION="${{ needs.release-please.outputs.version }}"
+          CHART_VERSION=$(yq e '.version' charts/gitops-server/Chart.yaml)
+          
+          echo "Packaging chart version: $CHART_VERSION for app version: $APP_VERSION"
+          
+          # Validate chart syntax
+          helm lint charts/gitops-server/
+          
       - name: Package chart
         run: |
           mkdir helm-release
           helm package charts/gitops-server/ -d helm-release
+          
+          # List packaged chart for verification
+          ls -la helm-release/
+          
       - name: Log in to the Container registry
         uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+          
       - name: Publish chart
         id: publish-chart
         run: |
-          helm push helm-release/weave-gitops-${{ needs.release-please.outputs['charts/gitops-server--version'] }}.tgz \
-            oci://ghcr.io/weaveworks/charts &> helm-release/push-metadata.txt
+          CHART_VERSION=$(yq e '.version' charts/gitops-server/Chart.yaml)
+          CHART_FILE="helm-release/weave-gitops-${CHART_VERSION}.tgz"
+          
+          if [[ ! -f "$CHART_FILE" ]]; then
+            echo "Error: Chart file $CHART_FILE not found"
+            ls -la helm-release/
+            exit 1
+          fi
+          
+          echo "Publishing chart: $CHART_FILE"
+          helm push "$CHART_FILE" oci://ghcr.io/weaveworks/charts &> helm-release/push-metadata.txt
+          
+          # Extract digest for signing
           CHART_DIGEST=$(awk '/Digest: /{print $2}' helm-release/push-metadata.txt)
+          echo "Chart digest: $CHART_DIGEST"
           echo "digest=$CHART_DIGEST" >> $GITHUB_OUTPUT
+          
+          # Display push metadata for debugging
+          echo "Push metadata:"
+          cat helm-release/push-metadata.txt
+          
       - name: Install cosign
         uses: sigstore/cosign-installer@398d4b0eeef1380460a10c8013a76f728fb906ac # v3.9.1
+        
       - name: Keyless signing of chart
         run: |
           cosign sign --yes ghcr.io/weaveworks/charts@${{ steps.publish-chart.outputs.digest }}
+          
       - name: Verify the chart signing
         run: |
           cosign verify ghcr.io/weaveworks/charts@${{ steps.publish-chart.outputs.digest }} \
@@ -108,7 +185,7 @@ jobs:
             --certificate-oidc-issuer "https://token.actions.githubusercontent.com" | jq .
 
   goreleaser:
-    needs: release-please
+    needs: [release-please, validate-versions]
     runs-on: ubuntu-latest
     permissions:
       contents: read # for actions/checkout to fetch code
@@ -136,3 +213,28 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.WEAVE_GITOPS_BOT_ACCESS_TOKEN }}
           BOT_TOKEN: ${{ secrets.WEAVE_GITOPS_BOT_ACCESS_TOKEN }}
+
+  create-release-summary:
+    needs: [release-please, validate-versions, publish-npm-package, build-and-push-image, build-and-push-chart, goreleaser]
+    runs-on: ubuntu-latest
+    if: "${{ needs.release-please.outputs.release_created }}"
+    steps:
+      - name: Create release summary
+        run: |
+          echo "# Release Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** ${{ needs.release-please.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Tag:** ${{ needs.release-please.outputs.tag_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Components Released" >> $GITHUB_STEP_SUMMARY
+          echo "- Application binaries (GoReleaser)" >> $GITHUB_STEP_SUMMARY
+          echo "- Container images (ghcr.io/weaveworks/wego-app)" >> $GITHUB_STEP_SUMMARY
+          echo "- Helm chart (ghcr.io/weaveworks/charts)" >> $GITHUB_STEP_SUMMARY
+          echo "- NPM package (@weaveworks scope)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Version Synchronization" >> $GITHUB_STEP_SUMMARY
+          echo "All components have been released with synchronized versions:" >> $GITHUB_STEP_SUMMARY
+          echo "- Application: ${{ needs.release-please.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Chart AppVersion: ${{ needs.release-please.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Chart Version: $(echo '${{ needs.release-please.outputs.version }}' | sed 's/^v//')" >> $GITHUB_STEP_SUMMARY
+          echo "- Image Tag: ${{ needs.release-please.outputs.version }}" >> $GITHUB_STEP_SUMMARY
