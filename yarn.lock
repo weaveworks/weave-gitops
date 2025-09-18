@@ -4462,7 +4462,7 @@ __metadata:
     postcss: "npm:^8.5.6"
     prettier: "npm:^3.6.2"
     process: "npm:^0.11.10"
-    query-string: "npm:^9.2.1"
+    query-string: "npm:^9.3.1"
     react: "npm:^19.0.0"
     react-dom: "npm:^19.0.0"
     react-is: "npm:^19.0.0"
@@ -10707,14 +10707,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"query-string@npm:^9.2.1":
-  version: 9.2.1
-  resolution: "query-string@npm:9.2.1"
+"query-string@npm:^9.3.1":
+  version: 9.3.1
+  resolution: "query-string@npm:9.3.1"
   dependencies:
     decode-uri-component: "npm:^0.4.1"
     filter-obj: "npm:^5.1.0"
     split-on-first: "npm:^3.0.0"
-  checksum: 10c0/ec2a1a812fb6e61b129587789c30731050e44b1e66bf77415ad075e7ff9923aa85088a8a8a36300170f6b82bcd6bda8aa64304fa168ea29116a57b597275467d
+  checksum: 10c0/47f62350be7ace6d2e03d12becf5d1985731d97577963a4d8b684e166f6708cb42f63f09aa4c92931f2ee1ff57c0800a25807b95f28fd98f7064b1d06b02b07e
   languageName: node
   linkType: hard
 
