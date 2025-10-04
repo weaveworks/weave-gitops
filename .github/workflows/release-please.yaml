@@ -1,5 +1,5 @@
 ---
-name: Unified Release
+name: release-please
 
 on:
   push:
