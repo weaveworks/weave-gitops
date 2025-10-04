@@ -422,16 +422,6 @@ func (fake *UserRepositoriesClient) ReconcileReturnsOnCall(i int, result1 gitpro
 func (fake *UserRepositoriesClient) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.createMutex.RLock()
-	defer fake.createMutex.RUnlock()
-	fake.getMutex.RLock()
-	defer fake.getMutex.RUnlock()
-	fake.getUserLoginMutex.RLock()
-	defer fake.getUserLoginMutex.RUnlock()
-	fake.listMutex.RLock()
-	defer fake.listMutex.RUnlock()
-	fake.reconcileMutex.RLock()
-	defer fake.reconcileMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

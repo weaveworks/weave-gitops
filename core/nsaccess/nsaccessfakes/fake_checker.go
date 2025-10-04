@@ -104,8 +104,6 @@ func (fake *FakeChecker) FilterAccessibleNamespacesReturnsOnCall(i int, result1 
 func (fake *FakeChecker) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.filterAccessibleNamespacesMutex.RLock()
-	defer fake.filterAccessibleNamespacesMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

@@ -232,7 +232,7 @@ endif
 
 ## Tool Binaries
 
-GOLANGCI_LINT_VERSION ?= v2.1.6
+GOLANGCI_LINT_VERSION ?= v2.5.0
 PROTOLINT_VERSION ?= v0.52.0
 
 LOCALBIN ?= $(shell pwd)/bin
