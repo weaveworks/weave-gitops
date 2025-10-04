@@ -27,7 +27,7 @@ jobs:
       old-version: ${{ steps.old-version.outputs.version }}
       new-version: ${{ steps.new-version.outputs.version }}
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           fetch-depth: 0
       - name: Find new version
@@ -47,7 +47,7 @@ jobs:
     needs: helm-new-version
     if: github.event_name == 'pull_request' && needs.helm-new-version.outputs.old-version != needs.helm-new-version.outputs.new-version
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           fetch-depth: 0
       - name: Find out if there's more changes to release
@@ -62,7 +62,7 @@ jobs:
               echo "unreleased-commits=The last chart was last released in $last_revision and there have been other changes in the chart since" >> $GITHUB_OUTPUT
           fi
       - name: Let user know merging will cause a release
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
         with:
           github-token: ${{ secrets.WEAVE_GITOPS_BOT_ACCESS_TOKEN }}
           script: |
@@ -81,7 +81,7 @@ jobs:
     permissions:
       packages: write # needed for ghcr access
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - name: Find new version
         id: new_version
         run: |
@@ -92,7 +92,7 @@ jobs:
           mkdir helm-release
           helm package charts/gitops-server/ -d helm-release
       - name: Log in to the Container registry
-        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
