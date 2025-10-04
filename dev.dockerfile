@@ -1,4 +1,4 @@
-FROM ubuntu:24.04@sha256:440dcf6a5640b2ae5c77724e68787a906afb8ddee98bf86db94eea8528c2c076
+FROM ubuntu:24.04@sha256:728785b59223d755e3e5c5af178fab1be7031f3522c5ccd7a0b32b80d8248123
 RUN apt-get update && apt-get install -yq ca-certificates
 WORKDIR /app
 ADD bin build
