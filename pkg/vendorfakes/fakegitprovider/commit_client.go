@@ -187,10 +187,6 @@ func (fake *CommitClient) ListPageReturnsOnCall(i int, result1 []gitprovider.Com
 func (fake *CommitClient) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.createMutex.RLock()
-	defer fake.createMutex.RUnlock()
-	fake.listPageMutex.RLock()
-	defer fake.listPageMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

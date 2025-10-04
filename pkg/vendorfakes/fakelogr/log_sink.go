@@ -350,18 +350,6 @@ func (fake *LogSink) WithValuesReturnsOnCall(i int, result1 logr.LogSink) {
 func (fake *LogSink) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.enabledMutex.RLock()
-	defer fake.enabledMutex.RUnlock()
-	fake.errorMutex.RLock()
-	defer fake.errorMutex.RUnlock()
-	fake.infoMutex.RLock()
-	defer fake.infoMutex.RUnlock()
-	fake.initMutex.RLock()
-	defer fake.initMutex.RUnlock()
-	fake.withNameMutex.RLock()
-	defer fake.withNameMutex.RUnlock()
-	fake.withValuesMutex.RLock()
-	defer fake.withValuesMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value
