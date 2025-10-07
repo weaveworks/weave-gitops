@@ -49,7 +49,7 @@ require (
 	golang.org/x/crypto v0.42.0
 	golang.org/x/oauth2 v0.31.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20251002232023-7c0ddcbb5797
-	google.golang.org/grpc v1.75.1
+	google.golang.org/grpc v1.76.0
 	google.golang.org/protobuf v1.36.10
 	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/api v0.34.1
