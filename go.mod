@@ -17,7 +17,7 @@ require (
 	github.com/fluxcd/kustomize-controller/api v1.7.0
 	github.com/fluxcd/notification-controller/api v1.7.1
 	github.com/fluxcd/pkg/apis/meta v1.21.0
-	github.com/fluxcd/pkg/runtime v0.86.0
+	github.com/fluxcd/pkg/runtime v0.87.0
 	github.com/fluxcd/pkg/ssa v0.59.0
 	github.com/fluxcd/source-controller/api v1.7.0
 	github.com/go-git/go-git/v5 v5.16.3
