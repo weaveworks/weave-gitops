@@ -7,12 +7,11 @@ import (
 	"time"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
-	imgautomationv1 "github.com/fluxcd/image-automation-controller/api/v1beta2"
-	reflectorv1 "github.com/fluxcd/image-reflector-controller/api/v1beta2"
+	imgautomationv1 "github.com/fluxcd/image-automation-controller/api/v1"
+	reflectorv1 "github.com/fluxcd/image-reflector-controller/api/v1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
-	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 	. "github.com/onsi/gomega"
 	"google.golang.org/grpc/metadata"
 	corev1 "k8s.io/api/core/v1"
@@ -159,7 +158,7 @@ func TestSync(t *testing.T) {
 		msg: &pb.SyncFluxObjectRequest{
 			Objects: []*pb.ObjectRef{{
 				ClusterName: "Default",
-				Kind:        sourcev1b2.OCIRepositoryKind,
+				Kind:        sourcev1.OCIRepositoryKind,
 			}},
 			WithSource: false,
 		},
@@ -309,7 +308,7 @@ func simulateReconcile(ctx context.Context, k client.Client, name types.Namespac
 
 		return k.Status().Update(ctx, obj)
 
-	case *sourcev1b2.OCIRepository:
+	case *sourcev1.OCIRepository:
 		if err := k.Get(ctx, name, obj); err != nil {
 			return err
 		}
@@ -463,16 +462,16 @@ func makeHelmRelease(name string, ns corev1.Namespace, repo *sourcev1.HelmReposi
 	}
 }
 
-func makeOCIRepo(name string, ns corev1.Namespace) *sourcev1b2.OCIRepository {
-	return &sourcev1b2.OCIRepository{
+func makeOCIRepo(name string, ns corev1.Namespace) *sourcev1.OCIRepository {
+	return &sourcev1.OCIRepository{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: ns.Name,
 		},
-		Spec: sourcev1b2.OCIRepositorySpec{
+		Spec: sourcev1.OCIRepositorySpec{
 			URL: "oci://ghcr.io/some/chart",
 		},
-		Status: sourcev1b2.OCIRepositoryStatus{
+		Status: sourcev1.OCIRepositoryStatus{
 			ReconcileRequestStatus: meta.ReconcileRequestStatus{
 				LastHandledReconcileAt: time.Now().Format(time.RFC3339Nano),
 			},

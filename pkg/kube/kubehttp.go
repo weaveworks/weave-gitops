@@ -7,13 +7,12 @@ import (
 	"strings"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
-	imgautomationv1 "github.com/fluxcd/image-automation-controller/api/v1beta2"
-	reflectorv1 "github.com/fluxcd/image-reflector-controller/api/v1beta2"
+	imgautomationv1 "github.com/fluxcd/image-automation-controller/api/v1"
+	reflectorv1 "github.com/fluxcd/image-reflector-controller/api/v1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
 	notificationv1 "github.com/fluxcd/notification-controller/api/v1"
 	notificationv1b3 "github.com/fluxcd/notification-controller/api/v1beta3"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
-	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 	appsv1 "k8s.io/api/apps/v1"
 	authv1 "k8s.io/api/authentication/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -33,7 +32,6 @@ func CreateScheme() (*apiruntime.Scheme, error) {
 	builder := apiruntime.SchemeBuilder{
 		clientgoscheme.AddToScheme,
 		sourcev1.AddToScheme,
-		sourcev1b2.AddToScheme,
 		kustomizev1.AddToScheme,
 		helmv2.AddToScheme,
 		corev1.AddToScheme,
