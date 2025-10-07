@@ -19,7 +19,7 @@ require (
 	github.com/fluxcd/pkg/apis/meta v1.21.0
 	github.com/fluxcd/pkg/runtime v0.86.0
 	github.com/fluxcd/pkg/ssa v0.59.0
-	github.com/fluxcd/source-controller/api v1.7.0
+	github.com/fluxcd/source-controller/api v1.7.1
 	github.com/go-git/go-git/v5 v5.16.3
 	github.com/go-jose/go-jose/v4 v4.1.3
 	github.com/go-logr/logr v1.4.3
