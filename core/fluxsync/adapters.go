@@ -2,12 +2,11 @@ package fluxsync
 
 import (
 	helmv2 "github.com/fluxcd/helm-controller/api/v2"
-	imgautomationv1 "github.com/fluxcd/image-automation-controller/api/v1beta2"
-	reflectorv1 "github.com/fluxcd/image-reflector-controller/api/v1beta2"
+	imgautomationv1 "github.com/fluxcd/image-automation-controller/api/v1"
+	reflectorv1 "github.com/fluxcd/image-reflector-controller/api/v1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
-	sourcev1b2 "github.com/fluxcd/source-controller/api/v1beta2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -144,7 +143,7 @@ func (obj HelmRepositoryAdapter) DeepCopyClientObject() client.Object {
 }
 
 type OCIRepositoryAdapter struct {
-	*sourcev1b2.OCIRepository
+	*sourcev1.OCIRepository
 }
 
 func (obj OCIRepositoryAdapter) GetLastHandledReconcileRequest() string {
@@ -156,7 +155,7 @@ func (obj OCIRepositoryAdapter) AsClientObject() client.Object {
 }
 
 func (obj OCIRepositoryAdapter) GroupVersionKind() schema.GroupVersionKind {
-	return sourcev1b2.GroupVersion.WithKind(sourcev1b2.OCIRepositoryKind)
+	return sourcev1.GroupVersion.WithKind(sourcev1.OCIRepositoryKind)
 }
 
 func (obj OCIRepositoryAdapter) SetSuspended(suspend bool) error {
@@ -380,8 +379,8 @@ func ToReconcileable(gvk schema.GroupVersionKind) Reconcilable {
 		return HelmRepositoryAdapter{HelmRepository: &sourcev1.HelmRepository{}}
 	case sourcev1.HelmChartKind:
 		return HelmChartAdapter{HelmChart: &sourcev1.HelmChart{}}
-	case sourcev1b2.OCIRepositoryKind:
-		return OCIRepositoryAdapter{OCIRepository: &sourcev1b2.OCIRepository{}}
+	case sourcev1.OCIRepositoryKind:
+		return OCIRepositoryAdapter{OCIRepository: &sourcev1.OCIRepository{}}
 	case reflectorv1.ImageRepositoryKind:
 		return ImageRepositoryAdapter{ImageRepository: &reflectorv1.ImageRepository{}}
 	case imgautomationv1.ImageUpdateAutomationKind:
