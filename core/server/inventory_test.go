@@ -397,7 +397,7 @@ func TestGetInventoryHelmReleaseWithKubeconfig(t *testing.T) {
 		},
 		Spec: helmv2.HelmReleaseSpec{
 			KubeConfig: &meta.KubeConfigReference{
-				SecretRef: meta.SecretKeyReference{
+				SecretRef: &meta.SecretKeyReference{
 					Name: "kubeconfig",
 				},
 			},

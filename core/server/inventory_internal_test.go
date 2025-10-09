@@ -240,9 +240,8 @@ func TestSanitizeUnstructuredSecret(t *testing.T) {
 			"apiVersion": "v1",
 			"kind":       "Secret",
 			"metadata": map[string]interface{}{
-				"name":              "my-secret",
-				"namespace":         "my-namespace",
-				"creationTimestamp": nil,
+				"name":      "my-secret",
+				"namespace": "my-namespace",
 			},
 			"type": "Opaque",
 			"data": map[string]interface{}{

@@ -94,8 +94,6 @@ func (fake *FakeClusterFetcher) FetchReturnsOnCall(i int, result1 []cluster.Clus
 func (fake *FakeClusterFetcher) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.fetchMutex.RLock()
-	defer fake.fetchMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

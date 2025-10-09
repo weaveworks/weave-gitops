@@ -256,12 +256,6 @@ func (fake *FakeGit) PlainOpenReturnsOnCall(i int, result1 *git.Repository, resu
 func (fake *FakeGit) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.plainCloneContextMutex.RLock()
-	defer fake.plainCloneContextMutex.RUnlock()
-	fake.plainInitMutex.RLock()
-	defer fake.plainInitMutex.RUnlock()
-	fake.plainOpenMutex.RLock()
-	defer fake.plainOpenMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value
