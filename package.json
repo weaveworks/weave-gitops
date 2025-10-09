@@ -84,7 +84,7 @@
   "devDependencies": {
     "@babel/core": "^7.27.4",
     "@babel/preset-env": "^7.27.2",
-    "@eslint/js": "9.28.0",
+    "@eslint/js": "9.37.0",
     "@parcel/config-default": "^2.15.4",
     "@parcel/core": "^2.15.4",
     "@parcel/optimizer-data-url": "^2.15.4",
