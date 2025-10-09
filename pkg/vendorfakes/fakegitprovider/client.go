@@ -473,20 +473,6 @@ func (fake *Client) UserRepositoriesReturnsOnCall(i int, result1 gitprovider.Use
 func (fake *Client) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.hasTokenPermissionMutex.RLock()
-	defer fake.hasTokenPermissionMutex.RUnlock()
-	fake.orgRepositoriesMutex.RLock()
-	defer fake.orgRepositoriesMutex.RUnlock()
-	fake.organizationsMutex.RLock()
-	defer fake.organizationsMutex.RUnlock()
-	fake.providerIDMutex.RLock()
-	defer fake.providerIDMutex.RUnlock()
-	fake.rawMutex.RLock()
-	defer fake.rawMutex.RUnlock()
-	fake.supportedDomainMutex.RLock()
-	defer fake.supportedDomainMutex.RUnlock()
-	fake.userRepositoriesMutex.RLock()
-	defer fake.userRepositoriesMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

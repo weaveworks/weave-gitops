@@ -175,10 +175,6 @@ func (fake *FakeJWTClient) VerifyJWTReturnsOnCall(i int, result1 *auth.Claims, r
 func (fake *FakeJWTClient) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.generateJWTMutex.RLock()
-	defer fake.generateJWTMutex.RUnlock()
-	fake.verifyJWTMutex.RLock()
-	defer fake.verifyJWTMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

@@ -59,6 +59,9 @@ updates:
       prefix: fix
       include: scope
     groups:
+      flux:
+        patterns:
+          - "github.com/fluxcd/*"
       golang-grpc:
         patterns:
           - google.golang.org/grpc

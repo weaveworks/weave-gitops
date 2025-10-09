@@ -1,0 +1,3 @@
+resources:
+- cert-manager.yaml
+- cluster-issuer.yaml
