@@ -1,5 +1,7 @@
 resources:
 - image-policy
 - monitoring
+- cert-manager
+- ingress
 - namespace.yaml
 - podinfo
