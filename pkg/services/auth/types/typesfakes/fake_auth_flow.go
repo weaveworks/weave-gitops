@@ -168,10 +168,6 @@ func (fake *FakeAuthFlow) CallbackHandlerReturnsOnCall(i int, result1 http.Handl
 func (fake *FakeAuthFlow) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.authorizeMutex.RLock()
-	defer fake.authorizeMutex.RUnlock()
-	fake.callbackHandlerMutex.RLock()
-	defer fake.callbackHandlerMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

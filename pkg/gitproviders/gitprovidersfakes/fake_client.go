@@ -94,8 +94,6 @@ func (fake *FakeClient) GetProviderReturnsOnCall(i int, result1 gitproviders.Git
 func (fake *FakeClient) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.getProviderMutex.RLock()
-	defer fake.getProviderMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value
