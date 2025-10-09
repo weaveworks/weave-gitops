@@ -1,6 +1,6 @@
 flake8==7.3.0
-pre_commit==4.2.0
-pytest==8.4.1
+pre_commit==4.3.0
+pytest==8.4.2
 pytest-dotenv==0.5.2
-pytest-playwright==0.7.0
-pytest-reporter-html1==0.9.3
+pytest-playwright==0.7.1
+pytest-reporter-html1==0.9.4

@@ -413,11 +413,11 @@ func parseImageRepository(input string) (repository, image, tag string, err erro
 			repository = ""
 			if tag == "" || image == "" {
 				err = fmt.Errorf("invalid input format, repo = %s, image = %s, tag = %s", repository, image, tag)
-				return
+				return repository, image, tag, err
 			}
 		default:
 			err = fmt.Errorf("invalid input format, input = %s", input)
-			return
+			return repository, image, tag, err
 		}
 	} else {
 		repository = input[:lastSlashIndex]
@@ -434,10 +434,10 @@ func parseImageRepository(input string) (repository, image, tag string, err erro
 
 	if image == "" {
 		err = fmt.Errorf("invalid input format, repo = %s, image = %s, tag = %s", repository, image, tag)
-		return
+		return repository, image, tag, err
 	}
 
-	return
+	return repository, image, tag, err
 }
 
 // makeValues creates a values object for installing the GitOps Dashboard.

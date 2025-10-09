@@ -252,12 +252,6 @@ func (fake *FakeGitlabAuthClient) ValidateTokenReturnsOnCall(i int, result1 erro
 func (fake *FakeGitlabAuthClient) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.authURLMutex.RLock()
-	defer fake.authURLMutex.RUnlock()
-	fake.exchangeCodeMutex.RLock()
-	defer fake.exchangeCodeMutex.RUnlock()
-	fake.validateTokenMutex.RLock()
-	defer fake.validateTokenMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value
