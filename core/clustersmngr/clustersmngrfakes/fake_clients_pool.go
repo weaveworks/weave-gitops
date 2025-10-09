@@ -231,12 +231,6 @@ func (fake *FakeClientsPool) ClientsReturnsOnCall(i int, result1 map[string]clie
 func (fake *FakeClientsPool) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.addMutex.RLock()
-	defer fake.addMutex.RUnlock()
-	fake.clientMutex.RLock()
-	defer fake.clientMutex.RUnlock()
-	fake.clientsMutex.RLock()
-	defer fake.clientsMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

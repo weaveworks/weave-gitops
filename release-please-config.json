@@ -5,13 +5,25 @@
       "bootstrap-sha": "76f25bbb1d20aa41a1f78920344f579af4f88e2d",
       "bump-minor-pre-major": true,
       "exclude-paths": [
-        "charts",
         "doc",
         "website"
       ],
       "extra-files": [
-        "charts/gitops-server/Chart.yaml",
-        "charts/gitops-server/values.yaml",
+        {
+          "type": "yaml",
+          "path": "charts/gitops-server/Chart.yaml",
+          "jsonpath": "$.appVersion"
+        },
+        {
+          "type": "yaml",
+          "path": "charts/gitops-server/Chart.yaml",
+          "jsonpath": "$.version"
+        },
+        {
+          "type": "yaml",
+          "path": "charts/gitops-server/values.yaml",
+          "jsonpath": "$.image.tag"
+        },
         "README.md"
       ],
       "include-component-in-tag": false,
@@ -19,18 +31,11 @@
       "prerelease-type": "rc",
       "release-as": "0.39.0-rc.3",
       "release-type": "node"
-    },
-    "charts/gitops-server": {
-      "bootstrap-sha": "693dafd494f1027c4bc740be9ffef98e21cdcfb6",
-      "prerelease": true,
-      "prerelease-type": "rc",
-      "release-as": "4.1.0-rc.1",
-      "release-type": "helm"
     }
   },
   "plugins": [
     "sentence-case"
   ],
-  "separate-pull-requests": true,
+  "separate-pull-requests": false,
   "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json"
 }
