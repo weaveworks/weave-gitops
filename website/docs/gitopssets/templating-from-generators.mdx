@@ -426,7 +426,7 @@ spec:
           name: github-secret
   templates:
     - content:
-        apiVersion: source.toolkit.fluxcd.io/v1beta2
+        apiVersion: source.toolkit.fluxcd.io/v1
         kind: GitRepository
         metadata:
           name: "pr-{{ .Element.Number }}-gitrepository"
@@ -812,7 +812,7 @@ spec:
           kind: Secret
   templates:
     - content:
-        apiVersion: source.toolkit.fluxcd.io/v1beta2
+        apiVersion: source.toolkit.fluxcd.io/v1
         kind: GitRepository
         metadata:
           name: "pr-{{ .Element.id | toJson}}-gitrepository"

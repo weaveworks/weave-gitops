@@ -11,15 +11,15 @@ require (
 	github.com/flux-iac/tofu-controller/tfctl v0.0.0-20250317053750-23cebc42a403
 	github.com/fluxcd/cli-utils v0.36.0-flux.15
 	github.com/fluxcd/go-git-providers v0.24.0
-	github.com/fluxcd/helm-controller/api v1.4.0
-	github.com/fluxcd/image-automation-controller/api v1.0.1
-	github.com/fluxcd/image-reflector-controller/api v1.0.1
-	github.com/fluxcd/kustomize-controller/api v1.7.0
-	github.com/fluxcd/notification-controller/api v1.7.1
-	github.com/fluxcd/pkg/apis/meta v1.21.0
-	github.com/fluxcd/pkg/runtime v0.86.0
-	github.com/fluxcd/pkg/ssa v0.59.0
-	github.com/fluxcd/source-controller/api v1.7.0
+	github.com/fluxcd/helm-controller/api v1.4.2
+	github.com/fluxcd/image-automation-controller/api v1.0.2
+	github.com/fluxcd/image-reflector-controller/api v1.0.2
+	github.com/fluxcd/kustomize-controller/api v1.7.1
+	github.com/fluxcd/notification-controller/api v1.7.3
+	github.com/fluxcd/pkg/apis/meta v1.22.0
+	github.com/fluxcd/pkg/runtime v0.89.0
+	github.com/fluxcd/pkg/ssa v0.60.0
+	github.com/fluxcd/source-controller/api v1.7.2
 	github.com/go-git/go-git/v5 v5.16.3
 	github.com/go-jose/go-jose/v4 v4.1.3
 	github.com/go-logr/logr v1.4.3
@@ -46,8 +46,8 @@ require (
 	github.com/weaveworks/policy-agent/api v1.0.5
 	github.com/yannh/kubeconform v0.7.0
 	go.uber.org/zap v1.27.0
-	golang.org/x/crypto v0.42.0
-	golang.org/x/oauth2 v0.31.0
+	golang.org/x/crypto v0.43.0
+	golang.org/x/oauth2 v0.32.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20251002232023-7c0ddcbb5797
 	google.golang.org/grpc v1.76.0
 	google.golang.org/protobuf v1.36.10
@@ -154,7 +154,7 @@ require (
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/exponent-io/jsonpath v0.0.0-20210407135951-1de76d718b3f // indirect
 	github.com/fluxcd/pkg/apis/acl v0.9.0 // indirect
-	github.com/fluxcd/pkg/apis/kustomize v1.12.0 // indirect
+	github.com/fluxcd/pkg/apis/kustomize v1.13.0 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/go-errors/errors v1.5.1 // indirect
 	github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376 // indirect
@@ -202,10 +202,10 @@ require (
 	github.com/xlab/treeprint v1.2.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/mod v0.28.0 // indirect
-	golang.org/x/net v0.44.0 // indirect
-	golang.org/x/sys v0.36.0 // indirect
-	golang.org/x/term v0.35.0
-	golang.org/x/text v0.29.0 // indirect
+	golang.org/x/net v0.45.0 // indirect
+	golang.org/x/sys v0.37.0 // indirect
+	golang.org/x/term v0.36.0
+	golang.org/x/text v0.30.0 // indirect
 	golang.org/x/time v0.13.0 // indirect
 	golang.org/x/tools v0.37.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.5.0 // indirect
