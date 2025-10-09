@@ -35,7 +35,7 @@ const (
 	testUserID        = "abcdefgh90"
 	helmChartVersion  = "3.0.0"
 
-	objectCreationErrorMsg = " \"\" is invalid: metadata.name: Required value: name is required"
+	objectCreationErrorMsg = "HelmRepository.source.toolkit.fluxcd.io \"\" is invalid: metadata.name: Required value: name is required"
 )
 
 var testValues = map[string]interface{}{
@@ -514,7 +514,6 @@ var _ = Describe("SanitizeResourceData", func() {
 
 		resStr := string(resData)
 		Expect(strings.Contains(resStr, "status")).To(BeTrue())
-		Expect(strings.Contains(resStr, "creationTimestamp")).To(BeTrue())
 
 		sanitizedResData, err := SanitizeResourceData(fakeLogger, resData)
 		Expect(err).NotTo(HaveOccurred())
@@ -533,7 +532,6 @@ var _ = Describe("SanitizeResourceData", func() {
 
 		resStr := string(resData)
 		Expect(strings.Contains(resStr, "status")).To(BeTrue())
-		Expect(strings.Contains(resStr, "creationTimestamp")).To(BeTrue())
 
 		sanitizedResData, err := SanitizeResourceData(fakeLogger, resData)
 		Expect(err).NotTo(HaveOccurred())

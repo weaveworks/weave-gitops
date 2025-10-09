@@ -503,20 +503,6 @@ func (fake *FakeCluster) GetUserClientsetReturnsOnCall(i int, result1 kubernetes
 func (fake *FakeCluster) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.getHostMutex.RLock()
-	defer fake.getHostMutex.RUnlock()
-	fake.getNameMutex.RLock()
-	defer fake.getNameMutex.RUnlock()
-	fake.getServerClientMutex.RLock()
-	defer fake.getServerClientMutex.RUnlock()
-	fake.getServerClientsetMutex.RLock()
-	defer fake.getServerClientsetMutex.RUnlock()
-	fake.getServerConfigMutex.RLock()
-	defer fake.getServerConfigMutex.RUnlock()
-	fake.getUserClientMutex.RLock()
-	defer fake.getUserClientMutex.RUnlock()
-	fake.getUserClientsetMutex.RLock()
-	defer fake.getUserClientsetMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value
