@@ -4437,8 +4437,8 @@ __metadata:
     buffer: "npm:^6.0.3"
     d3: "npm:^7.9.0"
     d3-dag: "npm:^1.1.0"
-    eslint: "npm:9.37.0"
-    eslint-plugin-import: "npm:^2.31.0"
+    eslint: "npm:9.28.0"
+    eslint-plugin-import: "npm:^2.32.0"
     eslint-plugin-react: "npm:^7.37.5"
     eslint-plugin-react-hooks: "npm:5.2.0"
     history: "npm:^5.3.0"
@@ -6606,7 +6606,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-import@npm:^2.31.0":
+"eslint-plugin-import@npm:^2.32.0":
   version: 2.32.0
   resolution: "eslint-plugin-import@npm:2.32.0"
   dependencies:
