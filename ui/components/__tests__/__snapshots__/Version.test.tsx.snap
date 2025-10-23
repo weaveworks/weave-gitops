@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`Version snapshots renders a dash as plain text without version text and with version href 1`] = `
 <DocumentFragment>
