@@ -119,7 +119,7 @@
     "prettier": "^3.6.2",
     "process": "^0.11.10",
     "react-test-renderer": "^19.0.0",
-    "svgo": "^3",
+    "svgo": "^4",
     "ts-jest": "^29.4.0",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.46.0",
