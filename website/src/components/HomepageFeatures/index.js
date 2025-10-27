@@ -3,7 +3,7 @@ import Link from '@docusaurus/Link';
 import CoreFeatures from './../CoreFeatures';
 import EEFeatures from './../EnterpriseFeatures';
 import styles from './styles.module.css';
-import ReactPlayer from "react-player/lazy";
+import ReactPlayer from "react-player";
 import clsx from 'clsx';
 
 export default function HomepageFeatures() {
