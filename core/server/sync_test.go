@@ -214,16 +214,15 @@ func TestSync(t *testing.T) {
 			done := make(chan error, 1) // Buffered channel to prevent blocking
 
 			go func() {
-				// Add a small delay to reduce race conditions
-				//time.Sleep(100 * time.Millisecond)
 				md := metadata.Pairs(MetadataUserKey, "anne", MetadataGroupsKey, "system:masters")
 				outgoingCtx := metadata.NewOutgoingContext(ctx, md)
 				_, err := c.SyncFluxObject(outgoingCtx, msg)
 				select {
 				case done <- err:
 					// Successfully sent error
-				default:
-					// Channel is closed or full, ignore
+				case <-ctx.Done():
+					// test cancelled; avoid blocking and exit goroutine
+					return
 				}
 			}()
 
