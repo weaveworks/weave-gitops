@@ -36,7 +36,7 @@ To start your own journey with Weave GitOps, please see [Installation](./install
 
 Here is a quick demo of what you can look forward to:
 
-import ReactPlayer from "react-player/lazy";
+import ReactPlayer from "react-player";
 
 <div class="player-wrapper">
   <ReactPlayer
