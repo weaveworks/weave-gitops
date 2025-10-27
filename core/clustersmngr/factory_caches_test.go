@@ -2,6 +2,7 @@ package clustersmngr_test
 
 import (
 	"fmt"
+	"sync"
 	"testing"
 	"time"
 
@@ -82,11 +83,24 @@ func TestClustersNamespaces(t *testing.T) {
 	ns := v1.Namespace{}
 	ns.Name = "ns1"
 
+	// Use WaitGroup to ensure all goroutines complete
+	var wg sync.WaitGroup
+	wg.Add(2)
+
 	// simulating concurrent access
-	go cs.Set(clusterName, []v1.Namespace{ns})
-	go cs.Set(clusterName, []v1.Namespace{ns})
+	go func() {
+		defer wg.Done()
+		cs.Set(clusterName, []v1.Namespace{ns})
+	}()
+	go func() {
+		defer wg.Done()
+		cs.Set(clusterName, []v1.Namespace{ns})
+	}()
 
 	cs.Set(clusterName, []v1.Namespace{ns})
+
+	// Wait for all goroutines to complete
+	wg.Wait()
 
 	g.Expect(cs.Get(clusterName)).To(Equal([]v1.Namespace{ns}))
 
