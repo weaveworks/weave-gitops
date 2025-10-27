@@ -3,6 +3,7 @@ package server_test
 import (
 	"context"
 	"errors"
+	"sync"
 	"testing"
 	"time"
 
@@ -38,6 +39,9 @@ func TestSync(t *testing.T) {
 		Scheme: scheme,
 	})
 	g.Expect(err).NotTo(HaveOccurred())
+
+	// Mutex to prevent concurrent updates to the same resource
+	var reconcileMutex sync.Mutex
 
 	name := "myapp"
 	ns := newNamespace(ctx, k, g)
@@ -207,22 +211,24 @@ func TestSync(t *testing.T) {
 				msg.Namespace = tt.reconcilable.GetNamespace()
 			}
 
-			done := make(chan error)
-			defer close(done)
+			done := make(chan error, 1) // Buffered channel to prevent blocking
 
 			go func() {
 				md := metadata.Pairs(MetadataUserKey, "anne", MetadataGroupsKey, "system:masters")
 				outgoingCtx := metadata.NewOutgoingContext(ctx, md)
 				_, err := c.SyncFluxObject(outgoingCtx, msg)
 				select {
-				case <-done:
+				case done <- err:
+					// Successfully sent error
+				case <-ctx.Done():
+					// test cancelled; avoid blocking and exit goroutine
 					return
-				default:
-					done <- err
 				}
 			}()
 
 			ticker := time.NewTicker(500 * time.Millisecond)
+			defer ticker.Stop()
+
 			for {
 				select {
 				case <-ticker.C:
@@ -231,13 +237,13 @@ func TestSync(t *testing.T) {
 							Name:      tt.source.GetName(),
 							Namespace: tt.source.GetNamespace(),
 						}
-						if err := simulateReconcile(ctx, k, sn, tt.source.AsClientObject()); err != nil {
+						if err := simulateReconcile(ctx, k, sn, tt.source.AsClientObject(), &reconcileMutex); err != nil {
 							t.Fatal(err)
 						}
 					}
 
 					an := types.NamespacedName{Name: name, Namespace: ns.Name}
-					if err := simulateReconcile(ctx, k, an, tt.reconcilable.AsClientObject()); err != nil {
+					if err := simulateReconcile(ctx, k, an, tt.reconcilable.AsClientObject(), &reconcileMutex); err != nil {
 						t.Fatal(err)
 					}
 
@@ -252,7 +258,10 @@ func TestSync(t *testing.T) {
 	}
 }
 
-func simulateReconcile(ctx context.Context, k client.Client, name types.NamespacedName, o client.Object) error {
+func simulateReconcile(ctx context.Context, k client.Client, name types.NamespacedName, o client.Object, mutex *sync.Mutex) error {
+	mutex.Lock()
+	defer mutex.Unlock()
+
 	switch obj := o.(type) {
 	case *helmv2.HelmRelease:
 		if err := k.Get(ctx, name, obj); err != nil {
