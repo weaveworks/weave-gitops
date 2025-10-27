@@ -13,7 +13,14 @@
         [
             "babel-plugin-styled-components",
             {
-                "displayName": true
+                "displayName": false,
+                "fileName": false
+            }
+        ],
+        [
+            "@emotion/babel-plugin",
+            {
+                "autoLabel": "never"
             }
         ]
     ]

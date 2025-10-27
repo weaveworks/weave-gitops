@@ -1,12 +1,8 @@
-import {
-  TextField,
-  // eslint-disable-next-line
-  TextFieldProps,
-} from "@mui/material";
+import { TextField } from "@mui/material";
 import * as React from "react";
 import styled from "styled-components";
 
-export type InputProps = TextFieldProps;
+export type InputProps = React.ComponentProps<typeof TextField>;
 
 function Input({ ...props }: InputProps) {
   return <TextField {...props} />;
