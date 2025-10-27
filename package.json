@@ -92,7 +92,7 @@
     "@parcel/transformer-inline-string": "^2.15.4",
     "@parcel/transformer-typescript-tsc": "^2.15.4",
     "@testing-library/dom": "^10.4.0",
-    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
     "@types/babel__preset-env": "^7",
     "@types/jest": "^30.0.0",
