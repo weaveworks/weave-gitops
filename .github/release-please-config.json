@@ -1,0 +1,46 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "packages": {
+    "weave-gitops": {
+      "release-type": "go",
+      "changelog-path": "CHANGELOG.md",
+      "version-file": "go.mod",
+      "extra-files": [
+        "package.json",
+        "charts/gitops-server/Chart.yaml",
+        "charts/gitops-server/values.yaml"
+      ],
+      "bump-minor-pre-major": true,
+      "include-v-in-tag": true,
+      "extra-changelog-sections": [
+        {
+          "type": "feat",
+          "section": "## 🚀 Enhancements"
+        },
+        {
+          "type": "fix",
+          "section": "## 🐛 Bug Fixes"
+        },
+        {
+          "type": "docs",
+          "section": "## 📖 Documentation"
+        },
+        {
+          "type": "refactor",
+          "section": "## 🔧 Refactoring"
+        },
+        {
+          "type": "test",
+          "section": "## 🧪 Testing"
+        },
+        {
+          "type": "chore",
+          "section": "## 🛠️ Maintenance",
+          "hidden": true
+        }
+      ],
+      "pr-header": "chore",
+      "package-name": "weave-gitops"
+    }
+  }
+}

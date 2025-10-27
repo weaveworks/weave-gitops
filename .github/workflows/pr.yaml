@@ -1,10 +1,14 @@
+name: PR CI
+
 on:
   push:
     branches:
       - main
+      - fix/*
   pull_request:
     branches:
       - main
+      - fix/*
   workflow_dispatch:
 
 concurrency:
@@ -12,13 +16,78 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
-  contents: read # for actions/checkout to fetch code
+  contents: read
 
-name: PR CI Workflow
 jobs:
-  ci-js:
-    name: CI Test JS
+
+  lint-pr-title:
+    name: Validate PR title
     runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: amannn/action-semantic-pull-request@48f256284bd46cdaab1048c3721360e808335d50 # v6.1.1
+        id: lint_pr_title
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: marocchino/sticky-pull-request-comment@773744901bac0e8cbb5a0dc842800d45e9b2b405 # v2.9.4
+        # When the previous steps fail, the workflow would stop. By adding this
+        # condition you can continue the execution with the populated error message.
+        if: always() && (steps.lint_pr_title.outputs.error_message != null)
+        with:
+          header: pr-title-lint-error
+          message: |
+            Hey there and thank you for opening this pull request! :wave:
+
+            We require pull request titles to follow the
+            [Conventional Commits specification](https://www.conventionalcommits.org/en/v1.0.0/)
+            and it looks like your proposed title needs to be adjusted.
+            
+            We use the pull request title in automated release changelog updates, and would like our
+            changelogs to look nice.
+
+            Details:
+            
+            ```
+            ${{ steps.lint_pr_title.outputs.error_message }}
+            ```
+
+      # Delete a previous comment when the issue has been resolved
+      - if: ${{ steps.lint_pr_title.outputs.error_message == null }}
+        uses: marocchino/sticky-pull-request-comment@773744901bac0e8cbb5a0dc842800d45e9b2b405 # v2.9.4
+        with:
+          header: pr-title-lint-error
+          delete: true
+
+
+  # Static analysis and code quality
+  lint:
+    name: Lint and format check
+    runs-on: ubuntu-latest
+#    needs: lint-pr-title
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - name: Setup Go
+        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6.0.0
+        with:
+          go-version-file: go.mod
+      - run: make check-format
+      - run: make lint
+      - run: go mod tidy
+      - name: Verify go mod tidy
+        run: git diff --no-ext-diff --exit-code
+      - run: make proto
+      - name: Verify proto generation
+        run: git diff --no-ext-diff --exit-code
+      - run: make fakes
+      - name: Verify fakes generation
+        run: git diff --no-ext-diff --exit-code
+
+  # Test JavaScript/UI
+  test-js:
+    name: Test JavaScript
+    runs-on: ubuntu-latest
+    needs: lint
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - name: Setup Node.js
@@ -27,11 +96,8 @@ jobs:
           node-version-file: package.json
           cache: yarn
       - run: make node_modules
-      - name: Check that package.json & package-lock.json were updated in commit
-        run: |
-          echo "Using node.js "$(node --version)
-          echo "Using Yarn "$(yarn --version)
-          git diff --no-ext-diff --exit-code
+      - name: Verify package files
+        run: git diff --no-ext-diff --exit-code
       - run: make ui-audit
       - run: make ui
       - run: make ui-lint
@@ -39,9 +105,11 @@ jobs:
       - run: make ui-test
       - run: make ui-lib
 
-  ci-go:
-    name: CI Test Go
+  # Test Go code
+  test-go:
+    name: Test Go
     runs-on: ubuntu-latest
+    needs: lint
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - name: Setup Go
@@ -52,130 +120,122 @@ jobs:
         uses: fluxcd/flux2/action@4a15fa6a023259353ef750acf1c98fe88407d4d0 # v2.7.2
       - run: make unit-tests
 
-  ci-static:
-    name: CI Check Static Checks
+  # Tilt CI - Integration tests with full environment
+  tilt-ci:
+    name: Tilt CI Playwright Integration Tests
     runs-on: ubuntu-latest
+    needs: lint
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - name: Checkout code
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
       - name: Setup Go
         uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6.0.0
         with:
           go-version-file: go.mod
-      - run: make check-format
-      - run: make lint
-      - run: go mod tidy
-      - name: Check that go mod tidy has been run
-        run: git diff --no-ext-diff --exit-code
-      - run: make proto
-      - name: Check that make proto has been run
-        run: git diff --no-ext-diff --exit-code
-      - run: make fakes
-      - name: Check that make fakes has been run
-        run: git diff --no-ext-diff --exit-code
 
-  build-push-image:
-    name: CI Build Image
+      - name: Setup Node.js
+        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
+        with:
+          node-version-file: package.json
+          cache: yarn
+
+      - name: Setup Flux CLI
+        uses: fluxcd/flux2/action@4a15fa6a023259353ef750acf1c98fe88407d4d0 # v2.7.2
+
+      - name: Install Just
+        uses: extractions/setup-just@v3
+
+      - name: Setup Tilt CI environment
+        run: |
+          echo "🚀 Setting up ci environment..."
+          
+          # Start Docker registry for local project images
+          echo "Creating Docker registry..."
+          docker network create kind 2>/dev/null || true
+          if ! docker inspect kind-registry >/dev/null 2>&1; then
+              docker run -d --restart=always \
+                  -p "127.0.0.1:5001:5000" \
+                  --network kind \
+                  --name kind-registry \
+                  registry:2
+              echo "✅ Docker registry started on localhost:5001"
+          else
+              echo "✅ Docker registry already running"
+          fi
+          
+          # Create kind cluster if it doesn't exist
+          if ! kind get clusters 2>/dev/null | grep -q '^wego-dev$'; then
+              echo "Creating kind cluster..."
+              kind create cluster --config tools/kind/wego-dev-config.yaml
+              echo "✅ Kind cluster created"
+          else
+              echo "✅ Kind cluster already exists"
+          fi
+          
+          # Export kubeconfig to make cluster available to Tilt immediately
+          kind export kubeconfig --name wego-dev
+          echo "✅ Kubeconfig exported"
+          
+          # Verify cluster
+          kubectl cluster-info
+          kubectl get nodes
+
+      - name: Install Tilt
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/tilt-dev/tilt/master/scripts/install.sh | bash
+          tilt version
+
+      - name: Run Tilt CI
+        run: |
+          echo "Starting Tilt CI - will build, deploy, and wait for services to be healthy"
+          tilt ci --timeout 15m
+        timeout-minutes: 18
+
+      - name: Upload Tilt logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tilt-ci-logs
+          retention-days: 3
+          path: ~/.tilt-dev/
+
+      - name: Upload Playwright test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results
+          retention-days: 7
+          path: playwright/test-results/
+
+      - name: Cleanup
+        if: always()
+        run: |
+          tilt down || true
+          kind delete cluster --name wego-ci || true
+          docker rm -f kind-registry || true
+
+  # Build Docker images (but don't push on PRs)
+  build-images:
+    name: Build Docker Images
     uses: ./.github/workflows/build-push-image.yaml
+    needs:
+      - test-go
+      - test-js
+      - tilt-ci
     with:
       file: ${{ matrix.docker-image }}.dockerfile
       image: ghcr.io/${{ github.repository }}/${{ matrix.docker-image }}
-      push: ${{ github.event_name != 'pull_request' && github.repository == 'weaveworks/weave-gitops' }}
+      push: ${{ github.event_name != 'pull_request' }}
       tags: |
         type=ref,event=branch
         type=ref,event=pr
     permissions:
-      contents: read # for actions/checkout to fetch code
-      id-token: write # for Cosign to be able to sign images with GHA token
-      packages: write # for docker/build-push-action to push images
+      contents: read
+      id-token: write
+      packages: write
     strategy:
       matrix:
         docker-image:
           - gitops
           - gitops-server
-
-  ci-upload-binary:
-    name: Upload Binary - Disabled
-    runs-on: ${{ matrix.os }}
-    needs: [ci-go, ci-static, ci-js]
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macOS-latest]
-    if: ${{ github.event_name != 'pull_request' && github.repository == 'weaveworks/weave-gitops' }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-      - name: Setup Go
-        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6.0.0
-        with:
-          go-version-file: go.mod
-      - name: Clean
-        run: make clean
-      - id: gitsha
-        run: |
-          gitsha=$(git rev-parse --short ${{ github.sha }})
-          echo "sha=$gitsha" >> $GITHUB_OUTPUT
-      - name: build
-        run: |
-          make gitops
-      - name: Upload binary
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        with:
-          name: gitops-${{ matrix.os }}-${{ steps.gitsha.outputs.sha }}
-          path: bin/gitops
-          overwrite: true
-
-  ci-publish-js-lib:
-    name: Publish js library
-    runs-on: ubuntu-latest
-    if: "${{ github.repository_owner == 'weaveworks' && github.ref_name == 'main'}}"
-    needs: [ci-js]
-    permissions:
-      packages: write
-    outputs:
-      js-version: ${{ steps.package-version.outputs.js-version }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-        with:
-          # avoid the merge commit that on.pull_request creates
-          # fallback to github.sha if not present (e.g. on.push(main))
-          # https://github.com/actions/checkout#checkout-pull-request-head-commit-instead-of-merge-commit
-          # We want the correct sha so we can tag the npm package correctly
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
-          fetch-depth: 0
-      - name: Setup Node.js
-        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
-        with:
-          node-version-file: package.json
-          registry-url: "https://npm.pkg.github.com"
-          scope: "@weaveworks"
-      - run: yarn
-      - run: make ui-lib
-      - name: Update package version
-        id: package-version
-        run: |
-          GITOPS_VERSION=$(git describe)
-          echo "js-version=$GITOPS_VERSION" >> $GITHUB_OUTPUT
-          jq '.version = "'$GITOPS_VERSION'" | .name = "@weaveworks/weave-gitops-main"' < dist/package.json > dist/package-new.json
-          mv dist/package-new.json dist/package.json
-          cp .npmrc dist
-      - run: cd dist && npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  #  release step updates 'release' status check for non releases branches. See ../../doc/incidents/issues-3907 for full context.
-  release:
-    if: ${{ github.event_name == 'pull_request' && !startsWith(github.event.pull_request.head.ref, 'releases/') && !github.event.pull_request.head.repo.fork }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Release
-        run: |
-          curl --fail --request POST \
-            --url https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.event.pull_request.head.sha }} \
-            --header 'authorization: Bearer ${{ secrets.WEAVE_GITOPS_BOT_ACCESS_TOKEN }}' \
-            --header 'content-type: application/json' \
-            --data '{
-                "state":"success",
-                "description":"release not required",
-                "context":"release"
-              }'

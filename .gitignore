@@ -17,7 +17,9 @@ ginkgo.report
 test/library/wego-library-test
 tilt_modules
 .envrc
-
+__pycache__
+playwright/venv
+playwright/test-results
 localhost-key.pem
 localhost.pem
 

@@ -16,25 +16,11 @@ metadata:
   name: kube-prometheus-stack
   namespace: monitoring
 spec:
-  interval: 10m0s
+  interval: 1m30s
   sourceRef:
     kind: GitRepository
     name: flux-monitoring
   path: ./monitoring/controllers/kube-prometheus-stack
-  prune: true
-  wait: true
----
-apiVersion: kustomize.toolkit.fluxcd.io/v1
-kind: Kustomization
-metadata:
-  name: loki-stack
-  namespace: monitoring
-spec:
-  interval: 10m0s
-  sourceRef:
-    kind: GitRepository
-    name: flux-monitoring
-  path: ./monitoring/controllers/loki-stack
   prune: true
   wait: true
 ---

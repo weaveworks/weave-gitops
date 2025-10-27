@@ -11,6 +11,12 @@ CLUSTER_NAME = os.getenv("CLUSTER_NAME")
 
 
 @pytest.fixture(scope="session")
+def playwright():
+    with sync_playwright() as p:
+        yield p
+
+
+@pytest.fixture(scope="session")
 def setup(playwright: Playwright):
     browser = playwright.chromium.launch(slow_mo=1000)
     context = browser.new_context()
@@ -26,7 +32,7 @@ def setup(playwright: Playwright):
     page.get_by_placeholder("Username").press("Tab")
     login_page.get_password_textbox().fill(PASSWORD)
     login_page.get_continue_button().click()
-    expect(page).to_have_url(f"{URL}/clusters")
+    expect(page).to_have_url(f"{URL}/applications")
 
     yield context
     context.tracing.stop(path="test-results/execution-tracing.zip")
