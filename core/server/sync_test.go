@@ -215,7 +215,7 @@ func TestSync(t *testing.T) {
 
 			go func() {
 				// Add a small delay to reduce race conditions
-				time.Sleep(100 * time.Millisecond)
+				//time.Sleep(100 * time.Millisecond)
 				md := metadata.Pairs(MetadataUserKey, "anne", MetadataGroupsKey, "system:masters")
 				outgoingCtx := metadata.NewOutgoingContext(ctx, md)
 				_, err := c.SyncFluxObject(outgoingCtx, msg)
