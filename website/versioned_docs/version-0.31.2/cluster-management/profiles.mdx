@@ -134,11 +134,15 @@ spec:
 
 ### Select the Profiles You Want Installed at Cluster Creation
 
-WGE inspects the namespace in the management cluster where it is deployed, and looks for a `HelmRepository` object named `weaveworks-charts`. This Kubernetes object should point to a Helm chart repository that includes the Profiles available for installation.
+WGE inspects the namespace in the management cluster where it is deployed, and looks for `HelmRepository` objects. These Kubernetes objects should point to Helm chart repositories that include the Profiles available for installation.
 
-When creating a cluster from the UI using a CAPI template, these Profiles are available for selection in the `Profiles` section of the template. For example:
+When creating a cluster from the UI using a CAPI template, these Helm Repositories together with their Profiles are available for selection in the `Profiles` section of the template. For example:
 
-![Profiles Selection](./img/profile-selection.png)
+![HelmRepositories Selection](./img/hr-selection.png)
+
+The helm repositories selection will filter down the profiles available for selection at the next step.
+
+![Profiles Selection](./img/profiles-selection.png)
 
 As shown above, some Profiles are optional, while others are required. This is determined when the template is authored and allows for operations teams to control which Helm packages should be installed on new clusters by default.
 
