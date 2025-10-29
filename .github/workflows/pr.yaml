@@ -192,14 +192,6 @@ jobs:
           tilt ci --timeout 15m
         timeout-minutes: 18
 
-      - name: Upload Tilt logs
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: tilt-ci-logs
-          retention-days: 3
-          path: ~/.tilt-dev/
-
       - name: Upload Playwright test results
         if: always()
         uses: actions/upload-artifact@v4
