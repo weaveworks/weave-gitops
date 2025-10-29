@@ -1,0 +1,38 @@
+---
+title: Debugging Clusters
+sidebar_position: 42
+---
+
+Lets work through some common steps when a cluster is not behaving as expected
+
+## Pull request did not appear in github/gitlab
+
+Make sure you're looking at the correct repository
+
+## Cluster does not appear in the UI after merging the PR
+
+- Check that the path the cluster definition was merged to is being reconciled by flux
+- Check that there were no errors in the kustomization resource that applied the cluster definition
+  - There may be a k8s validation error like a bad namespace in the cluster definition
+  - The CAPI provider may not be installed
+- Check that the template created a `GitopsCluster` resource, this is what the UI looks for.
+
+## Cluster does not transition to ready
+
+- Check the logs of the capi controllers, it may be failing to create the cluster
+  - Some providers like CAPD can be quite sensitive to your docker state
+    - make sure you don't have a lot of other old clusters running.
+    - Try a different cluster name, some old resources may not been cleaned up
+- No CNI may have been installed on your clusters. Make sure a ClusterResourceSet is configured to do this.
+
+## Cluster resources do not appear in Applications/sources
+
+- Bootstrapping may have failed
+  - No ClusterBootstrapConfiguration may be loaded into the cluster
+  - Check the github repo to see if flux has made a commit to bootstrap the new cluster
+  - Check the logs of the pods of the bootstrap job. They are named `default/run-gitops-${cluster-name}`, flux may have failed to clone the repo.
+  - Check a GITHUB_TOKEN is available to flux
+
+## x509: certificate signed by unknown authority error on Applications/Sources page
+
+- You may have an old load balancer from a previous cluster, delete it and recreate the cluster
