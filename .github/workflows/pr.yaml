@@ -186,7 +186,7 @@ jobs:
           curl -fsSL https://raw.githubusercontent.com/tilt-dev/tilt/master/scripts/install.sh | bash
           tilt version
 
-      - name: Run Tilt CI
+      - name: Run Tilt Playwright Integration Tests
         run: |
           echo "Starting Tilt CI - will build, deploy, and wait for services to be healthy"
           tilt ci --timeout 15m
