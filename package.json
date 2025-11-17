@@ -64,7 +64,7 @@
     "install": "^0.13.0",
     "jest-canvas-mock": "^2.5.2",
     "js-sha3": "0.9.3",
-    "js-yaml": "^4.1.0",
+    "js-yaml": "^4.1.1",
     "lodash": "^4.17.21",
     "luxon": "^3.7.2",
     "mnemonic-browser": "^0.0.1",
