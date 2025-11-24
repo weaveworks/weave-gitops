@@ -36,7 +36,7 @@ jobs:
       contents: read
 
     steps:
-    - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+    - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
     - name : Set URL environment Variable
       run: |
         echo "URL=http://localhost:8000" >> $GITHUB_ENV
@@ -53,7 +53,7 @@ jobs:
     - run: pip install -r requirements.txt
 
     - name: Setup Flux CLI
-      uses: fluxcd/flux2/action@4a15fa6a023259353ef750acf1c98fe88407d4d0 # v2.7.2
+      uses: fluxcd/flux2/action@06ed49dcd3f3ce2fc8d1988848245873a91550bc # v2.7.4
 
     - name: Install kubectl
       run: |
@@ -151,7 +151,7 @@ jobs:
 
     - name: Publish test report
       id: test_summary
-      uses: mikepenz/action-junit-report@5b7ee5a21e8674b695313d769f3cbdfd5d4d53a4 # v6.0.0
+      uses: mikepenz/action-junit-report@e08919a3b1fb83a78393dfb775a9c37f17d8eea6 # v6.0.1
       if: success() || failure()
       with:
         report_paths: test-results/junit_test_report.xml
