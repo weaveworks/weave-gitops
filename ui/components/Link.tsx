@@ -9,7 +9,6 @@ import Text, { TextProps } from "./Text";
 type Props = {
   className?: string;
   to?: string;
-  innerRef?: any;
   children?: any;
   href?: any;
   target?: any;
@@ -28,19 +27,22 @@ const SpacedIcon = ({ icon }: { icon: JSX.Element }) => (
   </>
 );
 
-function Link({
-  children,
-  href,
-  className,
-  to = "",
-  newTab,
-  onClick,
-  textProps,
-  icon,
-  onMouseEnter,
-  onMouseLeave,
-  ...props
-}: Props) {
+const Link = React.forwardRef<HTMLAnchorElement, Props>(function Link(
+  {
+    children,
+    href,
+    className,
+    to = "",
+    newTab,
+    onClick,
+    textProps,
+    icon,
+    onMouseEnter,
+    onMouseLeave,
+    ...props
+  },
+  ref
+) {
   if ((href && !isAllowedLink(href)) || (!href && !to)) {
     return (
       <Text className={className} {...textProps}>
@@ -58,6 +60,7 @@ function Link({
   if (href) {
     return (
       <a
+        ref={ref}
         className={className}
         href={href}
         target={newTab ? "_blank" : ""}
@@ -77,6 +80,7 @@ function Link({
 
   return (
     <RouterLink
+      ref={ref}
       onClick={onClick}
       className={className}
       to={to}
@@ -89,8 +93,10 @@ function Link({
       {txt}
     </RouterLink>
   );
-}
+});
 
-export default styled(Link).attrs({ className: Link.name })`
+Link.displayName = "Link";
+
+export default styled(Link).attrs({ className: Link.displayName })`
   text-decoration: none;
 `;
