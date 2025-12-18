@@ -111,9 +111,9 @@ const CollapseButton = styled(IconButton)`
     margin: 0 18px 0 4px;
     &:hover {
       background-color: ${(props) =>
-    props.theme.mode === ThemeTypes.Dark
-      ? alpha(props.theme.colors.primary10, 0.2)
-      : alpha(props.theme.colors.primary, 0.1)};
+        props.theme.mode === ThemeTypes.Dark
+          ? alpha(props.theme.colors.primary10, 0.2)
+          : alpha(props.theme.colors.primary, 0.1)};
     }
   }
 `;
