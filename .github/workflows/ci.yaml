@@ -62,6 +62,8 @@ jobs:
         with:
           fetch-depth: 0
       - uses: wagoid/commitlint-github-action@v5
+        with:
+          configFile: ./commitlint.config.mjs
 
   pr-title-lint:
     name: Validate PR title
