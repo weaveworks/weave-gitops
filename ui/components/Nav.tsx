@@ -130,7 +130,7 @@ const LinkTabIcon = ({ iconType, color, collapsed, title }) => {
   else return <Spacer padding="small" />;
 };
 
-const LinkTab = React.forwardRef((p: any, ref) => {
+const LinkTab = React.forwardRef<HTMLAnchorElement, any>((p, ref) => {
   const [hovered, setHovered] = React.useState<boolean>(false);
   const item: NavItem = p.navItem;
 
@@ -147,7 +147,7 @@ const LinkTab = React.forwardRef((p: any, ref) => {
   return (
     <Link
       className={className}
-      innerRef={ref}
+      ref={ref}
       to={formatURL(item.link.value)}
       href={item.link.href}
       newTab={item.link.newTab}

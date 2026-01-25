@@ -24,8 +24,8 @@ type TabProps = {
 
 type PathConfig = { name: string; path: string };
 
-const ForwardedLink = React.forwardRef((props, ref) => (
-  <Link {...props} innerRef={ref} />
+const ForwardedLink = React.forwardRef<HTMLAnchorElement>((props, ref) => (
+  <Link {...props} ref={ref} />
 ));
 
 function findChildren(childrenProp: any[]) {

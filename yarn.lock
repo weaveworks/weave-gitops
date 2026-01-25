@@ -4784,9 +4784,9 @@ __metadata:
     jest-transformer-svg: "npm:^2.1.0"
     jest-worker: "npm:^30.2.0"
     js-sha3: "npm:0.9.3"
-    js-yaml: "npm:^4.1.0"
+    js-yaml: "npm:^4.1.1"
     jsdom: "npm:^26.0.0"
-    lodash: "npm:^4.17.21"
+    lodash: "npm:^4.17.23"
     luxon: "npm:^3.7.2"
     mnemonic-browser: "npm:^0.0.1"
     parcel: "npm:^2.15.4"
@@ -4799,7 +4799,7 @@ __metadata:
     react-is: "npm:^19.0.0"
     react-lottie-player: "npm:^2.1.0"
     react-markdown: "npm:^10.1.0"
-    react-router: "npm:^7.6.3"
+    react-router: "npm:^7.12.0"
     react-syntax-highlighter: "npm:^15.6.1"
     react-test-renderer: "npm:^19.0.0"
     react-toastify: "npm:^11.0.5"
@@ -4811,7 +4811,7 @@ __metadata:
     typescript-eslint: "npm:^8.46.0"
     yarn-audit-fix: "npm:^10.1.1"
   peerDependencies:
-    lodash: ^4.17.21
+    lodash: ^4.17.23
     react: ^19.0.0
     react-dom: ^19.0.0
     react-toastify: ^7.0.4
@@ -8927,6 +8927,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"js-yaml@npm:^4.1.1":
+  version: 4.1.1
+  resolution: "js-yaml@npm:4.1.1"
+  dependencies:
+    argparse: "npm:^2.0.1"
+  bin:
+    js-yaml: bin/js-yaml.js
+  checksum: 10c0/561c7d7088c40a9bb53cc75becbfb1df6ae49b34b5e6e5a81744b14ae8667ec564ad2527709d1a6e7d5e5fa6d483aa0f373a50ad98d42fde368ec4a190d4fae7
+  languageName: node
+  linkType: hard
+
 "jsbn@npm:1.1.0":
   version: 1.1.0
   resolution: "jsbn@npm:1.1.0"
@@ -9286,6 +9297,13 @@ __metadata:
   version: 4.17.21
   resolution: "lodash@npm:4.17.21"
   checksum: 10c0/d8cbea072bb08655bb4c989da418994b073a608dffa608b09ac04b43a791b12aeae7cd7ad919aa4c925f33b48490b5cfe6c1f71d827956071dae2e7bb3a6b74c
+  languageName: node
+  linkType: hard
+
+"lodash@npm:^4.17.23":
+  version: 4.17.23
+  resolution: "lodash@npm:4.17.23"
+  checksum: 10c0/1264a90469f5bb95d4739c43eb6277d15b6d9e186df4ac68c3620443160fc669e2f14c11e7d8b2ccf078b81d06147c01a8ccced9aab9f9f63d50dcf8cace6bf6
   languageName: node
   linkType: hard
 
@@ -11010,9 +11028,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-router@npm:^7.6.3":
-  version: 7.6.3
-  resolution: "react-router@npm:7.6.3"
+"react-router@npm:^7.12.0":
+  version: 7.13.0
+  resolution: "react-router@npm:7.13.0"
   dependencies:
     cookie: "npm:^1.0.1"
     set-cookie-parser: "npm:^2.6.0"
@@ -11022,7 +11040,7 @@ __metadata:
   peerDependenciesMeta:
     react-dom:
       optional: true
-  checksum: 10c0/43c8dd124d1c3f9fb11afa905fb0c87e19b73b04877e9be09f84eac34948ea90d6c4aae408c8030fe6dc4ed88c0bcf2e857b53a817ebbe5ce7d26e485a330c7d
+  checksum: 10c0/397cb009bc83d071269c8f9323bbfe1f856721fde75e39b29fe0ddfe7564ebdc3b8bbb85768321cae92ec28b406e8fac7eab7e232d0738b3b1c092e2764e4307
   languageName: node
   linkType: hard
 
