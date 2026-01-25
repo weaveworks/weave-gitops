@@ -28,7 +28,8 @@ on:
         type: boolean
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  # Use a separate group for release runs (tag v* or workflow_dispatch run_release_jobs) and dependabot/* branches so they are never cancelled by other PR/branch runs.
+  group: ${{ github.workflow }}-${{ github.ref }}${{ ((github.event_name == 'workflow_dispatch' && github.event.inputs.run_release_jobs == 'true') || (startsWith(github.ref, 'refs/tags/v'))) && '-release' || ((github.event_name == 'pull_request' && startsWith(github.head_ref, 'dependabot/')) || (github.event_name == 'push' && startsWith(github.ref, 'refs/heads/dependabot/'))) && '-dependabot' || '' }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
