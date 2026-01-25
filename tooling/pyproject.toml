@@ -1,0 +1,97 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "weave-gitops-tooling"
+version = "0.1.0"
+description = "Weave GitOps release and build tooling: bump, generate-notes"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "certifi>=2023.7.22",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "ruff>=0.4.0",
+    "pre-commit>=3.0",
+]
+
+[project.scripts]
+weavegitops = "weave_gitops_tooling.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-v --tb=short"
+
+[tool.ruff]
+target-version = "py39"
+line-length = 100
+exclude = [".venv", "__pycache__", "build", "dist", "*.egg-info", ".git"]
+
+[tool.ruff.lint]
+# World-class: pycodestyle, Pyflakes, bugbear, comprehensions, pyupgrade, simplify,
+# isort, pathlib, Ruff, try-except-pass; plus builtins, blind-except, eradicate,
+# debugger, errmsg, return, logging, pie, pytest-style, raise, pygrep-hooks,
+# pep8-naming, perflint, mccabe, tryceratops
+select = [
+    "E",     # pycodestyle errors
+    "F",     # Pyflakes (undefined, unused, redef)
+    "W",     # pycodestyle warnings
+    "B",     # flake8-bugbear
+    "C4",    # flake8-comprehensions
+    "UP",    # pyupgrade
+    "SIM",   # flake8-simplify
+    "I",     # isort
+    "PTH",   # flake8-use-pathlib
+    "RUF",   # Ruff (ambiguous unicode, unused noqa, etc.)
+    "S110",  # try-except-pass
+    "A",     # flake8-builtins (shadowing)
+    "BLE",   # flake8-blind-except
+    "ERA",   # eradicate (commented-out code)
+    "T10",   # flake8-debugger
+    "EM",    # flake8-errmsg (exception messages)
+    "RET",   # flake8-return
+    "LOG",   # flake8-logging
+    "PIE",   # flake8-pie
+    "PT",    # flake8-pytest-style
+    "RSE",   # flake8-raise
+    "PGH",   # pygrep-hooks (blanket noqa, etc.)
+    "N",     # pep8-naming
+    "PERF",  # perflint
+    "C90",   # mccabe (complexity)
+    "TRY",   # tryceratops (exceptions)
+]
+ignore = [
+    "E501",    # line too long
+    "UP045",   # X|None needs Python 3.10+ (we target 3.9)
+    "S603",    # subprocess: false positives when argv is controlled
+    "S607",    # partial executable path: docker/cargo/kubectl are intentional
+    "S103",    # chmod 0o755: required for copied binaries
+    "T201",    # print: CLI and scripts use print intentionally
+    "T203",    # pprint: same
+    "PERF203", # try-except in loop: false positives in our patterns
+    "PERF402", # manual list copy: prefer clarity in some cases
+    "TRY003",  # long exception messages: subjective
+    "TRY300",  # try-consider-else: style
+    "TRY301",  # abstract raise to inner: style
+    "PT011",   # pytest raises too broad: allow for now
+    "PT018",   # pytest composite assertion: allow combined asserts in tests for brevity
+]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 20
+
+[tool.ruff.lint.per-file-ignores]
+# main: arg-parsing dispatcher; complexity expected
+"src/weave_gitops_tooling/cli/main.py" = ["C901"]
+
+[tool.ruff.format]
+quote-style = "double"
