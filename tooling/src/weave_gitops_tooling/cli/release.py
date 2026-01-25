@@ -1,4 +1,4 @@
-"""CLI for weavegitops release: bump, generate-notes."""
+"""CLI for weavetooling release: bump, generate-notes."""
 
 from __future__ import annotations
 
@@ -18,7 +18,7 @@ def run_release(args, project_root: Path) -> None:
     if cmd == "generate-notes":
         version = getattr(args, "version", None) or ""
         if not version:
-            print("weavegitops release generate-notes: --version is required", file=sys.stderr)
+            print("weavetooling release generate-notes: --version is required", file=sys.stderr)
             sys.exit(1)
         rc = notes_run(
             project_root,
@@ -30,9 +30,9 @@ def run_release(args, project_root: Path) -> None:
             provider=getattr(args, "provider", None),
         )
         sys.exit(rc)
-    print("weavegitops release: use subcommand 'bump' or 'generate-notes'")
-    print("  weavegitops release bump [patch|minor|major|rc|patch-rc|minor-rc|major-rc]")
+    print("weavetooling release: use subcommand 'bump' or 'generate-notes'")
+    print("  weavetooling release bump [patch|minor|major|rc|patch-rc|minor-rc|major-rc]")
     print(
-        "  weavegitops release generate-notes --version X.Y.Z [--output PATH] [--template PATH] [--since-tag TAG] [--provider openai|anthropic]"
+        "  weavetooling release generate-notes --version X.Y.Z [--output PATH] [--template PATH] [--since-tag TAG] [--provider openai|anthropic]"
     )
     sys.exit(1)

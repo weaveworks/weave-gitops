@@ -21,7 +21,7 @@ dev = [
 ]
 
 [project.scripts]
-weavegitops = "weave_gitops_tooling.cli:main"
+weavetooling = "weave_gitops_tooling.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

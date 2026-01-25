@@ -75,7 +75,7 @@ jobs:
 
       - name: Bump version (Chart, values, package.json)
         id: bump
-        run: tooling/.venv/bin/weavegitops release bump ${{ env.BUMP }}
+        run: tooling/.venv/bin/weavetooling release bump ${{ env.BUMP }}
 
       - name: Check for changes
         run: |
@@ -89,7 +89,7 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
-          tooling/.venv/bin/weavegitops release generate-notes \
+          tooling/.venv/bin/weavetooling release generate-notes \
             --version ${{ steps.bump.outputs.version }} \
             --output release-body.md \
             --template .github/release-notes-template.md \

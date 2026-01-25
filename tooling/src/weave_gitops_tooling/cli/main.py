@@ -1,10 +1,11 @@
-"""weavegitops CLI entry point."""
+"""weavetooling CLI entry point."""
 
 import os
 import sys
 from pathlib import Path
 
 from . import release as release_cli
+from . import ci as ci_cli
 
 
 def _get_project_root() -> Path:
@@ -26,14 +27,23 @@ def main() -> None:
 
     if args.command == "release":
         if not getattr(args, "release_cmd", None):
-            print("weavegitops release: missing subcommand")
+            print("weavetooling release: missing subcommand")
             print("  bump, generate-notes")
-            print("  Use: weavegitops release --help")
+            print("  Use: weavetooling release --help")
             sys.exit(1)
         release_cli.run_release(args, project_root)
         return
 
-    print("weavegitops: use 'release' (bump, generate-notes).")
+    if args.command == "ci":
+        if not getattr(args, "ci_cmd", None):
+            print("weavetooling ci: missing subcommand")
+            print("  is-tag")
+            print("  Use: weavetooling ci --help")
+            sys.exit(1)
+        ci_cli.run_ci(args)
+        return
+
+    print("weavetooling: use 'release' (bump, generate-notes) or 'ci' (is-tag).")
     sys.exit(1)
 
 
@@ -41,8 +51,8 @@ def _build_parser():
     import argparse
 
     p = argparse.ArgumentParser(
-        prog="weavegitops",
-        description="Weave GitOps tooling: release bump, generate-notes",
+        prog="weavetooling",
+        description="Weave GitOps tooling: release bump, generate-notes, ci helpers",
     )
     sub = p.add_subparsers(dest="command", help="Command")
 
@@ -82,5 +92,9 @@ def _build_parser():
         "--model",
         help="Model: OpenAI (gpt-4o-mini) or Anthropic (claude-sonnet-4-5-20250929)",
     )
+
+    pci = sub.add_parser("ci", help="CI helpers: is-tag (for GHA job outputs)")
+    pci_sub = pci.add_subparsers(dest="ci_cmd")
+    pci_sub.add_parser("is-tag", help="Print true if GITHUB_REF is refs/tags/v*, else false")
 
     return p

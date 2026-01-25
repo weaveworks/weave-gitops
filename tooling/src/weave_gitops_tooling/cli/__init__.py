@@ -1,4 +1,4 @@
-"""CLI for weavegitops."""
+"""CLI for weavetooling."""
 
 from .main import main
 

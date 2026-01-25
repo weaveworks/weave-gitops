@@ -1,11 +1,11 @@
 # CI: proto and commitlint; fan-out Go (fmt, lint, unit-tests) || UI (ui-lint, ui-test);
 # then build (gitops, gitops-server). On tag: image, chart, goreleaser.
 #
-# Flow: pr-title-lint (if PR; else skipped) -> conventional-commits (if !tag;
-#   runs when pr-title-lint success or skipped) -> proto (make proto, git diff)
-#   in parallel with ui-lint, ui-test. Then go-fmt,
-#   go-lint, go-unit-tests (need proto). Then build
-#   (make gitops, make gitops-server). Tag jobs (image, chart, goreleaser) need build.
+# Flow: vars (sets run_release_jobs: true when ref is v* tag OR workflow_dispatch with run_release_jobs=true) and conventional-commits run first.
+#   conventional-commits -> pr-title-lint (if PR), proto, ui-lint, ui-test -> go-* -> build.
+#   Release jobs (build-push-gitops-server, build-and-push-chart, goreleaser) need [build, vars] and
+#   if: needs.vars.outputs.run_release_jobs == 'true'.
+#   workflow_dispatch input run_release_jobs is the sentinel when release.yaml (or manual) invokes CI via API.
 # No make clean (each run is a fresh checkout).
 #
 # On tag (v*): build-push-gitops-server (provenance, SBOM, cosign), build-and-push-chart
@@ -15,11 +15,17 @@ name: CI
 
 on:
   push:
-    branches: [main, feature/re-implement-workflows]
+    branches: [main]
     tags: ["v*"]
   pull_request:
-    branches: [main, feature/re-implement-workflows]
+    branches: [main]
   workflow_dispatch:
+    inputs:
+      run_release_jobs:
+        description: "Run image, chart and goreleaser jobs (release build). Set when dispatching to (re-)run release, or when invoked by release.yaml."
+        required: false
+        default: false
+        type: boolean
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -33,8 +39,33 @@ env:
   PYTHON_VERSION: "3.12"
 
 jobs:
+  vars:
+    name: Set CI vars
+    runs-on: ubuntu-latest
+    outputs:
+      run_release_jobs: ${{ steps.set_vars.outputs.is_release_tag == 'true' || (github.event_name == 'workflow_dispatch' && github.event.inputs.run_release_jobs == 'true') }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+      - run: pip install -e ./tooling
+      - id: set_vars
+        run: echo "is_release_tag=$(weavetooling ci is-tag)" >> $GITHUB_OUTPUT
+
+  conventional-commits:
+    name: Conventional Commits
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: wagoid/commitlint-github-action@v5
+
   pr-title-lint:
     name: Validate PR title
+    needs: [conventional-commits]
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     permissions:
@@ -71,21 +102,36 @@ jobs:
           header: pr-title-lint-error
           delete: true
 
-  conventional-commits:
-    name: Conventional Commits
+  ui-lint:
+    name: UI lint
     needs: [pr-title-lint]
     runs-on: ubuntu-latest
-    if: always() && (needs.pr-title-lint.result == 'success' || needs.pr-title-lint.result == 'skipped') && !startsWith(github.ref, 'refs/tags/')
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          fetch-depth: 0
-      - uses: wagoid/commitlint-github-action@v5
+          node-version-file: package.json
+          cache: yarn
+      - run: make node_modules
+      - run: make ui-lint
+      - run: make ui-audit
 
+  ui-test:
+    name: UI test
+    needs: [pr-title-lint]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: package.json
+          cache: yarn
+      - run: make node_modules
+      - run: make ui-test
+        
   proto:
     name: Proto (generate + git diff)
-    needs: [conventional-commits]
-    if: always() && (needs.conventional-commits.result == 'success' || needs.conventional-commits.result == 'skipped')
+    needs: [pr-title-lint]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -101,7 +147,7 @@ jobs:
 
   go-fmt:
     name: Go fmt
-    needs: [proto]
+    needs: [proto, ui-lint, ui-test]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -112,7 +158,7 @@ jobs:
 
   go-lint:
     name: Go lint
-    needs: [proto]
+    needs: [proto, ui-lint, ui-test]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -123,7 +169,7 @@ jobs:
 
   go-unit-tests:
     name: Go unit-tests
-    needs: [proto]
+    needs: [proto, ui-lint, ui-test]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -141,41 +187,9 @@ jobs:
           version: ${{ steps.get_flux_version.outputs.version }}
       - run: make unit-tests
 
-  ui-lint:
-    name: UI lint
-    needs: [conventional-commits]
-    if: always() && (needs.conventional-commits.result == 'success' || needs.conventional-commits.result == 'skipped')
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: package.json
-          cache: yarn
-      - run: make node_modules
-      - run: make ui-lint
-      # Re-enable after workflow re-org when ui-audit errors are fixed
-      - name: UI audit (skipped)
-        if: false
-        run: make ui-audit
-
-  ui-test:
-    name: UI test
-    needs: [conventional-commits]
-    if: always() && (needs.conventional-commits.result == 'success' || needs.conventional-commits.result == 'skipped')
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version-file: package.json
-          cache: yarn
-      - run: make node_modules
-      - run: make ui-test
-
   build:
     name: Build (gitops, gitops-server)
-    needs: [go-fmt, go-lint, go-unit-tests, ui-lint, ui-test]
+    needs: [go-fmt, go-lint, go-unit-tests]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -188,8 +202,8 @@ jobs:
   # --- Tag-only: image, chart, goreleaser ---
   build-push-gitops-server:
     name: Build and push gitops-server image
-    needs: [build]
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') && needs.build.result == 'success'
+    needs: [build, vars]
+    if: needs.vars.outputs.run_release_jobs == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -251,8 +265,8 @@ jobs:
 
   build-and-push-chart:
     name: Build and push Helm chart
-    needs: [build]
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') && needs.build.result == 'success'
+    needs: [build, vars]
+    if: needs.vars.outputs.run_release_jobs == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -296,8 +310,8 @@ jobs:
 
   goreleaser:
     name: Goreleaser (gitops CLI)
-    needs: [build]
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') && needs.build.result == 'success'
+    needs: [build, vars]
+    if: needs.vars.outputs.run_release_jobs == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
