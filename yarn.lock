@@ -4392,14 +4392,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/styled-components@npm:^5.1.34":
-  version: 5.1.34
-  resolution: "@types/styled-components@npm:5.1.34"
+"@types/styled-components@npm:^5.1.35":
+  version: 5.1.35
+  resolution: "@types/styled-components@npm:5.1.35"
   dependencies:
     "@types/hoist-non-react-statics": "npm:*"
     "@types/react": "npm:*"
     csstype: "npm:^3.0.2"
-  checksum: 10c0/5bce93ea2c6161fc45daaf863eefdc20672e839ae486597c40b95e7978e249c160c1bc9706f56cb5152a7ef63cf485d15a9502889169ef945281f511e4b2d5a0
+  checksum: 10c0/829d2d03c2e687f3079bbb6512b298ba8427c8371f9575c5ce1ec2abbbbe92d4455a731049b2b217168272ac6b507d8797fe754549801d94ec2fcdbce1a1aced
   languageName: node
   linkType: hard
 
@@ -4762,7 +4762,7 @@ __metadata:
     "@types/react": "npm:^19.1.8"
     "@types/react-dom": "npm:^19.1.6"
     "@types/react-is": "npm:^19"
-    "@types/styled-components": "npm:^5.1.34"
+    "@types/styled-components": "npm:^5.1.35"
     ansi-styles: "npm:^6.2.1"
     babel-jest: "npm:^30.2.0"
     babel-plugin-styled-components: "npm:^2.1.4"
