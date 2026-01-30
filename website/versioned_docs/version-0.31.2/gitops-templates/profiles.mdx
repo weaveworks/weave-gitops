@@ -22,7 +22,13 @@ spec:
         targetNamespace: nginx
       - name: cert-manager
         targetNamespace: cert-manager
+        sourceRef:
+          kind: HelmRepository
+          name: podinfo
+          namespace: default
 ```
+
+For each profile, a sourceRef can be specified. This is the name/namespace reference to the HelmRepository where the profile can be found. The HelmRepository must be present on the rendering cluster. If this is not provided, `weaveworks-charts` is used by default. 
 
 A template with the above profiles would offer Application Developers the option
 to add `nginx` and `cert-manager` resources to their templated resources, ready
