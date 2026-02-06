@@ -47,7 +47,7 @@ RUN --mount=type=cache,target=/gomod-cache --mount=type=cache,target=/go-cache \
     LDFLAGS=${LDFLAGS##-X localbuild=true} GIT_COMMIT=$GIT_COMMIT make gitops-server
 
 #  Distroless
-FROM gcr.io/distroless/base@sha256:9e9b50d2048db3741f86a48d939b4e4cc775f5889b3496439343301ff54cdba8 AS runtime
+FROM gcr.io/distroless/base@sha256:8c8b7cf2a01e2d1c683128b2488d77139fa90ec8cb807f0ae260d57f7022dedd AS runtime
 COPY --from=ui /home/app/bin/dist/ /dist/
 COPY --from=go-build /app/bin/gitops-server /gitops-server
 COPY --from=go-build /root/.ssh/known_hosts /root/.ssh/known_hosts
