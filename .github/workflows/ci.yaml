@@ -108,6 +108,7 @@ jobs:
   ui-lint:
     name: UI lint
     needs: [pr-title-lint]
+    if: ${{ !failure() }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -122,6 +123,7 @@ jobs:
   ui-test:
     name: UI test
     needs: [pr-title-lint]
+    if: ${{ !failure() }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -135,6 +137,7 @@ jobs:
   proto:
     name: Proto (generate + git diff)
     needs: [pr-title-lint]
+    if: ${{ !failure() }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -151,6 +154,7 @@ jobs:
   go-fmt:
     name: Go fmt
     needs: [proto, ui-lint, ui-test]
+    if: ${{ !failure() }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -162,6 +166,7 @@ jobs:
   go-lint:
     name: Go lint
     needs: [proto, ui-lint, ui-test]
+    if: ${{ !failure() }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -173,6 +178,7 @@ jobs:
   go-unit-tests:
     name: Go unit-tests
     needs: [proto, ui-lint, ui-test]
+    if: ${{ !failure() }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -193,6 +199,7 @@ jobs:
   build:
     name: Build (gitops, gitops-server)
     needs: [go-fmt, go-lint, go-unit-tests]
+    if: ${{ !failure() }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -206,7 +213,7 @@ jobs:
   build-push-gitops-server:
     name: Build and push gitops-server image
     needs: [build, vars]
-    if: needs.vars.outputs.run_release_jobs == 'true'
+    if: ${{ !failure() && needs.vars.outputs.run_release_jobs == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -254,7 +261,7 @@ jobs:
           platforms: linux/amd64,linux/arm64
 
       - name: Install cosign
-        uses: sigstore/cosign-installer@v4
+        uses: sigstore/cosign-installer@v4.0.0
 
       - name: Keyless signing of image
         run: |
@@ -269,7 +276,7 @@ jobs:
   build-and-push-chart:
     name: Build and push Helm chart
     needs: [build, vars]
-    if: needs.vars.outputs.run_release_jobs == 'true'
+    if: ${{ !failure() && needs.vars.outputs.run_release_jobs == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -293,28 +300,34 @@ jobs:
         run: |
           helm package charts/gitops-server -d /tmp
           CHART=$(ls /tmp/weave-gitops-*.tgz)
-          helm push "$CHART" oci://ghcr.io/${{ github.repository_owner }} 2>&1 | tee /tmp/push.log
+          helm push "$CHART" oci://ghcr.io/${{ github.repository_owner }}/charts 2>&1 | tee /tmp/push.log
           CHART_DIGEST=$(awk '/Digest: /{print $2}' /tmp/push.log)
           [ -n "$CHART_DIGEST" ] || { echo "Could not parse digest from helm push"; cat /tmp/push.log; exit 1; }
           echo "digest=$CHART_DIGEST" >> $GITHUB_OUTPUT
 
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Install cosign
-        uses: sigstore/cosign-installer@v4
+        uses: sigstore/cosign-installer@v4.0.0
 
       - name: Keyless signing of chart
         run: |
-          cosign sign --yes ghcr.io/${{ github.repository_owner }}/weave-gitops@${{ steps.push-chart.outputs.digest }}
+          cosign sign --yes ghcr.io/${{ github.repository_owner }}/charts/weave-gitops@${{ steps.push-chart.outputs.digest }}
 
       - name: Verify the chart signing
         run: |
-          cosign verify ghcr.io/${{ github.repository_owner }}/weave-gitops@${{ steps.push-chart.outputs.digest }} \
+          cosign verify ghcr.io/${{ github.repository_owner }}/charts/weave-gitops@${{ steps.push-chart.outputs.digest }} \
             --certificate-identity "https://github.com/${{ github.workflow_ref }}" \
             --certificate-oidc-issuer "https://token.actions.githubusercontent.com" | jq .
 
   goreleaser:
     name: Goreleaser (gitops CLI)
     needs: [build, vars]
-    if: needs.vars.outputs.run_release_jobs == 'true'
+    if: ${{ !failure() && needs.vars.outputs.run_release_jobs == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -341,7 +354,7 @@ jobs:
         run: cat .goreleaser.brew.yml >> .goreleaser.yml
 
       - name: Install cosign
-        uses: sigstore/cosign-installer@v4
+        uses: sigstore/cosign-installer@v4.0.0
 
       - uses: goreleaser/goreleaser-action@v6
         with:
