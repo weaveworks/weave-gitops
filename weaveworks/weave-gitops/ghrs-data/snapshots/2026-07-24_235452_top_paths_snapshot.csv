@@ -1,0 +1,11 @@
+url_path,views_total,views_unique
+/weaveworks/weave-gitops,141,116
+/weaveworks/weave-gitops/blob/main/doc/img/01-workloads.png,25,22
+/weaveworks/weave-gitops/blob/main/doc/img/02-workload-detail.png,16,15
+/weaveworks/weave-gitops/blob/main/doc/img/03-graph.png,13,12
+/weaveworks/weave-gitops/issues,8,7
+/weaveworks/weave-gitops/releases,7,5
+/weaveworks/weave-gitops/blob/main/doc/img/04-yaml.png,6,6
+/weaveworks/weave-gitops/blob/main/doc/img/06-runtime.png,6,5
+/weaveworks/weave-gitops/blob/main/doc/img/05-sources.png,5,5
+/weaveworks/weave-gitops/blob/main/charts/gitops-server/templates/rbac.yaml,4,3
