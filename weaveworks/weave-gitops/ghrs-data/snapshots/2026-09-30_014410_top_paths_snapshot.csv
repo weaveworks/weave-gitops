@@ -1,0 +1,11 @@
+url_path,views_total,views_unique
+/weaveworks/weave-gitops,173,129
+/weaveworks/weave-gitops/tree/main/charts/gitops-server,25,8
+/weaveworks/weave-gitops/blob/main/charts/gitops-server/values.yaml,20,9
+/weaveworks/weave-gitops/blob/main/doc/img/01-workloads.png,17,15
+/weaveworks/weave-gitops/tree/main/charts/gitops-server/templates,14,3
+/weaveworks/weave-gitops/blob/main/doc/img/02-workload-detail.png,13,11
+/weaveworks/weave-gitops/blob/main/doc/img/03-graph.png,11,9
+/weaveworks/weave-gitops/issues,10,10
+/weaveworks/weave-gitops/releases,9,8
+/weaveworks/weave-gitops/blob/main/charts/gitops-server/templates/oidc-auth-secret.yaml,9,1
